@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             _leaveOpen = false;
+            fileName = fileName.SanitizeFileName();
             _stream = new FileStream(fileName, FileMode.Open);
             try
             {

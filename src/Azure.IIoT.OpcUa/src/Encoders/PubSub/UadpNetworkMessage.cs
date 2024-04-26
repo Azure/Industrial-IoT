@@ -765,7 +765,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="isChunkMessage"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         protected void WriteNetworkMessageHeaderFlags(BinaryEncoder encoder, bool isChunkMessage)
         {
             if (isChunkMessage)
@@ -788,8 +788,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 if (PublisherId == null)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-        "NetworkMessageHeader cannot be encoded. PublisherId is null but it is expected to be encoded.");
+                    throw new EncodingException("NetworkMessageHeader cannot be encoded. PublisherId " +
+                        "is null but it is expected to be encoded.");
                 }
 
                 switch (ExtendedFlags1 & ExtendedFlags1EncodingMask.PublisherIdTypeBits)
@@ -1112,7 +1112,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// message returns true</param>
         /// <param name="isChunkMessage">Sets chunk mode on or off</param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         protected bool TryWritePayload(BinaryEncoder encoder, int maxMessageSize,
             ref Span<Message> writeSpan, ref Span<Message> remainingChunks, ref bool isChunkMessage)
         {
@@ -1131,7 +1131,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (writeSpan.Length <= 1)
                 {
                     // Nothing fits. We should not be here - fail catastrophically...
-                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         "Max message size too small for header for single message");
                 }
 

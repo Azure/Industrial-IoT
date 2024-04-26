@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 out var typeName, out var typeId);
             if (typeName == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                throw new EncodingException(
                     "Failed to encode a encodeable without system type");
             }
             using var _ = Record(fieldName, fullName ?? typeName, typeId: typeId);
@@ -603,7 +603,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="builtInType"></param>
         /// <param name="valueRanks"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private IDisposable Add(string? fieldName, BuiltInType builtInType,
             SchemaRank valueRanks = SchemaRank.Scalar)
         {
@@ -633,8 +633,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "No record schema to push to {0}", Schema.ToJson());
+                throw new EncodingException("No record schema to push to",
+                    Schema.ToJson());
             }
             return new Skip(this);
         }
@@ -733,7 +733,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="schema"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private Pop PushSchema(string? fieldName, Schema schema)
         {
             if (!_schemas.TryPeek(out var top))
@@ -755,8 +755,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                    "No record schema to push to. Current schema {0}", Schema.ToJson());
+                throw new EncodingException("No record schema to push to.",
+                    Schema.ToJson());
             }
             _schemas.Push(schema);
             return new Pop(this);

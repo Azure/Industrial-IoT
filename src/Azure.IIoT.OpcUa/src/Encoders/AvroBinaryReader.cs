@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 case 1:
                     return true;
                 default:
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                    throw new DecodingException(
                         "Not a boolean value in the stream: " + b);
             }
         }
@@ -95,8 +95,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var n = Stream.Read(buffer);
                 if (n <= 0)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadEndOfStream,
-                        "End of stream reached");
+                    throw new DecodingException(StatusCodes.BadEndOfStream,
+                        "End of stream reached.");
                 }
                 buffer = buffer[n..];
             }
@@ -128,8 +128,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             if (MaxBytesLength > 0 && MaxBytesLength < length)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxByteStringLength {0} < {1}", MaxBytesLength, length);
+                throw new DecodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxByteStringLength {MaxBytesLength} < {length}.");
             }
 
             var buffer = new byte[(int)length];
@@ -148,8 +148,8 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             if (MaxStringLength > 0 && MaxStringLength < length)
             {
-                throw ServiceResultException.Create(StatusCodes.BadEncodingLimitsExceeded,
-                    "MaxStringLength {0} < {1}", MaxStringLength, length);
+                throw new DecodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxStringLength {MaxStringLength} < {length}.");
             }
 
             if (length <= 256)
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     var bytes = binaryReader.ReadBytes((int)length);
                     if (bytes.Length != length)
                     {
-                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
+                        throw new DecodingException(
                             "Could not read as many bytes from stream as expected!");
                     }
                     return GetString(bytes);
@@ -206,8 +206,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return (byte)n;
             }
-            throw ServiceResultException.Create(
-                StatusCodes.BadEndOfStream, "Stream reached its end");
+            throw new DecodingException(StatusCodes.BadEndOfStream,
+                "Stream reached its end.");
         }
     }
 }

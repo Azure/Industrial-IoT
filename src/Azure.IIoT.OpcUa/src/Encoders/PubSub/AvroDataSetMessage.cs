@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 else
                 {
-                    Encode(typeName);
+                    Encode(currentSchema.Name);
                 }
             }
             else

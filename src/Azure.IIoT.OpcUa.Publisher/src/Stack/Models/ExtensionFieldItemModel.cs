@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Furly.Extensions.Serializers;
+    using Opc.Ua;
 
     /// <summary>
     /// Extension field template
@@ -16,5 +17,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Value of the extension field to inject
         /// </summary>
         public required VariantValue Value { get; set; }
+
+        /// <summary>
+        /// Built in type of the extension field
+        /// </summary>
+        public required BuiltInType BuiltInType { get; set; }
     }
 }

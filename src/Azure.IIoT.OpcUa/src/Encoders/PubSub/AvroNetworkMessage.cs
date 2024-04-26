@@ -389,8 +389,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return;
             }
 
+            var typeName = nameof(AvroNetworkMessage);
+            if (encoder is AvroEncoder schemas)
+            {
+                var schema = schemas.Current;
+                if (schema is ArraySchema arr)
+                {
+                    schema = arr.ItemSchema;
+                }
+                typeName = schema.Name;
+            }
+
             // Write network message
-            encoder.WriteObject(null, nameof(AvroNetworkMessage), () =>
+            encoder.WriteObject(null, typeName, () =>
             {
                 if (HasNetworkMessageHeader)
                 {

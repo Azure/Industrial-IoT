@@ -27,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Publisher module host process
@@ -216,7 +217,7 @@ Options:
             {
                 if (dumpMessages != null)
                 {
-                    hostingTask = DumpMessagesAsync(dumpMessages, loggerFactory,
+                    hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, loggerFactory,
                         TimeSpan.FromMinutes(2), scaleunits, cts.Token);
                 }
                 else if (!withServer)
@@ -403,13 +404,14 @@ Options:
         /// Dump messages
         /// </summary>
         /// <param name="messageMode"></param>
+        /// <param name="publishProfile"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="duration"></param>
         /// <param name="scaleunits"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private static async Task DumpMessagesAsync(string messageMode, ILoggerFactory loggerFactory,
-            TimeSpan duration, uint scaleunits, CancellationToken ct)
+        private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,
+            ILoggerFactory loggerFactory, TimeSpan duration, uint scaleunits, CancellationToken ct)
         {
             try
             {
@@ -440,17 +442,25 @@ Options:
                         continue;
                     }
                     Directory.CreateDirectory(outputFolder);
-                    await DumpPublishingProfiles(outputFolder, messageProfile).ConfigureAwait(false);
+                    await DumpPublishingProfiles(outputFolder, messageProfile, publishProfile).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
 
             // Dump message profile for all publishing profiles
-            async Task DumpPublishingProfiles(string rootFolder, MessagingProfile messageProfile)
+            async Task DumpPublishingProfiles(string rootFolder, MessagingProfile messageProfile, string? profile)
             {
                 foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
                 {
                     var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
+                    if (profile == null && publishProfileName.StartsWith("Unified", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    if (profile != null && !publishProfileName.Equals(profile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
                     var logger = loggerFactory.CreateLogger(publishProfileName);
                     var outputFolder = Path.Combine(rootFolder, publishProfileName);
                     if (Directory.Exists(outputFolder) && Directory.EnumerateFiles(outputFolder).Any())
@@ -471,18 +481,10 @@ Options:
                 {
                     using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
                         ct, runtime.Token);
-                    Console.WriteLine($@"
-=============================================================================
-Start messaging profile {messageProfile} for {publishProfile}...
-=============================================================================
-");
+                    var name = Path.GetFileNameWithoutExtension(publishProfile);
+                    Console.Title = $"Dumping {messageProfile} for {name}...";
                     await RunAsync(loggerFactory, publishProfile, messageProfile,
                         outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
-                    Console.WriteLine($@"
-=============================================================================
-Completed messaging profile {messageProfile} for {publishProfile}.
-=============================================================================
-");
                 }
                 catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
             }
@@ -501,13 +503,17 @@ Completed messaging profile {messageProfile} for {publishProfile}.
                         return;
                     }
 
-                    // Check whether the profile overrides the messaging mode
+                    //
+                    // Check whether the profile overrides the messaging mode, then set it to the desired
+                    // one regardless of whether it will work or not
+                    //
                     var check = await File.ReadAllTextAsync(publishedNodesFilePath, ct).ConfigureAwait(false);
                     if (check.Contains("\"MessagingMode\":", StringComparison.InvariantCulture) &&
                         !check.Contains($"\"MessagingMode\": \"{messageProfile.MessagingMode}\"",
                         StringComparison.InvariantCulture))
                     {
-                        return;
+                        check = ReplacePropertyValue(check, "MessagingMode", messageProfile.MessagingMode.ToString());
+                        await File.WriteAllTextAsync(publishedNodesFilePath, check, ct).ConfigureAwait(false);
                     }
 
                     var arguments = new List<string>
@@ -527,7 +533,6 @@ Completed messaging profile {messageProfile} for {publishProfile}.
                     await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
                 }
             }
-
         }
 
         private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,
@@ -707,6 +712,13 @@ Completed messaging profile {messageProfile} for {publishProfile}.
 
             private readonly CancellationTokenSource _cts;
             private readonly Task _server;
+        }
+
+        public static string ReplacePropertyValue(string json, string propertyName, string newValue)
+        {
+            var pattern = $"\"{propertyName}\"\\s*:\\s*\"[^\"]*\"";
+            var replacement = $"\"{propertyName}\": \"{newValue}\"";
+            return Regex.Replace(json, pattern, replacement);
         }
     }
 }

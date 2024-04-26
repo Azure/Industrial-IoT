@@ -75,6 +75,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
+                if (Template.BuiltInType != fieldItem.Template.BuiltInType)
+                {
+                    return false;
+                }
                 if (Template.Value != fieldItem.Template.Value)
                 {
                     return false;
@@ -88,20 +92,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return HashCode.Combine(base.GetHashCode(),
                     nameof(Field),
                     Template.Name ?? string.Empty,
+                    Template.BuiltInType,
                     Template.Value);
             }
 
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Field '{Template.Name}' with value {Template.Value}.";
+                return $"Field '{Template.Name}' with value {Template.Value} ({Template.BuiltInType}).";
             }
 
             /// <inheritdoc/>
             public override bool AddTo(Subscription subscription,
                 IOpcUaSession session)
             {
-                _value = new DataValue(session.Codec.Decode(Template.Value, BuiltInType.Variant));
+                _value = new DataValue(session.Codec.Decode(Template.Value, Template.BuiltInType));
                 Valid = true;
                 return true;
             }

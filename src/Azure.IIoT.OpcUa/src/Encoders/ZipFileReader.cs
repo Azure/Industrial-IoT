@@ -27,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 fileName += ZipFileWriter.FileSuffix;
             }
+            fileName = fileName.SanitizeFileName();
             var stream = new FileStream(fileName, FileMode.Open);
             try
             {

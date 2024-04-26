@@ -54,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (schema?.Id != null)
             {
+                fileName = fileName.SanitizeFileName();
                 var file = _files.GetOrAdd(fileName + schema.Id + contentType,
                     _ => AvroFile.Create(fileName, schema.Schema, metadata, _logger,
                         contentType.Equals(ContentType.AvroGzip,
@@ -126,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 IReadOnlyDictionary<string, string?>? metadata, ILogger logger,
                 bool isGzip = false)
             {
+                fileName = fileName.ReplaceLineEndings();
                 var fs = new FileStream(fileName + ".avro", FileMode.OpenOrCreate);
                 return new AvroFile(fileName, fs, schema, metadata, logger, false, isGzip);
             }
@@ -162,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     _blockCount++;
 
-                    if (_blockStream.Position >= 8000)
+                    if (_blockStream.Position >= kBlockSize)
                     {
                         WriteBlocks();
                     }
@@ -263,6 +265,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             private readonly bool _isGzip;
         }
 
+        private const int kBlockSize = 16000;
         internal static readonly RecyclableMemoryStreamManager kStreams = new();
         private readonly ConcurrentDictionary<string, AvroFile> _files = new();
         private readonly ILogger _logger;

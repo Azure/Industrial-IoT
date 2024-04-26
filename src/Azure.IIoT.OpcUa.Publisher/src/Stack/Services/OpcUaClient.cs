@@ -994,7 +994,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private const int kMinPublishRequestCount = 3;
+        private const int kMinPublishRequestCount = 2;
         private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
@@ -1035,9 +1035,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     desiredRequests = minPublishRequests;
                 }
             }
+
             session.MinPublishRequestCount = desiredRequests;
 
-            var additionalRequests = desiredRequests - GoodPublishRequestCount;
+            var currently = OutstandingRequestCount;
+            var additionalRequests = desiredRequests - currently;
             if (additionalRequests <= 0)
             {
                 return;
@@ -1045,7 +1047,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger.LogDebug(
                 "Ensuring publish request count {Count} is {Desired} requests.",
-                GoodPublishRequestCount, desiredRequests);
+                currently, desiredRequests);
 
             // Queue requests
             for (var i = 0; i < additionalRequests; i++)
@@ -1199,7 +1201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             switch (e.Status.Code)
             {
                 case StatusCodes.BadTooManyPublishRequests:
-                    var limit = GoodPublishRequestCount;
+                    var limit = GoodPublishRequestCount - 1;
                     var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
                     if (minPublishRequests <= 0)
                     {
@@ -1323,15 +1325,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // start reconnect sequence on communication error.
+                Interlocked.Increment(ref _keepAliveCounter);
                 if (ServiceResult.IsBad(e.Status))
                 {
+                    _keepAliveCounter = 0;
                     TriggerReconnect(e.Status);
 
                     _logger.LogInformation(
                         "Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
                         e.Status, e.CurrentTime, e.Status);
                 }
-                else
+                else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
                 {
                     EnsureMinimumNumberOfPublishRequestsQueued();
                 }
@@ -1745,6 +1749,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_client_connectivity_state",
                 () => new Measurement<int>((int)_lastState, _metrics.TagList),
                 description: "Client connectivity state.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_client_keep_alive_counter",
+                () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
+                description: "Number of successful keep alives since last keep alive error.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
                 description: "Number of client managed subscriptions.");
@@ -1786,6 +1793,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _refCount;
         private int? _maxPublishRequests;
         private int _publishTimeoutCounter;
+        private int _keepAliveCounter;
         private bool _traceMode;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();

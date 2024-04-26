@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -352,6 +353,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Order = order,
                 Name = extensionField.DataSetFieldName,
                 Value = extensionField.Value,
+                BuiltInType = (BuiltInType?)extensionField.MetaData?.BuiltInType
+                    ?? BuiltInType.Variant,
                 Context = configure(null) // TODO
             };
         }

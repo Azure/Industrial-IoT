@@ -243,8 +243,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             catch (XmlException ex)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    ex, "Xml element invalid");
+                throw new DecodingException("Xml element invalid", ex);
             }
             return document.DocumentElement!;
         }
@@ -358,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
                     {
-                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        throw new DecodingException(
                             $"Cannot decode unknown variant union field {fieldId}.");
                     }
                     var (valueRank, builtInType) = _variantUnionFieldIds[fieldId];
@@ -413,7 +412,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     if (variants == null || variants.Count != fieldNames.Length)
                     {
-                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        throw new DecodingException(
                             "Unexpected number of fields in data set");
                     }
                     for (var index = 0; index < fieldNames.Length; index++)
@@ -433,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     if (dataValues == null || dataValues.Count != fieldNames.Length)
                     {
-                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        throw new DecodingException(
                             "Unexpected number of fields in data set");
                     }
                     for (var index = 0; index < fieldNames.Length; index++)
@@ -464,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (Activator.CreateInstance(systemType) is not IEncodeable encodeable)
             {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                throw new DecodingException(
                     $"Cannot decode type '{systemType.FullName}'.");
             }
 
@@ -708,7 +707,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
                 return new Matrix(array, builtInType, dimensions.ToArray()).ToArray();
             }
-            throw new ServiceResultException(StatusCodes.BadDecodingError,
+            throw new DecodingException(
                 "Unexpected null or empty Dimensions for multidimensional matrix.");
         }
 
@@ -718,13 +717,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="depth"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         protected virtual DiagnosticInfo ReadDiagnosticInfo(string? fieldName, int depth)
         {
             if (depth >= DiagnosticInfo.MaxInnerDepth)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                    "Maximum nesting level of InnerDiagnosticInfo was exceeded");
+                throw new DecodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    "Maximum nesting level of InnerDiagnosticInfo was exceeded.");
             }
             CheckAndIncrementNestingLevel();
             try
@@ -775,7 +774,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     case 1:
                         return reader(fieldName);
                     default:
-                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        throw new DecodingException(
                             $"Unexpected union discriminator {id}.");
                 }
             });
@@ -820,7 +819,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <typeparam name="T"></typeparam>
         /// <param name="reader"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private List<T> ReadArray<T>(Func<T> reader)
         {
             var result = new List<T>();
@@ -831,8 +830,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (newLength < 0 || newLength > int.MaxValue ||
                     (Context.MaxArrayLength > 0 && Context.MaxArrayLength < newLength))
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                        $"MaxArrayLength {Context.MaxArrayLength} < {length}");
+                    throw new DecodingException(StatusCodes.BadEncodingLimitsExceeded,
+                        $"MaxArrayLength {Context.MaxArrayLength} < {length}.");
                 }
                 result.EnsureCapacity((int)newLength);
                 for (var i = 0; i < length; i++)
@@ -899,10 +898,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="unionId"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         protected virtual IEncodeable ReadEncodeableInExtensionObject(int unionId)
         {
-            throw new ServiceResultException(StatusCodes.BadDecodingError,
+            throw new DecodingException(
                 "Cannot decode extensible object structures without schema");
         }
 
@@ -911,7 +910,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         protected virtual ExtensionObject ReadEncodedDataType(string? fieldName)
         {
             var typeId = ReadNodeId("TypeId");
@@ -921,7 +920,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expandedTypeId = NodeId.ToExpandedNodeId(typeId, Context.NamespaceUris);
             if (!NodeId.IsNull(typeId) && NodeId.IsNull(expandedTypeId))
             {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                throw new DecodingException(
                     "Cannot de-serialized extension objects if the NamespaceUri " +
                     $"is not in the NamespaceTable: Type = {typeId}");
             }
@@ -973,7 +972,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="builtInType"></param>
         /// <param name="valueRank"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         protected virtual Variant ReadVariantValue(BuiltInType builtInType,
             SchemaRank valueRank = SchemaRank.Scalar)
         {
@@ -1001,7 +1000,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 dimensions, array.Length, Context.MaxArrayLength);
             if (!valid || (matrixLength != array.Length))
             {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                throw new DecodingException(
                     "ArrayDimensions does not match with the ArrayLength " +
                     "in Variant object.");
             }
@@ -1014,7 +1013,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="builtInType"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         protected Variant ReadScalar(string? fieldName, BuiltInType builtInType)
         {
             var value = new Variant();
@@ -1103,7 +1102,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     value.Set(ReadDataValue(fieldName));
                     break;
                 default:
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    throw new DecodingException(
                         $"Cannot decode unknown type in Variant object (0x{builtInType:X2}).");
             }
             return value;
@@ -1117,7 +1116,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="systemType"></param>
         /// <param name="encodeableTypeId"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         protected Array? ReadArray(string? fieldName, BuiltInType builtInType,
             Type? systemType = null, ExpandedNodeId? encodeableTypeId = null)
         {
@@ -1194,7 +1193,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         return ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
                     }
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    throw new DecodingException(
                         $"Cannot decode unknown type in Array object with BuiltInType: {builtInType}.");
             }
         }
@@ -1294,7 +1293,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="namespaceIndex"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private NodeId ReadNodeId(ushort namespaceIndex)
         {
             const string kIdentifierName = "Identifier";
@@ -1311,8 +1310,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     case IdType.Opaque:
                         return new NodeId(ReadByteString(kIdentifierName), namespaceIndex);
                     default:
-                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                            "Unknown node id type");
+                        throw new DecodingException("Unknown node id type");
                 }
             });
         }
@@ -1320,15 +1318,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Test and increment the nesting level.
         /// </summary>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private void CheckAndIncrementNestingLevel()
         {
             if (_nestingLevel > Context.MaxEncodingNestingLevels)
             {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadEncodingLimitsExceeded,
-                    "Maximum nesting level of {0} was exceeded",
-                    Context.MaxEncodingNestingLevels);
+                throw new DecodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"Maximum nesting level of {Context.MaxEncodingNestingLevels} was exceeded.");
             }
             _nestingLevel++;
         }

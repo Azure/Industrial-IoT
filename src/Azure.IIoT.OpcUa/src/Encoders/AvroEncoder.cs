@@ -217,9 +217,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             // Should be the same
             if (!currentSchema.IsDataValue())
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. Schema {currentSchema.Fullname} is not " +
-                    $"as expected {currentSchema.ToJson()}.\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"Schema {currentSchema.Fullname} is not " +
+                    $"as expected {currentSchema.ToJson()}.", Schema.ToJson());
             }
 
             // Write type per schema
@@ -291,28 +291,28 @@ namespace Azure.IIoT.OpcUa.Encoders
                         {
                             if (SchemaUtils.GetRank(value.TypeInfo.ValueRank) != rank)
                             {
-                                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                                    $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
+                                throw new EncodingException(
+                                    $"Wrong schema {currentSchema.ToJson()} " +
                                     $"of field {fieldName ?? "unnamed"} for variant has wrong " +
-                                    $"rank {rank} vs. {value.TypeInfo} .\n{Schema.ToJson()}");
+                                    $"rank {rank} vs. {value.TypeInfo}.", Schema.ToJson());
                             }
                             if (builtInType == BuiltInType.Enumeration) // or int?
                             {
                                 if (value.TypeInfo.BuiltInType != BuiltInType.Int32 &&
                                     value.TypeInfo.BuiltInType != BuiltInType.Enumeration)
                                 {
-                                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                                        $"Failed to encode. Schema {currentSchema.ToJson()} " +
+                                    throw new EncodingException(
+                                        $"Schema {currentSchema.ToJson()} " +
                                         $"of field {fieldName ?? "unnamed"} should be enumeration" +
-                                        $"or int32 to support {value.TypeInfo}.\n{Schema.ToJson()}");
+                                        $"or int32 to support {value.TypeInfo}.", Schema.ToJson());
                                 }
                             }
                             else if (value.TypeInfo.BuiltInType != builtInType)
                             {
-                                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                                    $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
+                                throw new EncodingException(
+                                    $"Wrong schema {currentSchema.ToJson()} " +
                                     $"of field {fieldName ?? "unnamed"} for variant of type" +
-                                    $"{value.TypeInfo} .\n{Schema.ToJson()}");
+                                    $"{value.TypeInfo}.", Schema.ToJson());
                             }
                         }
 
@@ -332,10 +332,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                         return;
                     }
 
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Failed to encode. Variant schema {currentSchema.ToJson()} of " +
+                    throw new EncodingException(
+                        $"Variant schema {currentSchema.ToJson()} of " +
                         $"field {fieldName ?? "unnamed"} is neither variant nor built " +
-                        $"in type schema.\n{Schema.ToJson()}");
+                        "in type schema.", Schema.ToJson());
                 }
             }
         }
@@ -364,9 +364,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 else
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Invalid schema {currentSchema.ToJson()}. " +
-                        $"Enumerated values must be enums.\n{Schema.ToJson()}");
+                        "Enumerated values must be enums.", Schema.ToJson());
                 }
             }
         }
@@ -598,16 +598,16 @@ namespace Azure.IIoT.OpcUa.Encoders
                         return;
                     }
 
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Failed to encode. Wrong schema {currentSchema.ToJson()} " +
-                        $"of field {fieldName ?? "unnamed"} to write variants.\n" +
-                        $"{Schema.ToJson()}");
+                    throw new EncodingException(
+                        $"Wrong schema {currentSchema.ToJson()} " +
+                        $"of field {fieldName ?? "unnamed"} to write variants.",
+                        Schema.ToJson());
                 }
 
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. Variant schema {currentSchema.ToJson()} of " +
+                throw new EncodingException(
+                    $"Variant schema {currentSchema.ToJson()} of " +
                     $"field {fieldName ?? "unnamed"} is neither variant collection " +
-                    $"nor built in type collection schema. .\n{Schema.ToJson()}");
+                    "nor built in type collection schema.", Schema.ToJson());
             }
         }
 
@@ -662,9 +662,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 else
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Invalid schema {currentSchema.ToJson()}. " +
-                        $"Enumerated values must be arrays of enums.\n{Schema.ToJson()}");
+                        "Enumerated values must be arrays of enums.", Schema.ToJson());
                 }
             }
         }
@@ -680,9 +680,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 if (currentSchema is not RecordSchema r)
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Invalid schema {currentSchema.ToJson()}. " +
-                        $"Data sets must be records or maps.\n{Schema.ToJson()}");
+                        "Data sets must be records or maps.", Schema.ToJson());
                 }
 
                 // Serialize the fields in the schema
@@ -704,7 +704,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="dataValue"></param>
         /// <param name="schema"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void WriteDataSetField(string? fieldName, DataValue? dataValue,
             Schema schema)
         {
@@ -726,9 +726,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 if (currentSchema is not RecordSchema fieldRecord)
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Invalid schema {currentSchema.ToJson()}." +
-                        $"Data set fields must be records.\n{Schema.ToJson()}");
+                        "Data set fields must be records.", Schema.ToJson());
                 }
 
                 // The field is a record that should contain the data value fields
@@ -763,17 +763,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                                     value.StatusCode);
                                 break;
                             default:
-                                throw new ServiceResultException(
-                                    StatusCodes.BadEncodingError,
+                                throw new EncodingException(
                                     $"Unknown field {dvf.Name} in dataset field.");
                         }
                     }
                     return;
                 }
 
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Invalid schema {Current.ToJson()}." +
-                    $"Data set fields must be records.\n{Schema.ToJson()}");
+                // Write value as variant
+                WriteWithSchema(fieldRecord, () => WriteVariant(null, value.WrappedValue));
             }
         }
 
@@ -783,13 +781,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             var currentSchema = GetFieldSchema(fieldName);
             if (currentSchema is not RecordSchema r)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Objects must be records or maps.\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    "Objects must be records or maps.", Schema.ToJson());
             }
             if (typeName != null && r.Name != typeName)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Object has type {r.Name} but expected {typeName}\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"Object has type {r.Name} but expected {typeName}.", Schema.ToJson());
             }
             base.WriteObject(fieldName, typeName, writer);
             ValidatedPop(currentSchema);
@@ -817,15 +815,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             var currentSchema = GetFieldSchema(null);
             if (!currentSchema.IsBuiltInType(out var expectedType, out var rank))
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. Schema {currentSchema.ToJson()} is not " +
-                    $"an array schema.\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"Schema {currentSchema.ToJson()} is not an array schema.",
+                    Schema.ToJson());
             }
             if (rank != SchemaUtils.GetRank(valueRank) || builtInType != expectedType)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. Schema {currentSchema.ToJson()} does " +
-                    $"not match expected rank and built in type.\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"Schema {currentSchema.ToJson()} does not match expected rank and type.",
+                    Schema.ToJson());
             }
             base.WriteArray(fieldName, array, valueRank, builtInType);
             ValidatedPop(currentSchema);
@@ -855,6 +853,22 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        protected override void WriteNull(BuiltInType builtInType, SchemaRank valueRank)
+        {
+            var currentSchema = GetFieldSchema(null);
+            // Should be the same
+            if (currentSchema.Tag != Schema.Type.Null &&
+                (!currentSchema.IsBuiltInType(out _, out var rank) || rank != valueRank))
+            {
+                throw new EncodingException(
+                   $"Schema {currentSchema.Fullname} is not expected variant null type.",
+                   Schema.ToJson());
+            }
+            base.WriteNull(builtInType, valueRank);
+            ValidatedPop(currentSchema);
+        }
+
+        /// <inheritdoc/>
         protected override void WriteNullable<T>(string? fieldName, T? value,
             Action<string?, T> writer) where T : class
         {
@@ -864,9 +878,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (Current is not UnionSchema u ||
                     u.Count != 2 || u.Schemas[0].Tag != Schema.Type.Null)
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"Failed to encode. Union schema {Current.ToJson()} of nullable " +
-                        $"field {fieldName ?? "unnamed"} does not match.\n{Schema.ToJson()}");
+                    throw new EncodingException(
+                        $"Union schema {Current.ToJson()} of nullable " +
+                        $"field {fieldName ?? "unnamed"} does not match.", Schema.ToJson());
                 }
                 writer(f, v);
             });
@@ -880,9 +894,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var currentSchema = GetFieldSchema(fieldName);
             if (currentSchema is not UnionSchema)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                throw new EncodingException(
                     $"Union field {fieldName ?? "unnamed"} must be a union " +
-                    $"schema but is {currentSchema.ToJson()} schema.\n{Schema.ToJson()}");
+                    $"schema but is {currentSchema.ToJson()} schema.", Schema.ToJson());
             }
             base.WriteUnion(fieldName, index, writer);
         }
@@ -897,8 +911,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     return u.Schemas[index];
                 }
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Union index {index} not found in union {u.ToJson()}\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"Union index {index} not found in union {u.ToJson()}.",
+                    Schema.ToJson());
             };
         }
 
@@ -908,9 +923,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var unionSchema = _schema.Pop();
             if (unionSchema is not UnionSchema)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                throw new EncodingException(
                     $"Expected union schema but got {unionSchema.ToJson()} after " +
-                    $"completing union.\n{Schema.ToJson()}");
+                    "completing union.", Schema.ToJson());
             }
             base.EndUnion();
         }
@@ -926,7 +941,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="writer"></param>
         /// <param name="valueRank"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void ValidatedWrite<T>(string? fieldName, BuiltInType builtInType,
             T value, Action<string?, T> writer, SchemaRank valueRank = SchemaRank.Scalar)
         {
@@ -946,7 +961,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="writer"></param>
         /// <param name="isFullName"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void ValidatedWrite<T>(string? fieldName, string expectedSchemaName,
             T value, Action<string?, T> writer, bool isFullName = true)
         {
@@ -957,9 +972,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var curName = isFullName ? currentSchema.Fullname : currentSchema.Name;
             if (curName != expectedSchemaName)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. Schema {currentSchema.Fullname} is not as " +
-                    $"expected {expectedSchemaName}.\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"Schema {currentSchema.Fullname} is not as " +
+                    $"expected {expectedSchemaName}.", Schema.ToJson());
             }
 
             // Write type per schema
@@ -972,15 +987,15 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="writer"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void ValidatedWriteArray(Action writer)
         {
             var currentSchema = GetFieldSchema(null);
             if (currentSchema is not ArraySchema arr)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                throw new EncodingException(
                     $"Writing array field but schema {currentSchema.ToJson()} is not " +
-                    $"array schema.\n{Schema.ToJson()}");
+                    "array schema.", Schema.ToJson());
             }
 
             writer();
@@ -1004,16 +1019,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Validate pop from stack should be expected schema
         /// </summary>
         /// <param name="expectedSchema"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void ValidatedPop(Schema expectedSchema)
         {
             // Pop array from stack
             var completedSchema = _schema.Pop();
             if (completedSchema != expectedSchema)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                throw new EncodingException(
                     $"Failed to pop schema. Expected {expectedSchema.ToJson()} " +
-                    $"but got {completedSchema.ToJson()}.\n{Schema.ToJson()}");
+                    $"but got {completedSchema.ToJson()}.", Schema.ToJson());
             }
         }
 
@@ -1022,16 +1037,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private Schema GetFieldSchema(string? fieldName)
         {
             _schema.ExpectedFieldName = fieldName;
             var current = _schema.Current;
             if (!_schema.TryMoveNext())
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingError,
-                    $"Failed to encode. No schema for field {fieldName ?? "unnamed"} " +
-                    $"found in {current.ToJson()}.\n{Schema.ToJson()}");
+                throw new EncodingException(
+                    $"No schema for field {fieldName ?? "unnamed"} " +
+                    $"found in {current.ToJson()}.", Schema.ToJson());
             }
             return _schema.Current;
         }

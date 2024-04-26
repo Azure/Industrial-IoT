@@ -19,13 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     public class JsonNetworkMessageSchemaTests
     {
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateNetworkMessageJsonSchemas(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -42,13 +36,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateJsonNetworkMessageWithNs(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -64,13 +52,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateLegacyJsonNetworkMessage(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -84,13 +66,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateMessageSchemaWithoutNetworkHeader(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -113,13 +89,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateSingleMessageSchema(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -143,13 +113,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateSingleMessageSchemaWithoutHeader(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -172,13 +136,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateRawMessageSchema(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -209,13 +167,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         [Theory]
-        [InlineData("./Resources/SingleDataWriter.json")]
-        [InlineData("./Resources/SingleEventWriter.json")]
-        [InlineData("./Resources/SingleWithExtensions.json")]
-        [InlineData("./Resources/SinglePendingAlarm.json")]
-        [InlineData("./Resources/MultiWriterWithError.json")]
-        [InlineData("./Resources/MultiDataWriter.json")]
-        [InlineData("./Resources/SingleKeepAlive.json")]
+        [MemberData(nameof(GetWriterGroupFiles))]
         public async Task CreateRawMessageSchemaReversible(string writerGroupFile)
         {
             var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
@@ -265,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented).ReplaceLineEndings();
             Assert.NotNull(json);
-#if WRITE
+#if !WRITE
             var folder = Path.Combine(".", "JsonSchema", name);
             if (!Directory.Exists(folder))
             {
@@ -277,6 +229,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var expected = await File.ReadAllTextAsync(Path.Combine(folder, Path.GetFileName(writerGroupFile)));
             Assert.Equal(expected.ReplaceLineEndings(), json);
 #endif
+        }
+
+        public static TheoryData<string> GetWriterGroupFiles()
+        {
+            var resources = Directory.GetFiles(Path.Combine(".", "Resources"), "*.json");
+            return new TheoryData<string>(resources);
         }
     }
 }

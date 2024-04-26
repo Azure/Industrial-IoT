@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -260,8 +261,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (Context.MaxByteStringLength > 0 &&
                 Context.MaxByteStringLength < value.Length)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                    $"MaxByteStringLength {Context.MaxByteStringLength} < {value.Length}");
+                throw new EncodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxByteStringLength {Context.MaxByteStringLength} < {value.Length}.");
             }
             _writer.WriteBytes(value);
         }
@@ -459,7 +460,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (!_variableUnionId.TryGetValue((valueRank, builtInType),
                     out var unionId))
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         "Invalid built in type or value rank for variant");
                 }
                 return unionId;
@@ -547,8 +548,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (Context.MaxByteStringLength > 0 &&
                 Context.MaxByteStringLength < values.Count)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                    $"MaxByteStringLength {Context.MaxByteStringLength} < {values.Count}");
+                throw new EncodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxByteStringLength {Context.MaxByteStringLength} < {values.Count}.");
             }
             // Byte array is written as byte string
             _writer.WriteBytes(values.ToArray());
@@ -830,7 +831,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                             WriteArray(fieldName, values, v => WriteEnumerated(null, v));
                             break;
                         }
-                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        throw new EncodingException(
                             "Unexpected type encountered while encoding an Enumeration Array.");
                     case BuiltInType.ExtensionObject:
                         WriteArray(fieldName, (ExtensionObject[])array, v => WriteExtensionObject(null, v));
@@ -855,7 +856,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                             WriteInt32(null, -1);
                             return;
                         }
-                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        throw new EncodingException(
                             "Unexpected type encountered while encoding an Array with " +
                             $"BuiltInType: {builtInType}");
                 }
@@ -950,7 +951,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 break;
                             }
                         }
-                        throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        throw new EncodingException(
                             "Unexpected type encountered while encoding an Enumeration Matrix.");
                     case BuiltInType.Int32:
                         {
@@ -1143,7 +1144,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 }
                                 break;
                             }
-                            throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            throw new EncodingException(
                                 "Unexpected type encountered while encoding a Matrix.");
                         }
                     case BuiltInType.DiagnosticInfo:
@@ -1166,7 +1167,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                                 }
                                 break;
                             }
-                            throw new ServiceResultException(StatusCodes.BadEncodingError,
+                            throw new EncodingException(
                                 "Unexpected type encountered while encoding a Matrix " +
                                 $"with BuiltInType: {matrix.TypeInfo.BuiltInType}");
                         }
@@ -1238,7 +1239,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="value"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         protected virtual void WriteEncodedDataType(string? fieldName, ExtensionObject value)
         {
             // write the type id.
@@ -1268,7 +1269,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 if (value.Body is IEncodeable e)
                 {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Cannot encode bodies of type '{e.GetType().FullName}' in " +
                         $"ExtensionObject unless the NamespaceUri ({typeId.NamespaceUri}) " +
                         "is in the encoder's NamespaceTable.");
@@ -1355,7 +1356,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             if (valueToEncode == null)
             {
-                WriteNull<object>(null, null);
+                WriteNull(builtInType, valueRank);
             }
             else if (valueRank == SchemaRank.Scalar)
             {
@@ -1383,11 +1384,21 @@ namespace Azure.IIoT.OpcUa.Encoders
                 .ToFrozenDictionary();
 
         /// <summary>
+        /// Write null value of variant
+        /// </summary>
+        /// <param name="builtInType"></param>
+        /// <param name="valueRank"></param>
+        protected virtual void WriteNull(BuiltInType builtInType, SchemaRank valueRank)
+        {
+            // Nothing to do
+        }
+
+        /// <summary>
         /// Write array of variant
         /// </summary>
         /// <param name="builtInType"></param>
         /// <param name="valueToEncode"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         protected virtual void WriteArray(BuiltInType builtInType, object valueToEncode)
         {
             static T[] Cast<T>(object objects)
@@ -1498,13 +1509,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                         WriteVariantArray(null, objects.Select(v => new Variant(v)).ToArray());
                         break;
                     }
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Unexpected type encountered while encoding array: {valueToEncode.GetType()}");
                 case BuiltInType.DiagnosticInfo:
                     WriteDiagnosticInfoArray(null, Cast<DiagnosticInfo>(valueToEncode));
                     break;
                 default:
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Unexpected type encountered while encoding a Variant: {builtInType}");
             }
         }
@@ -1514,7 +1525,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="builtInType"></param>
         /// <param name="valueToEncode"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         protected virtual void WriteScalar(BuiltInType builtInType, object valueToEncode)
         {
             switch (builtInType)
@@ -1600,7 +1611,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //    return;
             }
 
-            throw new ServiceResultException(StatusCodes.BadEncodingError,
+            throw new EncodingException(
                 $"Unexpected type encountered while encoding a Variant: {builtInType}");
         }
 
@@ -1614,8 +1625,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Count)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                    $"MaxArrayLength {Context.MaxArrayLength} < {values.Count}");
+                throw new EncodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxArrayLength {Context.MaxArrayLength} < {values.Count}.");
             }
             else
             {
@@ -1639,8 +1650,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < values.Length)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                    $"MaxArrayLength {Context.MaxArrayLength} < {values.Length}");
+                throw new EncodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"MaxArrayLength {Context.MaxArrayLength} < {values.Length}.");
             }
             else
             {
@@ -1705,13 +1716,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Test and increment the nesting level.
         /// </summary>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void CheckAndIncrementNestingLevel()
         {
             if (_nestingLevel > Context.MaxEncodingNestingLevels)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded,
-                    $"Maximum nesting level of {Context.MaxEncodingNestingLevels} was exceeded");
+                throw new EncodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"Maximum nesting level of {Context.MaxEncodingNestingLevels} was exceeded.");
             }
             _nestingLevel++;
         }

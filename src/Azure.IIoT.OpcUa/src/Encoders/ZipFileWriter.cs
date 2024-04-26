@@ -35,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             IReadOnlyDictionary<string, string?> metadata, IEventSchema? schema,
             string contentType, CancellationToken ct = default)
         {
+            fileName = fileName.SanitizeFileName();
             var file = _files.GetOrAdd(fileName + schema?.Id + contentType,
                 _ => ZipFile.Create(fileName, schema?.Schema,
                     GetContentType(contentType)));
@@ -82,6 +83,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             public static ZipFile Create(string fileName, string? schema,
                 ContentType contentType)
             {
+                fileName = fileName.ReplaceLineEndings();
                 var fs = new FileStream(fileName + FileSuffix, FileMode.OpenOrCreate);
                 return new ZipFile(fs, schema, false, contentType);
             }

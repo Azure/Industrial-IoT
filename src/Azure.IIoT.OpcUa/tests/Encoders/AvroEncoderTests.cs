@@ -147,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             encoder.WriteString(null, value);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
-            Assert.Throws<ServiceResultException>(() => decoder.ReadString(null));
+            Assert.Throws<DecodingException>(() => decoder.ReadString(null));
         }
 
         [Fact]

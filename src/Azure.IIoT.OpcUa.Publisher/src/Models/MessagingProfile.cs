@@ -215,6 +215,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <inheritdoc/>
         public override string ToString()
         {
+            return $"{MessagingMode}|{MessageEncoding}";
+        }
+
+        /// <inheritdoc/>
+        public string ToExpandedString()
+        {
             return new StringBuilder("| ")
                 .Append(MessagingMode)
                 .Append(" | ")
@@ -433,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 ");
             foreach (var profile in kProfiles)
             {
-                builder.Append(profile.Value.ToString());
+                builder.Append(profile.Value.ToExpandedString());
             }
             return builder.ToString();
         }

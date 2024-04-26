@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using System;
     using System.Buffers;
     using System.IO;
     using System.IO.Compression;
@@ -12,6 +13,21 @@ namespace Azure.IIoT.OpcUa.Encoders
 
     internal static class Extensions
     {
+        /// <summary>
+        /// Sanitize file name
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static string SanitizeFileName(this string fileName)
+        {
+            if (fileName.Length > 250)
+            {
+                fileName = new string(fileName.AsSpan()[..230]);
+                fileName += fileName.ToSha1Hash();
+            }
+            return fileName;
+        }
+
         /// <summary>
         /// Decompress
         /// </summary>

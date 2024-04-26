@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.Intrinsics.X86;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -1107,14 +1108,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     ComplexTypeSystem? typeSystem, CancellationToken ct)
                 {
                     Debug.Assert(_variable.Id != null);
-                    var nodeId = _variable.PublishedVariableNodeId.ToNodeId(session.MessageContext);
-                    if (Opc.Ua.NodeId.IsNull(nodeId))
-                    {
-                        _variable.State = kItemInvalid;
-                        return;
-                    }
                     try
                     {
+                        var nodeId = _variable.PublishedVariableNodeId.ToNodeId(session.MessageContext);
+                        if (Opc.Ua.NodeId.IsNull(nodeId))
+                        {
+                            _variable.State = kItemInvalid;
+                            return;
+                        }
                         var dataTypes = new NodeIdDictionary<DataTypeDescription>();
                         var fields = new FieldMetaDataCollection();
                         var node = await session.NodeCache.FetchNodeAsync(nodeId,
@@ -1139,7 +1140,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         _logger.LogDebug("{Item}: Failed to get meta data for field {Field} " +
                             "with node {NodeId} with message {Message}.", this, _variable.Id,
-                            nodeId, ex.Message);
+                            _variable.PublishedVariableNodeId, ex.Message);
+
+                        _variable.State = ex.ToServiceResultModel();
                     }
                 }
 
