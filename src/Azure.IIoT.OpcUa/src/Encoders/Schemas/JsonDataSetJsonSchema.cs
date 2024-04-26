@@ -110,7 +110,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
             GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
                 singleValue);
-
             if (omitFieldName)
             {
                 var set = new HashSet<JsonSchema>();
@@ -204,7 +203,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description, SchemaRank rank)
+        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description, 
+			SchemaRank rank)
         {
             var scalar = Definitions.Reference(description.DataTypeId
                 .GetSchemaId(description.Name, Context), id =>

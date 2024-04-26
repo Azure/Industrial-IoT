@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
 
@@ -43,6 +44,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// The actual schema
         /// </summary>
         public Schema Schema { get; }
+
+        /// <summary>
+        /// Compatibility with 2.8 when encoding and decoding
+        /// </summary>
+        public bool UseCompatibilityMode { get; }
 
         /// <summary>
         /// Get avro schema for a writer group
@@ -93,8 +99,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             ArgumentNullException.ThrowIfNull(dataSetWriters);
 
+            UseCompatibilityMode = useCompatibilityMode;
             _options = options ?? new SchemaOptions();
-            _useCompatibilityMode = useCompatibilityMode;
+
             Schema = Compile(name, dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .ToList(), networkMessageContentMask ?? 0u);
@@ -116,54 +123,94 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private Schema Compile(string? typeName, List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
-            var @namespace = GetNamespace(_options.Namespace, _options.Namespaces);
+            var HasDataSetMessageHeader = contentMask
+                .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
+            var HasNetworkMessageHeader = contentMask
+                .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
 
-            var dataSets = AvroSchema.CreateUnion(dataSetWriters
+            var dataSetMessageSchemas = dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new JsonDataSetMessageAvroSchema(writer,
-                    contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
-                    _useCompatibilityMode, _options).Schema));
+                .OrderBy(writer => writer.DataSetWriterId)
+                .Select(writer =>
+                    (writer.DataSetWriterId,
+                    new JsonDataSetMessageAvroSchema(writer, HasDataSetMessageHeader,
+                    	_options, UseCompatibilityMode, _uniqueNames).Schema))
+                .ToList();
 
-            var payloadType =
-                contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
-                (Schema)dataSets : ArraySchema.Create(dataSets);
+            if (dataSetMessageSchemas.Count == 0)
+            {
+                return AvroSchema.Null;
+            }
 
-            if ((contentMask &
-                ~(NetworkMessageContentMask.SingleDataSetMessage |
-                  NetworkMessageContentMask.DataSetMessageHeader)) == 0u)
+            Schema? payloadType;
+            if (dataSetMessageSchemas.Count > 1)
+            {
+                // Use the index of the data set writer as union index
+                var length = dataSetMessageSchemas.Max(i => i.DataSetWriterId) + 1;
+                Debug.Assert(length < ushort.MaxValue);
+                var unionSchemas = Enumerable.Range(0, length)
+                    .Select(i => (Schema)AvroSchema.CreatePlaceHolder(
+                        "Empty" + i, SchemaUtils.PublisherNamespace))
+                    .ToList();
+                dataSetMessageSchemas
+                    .ForEach(kv => unionSchemas[kv.DataSetWriterId] = kv.Schema);
+                payloadType = AvroSchema.CreateUnion(unionSchemas);
+            }
+            else
+            {
+                payloadType = dataSetMessageSchemas[0].Schema;
+            }
+
+            var HasSingleDataSetMessage = contentMask
+                .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
+            if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
                 return payloadType;
             }
+
+            payloadType = ArraySchema.Create(payloadType);
 
             var encoding = new JsonBuiltInAvroSchemas(true, false);
             var pos = 0;
             var fields = new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageId", pos++),
+                    nameof(JsonNetworkMessage.MessageId), pos++),
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "MessageType", pos++)
+                    nameof(JsonNetworkMessage.MessageType), pos++)
             };
 
             if (contentMask.HasFlag(NetworkMessageContentMask.PublisherId))
             {
                 fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    "PublisherId", pos++));
+                    nameof(JsonNetworkMessage.PublisherId), pos++));
             }
             if (contentMask.HasFlag(NetworkMessageContentMask.DataSetClassId))
             {
                 fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
-                    "DataSetClassId", pos++));
+                    nameof(JsonNetworkMessage.DataSetClassId), pos++));
             }
 
             fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                "DataSetWriterGroup", pos++));
+                nameof(JsonNetworkMessage.DataSetWriterGroup), pos++));
 
             // Now write messages - this is either one of or array of one of
-            fields.Add(new(payloadType,
-                "Messages", pos++));
+            fields.Add(new(payloadType, nameof(JsonNetworkMessage.Messages), pos++));
 
+            var ns = _options.Namespace != null ?
+                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+                SchemaUtils.PublisherNamespace;
+            return RecordSchema.Create(GetName(typeName), fields, ns);
+        }
+
+        /// <summary>
+        /// Get name of the type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
+        private string GetName(string? typeName)
+        {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
             {
@@ -172,38 +219,28 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                if (_options.EscapeSymbols)
-                {
-                    typeName = SchemaUtils.Escape(typeName);
-                }
-                typeName += "NetworkMessage";
+                typeName = SchemaUtils.Escape(typeName) + "NetworkMessage";
             }
-            if (@namespace != null)
-            {
-                @namespace = SchemaUtils.NamespaceUriToNamespace(@namespace);
-            }
-            return RecordSchema.Create(
-                typeName, fields, @namespace ?? SchemaUtils.NamespaceZeroName);
+            return MakeUnique(typeName);
         }
 
         /// <summary>
-        /// Get namespace uri
+        /// Make unique
         /// </summary>
-        /// <param name="namespace"></param>
-        /// <param name="namespaces"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        private static string? GetNamespace(string? @namespace,
-            NamespaceTable? namespaces)
+        private string MakeUnique(string name)
         {
-            if (@namespace == null && namespaces?.Count >= 1)
+            var uniqueName = name;
+            for (var index = 1; _uniqueNames.Contains(uniqueName); index++)
             {
-                // Get own namespace from namespace table if possible
-                @namespace = namespaces.GetString(1);
+                uniqueName = name + index;
             }
-            return @namespace;
+            _uniqueNames.Add(uniqueName);
+            return uniqueName;
         }
 
         private readonly SchemaOptions _options;
-        private readonly bool _useCompatibilityMode;
+        private readonly HashSet<string> _uniqueNames = new();
     }
 }

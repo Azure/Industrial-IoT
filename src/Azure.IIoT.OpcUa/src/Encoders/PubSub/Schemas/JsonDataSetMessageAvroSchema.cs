@@ -53,21 +53,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// </summary>
         /// <param name="dataSetWriter"></param>
         /// <param name="withDataSetMessageHeader"></param>
-        /// <param name="useCompatibilityMode"></param>
         /// <param name="options"></param>
+        /// <param name="useCompatibilityMode"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
-            bool withDataSetMessageHeader = true, bool useCompatibilityMode = false,
-            SchemaOptions? options = null)
+            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
+            bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
+            _dataSet = new JsonDataSetAvroSchema(dataSetWriter, options, uniqueNames);
             UseCompatibilityMode = useCompatibilityMode;
-            _dataSet = new JsonDataSetAvroSchema(dataSetWriter, options);
-            Schema = Compile(
-                dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
-                GetNamespace(_options.Namespace, _options.Namespaces),
-                dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u);
+
+            Schema = Compile(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
+                dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u, uniqueNames);
         }
 
         /// <summary>
@@ -77,23 +77,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="dataSetContentMask"></param>
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="withDataSetMessageHeader"></param>
-        /// <param name="useCompatibilityMode"></param>
         /// <param name="options"></param>
+        /// <param name="useCompatibilityMode"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetMessageAvroSchema(PublishedDataSetModel dataSet,
             DataSetContentMask? dataSetContentMask = null,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
-            bool withDataSetMessageHeader = true, bool useCompatibilityMode = false,
-            SchemaOptions? options = null)
+            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
+            bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
         {
             _options = options ?? new SchemaOptions();
             _withDataSetMessageHeader = withDataSetMessageHeader;
             UseCompatibilityMode = useCompatibilityMode;
             _dataSet = new JsonDataSetAvroSchema(null, dataSet,
-                dataSetFieldContentMask, options);
-            Schema = Compile(dataSet.Name,
-                GetNamespace(_options.Namespace, _options.Namespaces),
-                dataSetContentMask ?? 0u);
+                dataSetFieldContentMask, options, uniqueNames);
+            Schema = Compile(dataSet.Name, dataSetContentMask ?? 0u, uniqueNames);
         }
 
         /// <inheritdoc/>
@@ -106,11 +105,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// Compile the data set message schema
         /// </summary>
         /// <param name="typeName"></param>
-        /// <param name="namespace"></param>
         /// <param name="dataSetMessageContentMask"></param>
+        /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        private Schema Compile(string? typeName, string? @namespace,
-            DataSetContentMask dataSetMessageContentMask)
+        private Schema Compile(string? typeName,
+            DataSetContentMask dataSetMessageContentMask, HashSet<string>? uniqueNames)
         {
             if (!_withDataSetMessageHeader)
             {
@@ -118,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return _dataSet.Schema;
             }
 
-            var encoding = new JsonBuiltInAvroSchemas(true, false);
+            var encoding = new JsonBuiltInAvroSchemas(true, true);
             var pos = 0;
             var fields = new List<Field>();
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterId))
@@ -192,6 +191,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
             fields.Add(new(_dataSet.Schema, "Payload", pos++));
 
+            typeName = GetTypeName(typeName, uniqueNames);
+            var ns = _options.Namespace != null ?
+                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+                SchemaUtils.PublisherNamespace;
+            return RecordSchema.Create(typeName, fields, ns);
+        }
+
+        /// <summary>
+        /// Create a type name
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <param name="uniqueNames"></param>
+        /// <returns></returns>
+        private static string GetTypeName(string? typeName, HashSet<string>? uniqueNames)
+        {
             // Type name of the message record
             if (string.IsNullOrEmpty(typeName))
             {
@@ -200,35 +214,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             else
             {
-                if (_options.EscapeSymbols)
-                {
-                    typeName = SchemaUtils.Escape(typeName);
-                }
-                typeName += "DataSetMessage";
+                typeName = SchemaUtils.Escape(typeName) + "DataSetMessage";
             }
-            if (@namespace != null)
-            {
-                @namespace = SchemaUtils.NamespaceUriToNamespace(@namespace);
-            }
-            return RecordSchema.Create(
-                typeName, fields, @namespace ?? SchemaUtils.NamespaceZeroName);
-        }
 
-        /// <summary>
-        /// Get namespace uri
-        /// </summary>
-        /// <param name="namespace"></param>
-        /// <param name="namespaces"></param>
-        /// <returns></returns>
-        private static string? GetNamespace(string? @namespace,
-            NamespaceTable? namespaces)
-        {
-            if (@namespace == null && namespaces?.Count >= 1)
+            if (uniqueNames != null)
             {
-                // Get own namespace from namespace table if possible
-                @namespace = namespaces.GetString(1);
+                var uniqueName = typeName;
+                for (var index = 1; uniqueNames.Contains(uniqueName); index++)
+                {
+                    uniqueName = typeName + index;
+                }
+                uniqueNames.Add(uniqueName);
+                typeName = uniqueName;
             }
-            return @namespace;
+            return typeName;
         }
 
         private readonly JsonDataSetAvroSchema _dataSet;

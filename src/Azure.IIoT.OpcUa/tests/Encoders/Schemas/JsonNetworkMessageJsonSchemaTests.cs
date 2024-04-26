@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System.Threading.Tasks;
     using Xunit;
 
-    public class JsonNetworkMessageSchemaTests
+    public class JsonNetworkMessageJsonSchemaTests
     {
         [Theory]
         [MemberData(nameof(GetWriterGroupFiles))]

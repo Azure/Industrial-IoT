@@ -124,8 +124,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 .OrderBy(writer => writer.DataSetWriterId)
                 .Select(writer =>
                     (writer.DataSetWriterId,
-                    new AvroDataSetMessageAvroSchema(writer,
-                        HasDataSetMessageHeader, _options, _uniqueNames).Schema))
+                    new AvroDataSetMessageAvroSchema(writer, HasDataSetMessageHeader, 
+						_options, _uniqueNames).Schema))
                 .ToList();
 
             if (dataSetMessageSchemas.Count == 0)
@@ -157,14 +157,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
-#if NO_UNION_ROOT
-                // If we want to have a root schema instead of union
-                if (payloadType is UnionSchema)
-                {
-                    return payloadType.CreateRoot(
-                        typeName == null ? null : MakeUnique(typeName));
-                }
-#endif
                 return payloadType;
             }
 

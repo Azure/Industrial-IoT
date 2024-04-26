@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using static Opc.Ua.TypeInfo;
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class

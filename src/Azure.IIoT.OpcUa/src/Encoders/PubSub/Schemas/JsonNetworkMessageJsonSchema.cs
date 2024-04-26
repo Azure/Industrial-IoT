@@ -137,10 +137,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private JsonSchema? Compile(List<DataSetWriterModel> dataSetWriters,
             NetworkMessageContentMask contentMask)
         {
+            var HasDataSetMessageHeader = contentMask
+                .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
+            var HasNetworkMessageHeader = contentMask
+                .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
+
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => new JsonDataSetMessageJsonSchema(writer,
-                    contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
+                .Select(writer => 
+					new JsonDataSetMessageJsonSchema(writer, HasDataSetMessageHeader,
                         _options, Definitions, UseCompatibilityMode, _uniqueNames).Ref!)
                 .Where(r => r != null)
                 .ToList();
@@ -153,8 +158,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var dataSetMessages = dataSets.Count > 1 ?
                 dataSets.AsUnion(Definitions, id: _options.GetSchemaId(MakeUnique("DataSets"))) :
                 dataSets[0];
-            var payloadType =
-                contentMask.HasFlag(NetworkMessageContentMask.SingleDataSetMessage) ?
+
+            var HasSingleDataSetMessage = contentMask
+                .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
+            var payloadType = HasSingleDataSetMessage ?
                 dataSetMessages : dataSetMessages.AsArray();
             if ((contentMask &
                 ~(NetworkMessageContentMask.SingleDataSetMessage |
