@@ -165,8 +165,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     }
                 }
             };
-            var resolver = new DataSetWriterResolver(new[] { writer },
-                NamespaceFormat.Expanded, Log.Console<DataSetWriterResolver>());
+            var resolver = new DataSetResolver(new[] { writer },
+                NamespaceFormat.Expanded, Log.Console<DataSetResolver>());
             await resolver.ResolveAsync(session, default);
         }
 

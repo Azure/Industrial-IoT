@@ -416,7 +416,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var writerGroupPublishingSettings = writerGroup.Publishing;
-            var builder = DataSetWriterResolver.CreateTopicBuilder(writerGroup,
+            var builder = DataSetResolver.CreateTopicBuilder(writerGroup,
                 dataSetWriter, options);
 
             var dataSetMetaData = options.SchemaOptions != null ||
@@ -520,9 +520,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public async ValueTask UpdateAsync(IEnumerable<DataSetWriterModel> writers,
                 int maxItemsPerWriter, NamespaceFormat? format, CancellationToken ct)
             {
-                var resolver = new DataSetWriterResolver(writers, _writers,
+                var resolver = new DataSetResolver(writers, _writers,
                     format ?? NamespaceFormat.Uri,
-                    _loggerFactory.CreateLogger<DataSetWriterResolver>());
+                    _loggerFactory.CreateLogger<DataSetResolver>());
                 if (resolver.NeedsUpdate)
                 {
                     await _client.ExecuteAsync(Id.Connection, async context =>
