@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <inheritdoc/>
-        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description, 
+        protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description,
 			SchemaRank rank)
         {
             var scalar = Definitions.Reference(description.DataTypeId

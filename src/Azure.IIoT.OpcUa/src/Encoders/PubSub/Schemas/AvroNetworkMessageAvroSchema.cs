@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 .OrderBy(writer => writer.DataSetWriterId)
                 .Select(writer =>
                     (writer.DataSetWriterId,
-                    new AvroDataSetMessageAvroSchema(writer, HasDataSetMessageHeader, 
+                    new AvroDataSetMessageAvroSchema(writer, HasDataSetMessageHeader,
 						_options, _uniqueNames).Schema))
                 .ToList();
 

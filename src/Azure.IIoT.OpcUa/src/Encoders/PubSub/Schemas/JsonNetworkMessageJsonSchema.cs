@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
-                .Select(writer => 
+                .Select(writer =>
 					new JsonDataSetMessageJsonSchema(writer, HasDataSetMessageHeader,
                         _options, Definitions, UseCompatibilityMode, _uniqueNames).Ref!)
                 .Where(r => r != null)
