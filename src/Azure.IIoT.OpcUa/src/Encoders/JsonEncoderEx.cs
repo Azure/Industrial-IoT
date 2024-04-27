@@ -862,7 +862,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 else if (!UseAdvancedEncoding)
                 {
                     throw new EncodingException(
-                        "Cannot encode extension object without type id.");
+                       "Cannot encode extension object without type id.");
                 }
                 if (UseAdvancedEncoding)
                 {
