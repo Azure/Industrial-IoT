@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "AvroNetworkMessage",
+  "name": "NetworkMessage",
   "namespace": "org.github.microsoft.opc.publisher",
   "fields": [
     {
@@ -9,7 +9,7 @@
         "type": "array",
         "items": {
           "type": "record",
-          "name": "AvroDataSetMessage",
+          "name": "DataSetMessage",
           "namespace": "org.github.microsoft.opc.publisher",
           "fields": [
             {

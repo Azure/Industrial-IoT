@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "AvroNetworkMessage",
+  "name": "NetworkMessage",
   "namespace": "com.microsoft",
   "fields": [
     {

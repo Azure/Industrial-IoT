@@ -1,7 +1,7 @@
 [
   {
     "type": "record",
-    "name": "AvroDataSetMessage",
+    "name": "DataSetMessage",
     "namespace": "org.github.microsoft.opc.publisher",
     "fields": [
       {
@@ -396,7 +396,7 @@
   },
   {
     "type": "record",
-    "name": "AvroDataSetMessage1",
+    "name": "DataSetMessage1",
     "namespace": "org.github.microsoft.opc.publisher",
     "fields": [
       {

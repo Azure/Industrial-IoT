@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "AvroNetworkMessage",
+  "name": "NetworkMessage",
   "namespace": "com.microsoft",
   "fields": [
     {
@@ -58,7 +58,7 @@
         "type": "array",
         "items": {
           "type": "record",
-          "name": "AvroDataSetMessage",
+          "name": "DataSetMessage",
           "namespace": "com.microsoft",
           "fields": [
             {

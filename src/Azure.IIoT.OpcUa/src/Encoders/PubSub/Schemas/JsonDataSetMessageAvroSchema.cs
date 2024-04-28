@@ -5,49 +5,18 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
-    using Furly;
-    using Furly.Extensions.Messaging;
     using Opc.Ua;
     using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
-    using System.Globalization;
 
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public class JsonDataSetMessageAvroSchema : IEventSchema
+    public class JsonDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
     {
-        /// <inheritdoc/>
-        public string Type => ContentMimeType.AvroSchema;
-
-        /// <inheritdoc/>
-        public string Name => Schema.Fullname;
-
-        /// <inheritdoc/>
-        public ulong Version { get; }
-
-        /// <inheritdoc/>
-        string IEventSchema.Schema => Schema.ToString();
-
-        /// <inheritdoc/>
-        public string? Id => SchemaNormalization
-            .ParsingFingerprint64(Schema)
-            .ToString(CultureInfo.InvariantCulture);
-
-        /// <summary>
-        /// The actual schema
-        /// </summary>
-        public Schema Schema { get; }
-
-        /// <summary>
-        /// Use compatibility mode
-        /// </summary>
-        public bool UseCompatibilityMode { get; }
-
         /// <summary>
         /// Get avro schema for a writer
         /// </summary>
@@ -60,14 +29,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         public JsonDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
             bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
+            : base(dataSetWriter, new JsonDataSetAvroSchema(dataSetWriter, options, uniqueNames),
+                  withDataSetMessageHeader, options, uniqueNames, useCompatibilityMode)
         {
-            _options = options ?? new SchemaOptions();
-            _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new JsonDataSetAvroSchema(dataSetWriter, options, uniqueNames);
-            UseCompatibilityMode = useCompatibilityMode;
-
-            Schema = Compile(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
-                dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u, uniqueNames);
         }
 
         /// <summary>
@@ -86,43 +50,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             bool withDataSetMessageHeader = true, SchemaOptions? options = null,
             bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
+            : base(dataSet,
+                  new JsonDataSetAvroSchema(null, dataSet,
+                dataSetFieldContentMask, options, uniqueNames), dataSetContentMask,
+                  withDataSetMessageHeader, options, uniqueNames, useCompatibilityMode)
         {
-            _options = options ?? new SchemaOptions();
-            _withDataSetMessageHeader = withDataSetMessageHeader;
-            UseCompatibilityMode = useCompatibilityMode;
-            _dataSet = new JsonDataSetAvroSchema(null, dataSet,
-                dataSetFieldContentMask, options, uniqueNames);
-            Schema = Compile(dataSet.Name, dataSetContentMask ?? 0u, uniqueNames);
         }
 
         /// <inheritdoc/>
-        public override string? ToString()
+        protected override IEnumerable<Field> CollectFields(
+            DataSetContentMask dataSetMessageContentMask, bool useCompatibilityMode)
         {
-            return Schema.ToString();
-        }
-
-        /// <summary>
-        /// Compile the data set message schema
-        /// </summary>
-        /// <param name="typeName"></param>
-        /// <param name="dataSetMessageContentMask"></param>
-        /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        private Schema Compile(string? typeName,
-            DataSetContentMask dataSetMessageContentMask, HashSet<string>? uniqueNames)
-        {
-            if (!_withDataSetMessageHeader)
-            {
-                // Not a data set message
-                return _dataSet.Schema;
-            }
-
             var encoding = new JsonBuiltInAvroSchemas(true, true);
             var pos = 0;
             var fields = new List<Field>();
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterId))
             {
-                if (!UseCompatibilityMode)
+                if (!useCompatibilityMode)
                 {
                     fields.Add(
                         new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt16),
@@ -162,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             if (dataSetMessageContentMask.HasFlag(DataSetContentMask.Status))
             {
-                if (!UseCompatibilityMode)
+                if (!useCompatibilityMode)
                 {
                     fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode),
                         nameof(DataSetContentMask.Status), pos++));
@@ -181,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
                         nameof(DataSetContentMask.MessageType), pos++));
             }
-            if (!UseCompatibilityMode &&
+            if (!useCompatibilityMode &&
                 dataSetMessageContentMask.HasFlag(DataSetContentMask.DataSetWriterName))
             {
                 fields.Add(
@@ -189,49 +133,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                         nameof(DataSetContentMask.DataSetWriterName), pos++));
             }
 
-            fields.Add(new(_dataSet.Schema, "Payload", pos++));
-
-            typeName = GetTypeName(typeName, uniqueNames);
-            var ns = _options.Namespace != null ?
-                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
-                SchemaUtils.PublisherNamespace;
-            return RecordSchema.Create(typeName, fields, ns);
+            fields.Add(new(DataSetSchema, nameof(JsonDataSetMessage.Payload), pos++));
+            return fields;
         }
-
-        /// <summary>
-        /// Create a type name
-        /// </summary>
-        /// <param name="typeName"></param>
-        /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        private static string GetTypeName(string? typeName, HashSet<string>? uniqueNames)
-        {
-            // Type name of the message record
-            if (string.IsNullOrEmpty(typeName))
-            {
-                // Type name of the message record
-                typeName = nameof(JsonDataSetMessage);
-            }
-            else
-            {
-                typeName = SchemaUtils.Escape(typeName) + "DataSetMessage";
-            }
-
-            if (uniqueNames != null)
-            {
-                var uniqueName = typeName;
-                for (var index = 1; uniqueNames.Contains(uniqueName); index++)
-                {
-                    uniqueName = typeName + index;
-                }
-                uniqueNames.Add(uniqueName);
-                typeName = uniqueName;
-            }
-            return typeName;
-        }
-
-        private readonly JsonDataSetAvroSchema _dataSet;
-        private readonly SchemaOptions _options;
-        private readonly bool _withDataSetMessageHeader;
     }
 }

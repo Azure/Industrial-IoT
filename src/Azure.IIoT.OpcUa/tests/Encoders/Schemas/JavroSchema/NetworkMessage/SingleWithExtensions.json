@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "JsonNetworkMessage",
+  "name": "NetworkMessage",
   "namespace": "com.microsoft",
   "fields": [
     {
@@ -32,7 +32,7 @@
         "type": "array",
         "items": {
           "type": "record",
-          "name": "JsonDataSetMessage",
+          "name": "DataSetMessage",
           "namespace": "com.microsoft",
           "fields": [
             {

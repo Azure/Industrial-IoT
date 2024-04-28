@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "JsonNetworkMessage",
+  "name": "NetworkMessage",
   "namespace": "com.microsoft",
   "fields": [
     {

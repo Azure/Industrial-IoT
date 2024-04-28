@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "JsonNetworkMessage",
+  "name": "NetworkMessage",
   "namespace": "org.github.microsoft.opc.publisher",
   "fields": [
     {
@@ -22,7 +22,7 @@
         "items": [
           {
             "type": "record",
-            "name": "JsonDataSetMessage",
+            "name": "DataSetMessage",
             "namespace": "org.github.microsoft.opc.publisher",
             "fields": [
               {
@@ -269,7 +269,7 @@
           },
           {
             "type": "record",
-            "name": "JsonDataSetMessage1",
+            "name": "DataSetMessage1",
             "namespace": "org.github.microsoft.opc.publisher",
             "fields": [
               {
