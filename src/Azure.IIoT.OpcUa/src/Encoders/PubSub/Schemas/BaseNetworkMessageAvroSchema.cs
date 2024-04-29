@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public abstract class BaseNetworkMessageAvroSchema : IEventSchema
+    public abstract class BaseNetworkMessageAvroSchema : IEventSchema, IAvroSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -37,9 +37,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             .ParsingFingerprint64(Schema)
             .ToString(CultureInfo.InvariantCulture);
 
-        /// <summary>
-        /// The actual schema
-        /// </summary>
+        /// <inheritdoc/>
         public abstract Schema Schema { get; }
 
         /// <inheritdoc/>

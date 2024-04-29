@@ -530,6 +530,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 uint networkMessageContentMask, Guid dataSetClassId, string publisherId,
                                 NamespaceFormat namespaceFormat, IEventSchema? schema)
                             {
+                                Debug.Assert(encoding.HasFlag(MessageEncoding.Avro) && schema is IAvroSchema);
                                 BaseNetworkMessage currentMessage = schema is IAvroSchema s &&
                                     encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage
                                     {

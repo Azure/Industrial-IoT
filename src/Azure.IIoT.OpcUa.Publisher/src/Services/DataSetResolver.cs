@@ -131,9 +131,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var writers in _items.GroupBy(w => w.DataSetWriter,
                 Compare.Using<DataSetWriterModel>((x, y) => x?.Id == y?.Id)))
             {
-                // TODO: slice events and generated data sets to fit as many items
-                // into a split writer.
-
                 var writerId = -1;
                 foreach (var writer in Field.Telemetry
                         .Split(writers.Key, writers, maxItemsPerDataSet)

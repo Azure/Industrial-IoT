@@ -365,6 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     _knownNodes.Clear();
                 }
+                catch (OperationCanceledException) { return; }
                 catch (Exception ex)
                 {
                     HandleException(foundReferences, foundNodes, ex);

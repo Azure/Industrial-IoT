@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
@@ -18,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// Base Dataset message avro schema
     /// </summary>
-    public abstract class BaseDataSetMessageAvroSchema : IEventSchema
+    public abstract class BaseDataSetMessageAvroSchema : IEventSchema, IAvroSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -37,9 +36,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             .ParsingFingerprint64(Schema)
             .ToString(CultureInfo.InvariantCulture);
 
-        /// <summary>
-        /// The actual schema
-        /// </summary>
+        /// <inheritdoc/>
         public abstract Schema Schema { get; }
 
         /// <summary>

@@ -130,7 +130,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     IEnumerable<Field> items)
                 {
                     //
-                    // Each event data set right now generates a writer
+                    // Each event data set right now generates a writer.
+                    // This is the model that is defined in Part 14
                     //
                     // TODO: This is not that efficient as every event
                     // gets a subscription, rather we should try and have
