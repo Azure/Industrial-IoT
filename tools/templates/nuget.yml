@@ -1,13 +1,24 @@
-#
-# Pack nugets for consumption
-#
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
+# The Task 'PublishPipelineArtifact@1' has been converted to an output named 'Publish Artifact' in the templateContext section.
+# The Task 'NuGetCommand@2' has been converted to an output named 'Push' in the templateContext section.
 parameters:
   sign: 'False'
 jobs:
 - job: nuget
   displayName: Pack Nugets
-  pool:
-    vmImage: 'windows-latest'
+  templateContext:
+    outputs:
+    - output: pipelineArtifact
+      displayName: 'Publish Artifact'
+      targetPath: $(Build.ArtifactStagingDirectory)
+      artifactName: 'release__$(NBGV_NugetPackageVersion)'
+    - output: nuget
+      displayName: 'Push'
+      packageParentPath: '$(Build.ArtifactStagingDirectory)'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      nuGetFeedType: external
+      publishFeedCredentials: azureiiot-dev
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK for signing'
@@ -135,18 +146,6 @@ jobs:
         VerboseLogin: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
-  - task: PublishPipelineArtifact@1
-    displayName: 'Publish Artifact'
-    inputs:
-      path: $(Build.ArtifactStagingDirectory)
-      artifact: 'release__$(NBGV_NugetPackageVersion)'
-  - task: NuGetCommand@2
-    displayName: Push
-    inputs:
-      command: push
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
-      nuGetFeedType: external
-      publishFeedCredentials: azureiiot-dev
   - task: PublishSymbols@2
     displayName: 'Publish symbols path'
     inputs:

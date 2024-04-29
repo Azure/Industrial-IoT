@@ -1,14 +1,9 @@
-#
-# Triggering the following E2E pipelines in iotcat:
-# - Azure.Industrial-IoT-E2ETesting-Orchestrated
-# - Azure.Industrial-IoT-E2ETesting-Standalone
-#
-
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
 parameters:
   e2eOrchestratedPipelineId: 20
   e2eStandalonePipelineId: 21
   branchName: main
-
 jobs:
 - job: buildprep
   displayName: Triggering E2E tests

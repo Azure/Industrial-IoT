@@ -1,15 +1,9 @@
-#
-# Run compliance tooling
-#
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
 jobs:
 - job: sdl
   timeoutInMinutes: 360
   displayName: SDL Tasks
-  pool:
-    vmImage: 'windows-2022'
-    demands:
-    - msbuild
-    - npm
   variables:
     Codeql.Enabled: true
     runCodesignValidationInjection: false
@@ -31,17 +25,11 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-version.ps1
-  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@3
-    displayName: 'Credential Scanner'
-    inputs:
-      toolMajorVersion: V2
-      outputFormat: pre
   - task: DotNetCoreCLI@2
     displayName: Build Release
     inputs:
       command: build
       projects: 'Industrial-IoT.sln'
-      # note: /p:SDL=true is used to enable build analyzers
       arguments: '--configuration Release /p:SDL=true'
   - task: RoslynAnalyzers@3
     displayName: 'Run Roslyn Analyzers'
@@ -59,13 +47,6 @@ jobs:
       outputformat: 'text'
       outputfile: thirdpartynotices.txt
     continueOnError: true
-#  - task: Armory@2
-#    displayName: 'Run ARMory'
-#    inputs:
-#      toolVersion: Latest
-#      targetFiles: 'f|**\*.json;-|.gdn\**;'
-#      targetDirectory: '$(Build.SourcesDirectory)'
-#    continueOnError: true
   - task: BinSkim@4
     displayName: 'BinSkim'
     inputs:
@@ -129,6 +110,5 @@ jobs:
       GdnBreakGdnToolCredScan: true
       GdnExportGdnToolFortifySca: false
       GdnBreakGdnToolRoslynAnalyzers: true
-      # GdnBreakPolicyMinSev: Warning
     continueOnError: true
     condition: succeededOrFailed()

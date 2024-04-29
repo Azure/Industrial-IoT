@@ -1,11 +1,12 @@
-#
-# Build and test all on all platforms
-#
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
+# The SBOM tasks have been removed because they are not required for the unofficial template.
+# You can manually enable SBOM in the unofficial template if needed, othewise its automatically enabled when using official template. https://eng.ms/docs/cloud-ai-platform/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/features/sbom
+# The Task 'PublishPipelineArtifact@1' has been converted to an output named 'Publish Release Artifact' in the templateContext section.
+# The Task 'PublishPipelineArtifact@1' has been converted to an output named 'Publish Debug Artifact' in the templateContext section.
 jobs:
 - job: buildprep
   displayName: Prepare Build Jobs
-  pool:
-    vmImage: 'windows-latest'
   variables:
     runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
@@ -24,13 +25,21 @@ jobs:
   dependsOn: buildprep
   strategy:
     matrix: $[dependencies.buildprep.outputs['buildmatrix.jobMatrix'] ]
-  pool:
-    vmImage: $(poolImage)
   variables:
     skipComponentGovernanceDetection: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     runCodesignValidationInjection: false
+  templateContext:
+    outputs:
+    - output: pipelineArtifact
+      displayName: 'Publish Release Artifact'
+      targetPath: $(System.ArtifactsDirectory)/$(agent)_Release
+      artifactName: $(agent)_Release
+    - output: pipelineArtifact
+      displayName: 'Publish Debug Artifact'
+      targetPath: $(System.ArtifactsDirectory)/$(agent)_Debug
+      artifactName: $(agent)_Debug
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
@@ -50,32 +59,14 @@ jobs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/$(agent)_Release'
-  - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
-    displayName: 'Software BOM'
-    inputs:
-      BuildDropPath: '$(System.ArtifactsDirectory)/$(agent)_Release'
-      PackageName: '$(agent)_Release'
-  - publish: $(System.ArtifactsDirectory)/$(agent)_Release
-    displayName: 'Publish Release Artifact'
-    artifact: $(agent)_Release
   - task: DotNetCoreCLI@2
     displayName: 'Build Debug'
     inputs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Debug --output $(Build.ArtifactStagingDirectory)/$(agent)_Debug'
-  - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
-    displayName: 'Software BOM'
-    inputs:
-      BuildDropPath: '$(System.ArtifactsDirectory)/$(agent)_Debug'
-      PackageName: '$(agent)_Debug'
-  - publish: $(System.ArtifactsDirectory)/$(agent)_Debug
-    displayName: 'Publish Debug Artifact'
-    artifact: $(agent)_Debug
 - job: testprep
   displayName: Prepare Test Jobs
-  pool:
-    vmImage: 'windows-latest'
   variables:
     runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
@@ -88,7 +79,6 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/get-matrix.ps1
-      # arguments: -FileName Directory.Build.props
       arguments: -FileName azure-pipelines.yml
 - job: testall
   displayName: Run Tests for
@@ -100,8 +90,6 @@ jobs:
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     runCodesignValidationInjection: false
-  pool:
-    vmImage: $(poolImage)
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'

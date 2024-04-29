@@ -1,16 +1,13 @@
-#
-# Build and push images
-#
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
 jobs:
 - job: containers
   displayName: Build Images
-  pool:
-    vmImage: 'ubuntu-latest'
   variables:
     skipComponentGovernanceDetection: true
     runCodesignValidationInjection: false
   strategy:
-    matrix: 
+    matrix:
       linux_arm:
         os: linux
         arch: arm
@@ -46,15 +43,9 @@ jobs:
       scriptType: 'pscore'
       scriptPath: ./tools/scripts/acr-publish.ps1
       arguments: >
-        -Registry "$(ContainerRegistry)"
-        -ImageNamespace "$(ImageNamespace)"
-        -ImageTag "$(Version_Prefix)"
-        -Arch "$(arch)" 
-        -Os "$(os)"
+        -Registry "$(ContainerRegistry)" -ImageNamespace "$(ImageNamespace)" -ImageTag "$(Version_Prefix)" -Arch "$(arch)"  -Os "$(os)"
 - job: manifest
   displayName: Push Manifests
-  pool:
-    vmImage: 'windows-latest'
   dependsOn: containers
   variables:
     skipComponentGovernanceDetection: true
@@ -86,8 +77,4 @@ jobs:
       scriptType: 'ps'
       scriptPath: ./tools/scripts/acr-build.ps1
       arguments: >
-        -Registry "$(ContainerRegistry)"
-        -ImageTag "$(Version_Prefix)"
-        -ImageNamespace "$(ImageNamespace)"
-        -NoBuild
-      
+        -Registry "$(ContainerRegistry)" -ImageTag "$(Version_Prefix)" -ImageNamespace "$(ImageNamespace)" -NoBuild
