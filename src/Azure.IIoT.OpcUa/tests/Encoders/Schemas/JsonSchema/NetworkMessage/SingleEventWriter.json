@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/com.microsoft.JsonNetworkMessage",
+  "$ref": "#/definitions/com.microsoft.NetworkMessage",
   "definitions": {
     "org.opcfoundation.UA.ByteString": {
       "$id": "http://opcfoundation.org/UA/#ByteString",
@@ -249,8 +249,8 @@
       "type": "string",
       "format": "uuid"
     },
-    "com.microsoft.JsonNetworkMessage": {
-      "$id": "http://www.microsoft.com#JsonNetworkMessage",
+    "com.microsoft.NetworkMessage": {
+      "$id": "http://www.microsoft.com#NetworkMessage",
       "type": "null",
       "properties": {
         "MessageId": {

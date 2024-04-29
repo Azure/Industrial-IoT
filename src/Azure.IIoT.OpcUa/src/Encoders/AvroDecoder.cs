@@ -995,7 +995,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="reader"></param>
         private T ReadWithSchema<T>(Schema schema, Func<T> reader)
         {
-            var top = ArraySchema.Create(schema);
+            var top = schema.AsArray();
             _schema.Push(top);
             var result = reader();
             ValidatedPop(top);

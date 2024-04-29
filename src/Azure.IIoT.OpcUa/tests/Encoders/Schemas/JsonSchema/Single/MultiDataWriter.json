@@ -233,8 +233,8 @@
         }
       }
     },
-    "org.github.microsoft.opcpublisher.JsonDataSetMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage",
+    "org.github.microsoft.opcpublisher.DataSetMessage": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSetMessage",
       "type": "object",
       "properties": {
         "MetaDataVersion": {
@@ -289,8 +289,8 @@
         }
       }
     },
-    "org.github.microsoft.opcpublisher.JsonDataSetMessage1": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage1",
+    "org.github.microsoft.opcpublisher.DataSetMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSetMessage1",
       "type": "object",
       "properties": {
         "MetaDataVersion": {
@@ -319,10 +319,10 @@
       "type": "object",
       "oneOf": [
         {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetMessage"
         },
         {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage1"
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetMessage1"
         }
       ]
     }

@@ -1009,7 +1009,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="writer"></param>
         private void WriteWithSchema(Schema schema, Action writer)
         {
-            var top = ArraySchema.Create(schema);
+            var top = schema.AsArray();
             _schema.Push(top);
             writer();
             ValidatedPop(top);

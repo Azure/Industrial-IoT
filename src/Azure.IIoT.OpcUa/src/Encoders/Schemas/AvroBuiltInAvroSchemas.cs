@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 return RecordSchema.Create(nameof(BuiltInType.ExtensionObject),
                     new List<Field>
                     {
-                        new (AvroSchema.CreateUnion(RecordSchema.Create("EncodedDataType",
+                        new (AvroSchema.AsUnion(RecordSchema.Create("EncodedDataType",
                             new List<Field>
                             {
                                 new (GetSchemaForBuiltInType(BuiltInType.NodeId), "TypeId", 0),
@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
-                var idType = AvroSchema.CreateUnion(
+                var idType = AvroSchema.AsUnion(
                     GetSchemaForBuiltInType(BuiltInType.UInt32),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.Guid),
@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
-                var idType = AvroSchema.CreateUnion(
+                var idType = AvroSchema.AsUnion(
                     GetSchemaForBuiltInType(BuiltInType.UInt32),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.Guid),
@@ -464,7 +464,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             space ??= SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(name + nameof(SchemaRank.Collection), new List<Field>
             {
-                new (ArraySchema.Create(baseType), kSingleFieldName, 0)
+                new (baseType.AsArray(), kSingleFieldName, 0)
             }, space);
         }
 
@@ -500,7 +500,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 new (GetSchemaForBuiltInType(BuiltInType.Int32,
                     SchemaRank.Collection), "Dimensions", 0),
-                new (ArraySchema.Create(baseType), kSingleFieldName, 0)
+                new (baseType.AsArray(), kSingleFieldName, 0)
             }, space);
         }
 

@@ -11,71 +11,64 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Avro;
     using Opc.Ua;
     using System.Collections.Generic;
-    using System.Linq;
+    using System;
 
     /// <summary>
     /// Json Network message avro schema
     /// </summary>
-    public class JsonNetworkMessageAvroSchema : BaseNetworkMessageAvroSchema
+    public sealed class JsonNetworkMessageAvroSchema : BaseNetworkMessageAvroSchema
     {
+        /// <inheritdoc/>
+        public override Schema Schema { get; }
+
         /// <summary>
         /// Get avro schema for a writer group
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="options"></param>
         /// <param name="useCompatibilityMode"></param>
+        /// <param name="useArrayEnvelope"></param>
         /// <returns></returns>
         public JsonNetworkMessageAvroSchema(WriterGroupModel writerGroup,
-            SchemaOptions? options = null, bool useCompatibilityMode = false)
-            : this(writerGroup.DataSetWriters!, writerGroup.Name,
-                  writerGroup.MessageSettings?.NetworkMessageContentMask,
-                  options, useCompatibilityMode)
+            SchemaOptions? options = null, bool useCompatibilityMode = false,
+            bool useArrayEnvelope = false)
         {
-        }
-
-        /// <summary>
-        /// Get avro schema for a writer
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="name"></param>
-        /// <param name="networkMessageContentMask"></param>
-        /// <param name="options"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <returns></returns>
-        public JsonNetworkMessageAvroSchema(DataSetWriterModel dataSetWriter,
-            string? name = null,
-            NetworkMessageContentMask? networkMessageContentMask = null,
-            SchemaOptions? options = null, bool useCompatibilityMode = false)
-            : this(dataSetWriter.YieldReturn(), name,
-                  networkMessageContentMask, options, useCompatibilityMode)
-        {
-        }
-
-        /// <summary>
-        /// Get avro schema for a dataset encoded in json
-        /// </summary>
-        /// <param name="dataSetWriters"></param>
-        /// <param name="name"></param>
-        /// <param name="networkMessageContentMask"></param>
-        /// <param name="options"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <returns></returns>
-        internal JsonNetworkMessageAvroSchema(
-            IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
-            NetworkMessageContentMask? networkMessageContentMask,
-            SchemaOptions? options, bool useCompatibilityMode) :
-            base(dataSetWriters, name, networkMessageContentMask, options,
-                useCompatibilityMode)
-        {
+            Schema = Compile(writerGroup.Name,
+                writerGroup.DataSetWriters ?? Array.Empty<DataSetWriterModel>(),
+                GetMask(writerGroup.MessageSettings?.NetworkMessageContentMask,
+                    useCompatibilityMode, useArrayEnvelope), options);
         }
 
         /// <inheritdoc/>
-        protected override Schema GetDataSetSchema(DataSetWriterModel writer,
-            bool hasDataSetMessageHeader, SchemaOptions options,
-            HashSet<string> uniqueNames, bool useCompatibilityMode)
+        protected override Schema GetDataSetMessageSchema(DataSetWriterModel writer,
+            NetworkMessageContentMask contentMask, SchemaOptions options,
+            HashSet<string> uniqueNames)
         {
-            return new JsonDataSetMessageAvroSchema(writer, hasDataSetMessageHeader,
-                options, useCompatibilityMode, uniqueNames).Schema;
+            if (contentMask.HasFlag(NetworkMessageContentMask.MonitoredItemMessage))
+            {
+                return new MonitoredItemMessageAvroSchema(writer, contentMask,
+                    options, uniqueNames).Schema;
+            }
+            return new JsonDataSetMessageAvroSchema(writer, contentMask, options,
+                uniqueNames).Schema;
+        }
+
+        /// <inheritdoc/>
+        protected override Schema Compile(string? typeName,
+            IEnumerable<DataSetWriterModel> dataSetWriters,
+            NetworkMessageContentMask? networkMessageContentMask,
+            SchemaOptions? options)
+        {
+            var messageSchema = base.Compile(typeName, dataSetWriters,
+                networkMessageContentMask, options);
+
+            if (networkMessageContentMask.HasValue && networkMessageContentMask
+                .Value.HasFlag(NetworkMessageContentMask.UseArrayEnvelope))
+            {
+                // set array as root
+                return messageSchema.AsArray(true);
+            }
+            return messageSchema;
         }
 
         /// <inheritdoc/>
@@ -109,6 +102,29 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             // Now write messages - this is either one of or array of one of
             fields.Add(new(payloadType, nameof(JsonNetworkMessage.Messages), pos++));
             return fields;
+        }
+
+        /// <summary>
+        /// Update content maske
+        /// </summary>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="useCompatibilityMode"></param>
+        /// <param name="useArrayEnvelope"></param>
+        /// <returns></returns>
+        private static NetworkMessageContentMask GetMask(
+            NetworkMessageContentMask? networkMessageContentMask,
+            bool useCompatibilityMode, bool useArrayEnvelope)
+        {
+            var newNetworkMessageContentMask = networkMessageContentMask ?? default;
+            if (useCompatibilityMode)
+            {
+                newNetworkMessageContentMask |= NetworkMessageContentMask.UseCompatibilityMode;
+            }
+            if (useArrayEnvelope)
+            {
+                newNetworkMessageContentMask |= NetworkMessageContentMask.UseArrayEnvelope;
+            }
+            return newNetworkMessageContentMask;
         }
     }
 }

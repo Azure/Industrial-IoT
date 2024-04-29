@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonNetworkMessage",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessages",
   "definitions": {
     "org.opcfoundation.UA.NodeId": {
       "$id": "http://opcfoundation.org/UA/#NodeId",
@@ -334,130 +334,258 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.PendingAlarms": {
-      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarms",
-      "title": "PendingAlarms",
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage1",
       "type": "object",
       "properties": {
-        "ConditionClassId": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdDataValue"
         },
-        "ConditionClassName": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage2": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage2",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextDataValue"
         },
-        "ConditionSubClassId": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage3": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage3",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdArrayDataValue"
         },
-        "ConditionSubClassName": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage4": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage4",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextArrayDataValue"
         },
-        "EventId": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage5": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage5",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteStringDataValue"
         },
-        "EventType": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage6": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage6",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdDataValue"
         },
-        "LocalTime": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage7": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage7",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.TimeZoneDataTypeDataValue"
         },
-        "Message": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage8": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage8",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextDataValue"
         },
-        "ReceiveTime": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage9": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage9",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
         },
-        "Severity": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage10": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage10",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt16DataValue"
         },
-        "SourceName": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage11": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage11",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
-        "SourceNode": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage12": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage12",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdDataValue"
         },
-        "Time": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage13": {
+      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage13",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
-        }
-      }
-    },
-    "org.opcfoundation.UA.i_x61_14593": {
-      "$id": "http://opcfoundation.org/UA/#i%3d14593",
-      "type": "object",
-      "properties": {
-        "MajorVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         },
-        "MinorVersion": {
+        "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         }
-      }
+      },
+      "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.PendingAlarmsDataSetMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsDataSetMessage",
+    "org.github.microsoft.opcpublisher.MonitoredItemMessages": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessages",
       "type": "object",
-      "properties": {
-        "MetaDataVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.i_x61_14593"
+      "oneOf": [
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage1"
         },
-        "MessageType": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage2"
         },
-        "DataSetWriterName": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage3"
         },
-        "Payload": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarms"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage4"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage5"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage6"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage7"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage8"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage9"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage10"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage11"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage12"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsMonitoredItemMessage13"
         }
-      },
-      "required": [
-        "MetaDataVersion",
-        "MessageType",
-        "DataSetWriterName",
-        "Payload"
-      ],
-      "additionalProperties": false
-    },
-    "org.opcfoundation.UA.Guid": {
-      "$id": "http://opcfoundation.org/UA/#Guid",
-      "title": "OPC UA built in type Guid",
-      "type": "string",
-      "format": "uuid"
-    },
-    "org.github.microsoft.opcpublisher.JsonNetworkMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonNetworkMessage",
-      "type": "null",
-      "properties": {
-        "MessageId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "MessageType": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "PublisherId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "DataSetClassId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.Guid"
-        },
-        "DataSetWriterGroup": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "Messages": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.github.microsoft.opcpublisher.PendingAlarmsDataSetMessage"
-          }
-        }
-      },
-      "required": [
-        "MessageId",
-        "MessageType",
-        "PublisherId",
-        "DataSetClassId",
-        "DataSetWriterGroup",
-        "Messages"
-      ],
-      "additionalProperties": false
+      ]
     }
   }
 }

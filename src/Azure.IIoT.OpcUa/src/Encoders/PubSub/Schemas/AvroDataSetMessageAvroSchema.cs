@@ -10,53 +10,41 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
 
     /// <summary>
     /// Avro Dataset message avro schema
     /// </summary>
-    public class AvroDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
+    public sealed class AvroDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
     {
+        /// <inheritdoc/>
+        public override Schema Schema { get; }
+
+        /// <inheritdoc/>
+        protected override BaseDataSetSchema<Schema> DataSetSchema { get; }
+
         /// <summary>
         /// Get avro schema for a writer
         /// </summary>
         /// <param name="dataSetWriter"></param>
-        /// <param name="withDataSetMessageHeader"></param>
+        /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public AvroDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
-            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            HashSet<string>? uniqueNames = null)
-            : base(dataSetWriter, new AvroDataSetAvroSchema(
-                dataSetWriter, options, uniqueNames), withDataSetMessageHeader,
-                  options, uniqueNames)
+        internal AvroDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
+            NetworkMessageContentMask networkMessageContentMask,
+            SchemaOptions options, HashSet<string> uniqueNames)
         {
-        }
-
-        /// <summary>
-        /// Get avro schema for a dataset
-        /// </summary>
-        /// <param name="dataSet"></param>
-        /// <param name="dataSetFieldContentMask"></param>
-        /// <param name="withDataSetMessageHeader"></param>
-        /// <param name="options"></param>
-        /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        public AvroDataSetMessageAvroSchema(PublishedDataSetModel dataSet,
-            DataSetFieldContentMask? dataSetFieldContentMask = null,
-            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            HashSet<string>? uniqueNames = null)
-            : base(dataSet, new AvroDataSetAvroSchema(null, dataSet,
-                dataSetFieldContentMask, options, uniqueNames), null,
-                  withDataSetMessageHeader, options, uniqueNames)
-        {
+            DataSetSchema = new AvroDataSetAvroSchema(dataSetWriter, options, uniqueNames);
+            Schema = Compile(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
+                dataSetWriter.MessageSettings?.DataSetMessageContentMask, uniqueNames,
+                networkMessageContentMask, options);
         }
 
         /// <inheritdoc/>
         protected override IEnumerable<Field> CollectFields(
-            DataSetContentMask dataSetMessageContentMask, bool useCompatibilityMode)
+            DataSetContentMask dataSetMessageContentMask,
+            NetworkMessageContentMask networkMessageContentMask, Schema valueSchema)
         {
             var encoding = new AvroBuiltInAvroSchemas();
             var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
@@ -69,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }, SchemaUtils.NamespaceZeroName,
                 new[] { "i_" + DataTypes.ConfigurationVersionDataType });
 
-            var fields = new List<Field>
+            return new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
                     nameof(DataSetContentMask.MessageType), 0),
@@ -86,10 +74,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode),
                     nameof(DataSetContentMask.Status), 6),
 
-                new(DataSetSchema, nameof(AvroDataSetMessage.Payload), 7)
+                new(valueSchema, nameof(AvroDataSetMessage.Payload), 7)
             };
-
-            return fields;
         }
     }
 }

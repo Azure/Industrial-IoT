@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonNetworkMessage",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessages",
   "definitions": {
     "org.opcfoundation.UA.ByteString": {
       "$id": "http://opcfoundation.org/UA/#ByteString",
@@ -187,103 +187,87 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.SimpleEvents": {
-      "$id": "http://github.org/microsoft/opcpublisher#SimpleEvents",
-      "title": "SimpleEvents",
+    "org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#SimpleEventsMonitoredItemMessage1",
       "type": "object",
       "properties": {
-        "EventId": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteStringDataValue"
         },
-        "Message": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage2": {
+      "$id": "http://github.org/microsoft/opcpublisher#SimpleEventsMonitoredItemMessage2",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextDataValue"
         },
-        "nsu=http://opcfoundation.org/SimpleEvents;CycleId": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage3": {
+      "$id": "http://github.org/microsoft/opcpublisher#SimpleEventsMonitoredItemMessage3",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
-        "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage4": {
+      "$id": "http://github.org/microsoft/opcpublisher#SimpleEventsMonitoredItemMessage4",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.CycleStepDataTypeDataValue"
-        }
-      }
-    },
-    "org.opcfoundation.UA.i_x61_14593": {
-      "$id": "http://opcfoundation.org/UA/#i%3d14593",
-      "type": "object",
-      "properties": {
-        "MajorVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         },
-        "MinorVersion": {
+        "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         }
-      }
+      },
+      "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.SimpleEventsDataSetMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#SimpleEventsDataSetMessage",
+    "org.github.microsoft.opcpublisher.MonitoredItemMessages": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessages",
       "type": "object",
-      "properties": {
-        "MetaDataVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.i_x61_14593"
+      "oneOf": [
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage1"
         },
-        "MessageType": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage2"
         },
-        "DataSetWriterName": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage3"
         },
-        "Payload": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEvents"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEventsMonitoredItemMessage4"
         }
-      },
-      "required": [
-        "MetaDataVersion",
-        "MessageType",
-        "DataSetWriterName",
-        "Payload"
-      ],
-      "additionalProperties": false
-    },
-    "org.opcfoundation.UA.Guid": {
-      "$id": "http://opcfoundation.org/UA/#Guid",
-      "title": "OPC UA built in type Guid",
-      "type": "string",
-      "format": "uuid"
-    },
-    "org.github.microsoft.opcpublisher.JsonNetworkMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonNetworkMessage",
-      "type": "null",
-      "properties": {
-        "MessageId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "MessageType": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "PublisherId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "DataSetClassId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.Guid"
-        },
-        "DataSetWriterGroup": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "Messages": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.github.microsoft.opcpublisher.SimpleEventsDataSetMessage"
-          }
-        }
-      },
-      "required": [
-        "MessageId",
-        "MessageType",
-        "PublisherId",
-        "DataSetClassId",
-        "DataSetWriterGroup",
-        "Messages"
-      ],
-      "additionalProperties": false
+      ]
     }
   }
 }

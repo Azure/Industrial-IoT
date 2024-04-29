@@ -11,13 +11,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Avro;
     using Opc.Ua;
     using System.Collections.Generic;
-    using System.Linq;
+    using System;
 
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public class AvroNetworkMessageAvroSchema : BaseNetworkMessageAvroSchema
+    public sealed class AvroNetworkMessageAvroSchema : BaseNetworkMessageAvroSchema
     {
+        /// <inheritdoc/>
+        public override Schema Schema { get; }
+
         /// <summary>
         /// Get avro schema for a writer group
         /// </summary>
@@ -26,52 +29,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <returns></returns>
         public AvroNetworkMessageAvroSchema(WriterGroupModel writerGroup,
             SchemaOptions? options = null)
-            : this(writerGroup.DataSetWriters!, writerGroup.Name,
-                  writerGroup.MessageSettings?.NetworkMessageContentMask,
-                  options)
         {
-        }
-
-        /// <summary>
-        /// Get avro schema for a writer
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="name"></param>
-        /// <param name="networkMessageContentMask"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public AvroNetworkMessageAvroSchema(DataSetWriterModel dataSetWriter,
-            string? name = null,
-            NetworkMessageContentMask? networkMessageContentMask = null,
-            SchemaOptions? options = null)
-            : this(dataSetWriter.YieldReturn(), name,
-                  networkMessageContentMask, options)
-        {
-        }
-
-        /// <summary>
-        /// Get avro schema for a dataset encoded in json
-        /// </summary>
-        /// <param name="dataSetWriters"></param>
-        /// <param name="name"></param>
-        /// <param name="networkMessageContentMask"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        internal AvroNetworkMessageAvroSchema(
-            IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
-            NetworkMessageContentMask? networkMessageContentMask,
-            SchemaOptions? options)
-            : base(dataSetWriters, name, networkMessageContentMask, options)
-        {
+            Schema = Compile(writerGroup.Name,
+                writerGroup.DataSetWriters ?? Array.Empty<DataSetWriterModel>(),
+                writerGroup.MessageSettings?.NetworkMessageContentMask, options);
         }
 
         /// <inheritdoc/>
-        protected override Schema GetDataSetSchema(DataSetWriterModel writer,
-            bool hasDataSetMessageHeader, SchemaOptions options,
-            HashSet<string> uniqueNames, bool useCompatibilityMode)
+        protected override Schema GetDataSetMessageSchema(DataSetWriterModel writer,
+            NetworkMessageContentMask contentMask, SchemaOptions options,
+            HashSet<string> uniqueNames)
         {
-            return new AvroDataSetMessageAvroSchema(writer, hasDataSetMessageHeader,
-            options, uniqueNames).Schema;
+            return new AvroDataSetMessageAvroSchema(writer, contentMask, options,
+                uniqueNames).Schema;
         }
 
         /// <inheritdoc/>

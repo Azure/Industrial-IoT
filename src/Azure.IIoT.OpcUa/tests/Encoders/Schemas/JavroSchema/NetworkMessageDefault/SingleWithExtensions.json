@@ -170,6 +170,7 @@
                                           "type": {
                                             "type": "enum",
                                             "name": "IdentifierType",
+                                            "namespace": "org.opcfoundation.UA",
                                             "symbols": [
                                               "UInt32",
                                               "String",
@@ -202,7 +203,7 @@
                                       "fields": [
                                         {
                                           "name": "IdType",
-                                          "type": ".IdentifierType"
+                                          "type": "IdentifierType"
                                         },
                                         {
                                           "name": "Id",

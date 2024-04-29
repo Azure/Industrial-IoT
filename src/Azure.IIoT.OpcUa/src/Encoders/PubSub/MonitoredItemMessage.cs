@@ -98,11 +98,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal override void Encode(JsonEncoderEx encoder, string? publisherId, bool withHeader, string? property)
+        internal override void Encode(JsonEncoderEx encoder, string? publisherId, bool withHeader,
+            string? property)
         {
             //
             // If not writing with samples header or writing to a property we fail. This is a
-            // configuration error, rather than throwing constantly we just do not emit anything instead.
+            // configuration error, rather than throwing constantly we just do not emit anything
+            // instead.
             //
             if (!withHeader || property != null)
             {
@@ -130,7 +132,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
             }
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 && Value != null)
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0
+                && Value != null)
             {
                 var status = Status ?? Payload.Values
                     .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?

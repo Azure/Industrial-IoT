@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonNetworkMessage",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.NetworkMessage",
   "definitions": {
     "org.opcfoundation.UA.NodeId": {
       "$id": "http://opcfoundation.org/UA/#NodeId",
@@ -423,8 +423,8 @@
       "type": "string",
       "format": "uuid"
     },
-    "org.github.microsoft.opcpublisher.JsonNetworkMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonNetworkMessage",
+    "org.github.microsoft.opcpublisher.NetworkMessage": {
+      "$id": "http://github.org/microsoft/opcpublisher#NetworkMessage",
       "type": "null",
       "properties": {
         "MessageId": {

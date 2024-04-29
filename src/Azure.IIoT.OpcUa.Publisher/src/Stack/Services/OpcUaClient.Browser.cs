@@ -431,8 +431,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="foundNodes"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId, RelativePath targetPath,
-                Dictionary<NodeId, (RelativePath Path, Node Node)> foundNodes, CancellationToken ct)
+            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId,
+                RelativePath targetPath, Dictionary<NodeId, (RelativePath Path, Node Node)> foundNodes,
+                CancellationToken ct)
             {
                 try
                 {

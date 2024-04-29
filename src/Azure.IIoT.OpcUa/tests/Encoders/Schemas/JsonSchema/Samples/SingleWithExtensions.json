@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonNetworkMessage",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessages",
   "definitions": {
     "org.opcfoundation.UA.DateTime": {
       "$id": "http://opcfoundation.org/UA/#DateTime",
@@ -210,106 +210,106 @@
       },
       "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.DataSet": {
-      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
-      "title": "DataSet",
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage1",
       "type": "object",
       "properties": {
-        "CurrentTime": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
         },
-        "EngineeringUnits": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage2": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage2",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringDataValue"
         },
-        "AssetId": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage3": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage3",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.NumberDataValue"
         },
-        "Important": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage4": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage4",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanDataValue"
         },
-        "Variance": {
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage5": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage5",
+      "type": "object",
+      "properties": {
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
           "$ref": "#/definitions/org.github.microsoft.opcpublisher.FloatDataValue"
-        }
-      }
-    },
-    "org.opcfoundation.UA.i_x61_14593": {
-      "$id": "http://opcfoundation.org/UA/#i%3d14593",
-      "type": "object",
-      "properties": {
-        "MajorVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         },
-        "MinorVersion": {
+        "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
         }
-      }
+      },
+      "additionalProperties": false
     },
-    "org.github.microsoft.opcpublisher.JsonDataSetMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage",
+    "org.github.microsoft.opcpublisher.MonitoredItemMessages": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessages",
       "type": "object",
-      "properties": {
-        "MetaDataVersion": {
-          "$ref": "#/definitions/org.opcfoundation.UA.i_x61_14593"
+      "oneOf": [
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage1"
         },
-        "MessageType": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage2"
         },
-        "DataSetWriterName": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage3"
         },
-        "Payload": {
-          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet"
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage4"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage5"
         }
-      },
-      "required": [
-        "MetaDataVersion",
-        "MessageType",
-        "DataSetWriterName",
-        "Payload"
-      ],
-      "additionalProperties": false
-    },
-    "org.opcfoundation.UA.Guid": {
-      "$id": "http://opcfoundation.org/UA/#Guid",
-      "title": "OPC UA built in type Guid",
-      "type": "string",
-      "format": "uuid"
-    },
-    "org.github.microsoft.opcpublisher.JsonNetworkMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonNetworkMessage",
-      "type": "null",
-      "properties": {
-        "MessageId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "MessageType": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "PublisherId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "DataSetClassId": {
-          "$ref": "#/definitions/org.opcfoundation.UA.Guid"
-        },
-        "DataSetWriterGroup": {
-          "$ref": "#/definitions/org.opcfoundation.UA.String"
-        },
-        "Messages": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
-          }
-        }
-      },
-      "required": [
-        "MessageId",
-        "MessageType",
-        "PublisherId",
-        "DataSetClassId",
-        "DataSetWriterGroup",
-        "Messages"
-      ],
-      "additionalProperties": false
+      ]
     }
   }
 }

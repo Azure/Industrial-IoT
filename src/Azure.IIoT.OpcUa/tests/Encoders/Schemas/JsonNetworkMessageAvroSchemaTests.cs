@@ -184,6 +184,89 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             //Assert.Equal(schema.Schema, schema2);
         }
 
+        [Theory]
+        [MemberData(nameof(GetWriterGroupFiles))]
+        public async Task CreateSamplesMessageSchema(string writerGroupFile)
+        {
+            var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
+            group = group with
+            {
+                MessageSettings = group.MessageSettings with
+                {
+                    NetworkMessageContentMask =
+                        NetworkMessageContentMask.MonitoredItemMessage |
+                        NetworkMessageContentMask.DataSetMessageHeader
+                },
+                DataSetWriters = group.DataSetWriters.Select(d => d with
+                {
+                    MessageSettings = d.MessageSettings with
+                    {
+                        DataSetMessageContentMask =
+                            DataSetContentMask.Timestamp |
+                            DataSetContentMask.DataSetWriterId |
+                            DataSetContentMask.SequenceNumber
+                    },
+                    DataSetFieldContentMask =
+                        DataSetFieldContentMask.StatusCode |
+                        DataSetFieldContentMask.SourceTimestamp |
+                        DataSetFieldContentMask.ServerTimestamp |
+                        DataSetFieldContentMask.ApplicationUri |
+                        DataSetFieldContentMask.ExtensionFields |
+                        DataSetFieldContentMask.NodeId |
+                        DataSetFieldContentMask.DisplayName |
+                        DataSetFieldContentMask.EndpointUrl
+                }).ToList()
+            };
+
+            var schema = new JsonNetworkMessageAvroSchema(group);
+
+            var json = schema.ToString();
+            await AssertAsync("Samples", writerGroupFile, json);
+
+            var schema2 = Avro.Schema.Parse(json);
+            //Assert.Equal(schema.Schema, schema2);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetWriterGroupFiles))]
+        public async Task CreateSamplesMessageSchemaRaw(string writerGroupFile)
+        {
+            var group = await LoadAsync<WriterGroupModel>(writerGroupFile);
+            group = group with
+            {
+                MessageSettings = group.MessageSettings with
+                {
+                    NetworkMessageContentMask =
+                        NetworkMessageContentMask.MonitoredItemMessage |
+                        NetworkMessageContentMask.DataSetMessageHeader
+                },
+                DataSetWriters = group.DataSetWriters.Select(d => d with
+                {
+                    MessageSettings = d.MessageSettings with
+                    {
+                        DataSetMessageContentMask =
+                            DataSetContentMask.Timestamp |
+                            DataSetContentMask.SequenceNumber
+                    },
+                    DataSetFieldContentMask =
+                        DataSetFieldContentMask.ApplicationUri |
+                        DataSetFieldContentMask.ExtensionFields |
+                        DataSetFieldContentMask.NodeId |
+                        DataSetFieldContentMask.DisplayName |
+                        DataSetFieldContentMask.EndpointUrl |
+                        DataSetFieldContentMask.RawData
+                }).ToList()
+            };
+
+            var schema = new JsonNetworkMessageAvroSchema(group);
+
+            var json = schema.ToString();
+            await AssertAsync("SamplesRaw", writerGroupFile, json);
+
+            var schema2 = Avro.Schema.Parse(json);
+            //Assert.Equal(schema.Schema, schema2);
+        }
+
         private static async ValueTask<T> LoadAsync<T>(string file)
         {
             var serializer = new NewtonsoftJsonSerializer();

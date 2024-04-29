@@ -9,58 +9,45 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Network message avro schema
+    /// Dataset message avro schema
     /// </summary>
-    public class JsonDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
+    public sealed class JsonDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
     {
+        /// <inheritdoc/>
+        public override Schema Schema { get; }
+
+        /// <inheritdoc/>
+        protected override BaseDataSetSchema<Schema> DataSetSchema { get; }
+
         /// <summary>
         /// Get avro schema for a writer
         /// </summary>
         /// <param name="dataSetWriter"></param>
-        /// <param name="withDataSetMessageHeader"></param>
+        /// <param name="networkMessageContentMask"></param>
         /// <param name="options"></param>
-        /// <param name="useCompatibilityMode"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public JsonDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
-            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
-            : base(dataSetWriter, new JsonDataSetAvroSchema(dataSetWriter, options, uniqueNames),
-                  withDataSetMessageHeader, options, uniqueNames, useCompatibilityMode)
+        internal JsonDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
+            NetworkMessageContentMask networkMessageContentMask,
+            SchemaOptions options, HashSet<string> uniqueNames)
         {
-        }
-
-        /// <summary>
-        /// Get avro schema for a dataset
-        /// </summary>
-        /// <param name="dataSet"></param>
-        /// <param name="dataSetContentMask"></param>
-        /// <param name="dataSetFieldContentMask"></param>
-        /// <param name="withDataSetMessageHeader"></param>
-        /// <param name="options"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        public JsonDataSetMessageAvroSchema(PublishedDataSetModel dataSet,
-            DataSetContentMask? dataSetContentMask = null,
-            DataSetFieldContentMask? dataSetFieldContentMask = null,
-            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            bool useCompatibilityMode = false, HashSet<string>? uniqueNames = null)
-            : base(dataSet,
-                  new JsonDataSetAvroSchema(null, dataSet,
-                dataSetFieldContentMask, options, uniqueNames), dataSetContentMask,
-                  withDataSetMessageHeader, options, uniqueNames, useCompatibilityMode)
-        {
+            DataSetSchema = new JsonDataSetAvroSchema(dataSetWriter, options, uniqueNames);
+            Schema = Compile(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
+                dataSetWriter.MessageSettings?.DataSetMessageContentMask, uniqueNames,
+                networkMessageContentMask, options);
         }
 
         /// <inheritdoc/>
         protected override IEnumerable<Field> CollectFields(
-            DataSetContentMask dataSetMessageContentMask, bool useCompatibilityMode)
+            DataSetContentMask dataSetMessageContentMask,
+            NetworkMessageContentMask networkMessageContentMask, Schema valueSchema)
         {
+            var useCompatibilityMode = networkMessageContentMask
+                .HasFlag(NetworkMessageContentMask.UseCompatibilityMode);
+
             var encoding = new JsonBuiltInAvroSchemas(true, true);
             var pos = 0;
             var fields = new List<Field>();
@@ -133,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                         nameof(DataSetContentMask.DataSetWriterName), pos++));
             }
 
-            fields.Add(new(DataSetSchema, nameof(JsonDataSetMessage.Payload), pos++));
+            fields.Add(new(valueSchema, nameof(JsonDataSetMessage.Payload), pos++));
             return fields;
         }
     }

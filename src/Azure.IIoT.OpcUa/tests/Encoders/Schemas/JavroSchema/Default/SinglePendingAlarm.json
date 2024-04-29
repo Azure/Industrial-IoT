@@ -26,6 +26,7 @@
                     "type": {
                       "type": "enum",
                       "name": "IdentifierType",
+                      "namespace": "org.opcfoundation.UA",
                       "symbols": [
                         "UInt32",
                         "String",

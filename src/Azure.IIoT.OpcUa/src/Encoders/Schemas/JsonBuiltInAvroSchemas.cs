@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     .ToList();
                 return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
                 {
-                    new (AvroSchema.CreateUnion(types), "Value", 0)
+                    new (types.AsUnion(), "Value", 0)
                 }, SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
 
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // TODO
                 }
 
-                var bodyType = AvroSchema.CreateUnion(
+                var bodyType = AvroSchema.AsUnion(
                     GetSchemaForBuiltInType(BuiltInType.Null),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.XmlElement),
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
-                var idType = AvroSchema.CreateUnion(
+                var idType = AvroSchema.AsUnion(
                     GetSchemaForBuiltInType(BuiltInType.UInt32),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.Guid),
@@ -241,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     "String",
                     "Guid",
                     "ByteString"
-                });
+                }, SchemaUtils.NamespaceZeroName);
 
                 Field field;
                 if (_reversibleEncoding)
@@ -274,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             get
             {
-                var idType = AvroSchema.CreateUnion(
+                var idType = AvroSchema.AsUnion(
                     GetSchemaForBuiltInType(BuiltInType.UInt32),
                     GetSchemaForBuiltInType(BuiltInType.String),
                     GetSchemaForBuiltInType(BuiltInType.Guid),
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     "String",
                     "Guid",
                     "ByteString"
-                });
+                }, SchemaUtils.NamespaceZeroName);
 
                 Field field;
                 if (_reversibleEncoding)
@@ -316,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                         // containing the NamespaceUri or the NamespaceUri associated
                         // with the NamespaceIndex unless the NamespaceIndex is 0
                         // or 1. If the NamespaceIndex is 0 the field is omitted.
-                        new(AvroSchema.CreateUnion(
+                        new(AvroSchema.AsUnion(
                             GetSchemaForBuiltInType(BuiltInType.UInt32),
                             GetSchemaForBuiltInType(BuiltInType.String)),
                             "Namespace", 2),
@@ -425,7 +425,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
             if (rank != SchemaRank.Scalar)
             {
-                schema = ArraySchema.Create(schema);
+                schema = schema.AsArray();
             }
             return schema;
 
@@ -522,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     // Variant schema
                     return GetSchemaForBuiltInType(BuiltInType.Variant);
                 case SchemaRank.Collection:
-                    return ArraySchema.Create(schema);
+                    return schema.AsArray();
                 default:
                     return schema;
             }

@@ -5,14 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
-    using Opc.Ua;
-    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
@@ -43,30 +40,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <summary>
         /// The actual schema
         /// </summary>
-        public Schema Schema { get; }
-
-        /// <summary>
-        /// Get avro schema for a dataset encoded in json
-        /// </summary>
-        /// <param name="dataSetWriters"></param>
-        /// <param name="name"></param>
-        /// <param name="networkMessageContentMask"></param>
-        /// <param name="options"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <returns></returns>
-        protected BaseNetworkMessageAvroSchema(
-            IEnumerable<DataSetWriterModel> dataSetWriters, string? name,
-            NetworkMessageContentMask? networkMessageContentMask,
-            SchemaOptions? options, bool useCompatibilityMode = false)
-        {
-            ArgumentNullException.ThrowIfNull(dataSetWriters);
-
-            _options = options ?? new SchemaOptions();
-
-            Schema = Compile(name, dataSetWriters
-                .Where(writer => writer.DataSet != null)
-                .ToList(), networkMessageContentMask ?? 0u, useCompatibilityMode);
-        }
+        public abstract Schema Schema { get; }
 
         /// <inheritdoc/>
         public override string? ToString()
@@ -79,23 +53,29 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// </summary>
         /// <param name="typeName"></param>
         /// <param name="dataSetWriters"></param>
-        /// <param name="contentMask"></param>
-        /// <param name="useCompatibilityMode"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        private Schema Compile(string? typeName, List<DataSetWriterModel> dataSetWriters,
-            NetworkMessageContentMask contentMask, bool useCompatibilityMode)
+        protected virtual Schema Compile(string? typeName,
+            IEnumerable<DataSetWriterModel> dataSetWriters,
+            NetworkMessageContentMask? networkMessageContentMask,
+            SchemaOptions? options)
         {
-            var HasDataSetMessageHeader = contentMask
-                .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
-            var HasNetworkMessageHeader = contentMask
-                .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
+            options ??= new SchemaOptions();
+            var contentMask = networkMessageContentMask ?? default;
+            var MonitoredItemMessage = contentMask
+                .HasFlag(NetworkMessageContentMask.MonitoredItemMessage);
+            if (MonitoredItemMessage)
+            {
+                contentMask &= ~NetworkMessageContentMask.NetworkMessageHeader;
+            }
 
             var dataSetMessageSchemas = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .OrderBy(writer => writer.DataSetWriterId)
                 .Select(writer => (writer.DataSetWriterId,
-                    Schema: GetDataSetSchema(writer, HasDataSetMessageHeader,
-                        _options, _uniqueNames, useCompatibilityMode)))
+                    Schema: GetDataSetMessageSchema(writer, contentMask,
+                        options, _uniqueNames)))
                 .ToList();
 
             if (dataSetMessageSchemas.Count == 0)
@@ -104,6 +84,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
 
             Schema? payloadType;
+            if (contentMask.HasFlag(NetworkMessageContentMask.MonitoredItemMessage))
+            {
+                return dataSetMessageSchemas
+                    .SelectMany(kv => kv.Schema is UnionSchema u ?
+                        u.Schemas : kv.Schema.YieldReturn())
+                    .AsUnion();
+            }
+
             if (dataSetMessageSchemas.Count > 1)
             {
                 // Use the index of the data set writer as union index
@@ -115,26 +103,29 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     .ToList();
                 dataSetMessageSchemas
                     .ForEach(kv => unionSchemas[kv.DataSetWriterId] = kv.Schema);
-                payloadType = AvroSchema.CreateUnion(unionSchemas);
+                payloadType = unionSchemas.AsUnion();
             }
             else
             {
                 payloadType = dataSetMessageSchemas[0].Schema;
             }
 
+
             var HasSingleDataSetMessage = contentMask
                 .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
+            var HasNetworkMessageHeader = contentMask
+                .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
             if (!HasNetworkMessageHeader && HasSingleDataSetMessage)
             {
                 // No network message header
                 return payloadType;
             }
 
-            payloadType = ArraySchema.Create(payloadType);
+            payloadType = payloadType.AsArray();
             var fields = CollectFields(contentMask, payloadType);
 
-            var ns = _options.Namespace != null ?
-                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+            var ns = options.Namespace != null ?
+                SchemaUtils.NamespaceUriToNamespace(options.Namespace) :
                 SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(GetName(typeName), fields.ToList(), ns);
         }
@@ -152,14 +143,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// Get schema
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="hasDataSetMessageHeader"></param>
+        /// <param name="contentMask"></param>
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
-        /// <param name="useCompatibilityMode"></param>
         /// <returns></returns>
-        protected abstract Schema GetDataSetSchema(DataSetWriterModel writer,
-            bool hasDataSetMessageHeader, SchemaOptions options,
-            HashSet<string> uniqueNames, bool useCompatibilityMode);
+        protected abstract Schema GetDataSetMessageSchema(DataSetWriterModel writer,
+            NetworkMessageContentMask contentMask, SchemaOptions options,
+            HashSet<string> uniqueNames);
 
         /// <summary>
         /// Get name of the type
@@ -169,15 +159,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private string GetName(string? typeName)
         {
             // Type name of the message record
-            if (string.IsNullOrEmpty(typeName))
-            {
-                // Type name of the message record
-                typeName = "NetworkMessage";
-            }
-            else
-            {
-                typeName = SchemaUtils.Escape(typeName) + "NetworkMessage";
-            }
+            typeName ??= string.Empty;
+            typeName = SchemaUtils.Escape(typeName) + kMessageTypeName;
             return MakeUnique(typeName);
         }
 
@@ -197,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return uniqueName;
         }
 
-        private readonly SchemaOptions _options;
+        internal const string kMessageTypeName = "NetworkMessage";
         private readonly HashSet<string> _uniqueNames = new();
     }
 }

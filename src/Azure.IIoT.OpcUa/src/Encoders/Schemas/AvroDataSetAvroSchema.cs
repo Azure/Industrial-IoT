@@ -201,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         protected override Schema CreateUnionSchema(IReadOnlyList<Schema> schemas)
         {
-            return AvroSchema.CreateUnion(schemas);
+            return schemas.AsUnion();
         }
     }
 }

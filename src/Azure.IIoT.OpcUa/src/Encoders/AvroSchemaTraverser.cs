@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // schema to start moving to the actual schema the
             // first time move next is called.
             //
-            Push(schema.IsRoot() ? schema : ArraySchema.Create(schema));
+            Push(schema.IsRoot() ? schema : schema.AsArray());
         }
 
         /// <summary>

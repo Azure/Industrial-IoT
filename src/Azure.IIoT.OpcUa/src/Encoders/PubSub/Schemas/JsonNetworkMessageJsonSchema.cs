@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
+    using Avro;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -69,26 +70,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         }
 
         /// <summary>
-        /// Get avro schema for a writer
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="name"></param>
-        /// <param name="networkMessageContentMask"></param>
-        /// <param name="options"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <param name="definitions"></param>
-        /// <returns></returns>
-        public JsonNetworkMessageJsonSchema(DataSetWriterModel dataSetWriter,
-            string? name = null,
-            NetworkMessageContentMask? networkMessageContentMask = null,
-            SchemaOptions? options = null, bool useCompatibilityMode = false,
-            Dictionary<string, JsonSchema>? definitions = null)
-            : this(dataSetWriter.YieldReturn(), name,
-                  networkMessageContentMask, options, useCompatibilityMode, definitions)
-        {
-        }
-
-        /// <summary>
         /// Get avro schema for a dataset encoded in json
         /// </summary>
         /// <param name="dataSetWriters"></param>
@@ -132,21 +113,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// Compile the schema for the data sets
         /// </summary>
         /// <param name="dataSetWriters"></param>
-        /// <param name="contentMask"></param>
+        /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
         private JsonSchema? Compile(List<DataSetWriterModel> dataSetWriters,
-            NetworkMessageContentMask contentMask)
+            NetworkMessageContentMask networkMessageContentMask)
         {
-            var HasDataSetMessageHeader = contentMask
-                .HasFlag(NetworkMessageContentMask.DataSetMessageHeader);
-            var HasNetworkMessageHeader = contentMask
-                .HasFlag(NetworkMessageContentMask.NetworkMessageHeader);
+            var MonitoredItemMessage = networkMessageContentMask
+                .HasFlag(NetworkMessageContentMask.MonitoredItemMessage);
+            if (MonitoredItemMessage)
+            {
+                networkMessageContentMask &= ~NetworkMessageContentMask.NetworkMessageHeader;
+            }
 
             var dataSets = dataSetWriters
                 .Where(writer => writer.DataSet != null)
                 .Select(writer =>
-					new JsonDataSetMessageJsonSchema(writer, HasDataSetMessageHeader,
-                        _options, Definitions, UseCompatibilityMode, _uniqueNames).Ref!)
+                    GetDataSetMessageSchema(writer, networkMessageContentMask))
                 .Where(r => r != null)
                 .ToList();
 
@@ -155,17 +137,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return null;
             }
 
+            if (MonitoredItemMessage)
+            {
+                return CollapseUnions(dataSets);
+            }
+
             var dataSetMessages = dataSets.Count > 1 ?
-                dataSets.AsUnion(Definitions, id: _options.GetSchemaId(MakeUnique("DataSets"))) :
+                dataSets.AsUnion(Definitions,
+                    id: _options.GetSchemaId(MakeUnique("DataSets"))) :
                 dataSets[0];
 
-            var HasSingleDataSetMessage = contentMask
+            var HasSingleDataSetMessage = networkMessageContentMask
                 .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
             var payloadType = HasSingleDataSetMessage ?
                 dataSetMessages : dataSetMessages.AsArray();
-            if ((contentMask &
+            if ((networkMessageContentMask &
                 ~(NetworkMessageContentMask.SingleDataSetMessage |
-                  NetworkMessageContentMask.DataSetMessageHeader)) == 0u)
+                  NetworkMessageContentMask.DataSetMessageHeader |
+                  NetworkMessageContentMask.MonitoredItemMessage)) == 0u)
             {
                 // No network message header
                 return payloadType;
@@ -180,12 +169,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     encoding.GetSchemaForBuiltInType(BuiltInType.String)
             };
 
-            if (contentMask.HasFlag(NetworkMessageContentMask.PublisherId))
+            if (networkMessageContentMask.HasFlag(NetworkMessageContentMask.PublisherId))
             {
                 properties.Add(nameof(JsonNetworkMessage.PublisherId),
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
-            if (contentMask.HasFlag(NetworkMessageContentMask.DataSetClassId))
+            if (networkMessageContentMask.HasFlag(NetworkMessageContentMask.DataSetClassId))
             {
                 properties.Add(nameof(JsonNetworkMessage.DataSetClassId),
                     encoding.GetSchemaForBuiltInType(BuiltInType.Guid));
@@ -197,14 +186,70 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             // Now write messages - this is either one of or array of one of
             properties.Add(nameof(JsonNetworkMessage.Messages), payloadType);
 
-            return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
+            var messageSchema = Definitions.Reference(_options.GetSchemaId(Name),
+                id => new JsonSchema
+                {
+                    Id = id,
+                    Type = Ref == null ? SchemaType.Null : SchemaType.None,
+                    AdditionalProperties = new JsonSchema { Allowed = false },
+                    Properties = properties,
+                    Required = properties.Keys.ToList()
+                });
+
+            if (networkMessageContentMask
+                .HasFlag(NetworkMessageContentMask.UseArrayEnvelope))
             {
-                Id = id,
-                Type = Ref == null ? SchemaType.Null : SchemaType.None,
-                AdditionalProperties = new JsonSchema { Allowed = false },
-                Properties = properties,
-                Required = properties.Keys.ToList()
-            });
+                return messageSchema.AsArray(
+                    BaseNetworkMessageAvroSchema.kMessageTypeName + "s");
+            }
+            return messageSchema;
+        }
+
+        /// <summary>
+        /// Collapse the unions into one
+        /// </summary>
+        /// <param name="dataSets"></param>
+        /// <returns></returns>
+        private JsonSchema CollapseUnions(List<JsonSchema> dataSets)
+        {
+            // Collapse all unions into one
+            var messages = new List<JsonSchema>();
+            foreach (var dataSet in dataSets)
+            {
+                if (dataSet.OneOf == null)
+                {
+                    messages.Add(dataSet);
+                    continue;
+                }
+                // Remove dataset schema from definitions
+                messages.AddRange(dataSet.OneOf);
+                if (dataSet.Reference?.Fragment != null)
+                {
+                    Definitions.Remove(dataSet.Reference.Fragment);
+                }
+            }
+            return messages.AsUnion(Definitions, id: _options.GetSchemaId(
+                MakeUnique(nameof(MonitoredItemMessage) + "s")));
+        }
+
+        /// <summary>
+        /// Get data set message schema
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="contentMask"></param>
+        /// <returns></returns>
+        private JsonSchema GetDataSetMessageSchema(DataSetWriterModel writer,
+            NetworkMessageContentMask contentMask)
+        {
+            if (contentMask.HasFlag(NetworkMessageContentMask.MonitoredItemMessage))
+            {
+                return new MonitoredItemMessageJsonSchema(writer,
+                    contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
+                    _options, Definitions, _uniqueNames).Ref!;
+            }
+            return new JsonDataSetMessageJsonSchema(writer,
+                contentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader),
+                _options, Definitions, UseCompatibilityMode, _uniqueNames).Ref!;
         }
 
         /// <summary>
@@ -215,15 +260,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private string GetName(string? typeName)
         {
             // Type name of the message record
-            if (string.IsNullOrEmpty(typeName))
-            {
-                // Type name of the message record
-                typeName = nameof(JsonNetworkMessage);
-            }
-            else
-            {
-                typeName += "NetworkMessage";
-            }
+            typeName ??= string.Empty;
+            typeName += BaseNetworkMessageAvroSchema.kMessageTypeName;
             return MakeUnique(typeName);
         }
 

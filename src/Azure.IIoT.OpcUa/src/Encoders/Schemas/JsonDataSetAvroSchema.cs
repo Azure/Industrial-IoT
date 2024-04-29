@@ -68,8 +68,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
         public JsonDataSetAvroSchema(DataSetWriterModel dataSetWriter,
-            SchemaOptions? options = null, HashSet<string>? uniqueNames = null) :
-            this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
+            SchemaOptions? options = null, HashSet<string>? uniqueNames = null)
+            : this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
                     ?? throw new ArgumentException("Missing data set in writer"),
                 dataSetWriter.DataSetFieldContentMask, options, uniqueNames)
         {
@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <inheritdoc/>
         protected override Schema CreateUnionSchema(IReadOnlyList<Schema> schemas)
         {
-            return AvroSchema.CreateUnion(schemas);
+            return schemas.AsUnion();
         }
     }
 }

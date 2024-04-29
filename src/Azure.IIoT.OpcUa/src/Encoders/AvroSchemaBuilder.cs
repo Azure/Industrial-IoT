@@ -667,7 +667,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             Schema schema = EnumSchema.Create(enumType.Name, names);
             if (rank == SchemaRank.Collection)
             {
-                schema = ArraySchema.Create(schema);
+                schema = schema.AsArray();
             }
             return PushSchema(fieldName, schema);
         }
@@ -703,8 +703,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return Nothing.ToDo;
             }
-            return PushSchema(fieldName, ArraySchema.Create(
-                    AvroSchema.CreatePlaceHolder("Dummy", "")));
+            return PushSchema(fieldName, AvroSchema.CreatePlaceHolder("Dummy", "").AsArray(
+));
         }
 
         /// <summary>

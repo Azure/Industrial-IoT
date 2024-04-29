@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "array",
   "items": {
-    "$ref": "#/definitions/org.github.microsoft.opcpublisher.JsonDataSetMessage"
+    "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSetMessage"
   },
   "definitions": {
     "org.opcfoundation.UA.DateTime": {
@@ -235,8 +235,8 @@
         }
       }
     },
-    "org.github.microsoft.opcpublisher.JsonDataSetMessage": {
-      "$id": "http://github.org/microsoft/opcpublisher#JsonDataSetMessage",
+    "org.github.microsoft.opcpublisher.DataSetMessage": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSetMessage",
       "type": "object",
       "properties": {
         "Payload": {

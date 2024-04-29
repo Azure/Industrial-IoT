@@ -192,13 +192,32 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         }
 
         /// <summary>
+        /// Create array
+        /// </summary>
+        /// <param name="itemSchema"></param>
+        /// <param name="isRoot"></param>
+        /// <returns></returns>
+        public static Schema AsArray(this Schema itemSchema, bool isRoot = false)
+        {
+            var schema = ArraySchema.Create(itemSchema, isRoot ? new PropertyMap
+            {
+                ["root"] = "true"
+            } : null);
+            if (isRoot)
+            {
+                schema.CreateRoot();
+            }
+            return schema;
+        }
+
+        /// <summary>
         /// Create
         /// </summary>
         /// <param name="schemas"></param>
         /// <returns></returns>
-        public static Schema CreateUnion(params Schema[] schemas)
+        public static Schema AsUnion(params Schema[] schemas)
         {
-            return CreateUnion(schemas, customProperties: null);
+            return AsUnion(schemas, customProperties: null);
         }
 
         /// <summary>
@@ -207,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="schemas"></param>
         /// <param name="customProperties"></param>
         /// <returns></returns>
-        public static UnionSchema CreateUnion(IEnumerable<Schema> schemas,
+        public static UnionSchema AsUnion(this IEnumerable<Schema> schemas,
             PropertyMap? customProperties = null)
         {
             var types = schemas.Distinct(

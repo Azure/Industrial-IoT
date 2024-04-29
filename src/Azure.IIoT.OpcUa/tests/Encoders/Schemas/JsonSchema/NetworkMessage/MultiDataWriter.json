@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/com.microsoft.JsonNetworkMessage",
+  "$ref": "#/definitions/com.microsoft.NetworkMessage",
   "definitions": {
     "org.opcfoundation.UA.UInt32": {
       "$id": "http://opcfoundation.org/UA/#UInt32",
@@ -233,8 +233,8 @@
         }
       }
     },
-    "com.microsoft.JsonDataSetMessage": {
-      "$id": "http://www.microsoft.com#JsonDataSetMessage",
+    "com.microsoft.DataSetMessage": {
+      "$id": "http://www.microsoft.com#DataSetMessage",
       "type": "object",
       "properties": {
         "MetaDataVersion": {
@@ -289,8 +289,8 @@
         }
       }
     },
-    "com.microsoft.JsonDataSetMessage1": {
-      "$id": "http://www.microsoft.com#JsonDataSetMessage1",
+    "com.microsoft.DataSetMessage1": {
+      "$id": "http://www.microsoft.com#DataSetMessage1",
       "type": "object",
       "properties": {
         "MetaDataVersion": {
@@ -319,10 +319,10 @@
       "type": "object",
       "oneOf": [
         {
-          "$ref": "#/definitions/com.microsoft.JsonDataSetMessage"
+          "$ref": "#/definitions/com.microsoft.DataSetMessage"
         },
         {
-          "$ref": "#/definitions/com.microsoft.JsonDataSetMessage1"
+          "$ref": "#/definitions/com.microsoft.DataSetMessage1"
         }
       ]
     },
@@ -332,8 +332,8 @@
       "type": "string",
       "format": "uuid"
     },
-    "com.microsoft.JsonNetworkMessage": {
-      "$id": "http://www.microsoft.com#JsonNetworkMessage",
+    "com.microsoft.NetworkMessage": {
+      "$id": "http://www.microsoft.com#NetworkMessage",
       "type": "null",
       "properties": {
         "MessageId": {

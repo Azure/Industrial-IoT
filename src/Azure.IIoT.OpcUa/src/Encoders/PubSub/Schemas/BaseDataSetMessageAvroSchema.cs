@@ -40,60 +40,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <summary>
         /// The actual schema
         /// </summary>
-        public Schema Schema { get; }
+        public abstract Schema Schema { get; }
 
         /// <summary>
-        /// The inner data set schema
+        /// The data set schema
         /// </summary>
-        protected Schema DataSetSchema => _dataSet.Schema;
-
-        /// <summary>
-        /// Get avro schema for a writer
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="dataSetSchemaToUse"></param>
-        /// <param name="withDataSetMessageHeader"></param>
-        /// <param name="options"></param>
-        /// <param name="uniqueNames"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <returns></returns>
-        protected BaseDataSetMessageAvroSchema(DataSetWriterModel dataSetWriter,
-            BaseDataSetSchema<Schema> dataSetSchemaToUse,
-            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            HashSet<string>? uniqueNames = null, bool useCompatibilityMode = false)
-        {
-            _options = options ?? new SchemaOptions();
-            _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = dataSetSchemaToUse;
-
-            Schema = Compile(dataSetWriter.DataSet?.Name ?? dataSetWriter.DataSetWriterName,
-                dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u, uniqueNames,
-                useCompatibilityMode);
-        }
-
-        /// <summary>
-        /// Get avro schema for a dataset
-        /// </summary>
-        /// <param name="dataSet"></param>
-        /// <param name="dataSetSchemaToUse"></param>
-        /// <param name="dataSetContentMask"></param>
-        /// <param name="withDataSetMessageHeader"></param>
-        /// <param name="options"></param>
-        /// <param name="uniqueNames"></param>
-        /// <param name="useCompatibilityMode"></param>
-        /// <returns></returns>
-        protected BaseDataSetMessageAvroSchema(PublishedDataSetModel dataSet,
-            BaseDataSetSchema<Schema> dataSetSchemaToUse,
-            DataSetContentMask? dataSetContentMask = null,
-            bool withDataSetMessageHeader = true, SchemaOptions? options = null,
-            HashSet<string>? uniqueNames = null, bool useCompatibilityMode = false)
-        {
-            _options = options ?? new SchemaOptions();
-            _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = dataSetSchemaToUse;
-            Schema = Compile(dataSet.Name, dataSetContentMask ?? 0u,
-                uniqueNames, useCompatibilityMode);
-        }
+        protected abstract BaseDataSetSchema<Schema> DataSetSchema { get; }
 
         /// <inheritdoc/>
         public override string? ToString()
@@ -107,23 +59,25 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="typeName"></param>
         /// <param name="dataSetMessageContentMask"></param>
         /// <param name="uniqueNames"></param>
-        /// <param name="useCompatibilityMode"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        private Schema Compile(string? typeName,
-            DataSetContentMask dataSetMessageContentMask, HashSet<string>? uniqueNames,
-            bool useCompatibilityMode)
+        protected virtual Schema Compile(string? typeName, DataSetContentMask? dataSetMessageContentMask,
+            HashSet<string> uniqueNames, NetworkMessageContentMask networkMessageContentMask,
+            SchemaOptions options)
         {
-            if (!_withDataSetMessageHeader)
+            var dataSetContentMask = dataSetMessageContentMask ?? default;
+            if (!networkMessageContentMask.HasFlag(NetworkMessageContentMask.DataSetMessageHeader))
             {
                 // Not a data set message
-                return DataSetSchema;
+                return DataSetSchema.Schema;
             }
 
-            var fields = CollectFields(dataSetMessageContentMask, useCompatibilityMode);
+            var fields = CollectFields(dataSetContentMask, networkMessageContentMask, DataSetSchema.Schema);
 
             typeName = GetTypeName(typeName, uniqueNames);
-            var ns = _options.Namespace != null ?
-                SchemaUtils.NamespaceUriToNamespace(_options.Namespace) :
+            var ns = options.Namespace != null ?
+                SchemaUtils.NamespaceUriToNamespace(options.Namespace) :
                 SchemaUtils.PublisherNamespace;
             return RecordSchema.Create(typeName, fields.ToList(), ns);
         }
@@ -132,29 +86,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// Collect fields of the message schema
         /// </summary>
         /// <param name="dataSetMessageContentMask"></param>
-        /// <param name="useCompatibilityMode"></param>
+        /// <param name="networkMessageContentMask"></param>
+        /// <param name="valueSchema"></param>
         /// <returns></returns>
         protected abstract IEnumerable<Field> CollectFields(
-            DataSetContentMask dataSetMessageContentMask, bool useCompatibilityMode);
+            DataSetContentMask dataSetMessageContentMask,
+            NetworkMessageContentMask networkMessageContentMask, Schema valueSchema);
 
         /// <summary>
         /// Create a type name
         /// </summary>
         /// <param name="typeName"></param>
         /// <param name="uniqueNames"></param>
+        /// <param name="defaultName"></param>
         /// <returns></returns>
-        protected static string GetTypeName(string? typeName, HashSet<string>? uniqueNames)
+        protected static string GetTypeName(string? typeName, HashSet<string>? uniqueNames,
+            string? defaultName = null)
         {
             // Type name of the message record
-            if (string.IsNullOrEmpty(typeName))
-            {
-                // Type name of the message record
-                typeName = "DataSetMessage";
-            }
-            else
-            {
-                typeName = SchemaUtils.Escape(typeName) + "DataSetMessage";
-            }
+            typeName ??= string.Empty;
+            typeName = SchemaUtils.Escape(typeName) + (defaultName ?? kMessageTypeName);
 
             if (uniqueNames != null)
             {
@@ -169,8 +120,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return typeName;
         }
 
-        private readonly BaseDataSetSchema<Schema> _dataSet;
-        private readonly SchemaOptions _options;
-        private readonly bool _withDataSetMessageHeader;
+        internal const string kMessageTypeName = "DataSetMessage";
     }
 }
