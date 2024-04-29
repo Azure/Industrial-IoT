@@ -57,19 +57,23 @@ $deviceName = "L3-1-edge"
 $edgeIdentity = Get-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceName -ErrorAction SilentlyContinue
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-device-id' -SecretValue (ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force) | Out-Null
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-device-id' -SecretValue $secret | Out-Null
 
 Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; "unmanaged" = "true" } | Out-Null
 
 $edgeVmUsername = "jbadmin"
 Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
-
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-username' -SecretValue $secret | Out-Null
 
 $fqdn = (Get-AzPublicIpAddress -ResourceGroupName ($ResourceGroupName + "-RG-jumpbox")).DnsSettings.Fqdn
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-device-dnsname' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $fqdn -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-device-dnsname' -SecretValue $secret | Out-Null
 
 Write-Host "Deployment finished."

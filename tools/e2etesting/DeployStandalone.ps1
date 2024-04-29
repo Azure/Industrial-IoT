@@ -112,9 +112,17 @@ $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothu
 $SubscriptionId = $context.Subscription.Id
 
 Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-AUTH-TENANT' -SecretValue (ConvertTo-SecureString $TenantId -AsPlainText -Force) | Out-Null
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-SUBSCRIPTION-ID' -SecretValue (ConvertTo-SecureString $SubscriptionId -AsPlainText -Force) | Out-Null
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-RESOURCE-GROUP' -SecretValue (ConvertTo-SecureString $ResourceGroupName -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue $secret | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $TenantId -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-AUTH-TENANT' -SecretValue $secret | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $SubscriptionId -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-SUBSCRIPTION-ID' -SecretValue $secret | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $ResourceGroupName -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-RESOURCE-GROUP' -SecretValue $secret | Out-Null
 
 Write-Host "Deployment finished."

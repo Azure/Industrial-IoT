@@ -102,7 +102,11 @@ $sshPublicKey = Get-Content $publicKeyFilePath -Raw
 
 # Store ssh keys
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-privatekey' -SecretValue $secret | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $sshPublicKey -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-publickey' -SecretValue $secret | Out-Null
