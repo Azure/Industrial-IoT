@@ -1,5 +1,3 @@
-# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
-# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
 jobs:
 - job: codecoverage
   displayName: Code coverage
@@ -21,27 +19,28 @@ jobs:
     displayName: Versioning
     inputs:
       targetType: filePath
-      filePath: ./tools/scripts/set-version.ps1
+      filePath: .\tools\scripts\set-version.ps1
   - task: DotNetCoreCLI@2
     inputs:
       command: custom
       custom: tool
-      arguments: install --tool-path tools dotnet-reportgenerator-globaltool
+      arguments: install --tool-path .\tools dotnet-reportgenerator-globaltool
     displayName: Install ReportGenerator tool
   - task: DotNetCoreCLI@2
     displayName: Code coverage
     timeoutInMinutes: 60
     inputs:
       command: test
-      projects: '**/tests/*.csproj'
+      projects: '**\tests\*.csproj'
       arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
   - script: |
-      tools/reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:Industrial IoT Test Coverage" "-assemblyfilters:-*.Tests"
-      cp $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.html 
+      .\tools\reportgenerator -reports:$(Build.SourcesDirectory)\**\coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)\CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:Industrial IoT Test Coverage" "-assemblyfilters:-*.Tests"
+      copy $(Build.SourcesDirectory)\CodeCoverage\summary.htm $(Build.SourcesDirectory)\CodeCoverage\index.html
+
     displayName: Create Code coverage report
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage'
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      summaryFileLocation: '$(Build.SourcesDirectory)\CodeCoverage\Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)\CodeCoverage'

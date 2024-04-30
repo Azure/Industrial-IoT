@@ -162,14 +162,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
             }
 
-            // force published timestamp into to source timestamp for the legacy heartbeat compatibility
-            if (MessageType == MessageType.KeepAlive &&
-                ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) == 0) &&
-                ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0))
-            {
-                value.SourceTimestamp = Timestamp ?? default;
-            }
-
             var reversibleMode = encoder.UseReversibleEncoding;
             try
             {
