@@ -64,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             Definitions = definitions ?? new Dictionary<string, JsonSchema>();
             Name = GetName(dataSetWriter.DataSet?.Name
                 ?? dataSetWriter.DataSetWriterName, uniqueNames);
+            _dataSetFieldContentMask = dataSetWriter.DataSetFieldContentMask ?? 0u;
             Ref = Compile(dataSetWriter.DataSet?.Name,
                 dataSetWriter.MessageSettings?.DataSetMessageContentMask ?? 0u,
                 uniqueNames);

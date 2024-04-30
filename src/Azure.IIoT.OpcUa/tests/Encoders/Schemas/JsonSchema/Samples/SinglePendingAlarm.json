@@ -338,6 +338,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage1",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -346,6 +358,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -354,6 +370,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage2",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -362,6 +390,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -370,6 +402,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage3",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -378,6 +422,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -386,6 +434,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage4",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -394,6 +454,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -402,6 +466,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage5",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -410,6 +486,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -418,6 +498,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage6",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -426,6 +518,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -434,6 +530,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage7",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -442,6 +550,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -450,6 +562,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage8",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -458,6 +582,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -466,6 +594,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage9",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -474,6 +614,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -482,6 +626,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage10",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -490,6 +646,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -498,6 +658,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage11",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -506,6 +678,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -514,6 +690,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage12",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -522,6 +710,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
@@ -530,6 +722,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#PendingAlarmsMonitoredItemMessage13",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -538,6 +742,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false

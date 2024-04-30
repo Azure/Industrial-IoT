@@ -18,6 +18,11 @@
       ],
       "format": "int32"
     },
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
     "org.opcfoundation.UA.DateTime": {
       "$id": "http://opcfoundation.org/UA/#DateTime",
       "title": "OPC UA built in type DateTime",
@@ -37,6 +42,18 @@
       "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage1",
       "type": "object",
       "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
         "Timestamp": {
           "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
         },
@@ -45,6 +62,10 @@
         },
         "SequenceNumber": {
           "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
       "additionalProperties": false
