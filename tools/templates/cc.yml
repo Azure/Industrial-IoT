@@ -1,6 +1,5 @@
-#
-# Test code coverage on Linux (fastest)
-#
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
 jobs:
 - job: codecoverage
   displayName: Code coverage
@@ -10,8 +9,6 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     disable.coverage.autogenerate: true
     runCodesignValidationInjection: false
-  pool:
-    vmImage: 'ubuntu-latest'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
@@ -29,7 +26,7 @@ jobs:
     inputs:
       command: custom
       custom: tool
-      arguments: install --tool-path tools dotnet-reportgenerator-globaltool 
+      arguments: install --tool-path tools dotnet-reportgenerator-globaltool
     displayName: Install ReportGenerator tool
   - task: DotNetCoreCLI@2
     displayName: Code coverage
@@ -41,7 +38,6 @@ jobs:
   - script: |
       tools/reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:Industrial IoT Test Coverage" "-assemblyfilters:-*.Tests"
       cp $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.html 
-
     displayName: Create Code coverage report
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage'

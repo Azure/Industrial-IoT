@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
-    using Divergic.Logging.Xunit;
+    using Neovolve.Logging.Xunit;
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;

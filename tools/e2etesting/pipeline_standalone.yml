@@ -54,18 +54,9 @@ stages:
     steps:
     - template: steps/deploystandalone.yml
 
-  - job: deploynestedtestresources
-    pool:
-      vmImage: 'ubuntu-latest'
-    condition: and(not(canceled()), and(eq(dependencies.deploystandalone.result, 'Succeeded'), eq(variables['NestedEdgeFlag'], 'Enable')))
-    dependsOn: deploystandalone
-    displayName: 'Deploy Nested Edge Test Resources'
-    steps:
-    - template: steps/deploynestededgeresources.yml
-
   - job: deploytestresources
-    condition: and(and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded')), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
-    dependsOn: deploynestedtestresources
+    condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded')))
+    dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
     steps:
     - template: steps/deploytestresources.yml

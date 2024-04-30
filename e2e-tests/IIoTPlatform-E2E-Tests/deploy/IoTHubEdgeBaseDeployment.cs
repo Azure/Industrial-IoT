@@ -88,9 +88,6 @@ namespace IIoTPlatformE2ETests.Deploy
                                     ""experimentalFeatures:enabled"": {
                                         ""value"": ""true""
                                     },
-                                    ""experimentalFeatures:nestedEdgeEnabled"": {
-                                        ""value"": ""true""
-                                    },
                                     ""SslProtocols"": {
                                         ""value"": ""tls1.2""
                                     }

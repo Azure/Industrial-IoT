@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests
 {
-    using Divergic.Logging.Xunit;
+    using Neovolve.Logging.Xunit;
     using Microsoft.Extensions.Logging;
 
     internal static class Logging
