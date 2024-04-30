@@ -1023,7 +1023,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private const int kMinPublishRequestCount = 3;
+        private const int kMinPublishRequestCount = 2;
         private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
@@ -1064,9 +1064,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     desiredRequests = minPublishRequests;
                 }
             }
+
             session.MinPublishRequestCount = desiredRequests;
 
-            var additionalRequests = desiredRequests - GoodPublishRequestCount;
+            var currently = OutstandingRequestCount;
+            var additionalRequests = desiredRequests - currently;
             if (additionalRequests <= 0)
             {
                 return;
@@ -1074,7 +1076,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger.LogDebug(
                 "Ensuring publish request count {Count} is {Desired} requests.",
-                GoodPublishRequestCount, desiredRequests);
+                currently, desiredRequests);
 
             // Queue requests
             for (var i = 0; i < additionalRequests; i++)
@@ -1354,7 +1356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
                         e.Status, e.CurrentTime, e.Status);
                 }
-                else
+                else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
                 {
                     EnsureMinimumNumberOfPublishRequestsQueued();
                 }
@@ -2074,6 +2076,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     _knownNodes.Clear();
                 }
+				catch (OperationCanceledException) { throw; }
                 catch (Exception ex)
                 {
                     HandleException(foundReferences, foundNodes, ex);
