@@ -20,19 +20,17 @@ resources:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    sdl:
+      baseline:
+        baselineFile: $(Build.SourcesDirectory)\.gdn\.gdnbaselines
+      #suppression:
+      #  suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
     pool:
       name: Azure-Pipelines-1ESPT-ExDShared
       image: windows-2022
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
-    globalSDL:
-      baseline:
-        baselineFile: $(Build.SourcesDirectory)\.gdn\.gdnbaselines
-        baselineSet: default
-      #suppression:
-      #  suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
-      #  suppressionSet: default
     stages:
     - stage: build
       displayName: 'Build and Test Code'
