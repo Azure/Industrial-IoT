@@ -26,6 +26,13 @@ extends:
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
+    globalSDL:
+      baseline:
+        baselineFile: $(Build.SourcesDirectory)\.gdn\.gdnbaselines
+        baselineSet: default
+      #suppression:
+      #  suppressionFile: $(Build.SourcesDirectory)\.gdn\.gdnsuppress
+      #  suppressionSet: default
     stages:
     - stage: build
       displayName: 'Build and Test Code'
