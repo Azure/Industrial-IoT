@@ -11,6 +11,7 @@ jobs:
   steps:
   - task: InvokeRESTAPI@1
     displayName: 'Trigger Azure.Industrial-IoT-E2ETesting-Orchestrated'
+    continueOnError: true
     inputs:
       connectionType: 'connectedServiceName'
       serviceConnection: iotcat-Azure.Industrial-IoT-E2ETesting
@@ -21,6 +22,7 @@ jobs:
       waitForCompletion: 'false'
   - task: InvokeRESTAPI@1
     displayName: 'Trigger Azure.Industrial-IoT-E2ETesting-Standalone'
+    continueOnError: true
     inputs:
       connectionType: 'connectedServiceName'
       serviceConnection: iotcat-Azure.Industrial-IoT-E2ETesting
