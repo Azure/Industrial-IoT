@@ -76,7 +76,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 dataSetFieldContentMask ?? default, def), options)
         {
             Name = name ?? "DataSet";
-
             Ref = Compile(name, dataSet, uniqueNames);
         }
 

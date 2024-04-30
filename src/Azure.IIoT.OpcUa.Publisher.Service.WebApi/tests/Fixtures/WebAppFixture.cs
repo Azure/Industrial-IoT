@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Azure.IIoT.OpcUa.Publisher.Service.Sdk.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Divergic.Logging.Xunit;
+    using Neovolve.Logging.Xunit;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;

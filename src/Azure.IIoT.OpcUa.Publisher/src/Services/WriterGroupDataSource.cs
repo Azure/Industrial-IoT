@@ -856,8 +856,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     Routing = DataSetWriter.DataSet?.Routing ?? DataSetRoutingMode.None;
                     Topic = DataSetWriter.Publishing?.QueueName
-                       ?? writerGroup.Publishing?.QueueName
-                       ?? string.Empty;
+                        ?? writerGroup.Publishing?.QueueName
+                        ?? string.Empty;
                     Qos = DataSetWriter.Publishing?.RequestedDeliveryGuarantee
                         ?? writerGroup.Publishing?.RequestedDeliveryGuarantee;
                     MetadataTopic = DataSetWriter.MetaData?.QueueName ?? string.Empty;
@@ -865,10 +865,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         MetadataTopic = Topic;
                     }
-                    ContextSelector = Routing == DataSetRoutingMode.None ? _ => null
-                        : n => n.PathFromRoot == null || n.Context != null ?
-                          n.Context : new TopicContext(Topic, n.PathFromRoot, Qos,
-                            Routing != DataSetRoutingMode.UseBrowseNames);
+                    switch (Routing)
+                    {
+                        case DataSetRoutingMode.UseBrowseNames:
+                            ContextSelector = n =>
+                                n.PathFromRoot == null || n.Context != null ?
+                                    n.Context :
+                                    new TopicContext(Topic, n.PathFromRoot, Qos, false);
+                            break;
+                        case DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex:
+                            ContextSelector = n =>
+                                n.PathFromRoot == null || n.Context != null ?
+                                    n.Context :
+                                    new TopicContext(Topic, n.PathFromRoot, Qos, true);
+                            break;
+                        default:
+                            ContextSelector = _ => null;
+                            break;
+                    }
 
                     var messageEncoding = WriterGroup.MessageType ?? MessageEncoding.Json;
                     if (options.SchemaOptions != null ||

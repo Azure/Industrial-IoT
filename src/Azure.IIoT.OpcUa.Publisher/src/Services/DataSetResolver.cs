@@ -31,16 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// to have it available for later matching of incoming
     /// messages.
     /// </para>
-    /// <para>
-    /// Good: We can also resolve nodes to subscribe to recursively
-    /// here as well.
-    /// Bad: if it fails?  In subscription (stack) we retry, I guess
-    /// we have to retry at the writer group level as well then?
-    /// We should not move this all to subscription or else we
-    /// cannot handle
-    /// writes until we have the subscription applied - that feels
-    /// too late.
-    /// </para>
     /// </summary>
     internal partial class DataSetResolver
     {

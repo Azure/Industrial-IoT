@@ -165,12 +165,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public string EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
             () => "1.4");
 
-        public string NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
-            () => "Disable");
-
-        public IReadOnlyList<string> NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
-            () => "").Split(",");
-
         public string BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => string.Empty);
 

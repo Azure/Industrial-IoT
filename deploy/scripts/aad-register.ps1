@@ -348,6 +348,7 @@ Function Connect-MicrosoftGraph() {
         $token = Get-AzAccessToken -ResourceTypeName MSGraph
         if ($token) {
             try {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
                 $secureToken = ConvertTo-SecureString -AsPlainText -Force -String $token.Token
                 Connect-MgGraph -AccessToken $secureToken | Out-Null
             }

@@ -97,7 +97,9 @@ if (!$edgeIdentity.Capabilities.IotEdge) {
 }
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -SecretValue (ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -SecretValue $secret | Out-Null
 
 Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; } | Out-Null
@@ -157,15 +159,23 @@ if ([string]::IsNullOrEmpty($sshUrl)) {
 $fqdn = $sshUrl.Split("@")[1]
 
 Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue $secret | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue $secret | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $sshPublicKey -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue $secret | Out-Null
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dnsname' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $fqdn -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dnsname' -SecretValue $secret | Out-Null
 
 Write-Host "Deployment finished."

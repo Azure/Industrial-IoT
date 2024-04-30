@@ -50,9 +50,19 @@ $resourceGroup = (Get-AzResource -Name $KeyVaultName).ResourceGroupName
 $keyVault = Get-AzKeyVault -ResourceGroupName $resourceGroup -VaultName $KeyVaultName
 
 Write-Host "Adding/Updating KeyVault-Secrets..."
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $ContainerRegistryServer -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-SERVER' -SecretValue (ConvertTo-SecureString $ContainerRegistryServer -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $ContainerRegistryUsername -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-USER' -SecretValue (ConvertTo-SecureString $ContainerRegistryUsername -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $ContainerRegistryPassword -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-PASSWORD' -SecretValue (ConvertTo-SecureString $ContainerRegistryPassword -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $ImageNamespace -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IMAGES-NAMESPACE' -SecretValue (ConvertTo-SecureString $ImageNamespace -AsPlainText -Force) | Out-Null
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+$secret = ConvertTo-SecureString $ImageTag -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IMAGES-TAG' -SecretValue (ConvertTo-SecureString $ImageTag -AsPlainText -Force) | Out-Null
 

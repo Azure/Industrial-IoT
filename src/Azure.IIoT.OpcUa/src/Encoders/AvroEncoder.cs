@@ -708,11 +708,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         private void WriteDataSetField(string? fieldName, DataValue? dataValue,
             Schema schema)
         {
-            if (schema is not UnionSchema)
+            if (schema is not UnionSchema u)
             {
                 WriteVariant(fieldName, dataValue?.WrappedValue ?? default);
             }
-            else
+            else if ((u.Schemas.Count > 1 && u.Schemas[1].IsDataValue())
+                || dataValue == null)
             {
                 WriteNullable(fieldName, dataValue, (_, v) =>
                 {
@@ -721,18 +722,21 @@ namespace Azure.IIoT.OpcUa.Encoders
                     ValidatedPop(currentSchema);
                 });
             }
+            else
+            {
+                WriteNullable(fieldName, dataValue.Value, (_, _) =>
+                {
+                    var currentSchema = GetFieldSchema(fieldName);
+                    WriteDataSetFieldValue(dataValue, currentSchema);
+                    ValidatedPop(currentSchema);
+                });
+            }
 
             void WriteDataSetFieldValue(DataValue value, Schema currentSchema)
             {
-                if (currentSchema is not RecordSchema fieldRecord)
-                {
-                    throw new EncodingException(
-                        $"Invalid schema {currentSchema.ToJson()}." +
-                        "Data set fields must be records.", Schema.ToJson());
-                }
-
                 // The field is a record that should contain the data value fields
-                if (fieldRecord.IsDataValue())
+                if (currentSchema is RecordSchema fieldRecord &&
+                    fieldRecord.IsDataValue())
                 {
                     foreach (var dvf in fieldRecord.Fields)
                     {
@@ -771,7 +775,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
 
                 // Write value as variant
-                WriteWithSchema(fieldRecord, () => WriteVariant(null, value.WrappedValue));
+                WriteWithSchema(currentSchema, () => WriteVariant(null, value.WrappedValue));
             }
         }
 

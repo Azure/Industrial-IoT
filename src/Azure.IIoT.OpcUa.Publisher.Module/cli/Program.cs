@@ -56,6 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             string? publishedNodesFilePath = null;
             var useNullTransport = false;
             string? dumpMessages = null;
+            string? dumpMessagesOutput = null;
             var scaleunits = 0u;
             var unknownArgs = new List<string>();
             try
@@ -127,6 +128,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 break;
                             }
                             throw new ArgumentException("Missing argument for --dump-messages");
+                        case "-O":
+                        case "--dump-output":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                dumpMessagesOutput = args[i];
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --dump-output");
                         case "-P":
                         case "--publish-profile":
                             i++;
@@ -218,7 +228,7 @@ Options:
                 if (dumpMessages != null)
                 {
                     hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, loggerFactory,
-                        TimeSpan.FromMinutes(2), scaleunits, cts.Token);
+                        TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, cts.Token);
                 }
                 else if (!withServer)
                 {
@@ -411,12 +421,13 @@ Options:
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,
-            ILoggerFactory loggerFactory, TimeSpan duration, uint scaleunits, CancellationToken ct)
+            ILoggerFactory loggerFactory, TimeSpan duration, uint scaleunits, string? dumpMessagesOutput,
+            CancellationToken ct)
         {
             try
             {
                 // Dump one message encoding at a time
-                var rootFolder = Path.Combine(".", "dump");
+                var rootFolder = Path.Combine(dumpMessagesOutput ?? ".", "dump");
                 foreach (var messageProfile in MessagingProfile.Supported)
                 {
                     if (messageProfile.MessageEncoding.HasFlag(MessageEncoding.IsGzipCompressed))

@@ -324,15 +324,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             DataValue? ReadDataSetFieldValue()
             {
                 var isRaw = true;
-                if (Current is not RecordSchema fieldRecord)
-                {
-                    throw new DecodingException(
-                        $"Invalid schema {Current.ToJson()}." +
-                        "Data set fields must be records.", Schema.ToJson());
-                }
-
-                // The field is a record that should contain the data value fields
-                if (fieldRecord.IsDataValue())
+                if (Current is RecordSchema fieldRecord &&
+                    fieldRecord.IsDataValue())
                 {
                     var dataValue = new DataValue();
                     foreach (var dvf in fieldRecord.Fields)
@@ -381,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
 
                 // Read value as variant
-                var value = ReadWithSchema(fieldRecord, () => ReadVariant(null));
+                var value = ReadWithSchema(currentSchema, () => ReadVariant(null));
                 if (value == Variant.Null)
                 {
                     return null;
