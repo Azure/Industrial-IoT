@@ -28,19 +28,12 @@
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.8.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.0" />
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.0.43" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.43" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.43" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.0.44" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.44" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.44" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Remove="container.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.1" />
   </ItemGroup>
 </Project>

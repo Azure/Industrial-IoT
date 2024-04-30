@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.43" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.44" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
@@ -15,9 +15,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.1" />
   </ItemGroup>
 </Project>

@@ -7,8 +7,8 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.43" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.43" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.44" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.44" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
@@ -19,78 +19,8 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Profiles\KeyFrames.json">
+    <Content Include="Profiles\*.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\NodeExpansion.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\DataSetTopics.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Heartbeat2.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\ModelChanges.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Heartbeat.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fixedvalue.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\KeepAlive.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\MultiDataSetWriter.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\MultiWriterGroup.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\MultiEndpoint.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\CyclicReads.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\TopicPerNode.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\UnifiedNamespace.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\RegisteredRead.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\FastTime.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Extremes.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\PlcSimulation.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\SubscribeErrors.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\DataItems.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Deadband.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\PendingAlarms.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\SimpleEvents.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.12.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.1" />
+    </Content>
   </ItemGroup>
 </Project>
