@@ -18,7 +18,7 @@ resources:
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
   parameters:
     pool:
       name: Azure-Pipelines-1ESPT-ExDShared
@@ -30,9 +30,9 @@ extends:
       skipBuildTagsForGitHubPullRequests: true
     sdl:
       baseline:
-        baselineFile: $(Build.SourcesDirectory)\.config\guardian\SDL\.gdnbaselines
+        baselineFile: $(Build.SourcesDirectory)\.gdnbaselines
       #suppression:
-      #  suppressionFile: $(Build.SourcesDirectory)\.config\guardian\SDL\.gdnsuppress
+      #  suppressionFile: $(Build.SourcesDirectory)\.gdnsuppress
     stages:
     - stage: build
       displayName: 'Build and Test Code'
