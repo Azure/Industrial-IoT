@@ -286,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented).ReplaceLineEndings();
             Assert.NotNull(json);
-#if !WRITE
+#if WRITE
             var folder = Path.Combine(".", "JsonSchema", name);
             if (!Directory.Exists(folder))
             {
