@@ -30,7 +30,7 @@ extends:
       skipBuildTagsForGitHubPullRequests: true
     sdl:
       baseline:
-        baselineFile: $(INETROOT)\.config\guardian\SDL\.gdnbaselines
+        baselineFile: $(Build.SourcesDirectory)\.config\guardian\SDL\.gdnbaselines
       #suppression:
       #  suppressionFile: $(Build.SourcesDirectory)\.config\guardian\SDL\.gdnsuppress
     stages:
