@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var payload1 = messages[0].Message.GetProperty("Messages")[0].GetProperty("Payload");
             _output.WriteLine(payload1.ToString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
-            Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetProperty("Value").GetString(), out _));
+            Assert.True(payload1.GetProperty("EventId").GetProperty("Value").GetBytesFromBase64().Length == 16);
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
                 payload1.GetProperty("EventType").GetProperty("Value").GetString());
             Assert.Equal("i=84", payload1.GetProperty("SourceNode").GetProperty("Value").GetString());
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var payload2 = messages[1].Message.GetProperty("Messages")[0].GetProperty("Payload");
             _output.WriteLine(payload2.ToString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
-            Assert.True(Guid.TryParse(payload2.GetProperty("EventId").GetProperty("Value").GetString(), out _));
+            Assert.True(payload2.GetProperty("EventId").GetProperty("Value").GetBytesFromBase64().Length == 16);
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",
                 payload2.GetProperty("EventType").GetProperty("Value").GetString());
             Assert.Equal("i=85", payload2.GetProperty("SourceNode").GetProperty("Value").GetString());
@@ -446,7 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.False(payload.GetProperty("Important").GetProperty("Value").GetBoolean());
             Assert.Equal(5, payload.GetProperty("AssetId").GetProperty("Value").GetInt16());
             Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetString());
-            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble());
+            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble(), 6);
             var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, fields.ValueKind);
             Assert.NotNull(metadata);
@@ -479,7 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.False(payload.GetProperty("Important").GetProperty("Value").GetProperty("Body").GetBoolean());
             Assert.Equal("5", payload.GetProperty("AssetId").GetProperty("Value").GetProperty("Body").GetString());
             Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetProperty("Body").GetString());
-            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetProperty("Body").GetDouble());
+            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetProperty("Body").GetDouble(), 6);
 
             var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, fields.ValueKind);

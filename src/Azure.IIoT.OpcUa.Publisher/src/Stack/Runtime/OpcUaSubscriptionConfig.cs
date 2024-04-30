@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultHeartbeatIntervalKey = "DefaultHeartbeatInterval";
         public const string DefaultHeartbeatBehaviorKey = "DefaultHeartbeatBehavior";
         public const string DefaultSkipFirstKey = "DefaultSkipFirst";
+        public const string DefaultRepublishAfterTransferKey = "RepublishAfterTransfer";
         public const string DefaultDiscardNewKey = "DiscardNew";
         public const string DefaultSamplingIntervalKey = "DefaultSamplingInterval";
         public const string DefaultPublishingIntervalKey = "DefaultPublishingInterval";
@@ -46,6 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const bool DefaultSkipFirstDefault = false;
+        public const bool DefaultRepublishAfterTransferDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
         public static readonly TimeSpan DefaultRebrowsePeriodDefault = TimeSpan.FromHours(12);
@@ -74,6 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
             options.DefaultSkipFirst ??= GetBoolOrDefault(DefaultSkipFirstKey,
                     DefaultSkipFirstDefault);
+            options.DefaultRepublishAfterTransfer ??= GetBoolOrDefault(DefaultRepublishAfterTransferKey,
+                    DefaultRepublishAfterTransferDefault);
             options.DefaultDiscardNew ??= GetBoolOrDefault(DefaultDiscardNewKey,
                     DefaultDiscardNewDefault);
             if (options.DefaultSamplingInterval == null)

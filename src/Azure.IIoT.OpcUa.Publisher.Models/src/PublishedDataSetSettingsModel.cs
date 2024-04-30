@@ -50,13 +50,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public byte? Priority { get; init; }
 
         /// <summary>
-        /// Triggers automatic monitored items display name discovery
-        /// </summary>
-        [DataMember(Name = "resolveDisplayName", Order = 5,
-            EmitDefaultValue = false)]
-        public bool? ResolveDisplayName { get; init; }
-
-        /// <summary>
         /// Use deferred acknoledgements
         /// </summary>
         [DataMember(Name = "useDeferredAcknoledgements", Order = 6,
@@ -78,5 +71,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "enableSequentialPublishing", Order = 9,
             EmitDefaultValue = false)]
         public bool? EnableSequentialPublishing { get; init; }
+
+        /// <summary>
+        /// Republish after transferring the subscription during
+        /// reconnect handling.
+        /// </summary>
+        [DataMember(Name = "republishAfterTransfer", Order = 10,
+            EmitDefaultValue = false)]
+        public bool? RepublishAfterTransfer { get; set; }
     }
 }

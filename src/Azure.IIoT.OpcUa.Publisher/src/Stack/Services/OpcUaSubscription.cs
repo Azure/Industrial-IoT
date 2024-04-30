@@ -452,9 +452,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             FastEventCallback = OnSubscriptionEventNotificationList;
             PublishStatusChanged += OnPublishStatusChange;
             StateChanged += OnStateChange;
+
             TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both;
             DisableMonitoredItemCache = true;
-            RepublishAfterTransfer = true;
 
             _callbacks.OnSubscriptionUpdated(_closed ? null : this);
         }
@@ -1040,6 +1040,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _template.Configuration?.EnableImmediatePublishing ?? false;
                 var sequentialPublishing =
                     _template.Configuration?.EnableSequentialPublishing ?? false;
+                var republishAfterTransfer =
+                    _template.Configuration?.RepublishAfterTransfer ?? false;
 
                 Handle = _handle;
                 DisplayName = Name;
@@ -1049,8 +1051,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish;
                 LifetimeCount = configuredLifetimeCount;
                 Priority = configuredPriority;
+
                 // TODO: use a channel and reorder task before calling OnMessage
                 // to order or else republish is called too often
+                RepublishAfterTransfer = republishAfterTransfer;
                 SequentialPublishing = sequentialPublishing;
 
                 var result = session.AddSubscription(this);

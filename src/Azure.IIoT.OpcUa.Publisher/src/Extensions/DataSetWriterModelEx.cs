@@ -89,7 +89,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 EnableImmediatePublishing = dataSetSource.SubscriptionSettings?.EnableImmediatePublishing
                     ?? options.EnableImmediatePublishing ?? false,
                 EnableSequentialPublishing = dataSetSource.SubscriptionSettings?.EnableSequentialPublishing
-                    ?? options.EnableSequentialPublishing ?? true
+                    ?? options.EnableSequentialPublishing ?? true,
+                RepublishAfterTransfer = dataSetSource.SubscriptionSettings?.RepublishAfterTransfer
+                    ?? options.DefaultRepublishAfterTransfer ?? true
             };
         }
 
