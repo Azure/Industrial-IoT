@@ -251,22 +251,6 @@ namespace IIoTPlatformE2ETests
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
-                    if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
-                    {
-                        using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
-                        foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
-                        {
-                            if (!string.IsNullOrEmpty(edge))
-                            {
-                                // Copy file to the edge vm
-                                var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
-                                sshCient.RunCommand(command);
-                                // Move file to the target folder with sudo permissions
-                                command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
-                                sshCient.RunCommand(command);
-                            }
-                        }
-                    }
                     return;
                 }
                 catch (Exception ex) when (attempt < 60)
@@ -484,19 +468,6 @@ namespace IIoTPlatformE2ETests
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
-
-            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
-            {
-                using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
-                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
-                {
-                    if (!string.IsNullOrEmpty(edge))
-                    {
-                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
-                        sshCient.RunCommand(command);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -710,12 +681,8 @@ namespace IIoTPlatformE2ETests
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
                 new Dictionary<string, PublishedNodesEntryModel>(0);
 
-            // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
-            if (context.IoTEdgeConfig.NestedEdgeFlag != "Enable")
-            {
                 simulatedPublishedNodesConfiguration =
                     await GetSimulatedPublishedNodesConfigurationAsync(context, ct).ConfigureAwait(false);
-            }
 
             PublishedNodesEntryModel model;
             if (simulatedPublishedNodesConfiguration.Count > 0)

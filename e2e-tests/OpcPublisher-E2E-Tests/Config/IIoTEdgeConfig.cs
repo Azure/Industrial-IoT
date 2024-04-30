@@ -16,15 +16,5 @@ namespace OpcPublisherAEE2ETests.Config
         /// IoT Edge version
         /// </summary>
         string EdgeVersion { get; }
-
-        /// <summary>
-        /// The flag whether the nested edge is enabled or not
-        /// </summary>
-        string NestedEdgeFlag { get; }
-
-        /// <summary>
-        /// Nested edge SSH connection
-        /// </summary>
-        IReadOnlyList<string> NestedEdgeSshConnections { get; }
     }
 }

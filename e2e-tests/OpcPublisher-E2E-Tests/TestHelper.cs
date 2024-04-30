@@ -102,22 +102,6 @@ namespace OpcPublisherAEE2ETests
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
-                    if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
-                    {
-                        using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
-                        foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
-                        {
-                            if (!string.IsNullOrEmpty(edge))
-                            {
-                                // Copy file to the edge vm
-                                var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
-                                sshCient.RunCommand(command);
-                                // Move file to the target folder with sudo permissions
-                                command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
-                                sshCient.RunCommand(command);
-                            }
-                        }
-                    }
                     return;
                 }
                 catch (Exception ex) when (attempt < 60)

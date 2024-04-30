@@ -130,8 +130,6 @@ steps:
     PCS_DOCKER_PASSWORD: "$(ContainerRegistryPassword)"
     PCS_IMAGES_NAMESPACE: "$(ImageNamespace)"
     IOT_EDGE_VERSION: "$(EdgeVersion)"
-    NESTED_EDGE_FLAG: "$(NestedEdgeFlag)"
-    NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"
     PCS_SUBSCRIPTION_ID: '$(PCS-SUBSCRIPTION-ID)'
     PCS_RESOURCE_GROUP: '$(ResourceGroupName)'
     AZURE_CLIENT_ID: "$(ServicePrincipalId)"

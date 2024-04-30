@@ -182,12 +182,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public string EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
             () => "1.4");
 
-        public string NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
-            () => "Disable");
-
-        public IReadOnlyList<string> NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS,
-            () => "").Split(",");
-
         public string Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
             () => throw new InvalidOperationException("Username of iot edge device is not provided."));
 
