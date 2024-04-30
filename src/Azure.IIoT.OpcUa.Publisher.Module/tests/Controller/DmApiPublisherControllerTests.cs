@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Autofac;
-    using Divergic.Logging.Xunit;
+    using Neovolve.Logging.Xunit;
     using FluentAssertions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
