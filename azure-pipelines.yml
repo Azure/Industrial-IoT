@@ -26,9 +26,11 @@ extends:
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
+    settings:
+      skipBuildTagsForGitHubPullRequests: true
     sdl:
       baseline:
-        baselineFile: $(Build.SourcesDirectory)\.config\guardian\SDL\.gdnbaselines
+        baselineFile: $(INETROOT)\.config\guardian\SDL\.gdnbaselines
       #suppression:
       #  suppressionFile: $(Build.SourcesDirectory)\.config\guardian\SDL\.gdnsuppress
     stages:
