@@ -871,45 +871,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnChanged(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {File} changed. Triggering file refresh ...",
-                e.Name);
-            _fileChanges.Writer.TryWrite(false);
-        }
-
-        /// <summary>
-        /// Handle creation of file
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnCreated(object? sender, FileSystemEventArgs e)
-        {
-            _logger.LogDebug("File {File} created. Triggering file refresh ...",
-                e.Name);
-            _fileChanges.Writer.TryWrite(false);
-        }
-
-        /// <summary>
-        /// Handle removal of file
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnRenamed(object? sender, FileSystemEventArgs e)
-        {
-            _logger.LogDebug("File {File} renamed. Triggering file refresh ...",
-                e.Name);
-            _fileChanges.Writer.TryWrite(false);
-        }
-
-        /// <summary>
-        /// Handle deletion of the file
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnDeleted(object? sender, FileSystemEventArgs e)
-        {
-            _logger.LogDebug("File {File} deleted. Clearing configuration ...",
-                e.Name);
-            _fileChanges.Writer.TryWrite(true);
+            _logger.LogDebug("File {File} {Action}. Triggering file refresh ...",
+                e.ChangeType, e.Name);
+            _fileChanges.Writer.TryWrite(e.ChangeType == WatcherChangeTypes.Deleted);
         }
 
         /// <summary>
@@ -921,10 +885,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 _publishedNodesProvider.Changed += OnChanged;
-                _publishedNodesProvider.Created += OnCreated;
-                _publishedNodesProvider.Renamed += OnRenamed;
-                _publishedNodesProvider.Deleted += OnDeleted;
-                _publishedNodesProvider.EnableRaisingEvents = true;
 
                 var retryCount = 0;
                 await foreach (var clear in _fileChanges.Reader.ReadAllAsync())
@@ -943,7 +903,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (currentFileHash != _lastKnownFileHash)
                             {
                                 var jobs = Enumerable.Empty<WriterGroupModel>();
-                                if (!clear && !string.IsNullOrEmpty(content))
+                                if (!string.IsNullOrEmpty(content))
                                 {
                                     if (string.IsNullOrEmpty(_lastKnownFileHash))
                                     {
@@ -961,9 +921,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
                                     jobs = _publishedNodesJobConverter.ToWriterGroups(entries);
-                                    _logger.LogInformation("{Action} publisher configuration completed.",
-                                        clear ? "Resetting" : "Refreshing");
                                 }
+                                _logger.LogInformation("{Action} publisher configuration completed.",
+                                    clear ? "Resetting" : "Refreshing");
                                 try
                                 {
                                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
@@ -1044,13 +1004,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
-                _publishedNodesProvider.EnableRaisingEvents = false;
-
                 _publishedNodesProvider.Changed -= OnChanged;
-                _publishedNodesProvider.Created -= OnCreated;
-                _publishedNodesProvider.Renamed -= OnRenamed;
-                _publishedNodesProvider.Deleted -= OnDeleted;
-
                 _started = null;
             }
         }

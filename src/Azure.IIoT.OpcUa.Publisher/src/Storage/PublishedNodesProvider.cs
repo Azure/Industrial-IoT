@@ -6,8 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Storage
 {
     using Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Extensions.FileProviders;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Primitives;
     using System;
     using System.IO;
     using System.Text;
@@ -19,23 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     public sealed class PublishedNodesProvider : IStorageProvider, IDisposable
     {
         /// <inheritdoc/>
-        public event EventHandler<FileSystemEventArgs>? Deleted;
-
-        /// <inheritdoc/>
-        public event EventHandler<FileSystemEventArgs>? Created;
-
-        /// <inheritdoc/>
         public event EventHandler<FileSystemEventArgs>? Changed;
-
-        /// <inheritdoc/>
-        public event EventHandler<RenamedEventArgs>? Renamed;
-
-        /// <inheritdoc/>
-        public bool EnableRaisingEvents
-        {
-            get { return _fileSystemWatcher.EnableRaisingEvents; }
-            set { _fileSystemWatcher.EnableRaisingEvents = value; }
-        }
 
         /// <summary>
         /// Get file mode to use
@@ -66,13 +52,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 directory = Environment.CurrentDirectory;
             }
 
-            var file = Path.GetFileName(_fileName);
-            _fileSystemWatcher = new FileSystemWatcher(directory, file);
-            _fileSystemWatcher.Deleted += FileSystemWatcher_Deleted;
-            _fileSystemWatcher.Created += FileSystemWatcher_Created;
-            _fileSystemWatcher.Changed += FileSystemWatcher_Changed;
-            _fileSystemWatcher.Renamed += FileSystemWatcher_Renamed;
-            _fileSystemWatcher.EnableRaisingEvents = true;
+            _provider = new PhysicalFileProvider(directory);
+            if (_options.Value.UseFileChangePolling == true)
+            {
+                _provider.UseActivePolling = true;
+                _provider.UsePollingFileWatcher = true;
+            }
+            _watch = _provider.Watch(Path.GetFileName(_fileName));
+            _watch.RegisterChangeCallback(ChangeCallback, this);
 
             _lock = new SemaphoreSlim(1, 1);
         }
@@ -83,7 +70,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _lock.Wait();
             try
             {
-                return File.GetLastWriteTime(_fileName);
+                var fileName = Path.GetFileName(_fileName);
+                return _provider.GetFileInfo(fileName).LastModified.DateTime;
             }
             finally
             {
@@ -97,6 +85,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _lock.Wait();
             try
             {
+                if (!File.Exists(_fileName))
+                {
+                    return string.Empty;
+                }
                 // Create file only if it is the default file.
                 using (var fileStream = new FileStream(_fileName,
                     FileMode, FileAccess.Read, FileShare.Read))
@@ -120,13 +112,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public void WriteContent(string content, bool disableRaisingEvents = false)
         {
             _lock.Wait();
-            // Store current state.
-            var eventState = _fileSystemWatcher.EnableRaisingEvents;
             try
             {
                 if (disableRaisingEvents)
                 {
-                    _fileSystemWatcher.EnableRaisingEvents = false;
+                    _disableRaisingEvents = true;
                 }
 
                 try
@@ -177,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 // Retore state.
                 if (disableRaisingEvents)
                 {
-                    _fileSystemWatcher.EnableRaisingEvents = eventState;
+                    _disableRaisingEvents = false;
                 }
 
                 _lock.Release();
@@ -187,40 +177,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <inheritdoc/>
         public void Dispose()
         {
-            _fileSystemWatcher.EnableRaisingEvents = false;
-            _fileSystemWatcher.Deleted -= FileSystemWatcher_Deleted;
-            _fileSystemWatcher.Created -= FileSystemWatcher_Created;
-            _fileSystemWatcher.Changed -= FileSystemWatcher_Changed;
-            _fileSystemWatcher.Renamed -= FileSystemWatcher_Renamed;
-
-            _fileSystemWatcher.Dispose();
+            _provider.Dispose();
             _lock.Dispose();
         }
 
-        private void FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+        /// <summary>
+        /// Register callback
+        /// </summary>
+        /// <param name="obj"></param>
+        private void ChangeCallback(object? obj)
         {
-            Changed?.Invoke(sender, e);
-        }
-
-        private void FileSystemWatcher_Created(object sender, FileSystemEventArgs e)
-        {
-            Created?.Invoke(sender, e);
-        }
-
-        private void FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e)
-        {
-            Deleted?.Invoke(sender, e);
-        }
-
-        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
-        {
-            Renamed?.Invoke(sender, e);
+            var currentChangeToken = _watch;
+            _watch = _provider.Watch(Path.GetFileName(_fileName));
+            _watch.RegisterChangeCallback(ChangeCallback, this);
+            if (!currentChangeToken.HasChanged || _disableRaisingEvents)
+            {
+                _logger.LogTrace("No raising event while writing ({Changed}).",
+                    currentChangeToken.HasChanged);
+                return;
+            }
+            var exists = File.Exists(_fileName);
+            Changed?.Invoke(this, new FileSystemEventArgs(exists ?
+                WatcherChangeTypes.Changed : WatcherChangeTypes.Deleted,
+                _provider.Root, Path.GetFileName(_fileName)));
         }
 
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private readonly string _fileName;
         private readonly SemaphoreSlim _lock;
-        private readonly FileSystemWatcher _fileSystemWatcher;
+        private readonly PhysicalFileProvider _provider;
+        private bool _disableRaisingEvents;
+        private IChangeToken _watch;
     }
 }

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -933,6 +934,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 PopObject();
             }
+        }
+
+        /// <inheritdoc/>
+        public void EncodeMessage(IEncodeable message)
+        {
+            message.Encode(this);
         }
 
         /// <inheritdoc/>
