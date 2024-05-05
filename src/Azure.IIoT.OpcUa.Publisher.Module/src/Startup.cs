@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -32,23 +31,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public IConfigurationRoot Configuration { get; }
 
         /// <summary>
-        /// Current hosting environment
-        /// </summary>
-        public IWebHostEnvironment Environment { get; }
-
-        /// <summary>
         /// Create startup
         /// </summary>
-        /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration)
+        public Startup(IConfiguration configuration)
         {
-            Environment = env;
             Configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .Build();
+
+            // Set polling mode on file watcher if configured
+            if (Configuration.GetValue<string>(PublisherConfig.UseFileChangePollingKey)?
+                .Equals("True", StringComparison.OrdinalIgnoreCase) ?? false)
+            {
+                Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
+            }
         }
 
         /// <summary>
