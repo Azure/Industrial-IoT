@@ -14,29 +14,9 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IStorageProvider
     {
         /// <summary>
-        /// Occurs when published nodes file is deleted.
-        /// </summary>
-        event EventHandler<FileSystemEventArgs> Deleted;
-
-        /// <summary>
-        /// Occurs when published nodes file is created.
-        /// </summary>
-        event EventHandler<FileSystemEventArgs> Created;
-
-        /// <summary>
         /// Occurs when published nodes file is changed.
         /// </summary>
         event EventHandler<FileSystemEventArgs> Changed;
-
-        /// <summary>
-        /// Occurs when published nodes file is renamed.
-        /// </summary>
-        event EventHandler<RenamedEventArgs> Renamed;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether triggering of events is enabled.
-        /// </summary>
-        bool EnableRaisingEvents { get; set; }
 
         /// <summary>
         /// Get last write time of published nodes file.
