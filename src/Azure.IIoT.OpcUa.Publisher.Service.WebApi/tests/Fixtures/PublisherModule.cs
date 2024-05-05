@@ -194,8 +194,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
     public class ModuleStartup : Publisher.Module.Startup
     {
-        public ModuleStartup(IWebHostEnvironment env, IConfiguration configuration)
-            : base(env, configuration)
+        public ModuleStartup(IConfiguration configuration)
+            : base(configuration)
         {
         }
 

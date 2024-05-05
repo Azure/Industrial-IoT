@@ -558,8 +558,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
     public class ModuleStartup : Startup
     {
-        public ModuleStartup(IWebHostEnvironment env, IConfiguration configuration)
-            : base(env, configuration)
+        public ModuleStartup(IConfiguration configuration)
+            : base(configuration)
         {
         }
 
