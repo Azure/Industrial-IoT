@@ -6,7 +6,7 @@ pr:
     - '*'
 jobs:
 - job: OneBranchTrigger
-  pool: windows-latest
+  pool: windows
   displayName: Trigger Pull Request Build on Governed Pipeline
   steps:
   - task: TriggerBuild@4
