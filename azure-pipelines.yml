@@ -11,13 +11,13 @@ jobs:
   steps:
   - task: TriggerBuild@4
     inputs:
-      authenticationMethod: 'OAuth Token'
-      password: $(System.AccessToken)
-T     definitionIsInCurrentTeamProject: true
       buildDefinition: '364944'
+      definitionIsInCurrentTeamProject: true
       templateParameters: 'ref: $(Build.SourceBranch)'
       queueBuildForUserThatTriggeredBuild: true
       waitForQueuedBuildsToFinish: true
       waitForQueuedBuildsToFinishRefreshTime: '60'
       failTaskIfBuildsNotSuccessful: true
       downloadBuildArtifacts: true
+      authenticationMethod: 'OAuth Token'
+      password: $(System.AccessToken)
