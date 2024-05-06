@@ -14,9 +14,9 @@ jobs:
   steps:
   - task: TriggerBuild@4
     inputs:
-      buildDefinition: '364944'
+      buildDefinition: 364944
       definitionIsInCurrentTeamProject: true
-      # templateParameters: 'ref: $(Build.SourceBranch)'
+      templateParameters: 'ref: $(Build.SourceBranch)'
       queueBuildForUserThatTriggeredBuild: true
       waitForQueuedBuildsToFinish: true
       waitForQueuedBuildsToFinishRefreshTime: '60'
