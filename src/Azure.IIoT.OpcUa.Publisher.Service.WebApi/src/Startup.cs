@@ -53,18 +53,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         public string Description => "Azure Industrial IoT OPC UA Publisher Service";
 
         /// <summary>
-        /// Current hosting environment - Initialized in constructor
-        /// </summary>
-        public IWebHostEnvironment Environment { get; }
-
-        /// <summary>
         /// Create startup
         /// </summary>
-        /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration)
+        public Startup(IConfiguration configuration)
         {
-            Environment = env;
             Configuration = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()

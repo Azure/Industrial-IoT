@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
+        public const string UseFileChangePollingKey = "UseFileChangePolling";
         public const string StateStoreFolderPathKey = "StateStoreFolderPath";
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
         public const string MessagingModeKey = "MessagingMode";
@@ -145,6 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher
             options.PublisherVersion ??= GetIntOrNull(PublisherVersionKey);
 
             options.PublishedNodesFile ??= GetStringOrDefault(PublishedNodesFileKey);
+            options.UseFileChangePolling ??= GetBoolOrNull(UseFileChangePollingKey);
             options.StateStoreFolderPath ??= GetStringOrDefault(StateStoreFolderPathKey);
 
             if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(

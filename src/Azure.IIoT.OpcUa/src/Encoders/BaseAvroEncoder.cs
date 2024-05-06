@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -485,6 +486,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             value ??= new ExtensionObject();
             // Write a raw encoded data type of the schema union
             WriteUnion(fieldName, 0, _ => WriteEncodedDataType(fieldName, value));
+        }
+
+        /// <inheritdoc/>
+        public void EncodeMessage(IEncodeable message)
+        {
+            message.Encode(this);
         }
 
         /// <inheritdoc/>

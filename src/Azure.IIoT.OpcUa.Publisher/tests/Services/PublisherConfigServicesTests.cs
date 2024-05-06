@@ -55,6 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             _options.Value.PublishedNodesFile = _tempFile;
+            _options.Value.UseFileChangePolling = true;
             _options.Value.MessagingProfile = MessagingProfile.Get(
                 MessagingMode.PubSub, MessageEncoding.Json);
 

@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Mock.Services;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Text;
@@ -22,10 +21,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
         /// <summary>
         /// Create startup
         /// </summary>
-        /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public TestStartup(IWebHostEnvironment env, IConfiguration configuration) :
-            base(env, configuration)
+        public TestStartup(IConfiguration configuration) :
+            base(configuration)
         {
         }
 

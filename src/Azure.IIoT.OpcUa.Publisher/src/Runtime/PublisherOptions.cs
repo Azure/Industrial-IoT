@@ -36,6 +36,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? PublishedNodesFile { get; set; }
 
         /// <summary>
+        /// Poll changes instead of using file watcher
+        /// </summary>
+        public bool? UseFileChangePolling { get; set; }
+
+        /// <summary>
         /// Create the configuration file if it does not exist
         /// </summary>
         public bool? CreatePublishFileIfNotExist { get; set; }

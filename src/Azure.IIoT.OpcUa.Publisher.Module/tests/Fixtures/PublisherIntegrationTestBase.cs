@@ -312,6 +312,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     $"--pf={_publishedNodesFilePath}"
                 }).ToArray();
 
+            if (OperatingSystem.IsLinux())
+            {
+                arguments = arguments.Append("--pol").ToArray();
+            }
+
             if (reverseConnectPort != null)
             {
                 arguments = arguments.Concat(

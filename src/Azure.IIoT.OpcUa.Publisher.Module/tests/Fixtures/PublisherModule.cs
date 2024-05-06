@@ -156,7 +156,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     "--ki=90",
                     "--aa"
                 }).ToArray();
-
+            if (OperatingSystem.IsLinux())
+            {
+                arguments = arguments.Append("--pol").ToArray();
+            }
             if (_useMqtt)
             {
                 arguments = arguments.Append("-t=Mqtt").ToArray();
@@ -560,8 +563,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
     public class ModuleStartup : Startup
     {
-        public ModuleStartup(IWebHostEnvironment env, IConfiguration configuration)
-            : base(env, configuration)
+        public ModuleStartup(IConfiguration configuration)
+            : base(configuration)
         {
         }
 

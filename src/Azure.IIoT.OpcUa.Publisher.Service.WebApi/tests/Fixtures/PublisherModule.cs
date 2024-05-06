@@ -90,7 +90,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
                     "--ki=90",
                     "--aa"
                 }).ToArray();
-
+            if (OperatingSystem.IsLinux())
+            {
+                arguments = arguments.Append("--pol").ToArray();
+            }
             var configBuilder = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
@@ -197,8 +200,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
     public class ModuleStartup : Publisher.Module.Startup
     {
-        public ModuleStartup(IWebHostEnvironment env, IConfiguration configuration)
-            : base(env, configuration)
+        public ModuleStartup(IConfiguration configuration)
+            : base(configuration)
         {
         }
 
