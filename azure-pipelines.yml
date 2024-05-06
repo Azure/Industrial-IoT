@@ -9,7 +9,7 @@ variables:
 jobs:
 - job: OneBranchTrigger
   pool:
-    type: windows
+    vmImage: 'ubuntu-latest'
   displayName: Trigger Pull Request Build on Governed Pipeline
   steps:
   - task: TriggerBuild@4
