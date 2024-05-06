@@ -6,7 +6,6 @@ pr:
     - '*'
 jobs:
 - job: OneBranchTrigger
-  pool: agentless
   displayName: Trigger Pull Request Build on Governed Pipeline
   steps:
   - task: TriggerBuild@4
