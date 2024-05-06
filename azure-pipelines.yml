@@ -14,7 +14,7 @@ jobs:
   steps:
   - task: TriggerBuild@4
     inputs:
-      buildDefinition: 364944
+      buildDefinition: '/OneBranch/Industrial-IoT/Industrial-IoT-PullRequest'
       definitionIsInCurrentTeamProject: true
       templateParameters: 'ref: $(Build.SourceBranch)'
       queueBuildForUserThatTriggeredBuild: true
