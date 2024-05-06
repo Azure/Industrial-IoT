@@ -16,7 +16,7 @@ jobs:
     inputs:
       buildDefinition: 'Industrial-IoT-PullRequest'
       definitionIsInCurrentTeamProject: true
-      templateParameters: 'ref: $(Build.SourceBranch)'
+     # templateParameters: 'ref: $(Build.SourceBranch)'
       queueBuildForUserThatTriggeredBuild: true
       waitForQueuedBuildsToFinish: true
       waitForQueuedBuildsToFinishRefreshTime: '60'
