@@ -23,4 +23,4 @@ jobs:
       failTaskIfBuildsNotSuccessful: true
       downloadBuildArtifacts: true
       authenticationMethod: 'OAuth Token'
-      password: $(system_accesstoken)
+      password: $(System.AccessToken)
