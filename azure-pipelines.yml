@@ -27,10 +27,10 @@ jobs:
       failTaskIfBuildsNotSuccessful: true
       cancelBuildsIfAnyFails: false
       treatPartiallySucceededBuildAsSuccessful: false
-      downloadBuildArtifacts: false
+      downloadBuildArtifacts: true
       storeInEnvironmentVariable: false
       authenticationMethod: 'OAuth Token'
-      enableBuildInQueueCondition: false
+      enableBuildInQueueCondition: true
       dependentOnSuccessfulBuildCondition: false
       dependentOnFailedBuildCondition: false
       checkbuildsoncurrentbranch: false
