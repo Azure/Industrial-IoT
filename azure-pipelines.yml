@@ -14,13 +14,24 @@ jobs:
   steps:
   - task: TriggerBuild@4
     inputs:
-      buildDefinition: 'Industrial-IoT-PullRequest'
       definitionIsInCurrentTeamProject: true
-     # templateParameters: 'ref: $(Build.SourceBranch)'
-     # queueBuildForUserThatTriggeredBuild: true
+      buildDefinition: 'Industrial-IoT-PullRequest'
+      queueBuildForUserThatTriggeredBuild: false
+      ignoreSslCertificateErrors: false
+      useSameSourceVersion: false
+      useCustomSourceVersion: false
+      useSameBranch: true
       waitForQueuedBuildsToFinish: true
       waitForQueuedBuildsToFinishRefreshTime: '60'
-     # failTaskIfBuildsNotSuccessful: true
-     # downloadBuildArtifacts: true
+      failTaskIfBuildsNotSuccessful: true
+      cancelBuildsIfAnyFails: false
+      treatPartiallySucceededBuildAsSuccessful: false
+      downloadBuildArtifacts: false
+      storeInEnvironmentVariable: false
       authenticationMethod: 'OAuth Token'
-      password: $(System.AccessToken)
+      enableBuildInQueueCondition: false
+      dependentOnSuccessfulBuildCondition: false
+      dependentOnFailedBuildCondition: false
+      checkbuildsoncurrentbranch: false
+      failTaskIfConditionsAreNotFulfilled: false
+     # templateParameters: 'ref: $(Build.SourceBranch)'
