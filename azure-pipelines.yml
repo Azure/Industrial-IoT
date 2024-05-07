@@ -20,7 +20,8 @@ jobs:
       ignoreSslCertificateErrors: false
       useSameSourceVersion: false
       useCustomSourceVersion: false
-      useSameBranch: true
+      useSameBranch: false
+      branchToUse: 'main'
       waitForQueuedBuildsToFinish: true
       waitForQueuedBuildsToFinishRefreshTime: '60'
       failTaskIfBuildsNotSuccessful: true
@@ -34,4 +35,4 @@ jobs:
       dependentOnFailedBuildCondition: false
       checkbuildsoncurrentbranch: false
       failTaskIfConditionsAreNotFulfilled: false
-     # templateParameters: 'ref: $(Build.SourceBranch)'
+      templateParameters: 'ref: $(Build.SourceBranch)'
