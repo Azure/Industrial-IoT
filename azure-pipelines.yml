@@ -17,10 +17,10 @@ jobs:
       buildDefinition: 'Industrial-IoT-PullRequest'
       definitionIsInCurrentTeamProject: true
      # templateParameters: 'ref: $(Build.SourceBranch)'
-      queueBuildForUserThatTriggeredBuild: true
+     # queueBuildForUserThatTriggeredBuild: true
       waitForQueuedBuildsToFinish: true
       waitForQueuedBuildsToFinishRefreshTime: '60'
-      failTaskIfBuildsNotSuccessful: true
-      downloadBuildArtifacts: true
+     # failTaskIfBuildsNotSuccessful: true
+     # downloadBuildArtifacts: true
       authenticationMethod: 'OAuth Token'
       password: $(System.AccessToken)
