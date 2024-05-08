@@ -12,24 +12,26 @@ schedules:
     - releases
   always: true
 
-# # Pipeline completion triggers work only for pipelines within the same organization.
-# # We will trigger this pipeline via a REST API call from the main pipeline.
-#
-# # Trigger Orchestrated E2E Pipeline post completion of build pipeline.
-# resources:
-#   pipelines:
-#   - pipeline: Orchestrated-E2E-CD-Pipeline
-#     source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
-#     trigger:
-#       branches:
-#         include:
-#         - refs/heads/releases
-#         - refs/heads/release/*
-#         - refs/heads/main
+# Trigger Orchestrated E2E Pipeline post completion of build pipeline.
+resources:
+  pipelines:
+  - pipeline: Industrial-IoT-Official
+    source: OneBranch\Industrial-IoT\Industrial-IoT-Official
+    trigger:
+      branches:
+        include:
+        - refs/heads/releases
+        - refs/heads/release/*
+        - refs/heads/main
+  - pipeline: Industrial-IoT-Buddy
+    source: OneBranch\Industrial-IoT\Industrial-IoT-Buddy
+    trigger:
+      branches:
+        include:
+        - '*' # All branches
 
 pool:
   vmImage: 'windows-latest'
-
 variables:
 - template: steps/variables.yml
 
@@ -54,7 +56,7 @@ stages:
     - template: steps/deployplatform.yml
 
   - job: deploytestresources
-    condition: and(not(canceled()), eq(dependencies.deployplatform.result, 'Succeeded')))
+    condition: and(not(canceled()), eq(dependencies.deployplatform.result, 'Succeeded'))
     dependsOn: deployplatform
     displayName: 'Deploy Test Resources'
     steps:
