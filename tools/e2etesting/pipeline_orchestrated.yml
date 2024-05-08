@@ -16,7 +16,7 @@ schedules:
 resources:
   pipelines:
   - pipeline: Industrial-IoT-Official
-    source: OneBranch\Industrial-IoT\Industrial-IoT-Official
+    source: Industrial-IoT-Official
     trigger:
       branches:
         include:
@@ -24,7 +24,7 @@ resources:
         - refs/heads/release/*
         - refs/heads/main
   - pipeline: Industrial-IoT-Buddy
-    source: OneBranch\Industrial-IoT\Industrial-IoT-Buddy
+    source: Industrial-IoT-Buddy
     trigger:
       branches:
         include:
