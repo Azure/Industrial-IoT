@@ -14,9 +14,3 @@ steps:
     script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessor"'
     workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
     flattenFolders: true
-
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish Artifacts'
-  inputs:
-    path: $(Build.ArtifactStagingDirectory)/
-    artifact: testartifacts
