@@ -10,7 +10,8 @@ steps:
   name: promoteserviceprincipal
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptLocation: 'InlineScript'
     scriptType: 'ps'
     addSpnToEnvironment: true
@@ -23,7 +24,8 @@ steps:
   displayName: 'Set KeyVaultName-Variable'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
     scriptArguments: >
@@ -34,7 +36,8 @@ steps:
   name: keyvaultpermissions
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
     scriptArguments: >
@@ -69,7 +72,8 @@ steps:
   displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\SetVariables.ps1'
     scriptArguments: >

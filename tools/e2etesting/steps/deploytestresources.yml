@@ -9,7 +9,8 @@ steps:
   timeoutInMinutes: 90
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: 'ps'
     scriptPath: '$(BasePath)\DeployPLCs.ps1'
     arguments: >

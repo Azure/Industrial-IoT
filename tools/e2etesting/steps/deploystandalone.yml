@@ -4,7 +4,8 @@ steps:
   name: promoteserviceprincipal
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptLocation: 'InlineScript'
     scriptType: 'ps'
     addSpnToEnvironment: true
@@ -15,7 +16,8 @@ steps:
   displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\SetVariables.ps1'
     scriptArguments: >
@@ -30,7 +32,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '10.3.0'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\DeployStandalone.ps1'
     scriptArguments: >
@@ -42,7 +44,8 @@ steps:
   displayName: 'Set KeyVaultName-Variable'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
     scriptArguments: >
@@ -52,7 +55,8 @@ steps:
   displayName: 'Set keyvault container registry secrets'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
     scriptPath: '$(BasePath)\SetKeyVaultSecrets.ps1'
     scriptArguments: >
