@@ -12,7 +12,7 @@ steps:
     scriptType: 'InlineScript'
     inline: |
       Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-      $resourceGroup = Get-AzResourceGroup -Name "$(ResourceGroupName)"
+      $resourceGroup = Get-AzResourceGroup -Name "$(ResourceGroupName)" -ErrorAction SilentlyContinue
       if ($resourceGroup) { $resourceGroup | Remove-AzResourceGroup -Force }
       else { Write-Host "Resource group '$(ResourceGroupName)' not found." }
 
