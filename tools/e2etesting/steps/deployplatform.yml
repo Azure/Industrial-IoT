@@ -8,8 +8,8 @@ steps:
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: AzureCLI@2
-  displayName: 'Set Service Principal Environment Variables'
-  name: promoteserviceprincipal
+  displayName: 'Get Service Principal Access Token'
+  name: ServicePrincipalAccessToken
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
@@ -18,12 +18,12 @@ steps:
     scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
-      $accessToken = az account get-access-token | Convert-FromJson
+      $accessToken = az account get-access-token | ConvertFrom-Json
       Write-Host "Got token for $(accessToken.subscription) which expires $(accessToken.expiresOn)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalIdToken]$($env:idToken)"
-      Write-Host "##vso[task.setvariable variable=AccessToken]$($accessToken.accessToken)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
 
 - task: PowerShell@2
@@ -58,7 +58,7 @@ steps:
     inline: |
       $secureContainerRegistryPassword = "$(ContainerRegistryPassword)" `
         | ConvertTo-SecureString -AsPlainText -Force
-      $secureAccessToken = "$(AccessToken)" `
+      $secureAccessToken = "$(ServicePrincipalAccessToken)" `
         | ConvertTo-SecureString -AsPlainText -Force
       Write-Host "Deploying to '$(ResourceGroupName)'..."
       . $(System.DefaultWorkingDirectory)/deploy/scripts/deploy.ps1 `
