@@ -273,19 +273,6 @@ namespace OpcPublisherAEE2ETests
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
-
-            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
-            {
-                using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
-                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
-                {
-                    if (!string.IsNullOrEmpty(edge))
-                    {
-                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
-                        sshCient.RunCommand(command);
-                    }
-                }
-            }
         }
 
         /// <summary>
