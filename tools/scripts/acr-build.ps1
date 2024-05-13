@@ -20,7 +20,7 @@
 
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.
- .PARAMETER NoBuid
+ .PARAMETER NoBuild
     If set does not build but just packages the images into a
     manifest list
 #>

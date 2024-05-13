@@ -18,10 +18,14 @@
  .PARAMETER ImageTag
     Tag to publish under. Defaults "latest"
 
- .PARAMETER NoBuid
+ .PARAMETER NoBuild
     Whether to not build before publishing.
+ .PARAMETER NoPublish
+    Whether to not publish but build.
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.
+ .PARAMETER TarFileOutput
+    Create tar.gz file instead of container
 #>
 
 Param(
@@ -31,7 +35,9 @@ Param(
     [string] $Arch = "x64",
     [string] $ImageTag = "latest",
     [switch] $NoBuild,
-    [switch] $Debug
+    [switch] $NoPublish,
+    [switch] $Debug,
+    [string] $TarFileOutput
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,6 +60,22 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         | Where-Object { ![string]::IsNullOrWhiteSpace($_.ContainerRepository) } `
         | Select-Object -First 1
     if ($properties) {
+        $runtimeId = "$($script:Os)-$($script:Arch)"
+
+        if (!$script:NoBuild.IsPresent) {
+            Write-Host "Build $($projFile.FullName) ..."
+
+            dotnet build $projFile.FullName -c $configuration `
+            -r $runtimeId /p:TargetLatestRuntimePatch=true `
+
+            if ($LastExitCode -ne 0) {
+                throw "Failed to build container."
+            }
+        }
+        if ($script:NoPublish.IsPresent) {
+            return
+        }
+
         $fullName = ""
         $extra = @()
         if ($script:Registry) {
@@ -70,13 +92,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         }
 
         Write-Host "Publish $($projFile.FullName) as $($fullName):$($fullTag)..."
-
-        if ($script:NoBuild) {
-            $extra += "--no-build"
-        }
-
         $baseImage = $($properties.ContainerBaseImage -split "-")[0]
-        $runtimeId = "$($script:Os)-$($script:Arch)"
 
         # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
         if ($script:Arch -eq "x64") {
@@ -90,12 +106,16 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 	        $runtimeId = "$($script:Os)-musl-$($script:Arch)"
 	    }
 
-        dotnet publish $projFile.FullName -c $configuration --self-contained false `
+        if (![string]::IsNullOrWhiteSpace($script:TarFileOutput)) {
+            $extra += "/p:ContainerArchiveOutputPath=$($script:TarFileOutput)/$($fullName).tar.gz"
+        }
+
+        dotnet publish $projFile.FullName -c $configuration --self-contained false --no-build `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
             /p:ContainerBaseImage=$baseImage `
-            /p:ContainerRepository=$fullName `
-            /p:ContainerImageTag=$fullTag `
-            /t:PublishContainer $extra
+            /p:ContainerRepository=$($fullName) `
+            /p:ContainerImageTag=$($fullTag) `
+            $extra /t:PublishContainer
         if ($LastExitCode -ne 0) {
             throw "Failed to publish container."
         }

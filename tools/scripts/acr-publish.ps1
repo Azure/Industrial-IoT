@@ -25,6 +25,8 @@
     Whether to build before publishing.
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.
+ .PARAMETER TarFileOutput
+    Create tar.gz file instead of container
 #>
 
 Param(
@@ -35,7 +37,8 @@ Param(
     [string] $ImageNamespace = $null,
     [string] $ImageTag = "latest",
     [switch] $NoBuild,
-    [switch] $Debug
+    [switch] $Debug,
+    [string] $TarFileOutput
 )
 $ErrorActionPreference = "Stop"
 
@@ -87,13 +90,27 @@ $argumentList = @(
 (& az $argumentList) | Out-Host
 
 Write-Host "Build and push containers to $($script:Registry).azurecr.io..."
-# Build the docker images and push them to acr
-& (Join-Path $PSScriptRoot "publish.ps1") -Registry "$($script:Registry).azurecr.io" `
-    -Debug:$script:Debug -NoBuild:$script:NoBuild `
-    -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
-    -Os $script:Os -Arch $script:Arch
-if ($LastExitCode -ne 0) {
-    throw "Failed to build and push containers."
+
+if (![string]::IsNullOrEmpty($script:TarFileOutput)) {
+    # Load the tar gz files and push them to acr
+    Get-ChildItem $script:TarFileOutput -Filter *.tar.gz -Recurse | ForEach-Object {
+        $tarBall = $_
+        $name = $(docker load -i $tarBall.FullName).Replace("Loaded image: ", "").Trim()
+        $target = "$($script:Registry).azurecr.io/$(name)"
+        Write-Host "Loaded $($tarBall.FullName) and pushing to $($target)..."
+        docker tag $name $target
+        docker push $target
+    }
+}
+else {
+    # Build the docker images and push them to acr
+    & (Join-Path $PSScriptRoot "publish.ps1") -Registry "$($script:Registry).azurecr.io" `
+        -Debug:$script:Debug -NoBuild:$script:NoBuild `
+        -ImageNamespace $script:ImageNamespace -ImageTag $script:ImageTag `
+        -Os $script:Os -Arch $script:Arch
+    if ($LastExitCode -ne 0) {
+        throw "Failed to build and push containers."
+    }
 }
 # Logout
 docker logout "$($script:Registry).azurecr.io"
