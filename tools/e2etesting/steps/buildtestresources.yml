@@ -11,6 +11,6 @@ steps:
   displayName: 'Run dotnet publish for TestEventProcessor'
   timeoutInMinutes: 90
   inputs:
-    script: 'dotnet publish "$(BasePath)\TestEventProcessor\TestEventProcessor.Service\TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)\TestEventProcessor"'
+    script: 'dotnet publish "$(BasePath)\tools\e2etesting\TestEventProcessor\TestEventProcessor.Service\TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)\TestEventProcessor"'
     workingDirectory: '$(Agent.ToolsDirectory)\dotnet'
     flattenFolders: true

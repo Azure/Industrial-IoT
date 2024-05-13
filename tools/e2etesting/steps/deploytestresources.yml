@@ -2,7 +2,7 @@ steps:
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: 'testartifacts'
-    path: $(BasePath)
+    path: $(BasePath)\tools\e2etesting
 
 - task: AzureCLI@2
   displayName: "Deploy containers with simulated PLCs with public ips"
@@ -12,7 +12,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: 'ps'
-    scriptPath: '$(BasePath)\DeployPLCs.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployPLCs.ps1'
     arguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -UsePrivateIp $false
@@ -25,7 +25,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '10.3.0'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DeployEdge.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployEdge.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(Agent.TempDirectory)"
@@ -38,7 +38,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '10.3.0'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployTestEventProcessor.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
-      -PackageDirectory "$(BasePath)\TestEventProcessor"
+      -PackageDirectory "$(BasePath)\tools\e2etesting\TestEventProcessor"

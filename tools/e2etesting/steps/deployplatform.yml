@@ -31,7 +31,7 @@ steps:
   name: setVersionInfo
   inputs:
     targetType: filePath
-    filePath: $(BasePath)\..\scripts\set-version.ps1
+    filePath: $(BasePath)\tools\scripts\set-version.ps1
 
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
@@ -40,7 +40,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\SetVariables.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
@@ -61,7 +61,7 @@ steps:
       $secureAccessToken = "$(ServicePrincipalAccessToken)" `
         | ConvertTo-SecureString -AsPlainText -Force
       Write-Host "Deploying to '$(ResourceGroupName)'..."
-      . $(System.DefaultWorkingDirectory)/deploy/scripts/deploy.ps1 `
+      . $(BasePath)/deploy/scripts/deploy.ps1 `
           -type services `
           -version "$(PlatformVersion)" `
           -applicationName "$(ApplicationName)" `
@@ -83,7 +83,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -ServicePrincipalName "$(ServicePrincipalId)"
@@ -94,7 +94,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
 - task: AzureKeyVault@1

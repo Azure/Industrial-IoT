@@ -27,7 +27,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
 
@@ -39,7 +39,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
     scriptArguments: >
       -KeyVaultName "$(KeyVaultName)"
       -ResourceGroupName "$(ResourceGroupName)"
@@ -66,7 +66,7 @@ steps:
   condition: eq(variables['PlatformVersion'], '')
   inputs:
     targetType: filePath
-    filePath: $(BasePath)\..\scripts\set-version.ps1
+    filePath: $(BasePath)\tools\scripts\set-version.ps1
 
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
@@ -75,7 +75,7 @@ steps:
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\SetVariables.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
@@ -94,12 +94,12 @@ steps:
   displayName: 'Restore xUnit tests'
   inputs:
     command: restore
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
 - task: DotNetCoreCLI@2
   displayName: 'Build xUnit tests'
   inputs:
     command: build
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
@@ -107,7 +107,7 @@ steps:
   retryCountOnTaskFailure: 1
   inputs:
     command: test
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     PCS_SERVICE_URL: '$(pcs-service-url)'
