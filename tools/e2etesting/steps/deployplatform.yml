@@ -19,7 +19,7 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       $accessToken = az account get-access-token | ConvertFrom-Json
-      Write-Host "Got token for $(accessToken.subscription) which expires $(accessToken.expiresOn)"
+      Write-Host "Got token for $($accessToken.subscription) which expires $($accessToken.expiresOn)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalIdToken]$($env:idToken)"
