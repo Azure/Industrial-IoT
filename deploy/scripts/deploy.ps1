@@ -154,6 +154,7 @@ param(
     [int] $numberOfWindowsGateways = 1,
     [int] $numberOfSimulationsPerEdge = 1,
     [pscredential] $credentials,
+    [secureString] $accessToken,
     [switch] $isServicePrincipal,
     [object] $aadConfig,
     [object] $context,
@@ -206,7 +207,13 @@ Function Select-Context() {
         }
         if (!$context) {
             try {
-                if ($script:credentials) {
+                if ($script:accessToken) {
+                    Write-Host "Signing into $($environment.Name) using the provided access token..."
+                    $connection = Connect-AzAccount -Environment $environment.Name `
+                        -AccessToken $script:accessToken `
+                        -SkipContextPopulation @tenantArg -ErrorAction Stop
+                }
+                elseif ($script:credentials) {
                     Write-Host "Signing into $($environment.Name) using the provided credentials..."
                     $connection = Connect-AzAccount -Environment $environment.Name `
                         -Credential $script:credentials `

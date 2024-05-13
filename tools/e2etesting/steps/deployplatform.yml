@@ -18,8 +18,13 @@ steps:
     scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
+      $accessToken = az account get-access-token | Convert-FromJson
+      Write-Host "Got token for $(accessToken.subscription) which expires $(accessToken.expiresOn)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalIdToken]$($env:idToken)"
+      Write-Host "##vso[task.setvariable variable=AccessToken]$($accessToken.accessToken)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
 
 - task: PowerShell@2
   displayName: Versioning
@@ -53,10 +58,8 @@ steps:
     inline: |
       $secureContainerRegistryPassword = "$(ContainerRegistryPassword)" `
         | ConvertTo-SecureString -AsPlainText -Force
-      $secureServicePrincipalSecret = "$(ServicePrincipalKey)" `
+      $secureAccessToken = "$(AccessToken)" `
         | ConvertTo-SecureString -AsPlainText -Force
-      $credentials = New-Object -TypeName System.Management.Automation.PSCredential `
-        -ArgumentList "$(ServicePrincipalId)", $secureServicePrincipalSecret
       Write-Host "Deploying to '$(ResourceGroupName)'..."
       . $(System.DefaultWorkingDirectory)/deploy/scripts/deploy.ps1 `
           -type services `
@@ -68,7 +71,7 @@ steps:
           -containerRegistryServer "$(ContainerRegistryServer)" `
           -containerRegistryUsername "$(ContainerRegistryUsername)" `
           -containerRegistryPassword $secureContainerRegistryPassword `
-          -credentials $credentials `
+          -accessToken $secureAccessToken `
           -context $(Get-AzContext)
       Write-Host "Finished deployment to '$(ResourceGroupName)'."
 

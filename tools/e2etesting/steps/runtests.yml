@@ -103,7 +103,7 @@ steps:
     arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
-  timeoutInMinutes: 180
+  timeoutInMinutes: 70
   retryCountOnTaskFailure: 1
   inputs:
     command: test
