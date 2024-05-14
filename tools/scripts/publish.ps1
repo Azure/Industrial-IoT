@@ -29,7 +29,7 @@
 #>
 
 Param(
-    [string] $Registry = $null,
+    [string] $ContainerRegistry = $null,
     [string] $ImageNamespace = $null,
     [string] $Os = "linux",
     [string] $Arch = "x64",
@@ -82,7 +82,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         $fullName = ""
         $extra = @()
-        
+
         if ($script:ImageNamespace) {
             $fullName = "$($fullName)$($script:ImageNamespace)/"
         }
@@ -111,9 +111,9 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             Write-Host "Publish as tarball to $($script:TarFileOutput)..."
             $extra += "/p:ContainerArchiveOutputPath=$($script:TarFileOutput)/$($fullName).tar.gz"
         }
-        elseif ($script:Registry) {
-            Write-Host "Publish to container registry $($script:Registry)..."
-            $extra += "/p:ContainerRegistry=$($script:Registry)"
+        elseif ($script:ContainerRegistry) {
+            Write-Host "Publish to container registry $($script:ContainerRegistry)..."
+            $extra += "/p:ContainerRegistry=$($script:ContainerRegistry)"
         }
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false --no-build `
