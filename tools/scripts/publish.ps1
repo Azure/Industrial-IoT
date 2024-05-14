@@ -108,7 +108,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 	    }
 
         if (![string]::IsNullOrWhiteSpace($script:TarFileOutput)) {
-            Write-Host "Publish as tarball to $($script:TarFileOutput)..."
+            Write-Host "Publish as tarball to $($script:TarFileOutput)/$($fullName).tar.gz..."
             $extra += "/p:ContainerArchiveOutputPath=$($script:TarFileOutput)/$($fullName).tar.gz"
         }
         elseif ($script:ContainerRegistry) {
