@@ -61,6 +61,10 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         | Select-Object -First 1
     if ($properties) {
         $runtimeId = "$($script:Os)-$($script:Arch)"
+        if ($script:Arch -eq "arm") {
+            # Because of alpine
+	        $runtimeId = "$($script:Os)-musl-$($script:Arch)"
+	    }
 
         if (!$script:NoBuild.IsPresent) {
             Write-Host "Build $($projFile.FullName) ..."
@@ -78,9 +82,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         $fullName = ""
         $extra = @()
-        if ($script:Registry) {
-            $extra += "/p:ContainerRegistry=$($script:Registry)"
-        }
+        
         if ($script:ImageNamespace) {
             $fullName = "$($fullName)$($script:ImageNamespace)/"
         }
@@ -103,11 +105,15 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 	    }
 	    if ($script:Arch -eq "arm") {
 	        $baseImage = "$($baseImage)-alpine-arm32v7"
-	        $runtimeId = "$($script:Os)-musl-$($script:Arch)"
 	    }
 
         if (![string]::IsNullOrWhiteSpace($script:TarFileOutput)) {
+            Write-Host "Publish as tarball to $($script:TarFileOutput)..."
             $extra += "/p:ContainerArchiveOutputPath=$($script:TarFileOutput)/$($fullName).tar.gz"
+        }
+        elseif ($script:Registry) {
+            Write-Host "Publish to container registry $($script:Registry)..."
+            $extra += "/p:ContainerRegistry=$($script:Registry)"
         }
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false --no-build `
