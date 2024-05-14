@@ -119,6 +119,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         $extra
         $fullTag
         $baseImage
+        $script:ContainerRegistry
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false --no-build `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
