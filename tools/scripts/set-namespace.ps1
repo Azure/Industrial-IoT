@@ -59,5 +59,5 @@ if ([string]::IsNullOrEmpty($registry)) {
 Write-Host "Setting ImageNamespace to '$($namespace)'..."
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($namespace)"
 Write-Host "Setting Registry to '$($registry)'..."
-Write-Host "##vso[task.setvariable variable=ContainerRegistry]$($registry)"
+Write-Host "##vso[task.setvariable variable=RegistryName]$($registry)"
 return $namespace
