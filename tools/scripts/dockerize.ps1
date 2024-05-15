@@ -32,7 +32,15 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse | ForEach-Object {
     $contextFolder = Join-Path $OutputFolder $index
     Write-Host "Extracting tar file $tarFile to $contextFolder..."
     New-Item -ItemType Directory -Path $contextFolder -Force | Out-Null
-    . tar -xvzf $tarFile -C $contextFolder
+    . tar -xvf $tarFile -C $contextFolder
+    if ($LastExitCode -ne 0) {
+        . file $tarfile
+        # try as zipped tar
+        . tar -xvzf $tarFile -C $contextFolder
+        if ($LastExitCode -ne 0) {
+            throw "tar failed with $($LastExitCode)."
+        }
+    }
 
     # find the manifest file
     # Read manifest file content and convert to json
