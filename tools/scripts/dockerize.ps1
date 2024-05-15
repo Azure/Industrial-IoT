@@ -76,6 +76,9 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
         if ($config.variant) {
             $platform += "/$($config.variant)"
         }
+        elseif ($platform -eq "linux/arm") {
+            $platform += "/v7"
+        }
         $platforms += $platform
 
         # Create a docker file from the manifest
