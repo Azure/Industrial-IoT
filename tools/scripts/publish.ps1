@@ -69,8 +69,10 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         if (!$script:NoBuild.IsPresent) {
             Write-Host "Build $($projFile.FullName) ..."
 
+            dotnet clean $projFile.FullName -c $configuration `
+                -r $runtimeId | Out-Null
             dotnet build $projFile.FullName -c $configuration `
-            -r $runtimeId /p:TargetLatestRuntimePatch=true `
+                -r $runtimeId /p:TargetLatestRuntimePatch=true
 
             if ($LastExitCode -ne 0) {
                 throw "Failed to build container."

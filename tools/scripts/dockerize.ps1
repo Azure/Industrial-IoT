@@ -22,69 +22,88 @@ Param(
 )
 
 $ErrorActionPreference = "Stop"
-$index = 0
 $matrix = @{}
-Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse | ForEach-Object {
-    $tarfile = $_.FullName
-    $name = $_.FullName.Replace($TarFileInput, "").Replace(".tar.gz", "")
-    $name = $name.Replace("\", "-").Replace("/", "-").Trim("-")
+Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
+    | Group-Object { $_.Name }
+    | ForEach-Object {
 
-    # extract the contents of the tar file into the output folder
-    $index++
-    $contextFolder = Join-Path $OutputFolder $index
-    Write-Host "Extracting tar file $tarFile to $contextFolder..."
-    New-Item -ItemType Directory -Path $contextFolder -Force | Out-Null
-    . tar -xvf $tarFile -C $contextFolder
-    if ($LastExitCode -ne 0) {
-        . file $tarfile
-        # try as zipped tar
-        . tar -xvzf $tarFile -C $contextFolder
+    $name = $_.Name.Replace(".tar.gz", "")
+    $name = $name.Replace("\", "-").Replace("/", "-").Trim("-")
+    $contextFolder = Join-Path $OutputFolder $name
+
+    # Go through all difference setups of the tar file
+    $index = 0
+    $dockerFile = ""
+    $platforms = @()
+    $_.Group | ForEach-Object {
+        $tarfile = $_.FullName
+
+        # extract the contents of the tar file into the index folder
+        $index++
+        $tarFolder = Join-Path $contextFolder $index
+        Write-Host "Extracting tar file $tarFile to $tarFolder..."
+        New-Item -ItemType Directory -Path $tarFolder -Force | Out-Null
+        . tar -xvf $tarFile -C $tarFolder
         if ($LastExitCode -ne 0) {
-            throw "tar failed with $($LastExitCode)."
+            . file $tarfile
+            # try as zipped tar
+            . tar -xvzf $tarFile -C $tarFolder
+            if ($LastExitCode -ne 0) {
+                throw "tar failed with $($LastExitCode)."
+            }
+        }
+
+        # find the manifest file. read manifest file content and convert to json
+        $manifestFile = Join-Path $tarFolder "manifest.json"
+        if (-not (Test-Path -Path $manifestFile)) {
+            throw "Manifest file '$manifestFile' not found."
+        }
+        $manifest = Get-Content -Path $manifestFile | ConvertFrom-Json
+        if ($manifest.Count -ne 1) {
+            throw "Expected one item  in the manifest file, found $($manifest.Count)."
+        }
+
+        # Read configuration file content and convert to json
+        $configurationFile = Join-Path $tarFolder $manifest[0].Config
+        if (-not (Test-Path -Path $configurationFile)) {
+            throw "Configuration file '$configurationFile' not found."
+        }
+        $config = Get-Content -Path $configurationFile | ConvertFrom-Json
+
+        # Each scratch is a target that gets built
+        $dockerFile += "`nFROM scratch as $($config.os)_$($config.architecture)"
+        $platform = "$($config.os)/$($config.architecture)"
+        if ($config.variant) {
+            $platform += "/$($config.variant)"
+        }
+        $platforms += $platform
+
+        # Create a docker file from the manifest
+        $manifest.Layers | ForEach-Object { $dockerFile +="`nADD $($index)/$_ /" }
+        $configuration = $config.config
+        $configuration.Labels.PSObject.Properties | ForEach-Object {
+            $dockerFile += "`nLABEL `"$($_.Name)`"=`"$($_.Value)`""
+        }
+        $configuration.ExposedPorts.PSObject.Properties | ForEach-Object {
+            $dockerFile += "`nEXPOSE $($_.Name)"
+        }
+        $configuration.Env | ForEach-Object { $dockerFile += "`nENV $_" }
+        if ($configuration.User) {
+            $dockerFile += "`nUSER $($configuration.User)"
+        }
+        if ($configuration.WorkingDir) {
+            $dockerFile += "`nWORKDIR $($configuration.WorkingDir)"
+        }
+        if ($configuration.EntryPoint.Count -gt 0) {
+            $dockerFile += "`nENTRYPOINT $($configuration.EntryPoint | ConvertTo-Json -Compress)"
+        }
+        if ($configuration.Cmd.Count -gt 0) {
+            $dockerFile += "`nCMD $($configuration.Cmd | ConvertTo-Json -Compress)"
         }
     }
 
-    # find the manifest file
-    # Read manifest file content and convert to json
-    $manifestFile = Join-Path $contextFolder "manifest.json"
-    if (-not (Test-Path -Path $manifestFile)) {
-        throw "Manifest file '$manifestFile' not found."
-    }
-    $manifest = Get-Content -Path $manifestFile | ConvertFrom-Json
-    if ($manifest.Count -ne 1) {
-        throw "Expected one item  in the manifest file, found $($manifest.Count)."
-    }
-
-    # Create a docker file from the manifest
-    $dockerFile = "FROM scratch"
-    $manifest.Layers | ForEach-Object { $dockerFile +="`nADD $_ /" }
-
-    # Read configuration file content and convert to json
-    $configurationFile = Join-Path $contextFolder $manifest[0].Config
-    if (-not (Test-Path -Path $configurationFile)) {
-        throw "Configuration file '$configurationFile' not found."
-    }
-    $config = Get-Content -Path $configurationFile | ConvertFrom-Json
-    $configuration = $config.config
-    $configuration.Labels.PSObject.Properties | ForEach-Object {
-        $dockerFile += "`nLABEL `"$($_.Name)`"=`"$($_.Value)`""
-    }
-    $configuration.ExposedPorts.PSObject.Properties | ForEach-Object {
-        $dockerFile += "`nEXPOSE $($_.Name)" 
-    }
-    $configuration.Env | ForEach-Object { $dockerFile += "`nENV $_" }
-    if ($configuration.User) {
-        $dockerFile += "`nUSER $($configuration.User)"
-    }
-    if ($configuration.WorkingDir) {
-        $dockerFile += "`nWORKDIR $($configuration.WorkingDir)"
-    }
-    if ($configuration.EntryPoint.Count -gt 0) {
-        $dockerFile += "`nENTRYPOINT $($configuration.EntryPoint | ConvertTo-Json -Compress)"
-    }
-    if ($configuration.Cmd.Count -gt 0) {
-        $dockerFile += "`nCMD $($configuration.Cmd | ConvertTo-Json -Compress)"
-    }
+    $dockerFile += "`nFROM `${TARGETOS}_`${TARGETARCH}"
+    $dockerFile += "`n"
     $dockerFilePath = Join-Path $contextFolder "Dockerfile"
     $dockerFile | Out-File -FilePath $dockerFilePath
 
@@ -93,22 +112,17 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse | ForEach-Object {
     if ($manifest[0].RepoTags -gt 0) {
         $repoTag = $manifest[0].RepoTags[0].Split(":")
         $repositoryName = $repoTag[0]
-        $tagName = $repoTag[1]
+        $tagName = $repoTag[1].Split("-")[0]
     }
 
     $matrix[$name] = @{
-        'DisplayName' = $name
         'RepositoryName' = $repositoryName
         'BuildTag' = $tagName
-        'BuildVersion' = $tagName.Split("-")[0]
-        'DockerFile' = $dockerFilePath
-        'DockerFileRel' = Join-Path "$($index)" "Dockerfile"
         'BuildContext' = $contextFolder
-        'BuildContextRel' = "$($index)"
-        'Os' = $config.os
-        'Arch' = $config.architecture
+        'BuildContextRel' = $name
+        'Platforms'= $($platforms -join ",")
     }
 }
-
+$matrix | ConvertTo-Json | Out-Host
 $matrixJson = $matrix | ConvertTo-Json -Compress
 Write-Host "##vso[task.setVariable variable=$($script:MatrixName);isOutput=true]$matrixJson"
