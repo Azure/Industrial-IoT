@@ -1,13 +1,16 @@
 <#
  .SYNOPSIS
-    Consumes tar balls and creates dockerfiles and build context
+    Consumes tar balls creates dockerfiles and build contexts
+
+ .DESCRIPTION
+    Consumes tar balls created by publish.ps1 and creates dockerfiles
+    and build context to be consumed in matrix based traditional docker
+    builds.
 
  .PARAMETER TarFileInput
     The tar files to use
  .PARAMETER OutputFolder
     The output folder to use
- .PARAMETER RegistryName
-    The registry to add to the matrix
  .PARAMETER MatrixName
     The name of the matrix to produce
 #>
@@ -15,8 +18,7 @@
 Param(
     [string] $TarFileInput,
     [string] $OutputFolder,
-    [string] $MatrixName = "matrix",
-    [string] $RegistryName = "industrialiotdev"
+    [string] $MatrixName = "matrix"
 )
 
 $ErrorActionPreference = "Stop"
@@ -99,7 +101,6 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse | ForEach-Object {
         'RepositoryName' = $repositoryName
         'BuildTag' = $tagName
         'BuildVersion' = $tagName.Split("-")[0]
-        'RegistryName' = $script:RegistryName
         'DockerFile' = $dockerFilePath
         'DockerFileRel' = Join-Path "$($index)" "Dockerfile"
         'BuildContext' = $contextFolder
