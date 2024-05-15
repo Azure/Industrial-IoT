@@ -28,7 +28,7 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
     | ForEach-Object {
 
     $name = $_.Name.Replace(".tar.gz", "")
-    $name = $name.Replace("\", "_").Replace("/", "_").Trim("_")
+    $name = $name.Replace("\", "-").Replace("-", "_").Trim("_")
     $contextFolder = Join-Path $OutputFolder $name
 
     # Go through all difference setups of the tar file
