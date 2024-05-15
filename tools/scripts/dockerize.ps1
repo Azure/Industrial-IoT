@@ -110,5 +110,5 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse | ForEach-Object {
     }
 }
 
-$matrixJson = $matrix | ConvertTo-Json
+$matrixJson = $matrix | ConvertTo-Json -Compress
 Write-Host "##vso[task.setVariable variable=$($script:MatrixName);isOutput=true]$matrixJson"
