@@ -70,8 +70,7 @@ if ($script:DetermineRepository.IsPresent) {
         }
     }
     if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-        Write-Warning "Not building from a branch - skip image build."
-        return
+        throw "Not building from a branch - skip image build."
     }
     # Set namespace name based on branch name
     $namespace = $branchName
