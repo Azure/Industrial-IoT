@@ -1,3 +1,4 @@
+parameters:
 steps:
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK for building'
@@ -66,6 +67,7 @@ steps:
       Write-Host "Deploying to '$(ResourceGroupName)'..."
       . $(BasePath)/deploy/scripts/deploy.ps1 `
           -type services `
+          -BranchName "$(BranchName)" `
           -version "$(PlatformVersion)" `
           -applicationName "$(ApplicationName)" `
           -resourceGroupName "$(ResourceGroupName)" `

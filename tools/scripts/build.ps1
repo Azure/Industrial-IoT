@@ -15,8 +15,8 @@
  .PARAMETER ImageTag
     Tag to publish under. Defaults "latest"
 
- .PARAMETER DetermineRepository
-    The namespace to use for the image inside the registry.
+ .PARAMETER BranchName
+    The bvanch to use for the repo inside the registry.
  .PARAMETER NoBuild
     Whether to not build before publishing.
  .PARAMETER NoPublish
@@ -29,7 +29,7 @@
 
 Param(
     [string] $ContainerRegistry = $null,
-    [switch] $DetermineRepository,
+    [string] $BranchName,
     [string] $Os = "linux",
     [string] $Arch = "x64",
     [string] $ImageTag = "latest",
@@ -49,25 +49,9 @@ if ($script:Debug.IsPresent) {
 }
 
 $repositoryName = $null
-if ($script:DetermineRepository.IsPresent) {
-    $branchName = $(git rev-parse --abbrev-ref `@{upstream} 2>&1) | ForEach-Object { "$_" }
-    if ([string]::IsNullOrEmpty($branchName)) {
-        Write-Warning "Git rev-parse failed."
-        $branchName = $env:BUILD_SOURCEBRANCH
-        if (![string]::IsNullOrEmpty($branchName)) {
-            if ($branchName.StartsWith("refs/heads/")) {
-                $branchName = $branchName.Replace("refs/heads/", "")
-            }
-            else {
-                Write-Warning "'$($branchName)' is not a branch."
-            }
-        }
-    }
-    if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-        throw "Unsupportrd branch - '$($branchName)' - fail image build."
-    }
+if ($script:BranchName) {
     # Set namespace name based on branch name
-    $namespace = $branchName
+    $namespace = $script:BranchName
     if ($namespace.StartsWith("feature/")) {
         # dev feature builds
         $namespace = $namespace.Replace("feature/", "")
