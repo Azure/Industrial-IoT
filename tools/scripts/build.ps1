@@ -50,7 +50,7 @@ if ($script:Debug.IsPresent) {
 
 $repositoryName = $null
 if ($script:DetermineRepository.IsPresent) {
-    $branchName = $(git rev-parse --abbrev-ref HEAD 2>&1) | ForEach-Object { "$_" }
+    $branchName = $(git rev-parse --abbrev-ref @{upstream} 2>&1) | ForEach-Object { "$_" }
     if ([string]::IsNullOrEmpty($branchName)) {
         Write-Warning "Git rev-parse failed."
         $branchName = $env:BUILD_SOURCEBRANCH
