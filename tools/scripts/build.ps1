@@ -50,15 +50,9 @@ if ($script:Debug.IsPresent) {
 
 $repositoryName = $null
 if ($script:DetermineRepository.IsPresent) {
-    try {
-        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
-        if ($LastExitCode -ne 0) {
-            throw "git $($argumentList) failed with $($LastExitCode)."
-        }
-    }
-    catch {
-        Write-Warning $_.Exception
+    $branchName = $(git rev-parse --abbrev-ref HEAD 2>&1) | ForEach-Object { "$_" }
+    if ([string]::IsNullOrEmpty($branchName)) {
+        Write-Warning "Git rev-parse failed."
         $branchName = $env:BUILD_SOURCEBRANCH
         if (![string]::IsNullOrEmpty($branchName)) {
             if ($branchName.StartsWith("refs/heads/")) {
@@ -70,7 +64,7 @@ if ($script:DetermineRepository.IsPresent) {
         }
     }
     if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-        throw "Not building from a branch - skip image build."
+        throw "Unsupportrd branch - '$($branchName)' - fail image build."
     }
     # Set namespace name based on branch name
     $namespace = $branchName
