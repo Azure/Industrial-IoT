@@ -26,6 +26,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
@@ -38,6 +39,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
     scriptArguments: >
@@ -65,6 +67,7 @@ steps:
   name: setVersionInfo
   condition: eq(variables['PlatformVersion'], '')
   inputs:
+    workingDirectory: '$(BasePath)'
     targetType: filePath
     filePath: $(BasePath)\tools\scripts\set-version.ps1
 
@@ -74,6 +77,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >

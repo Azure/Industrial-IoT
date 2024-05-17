@@ -18,6 +18,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
@@ -33,6 +34,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployStandalone.ps1'
     scriptArguments: >
@@ -46,6 +48,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
@@ -57,6 +60,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultSecrets.ps1'
     scriptArguments: >

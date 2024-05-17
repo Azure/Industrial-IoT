@@ -31,6 +31,7 @@ steps:
   name: setVersionInfo
   inputs:
     targetType: filePath
+    workingDirectory: '$(BasePath)'
     filePath: $(BasePath)\tools\scripts\set-version.ps1
 
 - task: AzurePowerShell@5
@@ -39,8 +40,9 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'    
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
@@ -54,6 +56,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: 'InlineScript'
     inline: |
       $secureContainerRegistryPassword = "$(ContainerRegistryPassword)" `
@@ -82,6 +85,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
     scriptArguments: >
@@ -93,6 +97,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >

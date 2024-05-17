@@ -11,6 +11,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: 'ps'
     scriptPath: '$(BasePath)\tools\e2etesting\DeployPLCs.ps1'
     arguments: >
@@ -23,7 +24,8 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '10.3.0'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployEdge.ps1'
     scriptArguments: >
@@ -36,7 +38,8 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '10.3.0'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployTestEventProcessor.ps1'
     scriptArguments: >
