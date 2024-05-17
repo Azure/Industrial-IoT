@@ -8,9 +8,6 @@
 
  .PARAMETER Registry
     The name of the container registry to push to (optional)
- .PARAMETER ImageNamespace
-    The namespace to use for the image inside the registry.
-
  .PARAMETER Os
     Operating system to build for. Defaults to Linux
  .PARAMETER Arch
@@ -18,6 +15,8 @@
  .PARAMETER ImageTag
     Tag to publish under. Defaults "latest"
 
+ .PARAMETER DetermineRepository
+    The namespace to use for the image inside the registry.
  .PARAMETER NoBuild
     Whether to not build before publishing.
  .PARAMETER NoPublish
@@ -30,7 +29,7 @@
 
 Param(
     [string] $ContainerRegistry = $null,
-    [string] $ImageNamespace = $null,
+    [switch] $DetermineRepository,
     [string] $Os = "linux",
     [string] $Arch = "x64",
     [string] $ImageTag = "latest",
@@ -47,6 +46,11 @@ $Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln
 $configuration = "Release"
 if ($script:Debug.IsPresent) {
     $configuration = "Debug"
+}
+
+$ImageNamespace = $null
+if ($script:DetermineRepository.IsPresent) {
+    $ImageNamespace = & (Join-Path $PSScriptRoot "set-namespace.ps1")
 }
 
 $env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
@@ -85,8 +89,8 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         $fullName = ""
         $extra = @()
 
-        if ($script:ImageNamespace) {
-            $fullName = "$($fullName)$($script:ImageNamespace)/"
+        if ($ImageNamespace) {
+            $fullName = "$($fullName)$($ImageNamespace)/"
         }
         $fullName = "$($fullName)$($properties.ContainerRepository)"
 

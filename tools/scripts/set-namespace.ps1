@@ -47,7 +47,4 @@ elseif ($namespace.StartsWith("release/") -or ($namespace -eq "releases")) {
     $namespace = "public"
 }
 $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-
-Write-Host "Setting ImageNamespace to '$($namespace)'..."
-Write-Host "##vso[task.setvariable variable=ImageNamespace]$($namespace)"
 return $namespace
