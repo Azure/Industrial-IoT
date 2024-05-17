@@ -48,9 +48,42 @@ if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
 
-$ImageNamespace = $null
+$repositoryName = $null
 if ($script:DetermineRepository.IsPresent) {
-    $ImageNamespace = & (Join-Path $PSScriptRoot "set-namespace.ps1")
+    try {
+        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+        $branchName = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
+        if ($LastExitCode -ne 0) {
+            throw "git $($argumentList) failed with $($LastExitCode)."
+        }
+    }
+    catch {
+        Write-Warning $_.Exception
+        $branchName = $env:BUILD_SOURCEBRANCH
+        if (![string]::IsNullOrEmpty($branchName)) {
+            if ($branchName.StartsWith("refs/heads/")) {
+                $branchName = $branchName.Replace("refs/heads/", "")
+            }
+            else {
+                Write-Warning "'$($branchName)' is not a branch."
+            }
+        }
+    }
+    if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+        Write-Warning "Not building from a branch - skip image build."
+        return
+    }
+    # Set namespace name based on branch name
+    $namespace = $branchName
+    if ($namespace.StartsWith("feature/")) {
+        # dev feature builds
+        $namespace = $namespace.Replace("feature/", "")
+    }
+    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "releases")) {
+        $namespace = "public"
+    }
+    $namespace = $namespace.Replace("_", "/")
+    $repositoryName = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
 }
 
 $env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
@@ -89,8 +122,8 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         $fullName = ""
         $extra = @()
 
-        if ($ImageNamespace) {
-            $fullName = "$($fullName)$($ImageNamespace)/"
+        if ($repositoryName) {
+            $fullName = "$($fullName)$($repositoryName)/"
         }
         $fullName = "$($fullName)$($properties.ContainerRepository)"
 

@@ -335,48 +335,45 @@ Function Select-Context() {
 # Select repository and branch
 #*******************************************************************************************************
 Function Select-RepositoryAndBranch() {
-
     if ([string]::IsNullOrEmpty($script:branchName)) {
-        # Try get branch name
-        $script:branchName = $env:BUILD_SOURCEBRANCH
-        if (![string]::IsNullOrEmpty($script:branchName)) {
-            if ($script:branchName.StartsWith("refs/heads/")) {
-                $script:branchName = $script:branchName.Replace("refs/heads/", "")
+        try {
+            $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
+            $symbolic = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
+            if ($LastExitCode -ne 0) {
+                throw "git $($argumentList) failed with $($LastExitCode)."
             }
-            else {
-                $script:branchName = $null
+            $remote = $symbolic.Split('/')[0]
+            $argumentList = @("remote", "get-url", $remote)
+            $giturl = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
+            if ($LastExitCode -ne 0) {
+                throw "git $($argumentList) failed with $($LastExitCode)."
+            }
+            if ([string]::IsNullOrEmpty($script:repo)) {
+                $script:repo = $giturl.Replace(".git", "")
+            }
+            $script:branchName = $symbolic.Replace("$($remote)/", "")
+            if ($script:branchName -eq "HEAD") {
+                Write-Warning "$($symbolic) is not a branch - using main."
+                $script:branchName = "main"
             }
         }
-        if ([string]::IsNullOrEmpty($script:branchName)) {
-            try {
-                $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
-                $symbolic = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
-                if ($LastExitCode -ne 0) {
-                    throw "git $($argumentList) failed with $($LastExitCode)."
-                }
-                $remote = $symbolic.Split('/')[0]
-                $argumentList = @("remote", "get-url", $remote)
-                $giturl = (& "git" @argumentList 2>&1 | ForEach-Object { "$_" });
-                if ($LastExitCode -ne 0) {
-                    throw "git $($argumentList) failed with $($LastExitCode)."
-                }
-                if ([string]::IsNullOrEmpty($script:repo)) {
-                    $script:repo = $giturl.Replace(".git", "")
-                }
-                $script:branchName = $symbolic.Replace("$($remote)/", "")
-                if ($script:branchName -eq "HEAD") {
-                    Write-Warning "$($symbolic) is not a branch - using main."
-                    $script:branchName = "main"
-                }
-            }
-            catch {
-                if (![string]::IsNullOrEmpty($script:version)) {
-                    $script:branchName = "release/$script:version"
+        catch {
+            # Try get branch name from build
+            $script:branchName = $env:BUILD_SOURCEBRANCH
+            if (![string]::IsNullOrEmpty($script:branchName)) {
+                if ($script:branchName.StartsWith("refs/heads/")) {
+                    $script:branchName = $script:branchName.Replace("refs/heads/", "")
                 }
                 else {
-                    Write-Warning "Cannot determine branch - using main."
-                    $script:branchName = "main"
+                    $script:branchName = $null
                 }
+            }
+            elseif (![string]::IsNullOrEmpty($script:version)) {
+                $script:branchName = "release/$script:version"
+            }
+            else {
+                Write-Warning "Cannot determine branch - using main."
+                $script:branchName = "main"
             }
         }
     }
