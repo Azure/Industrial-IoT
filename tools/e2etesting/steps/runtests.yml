@@ -32,7 +32,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
+      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
       $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
@@ -136,7 +136,7 @@ steps:
     AZURE_FEDERATED_TOKEN_FILE: '$(ServicePrincipalTokenFile)'
     AZURE_CLIENT_ID: "$(ServicePrincipalId)"
     AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
-    AZURE_TENANT_ID: "$(ServicePrincipalTenantId)"
+    AZURE_TENANT_ID: "$(pcs-auth-tenant)"
 - task: PublishTestResults@2
   displayName: 'Publish test results'
   condition: always()
