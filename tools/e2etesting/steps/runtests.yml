@@ -109,8 +109,7 @@ steps:
     workingDirectory: '$(BasePath)\e2e-tests'
     addSpnToEnvironment: true
     inlineScript: |
-      [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
-      export AZURE_FEDERATED_TOKEN_FILE=idtoken
+      [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${ServicePrincipalTenantId}
       cat ${ServicePrincipalAccessToken}>${AZURE_FEDERATED_TOKEN_FILE}
       dotnet test IIoTPlatform-E2E-Tests.sln \
         --configuration Release \
@@ -145,6 +144,9 @@ steps:
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
     AZURE_FEDERATED_TOKEN_FILE: idtoken
+    AZURE_CLIENT_ID: "$(ServicePrincipalId)"
+    AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
+    AZURE_TENANT_ID: "$(ServicePrincipalTenantId)"
 - task: PublishTestResults@2
   displayName: 'Publish test results'
   condition: always()
