@@ -109,7 +109,7 @@ steps:
       dotnet test IIoTPlatform-E2E-Tests.sln \
         --configuration Release \
         --logger trx \
-        --results-directory $(Agent.TempDirectory) \
+        --results-directory TestResults \
         --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
   env:
     ApplicationName: '$(ApplicationName)'
@@ -143,4 +143,4 @@ steps:
   condition: always()
   inputs:
     testResultsFormat: VSTest
-    testResultsFiles: '$(Agent.TempDirectory)/**/*.trx'
+    testResultsFiles: '$(BasePath)\**\*.trx'
