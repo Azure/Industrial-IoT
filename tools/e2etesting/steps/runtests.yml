@@ -4,6 +4,7 @@ parameters:
 - name: ModeValue
   type: string
 
+steps:
 - task: AzurePowerShell@5
   displayName: 'Set KeyVaultName-Variable'
   inputs:
