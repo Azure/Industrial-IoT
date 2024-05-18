@@ -23,7 +23,6 @@ steps:
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ImageNamespace "$(ImageNamespace)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5

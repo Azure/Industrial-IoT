@@ -13,8 +13,6 @@ steps:
   name: ServicePrincipalAccessToken
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     scriptLocation: 'InlineScript'
     scriptType: 'ps'
     addSpnToEnvironment: true
@@ -27,14 +25,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
 
-- task: PowerShell@2
-  displayName: Versioning
-  name: setVersionInfo
-  inputs:
-    targetType: filePath
-    workingDirectory: '$(BasePath)'
-    filePath: $(BasePath)\tools\scripts\set-version.ps1
-
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
   inputs:
@@ -43,13 +33,12 @@ steps:
     preferredAzurePowerShellVersion: '$(AzurePsVersion)'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'    
+    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
-      -BranchName "$(BranchName)"
-      -Region "$(Region)"
-      -ImageTag "$(PlatformVersion)"
-      -ImageNamespace "$(ImageNamespace)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -BranchName "$[variables.BranchName]"
+      -Region "$[variables.Region]"
+      -ImageTag "$[variables.PlatformVersion]"
+      -ContainerRegistryServer "$[variables.ContainerRegistryServer]"
 
 - task: AzurePowerShell@5
   displayName: "Run deployment script"
@@ -68,11 +57,11 @@ steps:
       . $(BasePath)/deploy/scripts/deploy.ps1 `
           -type services `
           -BranchName "$(BranchName)" `
+          -ImageNamespace "$(ImageNamespace)" `
           -version "$(PlatformVersion)" `
           -applicationName "$(ApplicationName)" `
           -resourceGroupName "$(ResourceGroupName)" `
           -resourceGroupLocation "$(Region)" `
-          -imageNamespace "$(ImageNamespace)" `
           -containerRegistryServer "$(ContainerRegistryServer)" `
           -containerRegistryUsername "$(ContainerRegistryUsername)" `
           -containerRegistryPassword $secureContainerRegistryPassword `

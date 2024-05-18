@@ -1,17 +1,4 @@
 steps:
-- task: AzureCLI@2
-  displayName: 'Set Service Principal Environment Variables'
-  name: promoteserviceprincipal
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
-
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
   inputs:
@@ -22,12 +9,25 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
-      -BranchName "$(BranchName)"
-      -Region "$(Region)"
-      -ImageTag "$(PlatformVersion)"
-      -ImageNamespace "$(ImageNamespace)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -BranchName "$[variables.BranchName]"
+      -Region "$[variables.Region]"
+      -ImageTag "$[variables.PlatformVersion]"
+      -ContainerRegistryServer "$[variables.ContainerRegistryServer]"
 
+# Need to do this so we can update the permissions in key vault for this
+# service principal in the next scripts
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: SetServicePrincipalId
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'OtherVersion'
+    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
 - task: AzurePowerShell@5
   displayName: "Deploy standalone resources"
   inputs:
@@ -41,7 +41,6 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
       -ServicePrincipalId "$(ServicePrincipalId)"
-
 - task: AzurePowerShell@5
   displayName: 'Set KeyVaultName-Variable'
   inputs:
@@ -53,7 +52,6 @@ steps:
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
-
 - task: AzurePowerShell@5
   displayName: 'Set keyvault container registry secrets'
   inputs:
