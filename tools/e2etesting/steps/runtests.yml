@@ -106,6 +106,8 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
+      export AZURE_FEDERATED_TOKEN_FILE=idtoken
+      cat ${federatedtoken}>${AZURE_FEDERATED_TOKEN_FILE}
       dotnet test IIoTPlatform-E2E-Tests.sln \
         --configuration Release \
         --logger trx \
@@ -138,6 +140,7 @@ steps:
     TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
+    AZURE_FEDERATED_TOKEN_FILE: idtoken
 - task: PublishTestResults@2
   displayName: 'Publish test results'
   condition: always()
