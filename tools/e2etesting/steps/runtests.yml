@@ -31,7 +31,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
       Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
       $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
 - task: AzurePowerShell@5
