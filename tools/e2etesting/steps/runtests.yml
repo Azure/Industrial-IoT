@@ -104,12 +104,12 @@ steps:
     scriptLocation: 'InlineScript'
     workingDirectory: '$(BasePath)\e2e-tests'
     addSpnToEnvironment: true
-    inlineScript: >-
+    inlineScript: |
       [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
-      dotnet test IIoTPlatform-E2E-Tests.sln
-        --configuration Release
-        --logger trx
-        --results-directory $(Agent.TempDirectory)
+      dotnet test IIoTPlatform-E2E-Tests.sln \
+        --configuration Release \
+        --logger trx \
+        --results-directory $(Agent.TempDirectory) \
         --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
   env:
     ApplicationName: '$(ApplicationName)'
