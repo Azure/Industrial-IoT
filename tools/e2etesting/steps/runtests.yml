@@ -30,10 +30,10 @@ steps:
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)/$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
-      $env:idToken | Out-File $(Agent.TempDirectory)/$($env:servicePrincipalId)
+      $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
   name: keyvaultpermissions
@@ -103,7 +103,9 @@ steps:
     command: test
     publishTestResults: true
     projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
-    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
+    arguments: >-
+      --configuration Release
+      --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
   env:
     ApplicationName: '$(ApplicationName)'
     PCS_IMAGES_TAG: '$(ImageTag)'
