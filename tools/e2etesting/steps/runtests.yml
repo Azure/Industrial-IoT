@@ -121,7 +121,7 @@ steps:
     PCS_AUTH_CLIENT_SECRET: '$(pcs-auth-client-secret)'
     PCS_AUTH_SERVICE_APPID: '$(pcs-auth-service-appid)'
     PLC_SIMULATION_URLS: '$(plc-simulation-urls)'
-    IOT_EDGE_VERSION: "$[variables.EdgeVersion]"
+    IOT_EDGE_VERSION: "$(EdgeVersion)"
     IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
     IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'
     IOT_EDGE_VM_USERNAME: '$(iot-edge-vm-username)'
@@ -133,7 +133,7 @@ steps:
     TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
-    AZURE_FEDERATED_TOKEN_FILE: $(ServicePrincipalTokenFile)
+    AZURE_FEDERATED_TOKEN_FILE: '$(ServicePrincipalTokenFile)'
     AZURE_CLIENT_ID: "$(ServicePrincipalId)"
     AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
     AZURE_TENANT_ID: "$(ServicePrincipalTenantId)"
