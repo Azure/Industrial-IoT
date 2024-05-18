@@ -29,6 +29,10 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalIdToken]$($env:idToken)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
   name: keyvaultpermissions
@@ -107,7 +111,7 @@ steps:
     inlineScript: |
       [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
       export AZURE_FEDERATED_TOKEN_FILE=idtoken
-      cat ${federatedtoken}>${AZURE_FEDERATED_TOKEN_FILE}
+      cat ${ServicePrincipalAccessToken}>${AZURE_FEDERATED_TOKEN_FILE}
       dotnet test IIoTPlatform-E2E-Tests.sln \
         --configuration Release \
         --logger trx \
