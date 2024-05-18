@@ -34,10 +34,10 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
-      -BranchName "$[variables.BranchName]"
-      -Region "$[variables.Region]"
-      -ImageTag "$[variables.PlatformVersion]"
-      -ContainerRegistryServer "$[variables.ContainerRegistryServer]"
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
   displayName: "Run deployment script"
