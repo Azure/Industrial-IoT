@@ -68,10 +68,10 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
-      -BranchName "$[variables.BranchName]"
-      -Region "$[variables.Region]"
-      -ImageTag "$[variables.PlatformVersion]"
-      -ContainerRegistryServer "$[variables.ContainerRegistryServer]"
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
@@ -112,7 +112,7 @@ steps:
         --results-directory $(Agent.TempDirectory)
         --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
   env:
-    ApplicationName: '$[variables.ApplicationName]'
+    ApplicationName: '$(ApplicationName)'
     PCS_IMAGES_TAG: '$(ImageTag)'
     PCS_DOCKER_SERVER: "$(ContainerRegistryServer)"
     PCS_DOCKER_USER: "$(ContainerRegistryUsername)"
