@@ -29,10 +29,6 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
-      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
-      $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
   name: keyvaultpermissions
@@ -94,6 +90,21 @@ steps:
     command: build
     projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release'
+
+# get oidc token which expires after 10 minutes service
+# doing it close to test for test to get a chance to 
+# retrieve the access token within 10 minutes from here 
+- task: AzureCLI@2
+  displayName: 'Get ID Token'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
+      $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 70
@@ -134,7 +145,6 @@ steps:
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
     AZURE_FEDERATED_TOKEN_FILE: '$(ServicePrincipalTokenFile)'
     AZURE_CLIENT_ID: "$(ServicePrincipalId)"
-    AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
     AZURE_TENANT_ID: "$(pcs-auth-tenant)"
 - task: PublishTestResults@2
   displayName: 'Publish test results'
