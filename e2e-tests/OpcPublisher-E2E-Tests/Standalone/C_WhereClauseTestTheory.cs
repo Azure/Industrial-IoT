@@ -12,6 +12,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using Xunit;
     using Xunit.Abstractions;
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
