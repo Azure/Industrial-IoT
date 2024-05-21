@@ -8,10 +8,10 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
-      -BranchName "$[variables.BranchName]"
-      -Region "$[variables.Region]"
-      -ImageTag "$[variables.PlatformVersion]"
-      -ContainerRegistryServer "$[variables.ContainerRegistryServer]"
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 # Need to do this so we can update the permissions in key vault for this
 # service principal in the next scripts

@@ -81,6 +81,13 @@ namespace OpcPublisherAEE2ETests.Standalone
             GC.SuppressFinalize(this);
         }
 
+        [Fact, PriorityOrder(0)]
+        public async Task TestGetAzureContext()
+        {
+            _output.WriteLine("Get Azure Context");
+            await TestHelper.GetAzureContextAsync(_context, _timeoutToken).ConfigureAwait(false);
+        }
+
         [Fact, PriorityOrder(1)]
         public Task TestSwitchToStandaloneMode()
         {

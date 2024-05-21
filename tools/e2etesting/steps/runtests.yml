@@ -65,10 +65,10 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
-      -BranchName "$[variables.BranchName]"
-      -Region "$[variables.Region]"
-      -ImageTag "$[variables.PlatformVersion]"
-      -ContainerRegistryServer "$[variables.ContainerRegistryServer]"
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
@@ -88,28 +88,33 @@ steps:
     projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release'
 
-  # Run unit tests under azure cli which is logged into the subscription
-  # using any configured credential
+# get oidc token which expires after 10 minutes service
+# doing it close to test for test to get a chance to 
+# retrieve the access token within 10 minutes from here 
 - task: AzureCLI@2
+  displayName: 'Get ID Token'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
+      $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
+- task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
-  name: runtests
   timeoutInMinutes: 70
   retryCountOnTaskFailure: 1
   inputs:
-    azureSubscription: '$(AzureSubscription)'
-    scriptType: 'bash'
-    scriptLocation: 'InlineScript'
-    workingDirectory: '$(BasePath)\e2e-tests'
-    addSpnToEnvironment: true
-    inlineScript: >-
-      [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
-      dotnet test IIoTPlatform-E2E-Tests.sln
-        --configuration Release
-        --logger trx
-        --results-directory $(Agent.TempDirectory)
-        --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
+    command: test
+    publishTestResults: true
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
+    arguments: >-
+      --configuration Release
+      --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
   env:
-    ApplicationName: '$[variables.ApplicationName]'
+    ApplicationName: '$(ApplicationName)'
     PCS_IMAGES_TAG: '$(ImageTag)'
     PCS_DOCKER_SERVER: "$(ContainerRegistryServer)"
     PCS_DOCKER_USER: "$(ContainerRegistryUsername)"
@@ -123,7 +128,7 @@ steps:
     PCS_AUTH_CLIENT_SECRET: '$(pcs-auth-client-secret)'
     PCS_AUTH_SERVICE_APPID: '$(pcs-auth-service-appid)'
     PLC_SIMULATION_URLS: '$(plc-simulation-urls)'
-    IOT_EDGE_VERSION: "$[variables.EdgeVersion]"
+    IOT_EDGE_VERSION: "$(EdgeVersion)"
     IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
     IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'
     IOT_EDGE_VM_USERNAME: '$(iot-edge-vm-username)'
@@ -135,9 +140,12 @@ steps:
     TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
+    AZURE_FEDERATED_TOKEN_FILE: '$(ServicePrincipalTokenFile)'
+    AZURE_CLIENT_ID: "$(ServicePrincipalId)"
+    AZURE_TENANT_ID: "$(pcs-auth-tenant)"
 - task: PublishTestResults@2
   displayName: 'Publish test results'
   condition: always()
   inputs:
     testResultsFormat: VSTest
-    testResultsFiles: '$(Agent.TempDirectory)/**/*.trx'
+    testResultsFiles: '$(Agent.TempDirectory)\**\*.trx'
