@@ -100,7 +100,7 @@ $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $key
 
 if (!$keyVault) {
     Write-Host "Creating Key Vault $($keyVaultName)"
-    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location
+    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location -DisableRbacAuthorization
 }
 
 if ($ServicePrincipalId) {
