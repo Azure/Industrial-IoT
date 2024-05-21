@@ -3,8 +3,7 @@ steps:
   displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
@@ -21,8 +20,7 @@ steps:
   name: SetServicePrincipalId
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     scriptLocation: 'InlineScript'
     scriptType: 'ps'
     addSpnToEnvironment: true
@@ -32,8 +30,7 @@ steps:
   displayName: "Deploy standalone resources"
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployStandalone.ps1'
@@ -45,8 +42,7 @@ steps:
   displayName: 'Set KeyVaultName-Variable'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
@@ -56,8 +52,7 @@ steps:
   displayName: 'Set keyvault container registry secrets'
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultSecrets.ps1'

@@ -7,8 +7,7 @@ steps:
   displayName: "Delete Resource Group"
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     scriptType: 'InlineScript'
     inline: |
       Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
@@ -21,8 +20,7 @@ steps:
   condition: eq( '${{ parameters.CleanupAppRegistrations }}', true)
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     scriptType: 'InlineScript'
     inline: |
       Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."

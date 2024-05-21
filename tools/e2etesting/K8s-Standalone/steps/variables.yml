@@ -1,7 +1,6 @@
 variables:
   BasePath: $(System.DefaultWorkingDirectory)
   AzureSubscription: IIOT_TEST-SP # Use Services-Connection with Service-Principal-Authentication as subscription
-  AzurePsVersion: '10.3.0'
   Runtime: 'win-x64'
   ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
     BranchName: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]

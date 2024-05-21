@@ -9,8 +9,7 @@ steps:
   timeoutInMinutes: 90
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: 'ps'
     scriptPath: '$(BasePath)\tools\e2etesting\DeployPLCs.ps1'
@@ -23,8 +22,7 @@ steps:
   timeoutInMinutes: 90
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployEdge.ps1'
@@ -37,8 +35,7 @@ steps:
   timeoutInMinutes: 90
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '$(AzurePsVersion)'
+    azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployTestEventProcessor.ps1'
