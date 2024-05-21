@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Renew certifiate
         /// </summary>
         /// <param name="state"></param>
-        private async void OnRenewExpiredCertificateAsync(object? state)
+        private async Task OnRenewExpiredCertificateAsync(object? state)
         {
             try
             {

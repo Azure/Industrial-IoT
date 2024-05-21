@@ -28,7 +28,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestACIVerifyEnd2EndThroughputAndLatency()
+        public async Task TestACIVerifyEnd2EndThroughputAndLatency()
         {
             // Settings
             const int eventIntervalPerInstanceMs = 400;

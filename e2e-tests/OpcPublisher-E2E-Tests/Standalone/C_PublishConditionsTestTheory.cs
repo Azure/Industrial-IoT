@@ -30,7 +30,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(11)]
-        public async void TestACIVerifyDataAvailableAtIoTHubExpectNumberOfEventsGreaterThanZero()
+        public async Task TestACIVerifyDataAvailableAtIoTHubExpectNumberOfEventsGreaterThanZero()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>

@@ -26,7 +26,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchSimpleFilter()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchSimpleFilter()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
@@ -50,7 +50,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(11)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchEventFilter()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchEventFilter()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
@@ -74,7 +74,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(12)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectFieldsToSimpleEvents()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectFieldsToSimpleEvents()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>

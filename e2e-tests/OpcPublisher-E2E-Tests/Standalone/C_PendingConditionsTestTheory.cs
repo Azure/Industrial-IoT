@@ -25,7 +25,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectPendingAlarmsView()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectPendingAlarmsView()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>

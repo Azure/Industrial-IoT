@@ -454,7 +454,7 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        private async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        internal async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
         {
             if (context.AzureContext != null)
             {
