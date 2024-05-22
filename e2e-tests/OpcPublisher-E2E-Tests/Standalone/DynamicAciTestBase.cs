@@ -56,7 +56,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Initialize DeviceServiceClient from IoT Hub connection string.
             _iotHubClient = TestHelper.DeviceServiceClient(
                 _context.IoTHubConfig.IoTHubConnectionString,
-                Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
+                TransportType.Amqp_WebSocket_Only
             );
         }
 
@@ -79,18 +79,6 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        [Fact, PriorityOrder(0)]
-        public async Task TestGetAzureContext()
-        {
-            //
-            // This has to be called asap after start, because if we run using federated workload
-            // credential the id token expires within 10 minutes. Once the access token was acquired
-            // here it is cached in MSAL and returned from there through the duration of the tests
-            //
-            _output.WriteLine("Get Azure Context");
-            await TestHelper.GetAzureContextAsync(_context, _timeoutToken).ConfigureAwait(false);
         }
 
         [Fact, PriorityOrder(1)]

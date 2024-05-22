@@ -88,31 +88,27 @@ steps:
     projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release'
 
-# get oidc token which expires after 10 minutes service
-# doing it close to test for test to get a chance to 
-# retrieve the access token within 10 minutes from here 
+  # Run unit tests under azure cli which is logged into the subscription
+  # using any configured credential
 - task: AzureCLI@2
-  displayName: 'Get ID Token'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    scriptLocation: 'InlineScript'
-    scriptType: 'ps'
-    addSpnToEnvironment: true
-    inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ServicePrincipalTokenFile]$(Agent.TempDirectory)\$($env:servicePrincipalId)"
-      Write-Host "##vso[task.setvariable variable=pcs-auth-tenant]$($env:tenantId)"
-      $env:idToken | Out-File $(Agent.TempDirectory)\$($env:servicePrincipalId)
-- task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
+  name: runtests
   timeoutInMinutes: 70
   retryCountOnTaskFailure: 1
   inputs:
-    command: test
-    publishTestResults: true
-    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
-    arguments: >-
-      --configuration Release
-      --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'bash'
+    scriptLocation: 'InlineScript'
+    workingDirectory: '$(BasePath)\e2e-tests'
+    addSpnToEnvironment: true
+    inlineScript: |
+      [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
+      dotnet test IIoTPlatform-E2E-Tests.sln \
+        --configuration Release \
+        --verbosity=normal --logger "console;verbosity=detailed" \
+        --logger trx \
+        --results-directory TestResults \
+        --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
   env:
     ApplicationName: '$(ApplicationName)'
     PCS_IMAGES_TAG: '$(ImageTag)'
@@ -140,12 +136,9 @@ steps:
     TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
     TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
     TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
-    AZURE_FEDERATED_TOKEN_FILE: '$(ServicePrincipalTokenFile)'
-    AZURE_CLIENT_ID: "$(ServicePrincipalId)"
-    AZURE_TENANT_ID: "$(pcs-auth-tenant)"
 - task: PublishTestResults@2
   displayName: 'Publish test results'
   condition: always()
   inputs:
     testResultsFormat: VSTest
-    testResultsFiles: '$(Agent.TempDirectory)\**\*.trx'
+    testResultsFiles: '$(BasePath)\e2e-tests\**\*.trx'

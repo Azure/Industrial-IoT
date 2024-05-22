@@ -94,6 +94,8 @@ namespace OpcPublisherAEE2ETests.Deploy
             var version = _context.ContainerRegistryConfig.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/opc-publisher:{version}";
 
+            _context.OutputHelper?.WriteLine($"Deploying {image}");
+
             // Return deployment modules object
             var content = @"
             {
