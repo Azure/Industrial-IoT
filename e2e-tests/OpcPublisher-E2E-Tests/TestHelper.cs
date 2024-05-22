@@ -441,7 +441,7 @@ namespace OpcPublisherAEE2ETests
         public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context)
         {
             await Task.WhenAll(
-            context.PlcAciDynamicUrls
+            context.PlcAciDynamicUrls?
                 .Select(url => url.Split(".")[0])
                 .Select(n => context.AzureContext.ContainerGroups.DeleteByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, n))
             ).ConfigureAwait(false);
