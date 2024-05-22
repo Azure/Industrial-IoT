@@ -54,10 +54,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             get => _outputHelper;
             set
             {
-                if (value != null)
-                {
-                    LogEnvironment(value);
-                }
+                LogEnvironment(value);
                 _outputHelper = value ?? new DummyOutput();
             }
         }
@@ -238,8 +235,13 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public string ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
             () => "latest");
 
-        public static void LogEnvironment(ITestOutputHelper output)
+        public void LogEnvironment(ITestOutputHelper output)
         {
+            if (output == null || _logged || output is DummyOutput)
+            {
+                return;
+            }
+            _logged = true;
             Log("ApplicationName");
             Log("PCS_IMAGES_TAG");
             Log("PCS_DOCKER_SERVER");
@@ -266,5 +268,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             Log("TESTEVENTPROCESSOR_PASSWORD");
             void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
         }
+        private bool _logged;
     }
 }

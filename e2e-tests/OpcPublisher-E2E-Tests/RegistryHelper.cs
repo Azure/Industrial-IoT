@@ -86,41 +86,33 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="deploymentConfiguration"></param>
         /// <param name="ct"></param>
+#pragma warning disable CA1822 // Mark members as static
         public async Task WaitForSuccessfulDeploymentAsync(
+#pragma warning restore CA1822 // Mark members as static
             Configuration deploymentConfiguration,
             CancellationToken ct)
         {
+#if MONITOR_DEPLOYMENT
             var sw = Stopwatch.StartNew();
+            Configuration lastConfiguration = null;
             try
             {
                 while (true)
                 {
                     ct.ThrowIfCancellationRequested();
 
-                    var activeConfiguration = await RegistryManager
-                        .GetConfigurationAsync(deploymentConfiguration.Id, ct)
+                    var activeConfiguration = await RegistryManager.GetConfigurationAsync(deploymentConfiguration.Id, ct)
                         .ConfigureAwait(false);
-
                     if (activeConfiguration != null)
                     {
-                        if (Equals(activeConfiguration, deploymentConfiguration))
+                        lastConfiguration = activeConfiguration;
+                        if (Equals(activeConfiguration, deploymentConfiguration)
+                            && activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
+                                                    && value >= 1)
                         {
-                            if (activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
-                                                    && value == 1)
-                            {
-                                _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
-                                return;
-                            }
-                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {JsonSerializer.Serialize(activeConfiguration)} status...");
+                            _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
+                            return;
                         }
-                        else
-                        {
-                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {JsonSerializer.Serialize(activeConfiguration)} not equal to deployment...");
-                        }
-                    }
-                    else
-                    {
-                        _context.OutputHelper.WriteLine("Waiting for IoT Edge module deployment: failed to get results...");
                     }
 
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
@@ -136,6 +128,15 @@ namespace OpcPublisherAEE2ETests
                 _context.OutputHelper.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
                 throw;
             }
+            finally
+            {
+                _context.OutputHelper.WriteLine($"Waiting for IoT Edge module got configuration: {JsonSerializer.Serialize(lastConfiguration, kIndented)}...");
+            }
+        }
+        private static readonly JsonSerializerOptions kIndented = new () { WriteIndented = true };
+#else
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds * 6, ct).ConfigureAwait(false);
+#endif
         }
 
         /// <summary>

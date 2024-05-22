@@ -115,7 +115,6 @@ namespace OpcPublisherAEE2ETests.Standalone
         [Fact, PriorityOrder(5)]
         public async Task TestWaitForModuleConnected()
         {
-            // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId,
                 _timeoutToken, new[] { _context.IoTHubPublisherDeployment.ModuleName });
             _output.WriteLine("Publisher module connected.");
