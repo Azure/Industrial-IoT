@@ -22,7 +22,6 @@ namespace OpcPublisherAEE2ETests
     using Renci.SshNet;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -35,7 +34,6 @@ namespace OpcPublisherAEE2ETests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using Xunit.Sdk;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -98,7 +96,7 @@ namespace OpcPublisherAEE2ETests
                 try
                 {
                     await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
-            		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
@@ -461,24 +459,45 @@ namespace OpcPublisherAEE2ETests
                 return context.AzureContext;
             }
 
-            context.OutputHelper.WriteLine($"TenantId: {context.OpcPlcConfig.TenantId}");
-            context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
-            context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
-            context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
-
-            var options = new DefaultAzureCredentialOptions
+            context.OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
+            var token = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
+            if (string.IsNullOrWhiteSpace(token))
             {
-                TenantId = context.OpcPlcConfig.TenantId
-            };
-            //options.AdditionallyAllowedTenants.Add("*");
+                try
+                {
+                    context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
+                    context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
+                    context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
+                    var options = new DefaultAzureCredentialOptions
+                    {
+                        TenantId = context.OpcPlcConfig.TenantId
+                    };
+                    //options.AdditionallyAllowedTenants.Add("*");
+                    var defaultAzureCredential = new DefaultAzureCredential(options);
+                    var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
+                        new[] { "https://management.azure.com//.default" },
+                        tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
 
-            var defaultAzureCredential = new DefaultAzureCredential(options);
-            var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
-                new[] { "https://management.azure.com//.default" }, tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
+                    context.OutputHelper.WriteLine("Obtained Access Token from Tenant using default credentials.");
+                    token = accessToken.Token;
+                }
+                catch (Exception ex)
+                {
+                    context.OutputHelper.WriteLine($"Failed to obtain default credential with error {ex.Message}, trying Azure CLI..");
+                    var defaultAzureCredential = new AzureCliCredential();
+                    var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
+                        new[] { "https://management.azure.com//.default" },
+                        tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
+                    context.OutputHelper.WriteLine("Obtained Access Token from Azure CLI.");
+                    token = accessToken.Token;
+                }
+            }
+            else
+            {
+                context.OutputHelper.WriteLine("Using access token from environment variable.");
+            }
 
-            context.OutputHelper.WriteLine($"Received Token {accessToken.Token}");
-
-            var tokenCredentials = new TokenCredentials(accessToken.Token);
+            var tokenCredentials = new TokenCredentials(token);
             var azureCredentials = new AzureCredentials(tokenCredentials, tokenCredentials, context.OpcPlcConfig.TenantId,
                 AzureEnvironment.AzureGlobalCloud);
 
@@ -860,7 +879,7 @@ namespace OpcPublisherAEE2ETests
         /// <exception cref="ArgumentNullException"></exception>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
-            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
         )
         {
             ServiceClient iotHubClient;

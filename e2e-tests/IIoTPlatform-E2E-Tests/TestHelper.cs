@@ -81,23 +81,37 @@ namespace IIoTPlatformE2ETests
             Assert.False(string.IsNullOrWhiteSpace(clientSecret));
             Assert.False(string.IsNullOrWhiteSpace(serviceId));
 
-            using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
-                client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
-
-            var request = new RestRequest("", Method.Post)
+            Exception saved = new UnauthorizedAccessException();
+            for (var i = 0; i < 3; i++)
             {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-            request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
-            request.AddParameter("grant_type", "client_credentials");
-            request.AddParameter("scope", $"{serviceId}/.default");
+                try
+                {
+                    using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
+                        client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
 
-            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-            Assert.NotNull(json);
-            Assert.NotEmpty(json);
-            return $"{json.token_type} {json.access_token}";
+                    var request = new RestRequest("", Method.Post)
+                    {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    };
+                    request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                    request.AddParameter("grant_type", "client_credentials");
+                    request.AddParameter("scope", $"{serviceId}/.default");
+
+                    var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+                    Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
+                    dynamic json = JsonConvert.DeserializeObject(response.Content);
+                    Assert.NotNull(json);
+                    Assert.NotEmpty(json);
+                    return $"{json.token_type} {json.access_token}";
+                }
+                catch (Exception ex)
+                {
+                    saved = ex;
+                    Console.WriteLine($"Error occurred while requesting token: {ex.Message}");
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
+                }
+            }
+            throw saved;
         }
 
         /// <summary>
@@ -247,7 +261,7 @@ namespace IIoTPlatformE2ETests
                 try
                 {
                     await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
-            		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
@@ -681,8 +695,8 @@ namespace IIoTPlatformE2ETests
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
                 new Dictionary<string, PublishedNodesEntryModel>(0);
 
-                simulatedPublishedNodesConfiguration =
-                    await GetSimulatedPublishedNodesConfigurationAsync(context, ct).ConfigureAwait(false);
+            simulatedPublishedNodesConfiguration =
+                await GetSimulatedPublishedNodesConfigurationAsync(context, ct).ConfigureAwait(false);
 
             PublishedNodesEntryModel model;
             if (simulatedPublishedNodesConfiguration.Count > 0)
@@ -804,17 +818,15 @@ namespace IIoTPlatformE2ETests
         /// <exception cref="ArgumentNullException"></exception>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
-            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
         )
         {
-            ServiceClient iotHubClient;
-
             if (string.IsNullOrWhiteSpace(iotHubConnectionString))
             {
                 throw new ArgumentNullException(nameof(iotHubConnectionString));
             }
 
-            return iotHubClient = ServiceClient.CreateFromConnectionString(
+            return ServiceClient.CreateFromConnectionString(
                 iotHubConnectionString,
                 transportType
             );

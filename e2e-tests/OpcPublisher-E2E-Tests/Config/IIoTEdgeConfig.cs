@@ -5,8 +5,6 @@
 
 namespace OpcPublisherAEE2ETests.Config
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// IoT Edge configuration
     /// </summary>

@@ -6,7 +6,6 @@
 namespace IIoTPlatformE2ETests.Orchestrated
 {
     using System;
-    using System.Dynamic;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
@@ -15,7 +14,6 @@ namespace IIoTPlatformE2ETests.Orchestrated
     using TestExtensions;
     using Xunit.Abstractions;
     using System.Threading;
-    using Newtonsoft.Json.Converters;
     using System.Collections.Generic;
     using System.Globalization;
 

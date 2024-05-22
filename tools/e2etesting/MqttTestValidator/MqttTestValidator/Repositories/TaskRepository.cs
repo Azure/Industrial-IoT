@@ -12,7 +12,7 @@ namespace MqttTestValidator.Repositories
 
     internal sealed class TaskRepository : ITaskRepository
     {
-        private readonly Dictionary<ulong, IVerificationTask> _store = new (20);
+        private readonly Dictionary<ulong, IVerificationTask> _store = new(20);
 
         /// <inheritdoc />
         public bool Contains(ulong id)

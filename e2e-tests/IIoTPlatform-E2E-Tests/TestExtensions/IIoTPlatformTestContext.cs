@@ -6,10 +6,8 @@
 namespace IIoTPlatformE2ETests.TestExtensions
 {
     using Config;
-    using Furly.Exceptions;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.Collections.Generic;
     using Xunit.Abstractions;
 
     /// <summary>
@@ -18,6 +16,8 @@ namespace IIoTPlatformE2ETests.TestExtensions
     public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
         IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig
     {
+        private ITestOutputHelper _outputHelper;
+
         /// <summary>
         /// Configuration
         /// </summary>
@@ -48,7 +48,15 @@ namespace IIoTPlatformE2ETests.TestExtensions
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper OutputHelper { get; set; }
+        public ITestOutputHelper OutputHelper
+        {
+            get => _outputHelper;
+            set
+            {
+                LogEnvironment(value);
+                _outputHelper = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the OPC server url
@@ -218,5 +226,36 @@ namespace IIoTPlatformE2ETests.TestExtensions
 
         public string ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
             () => "latest");
+
+        public static void LogEnvironment(ITestOutputHelper output)
+        {
+            Log("ApplicationName");
+            Log("PCS_IMAGES_TAG");
+            Log("PCS_DOCKER_SERVER");
+            Log("PCS_DOCKER_USER");
+            Log("PCS_DOCKER_PASSWORD");
+            Log("PCS_IMAGES_NAMESPACE");
+            Log("PCS_SUBSCRIPTION_ID");
+            Log("PCS_RESOURCE_GROUP");
+            Log("PCS_SERVICE_URL");
+            Log("PCS_AUTH_TENANT");
+            Log("PCS_AUTH_CLIENT_APPID");
+            Log("PCS_AUTH_CLIENT_SECRET");
+            Log("PCS_AUTH_SERVICE_APPID");
+            Log("PLC_SIMULATION_URLS");
+            Log("IOT_EDGE_VERSION");
+            Log("IOT_EDGE_DEVICE_ID");
+            Log("IOT_EDGE_DEVICE_DNSNAME");
+            Log("IOT_EDGE_VM_USERNAME");
+            Log("IOT_EDGE_VM_PUBLICKEY");
+            Log("IOT_EDGE_VM_PRIVATEKEY");
+            Log("PCS_IOTHUB_CONNSTRING");
+            Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
+            Log("STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING");
+            Log("TESTEVENTPROCESSOR_BASEURL");
+            Log("TESTEVENTPROCESSOR_USERNAME");
+            Log("TESTEVENTPROCESSOR_PASSWORD");
+            void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
+        }
     }
 }
