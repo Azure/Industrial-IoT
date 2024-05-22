@@ -27,7 +27,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
         {
             Configuration = GetConfiguration();
             RegistryHelper = new RegistryHelper(this);
-            OutputHelper = null;
         }
 
         /// <summary>
@@ -53,7 +52,10 @@ namespace IIoTPlatformE2ETests.TestExtensions
             get => _outputHelper;
             set
             {
-                LogEnvironment(value);
+                if (value != null)
+                {
+                    LogEnvironment(value);
+                }
                 _outputHelper = value;
             }
         }
