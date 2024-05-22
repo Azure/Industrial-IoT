@@ -258,8 +258,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             Log("IOT_EDGE_DEVICE_ID");
             Log("IOT_EDGE_DEVICE_DNSNAME");
             Log("IOT_EDGE_VM_USERNAME");
-            Log("IOT_EDGE_VM_PUBLICKEY");
-            Log("IOT_EDGE_VM_PRIVATEKEY");
             Log("PCS_IOTHUB_CONNSTRING");
             Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
             Log("STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING");
