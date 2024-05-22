@@ -11,6 +11,7 @@ namespace IIoTPlatformE2ETests.Deploy
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
+    using static System.Net.Mime.MediaTypeNames;
 
     public abstract class DeploymentConfiguration : IIoTHubEdgeDeployment
     {
@@ -26,8 +27,9 @@ namespace IIoTPlatformE2ETests.Deploy
 
             var configuration = await _context.RegistryHelper
                 .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token)
-                .ConfigureAwait(false);
+            .ConfigureAwait(false);
 
+            _context.OutputHelper.WriteLine($"Created deployment {configuration.Id}.");
             return configuration != null;
         }
 

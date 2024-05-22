@@ -50,17 +50,21 @@ namespace OpcPublisherAEE2ETests
             {
                 while (true)
                 {
-                    var modules = await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false);
-                    var connectedModulesCout = modules
+                    var modules = (await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false)).ToList();
+                    var connectedModulesCount = modules
                         .Where(m => moduleNames.Contains(m.Id))
                         .Count(m => m.ConnectionState == DeviceConnectionState.Connected);
 
-                    if (connectedModulesCout == moduleNames.Count)
+                    if (connectedModulesCount == moduleNames.Count)
                     {
                         _context.OutputHelper.WriteLine($"All required IoT Edge modules are connected! (took {sw.Elapsed})");
                         return;
                     }
 
+                    var m = modules.Count == 0 ? "No modules" : modules
+                        .Select(m => $"{m.Id}({m.ConnectionState})")
+                        .Aggregate((a, b) => a + ", " + b);
+                    _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules: {m} on {deviceId}");
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
             }
@@ -96,13 +100,26 @@ namespace OpcPublisherAEE2ETests
                         .GetConfigurationAsync(deploymentConfiguration.Id, ct)
                         .ConfigureAwait(false);
 
-                    if (activeConfiguration != null
-                        && Equals(activeConfiguration, deploymentConfiguration)
-                        && activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
-                        && value == 1)
+                    if (activeConfiguration != null)
                     {
-                        _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
-                        return;
+                        if (Equals(activeConfiguration, deploymentConfiguration))
+                        {
+                            if (activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
+                                                    && value == 1)
+                            {
+                                _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
+                                return;
+                            }
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {value} successsful deployments...");
+                        }
+                        else
+                        {
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {activeConfiguration.Id} not equal to deployment...");
+                        }
+                    }
+                    else
+                    {
+                        _context.OutputHelper.WriteLine("Waiting for IoT Edge module deployment: failed to get results...");
                     }
 
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
@@ -238,7 +255,7 @@ namespace OpcPublisherAEE2ETests
         public RegistryManager RegistryManager { get; }
 
         /// <summary>
-        /// Default value fo IIoT module names.
+        /// Default value for IIoT module names.
         /// </summary>
         public static IReadOnlyList<string> ModuleNamesDefault { get; } = new string[] { "publisher", "twin", "discovery" };
 

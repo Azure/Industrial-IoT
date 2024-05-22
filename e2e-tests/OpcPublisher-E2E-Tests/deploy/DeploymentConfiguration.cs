@@ -28,6 +28,7 @@ namespace OpcPublisherAEE2ETests.Deploy
                 .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token)
                 .ConfigureAwait(false);
 
+            _context.OutputHelper.WriteLine($"Created deployment {configuration.Id}.");
             return configuration != null;
         }
 

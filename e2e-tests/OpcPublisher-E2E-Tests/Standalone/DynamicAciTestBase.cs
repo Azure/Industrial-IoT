@@ -117,7 +117,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         {
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId,
-                _timeoutToken, new[] { "publisher_standalone" });
+                _timeoutToken, new[] { _context.IoTHubPublisherDeployment.ModuleName });
             _output.WriteLine("Publisher module connected.");
         }
 
