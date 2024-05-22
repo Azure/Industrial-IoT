@@ -590,7 +590,7 @@
             "kind": "web",
             "properties": {
                 "Application_Type": "web",
-                "ApplicationId": "[parameters('appInsightsName')]"
+                "ApplicationId": "[guid(parameters('appInsightsName'))]"
             }
         },
         {
