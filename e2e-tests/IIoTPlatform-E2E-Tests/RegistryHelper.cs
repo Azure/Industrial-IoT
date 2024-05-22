@@ -12,6 +12,7 @@ namespace IIoTPlatformE2ETests
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -110,11 +111,11 @@ namespace IIoTPlatformE2ETests
                                 _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
                                 return;
                             }
-                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {value} successsful deployments...");
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {JsonSerializer.Serialize(activeConfiguration)} status...");
                         }
                         else
                         {
-                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {activeConfiguration.Id} not equal to deployment...");
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {JsonSerializer.Serialize(activeConfiguration)} not equal to deployment...");
                         }
                     }
                     else

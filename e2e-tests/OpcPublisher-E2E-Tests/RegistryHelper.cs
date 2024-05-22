@@ -14,6 +14,7 @@ namespace OpcPublisherAEE2ETests
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Text.Json;
 
     /// <summary>
     /// Helper for managing IoT Hub device registry.
@@ -110,11 +111,11 @@ namespace OpcPublisherAEE2ETests
                                 _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
                                 return;
                             }
-                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {value} successsful deployments...");
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {JsonSerializer.Serialize(activeConfiguration)} status...");
                         }
                         else
                         {
-                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {activeConfiguration.Id} not equal to deployment...");
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {JsonSerializer.Serialize(activeConfiguration)} not equal to deployment...");
                         }
                     }
                     else
