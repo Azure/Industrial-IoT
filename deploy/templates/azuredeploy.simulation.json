@@ -203,16 +203,16 @@
                         "value": "[parameters('branchName')]"
                     },
                     "edgeVmSize": {
-                        "value": "[parameters('edgeVmSize')]"  
+                        "value": "[parameters('edgeVmSize')]"
                     },
                     "simulationVmSize": {
-                        "value": "[parameters('simulationVmSize')]"  
+                        "value": "[parameters('simulationVmSize')]"
                     },
                     "dpsIdScope": {
-                        "value": "[parameters('dpsIdScope')]"  
+                        "value": "[parameters('dpsIdScope')]"
                     },
                     "dpsConnString": {
-                        "value": "[parameters('dpsConnString')]"  
+                        "value": "[parameters('dpsConnString')]"
                     },
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
@@ -283,16 +283,16 @@
                         "value": "[parameters('branchName')]"
                     },
                     "edgeVmSize": {
-                        "value": "[parameters('edgeVmSize')]"  
+                        "value": "[parameters('edgeVmSize')]"
                     },
                     "simulationVmSize": {
-                        "value": "[parameters('simulationVmSize')]"  
+                        "value": "[parameters('simulationVmSize')]"
                     },
                     "dpsIdScope": {
-                        "value": "[parameters('dpsIdScope')]"  
+                        "value": "[parameters('dpsIdScope')]"
                     },
                     "dpsConnString": {
-                        "value": "[parameters('dpsConnString')]"  
+                        "value": "[parameters('dpsConnString')]"
                     },
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
