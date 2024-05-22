@@ -57,25 +57,25 @@ namespace IIoTPlatformE2ETests
 
                     if (connectedModulesCount == moduleNames.Count)
                     {
-                        _context.OutputHelper?.WriteLine($"All required IoT Edge modules are connected! (took {sw.Elapsed})");
+                        _context.OutputHelper.WriteLine($"All required IoT Edge modules are connected! (took {sw.Elapsed})");
                         return;
                     }
 
                     var m = modules.Count == 0 ? "No modules" : modules
                         .Select(m => $"{m.Id}({m.ConnectionState})")
                         .Aggregate((a, b) => a + ", " + b);
-                    _context.OutputHelper?.WriteLine($"Waiting for IoT Edge modules: {m} on {deviceId}");
+                    _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules: {m} on {deviceId}");
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
             {
-                _context.OutputHelper?.WriteLine($"Waiting for IoT Edge modules to be loaded timeout timeout after {sw.Elapsed} - please check iot edge device for details");
+                _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules to be loaded timeout timeout after {sw.Elapsed} - please check iot edge device for details");
                 throw;
             }
             catch (Exception e)
             {
-                _context.OutputHelper?.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
+                _context.OutputHelper.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
                 throw;
             }
         }
@@ -107,19 +107,19 @@ namespace IIoTPlatformE2ETests
                             if (activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
                                                     && value == 1)
                             {
-                                _context.OutputHelper?.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
+                                _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
                                 return;
                             }
-                            _context.OutputHelper?.WriteLine($"Waiting for IoT Edge module deployment: {value} successsful deployments...");
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {value} successsful deployments...");
                         }
                         else
                         {
-                            _context.OutputHelper?.WriteLine($"Waiting for IoT Edge module deployment: {activeConfiguration.Id} not equal to deployment...");
+                            _context.OutputHelper.WriteLine($"Waiting for IoT Edge module deployment: {activeConfiguration.Id} not equal to deployment...");
                         }
                     }
                     else
                     {
-                        _context.OutputHelper?.WriteLine("Waiting for IoT Edge module deployment: failed to get results...");
+                        _context.OutputHelper.WriteLine("Waiting for IoT Edge module deployment: failed to get results...");
                     }
 
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
@@ -127,12 +127,12 @@ namespace IIoTPlatformE2ETests
             }
             catch (OperationCanceledException)
             {
-                _context.OutputHelper?.WriteLine($"Waiting for IoT Edge modules to be loaded timeout after {sw.Elapsed} - please check iot edge device for details");
+                _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules to be loaded timeout after {sw.Elapsed} - please check iot edge device for details");
                 throw;
             }
             catch (Exception e)
             {
-                _context.OutputHelper?.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
+                _context.OutputHelper.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
                 throw;
             }
         }
@@ -156,14 +156,14 @@ namespace IIoTPlatformE2ETests
                     // First try create configuration
                     try
                     {
-                        _context.OutputHelper?.WriteLine("Add new IoT Hub device configuration");
+                        _context.OutputHelper.WriteLine("Add new IoT Hub device configuration");
                         return await RegistryManager.AddConfigurationAsync(configuration, ct).ConfigureAwait(false);
                     }
                     catch (DeviceAlreadyExistsException)
                     {
                         // Technically update below should now work but for some reason it does not.
                         // Remove and re-add in case we are forcing updates.
-                        _context.OutputHelper?.WriteLine("IoT Hub device configuration already existed, remove and recreate it");
+                        _context.OutputHelper.WriteLine("IoT Hub device configuration already existed, remove and recreate it");
                         await RegistryManager.RemoveConfigurationAsync(configuration.Id, ct).ConfigureAwait(false);
                         return await RegistryManager.AddConfigurationAsync(configuration, ct).ConfigureAwait(false);
                     }
@@ -174,13 +174,13 @@ namespace IIoTPlatformE2ETests
                     return getConfig;
                 }
 
-                _context.OutputHelper?.WriteLine("Existing IoT Hub device configuration is different, remove and recreate it");
+                _context.OutputHelper.WriteLine("Existing IoT Hub device configuration is different, remove and recreate it");
                 await RegistryManager.RemoveConfigurationAsync(configuration.Id, ct).ConfigureAwait(false);
                 return await RegistryManager.AddConfigurationAsync(configuration, ct).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                _context.OutputHelper?.WriteLine("Error while creating or updating IoT Hub device configuration! {0}", e.Message);
+                _context.OutputHelper.WriteLine("Error while creating or updating IoT Hub device configuration! {0}", e.Message);
                 throw;
             }
         }

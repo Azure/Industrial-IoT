@@ -174,11 +174,11 @@ namespace IIoTPlatformE2ETests
                         try
                         {
                             await RemoveApplicationAsync(context, id, ct);
-                            context.OutputHelper?.WriteLine($"Removed application {id}.");
+                            context.OutputHelper.WriteLine($"Removed application {id}.");
                         }
                         catch (Exception ex)
                         {
-                            context.OutputHelper?.WriteLine($"Failed to remove application {id} -> {ex.Message}");
+                            context.OutputHelper.WriteLine($"Failed to remove application {id} -> {ex.Message}");
                         }
                     }
                 }

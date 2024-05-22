@@ -18,7 +18,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
         IIoTEdgeConfig, ISshConfig, IOpcPlcConfig, IContainerRegistryConfig
     {
-        private ITestOutputHelper _outputHelper;
+        private ITestOutputHelper _outputHelper = new DummyOutput();
 
         /// <summary>
         /// Configuration
@@ -58,8 +58,14 @@ namespace OpcPublisherAEE2ETests.TestExtensions
                 {
                     LogEnvironment(value);
                 }
-                _outputHelper = value;
+                _outputHelper = value ?? new DummyOutput();
             }
+        }
+
+        private sealed class DummyOutput : ITestOutputHelper
+        {
+            public void WriteLine(string message) { Console.WriteLine(message); }
+            public void WriteLine(string format, params object[] args) { Console.WriteLine(format, args); }
         }
 
         /// <summary>

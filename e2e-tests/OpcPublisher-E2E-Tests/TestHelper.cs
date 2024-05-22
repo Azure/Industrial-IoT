@@ -73,8 +73,8 @@ namespace OpcPublisherAEE2ETests
             CancellationToken ct = default
         )
         {
-            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(json);
+            context.OutputHelper.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper.WriteLine(json);
             await PublishNodesAsync(json, context, ct).ConfigureAwait(false);
             await SwitchToStandaloneModeAsync(context, ct).ConfigureAwait(false);
         }
@@ -104,7 +104,7 @@ namespace OpcPublisherAEE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
+                    context.OutputHelper.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
                         context.SshConfig.Host,
                         context.SshConfig.Username, ex.Message);
                     await Task.Delay(1000, ct).ConfigureAwait(false);
@@ -133,7 +133,7 @@ namespace OpcPublisherAEE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
+                    context.OutputHelper.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
                         context.SshConfig.Host,
                         context.SshConfig.Username, ex.Message);
                     await Task.Delay(1000).ConfigureAwait(false);
@@ -195,7 +195,7 @@ namespace OpcPublisherAEE2ETests
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
+                context.OutputHelper.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
                 throw;
@@ -233,7 +233,7 @@ namespace OpcPublisherAEE2ETests
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                context.OutputHelper.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
                 throw;
@@ -826,8 +826,8 @@ namespace OpcPublisherAEE2ETests
                 .SkipUntilDistinctCountReached(
                     writerGroupIdFunc,
                     context.PlcAciDynamicUrls.Count,
-                    () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
-                    () => context.OutputHelper?.WriteLine("Consuming messages...")
+                    () => context.OutputHelper.WriteLine("Waiting for first message for PLC"),
+                    () => context.OutputHelper.WriteLine("Consuming messages...")
                 )
                 .TakeWhile(predicate);
         }

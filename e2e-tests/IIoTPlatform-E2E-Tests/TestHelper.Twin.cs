@@ -469,8 +469,8 @@ namespace IIoTPlatformE2ETests
 
                 if (!response.IsSuccessful)
                 {
-                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("POST twin/v2/read failed!");
                 }
 
@@ -523,8 +523,8 @@ namespace IIoTPlatformE2ETests
 
                 if (!response.IsSuccessful)
                 {
-                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("POST twin/v2/read failed!");
                 }
             }

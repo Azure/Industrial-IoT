@@ -139,7 +139,7 @@ namespace IIoTPlatformE2ETests
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
             var opcPlcList = context.OpcPlcConfig.Urls;
-            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
+            context.OutputHelper.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
             var ipAddressList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
 
             foreach (var ipAddress in ipAddressList.Where(s => !string.IsNullOrWhiteSpace(s)))
@@ -177,7 +177,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception e)
                 {
-                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
+                    context.OutputHelper.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
                     continue;
                 }
             }
@@ -269,7 +269,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
+                    context.OutputHelper.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
                         context.SshConfig.Host,
                         context.SshConfig.Username, ex.Message);
                     await Task.Delay(1000, ct).ConfigureAwait(false);
@@ -291,8 +291,8 @@ namespace IIoTPlatformE2ETests
         {
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
 
-            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(JsonConvert.SerializeObject(entries));
+            context.OutputHelper.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper.WriteLine(JsonConvert.SerializeObject(entries));
 
             await PublishNodesAsync(json, context, ct).ConfigureAwait(false);
         }
@@ -318,7 +318,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
+                    context.OutputHelper.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
                         context.SshConfig.Host,
                         context.SshConfig.Username, ex.Message);
                     await Task.Delay(1000).ConfigureAwait(false);
@@ -406,7 +406,7 @@ namespace IIoTPlatformE2ETests
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
+                context.OutputHelper.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
                 throw;
@@ -444,7 +444,7 @@ namespace IIoTPlatformE2ETests
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                context.OutputHelper.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
                 throw;
@@ -553,7 +553,7 @@ namespace IIoTPlatformE2ETests
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.True(response.IsSuccessful, $"Response status code, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
-            context.OutputHelper?.WriteLine("Monitoring events started!");
+            context.OutputHelper.WriteLine("Monitoring events started!");
 
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
@@ -589,7 +589,7 @@ namespace IIoTPlatformE2ETests
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            context.OutputHelper?.WriteLine("Monitoring events stopped!");
+            context.OutputHelper.WriteLine("Monitoring events stopped!");
 
             var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
             Assert.NotNull(result);
@@ -642,7 +642,7 @@ namespace IIoTPlatformE2ETests
 
                     if (healthyServices == healthRoutes.Length)
                     {
-                        context.OutputHelper?.WriteLine("All API microservices of IIoT platform " +
+                        context.OutputHelper.WriteLine("All API microservices of IIoT platform " +
                             "are running and in healthy state.");
                         return;
                     }
@@ -653,7 +653,7 @@ namespace IIoTPlatformE2ETests
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
+                context.OutputHelper.WriteLine("Error: not all API microservices of IIoT " +
                     $"platform are in healthy state ({e.Message}).");
                 throw;
             }
