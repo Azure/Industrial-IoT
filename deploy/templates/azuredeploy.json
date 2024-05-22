@@ -458,7 +458,7 @@
         },
         {
             "comments": "Azure IoT Hub",
-            "apiVersion": "2019-03-22",
+            "apiVersion": "2023-06-30",
             "type": "Microsoft.Devices/Iothubs",
             "name": "[parameters('iotHubName')]",
             "location": "[resourceGroup().location]",
