@@ -462,6 +462,9 @@
             "type": "Microsoft.Devices/Iothubs",
             "name": "[parameters('iotHubName')]",
             "location": "[resourceGroup().location]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "tags": "[parameters('tags')]",
             "sku": {
                 "name": "[parameters('iotHubSku')]",
