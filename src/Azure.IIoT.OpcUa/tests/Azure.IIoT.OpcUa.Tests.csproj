@@ -8,13 +8,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Neovolve.Logging.Xunit" Version="5.0.1" />
+    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.0.0" />
     <PackageReference Include="xunit" Version="2.8.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.44" />
+	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.46" />
     <PackageReference Include="Microsoft.Json.Schema" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>
