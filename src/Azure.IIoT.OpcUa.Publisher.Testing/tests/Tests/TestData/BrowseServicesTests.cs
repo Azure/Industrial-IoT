@@ -2289,6 +2289,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results2.ContinuationToken);
             Assert.NotNull(results.References);
             Assert.Equal(5, results2.References.Count);
+
+            // Act
+            var results3 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+            {
+                ContinuationToken = results2.ContinuationToken
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(results3.ErrorInfo);
+            Assert.NotNull(results3.ContinuationToken);
+            Assert.NotNull(results3.References);
+            Assert.Equal(5, results3.References.Count);
+
+            // Act
+            var results4 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+            {
+                ContinuationToken = results3.ContinuationToken
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(results4.ErrorInfo);
+            Assert.NotNull(results4.ContinuationToken);
+            Assert.NotNull(results4.References);
+            Assert.Equal(5, results4.References.Count);
         }
 
         public async Task NodeBrowseContinuationTest2Async(CancellationToken ct = default)
