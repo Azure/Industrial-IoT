@@ -162,6 +162,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         }
 
         [Fact]
+        public Task NodeBrowseContinuationTest4Async()
+        {
+            return GetTests().NodeBrowseContinuationTest4Async();
+        }
+
+        [Fact]
         public Task NodeBrowseDiagnosticsNoneTestAsync()
         {
             return GetTests().NodeBrowseDiagnosticsNoneTestAsync();
