@@ -113,13 +113,13 @@ namespace IIoTPlatformE2ETests
                 {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
+                    throw new Xunit.Sdk.XunitException($"GET twin/v2/browse/{endpointId} of node {nodeId} failed (continuation: {continuationToken}!");
                 }
 
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
 
-                Assert.True(HasProperty(json, "references"), "GET twin/v2/browse/{endpointId} response has no items");
-                Assert.False(json.references == null, "GET twin/v2/browse/{endpointId} response references property is null");
+                Assert.True(HasProperty(json, "references"), $"GET twin/v2/browse/{endpointId} of node {nodeId} response has no items");
+                Assert.False(json.references == null, $"GET twin/v2/browse/{endpointId} of node {nodeId} response references property is null");
 
                 var result = new List<(string NodeId, string NodeClass, bool Children)>();
 
