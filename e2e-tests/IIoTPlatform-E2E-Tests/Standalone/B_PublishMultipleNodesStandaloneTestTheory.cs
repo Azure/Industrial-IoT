@@ -48,10 +48,7 @@ namespace IIoTPlatformE2ETests.Standalone
             await _context.RegistryHelper.DeployStandalonePublisherAsync(messagingMode, cts.Token);
 
             var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token);
-            await TestHelper.PublishNodesAsync(_context, new[] { nodesToPublish });
-
-            // Wait some time till the updated pn.json is reflected.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
+            await TestHelper.PublishNodesAsync(_context, new[] { nodesToPublish }, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
@@ -91,13 +88,7 @@ namespace IIoTPlatformE2ETests.Standalone
             }
 
             // Stop publishing nodes.
-            await TestHelper.PublishNodesAsync(
-                _context,
-                Array.Empty<PublishedNodesEntryModel>()
-            );
-
-            // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await TestHelper.PublishNodesAsync(_context, Array.Empty<PublishedNodesEntryModel>(), cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)

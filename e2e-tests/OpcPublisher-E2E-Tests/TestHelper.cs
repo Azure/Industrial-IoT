@@ -897,6 +897,27 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
+        /// Restart module
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="moduleName"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task RestartAsync(IIoTPlatformTestContext context, string moduleName,
+            CancellationToken ct)
+        {
+            using var client = TestHelper.DeviceServiceClient(context.IoTHubConfig.IoTHubConnectionString,
+                    TransportType.Amqp_WebSocket_Only);
+            var method = new CloudToDeviceMethod("Shutdown");
+            method.SetPayloadJson("false");
+            try
+            {
+                await client.InvokeDeviceMethodAsync(context.DeviceId, moduleName, method, ct);
+            }
+            catch { } // Expected, since device will have disconnected now
+        }
+
+        /// <summary>
         /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
         /// </summary>
         /// <param name="e">Exception to be printed</param>

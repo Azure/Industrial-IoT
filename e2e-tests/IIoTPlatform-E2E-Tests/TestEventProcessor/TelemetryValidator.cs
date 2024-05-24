@@ -19,6 +19,7 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices;
 
     public sealed class TelemetryValidator : IDisposable
     {
@@ -48,7 +49,7 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
             }
 
             _configuration = configuration;
-            _client = context.GetEventHubConsumerClient("$default");
+            _client = context.GetEventHubConsumerClient();
             _cancellationTokenSource = new CancellationTokenSource();
 
             // Initialize checkers.
@@ -91,10 +92,14 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
 
             async Task RunAsync(CancellationToken ct)
             {
-                await foreach (var evt in _client.ReadEventsAsync(ct))
+                try
                 {
-                    Client_ProcessEvent(evt);
+                    await foreach (var evt in _client.ReadEventsAsync(false, cancellationToken: ct))
+                    {
+                        Client_ProcessEvent(evt);
+                    }
                 }
+                catch (OperationCanceledException) { }
             }
         }
 
@@ -199,9 +204,9 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
         /// <summary>
         /// Analyze payload of IoTHub message, adding timestamp and related sequence numbers into temporary
         /// </summary>
-        /// <param name="arg"></param>
+        /// <param name="partitionEvent"></param>
         /// <returns>Task that run until token is canceled</returns>
-        private void Client_ProcessEvent(PartitionEvent arg)
+        private void Client_ProcessEvent(PartitionEvent partitionEvent)
         {
             var sw = Stopwatch.StartNew();
 
@@ -209,13 +214,14 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
 
             try
             {
-                if (arg.Data == null)
+                if (partitionEvent.Data == null)
                 {
                     _logger.LogWarning("Received partition event without content");
                     return;
                 }
 
-                if (arg.Data.EnqueuedTime.UtcDateTime < _startTime)
+                var enqueuedTime = (DateTime)partitionEvent.Data.SystemProperties[MessageSystemPropertyNames.EnqueuedTime];
+                if (enqueuedTime < _startTime)
                 {
                     _logger.LogDebug("Received message enqueued before starting....");
                     return;
@@ -227,11 +233,11 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
                     return;
                 }
 
-                var properties = arg.Data.Properties;
+                var properties = partitionEvent.Data.Properties;
                 var hasPubSubJsonHeader = properties.TryGetValue("$$ContentType", out var schema)
                     && schema.ToString() == MessageSchemaTypes.NetworkMessageJson;
 
-                var body = arg.Data.Body.ToArray();
+                var body = partitionEvent.Data.Body.ToArray();
                 var content = Encoding.UTF8.GetString(body);
                 var json = JToken.Parse(content);
 
@@ -322,7 +328,7 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
                                     FeedDataCheckers(
                                         property.Name,
                                         sourceTimeStamp.ToObject<DateTime>(),
-                                        arg.Data.EnqueuedTime.UtcDateTime,
+                                        partitionEvent.Data.EnqueuedTime.UtcDateTime,
                                         eventReceivedTimestamp,
                                         value);
                                     valueChangesCount++;
@@ -352,7 +358,7 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
                             FeedDataCheckers(
                                 (string)nodeId,
                                 sourceTimeStamp.ToObject<DateTime>(),
-                                arg.Data.EnqueuedTime.UtcDateTime,
+                                partitionEvent.Data.EnqueuedTime.UtcDateTime,
                                 eventReceivedTimestamp,
                                 value);
                             valueChangesCount++;
@@ -372,7 +378,7 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
                 }
 
                 _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
-                    valueChangesCount, arg.Partition.PartitionId);
+                    valueChangesCount, partitionEvent.Partition.PartitionId);
             }
             catch (OperationCanceledException) { }
             finally

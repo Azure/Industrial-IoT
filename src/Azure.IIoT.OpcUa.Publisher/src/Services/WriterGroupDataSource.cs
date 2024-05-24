@@ -289,9 +289,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
                     outer._writerGroup.Name, _routing != DataSetRoutingMode.None);
 
+                var name = _dataSetWriter.DataSetWriterName;
+                for (var index = 1; ; index++)
+                {
+                    if (!outer._subscriptions.Values
+                        .Any(e => e._dataSetWriter.DataSetWriterName == name))
+                    {
+                        break;
+                    }
+                    name = $"{_dataSetWriter.DataSetWriterName}{index}";
+                }
+                _dataSetWriter.DataSetWriterName = name;
                 _outer._logger.LogDebug(
-                    "Open new writer with subscription {Id} in writer group {WriterGroup}...", Id,
-                        _outer._writerGroup.Id);
+                    "Open new writer {Writer} with subscription {Id} in writer group {WriterGroup}...",
+                        _dataSetWriter.DataSetWriterName, Id, _outer._writerGroup.Id);
 
                 var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId
                     ?? Guid.Empty;

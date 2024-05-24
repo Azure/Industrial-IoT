@@ -26,7 +26,7 @@ namespace OpcPublisherAEE2ETests.Deploy
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context)
         {
             MessagingMode = messagingMode;
-            DeploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+            DeploymentName = kDeploymentName;
         }
 
         /// <inheritdoc />

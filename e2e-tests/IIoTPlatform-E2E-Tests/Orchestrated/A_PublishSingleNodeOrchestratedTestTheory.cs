@@ -207,14 +207,14 @@ namespace IIoTPlatformE2ETests.Orchestrated
 
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
-            var json = await validator.StopAsync();
-            Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
-            Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
-            Assert.Equal(0U, json.DroppedSequenceCount);
+            var result = await validator.StopAsync();
+            Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(result.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True(result.DuplicateValueCount == 0, "Duplicate values detected");
+            Assert.Equal(0U, result.DroppedSequenceCount);
             // Uncomment once bug generating duplicate sequence numbers is resolved.
             //Assert.Equal(0U, json.DuplicateSequenceCount);
-            Assert.Equal(0U, json.ResetSequenceCount);
+            Assert.Equal(0U, result.ResetSequenceCount);
         }
 
         [Fact, PriorityOrder(11)]

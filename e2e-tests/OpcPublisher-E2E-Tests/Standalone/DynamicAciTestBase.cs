@@ -87,10 +87,10 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(998)]
-        public async Task TestUndeployStandalonePublisher()
+        public async Task TestRestartStandalonePublisher()
         {
-            await _context.RegistryHelper.UndeployStandalonePublisherAsync(
-                OpcPublisherAEE2ETests.MessagingMode.PubSub, _timeoutToken);
+            await _context.RegistryHelper.RestartStandalonePublisherAsync(
+                OpcPublisherAEE2ETests.MessagingMode.PubSub, false, _timeoutToken);
         }
 
         [Fact, PriorityOrder(999)]

@@ -69,13 +69,7 @@ namespace IIoTPlatformE2ETests.Standalone
             }
 
             // Stop publishing nodes.
-            await TestHelper.PublishNodesAsync(
-                _context,
-                Array.Empty<PublishedNodesEntryModel>()
-            );
-
-            // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await TestHelper.PublishNodesAsync(_context, Array.Empty<PublishedNodesEntryModel>(), cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -92,13 +86,7 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Publish node with data change trigger status only
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.Status);
-            await TestHelper.PublishNodesAsync(
-                _context,
-                new[] { model }
-            );
-
-            // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await TestHelper.PublishNodesAsync(_context, new[] { model }, cts.Token );
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -113,23 +101,11 @@ namespace IIoTPlatformE2ETests.Standalone
                     $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
             }
             // Stop publishing nodes.
-            await TestHelper.PublishNodesAsync(
-                _context,
-                Array.Empty<PublishedNodesEntryModel>()
-            );
-
-            // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await TestHelper.PublishNodesAsync(_context, Array.Empty<PublishedNodesEntryModel>(), cts.Token);
 
             // Publish node with data change trigger status value timestamp
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.StatusValueTimestamp);
-            await TestHelper.PublishNodesAsync(
-                _context,
-                new[] { model }
-            );
-
-            // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+            await TestHelper.PublishNodesAsync(_context, new[] { model }, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).

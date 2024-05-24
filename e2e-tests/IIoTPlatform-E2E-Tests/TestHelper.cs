@@ -32,6 +32,7 @@ namespace IIoTPlatformE2ETests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using IIoTPlatformE2ETests.TestEventProcessor;
     using Newtonsoft.Json.Converters;
+    using static IIoTPlatformE2ETests.TestHelper;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -298,6 +299,7 @@ namespace IIoTPlatformE2ETests
             context.OutputHelper.WriteLine(JsonConvert.SerializeObject(entries));
 
             await PublishNodesAsync(json, context, ct).ConfigureAwait(false);
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
         }
 
         /// <summary>
@@ -768,6 +770,27 @@ namespace IIoTPlatformE2ETests
                 iotHubConnectionString,
                 transportType
             );
+        }
+
+        /// <summary>
+        /// Restart module
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="moduleName"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task RestartAsync(IIoTPlatformTestContext context, string moduleName,
+            CancellationToken ct)
+        {
+            using var client = TestHelper.DeviceServiceClient(context.IoTHubConfig.IoTHubConnectionString,
+                    TransportType.Amqp_WebSocket_Only);
+            var method = new CloudToDeviceMethod("Shutdown");
+            method.SetPayloadJson("false");
+            try
+            {
+                await client.InvokeDeviceMethodAsync(context.DeviceId, moduleName, method, ct);
+            }
+            catch { } // Expected, since device will have disconnected now
         }
 
         /// <summary>

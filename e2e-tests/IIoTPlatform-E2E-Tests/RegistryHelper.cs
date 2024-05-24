@@ -101,7 +101,7 @@ namespace IIoTPlatformE2ETests
             var sw = Stopwatch.StartNew();
             try
             {
-                while (true)
+                while (!ct.IsCancellationRequested)
                 {
                     var modules = (await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false)).ToList();
                     if (!modules.Any(m => moduleNames.Contains(m.Id)))
@@ -134,18 +134,25 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public async Task UndeployStandalonePublisherAsync(
-            MessagingMode messagingMode = MessagingMode.Samples,
+        public async Task RestartStandalonePublisherAsync(
+            MessagingMode messagingMode = MessagingMode.Samples, bool fullRedeploy = false,
             CancellationToken ct = default)
         {
-            // Delete layered edge deployment.
             var publisher = new IoTHubPublisherDeployment(_context, messagingMode);
-            await publisher.DeleteLayeredDeploymentAsync(ct);
-            await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
+            if (fullRedeploy)
+            {
+                // Delete layered edge deployment.
+                await publisher.DeleteLayeredDeploymentAsync(ct);
+                await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
 
-            await _context.RegistryHelper.WaitForIIoTModulesRemovedAsync(_context.DeviceConfig.DeviceId, ct,
-                new string[] { publisher.ModuleName });
-
+                await _context.RegistryHelper.WaitForIIoTModulesRemovedAsync(_context.DeviceConfig.DeviceId, ct,
+                   new string[] { publisher.ModuleName });
+            }
+            else
+            {
+                await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
+                await TestHelper.RestartAsync(_context, publisher.ModuleName, ct);
+            }
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
         }
 
@@ -159,15 +166,17 @@ namespace IIoTPlatformE2ETests
             MessagingMode messagingMode = MessagingMode.Samples,
             CancellationToken ct = default)
         {
-            await UndeployStandalonePublisherAsync(messagingMode, ct);
-
             // Create base edge deployment.
             var edgeBase = new IoTHubEdgeBaseDeployment(_context);
             var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(ct);
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
 
-            // Create layered edge deployment.
+            await RestartStandalonePublisherAsync(messagingMode, false, ct);
+            await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
+
+            // Create new layered edge deployment.
             var publisher = new IoTHubPublisherDeployment(_context, messagingMode);
             var layeredDeploymentResult = await publisher.CreateOrUpdateLayeredDeploymentAsync(ct);
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");

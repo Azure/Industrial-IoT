@@ -28,7 +28,7 @@ namespace IIoTPlatformE2ETests.Deploy
         protected override int Priority => 0;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+        protected override string DeploymentName => kDeploymentName;
 
         /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
