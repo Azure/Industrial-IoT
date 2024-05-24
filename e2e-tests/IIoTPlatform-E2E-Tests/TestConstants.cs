@@ -74,6 +74,11 @@ namespace IIoTPlatformE2ETests
         public const string MicrosoftContainerRegistry = "mcr.microsoft.com";
 
         /// <summary>
+        /// IoT Hub Event Hubs endpoint consumer group for tests
+        /// </summary>
+        public const string TestConsumerGroupName = "TestConsumer";
+
+        /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
         internal static class APIRoutes

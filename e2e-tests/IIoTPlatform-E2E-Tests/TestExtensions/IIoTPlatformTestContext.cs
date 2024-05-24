@@ -7,6 +7,8 @@ namespace IIoTPlatformE2ETests.TestExtensions
 {
     using Config;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+    using Neovolve.Logging.Xunit;
     using System;
     using Xunit.Abstractions;
 
@@ -14,9 +16,10 @@ namespace IIoTPlatformE2ETests.TestExtensions
     /// Context to pass data between test cases
     /// </summary>
     public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
-        IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig
+        IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, IContainerRegistryConfig
     {
         private ITestOutputHelper _outputHelper = new DummyOutput();
+        private ILoggerFactory _logFactory;
 
         /// <summary>
         /// Configuration
@@ -54,7 +57,15 @@ namespace IIoTPlatformE2ETests.TestExtensions
             {
                 LogEnvironment(value);
                 _outputHelper = value ?? new DummyOutput();
+
+                _logFactory?.Dispose();
+                _logFactory = value != null ? LogFactory.Create(_outputHelper) : null;
             }
+        }
+
+        public ILogger<T> CreateLogger<T>()
+        {
+            return _logFactory?.CreateLogger<T>();
         }
 
         private sealed class DummyOutput : ITestOutputHelper
@@ -99,11 +110,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public IOpcPlcConfig OpcPlcConfig { get { return this; } }
 
         /// <summary>
-        /// TestEventProcessor configuration
-        /// </summary>
-        public ITestEventProcessorConfig TestEventProcessorConfig { get { return this; } }
-
-        /// <summary>
         /// ContainerRegistry Configuration
         /// </summary>
         public IContainerRegistryConfig ContainerRegistryConfig { get { return this; } }
@@ -129,6 +135,8 @@ namespace IIoTPlatformE2ETests.TestExtensions
             if (disposing)
             {
                 RegistryHelper.Dispose();
+                _logFactory?.Dispose();
+                _logFactory = null;
             }
         }
 
@@ -208,15 +216,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public string Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new InvalidOperationException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        public string TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
-            () => throw new InvalidOperationException("Test Event Processor BaseUrl is not provided."));
-
-        public string TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
-            () => throw new InvalidOperationException("Test Event Processor Username is not provided."));
-
-        public string TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
-            () => throw new InvalidOperationException("Test Event Processor Password is not provided."));
-
         public string ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);
 
@@ -260,9 +259,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
             Log("PCS_IOTHUB_CONNSTRING");
             Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
             Log("STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING");
-            Log("TESTEVENTPROCESSOR_BASEURL");
-            Log("TESTEVENTPROCESSOR_USERNAME");
-            Log("TESTEVENTPROCESSOR_PASSWORD");
             void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
         }
         private bool _logged;

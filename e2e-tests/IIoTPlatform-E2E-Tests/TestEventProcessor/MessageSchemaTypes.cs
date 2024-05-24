@@ -5,13 +5,11 @@
 
 namespace TestEventProcessor.Businesslogic
 {
-
     /// <summary>
     /// Publisher related message schemas
     /// </summary>
     public static class MessageSchemaTypes
     {
-
         /// <summary>
         /// Samples message type json encoded
         /// </summary>

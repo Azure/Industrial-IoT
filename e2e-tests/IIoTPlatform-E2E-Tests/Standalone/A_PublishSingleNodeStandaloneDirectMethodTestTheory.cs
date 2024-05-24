@@ -15,6 +15,7 @@ namespace IIoTPlatformE2ETests.Standalone
     using Xunit.Abstractions;
     using Furly.Extensions.Serializers;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using TestEventProcessor.BusinessLogic;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -42,9 +43,6 @@ namespace IIoTPlatformE2ETests.Standalone
             _iotHubPublisherModuleName = ioTHubPublisherDeployment.ModuleName;
 
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
 
             // Clean publishednodes.json.
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
@@ -95,7 +93,7 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using var validator = TelemetryValidator.Start(_context, 0, 0, 0);
 
             var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
             var expectedModel = model with { OpcNodes = new List<OpcNodeModel>() };
@@ -194,7 +192,7 @@ namespace IIoTPlatformE2ETests.Standalone
             TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(expectedModel, diagInfo[0]);
 
             // Stop monitoring and get the result.
-            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            var publishingMonitoringResultJson = await validator.StopAsync();
             Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
                 $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
@@ -236,13 +234,13 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using var validator2 = TelemetryValidator.Start(_context, 0, 0, 0);
 
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
 
             // Stop monitoring and get the result.
-            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            var unpublishingMonitoringResultJson = await validator2.StopAsync();
             Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
                 $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
         }
@@ -254,9 +252,6 @@ namespace IIoTPlatformE2ETests.Standalone
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
 
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
 
             // Clean publishednodes.json.
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
@@ -286,7 +281,7 @@ namespace IIoTPlatformE2ETests.Standalone
             );
 
             // Start monitoring before restarting the module.
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using var validator = TelemetryValidator.Start(_context, 0, 0, 0);
 
             // Restart OPC Publisher.
             var moduleRestartResponse = await RestartModuleAsync(ioTHubPublisherDeployment.ModuleName, cts.Token)
@@ -297,7 +292,7 @@ namespace IIoTPlatformE2ETests.Standalone
             await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token);
 
             // Stop monitoring and check that restart announcement was received.
-            var monitoringResult = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            var monitoringResult = await validator.StopAsync();
 
             Assert.True(monitoringResult.RestartAnnouncementReceived);
         }

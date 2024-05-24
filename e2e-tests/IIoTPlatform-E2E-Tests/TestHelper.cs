@@ -5,10 +5,11 @@
 
 namespace IIoTPlatformE2ETests
 {
-    using IIoTPlatformE2ETests.TestEventProcessor;
-    using Microsoft.Azure.Devices;
+    using Azure.Messaging.EventHubs.Consumer;
+	using Microsoft.Azure.Devices;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Linq;
+    using IIoTPlatformE2ETests.Config;
     using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
@@ -29,6 +30,7 @@ namespace IIoTPlatformE2ETests
     using Xunit;
     using Xunit.Abstractions;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using TestEventProcessor.BusinessLogic;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -507,94 +509,29 @@ namespace IIoTPlatformE2ETests
         }
 
         /// <summary>
-        /// Starts monitoring the incoming messages of the IoT Hub and checks for missing values.
+        /// Deserializes the JSON structure contained by the specified <see cref="PartitionEvent"/>
+        /// into an instance of the specified type.
         /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="expectedValuesChangesPerTimestamp">The expected number of value changes per timestamp</param>
-        /// <param name="expectedIntervalOfValueChanges">The expected time difference between values changes in milliseconds</param>
-        /// <param name="expectedMaximalDuration">The time difference between OPC UA Server fires event until Changes Received in IoT Hub in milliseconds </param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
-        public static async Task StartMonitoringIncomingMessagesAsync(
-            IIoTPlatformTestContext context,
-            int expectedValuesChangesPerTimestamp,
-            int expectedIntervalOfValueChanges,
-            int expectedMaximalDuration,
-            CancellationToken ct = default
-        )
+        /// <param name="partitionEvent">The <see cref="PartitionEvent"/> containing the object.</param>
+        /// <typeparam name="T">The type of the object to deserialize.</typeparam>
+        /// <returns>The instance of <typeparamref name="T"/> being deserialized.</returns>
+        public static T DeserializeJson<T>(this PartitionEvent partitionEvent)
         {
-            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
-
-            using var client = new RestClient(runtimeUrl,
-                client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword));
-
-            var body = new
-            {
-                CommandType = CommandEnum.Start,
-                Configuration = new
-                {
-                    IoTHubEventHubEndpointConnectionString = context.IoTHubConfig.IoTHubEventHubConnectionString,
-                    StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
-                    ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
-                    ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
-                    ThresholdValue = expectedIntervalOfValueChanges > 0
-                        ? expectedIntervalOfValueChanges / 10
-                        : 100,
-                    ExpectedMaximalDuration = expectedMaximalDuration,
-                }
-            };
-
-            var request = new RestRequest("", Method.Put)
-            {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-            request.AddJsonBody(body);
-
-            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            Assert.True(response.IsSuccessful, $"Response status code, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
-            context.OutputHelper.WriteLine("Monitoring events started!");
-
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-            Assert.NotNull(json);
+            using var sr = new StreamReader(partitionEvent.Data.BodyAsStream);
+            using var reader = new JsonTextReader(sr);
+            return kSerializer.Deserialize<T>(reader);
         }
 
         /// <summary>
-        /// Stops the monitoring of incoming event to an IoT Hub and returns success/failure.
+        /// Get an Event Hub consumer
         /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
-        public static async Task<StopResult> StopMonitoringIncomingMessagesAsync(
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
-        )
+        /// <param name="config">Configuration for IoT Hub</param>
+        /// <param name="consumerGroup"></param>
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config, string consumerGroup = null)
         {
-            // TODO Merge with Start-Method to avoid code duplication
-            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
-
-            using var client = new RestClient(runtimeUrl,
-                client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword));
-
-            var body = new
-            {
-                CommandType = CommandEnum.Stop,
-            };
-
-            var request = new RestRequest("", Method.Put)
-            {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-            request.AddJsonBody(body);
-
-            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            context.OutputHelper.WriteLine("Monitoring events stopped!");
-
-            var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
-            Assert.NotNull(result);
-
-            return result;
+            return new EventHubConsumerClient(
+                consumerGroup ?? TestConstants.TestConsumerGroupName,
+                config.IoTHubEventHubConnectionString);
         }
 
         /// <summary>
@@ -933,5 +870,7 @@ namespace IIoTPlatformE2ETests
                 }
             }
         }
+
+        private static readonly JsonSerializer kSerializer = new();
     }
 }

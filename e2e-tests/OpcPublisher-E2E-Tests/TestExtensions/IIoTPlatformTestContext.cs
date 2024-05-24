@@ -11,6 +11,8 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     using Xunit.Abstractions;
     using Microsoft.Azure.Management.Fluent;
     using System.Collections.Generic;
+    using Microsoft.Extensions.Logging;
+    using Neovolve.Logging.Xunit;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -56,7 +58,15 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             {
                 LogEnvironment(value);
                 _outputHelper = value ?? new DummyOutput();
+
+                _logFactory?.Dispose();
+                _logFactory = value != null ? LogFactory.Create(_outputHelper) : null;
             }
+        }
+
+        public ILogger<T> CreateLogger<T>()
+        {
+            return _logFactory?.CreateLogger<T>();
         }
 
         private sealed class DummyOutput : ITestOutputHelper
@@ -151,6 +161,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             if (disposing)
             {
                 RegistryHelper.Dispose();
+                _logFactory?.Dispose();
             }
         }
 
@@ -263,11 +274,9 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             Log("PCS_IOTHUB_CONNSTRING");
             Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
             Log("STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING");
-            Log("TESTEVENTPROCESSOR_BASEURL");
-            Log("TESTEVENTPROCESSOR_USERNAME");
-            Log("TESTEVENTPROCESSOR_PASSWORD");
             void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
         }
         private bool _logged;
+        private ILoggerFactory _logFactory;
     }
 }

@@ -16,6 +16,7 @@ namespace IIoTPlatformE2ETests.Orchestrated
     using System.Threading;
     using System.Collections.Generic;
     using System.Globalization;
+    using TestEventProcessor.BusinessLogic;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -196,16 +197,13 @@ namespace IIoTPlatformE2ETests.Orchestrated
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token);
+            using var validator = TelemetryValidator.Start(_context, 50, 1000, 90_000_000);
 
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
-            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            var json = await validator.StopAsync();
             Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
             Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
@@ -296,15 +294,12 @@ namespace IIoTPlatformE2ETests.Orchestrated
             // Wait untill the publishing has stopped
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
 
-            // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using var validator = TelemetryValidator.Start(_context, 0, 0, 0);
 
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            var json = await validator.StopAsync();
             Assert.True(json.TotalValueChangesCount == 0, $"{json.TotalValueChangesCount} Messages received at IoT Hub");
         }
 

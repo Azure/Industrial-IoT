@@ -9,9 +9,9 @@ namespace TestEventProcessor.BusinessLogic
     using System.Collections.ObjectModel;
 
     /// <summary>
-    /// Represents the result of the Stop-Command of the TelemetryValidator.
+    /// Represents the result of the TelemetryValidator.
     /// </summary>
-    public class StopResult : IResult
+    public class ValidationResult
     {
         /// <summary>
         /// The total number of value changes

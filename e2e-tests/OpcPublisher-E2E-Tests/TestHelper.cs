@@ -560,10 +560,11 @@ namespace OpcPublisherAEE2ETests
         /// Get an Event Hub consumer
         /// </summary>
         /// <param name="config">Configuration for IoT Hub</param>
-        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config)
+        /// <param name="consumerGroup"></param>
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config, string consumerGroup = null)
         {
             return new EventHubConsumerClient(
-                TestConstants.TestConsumerGroupName,
+                consumerGroup ?? TestConstants.TestConsumerGroupName,
                 config.IoTHubEventHubConnectionString);
         }
 
@@ -882,14 +883,12 @@ namespace OpcPublisherAEE2ETests
             TransportType transportType = TransportType.Amqp_WebSocket_Only
         )
         {
-            ServiceClient iotHubClient;
-
             if (string.IsNullOrWhiteSpace(iotHubConnectionString))
             {
                 throw new ArgumentNullException(nameof(iotHubConnectionString));
             }
 
-            return iotHubClient = ServiceClient.CreateFromConnectionString(
+            return ServiceClient.CreateFromConnectionString(
                 iotHubConnectionString,
                 transportType
             );

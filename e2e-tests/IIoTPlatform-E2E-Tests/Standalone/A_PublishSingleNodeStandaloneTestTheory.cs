@@ -10,6 +10,7 @@ namespace IIoTPlatformE2ETests.Standalone
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestEventProcessor.BusinessLogic;
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
@@ -45,9 +46,6 @@ namespace IIoTPlatformE2ETests.Standalone
 
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            // Make sure that there is no active monitoring.
-            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-
             // Clean publishednodes.json.
             await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
 
@@ -61,17 +59,10 @@ namespace IIoTPlatformE2ETests.Standalone
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
-
-            await TestHelper.PublishNodesAsync(
-                _context,
-                new[] { model }
-            );
-
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // Wait some time till the updated pn.json is reflected.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds);
 
             // We will wait for module to be deployed.
             await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
@@ -85,24 +76,32 @@ namespace IIoTPlatformE2ETests.Standalone
                 new string[] { ioTHubPublisherDeployment.ModuleName }
             );
 
+            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
+
+            await TestHelper.PublishNodesAsync(
+                _context,
+                new[] { model }
+            );
+
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
+            {
+                // Wait some time to generate events to process.
+                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
-            // Wait some time to generate events to process.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-
-            // Stop monitoring and get the result.
-            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
-                $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-            Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
-            Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
-            // Uncomment once bug generating duplicate sequence numbers is resolved.
-            //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
-            Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
+                // Stop monitoring and get the result.
+                var publishingMonitoringResultJson = await validator.StopAsync();
+                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
+                    $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
+                Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+                Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
+                // Uncomment once bug generating duplicate sequence numbers is resolved.
+                //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
+                Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
+            }
 
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
@@ -115,15 +114,16 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
+            {
+                // Wait some time to generate events to process
+                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
-            // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-
-            // Stop monitoring and get the result.
-            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+                // Stop monitoring and get the result.
+                var unpublishingMonitoringResultJson = await validator.StopAsync();
+                Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+            }
 
             // Publish node with data change trigger status only
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.Status);
@@ -137,16 +137,16 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
+            {
+                // Wait some time to generate events to process
+                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
-            // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-
-            // Stop monitoring and get the result.
-            publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
-
+                // Stop monitoring and get the result.
+                var publishingMonitoringResultJson = await validator.StopAsync();
+                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
+            }
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(
                 _context,
@@ -168,15 +168,16 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
+            {
+                // Wait some time to generate events to process
+                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
-            // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-
-            // Stop monitoring and get the result.
-            publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
-            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0,
-                $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
+                // Stop monitoring and get the result.
+                var publishingMonitoringResultJson = await validator.StopAsync();
+                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0,
+                    $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
+            }
         }
     }
 }

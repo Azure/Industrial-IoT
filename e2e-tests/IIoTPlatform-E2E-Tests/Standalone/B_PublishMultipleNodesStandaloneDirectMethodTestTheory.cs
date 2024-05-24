@@ -14,6 +14,7 @@ namespace IIoTPlatformE2ETests.Standalone
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestEventProcessor.BusinessLogic;
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
@@ -34,8 +35,6 @@ namespace IIoTPlatformE2ETests.Standalone
         ) : base(output, context)
         {
             _cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token).Wait();
 
             // Clean publishednodes.json.
             TestHelper.CleanPublishedNodesJsonFilesAsync(_context).Wait();
@@ -151,147 +150,149 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, numberOfNodes, 0, 90_000_000, _cts.Token);
-
-            // Wait some time to generate events to process.
-            await Task.Delay(TestConstants.AwaitDataInMilliseconds, _cts.Token);
-
-            // Call GetConfiguredEndpoints direct method
-            responseGetConfiguredEndpoints = await CallMethodAsync(
-                new MethodParameterModel
-                {
-                    Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
-                },
-                _cts.Token
-            );
-
-            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
-            configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
-            Assert.Single(configuredEndpointsResponse.Endpoints);
-            TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request);
-
-            // Create request for GetConfiguredNodesOnEndpoint method call
-            var requestGetConfiguredNodesOnEndpoint = new PublishedNodesEntryModel
+            using (var validator = TelemetryValidator.Start(_context, numberOfNodes, 0, 90_000_000))
             {
-                EndpointUrl = request.EndpointUrl,
-                UseSecurity = request.UseSecurity
-            };
+                // Wait some time to generate events to process.
+                await Task.Delay(TestConstants.AwaitDataInMilliseconds, _cts.Token);
 
-            // Call GetConfiguredNodesOnEndpoint direct method
-            var responseGetConfiguredNodesOnEndpoint = await CallMethodAsync(
-                new MethodParameterModel
+                // Call GetConfiguredEndpoints direct method
+                responseGetConfiguredEndpoints = await CallMethodAsync(
+                    new MethodParameterModel
+                    {
+                        Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+                    },
+                    _cts.Token
+                );
+
+                Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredEndpoints.Status);
+                configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
+                Assert.Single(configuredEndpointsResponse.Endpoints);
+                TestHelper.Publisher.AssertEndpointModel(configuredEndpointsResponse.Endpoints[0], request);
+
+                // Create request for GetConfiguredNodesOnEndpoint method call
+                var requestGetConfiguredNodesOnEndpoint = new PublishedNodesEntryModel
                 {
-                    Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
-                    JsonPayload = _serializer.SerializeObjectToString(requestGetConfiguredNodesOnEndpoint)
-                },
-                _cts.Token
-            );
+                    EndpointUrl = request.EndpointUrl,
+                    UseSecurity = request.UseSecurity
+                };
 
-            Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
-            var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
-            Assert.Equal(numberOfNodes, jsonResponse.OpcNodes.Count);
+                // Call GetConfiguredNodesOnEndpoint direct method
+                var responseGetConfiguredNodesOnEndpoint = await CallMethodAsync(
+                    new MethodParameterModel
+                    {
+                        Name = TestConstants.DirectMethodNames.GetConfiguredNodesOnEndpoint,
+                        JsonPayload = _serializer.SerializeObjectToString(requestGetConfiguredNodesOnEndpoint)
+                    },
+                    _cts.Token
+                );
 
-            // Call GetDiagnosticInfo direct method
-            var responseGetDiagnosticInfo = await CallMethodAsync(
-                new MethodParameterModel
+                Assert.Equal((int)HttpStatusCode.OK, responseGetConfiguredNodesOnEndpoint.Status);
+                var jsonResponse = _serializer.Deserialize<GetConfiguredNodesOnEndpointResponseModel>(responseGetConfiguredNodesOnEndpoint.JsonPayload);
+                Assert.Equal(numberOfNodes, jsonResponse.OpcNodes.Count);
+
+                // Call GetDiagnosticInfo direct method
+                var responseGetDiagnosticInfo = await CallMethodAsync(
+                    new MethodParameterModel
+                    {
+                        Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
+                    },
+                    _cts.Token
+                );
+
+                Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+                var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+                Assert.Single(diagInfoList);
+
+                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request, diagInfoList[0]);
+
+                // Stop monitoring and get the result.
+                var publishingMonitoringResultJson = await validator.StopAsync();
+                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, request.OpcNodes.Count);
+                Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
+                    $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
+                Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+                Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
+                // Uncomment once bug generating duplicate sequence numbers is resolved.
+                //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
+                Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
+
+                // Check that every published node is sending data.
+                if (_context.ConsumedOpcUaNodes != null)
                 {
-                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
-                },
-                _cts.Token
-            );
+                    var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
+                    foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId)
+                    {
+                        var propertyName = property.Key;
+                        var nodeId = propertyName.Split('#').Last();
+                        var expected = expectedNodes.Find(n => n.EndsWith(nodeId, StringComparison.Ordinal));
+                        Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
+                        expectedNodes.Remove(expected);
+                    }
 
-            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Single(diagInfoList);
-
-            TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request, diagInfoList[0]);
-
-            // Stop monitoring and get the result.
-            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token);
-            Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, request.OpcNodes.Count);
-            Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
-                $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-            Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
-            Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
-            // Uncomment once bug generating duplicate sequence numbers is resolved.
-            //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
-            Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
-
-            // Check that every published node is sending data.
-            if (_context.ConsumedOpcUaNodes != null)
-            {
-                var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
-                foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId)
-                {
-                    var propertyName = property.Key;
-                    var nodeId = propertyName.Split('#').Last();
-                    var expected = expectedNodes.Find(n => n.EndsWith(nodeId, StringComparison.Ordinal));
-                    Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
-                    expectedNodes.Remove(expected);
+                    expectedNodes.ForEach(_context.OutputHelper.WriteLine);
+                    Assert.Empty(expectedNodes);
                 }
 
-                expectedNodes.ForEach(_context.OutputHelper.WriteLine);
-                Assert.Empty(expectedNodes);
-            }
-
-            // Unpublish all nodes for the endpoint
-            if (useAddOrUpdate)
-            {
-                // Call AddOrUpdateEndpoints direct method
-                request.OpcNodes = null;
-                response = await CallMethodAsync(
-                    new MethodParameterModel
-                    {
-                        Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
-                        JsonPayload = _serializer.SerializeToString(new List<PublishedNodesEntryModel> { request })
-                    },
-                    _cts.Token
-                );
-            }
-            else
-            {
-                // Call UnPublishNodes direct method
-                response = await CallMethodAsync(
-                    new MethodParameterModel
-                    {
-                        Name = TestConstants.DirectMethodNames.UnpublishNodes,
-                        JsonPayload = _serializer.SerializeToString(request)
-                    },
-                    _cts.Token
-                );
-            }
-
-            Assert.Equal((int)HttpStatusCode.OK, response.Status);
-
-            // Wait till the publishing has stopped.
-            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token);
-
-            // Call GetDiagnosticInfo direct method
-            responseGetDiagnosticInfo = await CallMethodAsync(
-                new MethodParameterModel
+                // Unpublish all nodes for the endpoint
+                if (useAddOrUpdate)
                 {
-                    Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
-                },
-                _cts.Token
-            );
+                    // Call AddOrUpdateEndpoints direct method
+                    request.OpcNodes = null;
+                    response = await CallMethodAsync(
+                        new MethodParameterModel
+                        {
+                            Name = TestConstants.DirectMethodNames.AddOrUpdateEndpoints,
+                            JsonPayload = _serializer.SerializeToString(new List<PublishedNodesEntryModel> { request })
+                        },
+                        _cts.Token
+                    );
+                }
+                else
+                {
+                    // Call UnPublishNodes direct method
+                    response = await CallMethodAsync(
+                        new MethodParameterModel
+                        {
+                            Name = TestConstants.DirectMethodNames.UnpublishNodes,
+                            JsonPayload = _serializer.SerializeToString(request)
+                        },
+                        _cts.Token
+                    );
+                }
 
-            Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
-            diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-            Assert.Empty(diagInfoList);
+                Assert.Equal((int)HttpStatusCode.OK, response.Status);
+
+                // Wait till the publishing has stopped.
+                await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token);
+
+                // Call GetDiagnosticInfo direct method
+                responseGetDiagnosticInfo = await CallMethodAsync(
+                    new MethodParameterModel
+                    {
+                        Name = TestConstants.DirectMethodNames.GetDiagnosticInfo
+                    },
+                    _cts.Token
+                );
+
+                Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
+                diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
+                Assert.Empty(diagInfoList);
+            }
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, _cts.Token);
+            using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
+            {
+                // Wait some time to generate events to process.
+                await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token);
 
-            // Wait some time to generate events to process.
-            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, _cts.Token);
-
-            // Stop monitoring and get the result.
-            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, _cts.Token);
-            Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
-                $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+                // Stop monitoring and get the result.
+                var unpublishingMonitoringResultJson = await validator.StopAsync();
+                Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+            }
         }
     }
 }

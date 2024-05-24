@@ -5,25 +5,11 @@
 
 namespace TestEventProcessor.BusinessLogic
 {
-    using TestEventProcessor.Businesslogic;
-
     /// <summary>
     /// Model class to encapsule the configuration required to monitor and validate IoT Hub events.
     /// </summary>
-    public class ValidatorConfiguration : IEventProcessorConfig
+    public class ValidatorConfiguration
     {
-        /// <inheritdoc/>
-        public string IoTHubEventHubEndpointConnectionString { get; set; }
-
-        /// <inheritdoc/>
-        public string StorageConnectionString { get; set; }
-
-        /// <inheritdoc/>
-        public string BlobContainerName { get; set; } = "checkpoint";
-
-        /// <inheritdoc/>
-        public string EventHubConsumerGroup { get; set; } = "$Default";
-
         /// <summary>
         /// Gets or sets the expected number of value changes per timestamp
         /// </summary>
@@ -43,6 +29,6 @@ namespace TestEventProcessor.BusinessLogic
         /// Gets or sets the value that will be used to define range within timings expected as equal (in milliseconds)
         /// Current Value need to be within range of Expected Value +/- threshold
         /// </summary>
-        public int ThresholdValue { get; set; } = 100;
+        public uint ThresholdValue { get; set; } = 100;
     }
 }
