@@ -47,7 +47,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring,PCS-SUBSCRIPTION-ID'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring,PCS-SUBSCRIPTION-ID'
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
   condition: notIn( '${{ parameters.ModeValue }}', 'standalone', 'AE')
@@ -133,9 +133,6 @@ steps:
     PCS_IOTHUB_CONNSTRING: '$(pcs-iothub-connstring)'
     IOTHUB_EVENTHUB_CONNECTIONSTRING: '$(iothub-eventhub-connectionstring)'
     STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING: '$(storageaccount-iothubcheckpoint-connectionstring)'
-    TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
-    TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
-    TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
 - task: PublishTestResults@2
   displayName: 'Publish test results'
   condition: always()
