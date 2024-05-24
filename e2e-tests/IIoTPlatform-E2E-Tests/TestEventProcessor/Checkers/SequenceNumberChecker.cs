@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
     using Microsoft.Extensions.Logging;
     using System;
@@ -39,6 +39,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         /// </summary>
         /// <param name="dataSetWriterId"> DataSetWriterId associated with sequence number. </param>
         /// <param name="sequenceNumber"> Value of sequence number. </param>
+        /// <exception cref="ArgumentNullException"></exception>
         public void ProcessEvent(string dataSetWriterId, uint? sequenceNumber)
         {
             var curValue = sequenceNumber ?? throw new ArgumentNullException(nameof(sequenceNumber));
@@ -103,14 +104,12 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                var result = new SequenceNumberCheckerResult()
+                return new SequenceNumberCheckerResult()
                 {
                     DroppedValueCount = (uint)_droppedValues.Sum(kvp => kvp.Value),
                     DuplicateValueCount = (uint)_duplicateValues.Sum(kvp => kvp.Value),
-                    ResetsValueCount = (uint)_resetValues.Sum(kvp => kvp.Value),
+                    ResetsValueCount = (uint)_resetValues.Sum(kvp => kvp.Value)
                 };
-
-                return result;
             }
             finally
             {

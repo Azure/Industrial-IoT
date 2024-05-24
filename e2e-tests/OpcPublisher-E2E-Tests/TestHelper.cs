@@ -459,7 +459,8 @@ namespace OpcPublisherAEE2ETests
                 return context.AzureContext;
             }
 
-            context.OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
+            context.
+            OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
             var token = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -478,7 +479,8 @@ namespace OpcPublisherAEE2ETests
                         new[] { "https://management.azure.com//.default" },
                         tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
 
-                    context.OutputHelper.WriteLine("Obtained Access Token from Tenant using default credentials.");
+                    context.
+                    OutputHelper.WriteLine("Obtained Access Token from Tenant using default credentials.");
                     token = accessToken.Token;
                 }
                 catch (Exception ex)

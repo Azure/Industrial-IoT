@@ -5,6 +5,8 @@
 
 namespace IIoTPlatformE2ETests
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using IIoTPlatformE2ETests.Deploy;
     using IIoTPlatformE2ETests.TestExtensions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
@@ -15,6 +17,7 @@ namespace IIoTPlatformE2ETests
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Xunit;
 
     /// <summary>
     /// Helper for managing IoT Hub device registry.
@@ -76,9 +79,115 @@ namespace IIoTPlatformE2ETests
             }
             catch (Exception e)
             {
-                _context.OutputHelper.WriteLine($"Error {e.Message} occurred while waiting for edge Modules after {sw.Elapsed}");
+                _context.OutputHelper.WriteLine($"Error {e.Message} occurred while waiting for edge Modules to be loaded after {sw.Elapsed}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Wait until IIoT modules do not exist anymore on edge device
+        /// </summary>
+        /// <param name="deviceId"> IoT Edge device id </param>
+        /// <param name="ct"> Cancellation token </param>
+        /// <param name="moduleNames"> List of modules to wait for, defaults to ModuleNamesDefault if not specified </param>
+        /// <returns></returns>
+        public async Task WaitForIIoTModulesRemovedAsync(
+            string deviceId,
+            CancellationToken ct,
+            IReadOnlyList<string> moduleNames = null
+        )
+        {
+            moduleNames ??= ModuleNamesDefault;
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                while (true)
+                {
+                    var modules = (await RegistryManager.GetModulesOnDeviceAsync(deviceId, ct).ConfigureAwait(false)).ToList();
+                    if (!modules.Any(m => moduleNames.Contains(m.Id)))
+                    {
+                        _context.OutputHelper.WriteLine($"All IoT Edge modules were removed (took {sw.Elapsed})");
+                        return;
+                    }
+
+                    var m = modules
+                        .Select(m => $"{m.Id}({m.ConnectionState})")
+                        .Aggregate((a, b) => a + ", " + b);
+                    _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules to undeploy: {m} on {deviceId}");
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules to be removed timeout timeout after {sw.Elapsed} - please check iot edge device for details");
+                throw;
+            }
+            catch (Exception e)
+            {
+                _context.OutputHelper.WriteLine($"Error {e.Message} occurred while waiting for edge Modules to be removed after {sw.Elapsed}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Undeploy publisher
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task UndeployStandalonePublisherAsync(
+            MessagingMode messagingMode = MessagingMode.Samples,
+            CancellationToken ct = default)
+        {
+            // Delete layered edge deployment.
+            var publisher = new IoTHubPublisherDeployment(_context, messagingMode);
+            await publisher.DeleteLayeredDeploymentAsync(ct);
+            await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
+
+            await _context.RegistryHelper.WaitForIIoTModulesRemovedAsync(_context.DeviceConfig.DeviceId, ct,
+                new string[] { publisher.ModuleName });
+
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
+        }
+
+        /// <summary>
+        /// Create publisher deployment
+        /// </summary>
+        /// <param name="messagingMode"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<string> DeployStandalonePublisherAsync(
+            MessagingMode messagingMode = MessagingMode.Samples,
+            CancellationToken ct = default)
+        {
+            await UndeployStandalonePublisherAsync(messagingMode, ct);
+
+            // Create base edge deployment.
+            var edgeBase = new IoTHubEdgeBaseDeployment(_context);
+            var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(ct);
+            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
+            _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
+
+            // Create layered edge deployment.
+            var publisher = new IoTHubPublisherDeployment(_context, messagingMode);
+            var layeredDeploymentResult = await publisher.CreateOrUpdateLayeredDeploymentAsync(ct);
+            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
+            _context.OutputHelper.WriteLine("Created/Updated layered deployment for publisher module.");
+
+            // We will wait for module to be deployed.
+            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(publisher.GetDeploymentConfiguration(), ct);
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, ct,
+                new string[] { publisher.ModuleName });
+
+            // We've observed situations when even after the above waits the module did not yet restart.
+            // That leads to situations where the publishing of nodes happens just before the restart to apply
+            // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
+            // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
+            // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
+            // await Task.Delay(TestConstants.AwaitInitInMilliseconds, ct);
+
+            _context.OutputHelper.WriteLine("OPC Publisher module is up and running.");
+
+            return publisher.ModuleName;
         }
 
         /// <summary>
@@ -86,13 +195,10 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="deploymentConfiguration"></param>
         /// <param name="ct"></param>
-#pragma warning disable CA1822 // Mark members as static
         public async Task WaitForSuccessfulDeploymentAsync(
-#pragma warning restore CA1822 // Mark members as static
             Configuration deploymentConfiguration,
             CancellationToken ct)
         {
-#if MONITOR_DEPLOYMENT
             var sw = Stopwatch.StartNew();
             Configuration lastConfiguration = null;
             try
@@ -107,8 +213,11 @@ namespace IIoTPlatformE2ETests
                     {
                         lastConfiguration = activeConfiguration;
                         if (Equals(activeConfiguration, deploymentConfiguration)
+#if SYSTEM_METRICS_BUG
                             && activeConfiguration.SystemMetrics.Results.TryGetValue("reportedSuccessfulCount", out var value)
-                                                    && value >= 1)
+                            && value >= 1
+#endif
+                                                    )
                         {
                             _context.OutputHelper.WriteLine($"All required IoT Edge modules are deployed! (took {sw.Elapsed})");
                             return;
@@ -133,10 +242,32 @@ namespace IIoTPlatformE2ETests
                 _context.OutputHelper.WriteLine($"Waiting for IoT Edge module got configuration: {JsonSerializer.Serialize(lastConfiguration, kIndented)}...");
             }
         }
-        private static readonly JsonSerializerOptions kIndented = new () { WriteIndented = true };
-#else
-            await Task.Delay(TestConstants.DefaultDelayMilliseconds * 6, ct).ConfigureAwait(false);
-#endif
+        private static readonly JsonSerializerOptions kIndented = new() { WriteIndented = true };
+
+        /// <summary>
+        /// Delete deployment configuration
+        /// </summary>
+        /// <param name="configurationId"></param>
+        /// <param name="ct"> Cancellation token </param>
+        public async Task DeleteConfigurationAsync(string configurationId, CancellationToken ct = default)
+        {
+            while (true)
+            {
+                var getConfig = await RegistryManager.GetConfigurationAsync(configurationId, ct).ConfigureAwait(false);
+                if (getConfig == null)
+                {
+                    return;
+                }
+                // First try create configuration
+                try
+                {
+                    await RegistryManager.RemoveConfigurationAsync(configurationId, ct).ConfigureAwait(false);
+                    _context.OutputHelper.WriteLine($"Deleted configuration {configurationId}");
+                }
+                catch
+                {
+                }
+            }
         }
 
         /// <summary>
@@ -176,7 +307,8 @@ namespace IIoTPlatformE2ETests
                     return getConfig;
                 }
 
-                _context.OutputHelper.WriteLine("Existing IoT Hub device configuration is different, remove and recreate it");
+                _context.
+                OutputHelper.WriteLine("Existing IoT Hub device configuration is different, remove and recreate it");
                 await RegistryManager.RemoveConfigurationAsync(configuration.Id, ct).ConfigureAwait(false);
                 return await RegistryManager.AddConfigurationAsync(configuration, ct).ConfigureAwait(false);
             }

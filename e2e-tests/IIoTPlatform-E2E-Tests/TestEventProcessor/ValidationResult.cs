@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic
+namespace IIoTPlatformE2ETests.TestEventProcessor
 {
     using System;
     using System.Collections.ObjectModel;

@@ -16,7 +16,7 @@ namespace IIoTPlatformE2ETests.Orchestrated
     using System.Threading;
     using System.Collections.Generic;
     using System.Globalization;
-    using TestEventProcessor.BusinessLogic;
+    using IIoTPlatformE2ETests.TestEventProcessor;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -26,14 +26,12 @@ namespace IIoTPlatformE2ETests.Orchestrated
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
     public sealed class APublishSingleNodeOrchestratedTestTheory
     {
-        private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
 
         public APublishSingleNodeOrchestratedTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output)
         {
-            _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = _output;
+            _context.SetOutputHelper(output);
         }
 
         [Fact, PriorityOrder(0)]

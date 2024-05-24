@@ -16,23 +16,5 @@ namespace IIoTPlatformE2ETests.Discovery
         public DiscoveryTestContext()
         {
         }
-
-        /// <summary>
-        /// Disposes resources.
-        /// Used for cleanup executed once after all tests of the collection were executed.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
-        {
-            if (!disposing)
-            {
-                return;
-            }
-
-            // OutputHelper cannot be used outside of test calls, we get rid of it before a helper method would use it
-            OutputHelper = null;
-
-            base.Dispose(true);
-        }
     }
 }

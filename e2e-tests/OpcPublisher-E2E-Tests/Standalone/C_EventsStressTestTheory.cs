@@ -78,7 +78,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 .ToArray()[1..^1];
 
             const int expectedEventsPerSecond = instances * eventInstances * 1000 / eventIntervalPerInstanceMs;
-            _output.WriteLine($"Event rates per second, by second: {string.Join(',', eventRatesBySecond)} e/s (expected {expectedEventsPerSecond} e/s)");
+            _context.OutputHelper.WriteLine($"Event rates per second, by second: {string.Join(',', eventRatesBySecond)} e/s (expected {expectedEventsPerSecond} e/s)");
 
             // Assert latency
             var end2EndLatency = eventData

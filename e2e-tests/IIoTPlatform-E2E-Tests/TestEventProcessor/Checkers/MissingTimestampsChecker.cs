@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
@@ -19,7 +19,6 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// </summary>
     sealed class MissingTimestampsChecker : IDisposable
     {
-
         /// <summary>
         /// Format to be used for Timestamps
         /// </summary>
@@ -29,7 +28,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         private readonly TimeSpan _threshold;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
-        private readonly IDictionary<string, List<DateTime>> _sourceTimestamps;
+        private readonly Dictionary<string, List<DateTime>> _sourceTimestamps;
         private readonly DateTimeFormatInfo _dateTimeFormatInfo;
         private bool _isStopped;
         private int _missingTimestampsCounter;
@@ -113,6 +112,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         /// <param name="checkDelay"> Delay between check runs. </param>
         /// <param name="token"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public Task StartAsync(
             TimeSpan checkDelay,
             CancellationToken token = default
@@ -129,7 +129,6 @@ namespace TestEventProcessor.BusinessLogic.Checkers
                 {
                     while (!token.IsCancellationRequested)
                     {
-
                         CheckForMissingTimestamps();
                         Task.Delay(checkDelay, token).Wait(token);
                     }

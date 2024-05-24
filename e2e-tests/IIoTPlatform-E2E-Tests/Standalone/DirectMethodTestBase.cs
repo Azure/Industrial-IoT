@@ -20,7 +20,6 @@ namespace IIoTPlatformE2ETests.Standalone
     /// </summary>
     public class DirectMethodTestBase : IDisposable
     {
-        protected readonly ITestOutputHelper _output;
         protected readonly IIoTMultipleNodesTestContext _context;
         protected readonly ServiceClient _iotHubClient;
         protected readonly IJsonSerializer _serializer;
@@ -37,9 +36,8 @@ namespace IIoTPlatformE2ETests.Standalone
             IIoTMultipleNodesTestContext context
         )
         {
-            _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = _output;
+            _context.SetOutputHelper(output);
             _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
             _serializer = new NewtonsoftJsonSerializer();
 

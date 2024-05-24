@@ -29,7 +29,6 @@ namespace OpcPublisherAEE2ETests.Standalone
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public abstract class DynamicAciTestBase : IDisposable
     {
-        protected readonly ITestOutputHelper _output;
         protected readonly IIoTStandaloneTestContext _context;
         protected readonly CancellationToken _timeoutToken;
         protected readonly EventHubConsumerClient _consumer;
@@ -42,9 +41,8 @@ namespace OpcPublisherAEE2ETests.Standalone
 
         protected DynamicAciTestBase(IIoTStandaloneTestContext context, ITestOutputHelper output)
         {
-            _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = _output;
+            _context.SetOutputHelper(output);
             _timeoutTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             _timeoutToken = _timeoutTokenSource.Token;
             _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
@@ -82,48 +80,17 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(1)]
-        public Task TestSwitchToStandaloneMode()
+        public async Task TestDeployStandalonePublisher()
         {
-            return TestHelper.SwitchToStandaloneModeAsync(_context, _timeoutToken);
-        }
-
-        [Fact, PriorityOrder(2)]
-        public async Task TestCreateEdgeBaseDeploymentExpectSuccess()
-        {
-            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
-            _output.WriteLine("Created/Updated new EdgeBase deployment");
-            Assert.True(result);
-        }
-
-        [Fact, PriorityOrder(3)]
-        public async Task TestCreatePublisherLayeredDeploymentExpectSuccess()
-        {
-            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(_timeoutToken);
-            Assert.True(result, "Failed to create/update layered deployment for publisher module.");
-            _output.WriteLine("Created/Updated layered deployment for publisher module");
-        }
-
-        [Fact, PriorityOrder(4)]
-        public async Task TestWaitForModuleDeployed()
-        {
-            // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
-                _context.IoTHubPublisherDeployment.GetDeploymentConfiguration(), _timeoutToken);
-            _output.WriteLine("Publisher module deployed.");
-        }
-
-        [Fact, PriorityOrder(5)]
-        public async Task TestWaitForModuleConnected()
-        {
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId,
-                _timeoutToken, new[] { _context.IoTHubPublisherDeployment.ModuleName });
-            _output.WriteLine("Publisher module connected.");
+            await _context.RegistryHelper.DeployStandalonePublisherAsync(
+                OpcPublisherAEE2ETests.MessagingMode.PubSub, _timeoutToken);
         }
 
         [Fact, PriorityOrder(998)]
-        public async Task TestStopPublishingAllNodesExpectSuccess()
+        public async Task TestUndeployStandalonePublisher()
         {
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync("[]", _context, _timeoutToken);
+            await _context.RegistryHelper.UndeployStandalonePublisherAsync(
+                OpcPublisherAEE2ETests.MessagingMode.PubSub, _timeoutToken);
         }
 
         [Fact, PriorityOrder(999)]

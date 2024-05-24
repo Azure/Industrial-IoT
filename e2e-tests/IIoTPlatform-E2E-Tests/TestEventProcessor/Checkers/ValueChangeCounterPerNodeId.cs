@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
     using Newtonsoft.Json.Linq;
     using System;
@@ -16,14 +16,12 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// </summary>
     sealed class ValueChangeCounterPerNodeId : IDisposable
     {
-
-        private readonly IDictionary<string, int> _valueChangesPerNodeId;
+        private readonly Dictionary<string, int> _valueChangesPerNodeId;
         private readonly SemaphoreSlim _lock;
 
         /// <summary>
         /// Constructor for counter class.
         /// </summary>
-        /// <param name="logger"></param>
         public ValueChangeCounterPerNodeId()
         {
             _valueChangesPerNodeId = new Dictionary<string, int>();
@@ -69,9 +67,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                var copy = _valueChangesPerNodeId
+                return _valueChangesPerNodeId
                     .ToDictionary(entry => entry.Key, entry => entry.Value);
-                return copy;
             }
             finally
             {

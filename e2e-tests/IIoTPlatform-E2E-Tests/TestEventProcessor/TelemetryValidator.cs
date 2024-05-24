@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic
+namespace IIoTPlatformE2ETests.TestEventProcessor
 {
-    using Azure.Messaging.EventHubs.Consumer;
+    using IIoTPlatformE2ETests.TestEventProcessor.Checkers;
     using IIoTPlatformE2ETests;
     using IIoTPlatformE2ETests.TestExtensions;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
+    using Azure.Messaging.EventHubs.Consumer;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -18,8 +19,6 @@ namespace TestEventProcessor.BusinessLogic
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using TestEventProcessor.Businesslogic;
-    using TestEventProcessor.BusinessLogic.Checkers;
 
     public sealed class TelemetryValidator : IDisposable
     {
@@ -127,7 +126,7 @@ namespace TestEventProcessor.BusinessLogic
         /// Stop the monitoring and disposes all related resources..
         /// </summary>
         /// <returns></returns>
-        public async Task<StopResult> StopAsync()
+        public async Task<ValidationResult> StopAsync()
         {
             var endTime = DateTime.UtcNow;
 
@@ -155,7 +154,7 @@ namespace TestEventProcessor.BusinessLogic
             var incrCheckerResult = _incrementalIntValueChecker.Stop();
             var incrSequenceResult = _incrementalSequenceChecker.Stop();
 
-            return new StopResult
+            return new ValidationResult
             {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,

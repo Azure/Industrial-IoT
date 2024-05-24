@@ -3,15 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
-
     /// <summary>
     /// Result of IncrementalIntValueChecker monitoring.
     /// </summary>
     sealed class SequenceNumberCheckerResult
     {
-
         /// <summary>
         /// Indicates number of dropped messages that were observed. It is calculated by detecting
         /// gaps in the value changes.

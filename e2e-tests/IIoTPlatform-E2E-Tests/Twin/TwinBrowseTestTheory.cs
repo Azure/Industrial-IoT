@@ -23,7 +23,7 @@ namespace IIoTPlatformE2ETests.Twin
         public TwinBrowseTestTheory(TwinTestContext context, ITestOutputHelper output)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
+            _context.SetOutputHelper(output);
         }
 
         [Fact, PriorityOrder(0)]

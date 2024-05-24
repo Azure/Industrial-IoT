@@ -51,17 +51,20 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper OutputHelper
-        {
-            get => _outputHelper;
-            set
-            {
-                LogEnvironment(value);
-                _outputHelper = value ?? new DummyOutput();
+        public ITestOutputHelper OutputHelper => _outputHelper;
 
-                _logFactory?.Dispose();
-                _logFactory = value != null ? LogFactory.Create(_outputHelper) : null;
-            }
+        /// <summary>
+        /// Helper to write output, need to be set from constructor of test class
+        /// </summary>
+        /// <param name="output"></param>
+        public void SetOutputHelper(ITestOutputHelper output)
+        {
+            ArgumentNullException.ThrowIfNull(output);
+            LogEnvironment(output);
+            _outputHelper = output;
+
+            _logFactory?.Dispose();
+            _logFactory = LogFactory.Create(_outputHelper);
         }
 
         public ILogger<T> CreateLogger<T>()

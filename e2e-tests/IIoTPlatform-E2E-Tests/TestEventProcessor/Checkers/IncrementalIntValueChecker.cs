@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
@@ -17,8 +17,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// </summary>
     sealed class IncrementalIntValueChecker : IDisposable
     {
-        private readonly IDictionary<string, int> _latestValuePerNodeId;
-        private readonly IDictionary<string, DateTime> _latestDateTimePerNodeId;
+        private readonly Dictionary<string, int> _latestValuePerNodeId;
+        private readonly Dictionary<string, DateTime> _latestDateTimePerNodeId;
         private uint _duplicateValues;
         private uint _droppedValues;
         private readonly SemaphoreSlim _lock;
@@ -43,6 +43,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         /// Method that should be called for processing of events.
         /// </summary>
         /// <param name="nodeId"></param>
+        /// <param name="sourceTimestamp"></param>
         /// <param name="value"></param>
         public void ProcessEvent(
             string nodeId,
@@ -116,13 +117,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             _lock.Wait();
             try
             {
-                var result = new IncrementalIntValueCheckerResult()
+                return new IncrementalIntValueCheckerResult()
                 {
                     DroppedValueCount = _droppedValues,
-                    DuplicateValueCount = _duplicateValues,
+                    DuplicateValueCount = _duplicateValues
                 };
-
-                return result;
             }
             finally
             {
@@ -132,7 +131,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
 
         public void Dispose()
         {
-            ((IDisposable)_lock).Dispose();
+            _lock.Dispose();
         }
     }
 }

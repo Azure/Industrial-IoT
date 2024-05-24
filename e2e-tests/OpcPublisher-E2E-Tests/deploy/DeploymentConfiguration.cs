@@ -25,11 +25,19 @@ namespace OpcPublisherAEE2ETests.Deploy
             var deploymentConfiguration = GetDeploymentConfiguration();
 
             var configuration = await _context.RegistryHelper
-                .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token)
-                .ConfigureAwait(false);
+                .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token).ConfigureAwait(false);
 
             _context.OutputHelper.WriteLine($"Created deployment {configuration.Id}.");
             return configuration != null;
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteLayeredDeploymentAsync(CancellationToken token)
+        {
+            var deploymentConfiguration = GetDeploymentConfiguration();
+
+            await _context.RegistryHelper
+                .DeleteConfigurationAsync(deploymentConfiguration.Id, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

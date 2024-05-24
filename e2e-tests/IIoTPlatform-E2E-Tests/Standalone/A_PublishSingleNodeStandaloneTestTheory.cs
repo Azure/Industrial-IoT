@@ -10,7 +10,7 @@ namespace IIoTPlatformE2ETests.Standalone
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using TestEventProcessor.BusinessLogic;
+    using IIoTPlatformE2ETests.TestEventProcessor;
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
@@ -23,7 +23,6 @@ namespace IIoTPlatformE2ETests.Standalone
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public class APublishSingleNodeStandaloneTestTheory
     {
-        private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
 
         public APublishSingleNodeStandaloneTestTheory(
@@ -31,9 +30,8 @@ namespace IIoTPlatformE2ETests.Standalone
             IIoTMultipleNodesTestContext context
         )
         {
-            _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = _output;
+            _context.SetOutputHelper(output);
         }
 
         [Theory]
@@ -41,43 +39,10 @@ namespace IIoTPlatformE2ETests.Standalone
         [InlineData(MessagingMode.PubSub)]
         public async Task SubscribeUnsubscribeTest(MessagingMode messagingMode)
         {
-            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
-            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
-
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // Clean publishednodes.json.
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
-
-            // Create base edge deployment.
-            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
-            _output.WriteLine("Created/Updated new edge base deployment.");
-
-            // Create layered edge deployment.
-            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
-            _output.WriteLine("Created/Updated layered deployment for publisher module.");
-
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
-
-            // Wait some time till the updated pn.json is reflected.
-            await Task.Delay(TestConstants.DefaultDelayMilliseconds);
-
-            // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
-                ioTHubPublisherDeployment.GetDeploymentConfiguration(),
-                cts.Token
-            );
-
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubPublisherDeployment.ModuleName }
-            );
+            await _context.RegistryHelper.DeployStandalonePublisherAsync(messagingMode, ct: cts.Token);
 
             var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
-
             await TestHelper.PublishNodesAsync(
                 _context,
                 new[] { model }

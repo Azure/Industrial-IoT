@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
     using Microsoft.Extensions.Logging;
     using System;
@@ -16,7 +16,6 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// </summary>
     sealed class MessageDeliveryDelayChecker : IDisposable
     {
-
         /// <summary>
         /// Format to be used for Timestamps
         /// </summary>
@@ -60,7 +59,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         public void ProcessEvent(
             string nodeId,
             DateTime sourceTimestamp,
-            DateTime enqueuedimestamp
+            DateTime enqueuedTimestamp
         )
         {
             // Do not process if _expectedMaximalDuration is set to zero.
@@ -70,7 +69,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
             }
 
             // Check the total duration from OPC UA Server until IoT Hub
-            var messageDeliveryDuration = enqueuedimestamp - sourceTimestamp;
+            var messageDeliveryDuration = enqueuedTimestamp - sourceTimestamp;
 
             if (messageDeliveryDuration.TotalMilliseconds < 0)
             {
@@ -78,7 +77,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
                     "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                     nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
-                    enqueuedimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
+                    enqueuedTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     messageDeliveryDuration);
             }
 
@@ -88,7 +87,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
                     "OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                     nodeId,
                     sourceTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
-                    enqueuedimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
+                    enqueuedTimestamp.ToString(_dateTimeFormat, _dateTimeFormatInfo),
                     messageDeliveryDuration);
             }
 

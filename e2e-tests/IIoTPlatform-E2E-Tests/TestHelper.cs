@@ -30,7 +30,8 @@ namespace IIoTPlatformE2ETests
     using Xunit;
     using Xunit.Abstractions;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using TestEventProcessor.BusinessLogic;
+    using IIoTPlatformE2ETests.TestEventProcessor;
+    using Newtonsoft.Json.Converters;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel

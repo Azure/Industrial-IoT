@@ -26,7 +26,7 @@ namespace IIoTPlatformE2ETests.Discovery
         public DiscoveryTestTheory(DiscoveryTestContext context, ITestOutputHelper output)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
+            _context.SetOutputHelper(output);
 
             _cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
         }

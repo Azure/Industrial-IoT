@@ -15,7 +15,7 @@ namespace IIoTPlatformE2ETests.Standalone
     using Xunit.Abstractions;
     using Furly.Extensions.Serializers;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using TestEventProcessor.BusinessLogic;
+    using IIoTPlatformE2ETests.TestEventProcessor;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -37,46 +37,8 @@ namespace IIoTPlatformE2ETests.Standalone
         [InlineData(MessagingMode.PubSub, true)]
         public async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode, bool incremental)
         {
-            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
-            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
-
-            _iotHubPublisherModuleName = ioTHubPublisherDeployment.ModuleName;
-
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // Clean publishednodes.json.
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
-
-            // Create base edge deployment.
-            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
-            _output.WriteLine("Created/Updated new edge base deployment.");
-
-            // Create layered edge deployment.
-            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
-            _output.WriteLine("Created/Updated layered deployment for publisher module.");
-
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
-
-            // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
-                ioTHubPublisherDeployment.GetDeploymentConfiguration(),
-                cts.Token
-            );
-
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubPublisherDeployment.ModuleName }
-            );
-
-            // We've observed situations when even after the above waits the module did not yet restart.
-            // That leads to situations where the publishing of nodes happens just before the restart to apply
-            // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
-            // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
-            // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
-            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token);
+            _iotHubPublisherModuleName = await _context.RegistryHelper.DeployStandalonePublisherAsync(messagingMode, cts.Token);
 
             // Call GetConfiguredEndpoints direct method, initially there should be no endpoints
             var responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -248,43 +210,14 @@ namespace IIoTPlatformE2ETests.Standalone
         [Fact]
         public async Task RestartAnnouncementTest()
         {
-            var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
-            var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, MessagingMode.PubSub);
-
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // Clean publishednodes.json.
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
-
-            // Create base edge deployment.
-            var baseDeploymentResult = await ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
-            _output.WriteLine("Created/Updated new edge base deployment.");
-
-            // Create layered edge deployment.
-            var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
-            _output.WriteLine("Created/Updated layered deployment for publisher module.");
-
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
-
-            // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForSuccessfulDeploymentAsync(
-                ioTHubPublisherDeployment.GetDeploymentConfiguration(),
-                cts.Token
-            );
-
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
-                _context.DeviceConfig.DeviceId,
-                cts.Token,
-                new string[] { ioTHubPublisherDeployment.ModuleName }
-            );
+            _iotHubPublisherModuleName = await _context.RegistryHelper.DeployStandalonePublisherAsync(ct: cts.Token);
 
             // Start monitoring before restarting the module.
             using var validator = TelemetryValidator.Start(_context, 0, 0, 0);
 
             // Restart OPC Publisher.
-            var moduleRestartResponse = await RestartModuleAsync(ioTHubPublisherDeployment.ModuleName, cts.Token)
+            var moduleRestartResponse = await RestartModuleAsync(_iotHubPublisherModuleName, cts.Token)
 ;
             Assert.Equal((int)HttpStatusCode.OK, moduleRestartResponse.Status);
 

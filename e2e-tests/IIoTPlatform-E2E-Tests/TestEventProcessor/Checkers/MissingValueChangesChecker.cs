@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace TestEventProcessor.BusinessLogic.Checkers
+namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
 {
     using Microsoft.Extensions.Logging;
     using System;
@@ -16,11 +16,10 @@ namespace TestEventProcessor.BusinessLogic.Checkers
     /// </summary>
     sealed class MissingValueChangesChecker : IDisposable
     {
-
         private readonly uint _expectedValueChangesPerTimestamp;
         private readonly ILogger _logger;
 
-        private readonly IDictionary<DateTime, int> _valueChangesPerTimestamp;
+        private readonly Dictionary<DateTime, int> _valueChangesPerTimestamp;
         private bool _isStopped;
         private readonly SemaphoreSlim _lock;
 
@@ -45,9 +44,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="nodeId"></param>
         /// <param name="sourceTimestamp"></param>
-        /// <param name="_"></param>
         public void ProcessEvent(DateTime sourceTimestamp)
         {
             // Do not process events after Stop() has been called.
@@ -85,6 +82,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers
         /// <param name="checkDelay"> Delay between check runs. </param>
         /// <param name="token"></param>
         /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public Task StartAsync(
             TimeSpan checkDelay,
             CancellationToken token = default
@@ -101,7 +99,6 @@ namespace TestEventProcessor.BusinessLogic.Checkers
                 {
                     while (!token.IsCancellationRequested)
                     {
-
                         CheckForMissingValueChanges();
                         Task.Delay(checkDelay, token).Wait(token);
                     }
