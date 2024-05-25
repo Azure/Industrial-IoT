@@ -1,4 +1,16 @@
 steps:
+- task: AzurePowerShell@5
+  displayName: "Deploy required test resources"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployTestResources.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+
 - task: AzureCLI@2
   displayName: "Deploy containers with simulated PLCs with public ips"
   timeoutInMinutes: 90
@@ -24,4 +36,3 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(Agent.TempDirectory)"
-
