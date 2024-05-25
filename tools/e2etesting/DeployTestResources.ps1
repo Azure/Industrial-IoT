@@ -33,9 +33,12 @@ if (!$resourceGroup) {
 }
 
 $suffix = $resourceGroup.Tags["TestingResourcesSuffix"]
-
 if ([String]::IsNullOrWhiteSpace($suffix)) {
-    throw "No suffix on resource group $($ResourceGroupName)."
+    $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
+    $tags = $resourceGroup.Tags
+    $tags+= @{"TestingResourcesSuffix"=$suffix}
+    Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
+    $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
 }
 
 Write-Host "Using suffix $($suffix) for test-related resources."
