@@ -89,7 +89,6 @@ namespace IIoTPlatformE2ETests.Standalone
             // Publish node with data change trigger status only
             model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token, DataChangeTriggerType.Status);
             await TestHelper.PublishNodesAsync(_context, new[] { model }, cts.Token );
-            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).

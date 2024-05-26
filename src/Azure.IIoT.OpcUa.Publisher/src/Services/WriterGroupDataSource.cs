@@ -290,17 +290,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
                     outer._writerGroup.Name, _routing != DataSetRoutingMode.None);
 
-                var name = _dataSetWriter.DataSetWriterName;
+                DataSetWriterName = _dataSetWriter.DataSetWriterName;
                 for (var index = 1; ; index++)
                 {
                     if (!outer._subscriptions.Values
-                        .Any(e => e._dataSetWriter.DataSetWriterName == name))
+                        .Any(e => e.DataSetWriterName == DataSetWriterName))
                     {
                         break;
                     }
-                    name = $"{_dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName}{index}";
+                    DataSetWriterName = $"{_dataSetWriter.DataSetWriterName}{index}";
                 }
-                _dataSetWriter.DataSetWriterName = name;
+                _dataSetWriter.DataSetWriterName = DataSetWriterName;
                 _outer._logger.LogDebug(
                     "Open new writer {Writer} with subscription {Id} in writer group {WriterGroup}...",
                         _dataSetWriter.DataSetWriterName, Id, _outer._writerGroup.Id);
@@ -383,6 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Id, _outer._writerGroup.Id);
 
                 _dataSetWriter = dataSetWriter.Clone();
+                _dataSetWriter.DataSetWriterName = DataSetWriterName;
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
                     _outer._writerGroup.Name, _routing != DataSetRoutingMode.None);
@@ -970,6 +971,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly Dictionary<string, string> _variables;
             private readonly DataSetRoutingMode _routing;
             private SubscriptionModel _subscriptionInfo;
+
+            public string? DataSetWriterName { get; }
+
             private DataSetWriterModel _dataSetWriter;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
