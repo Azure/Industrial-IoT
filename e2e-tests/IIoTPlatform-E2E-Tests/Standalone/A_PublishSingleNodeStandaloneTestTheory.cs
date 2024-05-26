@@ -56,16 +56,15 @@ namespace IIoTPlatformE2ETests.Standalone
                 await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-                Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
-                    $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-                Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
-                Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
-                // Uncomment once bug generating duplicate sequence numbers is resolved.
-                //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
-                Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                Assert.True(result.DroppedValueCount == 0,
+                    $"Dropped messages detected: {result.DroppedValueCount}");
+                Assert.True(result.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {result.DuplicateValueCount}");
+                Assert.Equal(0U, result.DroppedSequenceCount);
+                Assert.Equal(0U, result.DuplicateSequenceCount);
+                Assert.Equal(0U, result.ResetSequenceCount);
             }
 
             // Stop publishing nodes.

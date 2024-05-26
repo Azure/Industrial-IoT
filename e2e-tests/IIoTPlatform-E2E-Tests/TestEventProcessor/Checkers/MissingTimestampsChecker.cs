@@ -177,7 +177,7 @@ namespace IIoTPlatformE2ETests.TestEventProcessor.Checkers
                 {
                     if (kvp.Value.Count < 2)
                     {
-                        // Nothing to check as there are no enough timestamps to compare.
+                        // Nothing to check as there are not enough timestamps to compare.
                         continue;
                     }
 

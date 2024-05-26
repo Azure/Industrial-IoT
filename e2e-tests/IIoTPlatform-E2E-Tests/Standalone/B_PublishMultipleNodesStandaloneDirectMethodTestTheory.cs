@@ -166,23 +166,22 @@ namespace IIoTPlatformE2ETests.Standalone
                 TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request, diagInfoList[0]);
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-                Assert.Equal(publishingMonitoringResultJson.ValueChangesByNodeId.Count, request.OpcNodes.Count);
-                Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
-                    $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-                Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
-                Assert.Equal(0U, publishingMonitoringResultJson.DroppedSequenceCount);
-                // Uncomment once bug generating duplicate sequence numbers is resolved.
-                //Assert.Equal(0U, publishingMonitoringResultJson.DuplicateSequenceCount);
-                Assert.Equal(0U, publishingMonitoringResultJson.ResetSequenceCount);
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                Assert.Equal(result.ValueChangesByNodeId.Count, request.OpcNodes.Count);
+                Assert.True(result.DroppedValueCount == 0,
+                    $"Dropped messages detected: {result.DroppedValueCount}");
+                Assert.True(result.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {result.DuplicateValueCount}");
+                Assert.Equal(0U, result.DroppedSequenceCount);
+                Assert.Equal(0U, result.DuplicateSequenceCount);
+                Assert.Equal(0U, result.ResetSequenceCount);
 
                 // Check that every published node is sending data.
                 if (_context.ConsumedOpcUaNodes != null)
                 {
                     var expectedNodes = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id).ToList();
-                    foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId)
+                    foreach (var property in result.ValueChangesByNodeId)
                     {
                         var propertyName = property.Key;
                         var nodeId = propertyName.Split('#').Last();

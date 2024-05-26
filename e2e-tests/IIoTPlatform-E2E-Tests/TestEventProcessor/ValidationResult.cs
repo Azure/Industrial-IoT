@@ -51,13 +51,13 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
         /// <summary>
         /// Indicates max observed delay between message source timestamp and the time when it was received.
         /// </summary>
-        public string MaxDelayToNow { get; set; }
+        public TimeSpan MaxDelayToNow { get; set; }
 
         /// <summary>
         /// Indicates max observed delay between message source timestamp and the time when it was delivered
         /// to IoT Hub.
         /// </summary>
-        public string MaxDeliveyDuration { get; set; }
+        public TimeSpan MaxDeliveryDuration { get; set; }
 
         /// <summary>
         /// Indicates the number of dropped messages detected by IncrementalIntValueChecker.

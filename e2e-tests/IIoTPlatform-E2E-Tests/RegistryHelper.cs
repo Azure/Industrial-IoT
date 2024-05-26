@@ -150,10 +150,10 @@ namespace IIoTPlatformE2ETests
             }
             else
             {
-                await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
+                await TestHelper.CleanPublishedNodesJsonFilesAsync(_context, ct);
                 await TestHelper.RestartAsync(_context, publisher.ModuleName, ct);
             }
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context, ct);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace IIoTPlatformE2ETests
 
             await RestartStandalonePublisherAsync(messagingMode, false, ct);
             await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
-            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context);
+            await TestHelper.CleanPublishedNodesJsonFilesAsync(_context, ct);
 
             // Create new layered edge deployment.
             var publisher = new IoTHubPublisherDeployment(_context, messagingMode);

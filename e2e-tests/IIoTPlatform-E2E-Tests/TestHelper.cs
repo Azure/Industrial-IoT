@@ -264,7 +264,7 @@ namespace IIoTPlatformE2ETests
             {
                 try
                 {
-                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
+                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context, ct).ConfigureAwait(false);
                     using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
@@ -273,9 +273,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
-                        context.SshConfig.Host,
-                        context.SshConfig.Username, ex.Message);
+                    context.OutputHelper.WriteLine($"Failed to write {TestConstants.PublishedNodesFullName} to {TestConstants.PublishedNodesFolder} on host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
                     await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
@@ -307,14 +305,15 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context)
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             for (var attempt = 0; ; attempt++)
             {
                 try
                 {
                     // Make sure directories exist.
-                    using (var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false))
+                    using (var sshCient = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false))
                     {
                         sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
                             $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
@@ -323,17 +322,12 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
-                        context.SshConfig.Host,
-                        context.SshConfig.Username, ex.Message);
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    context.OutputHelper.WriteLine($"Failed to create folder on host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
 
-            await PublishNodesAsync(
-                context,
-                Array.Empty<PublishedNodesEntryModel>()
-            ).ConfigureAwait(false);
+            await PublishNodesAsync(context, Array.Empty<PublishedNodesEntryModel>(), ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -377,7 +371,7 @@ namespace IIoTPlatformE2ETests
 
             await UpdateTagAsync(patch, context, ct).ConfigureAwait(false);
 
-            await DeleteFileOnEdgeVMAsync(TestConstants.PublishedNodesFullName, context).ConfigureAwait(false);
+            await DeleteFileOnEdgeVMAsync(TestConstants.PublishedNodesFullName, context, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -385,7 +379,8 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context)
+        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -400,20 +395,18 @@ namespace IIoTPlatformE2ETests
                 {
                     try
                     {
-                        client.Connect();
+                        await client.ConnectAsync(ct);
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5)
+                    catch (SocketException) when (++connectAttempt < 10)
                     {
-                        await Task.Delay(1000).ConfigureAwait(false);
+                        await Task.Delay(3000, ct).ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                context.OutputHelper.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
-                    context.SshConfig.Host,
-                    context.SshConfig.Username, ex.Message);
+                context.OutputHelper.WriteLine($"Failed to open ssh connection to host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
                 throw;
             }
         }
@@ -423,7 +416,8 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context)
+        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -438,12 +432,12 @@ namespace IIoTPlatformE2ETests
                 {
                     try
                     {
-                        client.Connect();
+                        await client.ConnectAsync(ct);
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5)
+                    catch (SocketException) when (++connectAttempt < 10)
                     {
-                        await Task.Delay(1000).ConfigureAwait(false);
+                        await Task.Delay(3000, ct).ConfigureAwait(false);
                     }
                 }
             }
@@ -474,10 +468,11 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="fileName">Filename of the file to delete</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context)
+        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var isSuccessful = false;
-            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+            using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
             var terminal = client.RunCommand("rm " + fileName);
 
@@ -494,12 +489,13 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context)
+        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             Assert.False(string.IsNullOrWhiteSpace(folderPath));
 
             var isSuccessful = false;
-            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+            using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
             var terminal = client.RunCommand("sudo mkdir " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
 
@@ -508,7 +504,7 @@ namespace IIoTPlatformE2ETests
                 isSuccessful = true;
             }
 
-            Assert.True(isSuccessful, "Folder creation was not successful");
+            Assert.True(isSuccessful, $"Folder creation was not successful because of {terminal.Error}");
         }
 
         /// <summary>

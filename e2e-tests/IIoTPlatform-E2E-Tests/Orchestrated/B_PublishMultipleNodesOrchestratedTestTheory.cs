@@ -201,21 +201,20 @@ namespace IIoTPlatformE2ETests.Orchestrated
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
-            var json = await validator.StopAsync();
-            Assert.True(json.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-            Assert.True(json.DroppedValueCount == 0, "Dropped messages detected");
-            Assert.True(json.DuplicateValueCount == 0, "Duplicate values detected");
-            Assert.Equal(0U, json.DroppedSequenceCount);
-            // Uncomment once bug generating duplicate sequence numbers is resolved.
-            //Assert.Equal(0U, json.DuplicateSequenceCount);
-            Assert.Equal(0U, json.ResetSequenceCount);
+            var result = await validator.StopAsync();
+            Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True(result.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True(result.DuplicateValueCount == 0, "Duplicate values detected");
+            Assert.Equal(0U, result.DroppedSequenceCount);
+            Assert.Equal(0U, result.DuplicateSequenceCount);
+            Assert.Equal(0U, result.ResetSequenceCount);
 
             var unexpectedNodesThatPublish = new List<string>();
             // Check that every published node is sending data
             if (_context.ConsumedOpcUaNodes != null)
             {
                 var expectedNodes = new List<string>(_context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id));
-                foreach (var property in json.ValueChangesByNodeId)
+                foreach (var property in result.ValueChangesByNodeId)
                 {
                     var propertyName = property.Key;
                     var nodeId = propertyName.Split('#').Last();

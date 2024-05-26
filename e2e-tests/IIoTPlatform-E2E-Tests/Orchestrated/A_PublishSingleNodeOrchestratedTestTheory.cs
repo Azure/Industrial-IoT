@@ -212,8 +212,7 @@ namespace IIoTPlatformE2ETests.Orchestrated
             Assert.True(result.DroppedValueCount == 0, "Dropped messages detected");
             Assert.True(result.DuplicateValueCount == 0, "Duplicate values detected");
             Assert.Equal(0U, result.DroppedSequenceCount);
-            // Uncomment once bug generating duplicate sequence numbers is resolved.
-            //Assert.Equal(0U, json.DuplicateSequenceCount);
+            Assert.Equal(0U, result.DuplicateSequenceCount);
             Assert.Equal(0U, result.ResetSequenceCount);
         }
 

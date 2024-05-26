@@ -147,10 +147,9 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
             if (_configuration?.ExpectedValueChangesPerTimestamp > 0)
             {
                 // TODO collect "expected" parameter as groups related to OPC UA nodes
-                allExpectedValueChanges = valueChangesPerNodeId?
+                allExpectedValueChanges = valueChangesPerNodeId
                     .All(kvp => (_totalValueChangesCount / kvp.Value) ==
-                        _configuration.ExpectedValueChangesPerTimestamp
-                    ) ?? false;
+                        _configuration.ExpectedValueChangesPerTimestamp);
                 _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
                     allExpectedValueChanges);
             }
@@ -167,13 +166,13 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
                 AllInExpectedInterval = missingTimestampsCounter == 0,
                 StartTime = _startTime,
                 EndTime = endTime,
-                MaxDelayToNow = maxMessageProcessingDelay.ToString(),
-                MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
-                DroppedValueCount = incrCheckerResult?.DroppedValueCount ?? 0,
-                DuplicateValueCount = incrCheckerResult?.DuplicateValueCount ?? 0,
-                DroppedSequenceCount = incrSequenceResult?.DroppedValueCount ?? 0,
-                DuplicateSequenceCount = incrSequenceResult?.DuplicateValueCount ?? 0,
-                ResetSequenceCount = incrSequenceResult?.ResetsValueCount ?? 0,
+                MaxDelayToNow = maxMessageProcessingDelay,
+                MaxDeliveryDuration = maxMessageDeliveryDelay,
+                DroppedValueCount = incrCheckerResult.DroppedValueCount,
+                DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
+                DroppedSequenceCount = incrSequenceResult.DroppedValueCount,
+                DuplicateSequenceCount = incrSequenceResult.DuplicateValueCount,
+                ResetSequenceCount = incrSequenceResult.ResetsValueCount,
                 RestartAnnouncementReceived = _restartAnnouncementReceived
             };
         }
