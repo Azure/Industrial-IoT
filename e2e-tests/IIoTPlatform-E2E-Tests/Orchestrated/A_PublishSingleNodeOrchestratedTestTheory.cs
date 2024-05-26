@@ -211,7 +211,8 @@ namespace IIoTPlatformE2ETests.Orchestrated
             Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(result.DroppedValueCount == 0, "Dropped messages detected");
             Assert.True(result.DuplicateValueCount == 0, "Duplicate values detected");
-            Assert.Equal(0U, result.DroppedSequenceCount);
+            Assert.True(result.DroppedSequenceCount == 0,
+                $"Dropped Sequence detected: {result.DroppedSequenceCount}");
             Assert.Equal(0U, result.DuplicateSequenceCount);
             Assert.Equal(0U, result.ResetSequenceCount);
         }

@@ -298,7 +298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         break;
                     }
-                    name = $"{_dataSetWriter.DataSetWriterName}{index}";
+                    name = $"{_dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName}{index}";
                 }
                 _dataSetWriter.DataSetWriterName = name;
                 _outer._logger.LogDebug(
