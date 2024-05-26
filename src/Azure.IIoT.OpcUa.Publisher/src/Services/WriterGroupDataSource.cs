@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new Dictionary<SubscriptionIdentifier, DataSetWriterModel>();
                 foreach (var writerEntry in writerGroup.DataSetWriters)
                 {
-                    var id = writerEntry.ToSubscriptionId(writerGroup.Id, _subscriptionConfig.Value);
+                    var id = writerEntry.ToSubscriptionId(writerGroup.Name, _subscriptionConfig.Value);
                     if (!dataSetWriterSubscriptionMap.TryAdd(id, writerEntry))
                     {
                         throw new ArgumentException(
@@ -159,7 +159,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
                         var writerSubscription = new DataSetWriterSubscription(this, writer.Value);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                        _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
+                        Debug.Assert(writer.Key == writerSubscription.Id);
+                        _subscriptions.AddOrUpdate(writer.Key, writerSubscription);
                     }
                 }
 
