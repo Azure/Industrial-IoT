@@ -88,6 +88,8 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(_context, Array.Empty<PublishedNodesEntryModel>(), cts.Token);
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case)

@@ -69,6 +69,8 @@ namespace IIoTPlatformE2ETests.Standalone
 
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(_context, Array.Empty<PublishedNodesEntryModel>(), cts.Token);
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -95,9 +97,9 @@ namespace IIoTPlatformE2ETests.Standalone
                 await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount == 0,
-                    $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {result.TotalValueChangesCount}");
             }
             // Stop publishing nodes.
             await TestHelper.PublishNodesAsync(_context, Array.Empty<PublishedNodesEntryModel>(), cts.Token);
@@ -114,9 +116,9 @@ namespace IIoTPlatformE2ETests.Standalone
                 await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0,
-                    $"Messages received at IoT Hub: {publishingMonitoringResultJson.TotalValueChangesCount}");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount > 0,
+                    $"Messages received at IoT Hub: {result.TotalValueChangesCount}");
             }
         }
     }

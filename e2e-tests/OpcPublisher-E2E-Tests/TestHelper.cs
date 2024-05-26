@@ -97,7 +97,7 @@ namespace OpcPublisherAEE2ETests
                 try
                 {
                     await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context, ct).ConfigureAwait(false);
-                    using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    using var scpClient = await CreateScpClientAndConnectAsync(context, ct).ConfigureAwait(false);
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
@@ -115,6 +115,7 @@ namespace OpcPublisherAEE2ETests
         /// Clean published nodes JSON files.
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context,
             CancellationToken ct = default)
@@ -165,6 +166,7 @@ namespace OpcPublisherAEE2ETests
         /// Create a new SshClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context,
             CancellationToken ct = default)
@@ -202,6 +204,7 @@ namespace OpcPublisherAEE2ETests
         /// Create a new ScpClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context,
             CancellationToken ct = default)
@@ -255,6 +258,7 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="fileName">Filename of the file to delete</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context,
             CancellationToken ct = default)
         {
@@ -276,6 +280,7 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context,
             CancellationToken ct = default)
         {

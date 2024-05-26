@@ -698,9 +698,6 @@ namespace IIoTPlatformE2ETests.Standalone
             await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
 
             // Now check that no more data is coming.
-
-            // Use test event processor to verify data send to IoT Hub (expected* set to zero
-            // as data gap analysis is not part of this test case)
             using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
             {
                 // Stop monitoring and get the result.

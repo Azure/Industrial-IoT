@@ -87,7 +87,7 @@ namespace IIoTPlatformE2ETests
                 {
                     request = new RestRequest($"twin/v2/browse/{endpointId}", Method.Get)
                     {
-                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                        Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                     };
 
                     if (!string.IsNullOrEmpty(nodeId))
@@ -99,7 +99,7 @@ namespace IIoTPlatformE2ETests
                 {
                     request = new RestRequest($"twin/v2/browse/{endpointId}/next", Method.Get)
                     {
-                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                        Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                     };
                     request.AddQueryParameter("continuationToken", continuationToken);
                 }
@@ -242,7 +242,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/call/{endpointId}/metadata", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -283,7 +283,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/read/{endpointId}/attributes", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -323,7 +323,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/write/{endpointId}/attributes", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -366,7 +366,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/call/{endpointId}", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -411,7 +411,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/browse/{endpointId}/path", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -456,7 +456,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/read/{endpointId}", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -510,7 +510,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/write/{endpointId}", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 

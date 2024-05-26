@@ -132,6 +132,8 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Undeploy publisher
         /// </summary>
+        /// <param name="messagingMode"></param>
+        /// <param name="fullRedeploy"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task RestartStandalonePublisherAsync(

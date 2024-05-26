@@ -266,7 +266,7 @@ namespace IIoTPlatformE2ETests.Orchestrated
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Wait untill the publishing has stopped
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             using var validator = TelemetryValidator.Start(_context, 0, 0, 0);
