@@ -163,7 +163,7 @@ namespace IIoTPlatformE2ETests.Standalone
                 var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
                 Assert.Single(diagInfoList);
 
-                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request, diagInfoList[0]);
+                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request.YieldReturn(), diagInfoList[0]);
 
                 // Stop monitoring and get the result.
                 var result = await validator.StopAsync();

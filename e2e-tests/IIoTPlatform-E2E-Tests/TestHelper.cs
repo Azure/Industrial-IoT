@@ -697,7 +697,7 @@ namespace IIoTPlatformE2ETests
             await context.LoadSimulatedPublishedNodesAsync(ct).ConfigureAwait(false);
 
             PublishedNodesEntryModel nodesToPublish;
-            if (context.SimulatedPublishedNodes.Count > 1)
+            if (context.SimulatedPublishedNodes.Count > endpointIndex)
             {
                 var testPlc = context.SimulatedPublishedNodes.Skip(endpointIndex).First().Value;
                 nodesToPublish = IIoTMultipleNodesTestContext.GetEntryModelWithoutNodes(testPlc);

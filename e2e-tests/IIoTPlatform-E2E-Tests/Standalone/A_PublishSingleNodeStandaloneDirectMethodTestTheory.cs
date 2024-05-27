@@ -16,6 +16,7 @@ namespace IIoTPlatformE2ETests.Standalone
     using Furly.Extensions.Serializers;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using IIoTPlatformE2ETests.TestEventProcessor;
+    using System.Linq;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -151,7 +152,7 @@ namespace IIoTPlatformE2ETests.Standalone
                 var diagInfo = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
                 Assert.Single(diagInfo);
 
-                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(expectedModel, diagInfo[0]);
+                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(expectedModel.YieldReturn(), diagInfo[0]);
 
                 // Stop monitoring and get the result.
                 var result = await validator.StopAsync();

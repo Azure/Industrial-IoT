@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -15,11 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishDiagnosticInfoModel
     {
         /// <summary>
-        /// Endpoint Information
+        /// Endpoints covered by the diagnostics model.
+        /// The endpoints are all part of the same writer
+        /// group. Specify
         /// </summary>
-        [DataMember(Name = "endpoint", Order = 0,
+        [DataMember(Name = "endpoints", Order = 0,
             EmitDefaultValue = true)]
-        public PublishedNodesEntryModel? Endpoint { get; set; }
+        public IReadOnlyList<PublishedNodesEntryModel>? Endpoints { get; set; }
 
         /// <summary>
 		/// SentMessagesPerSec
@@ -216,5 +219,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "ingressCyclicReads", Order = 29,
             EmitDefaultValue = true)]
         public long IngressCyclicReads { get; set; }
+
+        /// <summary>
+        /// Legacy Endpoint Information
+        /// </summary>
+        [DataMember(Name = "endpoint", Order = 40,
+            EmitDefaultValue = true)]
+        public PublishedNodesEntryModel? Endpoint
+            => Endpoints?.Count == 1 ? Endpoints[0] : null;
     }
 }

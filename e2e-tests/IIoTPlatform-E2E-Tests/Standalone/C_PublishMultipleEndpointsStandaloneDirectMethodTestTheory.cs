@@ -215,20 +215,9 @@ namespace IIoTPlatformE2ETests.Standalone
 
                 Assert.Equal((int)HttpStatusCode.OK, responseGetDiagnosticInfo.Status);
                 var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(responseGetDiagnosticInfo.JsonPayload);
-                Assert.Equal(2, diagInfoList.Count);
 
-                // Accounting for the fact that order of diagnostic info items might not be the same as request order.
-                var request0Index = diagInfoList.FindIndex(info =>
-                    info.Endpoint.EndpointUrl == request0.EndpointUrl);
-                var request1Index = diagInfoList.FindIndex(info =>
-                    info.Endpoint.EndpointUrl == request1.EndpointUrl);
-
-                Assert.NotEqual(-1, request0Index);
-                Assert.NotEqual(-1, request1Index);
-                Assert.True(request0Index != request1Index);
-
-                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request0, diagInfoList[request0Index]);
-                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request1, diagInfoList[request1Index]);
+                var diagInfo = Assert.Single(diagInfoList);
+                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request0.YieldReturn().Append(request1), diagInfo);
 
                 // Stop monitoring and get the result.
                 var publishingMonitoringResultJson = await validator.StopAsync();
@@ -403,19 +392,9 @@ namespace IIoTPlatformE2ETests.Standalone
             var configuredEndpointsResponse = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(responseGetConfiguredEndpoints.JsonPayload);
             Assert.Empty(configuredEndpointsResponse.Endpoints);
 
-            // We've observed situations when even after the above waits the module did not yet restart.
-            // That leads to situations where the publishing of nodes happens just before the restart to apply
-            // new container creation options. After restart persisted nodes are picked up, but on the telemetry side
-            // the restart causes dropped messages to be detected. That happens because just before the restart OPC Publisher
-            // manages to send some telemetry. This wait makes sure that we do not run the test while restart is happening.
-            await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token);
-
             _context.OutputHelper.WriteLine("OPC Publisher module is up and running.");
-
-            var endpointsCount = _context.SimulatedPublishedNodes?.Count
-                ?? _context.OpcPlcConfig.Urls
-                    .Split(TestConstants.SimulationUrlsSeparator)
-                    .Count(e => !string.IsNullOrWhiteSpace(e));
+            await _context.LoadSimulatedPublishedNodesAsync(cts.Token);
+            var endpointsCount = _context.SimulatedPublishedNodes?.Count ?? 0;
             Assert.True(endpointsCount > 0, "no endpoints found to generate requests");
 
             var fullNodes = new List<PublishedNodesEntryModel>();
@@ -452,7 +431,7 @@ namespace IIoTPlatformE2ETests.Standalone
                     }
 
                     // Call AddOrUpdateEndpoints direct method
-                    //This will exercise incremental updates to the subscriptions.
+                    // This will exercise incremental updates to the subscriptions.
                     var response = await CallMethodAsync(
                         new MethodParameterModel
                         {
@@ -518,12 +497,10 @@ namespace IIoTPlatformE2ETests.Standalone
                 Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
                 Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
                     $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-                // ToDo: Uncomment the check once the issue with duplicate values is resolved.
-                //Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                //    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
+                Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
                 Assert.Equal(endpointsCount * endpointsCount, publishingMonitoringResultJson.ValueChangesByNodeId.Count);
                 // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
-                // ToDo: Add sequence number checks once we support multi-endpoint validation.
             }
 
             // Wait some time before running unpublishing to allow test event processor to start.
@@ -546,34 +523,17 @@ namespace IIoTPlatformE2ETests.Standalone
 
                 Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
                 var diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(diagInfoListResponse.JsonPayload);
-                Assert.Equal(endpointsCount, diagInfoList.Count);
+                var diagInfo = Assert.Single(diagInfoList);
 
-                foreach (var endpointDefinition in fullNodes)
-                {
-                    var endpointDiagInfoIndex = diagInfoList.FindIndex(info =>
-                        info.Endpoint.EndpointUrl == endpointDefinition.EndpointUrl);
-
-                    Assert.NotEqual(-1, endpointDiagInfoIndex);
-
-                    TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(
-                        endpointDefinition,
-                        diagInfoList[endpointDiagInfoIndex]
-                    );
-                }
-
-                foreach (var diagInfo in diagInfoList)
-                {
-                    Assert.True(diagInfo.IngressValueChanges > 0);
-                    Assert.True(diagInfo.IngressDataChanges > 0);
-                    Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
-                    Assert.Equal(10, diagInfo.MonitoredOpcNodesSucceededCount);
-                    Assert.True(diagInfo.OpcEndpointConnected);
-                    Assert.True(diagInfo.OutgressIoTMessageCount > 0);
-
-                    // Check that we are not dropping anything.
-                    Assert.Equal(0U, diagInfo.EncoderNotificationsDropped);
-                    Assert.Equal(0L, diagInfo.OutgressInputBufferDropped);
-                }
+                TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(fullNodes, diagInfo);
+                Assert.True(diagInfo.IngressValueChanges > 0);
+                Assert.True(diagInfo.IngressDataChanges > 0);
+                Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
+                Assert.Equal(fullNodes.Count * 10, diagInfo.MonitoredOpcNodesSucceededCount);
+                Assert.True(diagInfo.OpcEndpointConnected);
+                Assert.True(diagInfo.OutgressIoTMessageCount > 0);
+                Assert.Equal(0U, diagInfo.EncoderNotificationsDropped);
+                Assert.Equal(0L, diagInfo.OutgressInputBufferDropped);
 
                 // This will keep track of currently published nodes.
                 for (var index = 0; index < endpointsCount; ++index)
