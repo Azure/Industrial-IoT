@@ -289,7 +289,7 @@ namespace OpcPublisherAEE2ETests
             var isSuccessful = false;
             using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
-            var terminal = client.RunCommand("sudo mkdir " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
+            var terminal = client.RunCommand("sudo mkdir -p " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
 
             if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists", StringComparison.Ordinal))
             {
