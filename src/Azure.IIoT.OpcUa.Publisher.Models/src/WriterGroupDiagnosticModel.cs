@@ -22,6 +22,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? PublisherVersion { get; set; }
 
         /// <summary>
+        /// Writer group name
+        /// </summary>
+        [DataMember(Name = "WriterGroupName", Order = 98,
+            EmitDefaultValue = true)]
+        public string? WriterGroupName { get; set; }
+
+        /// <summary>
         /// Timestamp for this diagnostics information
         /// </summary>
         [DataMember(Name = "Timestamp", Order = 0,

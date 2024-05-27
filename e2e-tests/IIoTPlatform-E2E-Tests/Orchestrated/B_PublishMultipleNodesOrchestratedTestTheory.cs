@@ -200,7 +200,7 @@ namespace IIoTPlatformE2ETests.Orchestrated
 
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds * 4, cts.Token);
+            await Task.Delay(TestConstants.AwaitDataInMilliseconds * 4, cts.Token);
             var result = await validator.StopAsync();
             Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True(result.DroppedValueCount == 0, "Dropped messages detected");
@@ -264,6 +264,9 @@ namespace IIoTPlatformE2ETests.Orchestrated
             var route = string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.PublisherBulkFormat, _context.OpcUaEndpointId);
             var response = await TestHelper.CallRestApi(_context, Method.Post, route, body, ct: cts.Token);
             Assert.True(response.IsSuccessful, $"Got {response.StatusCode} starting publishing bulk");
+
+            // Wait untill the publishing has stopped
+            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
         }
 
         [Fact, PriorityOrder(57)]
@@ -289,16 +292,13 @@ namespace IIoTPlatformE2ETests.Orchestrated
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            // Wait untill the publishing has stopped
-            await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
-
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             using var validator = TelemetryValidator.Start(_context, 0, 0, 0);
 
             // Wait some time to generate events to process
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
-            var json = await validator.StopAsync();
-            Assert.True(json.TotalValueChangesCount == 0, $"{json.TotalValueChangesCount} Messages received at IoT Hub");
+            await Task.Delay(TestConstants.AwaitNoDataInMilliseconds, cts.Token);
+            var result = await validator.StopAsync();
+            Assert.True(result.TotalValueChangesCount == 0, $"{result.TotalValueChangesCount} Messages received at IoT Hub");
         }
 
         [Fact, PriorityOrder(59)]

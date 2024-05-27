@@ -5,6 +5,7 @@
 
 namespace IIoTPlatformE2ETests
 {
+    using System;
     using System.Text;
 
     /// <summary>
@@ -25,17 +26,28 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Await time for initialization/setup or no data expected.
         /// </summary>
-        public const int AwaitInitInMilliseconds = 30 * 1000;
+        public static int AwaitInitInMilliseconds => GetIntFromEnv("TEST_INIT_DELAY_MS", 30 * 1000);
 
         /// <summary>
         /// Await time for waiting new data
         /// </summary>
-        public const int AwaitDataInMilliseconds = 90 * 1000;
+        public static int AwaitDataInMilliseconds => GetIntFromEnv("TEST_WAIT_DATA_DURATION_MS", 90 * 1000);
 
         /// <summary>
         /// Await time for cleanup or no data expected.
         /// </summary>
-        public const int AwaitCleanupInMilliseconds = 20 * 1000;
+        public static int AwaitCleanupInMilliseconds => GetIntFromEnv("TEST_CLEANUP_DELAY_MS", 20 * 1000);
+
+        /// <summary>
+        /// Await time for waiting new data
+        /// </summary>
+        public static int AwaitNoDataInMilliseconds => GetIntFromEnv("TEST_WAIT_NO_DATA_DURATION_MS", 20 * 1000);
+
+        private static int GetIntFromEnv(string envName, int defaultValue)
+        {
+            var envValue = Environment.GetEnvironmentVariable(envName);
+            return int.TryParse(envValue, out var value) ? value : defaultValue;
+        }
 
         /// <summary>
         /// Default timeout of web calls

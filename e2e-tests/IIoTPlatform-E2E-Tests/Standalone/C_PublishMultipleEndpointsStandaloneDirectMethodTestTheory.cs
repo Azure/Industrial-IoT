@@ -220,8 +220,8 @@ namespace IIoTPlatformE2ETests.Standalone
                 TestHelper.Publisher.AssertEndpointDiagnosticInfoModel(request0.YieldReturn().Append(request1), diagInfo);
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
                 // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
                 // ToDo: Add sequence number checks once we support multi-endpoint validation.
 
@@ -237,7 +237,7 @@ namespace IIoTPlatformE2ETests.Standalone
                         }
                     }
 
-                    foreach (var property in publishingMonitoringResultJson.ValueChangesByNodeId)
+                    foreach (var property in result.ValueChangesByNodeId)
                     {
                         var propertyName = property.Key;
                         var nodeId = propertyName.Split('#').Last();
@@ -359,12 +359,12 @@ namespace IIoTPlatformE2ETests.Standalone
             using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
             {
                 // Wait some time to generate events to process.
-                await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
+                await Task.Delay(TestConstants.AwaitNoDataInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var unpublishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
-                    $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {result.TotalValueChangesCount}");
             }
         }
 
@@ -489,22 +489,21 @@ namespace IIoTPlatformE2ETests.Standalone
                 }
 
                 // Wait some time to generate events to process.
-                await Task.Delay(2 * TestConstants.AwaitDataInMilliseconds, cts.Token);
+                await Task.Delay(TestConstants.AwaitDataInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
+                var result = await validator.StopAsync();
 
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-                Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
-                    $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-                Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
-                Assert.Equal(endpointsCount * endpointsCount, publishingMonitoringResultJson.ValueChangesByNodeId.Count);
+                Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                Assert.True(result.DroppedValueCount == 0,
+                    $"Dropped messages detected: {result.DroppedValueCount}");
+                Assert.True(result.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {result.DuplicateValueCount}");
+                Assert.Equal(endpointsCount * endpointsCount, result.ValueChangesByNodeId.Count);
                 // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
             }
 
-            // Wait some time before running unpublishing to allow test event processor to start.
-            await Task.Delay(TestConstants.AwaitDataInMilliseconds * 2, cts.Token);
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds, cts.Token);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -529,7 +528,7 @@ namespace IIoTPlatformE2ETests.Standalone
                 Assert.True(diagInfo.IngressValueChanges > 0);
                 Assert.True(diagInfo.IngressDataChanges > 0);
                 Assert.Equal(0, diagInfo.MonitoredOpcNodesFailedCount);
-                Assert.Equal(fullNodes.Count * 10, diagInfo.MonitoredOpcNodesSucceededCount);
+                Assert.Equal(endpointsCount * endpointsCount, diagInfo.MonitoredOpcNodesSucceededCount);
                 Assert.True(diagInfo.OpcEndpointConnected);
                 Assert.True(diagInfo.OutgressIoTMessageCount > 0);
                 Assert.Equal(0U, diagInfo.EncoderNotificationsDropped);
@@ -618,7 +617,15 @@ namespace IIoTPlatformE2ETests.Standalone
 
                     Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
                     diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(diagInfoListResponse.JsonPayload);
-                    Assert.Equal(endpointsCount - 1 - index, diagInfoList.Count);
+                    if (endpointsCount - 1 - index > 0)
+                    {
+                        var diagInfo2 = Assert.Single(diagInfoList);
+                        Assert.Equal(endpointsCount - 1 - index, diagInfo2.Endpoints.Count);
+                    }
+                    else
+                    {
+                        Assert.Empty(diagInfoList);
+                    }
 
                     // Check that there is one less entry in endpoints list
                     responseGetConfiguredEndpoints = await CallMethodAsync(
@@ -635,21 +642,21 @@ namespace IIoTPlatformE2ETests.Standalone
                     Assert.Equal(endpointsCount - 1 - index, configuredEndpointsResponse.Endpoints.Count);
 
                     var removedEndpointUrl = currentNodes[index].EndpointUrl;
-                    Assert.Null(configuredEndpointsResponse.Endpoints.FirstOrDefault(endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl, StringComparison.Ordinal)));
+                    Assert.Empty(configuredEndpointsResponse.Endpoints
+                        .Where(endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl, StringComparison.Ordinal)));
 
                     await Task.Delay(2_000);
                 }
 
                 // Stop monitoring and get the result.
-                var publishingMonitoringResultJson = await validator.StopAsync();
+                var result = await validator.StopAsync();
 
-                Assert.True(publishingMonitoringResultJson.TotalValueChangesCount > 0, "No messages received at IoT Hub");
-                Assert.True(publishingMonitoringResultJson.DroppedValueCount == 0,
-                    $"Dropped messages detected: {publishingMonitoringResultJson.DroppedValueCount}");
-                // ToDo: Uncomment the check once the issue with duplicate values is resolved.
-                //Assert.True(publishingMonitoringResultJson.DuplicateValueCount == 0,
-                //    $"Duplicate values detected: {publishingMonitoringResultJson.DuplicateValueCount}");
-                Assert.True(publishingMonitoringResultJson.ValueChangesByNodeId.Count > 0, "No messages received at IoT Hub");
+                Assert.True(result.TotalValueChangesCount > 0, "No messages received at IoT Hub");
+                Assert.True(result.DroppedValueCount == 0,
+                    $"Dropped messages detected: {result.DroppedValueCount}");
+                Assert.True(result.DuplicateValueCount == 0,
+                    $"Duplicate values detected: {result.DuplicateValueCount}");
+                Assert.True(result.ValueChangesByNodeId.Count > 0, "No messages received at IoT Hub");
                 // We cannot perform sequence number checks in multi-endpoint tests as we the values will be unique only per endpoint.
                 // ToDo: Add sequence number checks once we support multi-endpoint validation.
             }
@@ -660,10 +667,13 @@ namespace IIoTPlatformE2ETests.Standalone
             // Now check that no more data is coming.
             using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
             {
+                // Wait some time to generate events to process.
+                await Task.Delay(TestConstants.AwaitNoDataInMilliseconds, cts.Token);
+
                 // Stop monitoring and get the result.
-                var unpublishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
-                    $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {result.TotalValueChangesCount}");
             }
         }
     }

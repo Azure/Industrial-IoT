@@ -201,12 +201,12 @@ namespace IIoTPlatformE2ETests.Standalone
             using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
             {
                 // Wait some time to generate events to process
-                await Task.Delay(TestConstants.AwaitCleanupInMilliseconds, cts.Token);
+                await Task.Delay(TestConstants.AwaitNoDataInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var unpublishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
-                    $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {result.TotalValueChangesCount}");
             }
         }
 
@@ -228,9 +228,9 @@ namespace IIoTPlatformE2ETests.Standalone
             await Task.Delay(TestConstants.AwaitInitInMilliseconds, cts.Token);
 
             // Stop monitoring and check that restart announcement was received.
-            var monitoringResult = await validator.StopAsync();
+            var result = await validator.StopAsync();
 
-            Assert.True(monitoringResult.RestartAnnouncementReceived);
+            Assert.True(result.RestartAnnouncementReceived);
         }
     }
 }

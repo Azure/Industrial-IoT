@@ -631,7 +631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly ActionBlock<(IEvent, Action)> _sendBlock;
             private readonly CancellationTokenSource _cts = new();
         }
-		
+
         private static IEnumerable<MonitoredItemNotificationModel> FilterHeartbeat(
             IList<MonitoredItemNotificationModel> notifications)
         {

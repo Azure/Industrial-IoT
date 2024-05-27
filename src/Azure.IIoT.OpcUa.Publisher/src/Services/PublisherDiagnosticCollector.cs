@@ -143,16 +143,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ReadOnlySpan<KeyValuePair<string, object?>> tags, object? state)
         {
             if (_bindings.TryGetValue(instrument.Name, out var binding) &&
-                TryGetIds(tags, out var writerGroupId, out var dataSetWriterId) &&
+                TryGetIds(tags, out var writerGroupId, out var writerGroupName, out var dataSetWriterId) &&
                 _diagnostics.TryGetValue(writerGroupId, out var diag))
             {
+                if (writerGroupName != null)
+                {
+                    diag.WriterGroupName = writerGroupName;
+                }
                 binding(dataSetWriterId != null ? diag[dataSetWriterId] : diag, measurement!);
             }
             static bool TryGetIds(ReadOnlySpan<KeyValuePair<string, object?>> tags,
-                [NotNullWhen(true)] out string? writerGroupId, out string? dataSetWriterId)
+                [NotNullWhen(true)] out string? writerGroupId, out string? writerGroupName,
+                out string? dataSetWriterId)
             {
                 writerGroupId = null;
                 dataSetWriterId = null;
+                writerGroupName = null;
                 for (var index = tags.Length; index > 0; index--) // Identifiers are at the end
                 {
                     var entry = tags[index - 1];
@@ -163,13 +169,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             case Constants.WriterGroupIdTag:
                                 writerGroupId = id;
                                 break;
+                            case Constants.WriterGroupNameTag:
+                                writerGroupName = id;
+                                break;
                             case Constants.DataSetWriterIdTag:
                                 dataSetWriterId = id;
                                 break;
                         }
                     }
                     if (writerGroupId != null &&
-                        dataSetWriterId != null)
+                        dataSetWriterId != null &&
+                        writerGroupName != null)
                     {
                         return true;
                     }

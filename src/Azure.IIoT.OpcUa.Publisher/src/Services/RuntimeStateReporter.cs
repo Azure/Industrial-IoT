@@ -533,9 +533,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 return builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
-                        .AppendLine(writerGroupId)
+                        .AppendLine(info.WriterGroupName ?? Constants.DefaultWriterGroupName)
                     .Append("  # OPC Publisher Version (Runtime)    : ")
                         .AppendLine(info.PublisherVersion)
+                    .Append("  # WriterGroup Id                     : ")
+                        .AppendLine(writerGroupId)
                     .Append("  # Time                               : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:O}", info.Timestamp)
                         .AppendLine()

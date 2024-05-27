@@ -55,7 +55,7 @@ namespace IIoTPlatformE2ETests.Standalone
             using (var validator = TelemetryValidator.Start(_context, 250, 1000, 90_000_000))
             {
                 // Wait some time to generate events to process.
-                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+                await Task.Delay(TestConstants.AwaitDataInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
                 var result = await validator.StopAsync();
@@ -64,8 +64,8 @@ namespace IIoTPlatformE2ETests.Standalone
                     $"Dropped messages detected: {result.DroppedValueCount}");
                 Assert.True(result.DuplicateValueCount == 0,
                     $"Duplicate values detected: {result.DuplicateValueCount}");
-                // Assert.True(result.DroppedSequenceCount == 0,
-                //     $"Dropped Sequence detected: {result.DroppedSequenceCount}");
+                Assert.True(result.DroppedSequenceCount == 0,
+                    $"Dropped Sequence detected: {result.DroppedSequenceCount}");
                 Assert.Equal(0U, result.DuplicateSequenceCount);
                 Assert.Equal(0U, result.ResetSequenceCount);
 
@@ -97,12 +97,12 @@ namespace IIoTPlatformE2ETests.Standalone
             using (var validator = TelemetryValidator.Start(_context, 0, 0, 0))
             {
                 // Wait some time to generate events to process.
-                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+                await Task.Delay(TestConstants.AwaitNoDataInMilliseconds, cts.Token);
 
                 // Stop monitoring and get the result.
-                var unpublishingMonitoringResultJson = await validator.StopAsync();
-                Assert.True(unpublishingMonitoringResultJson.TotalValueChangesCount == 0,
-                    $"Messages received at IoT Hub: {unpublishingMonitoringResultJson.TotalValueChangesCount}");
+                var result = await validator.StopAsync();
+                Assert.True(result.TotalValueChangesCount == 0,
+                    $"Messages received at IoT Hub: {result.TotalValueChangesCount}");
             }
         }
     }
