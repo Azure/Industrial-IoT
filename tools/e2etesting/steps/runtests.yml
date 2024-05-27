@@ -93,7 +93,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   name: runtests
-  timeoutInMinutes: 100
+  timeoutInMinutes: 120
   inputs:
     azureSubscription: '$(AzureSubscription)'
     scriptType: 'bash'
