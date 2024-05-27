@@ -223,9 +223,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Legacy Endpoint Information
         /// </summary>
-        [DataMember(Name = "endpoint", Order = 40,
-            EmitDefaultValue = true)]
         public PublishedNodesEntryModel? Endpoint
-            => Endpoints?.Count == 1 ? Endpoints[0] : null;
+        {
+            get => Endpoints?.Count != 1 ? null :
+                Endpoints[0];
+            set => Endpoints = value == null ? null :
+                new List<PublishedNodesEntryModel> { value };
+        }
     }
 }
