@@ -399,5 +399,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "ActivePublishQueuePartitions", Order = 52,
             EmitDefaultValue = true)]
         public int ActivePublishQueuePartitions { get; set; }
+
+        /// <summary>
+        /// Gets the CPU utilization percentage.
+        /// </summary>
+        [DataMember(Name = "CpuUsedPercentage", Order = 60,
+            EmitDefaultValue = true)]
+        public double CpuUsedPercentage { get; set; }
+
+        /// <summary>
+        /// Gets the CPU units available in the system.
+        /// </summary>
+        [DataMember(Name = "GuaranteedCpuUnits", Order = 61,
+            EmitDefaultValue = true)]
+        public double GuaranteedCpuUnits { get; set; }
+
+        /// <summary>
+        /// Gets the maximum CPU units available in the system.
+        /// </summary>
+        [DataMember(Name = "MaximumCpuUnits", Order = 62,
+            EmitDefaultValue = true)]
+        public double MaximumCpuUnits { get; set; }
+
+        /// <summary>
+        /// Gets the memory utilization percentage.
+        /// </summary>
+        [DataMember(Name = "MemoryUsedPercentage", Order = 63,
+            EmitDefaultValue = true)]
+        public double MemoryUsedPercentage { get; set; }
+
+        /// <summary>
+        /// Gets the memory used in bytes.
+        /// </summary>
+        [DataMember(Name = "MemoryUsedInBytes", Order = 64,
+            EmitDefaultValue = true)]
+        public ulong MemoryUsedInBytes { get; set; }
+
+        /// <summary>
+        /// Gets the memory allocated to the system in bytes.
+        /// </summary>
+        [DataMember(Name = "GuaranteedMemoryInBytes", Order = 65,
+            EmitDefaultValue = true)]
+        public ulong GuaranteedMemoryInBytes { get; set; }
+
+        /// <summary>
+        /// Gets the Request Memory Limit or the Maximum allocated for the VM.
+        /// </summary>
+        [DataMember(Name = "MaximumMemoryInBytes", Order = 66,
+            EmitDefaultValue = true)]
+        public ulong MaximumMemoryInBytes { get; set; }
     }
 }

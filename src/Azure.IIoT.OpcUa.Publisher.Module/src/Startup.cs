@@ -75,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 ;
 
             services.AddHttpClient();
+            services.AddResourceMonitoring();
 
             services.AddRouting();
             services.AddHealthChecks();
