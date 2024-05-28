@@ -179,7 +179,12 @@ if ($aciNamesToCreate.Length -gt 0) {
 ## Write ACI FQDNs to KeyVault ##
 Write-Host
 Write-Host "Getting IPs of ACIs for simulated PLCs..."
-$ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
+if ($UsePrivateIp -eq $false) {
+    $ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.fqdn"  | ConvertFrom-Json
+}
+else {
+    $ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
+}
 
 if ($ipList.Count -eq 0) {
     Write-Error "No Azure Container Instances have been deployed. Please check that quota is not exceeded for this region."
