@@ -6,9 +6,8 @@
 namespace IIoTPlatformE2ETests
 {
     using Azure.Messaging.EventHubs.Consumer;
-	using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using IIoTPlatformE2ETests.Config;
     using Renci.SshNet;
     using RestSharp;
@@ -26,13 +25,11 @@ namespace IIoTPlatformE2ETests
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
-    using TestModels;
     using Xunit;
     using Xunit.Abstractions;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using IIoTPlatformE2ETests.TestEventProcessor;
     using Newtonsoft.Json.Converters;
-    using static IIoTPlatformE2ETests.TestHelper;
+    using Xunit.Sdk;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -150,6 +147,35 @@ namespace IIoTPlatformE2ETests
             {
                 try
                 {
+                    var entryModels = await GetPublishedNodesEntryModel(ipAddress, ct).ConfigureAwait(false);
+
+                    Assert.NotNull(entryModels);
+                    Assert.NotEmpty(entryModels);
+                    Assert.NotNull(entryModels[0].OpcNodes);
+                    Assert.NotEmpty(entryModels[0].OpcNodes);
+
+                    // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
+                    var fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
+                    entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress, StringComparison.Ordinal);
+
+                    result.Add(ipAddress, entryModels[0]);
+                }
+                catch (XunitException e)
+                {
+                    context.OutputHelper.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
+                }
+            }
+            return result;
+        }
+
+        private static async Task<PublishedNodesEntryModel[]> GetPublishedNodesEntryModel(string ipAddress, CancellationToken ct)
+        {
+            for (var attempt = 0; ;  attempt++)
+            {
+                try
+                {
                     using (var client = new HttpClient())
                     {
                         var ub = new UriBuilder { Host = ipAddress };
@@ -158,34 +184,25 @@ namespace IIoTPlatformE2ETests
 
                         using (var response = await client.GetAsync(new Uri(TestConstants.OpcSimulation.PublishedNodesFile, UriKind.RelativeOrAbsolute), ct).ConfigureAwait(false))
                         {
+                            if (response.StatusCode == (HttpStatusCode)470)
+                            {
+                                // Firewall denied access, the build VM does not allow access to this ip address port 80
+                                // see rules at https://dev.azure.com/mseng/Domino/_git/CloudTest?path=/private/Azure/Ev2/ResourceProvider/Templates/NetworkIsolation.Resources.json&version=GBmaster&_a=contents
+                                throw new SocketException((int)SocketError.AccessDenied, ipAddress + ":80 is not accessible due to firewall setup of build machine. Fix the build.");
+                            }
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
                             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                             Assert.NotEmpty(json);
-                            var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
-
-                            Assert.NotNull(entryModels);
-                            Assert.NotEmpty(entryModels);
-                            Assert.NotNull(entryModels[0].OpcNodes);
-                            Assert.NotEmpty(entryModels[0].OpcNodes);
-
-                            // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
-#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-                            var fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
-#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-                            entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress, StringComparison.Ordinal);
-
-                            result.Add(ipAddress, entryModels[0]);
+                            return JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
                         }
                     }
                 }
-                catch (Exception e)
+                catch (XunitException) when (attempt < 3)
                 {
-                    context.OutputHelper.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
-                    continue;
+                    await Task.Delay(2000, ct);
                 }
             }
-            return result;
         }
 
         /// <summary>
@@ -883,10 +900,10 @@ namespace IIoTPlatformE2ETests
                              serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
                         context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
                         var methodCallResult = new MethodResultModel(result.GetPayloadAsJson(), result.Status);
-                        if (methodCallResult.Status == 500 && ++i < 3)
+                        if (methodCallResult.Status >= 500 && ++i < 3)
                         {
-                            context.OutputHelper.WriteLine("Got internal error 500, trying again to call publisher after delay...");
-                            await Task.Delay(1000, ct).ConfigureAwait(false);
+                            context.OutputHelper.WriteLine($"Got internal error {methodCallResult.Status} ({methodCallResult.JsonPayload}), trying again to call publisher after delay...");
+                            await Task.Delay(2000, ct).ConfigureAwait(false);
                             continue;
                         }
                         return methodCallResult;
