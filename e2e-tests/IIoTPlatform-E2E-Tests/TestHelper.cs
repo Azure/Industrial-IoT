@@ -141,13 +141,13 @@ namespace IIoTPlatformE2ETests
 
             var opcPlcList = context.OpcPlcConfig.Urls;
             context.OutputHelper.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
-            var ipAddressList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
+            var hostList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
 
-            foreach (var ipAddress in ipAddressList.Where(s => !string.IsNullOrWhiteSpace(s)))
+            foreach (var host in hostList.Where(s => !string.IsNullOrWhiteSpace(s)))
             {
                 try
                 {
-                    var entryModels = await GetPublishedNodesEntryModel(ipAddress, ct).ConfigureAwait(false);
+                    var entryModels = await GetPublishedNodesEntryModel(host, ct).ConfigureAwait(false);
 
                     Assert.NotNull(entryModels);
                     Assert.NotEmpty(entryModels);
@@ -158,19 +158,19 @@ namespace IIoTPlatformE2ETests
 #pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
                     var fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
 #pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-                    entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress, StringComparison.Ordinal);
+                    entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, host, StringComparison.Ordinal);
 
-                    result.Add(ipAddress, entryModels[0]);
+                    result.Add(host, entryModels[0]);
                 }
                 catch (XunitException e)
                 {
-                    context.OutputHelper.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
+                    context.OutputHelper.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, host);
                 }
             }
             return result;
         }
 
-        private static async Task<PublishedNodesEntryModel[]> GetPublishedNodesEntryModel(string ipAddress, CancellationToken ct)
+        private static async Task<PublishedNodesEntryModel[]> GetPublishedNodesEntryModel(string host, CancellationToken ct)
         {
             for (var attempt = 0; ;  attempt++)
             {
@@ -178,7 +178,7 @@ namespace IIoTPlatformE2ETests
                 {
                     using (var client = new HttpClient())
                     {
-                        var ub = new UriBuilder { Host = ipAddress };
+                        var ub = new UriBuilder { Host = host };
                         client.BaseAddress = ub.Uri;
                         client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
 
@@ -188,7 +188,7 @@ namespace IIoTPlatformE2ETests
                             {
                                 // Firewall denied access, the build VM does not allow access to this ip address port 80
                                 // see rules at https://dev.azure.com/mseng/Domino/_git/CloudTest?path=/private/Azure/Ev2/ResourceProvider/Templates/NetworkIsolation.Resources.json&version=GBmaster&_a=contents
-                                throw new SocketException((int)SocketError.AccessDenied, ipAddress + ":80 is not accessible due to firewall setup of build machine. Fix the build.");
+                                throw new SocketException((int)SocketError.AccessDenied, host + ":80 is not accessible due to firewall setup of build machine. Fix the build.");
                             }
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
