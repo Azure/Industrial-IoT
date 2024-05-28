@@ -396,8 +396,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         case PublisherDiagnosticTargetType.Events:
                             await SendDiagnosticsAsync(diagnostics, ct).ConfigureAwait(false);
                             break;
-               // TODO: case PublisherDiagnosticTargetType.PubSub:
-               // TODO:     break;
+                        // TODO: case PublisherDiagnosticTargetType.PubSub:
+                        // TODO:     break;
                         default:
                             WriteDiagnosticsToConsole(diagnostics);
                             break;
@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     $"(Avg Chunk (4 KB) usage {info.EncoderAvgIoTChunkUsage:n2}; {info.EstimatedIoTChunksPerDay:n1}/day estimated)"
                         : string.Empty;
                 var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0 ?
-                    "(Partially Connected)" : "(Connected)") : "(Disconnected)" ;
+                    "(Partially Connected)" : "(Connected)") : "(Disconnected)";
 
                 return builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")

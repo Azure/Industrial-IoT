@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
             }
-    // TODO: Fix  Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
+            // TODO: Fix  Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {
                 Assert.True(a.Message.TryGetProperty("i=2258", out var dateTimeValue));
@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
             }
-    // TODO: Fix Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
+            // TODO: Fix Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {
                 Assert.True(a.Message.TryGetProperty("i=2258", out var dateTimeValue));
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
             }
 
-   // TODO: Fix  Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
+            // TODO: Fix  Assert.Equal(messages.Count, currentTimes.Count + outputs.Count);
             Assert.All(currentTimes, a =>
             {
                 Assert.True(a.Message.TryGetProperty("i=2258", out var dateTimeValue));
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Assert
             Assert.NotEmpty(messages);
 
-   // TODO: Fix
+            // TODO: Fix
             if (messages != null) return; // TODO FIX
 
             var payload1 = messages[0].Message;

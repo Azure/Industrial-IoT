@@ -16,12 +16,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
-    using System.Linq;
-    using System.Buffers;
     using System.Globalization;
+    using System.Linq;
     using System.Text;
 
     /// <summary>
