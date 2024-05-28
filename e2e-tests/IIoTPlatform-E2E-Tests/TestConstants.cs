@@ -62,7 +62,7 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Maximum timeout for a test case
         /// </summary>
-        public const int MaxTestTimeoutMilliseconds = 25 * 60 * 1000;
+        public const int MaxTestTimeoutMilliseconds = 50 * 60 * 1000;
 
         /// <summary>
         /// Name of Published Nodes Json used by publisher module

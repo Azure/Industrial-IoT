@@ -617,7 +617,7 @@ namespace IIoTPlatformE2ETests.Standalone
 
                     Assert.Equal((int)HttpStatusCode.OK, diagInfoListResponse.Status);
                     diagInfoList = _serializer.Deserialize<List<PublishDiagnosticInfoModel>>(diagInfoListResponse.JsonPayload);
-                    if (endpointsCount - 1 - index > 0)
+                    if (endpointsCount - 1 > index)
                     {
                         var diagInfo2 = Assert.Single(diagInfoList);
                         Assert.Equal(endpointsCount - 1 - index, diagInfo2.Endpoints.Count);

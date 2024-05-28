@@ -873,7 +873,8 @@ namespace IIoTPlatformE2ETests
             {
                 try
                 {
-                    for (var i = 0; i < 3; i++) // Retry twice to call with error 500
+                    var i = 0;// Retry twice to call with error 500
+                    while (true)
                     {
                         var methodInfo = new CloudToDeviceMethod(parameters.Name);
                         methodInfo.SetPayloadJson(parameters.JsonPayload);
@@ -882,7 +883,7 @@ namespace IIoTPlatformE2ETests
                              serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
                         context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
                         var methodCallResult = new MethodResultModel(result.GetPayloadAsJson(), result.Status);
-                        if (methodCallResult.Status == 500)
+                        if (methodCallResult.Status == 500 && ++i < 3)
                         {
                             context.OutputHelper.WriteLine("Got internal error 500, trying again to call publisher after delay...");
                             await Task.Delay(1000, ct).ConfigureAwait(false);
