@@ -444,8 +444,11 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context)
         {
-            await Task.WhenAll(
-            context.PlcAciDynamicUrls?
+            if (context.PlcAciDynamicUrls == null || context.PlcAciDynamicUrls.Count == 0)
+            {
+                return;
+            }
+            await Task.WhenAll(context.PlcAciDynamicUrls
                 .Select(url => url.Split(".")[0])
                 .Select(n => context.AzureContext.ContainerGroups.DeleteByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, n))
             ).ConfigureAwait(false);
@@ -463,8 +466,7 @@ namespace OpcPublisherAEE2ETests
                 return context.AzureContext;
             }
 
-            context.
-            OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
+            context.OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
             var token = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -542,7 +544,7 @@ namespace OpcPublisherAEE2ETests
                 cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             var containerGroup = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
                 cancellationToken: cancellationToken).ConfigureAwait(false))
-                .First(g => g.IPAddress == firstAciIpAddress);
+                .First(g => g.IPAddress == firstAciIpAddress || g.Fqdn == firstAciIpAddress);
             context.PLCImage = containerGroup.Containers.First().Value.Image;
 
             return azure;
