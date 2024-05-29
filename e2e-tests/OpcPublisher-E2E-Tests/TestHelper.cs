@@ -10,6 +10,7 @@ namespace OpcPublisherAEE2ETests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -952,8 +953,7 @@ namespace OpcPublisherAEE2ETests
         public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
             MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct)
         {
-            var attempt = 0;
-            while (true)
+            for (var attempt = 0; ; attempt++)
             {
                 try
                 {
@@ -976,10 +976,15 @@ namespace OpcPublisherAEE2ETests
                         return methodCallResult;
                     }
                 }
+                catch (DeviceNotFoundException de) when (attempt < 60)
+                {
+                    context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload} due to {de.Message}");
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
+                }
                 catch (Exception e)
                 {
                     context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload}");
-                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && ++attempt < 60)
+                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && attempt < 60)
                     {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
                         await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
