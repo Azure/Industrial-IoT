@@ -14,7 +14,7 @@ namespace IIoTPlatformE2ETests
     internal static class TestConstants
     {
         /// <summary>
-        /// Character that need to be used when split value of "PLC_SIMULATION_URLS"
+        /// Character that need to be used when split value of "PLC_SIMULATION_XYZ" environment variables
         /// </summary>
         public static char SimulationUrlsSeparator = ';';
 
@@ -208,6 +208,11 @@ namespace IIoTPlatformE2ETests
             /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
             /// </summary>
             public const string PLC_SIMULATION_URLS = "PLC_SIMULATION_URLS";
+
+            /// <summary>
+            /// Semicolon separated ip addresses of OPC Plcs
+            /// </summary>
+            public const string PLC_SIMULATION_IPS = "PLC_SIMULATION_IPS";
 
             /// <summary>
             /// IoTEdge version

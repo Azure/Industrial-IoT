@@ -76,6 +76,7 @@ namespace IIoTPlatformE2ETests
 
                             if (foundEndpoints.Count < expectedNumberOfEndpoints)
                             {
+                                context.OutputHelper.WriteLine($"Found {foundEndpoints.Count} out of {expectedNumberOfEndpoints} endpoints...");
                                 await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                             }
                             else

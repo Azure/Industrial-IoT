@@ -221,6 +221,9 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public string Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new InvalidOperationException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
+        public string Ips => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_IPS,
+            () => throw new InvalidOperationException("Semicolon separated list of ip addresses of OPC-PLCs is not provided."));
+
         public string ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);
 

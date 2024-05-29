@@ -47,7 +47,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,iothub-eventhub-connectionstring,PCS-SUBSCRIPTION-ID'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,plc-simulation-ips,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,iothub-eventhub-connectionstring,PCS-SUBSCRIPTION-ID'
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
   condition: notIn( '${{ parameters.ModeValue }}', 'standalone', 'AE')
@@ -125,6 +125,7 @@ steps:
     PCS_AUTH_SERVICE_APPID: '$(pcs-auth-service-appid)'
     PCS_IOTHUB_CONNSTRING: '$(pcs-iothub-connstring)'
     PLC_SIMULATION_URLS: '$(plc-simulation-urls)'
+    PLC_SIMULATION_IPS: '$(plc-simulation-ips)'
     IOT_EDGE_VERSION: "$(EdgeVersion)"
     IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
     IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'

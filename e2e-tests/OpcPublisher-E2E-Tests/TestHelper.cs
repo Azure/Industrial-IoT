@@ -539,12 +539,12 @@ namespace OpcPublisherAEE2ETests
                 context.AzureStorageName, cancellationToken).ConfigureAwait(false);
             context.AzureStorageKey = (await storageAccount.GetKeysAsync(cancellationToken).ConfigureAwait(false))[0].Value;
 
-            var firstAciIpAddress = context.OpcPlcConfig.Urls.Split(";")[0];
+            var firstAciIpAddress = context.OpcPlcConfig.Ips.Split(";")[0];
             var containerGroups = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
                 cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             var containerGroup = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
                 cancellationToken: cancellationToken).ConfigureAwait(false))
-                .First(g => g.IPAddress == firstAciIpAddress || g.Fqdn == firstAciIpAddress);
+                .First(g => g.IPAddress == firstAciIpAddress);
             context.PLCImage = containerGroup.Containers.First().Value.Image;
 
             return azure;

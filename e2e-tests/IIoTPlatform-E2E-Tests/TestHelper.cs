@@ -119,11 +119,13 @@ namespace IIoTPlatformE2ETests
         /// Get urls of the simulated test opc servers
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="useIpAddress">use ip address instead of host name</param>
         /// <returns>List of server urls</returns>
         public static List<string> GetSimulatedOpcServerUrls(
-            IIoTPlatformTestContext context)
+            IIoTPlatformTestContext context, bool useIpAddress = true)
         {
-            return context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).Select(ip => $"opc.tcp://{ip}:50000").ToList();
+            var items = useIpAddress ? context.OpcPlcConfig.Ips : context.OpcPlcConfig.Urls;
+            return items.Split(TestConstants.SimulationUrlsSeparator).Select(host => $"opc.tcp://{host}:50000").ToList();
         }
 
         /// <summary>

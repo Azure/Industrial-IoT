@@ -226,6 +226,9 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public string Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new InvalidOperationException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
+        public string Ips => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_IPS,
+            () => throw new InvalidOperationException("Semicolon separated list of ip addresses of OPC-PLCs is not provided."));
+
         public string TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
             () => GetStringOrDefault("AZURE_TENANT_ID", () => throw new InvalidOperationException("Tenant Id is not provided.")));
 
