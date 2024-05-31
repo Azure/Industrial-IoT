@@ -88,21 +88,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return ValueTask.CompletedTask;
             }
 
-            //
-            // Subscription identifier is the writer name, there should not be duplicate
-            // writer names here, if there are we throw an exception.
-            //
-            var dataSetWriterSubscriptionMap =
-                new Dictionary<SubscriptionIdentifier, DataSetWriterModel>();
-            foreach (var writerEntry in writerGroup.DataSetWriters)
-            {
-                var id = writerEntry.ToSubscriptionId();
-                if (!dataSetWriterSubscriptionMap.TryAdd(id, writerEntry))
+                //
+                // Subscription identifier is the writer name, there should not be duplicate
+                // writer names here, if there are we throw an exception.
+                //
+                var dataSetWriterSubscriptionMap =
+                    new Dictionary<SubscriptionIdentifier, DataSetWriterModel>();
+                foreach (var writerEntry in writerGroup.DataSetWriters)
                 {
-                    throw new ArgumentException(
-                        $"Group {writerGroup.Id} contains duplicate writer {id}.");
+                    var id = writerEntry.ToSubscriptionId(writerGroup.Name, _subscriptionConfig.Value);
+                    if (!dataSetWriterSubscriptionMap.TryAdd(id, writerEntry))
+                    {
+                        throw new ArgumentException(
+                            $"Group {writerGroup.Id} contains duplicate writer {id}.");
+                    }
                 }
-            }
 
             // Update or removed ones that were updated or removed.
             foreach (var id in _subscriptions.Keys.ToList())
@@ -133,9 +133,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var writerSubscription =
                         new DataSetWriterSubscription(this, writerGroup, writer.Value);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                    _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
+                        Debug.Assert(writer.Key == writerSubscription.Id);
+                        _subscriptions.AddOrUpdate(writer.Key, writerSubscription);
+                    }
                 }
-            }
 
             _logger.LogInformation(
                 "Successfully updated all subscriptions inside the writer group {WriterGroup}.",

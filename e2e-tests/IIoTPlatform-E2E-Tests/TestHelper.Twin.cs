@@ -14,7 +14,6 @@ namespace IIoTPlatformE2ETests
     using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -88,7 +87,7 @@ namespace IIoTPlatformE2ETests
                 {
                     request = new RestRequest($"twin/v2/browse/{endpointId}", Method.Get)
                     {
-                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                        Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                     };
 
                     if (!string.IsNullOrEmpty(nodeId))
@@ -100,7 +99,7 @@ namespace IIoTPlatformE2ETests
                 {
                     request = new RestRequest($"twin/v2/browse/{endpointId}/next", Method.Get)
                     {
-                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                        Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                     };
                     request.AddQueryParameter("continuationToken", continuationToken);
                 }
@@ -114,13 +113,13 @@ namespace IIoTPlatformE2ETests
                 {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
+                    throw new Xunit.Sdk.XunitException($"GET twin/v2/browse/{endpointId} of node {nodeId} failed (continuation: {continuationToken ?? "None"})!");
                 }
 
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
 
-                Assert.True(HasProperty(json, "references"), "GET twin/v2/browse/{endpointId} response has no items");
-                Assert.False(json.references == null, "GET twin/v2/browse/{endpointId} response references property is null");
+                Assert.True(HasProperty(json, "references"), $"GET twin/v2/browse/{endpointId} of node {nodeId} response has no items");
+                Assert.False(json.references == null, $"GET twin/v2/browse/{endpointId} of node {nodeId} response references property is null");
 
                 var result = new List<(string NodeId, string NodeClass, bool Children)>();
 
@@ -161,16 +160,18 @@ namespace IIoTPlatformE2ETests
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
+            /// <param name="maxResult"></param>
             /// <param name="nodeClass">Class of the node to filter to or null for no filtering</param>
             /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
             /// <param name="ct">Cancellation token</param>
             /// <exception cref="ArgumentNullException"></exception>
             public static async Task<List<(string NodeId, string NodeClass, bool Children)>> GetBrowseEndpointRecursiveAsync(
-                    IIoTPlatformTestContext context,
-                    string endpointId,
-                    string nodeClass = null,
-                    string nodeId = null,
-                    CancellationToken ct = default)
+                IIoTPlatformTestContext context,
+                string endpointId,
+                int maxResult,
+                string nodeClass = null,
+                string nodeId = null,
+                CancellationToken ct = default)
             {
                 if (string.IsNullOrEmpty(endpointId))
                 {
@@ -178,11 +179,14 @@ namespace IIoTPlatformE2ETests
                     throw new ArgumentNullException(nameof(endpointId));
                 }
 
-                var nodes = new ConcurrentBag<(string NodeId, string NodeClass, bool Children)>();
+                var nodes = new ConcurrentDictionary<string, (string NodeClass, bool Children)>();
 
-                await GetBrowseEndpointRecursiveCollectResultsAsync(context, endpointId, nodes, nodeId, ct).ConfigureAwait(false);
+                await GetBrowseEndpointRecursiveCollectResultsAsync(context, endpointId, nodes, maxResult, nodeId, ct).ConfigureAwait(false);
 
-                return nodes.Where(n => string.Equals(nodeClass, n.NodeClass, StringComparison.OrdinalIgnoreCase)).ToList();
+                return nodes
+                    .Where(n => string.Equals(nodeClass, n.Value.NodeClass, StringComparison.OrdinalIgnoreCase))
+                    .Select(n => (n.Key, n.Value.NodeClass, n.Value.Children))
+                    .ToList();
             }
 
             /// <summary>
@@ -191,34 +195,37 @@ namespace IIoTPlatformE2ETests
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
             /// <param name="nodes">Collection of nodes found</param>
+            /// <param name="maxResults"></param>
             /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
             /// <param name="ct">Cancellation token</param>
             private static async Task GetBrowseEndpointRecursiveCollectResultsAsync(
-                    IIoTPlatformTestContext context,
-                    string endpointId,
-                    ConcurrentBag<(string NodeId, string NodeClass, bool Children)> nodes,
-                    string nodeId = null,
-                    CancellationToken ct = default)
+                IIoTPlatformTestContext context,
+                string endpointId,
+                ConcurrentDictionary<string, (string NodeClass, bool Children)> nodes,
+                int maxResults,
+                string nodeId = null,
+                CancellationToken ct = default)
             {
                 var currentNodes = await GetBrowseEndpointAsync(context, endpointId, nodeId, ct).ConfigureAwait(false);
 
                 foreach (var node in currentNodes)
                 {
                     ct.ThrowIfCancellationRequested();
-
-                    if (nodes.Any(n => string.Equals(n.NodeId, node.NodeId, StringComparison.Ordinal)))
+                    if (!nodes.TryAdd(node.NodeId, (node.NodeClass, node.Children)))
                     {
                         continue;
                     }
-
-                    nodes.Add(node);
-
+                    if (maxResults != -1 && nodes.Count >= maxResults)
+                    {
+                        return;
+                    }
                     if (node.Children)
                     {
                         await GetBrowseEndpointRecursiveCollectResultsAsync(
                             context,
                             endpointId,
                             nodes,
+                            maxResults,
                             node.NodeId,
                             ct).ConfigureAwait(false);
                     }
@@ -243,7 +250,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/call/{endpointId}/metadata", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -284,7 +291,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/read/{endpointId}/attributes", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -324,7 +331,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/write/{endpointId}/attributes", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -367,7 +374,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/call/{endpointId}", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -412,7 +419,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/browse/{endpointId}/path", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -457,7 +464,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/read/{endpointId}", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -470,8 +477,8 @@ namespace IIoTPlatformE2ETests
 
                 if (!response.IsSuccessful)
                 {
-                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("POST twin/v2/read failed!");
                 }
 
@@ -511,7 +518,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest($"twin/v2/write/{endpointId}", Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -524,8 +531,8 @@ namespace IIoTPlatformE2ETests
 
                 if (!response.IsSuccessful)
                 {
-                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                     throw new Xunit.Sdk.XunitException("POST twin/v2/read failed!");
                 }
             }

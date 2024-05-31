@@ -176,9 +176,10 @@ if ($aciNamesToCreate.Length -gt 0) {
     }
 }
 
-## Write ACI FQDNs to KeyVault ##
+## Write ACI FQDNs and ips to KeyVault ##
 Write-Host
 Write-Host "Getting IPs of ACIs for simulated PLCs..."
+$fqdnList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.fqdn"  | ConvertFrom-Json
 $ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
 
 if ($ipList.Count -eq 0) {
@@ -187,15 +188,15 @@ if ($ipList.Count -eq 0) {
 
 foreach ($ip in $ipList) {
     Write-Host $ip
-    $plcSimNames += $ip + ";"
+    $plcSimIps += $ip + ";"
 }
-
-try {
-    Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
-    az keyvault secret set --vault-name $keyVault --name "plc-simulation-urls" --value $plcSimNames > $null
+foreach ($fqdn in $fqdnList) {
+    Write-Host $ip
+    $plcSimNames += $fqdn + ";"
 }
-catch {
-    Write-Host "Plc simulation urls are empty"
-}
+Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
+az keyvault secret set --vault-name $keyVault --name "plc-simulation-urls" --value $plcSimNames > $null
+Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-ips' with value '$($plcSimIps)'..."
+az keyvault secret set --vault-name $keyVault --name "plc-simulation-ips" --value $plcSimIps > $null
 
 Write-Host "Deployment finished."

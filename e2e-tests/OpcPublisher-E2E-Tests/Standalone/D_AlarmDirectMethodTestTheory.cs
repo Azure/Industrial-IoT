@@ -9,6 +9,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using OpcPublisherAEE2ETests.TestModels;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -25,7 +26,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectPendingConditionsView()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectPendingConditionsView()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>

@@ -28,7 +28,7 @@ namespace IIoTPlatformE2ETests.Deploy
         protected override int Priority => 0;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+        protected override string DeploymentName => kDeploymentName;
 
         /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
@@ -40,75 +40,85 @@ namespace IIoTPlatformE2ETests.Deploy
             const string server = TestConstants.MicrosoftContainerRegistry;
             var version = _context.IoTEdgeConfig.EdgeVersion;
 
-            return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
+            return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>("""
+
             {
-                ""$edgeAgent"": {
-                    ""properties.desired"": {
-                        ""schemaVersion"": """ + kDefaultSchemaVersion + @""",
-                        ""runtime"": {
-                            ""type"": ""docker"",
-                            ""settings"": {
-                                ""minDockerVersion"": ""v1.25"",
-                                ""loggingOptions"": """",
-                                ""registryCredentials"": {
+                "$edgeAgent": {
+                    "properties.desired": {
+                        "schemaVersion": "
+""" + kDefaultSchemaVersion + """
+",
+                        "runtime": {
+                            "type": "docker",
+                            "settings": {
+                                "minDockerVersion": "v1.25",
+                                "loggingOptions": "",
+                                "registryCredentials": {
                                 }
                             }
                         },
-                        ""systemModules"": {
-                            ""edgeAgent"": {
-                                ""type"": ""docker"",
-                                ""settings"": {
-                                    ""image"": """ + server + "/azureiotedge-agent:" + version + @""",
-                                    ""createOptions"": ""{}""
+                        "systemModules": {
+                            "edgeAgent": {
+                                "type": "docker",
+                                "settings": {
+                                    "image": "
+""" + server + "/azureiotedge-agent:" + version + """
+",
+                                    "createOptions": "{}"
                                 },
-                                ""env"": {
-                                    ""ExperimentalFeatures__Enabled"": {
-                                        ""value"": ""true""
+                                "env": {
+                                    "ExperimentalFeatures__Enabled": {
+                                        "value": "true"
                                     },
-                                    ""ExperimentalFeatures__EnableGetLogs"": {
-                                        ""value"": ""true""
+                                    "ExperimentalFeatures__EnableGetLogs": {
+                                        "value": "true"
                                     },
-                                    ""ExperimentalFeatures__EnableUploadLogs"": {
-                                        ""value"": ""true""
+                                    "ExperimentalFeatures__EnableUploadLogs": {
+                                        "value": "true"
                                     },
-                                    ""ExperimentalFeatures__EnableMetrics"": {
-                                        ""value"": ""true""
+                                    "ExperimentalFeatures__EnableMetrics": {
+                                        "value": "true"
                                     }
                                 }
                             },
-                            ""edgeHub"": {
-                                ""type"": ""docker"",
-                                ""status"": ""running"",
-                                ""restartPolicy"": ""always"",
-                                ""settings"": {
-                                    ""image"": """ + server + "/azureiotedge-hub:" + version + @""",
-                                    ""createOptions"":  ""{\""HostConfig\"":{\""PortBindings\"":{\""443/tcp\"":[{\""HostPort\"":\""443\""}],\""5671/tcp\"":[{\""HostPort\"":\""5671\""}],\""8883/tcp\"":[{\""HostPort\"":\""8883\""}],\""9600/tcp\"":[{\""HostPort\"":\""9600\""}]}},\""ExposedPorts\"":{\""5671/tcp\"":{},\""8883/tcp\"":{},\""9600/tcp\"":{}}}""
+                            "edgeHub": {
+                                "type": "docker",
+                                "status": "running",
+                                "restartPolicy": "always",
+                                "settings": {
+                                    "image": "
+""" + server + "/azureiotedge-hub:" + version + """
+",
+                                    "createOptions":  "{\"HostConfig\":{\"PortBindings\":{\"443/tcp\":[{\"HostPort\":\"443\"}],\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"9600/tcp\":[{\"HostPort\":\"9600\"}]}},\"ExposedPorts\":{\"5671/tcp\":{},\"8883/tcp\":{},\"9600/tcp\":{}}}"
                                 },
-                                ""env"": {
-                                    ""experimentalFeatures:enabled"": {
-                                        ""value"": ""true""
+                                "env": {
+                                    "experimentalFeatures:enabled": {
+                                        "value": "true"
                                     },
-                                    ""SslProtocols"": {
-                                        ""value"": ""tls1.2""
+                                    "SslProtocols": {
+                                        "value": "tls1.2"
                                     }
                                 }
                             }
                         },
-                        ""modules"": {
+                        "modules": {
                         }
                     }
                 },
-                ""$edgeHub"": {
-                    ""properties.desired"": {
-                        ""routes"": { },
-                        ""schemaVersion"": """ + kDefaultSchemaVersion + @""",
-                        ""storeAndForwardConfiguration"": {
-                            ""timeToLiveSecs"": 7200
+                "$edgeHub": {
+                    "properties.desired": {
+                        "routes": { },
+                        "schemaVersion": "
+""" + kDefaultSchemaVersion + """
+",
+                        "storeAndForwardConfiguration": {
+                            "timeToLiveSecs": 7200
                         }
                     }
                 }
             }
-            ");
+
+""");
         }
 
         private const string kDefaultSchemaVersion = "1.0";

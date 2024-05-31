@@ -152,6 +152,8 @@
         "nicResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicResourceName'))]",
         "vnetResourceName": "[concat(variables('vmName'), '-vnet')]",
         "vnetResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetResourceName'))]",
+        "nsgResourceName": "[concat(variables('vmName'), '-nsg')]",
+        "nsgResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('nsgResourceName'))]",
         "simulationName": "[concat(variables('vmName'), '-sim')]",
         "simulationResourceName": "[concat(deployment().name, '.edge')]",
         "identity": {
@@ -288,6 +290,73 @@
             "dependsOn": [
                 "[variables('vnetResourceId')]"
             ]
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2023-04-01",
+            "name": "[variables('nsgResourceName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "default-allow-22",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', variables('nsgResourceName'), 'default-allow-22')]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAnyHTTPSOutbound",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', variables('nsgResourceName'), 'DenyAnyHTTPSOutbound')]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1010,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "DenyAnyHTTPOutbound",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', variables('nsgResourceName'), 'DenyAnyHTTPOutbound')]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1020,
+                            "direction": "Outbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
         },
         {
             "comments": "Virtual machine hosting the IoT Edge installation.",

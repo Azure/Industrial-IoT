@@ -100,12 +100,15 @@ $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $key
 
 if (!$keyVault) {
     Write-Host "Creating Key Vault $($keyVaultName)"
-    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location
+    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location -DisableRbacAuthorization
+}
+else {
+    $keyVault | Update-AzKeyVault -DisableRbacAuthorization
 }
 
 if ($ServicePrincipalId) {
     Write-Host "Setting Key Vault Permissions for Service Principal $($ServicePrincipalId)..."
-    Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set | Out-Null
+    Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set
 }
 
 $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothub.Name -KeyName "iothubowner"

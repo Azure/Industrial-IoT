@@ -320,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Renew certifiate
+        /// Renew certificate
         /// </summary>
         /// <param name="state"></param>
         private async void OnRenewExpiredCertificateAsync(object? state)
@@ -398,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             await SendDiagnosticsAsync(diagnostics, ct).ConfigureAwait(false);
                             break;
                         // TODO: case PublisherDiagnosticTargetType.PubSub:
-                        //           break;
+                        // TODO:     break;
                         default:
                             WriteDiagnosticsToConsole(diagnostics);
                             break;
@@ -534,15 +534,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 return builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
-                        .AppendLine(writerGroupId)
+                        .Append(info.WriterGroupName ?? Constants.DefaultWriterGroupName)
+                        .Append(" (")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", writerGroupId)
+                        .AppendLine(")")
                     .Append("  # OPC Publisher Version (Runtime)    : ")
                         .AppendLine(info.PublisherVersion)
-                    .Append("  # Time                               : ")
+                    .Append("  # Cpu/Memory max                     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.MaximumCpuUnits)
+                        .Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MaximumMemoryInBytes / 1000d)
+                        .AppendLine(" KB")
+                    .Append("  # Cpu/Memory available               : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.GuaranteedCpuUnits)
+                        .Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.GuaranteedMemoryInBytes / 1000d)
+                        .AppendLine(" KB")
+                    .Append("  # Cpu/Memory % used (window/total)   : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:p2}", info.CpuUsedPercentage)
+                        .Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:p2}", info.MemoryUsedPercentage)
+                        .Append(" (")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MemoryUsedInBytes / 1000d)
+                        .AppendLine(" kb)")
+                    .Append("  # Ingest duration (dd:hh:mm:ss)/Time : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", info.IngestionDuration)
+                        .Append(" | ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:O}", info.Timestamp)
                         .AppendLine()
-                    .Append("  # Ingestion duration                 : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", info.IngestionDuration)
-                        .AppendLine(" (dd:hh:mm:ss)")
                     .Append("  # Endpoints connected/disconnected   : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfConnectedEndpoints).Append(" | ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.NumberOfDisconnectedEndpoints).Append(' ')

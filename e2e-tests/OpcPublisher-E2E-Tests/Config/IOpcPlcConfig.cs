@@ -13,6 +13,11 @@ namespace OpcPublisherAEE2ETests.Config
         string Urls { get; }
 
         /// <summary>
+        /// Semicolon separated ip addresses of the OPC-PLCs
+        /// </summary>
+        string Ips { get; }
+
+        /// <summary>
         /// TenantId for SP
         /// </summary>
         string TenantId { get; }

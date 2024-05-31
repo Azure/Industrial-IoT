@@ -65,7 +65,7 @@ namespace IIoTPlatformE2ETests
 
                                 if (requestedEndpointUrls?.Contains(endpoint) != false && !foundEndpoints.Contains(endpoint))
                                 {
-                                    context.OutputHelper?.WriteLine($"Found {endpoint}...");
+                                    context.OutputHelper.WriteLine($"Found {endpoint}...");
                                     foundEndpoints.Add(endpoint);
                                 }
                             }
@@ -76,11 +76,12 @@ namespace IIoTPlatformE2ETests
 
                             if (foundEndpoints.Count < expectedNumberOfEndpoints)
                             {
+                                context.OutputHelper.WriteLine($"Found {foundEndpoints.Count} out of {expectedNumberOfEndpoints} endpoints...");
                                 await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                             }
                             else
                             {
-                                context.OutputHelper?.WriteLine("Found all endpoints!");
+                                context.OutputHelper.WriteLine("Found all endpoints!");
                                 shouldExit = true;
                             }
                         }
@@ -90,7 +91,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception e)
                 {
-                    context.OutputHelper?.WriteLine("Error: discovery module didn't find OPC UA server in time");
+                    context.OutputHelper.WriteLine("Error: discovery module didn't find OPC UA server in time");
                     PrettyPrintException(e, context.OutputHelper);
                     return null;
                 }
@@ -115,7 +116,7 @@ namespace IIoTPlatformE2ETests
                 ct.ThrowIfCancellationRequested();
                 if (requestedEndpointUrls?.Count > 0)
                 {
-                    context.OutputHelper?.WriteLine($"Waiting for endpoint {requestedEndpointUrls.Aggregate((a, b) => a + ", " + b)}");
+                    context.OutputHelper.WriteLine($"Waiting for endpoint {requestedEndpointUrls.Aggregate((a, b) => a + ", " + b)}");
                 }
                 try
                 {
@@ -141,7 +142,7 @@ namespace IIoTPlatformE2ETests
                                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
                                 if (!totalEndpoints.Contains(endpoint))
                                 {
-                                    context.OutputHelper?.WriteLine($"Found {endpoint}.");
+                                    context.OutputHelper.WriteLine($"Found {endpoint}.");
                                     totalEndpoints.Add(endpoint);
                                 }
 
@@ -152,7 +153,7 @@ namespace IIoTPlatformE2ETests
                                         securityPolicy == json.items[indexOfOpcUaEndpoint].registration.endpoint.securityPolicy) &&
                                         !foundEndpoints.Contains(endpoint)))
                                 {
-                                    context.OutputHelper?.WriteLine($"Matched {endpoint}...");
+                                    context.OutputHelper.WriteLine($"Matched {endpoint}...");
                                     foundEndpoints.Add(endpoint);
                                 }
                             }
@@ -167,7 +168,7 @@ namespace IIoTPlatformE2ETests
                             }
                             else
                             {
-                                context.OutputHelper?.WriteLine("Found all endpoints!");
+                                context.OutputHelper.WriteLine("Found all endpoints!");
                                 shouldExit = true;
                             }
                         }
@@ -177,7 +178,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception e)
                 {
-                    context.OutputHelper?.WriteLine("Error: OPC UA endpoint not found in time");
+                    context.OutputHelper.WriteLine("Error: OPC UA endpoint not found in time");
                     PrettyPrintException(e, context.OutputHelper);
                     throw;
                 }

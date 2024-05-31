@@ -13,61 +13,63 @@ namespace OpcPublisherAEE2ETests
         {
             public static string SimpleEvents(string host, uint port, string writerId)
             {
-                return @$"
+                return $$"""
+
                 [
-                    {{
-                        ""EndpointUrl"": ""opc.tcp://{host}:{port}"",
-                        ""UseSecurity"": true,
-                        ""DataSetWriterId"":""{writerId}"",
-                        ""OpcNodes"": [
-                            {{
-                                ""Id"": ""ns=0;i=2253"",
-                                ""QueueSize"": 10,
-                                ""DisplayName"": ""SimpleEvents"",
-                                ""EventFilter"": {{
-                                    ""SelectClauses"": [
-                                        {{
-                                            ""TypeDefinitionId"": ""i=2041"",
-                                            ""BrowsePath"": [
-                                                ""EventId""
+                    {
+                        "EndpointUrl": "opc.tcp://{{host}}:{{port}}",
+                        "UseSecurity": true,
+                        "DataSetWriterId":"{{writerId}}",
+                        "OpcNodes": [
+                            {
+                                "Id": "ns=0;i=2253",
+                                "QueueSize": 10,
+                                "DisplayName": "SimpleEvents",
+                                "EventFilter": {
+                                    "SelectClauses": [
+                                        {
+                                            "TypeDefinitionId": "i=2041",
+                                            "BrowsePath": [
+                                                "EventId"
                                             ]
-                                        }},
-                                        {{
-                                            ""TypeDefinitionId"": ""i=2041"",
-                                            ""BrowsePath"": [
-                                                ""Message""
+                                        },
+                                        {
+                                            "TypeDefinitionId": "i=2041",
+                                            "BrowsePath": [
+                                                "Message"
                                             ]
-                                        }},
-                                        {{
-                                            ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
-                                            ""BrowsePath"": [
-                                                ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId""
+                                        },
+                                        {
+                                            "TypeDefinitionId": "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2",
+                                            "BrowsePath": [
+                                                "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CycleId"
                                             ]
-                                        }},
-                                        {{
-                                            ""TypeDefinitionId"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"",
-                                            ""BrowsePath"": [
-                                                ""http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep""
+                                        },
+                                        {
+                                            "TypeDefinitionId": "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2",
+                                            "BrowsePath": [
+                                                "http://microsoft.com/Opc/OpcPlc/SimpleEvents#CurrentStep"
                                             ]
-                                        }}
+                                        }
                                     ],
-                                    ""WhereClause"": {{
-                                        ""Elements"": [
-                                            {{
-                                                ""FilterOperator"": ""OfType"",
-                                                ""FilterOperands"": [
-                                                    {{
-                                                        ""Value"": ""nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2""
-                                                    }}
+                                    "WhereClause": {
+                                        "Elements": [
+                                            {
+                                                "FilterOperator": "OfType",
+                                                "FilterOperands": [
+                                                    {
+                                                        "Value": "nsu=http://microsoft.com/Opc/OpcPlc/SimpleEvents;i=2"
+                                                    }
                                                 ]
-                                            }}
+                                            }
                                         ]
-                                    }}
-                                }}
-                            }}
+                                    }
+                                }
+                            }
                         ]
-                    }}
-                ]";
+                    }
+                ]
+""";
             }
 
             public static JArray SimpleEventFilter(

@@ -1,8 +1,15 @@
 steps:
-- task: DownloadPipelineArtifact@2
+- task: AzurePowerShell@5
+  displayName: "Deploy required test resources"
+  timeoutInMinutes: 90
   inputs:
-    artifact: 'testartifacts'
-    path: $(BasePath)
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployTestResources.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
 
 - task: AzureCLI@2
   displayName: "Deploy containers with simulated PLCs with public ips"
@@ -10,8 +17,9 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
     scriptType: 'ps'
-    scriptPath: '$(BasePath)\DeployPLCs.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployPLCs.ps1'
     arguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -UsePrivateIp $false
@@ -21,23 +29,10 @@ steps:
   timeoutInMinutes: 90
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '10.3.0'
+    azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DeployEdge.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DeployEdge.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(Agent.TempDirectory)"
-
-- task: AzurePowerShell@5
-  displayName: "Deploy TestEventProcessor"
-  timeoutInMinutes: 90
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'OtherVersion'
-    preferredAzurePowerShellVersion: '10.3.0'
-    scriptType: filePath
-    scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
-    scriptArguments: >
-      -ResourceGroupName "$(ResourceGroupName)"
-      -PackageDirectory "$(BasePath)\TestEventProcessor"

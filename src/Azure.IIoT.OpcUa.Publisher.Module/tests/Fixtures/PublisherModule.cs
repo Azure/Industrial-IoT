@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Neovolve.Logging.Xunit;
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Edge;
@@ -34,6 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Neovolve.Logging.Xunit;
     using Opc.Ua;
     using System;
     using System.Buffers;

@@ -8,37 +8,34 @@ steps:
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: AzureCLI@2
-  displayName: 'Set Service Principal Environment Variables'
-  name: promoteserviceprincipal
+  displayName: 'Get Service Principal Access Token'
+  name: ServicePrincipalAccessToken
   inputs:
     azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
     scriptLocation: 'InlineScript'
     scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
+      $accessToken = az account get-access-token | ConvertFrom-Json
+      Write-Host "Got token for $($accessToken.subscription) which expires $($accessToken.expiresOn)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
-
-- task: PowerShell@2
-  displayName: Versioning
-  name: setVersionInfo
-  inputs:
-    targetType: filePath
-    filePath: $(BasePath)\..\scripts\set-version.ps1
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalIdToken]$($env:idToken)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
 
 - task: AzurePowerShell@5
   displayName: 'Auto-Set Variables'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\SetVariables.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ImageNamespace "$(ImageNamespace)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
@@ -46,26 +43,26 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
     scriptType: 'InlineScript'
-    Inline: |
+    inline: |
       $secureContainerRegistryPassword = "$(ContainerRegistryPassword)" `
         | ConvertTo-SecureString -AsPlainText -Force
-      $secureServicePrincipalSecret = "$(ServicePrincipalKey)" `
+      $secureAccessToken = "$(ServicePrincipalAccessToken)" `
         | ConvertTo-SecureString -AsPlainText -Force
-      $credentials = New-Object -TypeName System.Management.Automation.PSCredential `
-        -ArgumentList "$(ServicePrincipalId)", $secureServicePrincipalSecret
       Write-Host "Deploying to '$(ResourceGroupName)'..."
-      . $(System.DefaultWorkingDirectory)/deploy/scripts/deploy.ps1 `
+      . $(BasePath)/deploy/scripts/deploy.ps1 `
           -type services `
+          -BranchName "$(BranchName)" `
+          -ImageNamespace "$(ImageNamespace)" `
           -version "$(PlatformVersion)" `
           -applicationName "$(ApplicationName)" `
           -resourceGroupName "$(ResourceGroupName)" `
           -resourceGroupLocation "$(Region)" `
-          -imageNamespace "$(ImageNamespace)" `
           -containerRegistryServer "$(ContainerRegistryServer)" `
           -containerRegistryUsername "$(ContainerRegistryUsername)" `
           -containerRegistryPassword $secureContainerRegistryPassword `
-          -credentials $credentials `
+          -accessToken $secureAccessToken `
           -context $(Get-AzContext)
       Write-Host "Finished deployment to '$(ResourceGroupName)'."
 
@@ -75,8 +72,9 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -ServicePrincipalName "$(ServicePrincipalId)"
@@ -85,8 +83,9 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
 - task: AzureKeyVault@1

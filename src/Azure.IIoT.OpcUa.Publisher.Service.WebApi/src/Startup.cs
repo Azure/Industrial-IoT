@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     using Furly.Extensions.Logging;
     using Furly.Tunnel.Protocol;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;

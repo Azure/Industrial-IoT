@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
@@ -2018,7 +2019,6 @@ Actual (revised) state/desired state:
                 overflow = 0;
                 foreach (var n in Notifications)
                 {
-                    /**/
                     if (n.Flags.HasFlag(MonitoredItemSourceFlags.ModelChanges))
                     {
                         modelChanges++;

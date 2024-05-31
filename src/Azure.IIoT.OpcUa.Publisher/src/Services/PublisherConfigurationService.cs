@@ -727,15 +727,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new MethodCallStatusException((int)HttpStatusCode.ServiceUnavailable,
                         "Diagnostics service is disabled.");
                 }
-                foreach (var nodes in GetCurrentPublishedNodes())
+                foreach (var nodes in GetCurrentPublishedNodes().GroupBy(k => k.GetUniqueWriterGroupId()))
                 {
-                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(nodes.GetUniqueWriterGroupId(), out var model))
+                    if (!_diagnostics.TryGetDiagnosticsForWriterGroup(nodes.Key, out var model))
                     {
                         continue;
                     }
                     result.Add(new PublishDiagnosticInfoModel
                     {
-                        Endpoint = nodes,
+                        Endpoints = nodes.ToList(),
                         SentMessagesPerSec = model.SentMessagesPerSec,
                         IngestionDuration = DateTime.UtcNow - model.IngestionStart,
                         IngressDataChanges = model.IngressDataChanges,

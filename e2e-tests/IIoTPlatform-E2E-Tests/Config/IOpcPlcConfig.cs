@@ -11,5 +11,10 @@ namespace IIoTPlatformE2ETests.Config
         /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
         /// </summary>
         string Urls { get; }
+
+        /// <summary>
+        /// Semicolon separated ip addresses of the OPC-PLCs
+        /// </summary>
+        string Ips { get; }
     }
 }

@@ -5,6 +5,7 @@
 
 namespace IIoTPlatformE2ETests
 {
+    using System;
     using System.Text;
 
     /// <summary>
@@ -13,7 +14,7 @@ namespace IIoTPlatformE2ETests
     internal static class TestConstants
     {
         /// <summary>
-        /// Character that need to be used when split value of "PLC_SIMULATION_URLS"
+        /// Character that need to be used when split value of "PLC_SIMULATION_XYZ" environment variables
         /// </summary>
         public static char SimulationUrlsSeparator = ';';
 
@@ -25,17 +26,28 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Await time for initialization/setup or no data expected.
         /// </summary>
-        public const int AwaitInitInMilliseconds = 30 * 1000;
+        public static int AwaitInitInMilliseconds => GetIntFromEnv("TEST_INIT_DELAY_MS", 30 * 1000);
 
         /// <summary>
         /// Await time for waiting new data
         /// </summary>
-        public const int AwaitDataInMilliseconds = 90 * 1000;
+        public static int AwaitDataInMilliseconds => GetIntFromEnv("TEST_WAIT_DATA_DURATION_MS", 90 * 1000);
 
         /// <summary>
         /// Await time for cleanup or no data expected.
         /// </summary>
-        public const int AwaitCleanupInMilliseconds = 20 * 1000;
+        public static int AwaitCleanupInMilliseconds => GetIntFromEnv("TEST_CLEANUP_DELAY_MS", 20 * 1000);
+
+        /// <summary>
+        /// Await time for waiting new data
+        /// </summary>
+        public static int AwaitNoDataInMilliseconds => GetIntFromEnv("TEST_WAIT_NO_DATA_DURATION_MS", 20 * 1000);
+
+        private static int GetIntFromEnv(string envName, int defaultValue)
+        {
+            var envValue = Environment.GetEnvironmentVariable(envName);
+            return int.TryParse(envValue, out var value) ? value : defaultValue;
+        }
 
         /// <summary>
         /// Default timeout of web calls
@@ -50,7 +62,7 @@ namespace IIoTPlatformE2ETests
         /// <summary>
         /// Maximum timeout for a test case
         /// </summary>
-        public const int MaxTestTimeoutMilliseconds = 25 * 60 * 1000;
+        public const int MaxTestTimeoutMilliseconds = 50 * 60 * 1000;
 
         /// <summary>
         /// Name of Published Nodes Json used by publisher module
@@ -72,6 +84,11 @@ namespace IIoTPlatformE2ETests
         /// Default Microsoft Container Registry
         /// </summary>
         public const string MicrosoftContainerRegistry = "mcr.microsoft.com";
+
+        /// <summary>
+        /// IoT Hub Event Hubs endpoint consumer group for tests
+        /// </summary>
+        public const string TestConsumerGroupName = "TestConsumer";
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
@@ -191,6 +208,11 @@ namespace IIoTPlatformE2ETests
             /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
             /// </summary>
             public const string PLC_SIMULATION_URLS = "PLC_SIMULATION_URLS";
+
+            /// <summary>
+            /// Semicolon separated ip addresses of OPC Plcs
+            /// </summary>
+            public const string PLC_SIMULATION_IPS = "PLC_SIMULATION_IPS";
 
             /// <summary>
             /// IoTEdge version

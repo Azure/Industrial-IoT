@@ -10,13 +10,15 @@
     <None Remove="TestResults\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.3" />
+    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.0.0" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.39.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
     <PackageReference Include="SSH.NET" Version="2024.0.0" />
-    <PackageReference Include="RestSharp" Version="110.2.0" />
-    <PackageReference Include="xunit" Version="2.7.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.8">
+    <PackageReference Include="RestSharp" Version="111.0.0" />
+    <PackageReference Include="xunit" Version="2.8.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

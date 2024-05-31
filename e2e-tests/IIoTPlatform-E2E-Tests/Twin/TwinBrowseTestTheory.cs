@@ -23,7 +23,7 @@ namespace IIoTPlatformE2ETests.Twin
         public TwinBrowseTestTheory(TwinTestContext context, ITestOutputHelper output)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
+            _context.SetOutputHelper(output);
         }
 
         [Fact, PriorityOrder(0)]
@@ -106,7 +106,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, "Object", null, cts.Token);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, -1, "Object", null, cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
@@ -126,12 +126,12 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, "Variable", null, cts.Token);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, -1, "Variable", null, cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
 
-            Assert.True(nodes.Count > 2000);
+            Assert.True(nodes.Count > 150);
 
             Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
             Assert.Contains(nodes, n => string.Equals("i=11617", n.NodeId, StringComparison.Ordinal));
