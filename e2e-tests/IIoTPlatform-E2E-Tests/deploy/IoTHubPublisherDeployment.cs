@@ -8,6 +8,8 @@ namespace IIoTPlatformE2ETests.Deploy
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
     using TestExtensions;
@@ -27,7 +29,7 @@ namespace IIoTPlatformE2ETests.Deploy
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context)
         {
             MessagingMode = messagingMode;
-            DeploymentName = kDeploymentName + $"-{DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+            DeploymentName = kDeploymentName;
         }
 
         /// <inheritdoc />
@@ -53,13 +55,23 @@ namespace IIoTPlatformE2ETests.Deploy
                 !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser))
             {
                 var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
-                registryCredentials = @"
-                    ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
-                        ""address"": """ + _context.ContainerRegistryConfig.ContainerRegistryServer + @""",
-                        ""password"": """ + _context.ContainerRegistryConfig.ContainerRegistryPassword + @""",
-                        ""username"": """ + _context.ContainerRegistryConfig.ContainerRegistryUser + @"""
+                registryCredentials = """
+
+                    "properties.desired.runtime.settings.registryCredentials.
+""" + registryId + """
+": {
+                        "address": "
+""" + _context.ContainerRegistryConfig.ContainerRegistryServer + """
+",
+                        "password": "
+""" + _context.ContainerRegistryConfig.ContainerRegistryPassword + """
+",
+                        "username": "
+""" + _context.ContainerRegistryConfig.ContainerRegistryUser + """
+"
                     },
-                ";
+
+""";
             }
 
             // Configure create options per os specified
@@ -95,27 +107,44 @@ namespace IIoTPlatformE2ETests.Deploy
             var version = _context.ContainerRegistryConfig.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/opc-publisher:{version}";
 
+            _context.
+            OutputHelper.WriteLine($"Deploying {image} as {ModuleName}");
+
             // Return deployment modules object
-            var content = @"
+            var content = """
+
             {
-                ""$edgeAgent"": {
-                    " + registryCredentials + @"
-                    ""properties.desired.modules." + ModuleName + @""": {
-                        ""settings"": {
-                            ""image"": """ + image + @""",
-                            ""createOptions"": """ + createOptions + @"""
+                "$edgeAgent": {
+
+""" + registryCredentials + """
+
+                    "properties.desired.modules.
+""" + ModuleName + """
+": {
+                        "settings": {
+                            "image": "
+""" + image + """
+",
+                            "createOptions": "
+""" + createOptions + """
+"
                         },
-                        ""type"": ""docker"",
-                        ""status"": ""running"",
-                        ""restartPolicy"": ""always"",
-                        ""version"": """ + (version == "latest" ? "1.0" : version) + @"""
+                        "type": "docker",
+                        "status": "running",
+                        "restartPolicy": "always",
+                        "version": "
+""" + (version == "latest" ? "1.0" : version) + """
+"
                     }
                 },
-                ""$edgeHub"": {
-                    ""properties.desired.routes." + ModuleName + @"ToUpstream"": ""FROM /messages/modules/" + ModuleName + @"/* INTO $upstream"",
-                    ""properties.desired.routes.leafToUpstream"": ""FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream""
+                "$edgeHub": {
+                    "properties.desired.routes.
+""" + ModuleName + @"ToUpstream"": ""FROM /messages/modules/" + ModuleName + """
+/* INTO $upstream",
+                    "properties.desired.routes.leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
                 }
-            }";
+            }
+""";
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(content);
         }
 

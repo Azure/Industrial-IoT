@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Opc.Ua;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Monitored item notification

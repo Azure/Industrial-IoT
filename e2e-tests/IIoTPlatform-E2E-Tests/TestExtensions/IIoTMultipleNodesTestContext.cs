@@ -39,10 +39,13 @@ namespace IIoTPlatformE2ETests.TestExtensions
         /// <returns></returns>
         public async Task LoadSimulatedPublishedNodesAsync(CancellationToken token)
         {
-            var simulatedPlcs = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, token).ConfigureAwait(false);
+            if (SimulatedPublishedNodes == null || SimulatedPublishedNodes.Count == 0)
+            {
+                var simulatedPlcs = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, token).ConfigureAwait(false);
 
-            SimulatedPublishedNodes = new ReadOnlyDictionary<string, PublishedNodesEntryModel>(
-                simulatedPlcs.ToDictionary(kvp => kvp.Value.EndpointUrl, kvp => kvp.Value));
+                SimulatedPublishedNodes = new ReadOnlyDictionary<string, PublishedNodesEntryModel>(
+                    simulatedPlcs.ToDictionary(kvp => kvp.Value.EndpointUrl, kvp => kvp.Value));
+            }
         }
 
         /// <summary>

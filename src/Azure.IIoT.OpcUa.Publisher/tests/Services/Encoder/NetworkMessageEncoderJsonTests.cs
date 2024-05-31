@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var count = networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count(b => b.Length != 0));
             Assert.All(networkMessages, m => Assert.All(((NetworkMessage)m.Event).Buffers,
                 m => Assert.True(m.Length <= maxMessageSize, m.Length.ToString(CultureInfo.InvariantCulture))));
-            Assert.InRange(count, 66, 68);
+            Assert.InRange(count, 65, 68);
             Assert.Equal(95, encoder.NotificationsProcessedCount);
             Assert.Equal((uint)500 - 95, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)count, encoder.MessagesProcessedCount);

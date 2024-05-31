@@ -26,7 +26,7 @@ namespace IIoTPlatformE2ETests.Discovery
         public DiscoveryTestTheory(DiscoveryTestContext context, ITestOutputHelper output)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
+            _context.SetOutputHelper(output);
 
             _cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
         }
@@ -59,7 +59,7 @@ namespace IIoTPlatformE2ETests.Discovery
             await TestHelper.Registry.RemoveAllApplicationsAsync(_context, _cancellationTokenSource.Token);
 
             // Add 1 server
-            var ipAddress = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).First();
+            var ipAddress = _context.OpcPlcConfig.Ips.Split(TestConstants.SimulationUrlsSeparator).First();
             var url = $"opc.tcp://{ipAddress}:50000";
             var urls = new HashSet<string> { url };
             await AddTestOpcServersAsync(urls, _cancellationTokenSource.Token);

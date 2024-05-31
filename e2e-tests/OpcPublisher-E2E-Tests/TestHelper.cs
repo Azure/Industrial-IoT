@@ -7,8 +7,10 @@ namespace OpcPublisherAEE2ETests
 {
     using Azure.Core;
     using Azure.Identity;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Management.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
@@ -22,7 +24,6 @@ namespace OpcPublisherAEE2ETests
     using Renci.SshNet;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -35,7 +36,6 @@ namespace OpcPublisherAEE2ETests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using Xunit.Sdk;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -75,8 +75,8 @@ namespace OpcPublisherAEE2ETests
             CancellationToken ct = default
         )
         {
-            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(json);
+            context.OutputHelper.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper.WriteLine(json);
             await PublishNodesAsync(json, context, ct).ConfigureAwait(false);
             await SwitchToStandaloneModeAsync(context, ct).ConfigureAwait(false);
         }
@@ -97,8 +97,8 @@ namespace OpcPublisherAEE2ETests
             {
                 try
                 {
-                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
-            		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context, ct).ConfigureAwait(false);
+                    using var scpClient = await CreateScpClientAndConnectAsync(context, ct).ConfigureAwait(false);
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
@@ -106,9 +106,7 @@ namespace OpcPublisherAEE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
-                        context.SshConfig.Host,
-                        context.SshConfig.Username, ex.Message);
+                    context.OutputHelper.WriteLine($"Failed to write {TestConstants.PublishedNodesFullName} to {TestConstants.PublishedNodesFolder} on host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
                     await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
@@ -118,15 +116,17 @@ namespace OpcPublisherAEE2ETests
         /// Clean published nodes JSON files.
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context)
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             for (var attempt = 0; ; attempt++)
             {
                 try
                 {
                     // Make sure directories exist.
-                    using (var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false))
+                    using (var sshCient = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false))
                     {
                         sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
                             $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
@@ -135,14 +135,11 @@ namespace OpcPublisherAEE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
-                        context.SshConfig.Host,
-                        context.SshConfig.Username, ex.Message);
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    context.OutputHelper.WriteLine($"Failed to create folder on host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
-
-            await PublishNodesAsync("[]", context).ConfigureAwait(false);
+            await PublishNodesAsync("[]", context, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -170,8 +167,10 @@ namespace OpcPublisherAEE2ETests
         /// Create a new SshClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context)
+        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -186,20 +185,18 @@ namespace OpcPublisherAEE2ETests
                 {
                     try
                     {
-                        client.Connect();
+                        await client.ConnectAsync(ct);
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5)
+                    catch (SocketException) when (++connectAttempt < 10)
                     {
-                        await Task.Delay(1000).ConfigureAwait(false);
+                        await Task.Delay(3000, ct).ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
-                    context.SshConfig.Host,
-                    context.SshConfig.Username, ex.Message);
+                context.OutputHelper.WriteLine($"Failed to open ssh connection to host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
                 throw;
             }
         }
@@ -208,8 +205,10 @@ namespace OpcPublisherAEE2ETests
         /// Create a new ScpClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context)
+        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -224,18 +223,18 @@ namespace OpcPublisherAEE2ETests
                 {
                     try
                     {
-                        client.Connect();
+                        await client.ConnectAsync(ct);
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5)
+                    catch (SocketException) when (++connectAttempt < 10)
                     {
-                        await Task.Delay(1000).ConfigureAwait(false);
+                        await Task.Delay(3000, ct).ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                context.OutputHelper.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
                 throw;
@@ -260,10 +259,12 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="fileName">Filename of the file to delete</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context)
+        /// <param name="ct"></param>
+        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var isSuccessful = false;
-            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+            using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
             var terminal = client.RunCommand("rm " + fileName);
 
@@ -273,19 +274,6 @@ namespace OpcPublisherAEE2ETests
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
-
-            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable")
-            {
-                using var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
-                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections)
-                {
-                    if (!string.IsNullOrEmpty(edge))
-                    {
-                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
-                        sshCient.RunCommand(command);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -293,21 +281,23 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context)
+        /// <param name="ct"></param>
+        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             Assert.False(string.IsNullOrWhiteSpace(folderPath));
 
             var isSuccessful = false;
-            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+            using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
-            var terminal = client.RunCommand("sudo mkdir " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
+            var terminal = client.RunCommand("sudo mkdir -p " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
 
             if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists", StringComparison.Ordinal))
             {
                 isSuccessful = true;
             }
 
-            Assert.True(isSuccessful, "Folder creation was not successful");
+            Assert.True(isSuccessful, $"Folder creation was not successful because of {terminal.Error}");
         }
 
         /// <summary>
@@ -455,8 +445,11 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context)
         {
-            await Task.WhenAll(
-            context.PlcAciDynamicUrls
+            if (context.PlcAciDynamicUrls == null || context.PlcAciDynamicUrls.Count == 0)
+            {
+                return;
+            }
+            await Task.WhenAll(context.PlcAciDynamicUrls
                 .Select(url => url.Split(".")[0])
                 .Select(n => context.AzureContext.ContainerGroups.DeleteByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, n))
             ).ConfigureAwait(false);
@@ -467,31 +460,53 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        private async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        internal async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
         {
             if (context.AzureContext != null)
             {
                 return context.AzureContext;
             }
 
-            context.OutputHelper.WriteLine($"TenantId: {context.OpcPlcConfig.TenantId}");
-            context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
-            context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
-            context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
-
-            var options = new DefaultAzureCredentialOptions
+            context.OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
+            var token = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
+            if (string.IsNullOrWhiteSpace(token))
             {
-                TenantId = context.OpcPlcConfig.TenantId
-            };
-            //options.AdditionallyAllowedTenants.Add("*");
+                try
+                {
+                    context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
+                    context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
+                    context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
+                    var options = new DefaultAzureCredentialOptions
+                    {
+                        TenantId = context.OpcPlcConfig.TenantId
+                    };
+                    //options.AdditionallyAllowedTenants.Add("*");
+                    var defaultAzureCredential = new DefaultAzureCredential(options);
+                    var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
+                        new[] { "https://management.azure.com//.default" },
+                        tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
 
-            var defaultAzureCredential = new DefaultAzureCredential(options);
-            var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
-                new[] { "https://management.azure.com//.default" }, tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
+                    context.
+                    OutputHelper.WriteLine("Obtained Access Token from Tenant using default credentials.");
+                    token = accessToken.Token;
+                }
+                catch (Exception ex)
+                {
+                    context.OutputHelper.WriteLine($"Failed to obtain default credential with error {ex.Message}, trying Azure CLI..");
+                    var defaultAzureCredential = new AzureCliCredential();
+                    var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
+                        new[] { "https://management.azure.com//.default" },
+                        tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
+                    context.OutputHelper.WriteLine("Obtained Access Token from Azure CLI.");
+                    token = accessToken.Token;
+                }
+            }
+            else
+            {
+                context.OutputHelper.WriteLine("Using access token from environment variable.");
+            }
 
-            context.OutputHelper.WriteLine($"Received Token {accessToken.Token}");
-
-            var tokenCredentials = new TokenCredentials(accessToken.Token);
+            var tokenCredentials = new TokenCredentials(token);
             var azureCredentials = new AzureCredentials(tokenCredentials, tokenCredentials, context.OpcPlcConfig.TenantId,
                 AzureEnvironment.AzureGlobalCloud);
 
@@ -525,7 +540,7 @@ namespace OpcPublisherAEE2ETests
                 context.AzureStorageName, cancellationToken).ConfigureAwait(false);
             context.AzureStorageKey = (await storageAccount.GetKeysAsync(cancellationToken).ConfigureAwait(false))[0].Value;
 
-            var firstAciIpAddress = context.OpcPlcConfig.Urls.Split(";")[0];
+            var firstAciIpAddress = context.OpcPlcConfig.Ips.Split(";")[0];
             var containerGroups = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
                 cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             var containerGroup = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
@@ -554,10 +569,11 @@ namespace OpcPublisherAEE2ETests
         /// Get an Event Hub consumer
         /// </summary>
         /// <param name="config">Configuration for IoT Hub</param>
-        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config)
+        /// <param name="consumerGroup"></param>
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config, string consumerGroup = null)
         {
             return new EventHubConsumerClient(
-                TestConstants.TestConsumerGroupName,
+                consumerGroup ?? TestConstants.TestConsumerGroupName,
                 config.IoTHubEventHubConnectionString);
         }
 
@@ -820,8 +836,8 @@ namespace OpcPublisherAEE2ETests
                 .SkipUntilDistinctCountReached(
                     writerGroupIdFunc,
                     context.PlcAciDynamicUrls.Count,
-                    () => context.OutputHelper?.WriteLine("Waiting for first message for PLC"),
-                    () => context.OutputHelper?.WriteLine("Consuming messages...")
+                    () => context.OutputHelper.WriteLine("Waiting for first message for PLC"),
+                    () => context.OutputHelper.WriteLine("Consuming messages...")
                 )
                 .TakeWhile(predicate);
         }
@@ -873,20 +889,39 @@ namespace OpcPublisherAEE2ETests
         /// <exception cref="ArgumentNullException"></exception>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
-            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
         )
         {
-            ServiceClient iotHubClient;
-
             if (string.IsNullOrWhiteSpace(iotHubConnectionString))
             {
                 throw new ArgumentNullException(nameof(iotHubConnectionString));
             }
 
-            return iotHubClient = ServiceClient.CreateFromConnectionString(
+            return ServiceClient.CreateFromConnectionString(
                 iotHubConnectionString,
                 transportType
             );
+        }
+
+        /// <summary>
+        /// Restart module
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="moduleName"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task RestartAsync(IIoTPlatformTestContext context, string moduleName,
+            CancellationToken ct)
+        {
+            using var client = TestHelper.DeviceServiceClient(context.IoTHubConfig.IoTHubConnectionString,
+                    TransportType.Amqp_WebSocket_Only);
+            var method = new CloudToDeviceMethod("Shutdown");
+            method.SetPayloadJson("false");
+            try
+            {
+                await client.InvokeDeviceMethodAsync(context.DeviceId, moduleName, method, ct);
+            }
+            catch { } // Expected, since device will have disconnected now
         }
 
         /// <summary>
@@ -918,23 +953,38 @@ namespace OpcPublisherAEE2ETests
         public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
             MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct)
         {
-            var attempt = 0;
-            while (true)
+            for (var attempt = 0; ; attempt++)
             {
                 try
                 {
-                    var methodInfo = new CloudToDeviceMethod(parameters.Name);
-                    methodInfo.SetPayloadJson(parameters.JsonPayload);
-                    var result = await (string.IsNullOrEmpty(moduleId) ?
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
-                    context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
-                    return new MethodResultModel(result.GetPayloadAsJson(), result.Status);
+                    var i = 0;// Retry twice to call with error 500
+                    while (true)
+                    {
+                        var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                        methodInfo.SetPayloadJson(parameters.JsonPayload);
+                        var result = await (string.IsNullOrEmpty(moduleId) ?
+                             serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                             serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
+                        context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
+                        var methodCallResult = new MethodResultModel(result.GetPayloadAsJson(), result.Status);
+                        if (methodCallResult.Status >= 500 && ++i < 3)
+                        {
+                            context.OutputHelper.WriteLine($"Got internal error {methodCallResult.Status} ({methodCallResult.JsonPayload}), trying again to call publisher after delay...");
+                            await Task.Delay(2000, ct).ConfigureAwait(false);
+                            continue;
+                        }
+                        return methodCallResult;
+                    }
+                }
+                catch (DeviceNotFoundException de) when (attempt < 60)
+                {
+                    context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload} due to {de.Message}");
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload}");
-                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && ++attempt < 60)
+                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && attempt < 60)
                     {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
                         await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);

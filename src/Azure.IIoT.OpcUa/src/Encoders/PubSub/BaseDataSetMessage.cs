@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if (!Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
-                !Utils.IsEqual(wrapper.Status, Status) ||
+                !Utils.IsEqual(wrapper.Status ?? StatusCodes.Good, Status ?? StatusCodes.Good) ||
                 !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
                 !Utils.IsEqual(wrapper.MessageType, MessageType) ||
                 !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion))

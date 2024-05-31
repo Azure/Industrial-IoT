@@ -151,14 +151,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
         }
 
-        /// <summary>
-        /// Create message
-        /// </summary>
-        public JsonNetworkMessage()
-        {
-            MessageId = () => _messageId ?? string.Empty;
-        }
-
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
@@ -509,12 +501,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            _messageId = decoder.ReadString(nameof(MessageId));
-            if (MessageId == null)
+            var messageId = decoder.ReadString(nameof(MessageId));
+            if (messageId == null)
             {
                 // Field is there but not of type string, cannot be a network message header
                 return false;
             }
+            MessageId = () => messageId;
             var messageType = decoder.ReadString(nameof(MessageType));
             if (!string.Equals(messageType, MessageTypeUaData, StringComparison.OrdinalIgnoreCase))
             {
@@ -591,7 +584,5 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         private bool? _hasSamplesPayload;
-        /// <summary> To update message id </summary>
-        protected string? _messageId;
     }
 }

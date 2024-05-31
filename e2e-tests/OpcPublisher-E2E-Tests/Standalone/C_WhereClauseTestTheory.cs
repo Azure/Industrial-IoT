@@ -12,6 +12,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using Xunit;
     using Xunit.Abstractions;
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -26,7 +27,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchSimpleFilter()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchSimpleFilter()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
@@ -50,7 +51,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(11)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchEventFilter()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectFieldsToMatchEventFilter()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>
@@ -74,7 +75,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(12)]
-        public async void TestVerifyDataAvailableAtIoTHubExpectFieldsToSimpleEvents()
+        public async Task TestVerifyDataAvailableAtIoTHubExpectFieldsToSimpleEvents()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>

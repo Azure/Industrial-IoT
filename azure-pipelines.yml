@@ -4,66 +4,35 @@ pr:
   branches:
     include:
     - '*'
-trigger:
-  batch: 'true'
-  branches:
-    include:
-    - main
-    - releases
-    - release/*
-resources:
-  repositories:
-  - repository: 1ESPipelineTemplates
-    type: git
-    name: 1ESPipelineTemplates/1ESPipelineTemplates
-    ref: refs/tags/release
-extends:
-  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
-  parameters:
-    pool:
-      name: Azure-Pipelines-1ESPT-ExDShared
-      image: windows-2022
-      os: windows
-    customBuildTags:
-    - ES365AIMigrationTooling
-    settings:
-      skipBuildTagsForGitHubPullRequests: true
-    sdl:
-      baseline:
-        baselineFile: $(Build.SourcesDirectory)\.gdnbaselines
-      #suppression:
-      #  suppressionFile: $(Build.SourcesDirectory)\.gdnsuppress
-    stages:
-    - stage: build
-      displayName: 'Build and Test Code'
-      condition: ne(variables['SkipBuild'], true)
-      jobs:
-      - template: /tools/templates/ci.yml@self
-      - template: /tools/templates/cc.yml@self
-    - stage: pack
-      displayName: 'Package and Sign Nuget'
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-      dependsOn:
-      - build
-      jobs:
-      - template: /tools/templates/nuget.yml@self
-        parameters:
-          sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/TODO') }}
-    - stage: images
-      displayName: 'Build Images'
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-      dependsOn:
-      - build
-      jobs:
-      - template: /tools/templates/acrbuild.yml@self
-    - stage: e2e_tests
-      displayName: 'Triggering E2E tests'
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-      dependsOn:
-      - build
-      - pack
-      - images
-      jobs:
-      - template: /tools/templates/e2e_tests.yml@self
-        parameters:
-          branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+variables:
+  system_accesstoken: $(System.AccessToken)
+jobs:
+- job: OneBranchTrigger
+  pool:
+    vmImage: 'ubuntu-latest'
+  displayName: Trigger Pull Request Build on Governed Pipeline
+  steps:
+  - task: TriggerBuild@4
+    inputs:
+      definitionIsInCurrentTeamProject: true
+      buildDefinition: 'Industrial-IoT-PullRequest'
+      queueBuildForUserThatTriggeredBuild: false
+      ignoreSslCertificateErrors: false
+      useSameSourceVersion: false
+      useCustomSourceVersion: false
+      useSameBranch: false
+      branchToUse: 'main'
+      waitForQueuedBuildsToFinish: true
+      waitForQueuedBuildsToFinishRefreshTime: '60'
+      failTaskIfBuildsNotSuccessful: true
+      cancelBuildsIfAnyFails: false
+      treatPartiallySucceededBuildAsSuccessful: false
+      downloadBuildArtifacts: true
+      storeInEnvironmentVariable: false
+      authenticationMethod: 'OAuth Token'
+      enableBuildInQueueCondition: true
+      dependentOnSuccessfulBuildCondition: false
+      dependentOnFailedBuildCondition: false
+      checkbuildsoncurrentbranch: false
+      failTaskIfConditionsAreNotFulfilled: false
+      templateParameters: 'ref: $(Build.SourceBranch)'

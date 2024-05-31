@@ -2,7 +2,6 @@
     [string] $BranchName,
     [string] $Region,
     [string] $ImageTag,
-    [string] $ImageNamespace,
     [string] $ContainerRegistryServer
 )
 
@@ -30,20 +29,18 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
 {
     try
     {
-        & dotnet @("tool", "install", "--tool-path", "./tools", "--framework", "net8.0", "nbgv") 2>&1
+        dotnet tool install --global --framework net8.0 nbgv 2>&1
     }
     catch  {}
     try
     {
-        $props = (& ./tools/nbgv  @("get-version", "-f", "json")) | ConvertFrom-Json
+        $props = $(nbgv get-version -f json) | ConvertFrom-Json
         if ($LastExitCode -ne 0) {
             throw "Error: 'nbgv get-version -f json' failed with $($LastExitCode)."
         }
         $version = $props.CloudBuildAllVars.NBGV_SimpleVersion
         $prerelease = $props.CloudBuildAllVars.NBGV_PrereleaseVersion
         $script:ImageTag = "$($version)$($prerelease)"
-
-        # Remove-Item "./tools" -Recurse
     }
     catch
     {
@@ -53,21 +50,19 @@ if ([string]::IsNullOrEmpty($script:ImageTag))
     }
 }
 
-if ([string]::IsNullOrEmpty($script:ImageNamespace))
+
+# Set namespace name based on branch name
+$imageNamespace = $script:BranchName
+if ($imageNamespace.StartsWith("feature/"))
 {
-    # Set namespace name based on branch name
-    $script:ImageNamespace = $script:BranchName
-    if ($script:ImageNamespace.StartsWith("feature/"))
-    {
-        # dev feature builds
-        $script:ImageNamespace = $script:ImageNamespace.Replace("feature/", "")
-    }
-    elseif ($script:ImageNamespace.StartsWith("release/") -or ($script:ImageNamespace -eq "releases"))
-    {
-        $script:ImageNamespace = "public"
-    }
-    $script:ImageNamespace = $script:ImageNamespace.Replace("_", "/").Substring(0, [Math]::Min($script:ImageNamespace.Length, 24))
+    # dev feature builds
+    $imageNamespace = $imageNamespace.Replace("feature/", "")
 }
+elseif ($imageNamespace.StartsWith("release/") -or ($imageNamespace -eq "releases"))
+{
+    $imageNamespace = "public"
+}
+$imageNamespace = $imageNamespace.Replace("_", "/").Substring(0, [Math]::Min($imageNamespace.Length, 24))
 
 function Get-ContainerRegistrySecret
 {
@@ -93,7 +88,7 @@ function Get-ContainerRegistrySecret
 
 if ([string]::IsNullOrEmpty($script:ContainerRegistryServer))
 {
-    if ($script:ImageNamespace -eq "public")
+    if ($imageNamespace -eq "public")
     {
         # Release and Preview builds are in staging
         $registry = "industrialiot"
@@ -117,12 +112,12 @@ else
 }
 
 Write-Host "=============================================================================="
-Write-Host "Use $($script:ImageTag) images in namespace $($script:ImageNamespace) from $($registry)."
+Write-Host "Use $($script:ImageTag) images in namespace $($imageNamespace) from $($registry)."
 Write-Host "=============================================================================="
 Write-Host ""
 
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
-Write-Host "##vso[task.setvariable variable=ImageNamespace]$($script:ImageNamespace)"
+Write-Host "##vso[task.setvariable variable=ImageNamespace]$($imageNamespace)"
 
 if ([string]::IsNullOrEmpty($script:Region))
 {

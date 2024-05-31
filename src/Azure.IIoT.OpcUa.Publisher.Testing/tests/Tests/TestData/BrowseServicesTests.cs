@@ -2289,6 +2289,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results2.ContinuationToken);
             Assert.NotNull(results.References);
             Assert.Equal(5, results2.References.Count);
+
+            // Act
+            var results3 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+            {
+                ContinuationToken = results2.ContinuationToken
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(results3.ErrorInfo);
+            Assert.NotNull(results3.ContinuationToken);
+            Assert.NotNull(results3.References);
+            Assert.Equal(5, results3.References.Count);
+
+            // Act
+            var results4 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+            {
+                ContinuationToken = results3.ContinuationToken
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(results4.ErrorInfo);
+            Assert.NotNull(results4.ContinuationToken);
+            Assert.NotNull(results4.References);
+            Assert.Equal(5, results4.References.Count);
         }
 
         public async Task NodeBrowseContinuationTest2Async(CancellationToken ct = default)
@@ -2334,6 +2356,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results.ContinuationToken);
             Assert.NotNull(results.References);
             Assert.Single(results.References);
+        }
+
+        public async Task NodeBrowseContinuationTest4Async(CancellationToken ct = default)
+        {
+            var browser = _services();
+            const uint maxCount = 500;
+
+            // Act
+            var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                MaxReferencesToReturn = maxCount,
+                Direction = BrowseDirection.Forward,
+                ReadVariableValues = false
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(results.ErrorInfo);
+            Assert.NotNull(results.ContinuationToken);
+            Assert.NotNull(results.References);
+            Assert.Equal((int)maxCount, results.References.Count);
+
+            var continuationToken = results.ContinuationToken;
+            while (continuationToken != null)
+            {
+                var results2 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
+                {
+                    ContinuationToken = continuationToken
+                }, ct).ConfigureAwait(false);
+
+                Assert.Null(results2.ErrorInfo);
+                Assert.NotNull(results.References);
+                Assert.True(results2.References.Count > 0 && results2.References.Count <= maxCount);
+                continuationToken = results2.ContinuationToken;
+            }
         }
 
         public async Task NodeBrowseDiagnosticsNoneTestAsync(CancellationToken ct = default)

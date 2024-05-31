@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 {
-    using Neovolve.Logging.Xunit;
     using Microsoft.Extensions.Logging;
+    using Neovolve.Logging.Xunit;
 
     internal static class Logging
     {

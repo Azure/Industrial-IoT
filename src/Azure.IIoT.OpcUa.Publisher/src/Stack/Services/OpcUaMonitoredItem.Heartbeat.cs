@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, _heartbeatInterval, model._heartbeatInterval);
 
                     _heartbeatInterval = model._heartbeatInterval;
-                    itemChange = true; // TODO: Not really a change in the item
+                    itemChange = true;
                 }
 
                 if (_heartbeatBehavior != model._heartbeatBehavior)
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, _heartbeatBehavior, model._heartbeatBehavior);
 
                     _heartbeatBehavior = model._heartbeatBehavior;
-                    itemChange = true; // TODO: Not really a change in the item
+                    itemChange = true;
                 }
 
                 itemChange |= base.MergeWith(model, session, out metadataChanged);

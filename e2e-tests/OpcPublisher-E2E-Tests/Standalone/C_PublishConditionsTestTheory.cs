@@ -8,6 +8,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using FluentAssertions;
     using TestExtensions;
     using TestModels;
@@ -30,7 +31,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(11)]
-        public async void TestACIVerifyDataAvailableAtIoTHubExpectNumberOfEventsGreaterThanZero()
+        public async Task TestACIVerifyDataAvailableAtIoTHubExpectNumberOfEventsGreaterThanZero()
         {
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context, new List<string>

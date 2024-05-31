@@ -36,9 +36,6 @@ namespace IIoTPlatformE2ETests.Twin
                 return;
             }
 
-            // OutputHelper cannot be used outside of test calls, we get rid of it before a helper method would use it
-            OutputHelper = null;
-
             if (_testEnvironmentPrepared && !string.IsNullOrEmpty(OpcServerUrl))
             {
                 using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);

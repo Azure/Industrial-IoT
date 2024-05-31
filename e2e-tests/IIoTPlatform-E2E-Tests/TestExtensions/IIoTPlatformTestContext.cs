@@ -6,18 +6,22 @@
 namespace IIoTPlatformE2ETests.TestExtensions
 {
     using Config;
-    using Furly.Exceptions;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.VisualStudio.TestPlatform.Utilities;
+    using Neovolve.Logging.Xunit;
     using System;
-    using System.Collections.Generic;
     using Xunit.Abstractions;
 
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
     public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig,
-        IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig
+        IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, IContainerRegistryConfig
     {
+        private ITestOutputHelper _outputHelper = new DummyOutput();
+        private ILoggerFactory _logFactory;
+
         /// <summary>
         /// Configuration
         /// </summary>
@@ -27,7 +31,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
         {
             Configuration = GetConfiguration();
             RegistryHelper = new RegistryHelper(this);
-            OutputHelper = null;
         }
 
         /// <summary>
@@ -48,7 +51,32 @@ namespace IIoTPlatformE2ETests.TestExtensions
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper OutputHelper { get; set; }
+        public ITestOutputHelper OutputHelper => _outputHelper;
+
+        /// <summary>
+        /// Helper to write output, need to be set from constructor of test class
+        /// </summary>
+        /// <param name="output"></param>
+        public void SetOutputHelper(ITestOutputHelper output)
+        {
+            ArgumentNullException.ThrowIfNull(output);
+            LogEnvironment(output);
+            _outputHelper = output;
+
+            _logFactory?.Dispose();
+            _logFactory = LogFactory.Create(_outputHelper);
+        }
+
+        public ILogger<T> CreateLogger<T>()
+        {
+            return _logFactory?.CreateLogger<T>();
+        }
+
+        private sealed class DummyOutput : ITestOutputHelper
+        {
+            public void WriteLine(string message) { Console.WriteLine(message); }
+            public void WriteLine(string format, params object[] args) { Console.WriteLine(format, args); }
+        }
 
         /// <summary>
         /// Gets or sets the OPC server url
@@ -86,11 +114,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public IOpcPlcConfig OpcPlcConfig { get { return this; } }
 
         /// <summary>
-        /// TestEventProcessor configuration
-        /// </summary>
-        public ITestEventProcessorConfig TestEventProcessorConfig { get { return this; } }
-
-        /// <summary>
         /// ContainerRegistry Configuration
         /// </summary>
         public IContainerRegistryConfig ContainerRegistryConfig { get { return this; } }
@@ -116,6 +139,9 @@ namespace IIoTPlatformE2ETests.TestExtensions
             if (disposing)
             {
                 RegistryHelper.Dispose();
+                _outputHelper = new DummyOutput();
+                _logFactory?.Dispose();
+                _logFactory = null;
             }
         }
 
@@ -195,14 +221,8 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public string Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new InvalidOperationException("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        public string TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
-            () => throw new InvalidOperationException("Test Event Processor BaseUrl is not provided."));
-
-        public string TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
-            () => throw new InvalidOperationException("Test Event Processor Username is not provided."));
-
-        public string TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
-            () => throw new InvalidOperationException("Test Event Processor Password is not provided."));
+        public string Ips => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_IPS,
+            () => throw new InvalidOperationException("Semicolon separated list of ip addresses of OPC-PLCs is not provided."));
 
         public string ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
             () => string.Empty);
@@ -218,5 +238,37 @@ namespace IIoTPlatformE2ETests.TestExtensions
 
         public string ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
             () => "latest");
+
+        public void LogEnvironment(ITestOutputHelper output)
+        {
+            if (output == null || _logged || output is DummyOutput)
+            {
+                return;
+            }
+            _logged = true;
+            Log("ApplicationName");
+            Log("PCS_IMAGES_TAG");
+            Log("PCS_DOCKER_SERVER");
+            Log("PCS_DOCKER_USER");
+            Log("PCS_DOCKER_PASSWORD");
+            Log("PCS_IMAGES_NAMESPACE");
+            Log("PCS_SUBSCRIPTION_ID");
+            Log("PCS_RESOURCE_GROUP");
+            Log("PCS_SERVICE_URL");
+            Log("PCS_AUTH_TENANT");
+            Log("PCS_AUTH_CLIENT_APPID");
+            Log("PCS_AUTH_CLIENT_SECRET");
+            Log("PCS_AUTH_SERVICE_APPID");
+            Log("PLC_SIMULATION_URLS");
+            Log("IOT_EDGE_VERSION");
+            Log("IOT_EDGE_DEVICE_ID");
+            Log("IOT_EDGE_DEVICE_DNSNAME");
+            Log("IOT_EDGE_VM_USERNAME");
+            Log("PCS_IOTHUB_CONNSTRING");
+            Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
+            Log("STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING");
+            void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
+        }
+        private bool _logged;
     }
 }

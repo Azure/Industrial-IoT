@@ -50,7 +50,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Post)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -80,7 +80,7 @@ namespace IIoTPlatformE2ETests
 
                 var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -143,7 +143,7 @@ namespace IIoTPlatformE2ETests
                 var resource = string.Format(CultureInfo.InvariantCulture, TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
                 var request = new RestRequest(resource, Method.Delete)
                 {
-                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -174,11 +174,11 @@ namespace IIoTPlatformE2ETests
                         try
                         {
                             await RemoveApplicationAsync(context, id, ct);
-                            context.OutputHelper?.WriteLine($"Removed application {id}.");
+                            context.OutputHelper.WriteLine($"Removed application {id}.");
                         }
                         catch (Exception ex)
                         {
-                            context.OutputHelper?.WriteLine($"Failed to remove application {id} -> {ex.Message}");
+                            context.OutputHelper.WriteLine($"Failed to remove application {id} -> {ex.Message}");
                         }
                     }
                 }

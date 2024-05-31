@@ -5,10 +5,10 @@
 
 namespace IIoTPlatformE2ETests
 {
-    using IIoTPlatformE2ETests.TestEventProcessor;
+    using Azure.Messaging.EventHubs.Consumer;
     using Microsoft.Azure.Devices;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using IIoTPlatformE2ETests.Config;
     using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
@@ -25,10 +25,12 @@ namespace IIoTPlatformE2ETests
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
-    using TestModels;
     using Xunit;
     using Xunit.Abstractions;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Newtonsoft.Json.Converters;
+    using Xunit.Sdk;
+    using Microsoft.Azure.Devices.Common.Exceptions;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -81,34 +83,50 @@ namespace IIoTPlatformE2ETests
             Assert.False(string.IsNullOrWhiteSpace(clientSecret));
             Assert.False(string.IsNullOrWhiteSpace(serviceId));
 
-            using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
-                client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
-
-            var request = new RestRequest("", Method.Post)
+            Exception saved = new UnauthorizedAccessException();
+            for (var i = 0; i < 3; i++)
             {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-            request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
-            request.AddParameter("grant_type", "client_credentials");
-            request.AddParameter("scope", $"{serviceId}/.default");
+                try
+                {
+                    using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
+                        client => client.Authenticator = new HttpBasicAuth(clientId, clientSecret));
 
-            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-            Assert.NotNull(json);
-            Assert.NotEmpty(json);
-            return $"{json.token_type} {json.access_token}";
+                    var request = new RestRequest("", Method.Post)
+                    {
+                        Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
+                    };
+                    request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                    request.AddParameter("grant_type", "client_credentials");
+                    request.AddParameter("scope", $"{serviceId}/.default");
+
+                    var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+                    Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
+                    dynamic json = JsonConvert.DeserializeObject(response.Content);
+                    Assert.NotNull(json);
+                    Assert.NotEmpty(json);
+                    return $"{json.token_type} {json.access_token}";
+                }
+                catch (Exception ex)
+                {
+                    saved = ex;
+                    Console.WriteLine($"Error occurred while requesting token: {ex.Message}");
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
+                }
+            }
+            throw saved;
         }
 
         /// <summary>
         /// Get urls of the simulated test opc servers
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="useIpAddress">use ip address instead of host name</param>
         /// <returns>List of server urls</returns>
         public static List<string> GetSimulatedOpcServerUrls(
-            IIoTPlatformTestContext context)
+            IIoTPlatformTestContext context, bool useIpAddress = true)
         {
-            return context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).Select(ip => $"opc.tcp://{ip}:50000").ToList();
+            var items = useIpAddress ? context.OpcPlcConfig.Ips : context.OpcPlcConfig.Urls;
+            return items.Split(TestConstants.SimulationUrlsSeparator).Select(host => $"opc.tcp://{host}:50000").ToList();
         }
 
         /// <summary>
@@ -125,49 +143,69 @@ namespace IIoTPlatformE2ETests
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
             var opcPlcList = context.OpcPlcConfig.Urls;
-            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
-            var ipAddressList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
+            context.OutputHelper.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
+            var hostList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
 
-            foreach (var ipAddress in ipAddressList.Where(s => !string.IsNullOrWhiteSpace(s)))
+            foreach (var host in hostList.Where(s => !string.IsNullOrWhiteSpace(s)))
+            {
+                try
+                {
+                    var entryModels = await GetPublishedNodesEntryModel(host, ct).ConfigureAwait(false);
+
+                    Assert.NotNull(entryModels);
+                    Assert.NotEmpty(entryModels);
+                    Assert.NotNull(entryModels[0].OpcNodes);
+                    Assert.NotEmpty(entryModels[0].OpcNodes);
+
+                    // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
+                    var fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
+                    entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, host, StringComparison.Ordinal);
+
+                    result.Add(host, entryModels[0]);
+                }
+                catch (XunitException e)
+                {
+                    context.OutputHelper.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, host);
+                }
+            }
+            return result;
+        }
+
+        private static async Task<PublishedNodesEntryModel[]> GetPublishedNodesEntryModel(string host, CancellationToken ct)
+        {
+            for (var attempt = 0; ;  attempt++)
             {
                 try
                 {
                     using (var client = new HttpClient())
                     {
-                        var ub = new UriBuilder { Host = ipAddress };
+                        var ub = new UriBuilder { Host = host };
                         client.BaseAddress = ub.Uri;
                         client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
 
                         using (var response = await client.GetAsync(new Uri(TestConstants.OpcSimulation.PublishedNodesFile, UriKind.RelativeOrAbsolute), ct).ConfigureAwait(false))
                         {
+                            if (response.StatusCode == (HttpStatusCode)470)
+                            {
+                                // Firewall denied access, the build VM does not allow access to this ip address port 80
+                                // see rules at https://dev.azure.com/mseng/Domino/_git/CloudTest?path=/private/Azure/Ev2/ResourceProvider/Templates/NetworkIsolation.Resources.json&version=GBmaster&_a=contents
+                                throw new SocketException((int)SocketError.AccessDenied, host + ":80 is not accessible due to firewall setup of build machine. Fix the build.");
+                            }
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
                             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                             Assert.NotEmpty(json);
-                            var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
-
-                            Assert.NotNull(entryModels);
-                            Assert.NotEmpty(entryModels);
-                            Assert.NotNull(entryModels[0].OpcNodes);
-                            Assert.NotEmpty(entryModels[0].OpcNodes);
-
-                            // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
-#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-                            var fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
-#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-                            entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress, StringComparison.Ordinal);
-
-                            result.Add(ipAddress, entryModels[0]);
+                            return JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
                         }
                     }
                 }
-                catch (Exception e)
+                catch (XunitException) when (attempt < 3)
                 {
-                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
-                    continue;
+                    await Task.Delay(2000, ct);
                 }
             }
-            return result;
         }
 
         /// <summary>
@@ -209,7 +247,7 @@ namespace IIoTPlatformE2ETests
 
             var request = new RestRequest(route, method)
             {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
             };
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -246,8 +284,8 @@ namespace IIoTPlatformE2ETests
             {
                 try
                 {
-                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context).ConfigureAwait(false);
-            		using var scpClient = await CreateScpClientAndConnectAsync(context).ConfigureAwait(false);
+                    await CreateFolderOnEdgeVMAsync(TestConstants.PublishedNodesFolder, context, ct).ConfigureAwait(false);
+                    using var scpClient = await CreateScpClientAndConnectAsync(context, ct).ConfigureAwait(false);
                     await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                     scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
@@ -255,9 +293,7 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to write published nodes file to host {0} with username {1} ({2})",
-                        context.SshConfig.Host,
-                        context.SshConfig.Username, ex.Message);
+                    context.OutputHelper.WriteLine($"Failed to write {TestConstants.PublishedNodesFullName} to {TestConstants.PublishedNodesFolder} on host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
                     await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
@@ -277,25 +313,28 @@ namespace IIoTPlatformE2ETests
         {
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
 
-            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
-            context.OutputHelper?.WriteLine(JsonConvert.SerializeObject(entries));
+            context.OutputHelper.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper.WriteLine(JsonConvert.SerializeObject(entries));
 
             await PublishNodesAsync(json, context, ct).ConfigureAwait(false);
+            await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
         }
 
         /// <summary>
         /// Clean published nodes JSON files.
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context)
+        public static async Task CleanPublishedNodesJsonFilesAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             for (var attempt = 0; ; attempt++)
             {
                 try
                 {
                     // Make sure directories exist.
-                    using (var sshCient = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false))
+                    using (var sshCient = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false))
                     {
                         sshCient.RunCommand($"[ ! -d {TestConstants.PublishedNodesFolder} ]" +
                             $" && sudo mkdir -m 777 -p {TestConstants.PublishedNodesFolder}");
@@ -304,17 +343,12 @@ namespace IIoTPlatformE2ETests
                 }
                 catch (Exception ex) when (attempt < 60)
                 {
-                    context.OutputHelper?.WriteLine("Failed to create folder on host {0} with username {1} ({2})",
-                        context.SshConfig.Host,
-                        context.SshConfig.Username, ex.Message);
-                    await Task.Delay(1000).ConfigureAwait(false);
+                    context.OutputHelper.WriteLine($"Failed to create folder on host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
+                    await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
 
-            await PublishNodesAsync(
-                context,
-                Array.Empty<PublishedNodesEntryModel>()
-            ).ConfigureAwait(false);
+            await PublishNodesAsync(context, Array.Empty<PublishedNodesEntryModel>(), ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -358,15 +392,17 @@ namespace IIoTPlatformE2ETests
 
             await UpdateTagAsync(patch, context, ct).ConfigureAwait(false);
 
-            await DeleteFileOnEdgeVMAsync(TestConstants.PublishedNodesFullName, context).ConfigureAwait(false);
+            await DeleteFileOnEdgeVMAsync(TestConstants.PublishedNodesFullName, context, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Create a new SshClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context)
+        private static async Task<SshClient> CreateSshClientAndConnectAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -381,20 +417,18 @@ namespace IIoTPlatformE2ETests
                 {
                     try
                     {
-                        client.Connect();
+                        await client.ConnectAsync(ct);
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5)
+                    catch (SocketException) when (++connectAttempt < 10)
                     {
-                        await Task.Delay(1000).ConfigureAwait(false);
+                        await Task.Delay(3000, ct).ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open ssh connection to host {0} with username {1} ({2})",
-                    context.SshConfig.Host,
-                    context.SshConfig.Username, ex.Message);
+                context.OutputHelper.WriteLine($"Failed to open ssh connection to host {context.SshConfig.Host} with username {context.SshConfig.Username} ({ex.Message})");
                 throw;
             }
         }
@@ -403,8 +437,10 @@ namespace IIoTPlatformE2ETests
         /// Create a new ScpClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
-        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context)
+        private static async Task<ScpClient> CreateScpClientAndConnectAsync(IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var privateKeyFile = GetPrivateSshKey(context);
             try
@@ -419,18 +455,18 @@ namespace IIoTPlatformE2ETests
                 {
                     try
                     {
-                        client.Connect();
+                        await client.ConnectAsync(ct);
                         return client;
                     }
-                    catch (SocketException) when (++connectAttempt < 5)
+                    catch (SocketException) when (++connectAttempt < 10)
                     {
-                        await Task.Delay(1000).ConfigureAwait(false);
+                        await Task.Delay(3000, ct).ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                context.OutputHelper?.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
+                context.OutputHelper.WriteLine("Failed to open scp connection to host {0} with username {1} ({2})",
                     context.SshConfig.Host,
                     context.SshConfig.Username, ex.Message);
                 throw;
@@ -455,10 +491,12 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="fileName">Filename of the file to delete</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context)
+        /// <param name="ct"></param>
+        public static async Task DeleteFileOnEdgeVMAsync(string fileName, IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             var isSuccessful = false;
-            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+            using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
             var terminal = client.RunCommand("rm " + fileName);
 
@@ -475,112 +513,49 @@ namespace IIoTPlatformE2ETests
         /// </summary>
         /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context)
+        /// <param name="ct"></param>
+        private static async Task CreateFolderOnEdgeVMAsync(string folderPath, IIoTPlatformTestContext context,
+            CancellationToken ct = default)
         {
             Assert.False(string.IsNullOrWhiteSpace(folderPath));
 
             var isSuccessful = false;
-            using var client = await CreateSshClientAndConnectAsync(context).ConfigureAwait(false);
+            using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
 
-            var terminal = client.RunCommand("sudo mkdir " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
+            var terminal = client.RunCommand("sudo mkdir -p " + folderPath + ";cd " + folderPath + "; sudo chmod 777 " + folderPath);
 
             if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists", StringComparison.Ordinal))
             {
                 isSuccessful = true;
             }
 
-            Assert.True(isSuccessful, "Folder creation was not successful");
+            Assert.True(isSuccessful, $"Folder creation was not successful because of {terminal.Error}");
         }
 
         /// <summary>
-        /// Starts monitoring the incoming messages of the IoT Hub and checks for missing values.
+        /// Deserializes the JSON structure contained by the specified <see cref="PartitionEvent"/>
+        /// into an instance of the specified type.
         /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="expectedValuesChangesPerTimestamp">The expected number of value changes per timestamp</param>
-        /// <param name="expectedIntervalOfValueChanges">The expected time difference between values changes in milliseconds</param>
-        /// <param name="expectedMaximalDuration">The time difference between OPC UA Server fires event until Changes Received in IoT Hub in milliseconds </param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
-        public static async Task StartMonitoringIncomingMessagesAsync(
-            IIoTPlatformTestContext context,
-            int expectedValuesChangesPerTimestamp,
-            int expectedIntervalOfValueChanges,
-            int expectedMaximalDuration,
-            CancellationToken ct = default
-        )
+        /// <param name="partitionEvent">The <see cref="PartitionEvent"/> containing the object.</param>
+        /// <typeparam name="T">The type of the object to deserialize.</typeparam>
+        /// <returns>The instance of <typeparamref name="T"/> being deserialized.</returns>
+        public static T DeserializeJson<T>(this PartitionEvent partitionEvent)
         {
-            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
-
-            using var client = new RestClient(runtimeUrl,
-                client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword));
-
-            var body = new
-            {
-                CommandType = CommandEnum.Start,
-                Configuration = new
-                {
-                    IoTHubEventHubEndpointConnectionString = context.IoTHubConfig.IoTHubEventHubConnectionString,
-                    StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
-                    ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
-                    ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
-                    ThresholdValue = expectedIntervalOfValueChanges > 0
-                        ? expectedIntervalOfValueChanges / 10
-                        : 100,
-                    ExpectedMaximalDuration = expectedMaximalDuration,
-                }
-            };
-
-            var request = new RestRequest("", Method.Put)
-            {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-            request.AddJsonBody(body);
-
-            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            Assert.True(response.IsSuccessful, $"Response status code, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
-            context.OutputHelper?.WriteLine("Monitoring events started!");
-
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-            Assert.NotNull(json);
+            using var sr = new StreamReader(partitionEvent.Data.BodyAsStream);
+            using var reader = new JsonTextReader(sr);
+            return kSerializer.Deserialize<T>(reader);
         }
 
         /// <summary>
-        /// Stops the monitoring of incoming event to an IoT Hub and returns success/failure.
+        /// Get an Event Hub consumer
         /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns></returns>
-        public static async Task<StopResult> StopMonitoringIncomingMessagesAsync(
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
-        )
+        /// <param name="config">Configuration for IoT Hub</param>
+        /// <param name="consumerGroup"></param>
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config, string consumerGroup = null)
         {
-            // TODO Merge with Start-Method to avoid code duplication
-            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
-
-            using var client = new RestClient(runtimeUrl,
-                client => client.Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
-                    context.TestEventProcessorConfig.TestEventProcessorPassword));
-
-            var body = new
-            {
-                CommandType = CommandEnum.Stop,
-            };
-
-            var request = new RestRequest("", Method.Put)
-            {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-            request.AddJsonBody(body);
-
-            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
-            context.OutputHelper?.WriteLine("Monitoring events stopped!");
-
-            var result = JsonConvert.DeserializeObject<StopResult>(response.Content);
-            Assert.NotNull(result);
-
-            return result;
+            return new EventHubConsumerClient(
+                consumerGroup ?? TestConstants.TestConsumerGroupName,
+                config.IoTHubEventHubConnectionString);
         }
 
         /// <summary>
@@ -614,7 +589,7 @@ namespace IIoTPlatformE2ETests
                     {
                         var request = new RestRequest(healthRoute, Method.Get)
                         {
-                            Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                            Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                         };
 
                         tasks.Add(client.ExecuteAsync(request, ct));
@@ -628,7 +603,7 @@ namespace IIoTPlatformE2ETests
 
                     if (healthyServices == healthRoutes.Length)
                     {
-                        context.OutputHelper?.WriteLine("All API microservices of IIoT platform " +
+                        context.OutputHelper.WriteLine("All API microservices of IIoT platform " +
                             "are running and in healthy state.");
                         return;
                     }
@@ -639,7 +614,7 @@ namespace IIoTPlatformE2ETests
             catch (OperationCanceledException) { }
             catch (Exception e)
             {
-                context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
+                context.OutputHelper.WriteLine("Error: not all API microservices of IIoT " +
                     $"platform are in healthy state ({e.Message}).");
                 throw;
             }
@@ -681,8 +656,8 @@ namespace IIoTPlatformE2ETests
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
                 new Dictionary<string, PublishedNodesEntryModel>(0);
 
-                simulatedPublishedNodesConfiguration =
-                    await GetSimulatedPublishedNodesConfigurationAsync(context, ct).ConfigureAwait(false);
+            simulatedPublishedNodesConfiguration =
+                await GetSimulatedPublishedNodesConfigurationAsync(context, ct).ConfigureAwait(false);
 
             PublishedNodesEntryModel model;
             if (simulatedPublishedNodesConfiguration.Count > 0)
@@ -742,7 +717,7 @@ namespace IIoTPlatformE2ETests
             await context.LoadSimulatedPublishedNodesAsync(ct).ConfigureAwait(false);
 
             PublishedNodesEntryModel nodesToPublish;
-            if (context.SimulatedPublishedNodes.Count > 1)
+            if (context.SimulatedPublishedNodes.Count > endpointIndex)
             {
                 var testPlc = context.SimulatedPublishedNodes.Skip(endpointIndex).First().Value;
                 nodesToPublish = IIoTMultipleNodesTestContext.GetEntryModelWithoutNodes(testPlc);
@@ -804,20 +779,39 @@ namespace IIoTPlatformE2ETests
         /// <exception cref="ArgumentNullException"></exception>
         public static ServiceClient DeviceServiceClient(
             string iotHubConnectionString,
-            Microsoft.Azure.Devices.TransportType transportType = Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
         )
         {
-            ServiceClient iotHubClient;
-
             if (string.IsNullOrWhiteSpace(iotHubConnectionString))
             {
                 throw new ArgumentNullException(nameof(iotHubConnectionString));
             }
 
-            return iotHubClient = ServiceClient.CreateFromConnectionString(
+            return ServiceClient.CreateFromConnectionString(
                 iotHubConnectionString,
                 transportType
             );
+        }
+
+        /// <summary>
+        /// Restart module
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="moduleName"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async Task RestartAsync(IIoTPlatformTestContext context, string moduleName,
+            CancellationToken ct)
+        {
+            using var client = TestHelper.DeviceServiceClient(context.IoTHubConfig.IoTHubConnectionString,
+                    TransportType.Amqp_WebSocket_Only);
+            var method = new CloudToDeviceMethod("Shutdown");
+            method.SetPayloadJson("false");
+            try
+            {
+                await client.InvokeDeviceMethodAsync(context.DeviceId, moduleName, method, ct);
+            }
+            catch { } // Expected, since device will have disconnected now
         }
 
         /// <summary>
@@ -832,7 +826,7 @@ namespace IIoTPlatformE2ETests
 
             var request = new RestRequest(TestConstants.APIRoutes.RegistryEndpoints, Method.Get)
             {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
             };
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -854,7 +848,7 @@ namespace IIoTPlatformE2ETests
 
             var request = new RestRequest(TestConstants.APIRoutes.RegistryApplications, Method.Get)
             {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
             };
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
 
@@ -894,23 +888,38 @@ namespace IIoTPlatformE2ETests
         public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
             MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct)
         {
-            var attempt = 0;
-            while (true)
+            for (var attempt = 0; ; attempt++)
             {
                 try
                 {
-                    var methodInfo = new CloudToDeviceMethod(parameters.Name);
-                    methodInfo.SetPayloadJson(parameters.JsonPayload);
-                    var result = await (string.IsNullOrEmpty(moduleId) ?
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
-                         serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
-                    context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
-                    return new MethodResultModel(result.GetPayloadAsJson(), result.Status);
+                    var i = 0;// Retry twice to call with error 500
+                    while (true)
+                    {
+                        var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                        methodInfo.SetPayloadJson(parameters.JsonPayload);
+                        var result = await (string.IsNullOrEmpty(moduleId) ?
+                             serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                             serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct)).ConfigureAwait(false);
+                        context.OutputHelper.WriteLine($"Called method {parameters.Name}.");
+                        var methodCallResult = new MethodResultModel(result.GetPayloadAsJson(), result.Status);
+                        if (methodCallResult.Status >= 500 && ++i < 3)
+                        {
+                            context.OutputHelper.WriteLine($"Got internal error {methodCallResult.Status} ({methodCallResult.JsonPayload}), trying again to call publisher after delay...");
+                            await Task.Delay(2000, ct).ConfigureAwait(false);
+                            continue;
+                        }
+                        return methodCallResult;
+                    }
+                }
+                catch (DeviceNotFoundException de) when (attempt < 60)
+                {
+                    context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload} due to {de.Message}");
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     context.OutputHelper.WriteLine($"Failed to call method {parameters.Name} with {parameters.JsonPayload}");
-                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && ++attempt < 60)
+                    if (e.Message.Contains("The operation failed because the requested device isn't online", StringComparison.Ordinal) && attempt < 60)
                     {
                         context.OutputHelper.WriteLine("Device is not online, trying again to call device after delay...");
                         await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
@@ -921,5 +930,7 @@ namespace IIoTPlatformE2ETests
                 }
             }
         }
+
+        private static readonly JsonSerializer kSerializer = new();
     }
 }

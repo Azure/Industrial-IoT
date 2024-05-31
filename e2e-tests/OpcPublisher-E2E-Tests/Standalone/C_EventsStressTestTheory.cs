@@ -8,6 +8,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using FluentAssertions;
     using TestExtensions;
     using TestModels;
@@ -28,7 +29,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(10)]
-        public async void TestACIVerifyEnd2EndThroughputAndLatency()
+        public async Task TestACIVerifyEnd2EndThroughputAndLatency()
         {
             // Settings
             const int eventIntervalPerInstanceMs = 400;
@@ -74,14 +75,20 @@ namespace OpcPublisherAEE2ETests.Standalone
             var eventRatesBySecond = eventData
                 .GroupBy(s => s.SourceTimestamp.Value.Truncate(FromSeconds(1)))
                 .Select(g => g.Count())
-                .ToList();
-
-            _output.WriteLine($"Event rates per second, by second: {string.Join(',', eventRatesBySecond)} e/s");
-
-            var eventRate = eventData.Count / intervalDuration.Value.TotalSeconds;
-            intervalDuration.Should().BeGreaterThan(FromSeconds(nSeconds));
+                .ToArray()[1..^1];
 
             const int expectedEventsPerSecond = instances * eventInstances * 1000 / eventIntervalPerInstanceMs;
+            _context.OutputHelper.WriteLine($"Event rates per second, by second: {string.Join(',', eventRatesBySecond)} e/s (expected {expectedEventsPerSecond} e/s)");
+
+            // Assert latency
+            var end2EndLatency = eventData
+                .ConvertAll(v => v.EnqueuedTime - v.SourceTimestamp);
+            end2EndLatency.Min().Should().BePositive();
+            end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
+
+            // var eventRate = eventData.Count / intervalDuration.Value.TotalSeconds;
+            var eventRate = eventRatesBySecond.Average();
+            intervalDuration.Should().BeGreaterThan(FromSeconds(nSeconds));
             eventData.Count.Should().BeGreaterThan(nSeconds * expectedEventsPerSecond,
                 "Publisher should produce data continuously");
             eventRate.Should().BeApproximately(
@@ -97,13 +104,6 @@ namespace OpcPublisherAEE2ETests.Standalone
                 "Publisher should match PLC event rate");
 
             stDev.Should().BeLessThan(expectedEventsPerSecond / 3d, "Publisher should sustain PLC event rate");
-
-            // Assert latency
-            var end2EndLatency = eventData
-                .ConvertAll(v => v.EnqueuedTime - v.SourceTimestamp)
-;
-            end2EndLatency.Min().Should().BePositive();
-            end2EndLatency.Average(v => v.Value.TotalMilliseconds).Should().BeLessThan(8000);
         }
 
         private static (double average, double stDev) DescriptiveStats(IReadOnlyCollection<int> population)

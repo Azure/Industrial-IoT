@@ -366,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     .SelectMany(w => w.OpcNodes!)
                                     .Distinct(OpcNodeModelEx.Comparer)
                                     .Batch(_maxNodesPerDataSet)
-                                    // Future: batch in service so it is centralized
+                            // Future: batch in service so it is centralized
                             ))
                             .SelectMany(b => b.WriterBatches // Do we need to materialize here?
                                 .Select(n => n.ToList())
@@ -432,16 +432,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     DataSetFieldContentMask = null
                                 }))
                                 .ToList(),
-                            KeepAliveTime = null,
-                            MaxNetworkMessageSize = null,
-                            MessageSettings = null,
-                            Priority = null,
-                            PublishQueueSize = null,
-                            SecurityGroupId = null,
-                            SecurityKeyServices = null,
-                            SecurityMode = null,
-                            LocaleIds = null
-                        })
+                        KeepAliveTime = null,
+                        MaxNetworkMessageSize = null,
+                        MessageSettings = null,
+                        Priority = null,
+                        PublishQueueSize = null,
+                        SecurityGroupId = null,
+                        SecurityKeyServices = null,
+                        SecurityMode = null,
+                        LocaleIds = null
+                    })
                     .ToList(); // Convert here or else we dont print conversion correctly
             }
             catch (Exception ex)
