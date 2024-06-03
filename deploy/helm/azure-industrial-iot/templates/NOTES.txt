@@ -1,9 +1,0 @@
-Please be patient while the chart is being deployed
-
-Please check documentation on how to access APIs and Swagger UIs of Azure Industrial IoT services.
-
-For Helm Chart sources and documentation, visit:
-https://github.com/Azure/Industrial-IoT/tree/main/deploy/helm/azure-industrial-iot
-
-For more information on Azure Industrial IoT, visit:
-https://github.com/Azure/Industrial-IoT
