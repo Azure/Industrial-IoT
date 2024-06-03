@@ -768,8 +768,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Data set metadata notification
             /// </summary>
-            public sealed record class MetadataNotificationModel :
-                IOpcUaSubscriptionNotification
+            public sealed record class MetadataNotificationModel : IOpcUaSubscriptionNotification
             {
                 /// <inheritdoc/>
                 public uint SequenceNumber { get; }

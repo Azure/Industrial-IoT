@@ -374,8 +374,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 {
                                                     if (notification.DataSetFieldName != null)
                                                     {
-                                                        _logger.LogTrace("Processing notification: {Notification}",
-                                                            notification.ToString());
                                                         var dataSetMessage = new MonitoredItemMessage
                                                         {
                                                             UseCompatibilityMode = !standardsCompliant,
@@ -616,6 +614,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append('|')
                     .Append(item.Value?.SourceTimestamp
                         .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                    .Append('|')
+                    .Append(item.Value?.Value)
+                    .Append('|')
+                    .Append(item.Value?.StatusCode)
                     .Append('|')
                     ;
             }

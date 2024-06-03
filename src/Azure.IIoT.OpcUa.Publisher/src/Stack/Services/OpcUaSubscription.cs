@@ -2128,7 +2128,7 @@ Actual (revised) state/desired state:
                         })
                         .ToList();
 
-                    splitted.Last().PublishSequenceNumber = original;
+                    splitted[^1].PublishSequenceNumber = original;
 #if DEBUG
                     MarkProcessed();
 #endif
