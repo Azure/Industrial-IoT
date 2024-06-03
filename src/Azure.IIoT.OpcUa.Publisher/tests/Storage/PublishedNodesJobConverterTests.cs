@@ -52,23 +52,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [InlineData(true, true)]
         public void PnPlcPlainTextUserNamePasswordTest(bool withCryptoProvider, bool providerThrows)
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""OpcAuthenticationUsername"": ""OpcAuthenticationUsername"",
-        ""OpcAuthenticationPassword"": ""OpcAuthenticationPassword"",
-        ""OpcNodes"": [
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "OpcAuthenticationUsername": "OpcAuthenticationUsername",
+        "OpcAuthenticationPassword": "OpcAuthenticationPassword",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(),
                 cryptoProvider: withCryptoProvider ? providerThrows ? CreateThrowProvider() : CreateMockProvider() : null);
@@ -102,23 +104,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPlainTextUserNamePasswordWithCryptoProviderForceEncryptionTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""OpcAuthenticationUsername"": ""DecryptedAuthUsername"",
-        ""OpcAuthenticationPassword"": ""DecryptedAuthPassword"",
-        ""OpcNodes"": [
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "OpcAuthenticationUsername": "DecryptedAuthUsername",
+        "OpcAuthenticationPassword": "DecryptedAuthPassword",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.ForceCredentialEncryption = true;
@@ -155,23 +159,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcEncryptedUserNamePasswordWithoutCryptoProviderTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""EncryptedAuthUsername"": ""EncryptedAuthUsername"",
-        ""EncryptedAuthPassword"": ""EncryptedAuthPassword"",
-        ""OpcNodes"": [
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "EncryptedAuthUsername": "EncryptedAuthUsername",
+        "EncryptedAuthPassword": "EncryptedAuthPassword",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
 
@@ -203,23 +209,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcEncryptedUserNamePasswordWithThrowingCryptoProviderTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""EncryptedAuthUsername"": ""EncryptedAuthUsername"",
-        ""EncryptedAuthPassword"": ""EncryptedAuthPassword"",
-        ""OpcNodes"": [
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "EncryptedAuthUsername": "EncryptedAuthUsername",
+        "EncryptedAuthPassword": "EncryptedAuthPassword",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), cryptoProvider: CreateThrowProvider());
 
@@ -253,23 +261,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         {
             var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
             var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
-            var pn = $@"
+            var pn = $$"""
+
 [
-    {{
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
-        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
-        ""OpcNodes"": [
-            {{
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
-            }}
+    {
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "EncryptedAuthUsername": "{{encryptedAuthUsername}}",
+        "EncryptedAuthPassword": "{{encryptedAuthPassword}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
+            }
         ]
-    }}
+    }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), cryptoProvider: CreateMockProvider());
 
@@ -305,23 +315,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         {
             var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
             var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
-            var pn = $@"
+            var pn = $$"""
+
 [
-    {{
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
-        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
-        ""OpcNodes"": [
-            {{
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
-            }}
+    {
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "EncryptedAuthUsername": "{{encryptedAuthUsername}}",
+        "EncryptedAuthPassword": "{{encryptedAuthPassword}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
+            }
         ]
-    }}
+    }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.ForceCredentialEncryption = true;
@@ -359,23 +371,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         {
             var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
             var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
-            var pn = $@"
+            var pn = $$"""
+
 [
-    {{
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
-        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
-        ""OpcNodes"": [
-            {{
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
-            }}
+    {
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "EncryptedAuthUsername": "{{encryptedAuthUsername}}",
+        "EncryptedAuthPassword": "{{encryptedAuthPassword}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
+            }
         ]
-    }}
+    }
 ]
-";
+
+""";
             var failFastCalled = false;
             Publisher.Runtime.FailFast = (_, _) => failFastCalled = true;
 
@@ -421,23 +435,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         {
             var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
             var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
-            var pn = $@"
+            var pn = $$"""
+
 [
-    {{
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcAuthenticationMode"": ""usernamePassword"",
-        ""EncryptedAuthUsername"": ""{encryptedAuthUsername}"",
-        ""EncryptedAuthPassword"": ""{encryptedAuthPassword}"",
-        ""OpcNodes"": [
-            {{
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
-            }}
+    {
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "EncryptedAuthUsername": "{{encryptedAuthUsername}}",
+        "EncryptedAuthPassword": "{{encryptedAuthPassword}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
+            }
         ]
-    }}
+    }
 ]
-";
+
+""";
             var failFastCalled = false;
             Publisher.Runtime.FailFast = (_, _) => failFastCalled = true;
 
@@ -482,20 +498,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetWriterIdTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -516,19 +534,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetWriterIdIsNullTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -549,20 +569,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetWriterGroupTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterGroup"": ""testgroup"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetWriterGroup": "testgroup",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
 
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
@@ -584,19 +606,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetFieldId1Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1""
+                "Id": "i=2258",
+                "DataSetFieldId": "testfieldid1"
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
 
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
@@ -614,23 +638,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetFieldId2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1""
+                "Id": "i=2258",
+                "DataSetFieldId": "testfieldid1"
             },
             {
-                ""Id"": ""i=2259"",
-                ""DataSetFieldId"": ""testfieldid2""
+                "Id": "i=2259",
+                "DataSetFieldId": "testfieldid2"
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
 
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
@@ -656,23 +682,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetFieldIdDuplicateTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid""
+                "Id": "i=2258",
+                "DataSetFieldId": "testfieldid"
             },
             {
-                ""Id"": ""i=2259"",
-                ""DataSetFieldId"": ""testfieldid""
+                "Id": "i=2259",
+                "DataSetFieldId": "testfieldid"
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
 
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
@@ -698,23 +726,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDisplayNameDuplicateTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname""
+                "Id": "i=2258",
+                "DisplayName": "testdisplayname"
             },
             {
-                ""Id"": ""i=2259"",
-                ""DisplayName"": ""testdisplayname""
+                "Id": "i=2259",
+                "DisplayName": "testdisplayname"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -741,25 +771,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubFullDuplicateTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname"",
-                ""DataSetFieldId"": ""testfieldid""
+                "Id": "i=2258",
+                "DisplayName": "testdisplayname",
+                "DataSetFieldId": "testfieldid"
             },
             {
-                ""Id"": ""i=2259"",
-                ""DisplayName"": ""testdisplayname"",
-                ""DataSetFieldId"": ""testfieldid""
+                "Id": "i=2259",
+                "DisplayName": "testdisplayname",
+                "DataSetFieldId": "testfieldid"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -786,23 +818,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubFullTest1()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterGroup"": ""testgroup"",
-        ""DataSetWriterId"": ""testwriterid"",
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetWriterGroup": "testgroup",
+        "DataSetWriterId": "testwriterid",
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1"",
-                ""OpcPublishingInterval"": 2000
+                "Id": "i=2258",
+                "DataSetFieldId": "testfieldid1",
+                "OpcPublishingInterval": 2000
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
 
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
@@ -833,26 +867,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubFullTest2()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterGroup"": ""testgroup"",
-        ""DataSetWriterId"": ""testwriterid"",
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetWriterGroup": "testgroup",
+        "DataSetWriterId": "testwriterid",
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1"",
-                ""OpcPublishingInterval"": 1000
+                "Id": "i=2258",
+                "DataSetFieldId": "testfieldid1",
+                "OpcPublishingInterval": 1000
             },
             {
-                ""Id"": ""i=2259"",
+                "Id": "i=2259",
             }
         ]
     }
 ]
-";
+
+""";
             var logger = Log.Console<PublishedNodesConverter>();
 
             var converter = new PublishedNodesConverter(logger, _serializer, GetOptions());
@@ -888,26 +924,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubFullTest3()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetWriterGroup"": ""testgroup"",
-        ""DataSetWriterId"": ""testwriterid"",
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetWriterGroup": "testgroup",
+        "DataSetWriterId": "testwriterid",
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1"",
-                ""OpcPublishingInterval"": 2000
+                "Id": "i=2258",
+                "DataSetFieldId": "testfieldid1",
+                "OpcPublishingInterval": 2000
             },
             {
-                ""Id"": ""i=2259"",
+                "Id": "i=2259",
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -953,19 +991,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval1Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
+                "Id": "i=2258",
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -984,20 +1024,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingInterval"": 2000
+                "Id": "i=2258",
+                "OpcPublishingInterval": 2000
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1016,22 +1058,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval3Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258""
+                "Id": "i=2258"
             },
             {
-                ""Id"": ""i=2259""
+                "Id": "i=2259"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1050,23 +1094,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingInterval4Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingInterval"": 2000
+                "Id": "i=2258",
+                "OpcPublishingInterval": 2000
             },
             {
-                ""Id"": ""i=2259""
+                "Id": "i=2259"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1084,19 +1130,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan1Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingIntervalTimespan": "00:00:01",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
+                "Id": "i=2258",
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1115,20 +1163,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingIntervalTimespan": "00:00:01",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingIntervalTimespan"": ""00:00:02""
+                "Id": "i=2258",
+                "OpcPublishingIntervalTimespan": "00:00:02"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1147,22 +1197,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan3Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingIntervalTimespan": "00:00:01",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258""
+                "Id": "i=2258"
             },
             {
-                ""Id"": ""i=2259""
+                "Id": "i=2259"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1181,23 +1233,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDataSetPublishingIntervalTimespan4Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingIntervalTimespan"": ""00:00:01"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingIntervalTimespan": "00:00:01",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
+                "Id": "i=2258",
             },
             {
-                ""Id"": ""i=2259"",
-                ""OpcPublishingInterval"": 3000
+                "Id": "i=2259",
+                "OpcPublishingInterval": 3000
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1215,20 +1269,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDisplayName1Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1""
+                "Id": "i=2258",
+                "DisplayName": "testdisplayname1"
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1247,19 +1303,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDisplayName2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
+                "Id": "i=2258",
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1278,21 +1336,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDisplayName3Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
+                "Id": "i=2258",
+                "DisplayName": "testdisplayname1",
+                "DataSetFieldId": "testdatasetfieldid1",
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1311,20 +1371,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubDisplayName4Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
+                "Id": "i=2258",
+                "DataSetFieldId": "testdatasetfieldid1",
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1343,20 +1405,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName1Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1""
+                "Id": "i=2258",
+                "DisplayName": "testdisplayname1"
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1375,19 +1439,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
+                "Id": "i=2258",
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1406,21 +1472,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName3Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
+                "Id": "i=2258",
+                "DisplayName": "testdisplayname1",
+                "DataSetFieldId": "testdatasetfieldid1",
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1439,20 +1507,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPubSubPublishedNodeDisplayName4Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "DataSetPublishingInterval": 1000,
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
+                "Id": "i=2258",
+                "DataSetFieldId": "testdatasetfieldid1",
             },
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1471,19 +1541,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcHeartbeatInterval2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                "Id": "i=2258",
+                "HeartbeatInterval": 2
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1511,19 +1583,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcHeartbeatIntervalTimespanTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatIntervalTimespan"": ""00:00:01.500""
+                "Id": "i=2258",
+                "HeartbeatIntervalTimespan": "00:00:01.500"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1551,19 +1625,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcHeartbeatSkipSingleTrueTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""SkipSingle"": true
+                "Id": "i=2258",
+                "SkipSingle": true
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1587,19 +1663,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcHeartbeatSkipSingleFalseTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""SkipSingle"": false
+                "Id": "i=2258",
+                "SkipSingle": false
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1620,19 +1698,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPublishingInterval2000Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingInterval"": 2000
+                "Id": "i=2258",
+                "OpcPublishingInterval": 2000
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1657,18 +1737,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcPublishingIntervalCliTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258""
+                "Id": "i=2258"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1693,19 +1775,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcSamplingInterval2000Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""OpcSamplingInterval"": 2000
+                "Id": "i=2258",
+                "OpcSamplingInterval": 2000
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1732,18 +1816,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcExpandedNodeIdTest()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""ExpandedNodeId"": ""nsu=http://opcfoundation.org/UA/;i=2258""
+                "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1766,32 +1852,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcExpandedNodeId2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""ExpandedNodeId"": ""nsu=http://opcfoundation.org/UA/;i=2258""
+                "ExpandedNodeId": "nsu=http://opcfoundation.org/UA/;i=2258"
             }
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2262""
+                "Id": "i=2262"
             },
             {
-                ""Id"": ""ns=2;s=AlternatingBoolean""
+                "Id": "ns=2;s=AlternatingBoolean"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1812,24 +1900,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcExpandedNodeId3Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258""
+                "Id": "i=2258"
             },
             {
-                ""Id"": ""ns=2;s=DipData""
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1851,45 +1941,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcExpandedNodeId4Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258""
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+                "Identifier": "i=2258"
         }
         },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
 
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"
             }
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2262""
+                "Id": "i=2262"
             },
             {
-                ""Id"": ""ns=2;s=DipData""
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1911,45 +2003,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJob1Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258""
+        "EndpointUrl": "opc.tcp://localhost1:50000",
+        "NodeId": {
+                "Identifier": "i=2258"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
+        "EndpointUrl": "opc.tcp://localhost2:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost3:50000",
+        "OpcNodes": [
 
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"
             }
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost4:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost4:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2262""
+                "Id": "i=2262"
             },
             {
-                ""Id"": ""ns=2;s=DipData""
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -1969,48 +2063,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJob2Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258"",
+        "EndpointUrl": "opc.tcp://localhost:50001",
+        "NodeId": {
+                "Identifier": "i=2258",
         }
         },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
+        "EndpointUrl": "opc.tcp://localhost:50002",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50003"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50003",
+        "OpcNodes": [
             {
-                ""OpcPublishingInterval"": 1000,
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                "OpcPublishingInterval": 1000,
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"
             }
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50004"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50004",
+        "OpcNodes": [
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""i=2262""
+                "OpcPublishingInterval": 1000,
+                "Id": "i=2262"
             },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""ns=2;s=DipData""
+                "OpcPublishingInterval": 1000,
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
-                ""OpcPublishingInterval"": 1000
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData",
+                "OpcPublishingInterval": 1000
             }
         ]
     }
 ]
-";
+
+""";
             var endpointUrls = new string[] {
                 "opc.tcp://localhost:50001",
                 "opc.tcp://localhost:50002",
@@ -2038,48 +2134,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJob3Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258"",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+                "Identifier": "i=2258",
         }
         },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50001",
+        "OpcNodes": [
             {
-                ""OpcPublishingInterval"": 1000,
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                "OpcPublishingInterval": 1000,
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"
             }
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50001",
+        "OpcNodes": [
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""i=2262""
+                "OpcPublishingInterval": 1000,
+                "Id": "i=2262"
             },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""ns=2;s=DipData""
+                "OpcPublishingInterval": 1000,
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
-                ""OpcPublishingInterval"": 1000
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData",
+                "OpcPublishingInterval": 1000
             }
         ]
     }
 ]
-";
+
+""";
             var endpointUrls = new string[] {
                 "opc.tcp://localhost:50000",
                 "opc.tcp://localhost:50001"
@@ -2105,46 +2203,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJob4Test()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258"",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+                "Identifier": "i=2258",
         }
         },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50001",
+        "OpcNodes": [
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"
             }
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50001",
+        "OpcNodes": [
             {
-                ""OpcPublishingInterval"": 2000,
-                ""Id"": ""i=2262""
+                "OpcPublishingInterval": 2000,
+                "Id": "i=2262"
             },
             {
-                ""OpcPublishingInterval"": 2000,
-                ""Id"": ""ns=2;s=DipData""
+                "OpcPublishingInterval": 2000,
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData",
             }
         ]
     }
 ]
-";
+
+""";
             var endpointUrls = new string[] {
                 "opc.tcp://localhost:50000",
                 "opc.tcp://localhost:50001"
@@ -2202,12 +2302,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJobBatching1Test()
         {
-            var pn = new StringBuilder(@"
+            var pn = new StringBuilder("""
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            ");
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            
+""");
 
             for (var i = 1; i < 10000; i++)
             {
@@ -2217,12 +2319,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                     .Append("\" },");
             }
 
-            pn.Append(@"
-            { ""Id"": ""i=10000"" }
+            pn.Append("""
+
+            { "Id": "i=10000" }
         ]
     }
 ]
-");
+
+""");
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -2253,12 +2357,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJobBatching2Test()
         {
-            var pn = new StringBuilder(@"
+            var pn = new StringBuilder("""
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            ");
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            
+""");
 
             for (var i = 1; i < 10000; i++)
             {
@@ -2270,12 +2376,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
                     .Append("},");
             }
 
-            pn.Append(@"
-            { ""Id"": ""i=10000"" }
+            pn.Append("""
+
+            { "Id": "i=10000" }
         ]
     }
 ]
-");
+
+""");
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -2319,40 +2427,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcJobWithAllEventPropertiesTest()
         {
-            var pn = new StringBuilder(@"
+            var pn = new StringBuilder("""
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""TestingDisplayName"",
-                ""EventFilter"": {
-                    ""SelectClauses"": [
+                "Id": "i=2258",
+                "DisplayName": "TestingDisplayName",
+                "EventFilter": {
+                    "SelectClauses": [
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""EventId""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventId"
                             ],
-                            ""AttributeId"": ""BrowseName"",
-                            ""IndexRange"": ""5:20""
+                            "AttributeId": "BrowseName",
+                            "IndexRange": "5:20"
                         }
                     ],
-                    ""WhereClause"": {
-                        ""Elements"": [
+                    "WhereClause": {
+                        "Elements": [
                             {
-                                ""FilterOperator"": ""OfType"",
-                                ""FilterOperands"": [
+                                "FilterOperator": "OfType",
+                                "FilterOperands": [
                                     {
-                                        ""NodeId"": ""i=2041"",
-                                        ""BrowsePath"": [
-                                            ""EventId""
+                                        "NodeId": "i=2041",
+                                        "BrowsePath": [
+                                            "EventId"
                                         ],
-                                        ""AttributeId"": ""BrowseName"",
-                                        ""Value"": ""ns=2;i=235"",
-                                        ""IndexRange"": ""5:20"",
-                                        ""Index"": 10,
-                                        ""Alias"": ""Test"",
+                                        "AttributeId": "BrowseName",
+                                        "Value": "ns=2;i=235",
+                                        "IndexRange": "5:20",
+                                        "Index": 10,
+                                        "Alias": "Test",
                                     }
                                 ]
                             }
@@ -2363,7 +2472,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         ]
     }
 ]
-");
+
+""");
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -2413,46 +2523,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcMultiJob1TestWithDataItemsAndEvents()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""i=2258""
+        "EndpointUrl": "opc.tcp://localhost1:50000",
+        "NodeId": {
+            "Identifier": "i=2258"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
+        "EndpointUrl": "opc.tcp://localhost2:50000",
+        "NodeId": {
+            "Identifier": "ns=0;i=2261"
         }
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost3:50000",
+        "OpcNodes": [
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
-                ""DisplayName"": ""AlternatingBoolean""
+                "ExpandedNodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean",
+                "DisplayName": "AlternatingBoolean"
             },
             {
-                ""Id"": ""i=2253"",
-                ""OpcPublishingInterval"": 5000,
-                ""EventFilter"": {
-                    ""SelectClauses"": [
+                "Id": "i=2253",
+                "OpcPublishingInterval": 5000,
+                "EventFilter": {
+                    "SelectClauses": [
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""EventId""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventId"
                             ]
                         }
                     ],
-                    ""WhereClause"": {
-                        ""Elements"": [
+                    "WhereClause": {
+                        "Elements": [
                             {
-                                ""FilterOperator"": ""OfType"",
-                                ""FilterOperands"": [
+                                "FilterOperator": "OfType",
+                                "FilterOperands": [
                                     {
-                                        ""Value"": ""ns=2;i=235""
+                                        "Value": "ns=2;i=235"
                                     }
                                 ]
                             }
@@ -2463,21 +2574,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         ]
     },
     {
-        ""EndpointUrl"": ""opc.tcp://localhost4:50000"",
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://localhost4:50000",
+        "OpcNodes": [
             {
-                ""Id"": ""i=2262""
+                "Id": "i=2262"
             },
             {
-                ""Id"": ""ns=2;s=DipData""
+                "Id": "ns=2;s=DipData"
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -2533,92 +2645,93 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcJobTestWithEvents()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
-        ""UseSecurity"": false,
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer",
+        "UseSecurity": false,
+        "OpcNodes": [
             {
-                ""Id"": ""i=2253"",
-                ""DisplayName"": ""DisplayName2253"",
-                ""OpcPublishingInterval"": 5000,
-                ""EventFilter"": {
-                    ""SelectClauses"": [
+                "Id": "i=2253",
+                "DisplayName": "DisplayName2253",
+                "OpcPublishingInterval": 5000,
+                "EventFilter": {
+                    "SelectClauses": [
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""EventId""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventId"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""EventType""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "EventType"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""SourceNode""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "SourceNode"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""SourceName""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "SourceName"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""Time""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "Time"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""ReceiveTime""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "ReceiveTime"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""LocalTime""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "LocalTime"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""Message""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "Message"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""Severity""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "Severity"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""2:CycleId""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "2:CycleId"
                             ]
                         },
                         {
-                            ""TypeDefinitionId"": ""i=2041"",
-                            ""BrowsePath"": [
-                                ""2:CurrentStep""
+                            "TypeDefinitionId": "i=2041",
+                            "BrowsePath": [
+                                "2:CurrentStep"
                             ]
                         }
                     ],
-                    ""WhereClause"": {
-                        ""Elements"": [
+                    "WhereClause": {
+                        "Elements": [
                             {
-                                ""FilterOperator"": ""OfType"",
-                                ""FilterOperands"": [
+                                "FilterOperator": "OfType",
+                                "FilterOperands": [
                                     {
-                                        ""Value"": ""ns=2;i=235""
+                                        "Value": "ns=2;i=235"
                                     }
                                 ]
                             }
@@ -2629,7 +2742,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 
@@ -2674,27 +2788,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         [Fact]
         public void PnPlcJobTestWithConditionHandling()
         {
-            const string pn = @"
+            const string pn = """
+
 [
     {
-        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
-        ""UseSecurity"": false,
-        ""OpcNodes"": [
+        "EndpointUrl": "opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer",
+        "UseSecurity": false,
+        "OpcNodes": [
             {
-                ""Id"": ""i=2253"",
-                ""OpcPublishingInterval"": 5000,
-                ""EventFilter"": {
-                    ""TypeDefinitionId"": ""ns=2;i=235""
+                "Id": "i=2253",
+                "OpcPublishingInterval": 5000,
+                "EventFilter": {
+                    "TypeDefinitionId": "ns=2;i=235"
                 },
-                ""ConditionHandling"": {
-                    ""UpdateInterval"": 10,
-                    ""SnapshotInterval"": 30
+                "ConditionHandling": {
+                    "UpdateInterval": 10,
+                    "SnapshotInterval": 30
                 }
             }
         ]
     }
 ]
-";
+
+""";
 
             var logger = Log.Console<PublishedNodesConverter>();
 

@@ -25,8 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         {
             builder.AddOpcUaStack();
 
-            builder.RegisterType<PublisherIdentity>()
-                .AsImplementedInterfaces();
             builder.RegisterType<PublisherConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherModule>()

@@ -86,8 +86,7 @@ namespace Irony.Parsing
                     return found;
                 }
             }
-            return node.ChildNodes.FirstOrDefault(
-                node => node.Term?.Name == name);
+            return node.ChildNodes.Find(node => node.Term?.Name == name);
         }
 
         /// <summary>

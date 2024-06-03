@@ -253,6 +253,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetKeyFrameCount.Value);
             }
+            if (model.DisableSubscriptionTransfer != null)
+            {
+                id.Append(model.DisableSubscriptionTransfer.Value);
+            }
             if (model.SendKeepAliveDataSetMessages)
             {
                 id.AppendLine();
@@ -365,6 +369,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.DataSetKeyFrameCount != that.DataSetKeyFrameCount)
+            {
+                return false;
+            }
+            if (model.DisableSubscriptionTransfer != that.DisableSubscriptionTransfer)
             {
                 return false;
             }

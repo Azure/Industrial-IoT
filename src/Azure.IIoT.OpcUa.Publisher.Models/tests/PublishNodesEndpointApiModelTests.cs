@@ -18,39 +18,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
         {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
-            var modelJson = @"
+            var modelJson = """
+
 {
-    ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
+    "EndpointUrl": "opc.tcp://localhost:50002",
+    "NodeId": {
+        "Identifier": "ns=0;i=2261"
     }
 }
-";
+
+""";
             var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.False(model.UseSecurity);
 
-            modelJson = @"
+            modelJson = """
+
 {
-    ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""UseSecurity"": false,
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
+    "EndpointUrl": "opc.tcp://localhost:50002",
+    "UseSecurity": false,
+    "NodeId": {
+        "Identifier": "ns=0;i=2261"
     }
 }
-";
+
+""";
 
             model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.False(model.UseSecurity);
 
-            modelJson = @"
+            modelJson = """
+
 {
-    ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""UseSecurity"": true,
-    ""NodeId"": {
-        ""Identifier"": ""ns=0;i=2261""
+    "EndpointUrl": "opc.tcp://localhost:50002",
+    "UseSecurity": true,
+    "NodeId": {
+        "Identifier": "ns=0;i=2261"
     }
 }
-";
+
+""";
 
             model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.True(model.UseSecurity);
@@ -108,40 +114,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
         {
             var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
 
-            var modelJson = @"
+            var modelJson = """
+
 {
-    ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""OpcNodes"": [
-        { ""Identifier"": ""ns=0;i=2261"" }
+    "EndpointUrl": "opc.tcp://localhost:50002",
+    "OpcNodes": [
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
-";
+
+""";
 
             var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Equal(OpcAuthenticationMode.Anonymous, model.OpcAuthenticationMode);
 
-            modelJson = @"
+            modelJson = """
+
 {
-    ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""OpcAuthenticationMode"": ""anonymous"",
-    ""OpcNodes"": [
-        { ""Identifier"": ""ns=0;i=2261"" }
+    "EndpointUrl": "opc.tcp://localhost:50002",
+    "OpcAuthenticationMode": "anonymous",
+    "OpcNodes": [
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
-";
+
+""";
 
             model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Equal(OpcAuthenticationMode.Anonymous, model.OpcAuthenticationMode);
 
-            modelJson = @"
+            modelJson = """
+
 {
-    ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-    ""OpcAuthenticationMode"": ""usernamePassword"",
-    ""OpcNodes"": [
-        { ""Identifier"": ""ns=0;i=2261"" }
+    "EndpointUrl": "opc.tcp://localhost:50002",
+    "OpcAuthenticationMode": "usernamePassword",
+    "OpcNodes": [
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
-";
+
+""";
 
             model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Equal(OpcAuthenticationMode.UsernamePassword, model.OpcAuthenticationMode);

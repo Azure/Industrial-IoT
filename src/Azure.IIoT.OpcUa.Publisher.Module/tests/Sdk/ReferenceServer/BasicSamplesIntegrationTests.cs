@@ -452,7 +452,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Empty(endpoints.Endpoints);
 
                 await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
-                    new() {
+                    new()
+                    {
                         OpcNodes = nodes.OpcNodes.ToList(),
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity,

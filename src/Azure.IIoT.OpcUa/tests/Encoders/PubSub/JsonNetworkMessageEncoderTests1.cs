@@ -25,15 +25,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""Temperature"":25,
-    ""Pressure"":1013,
-    ""Humidity"":42
+    "Temperature":25,
+    "Pressure":1013,
+    "Humidity":42
   }
 ]
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Theory]
@@ -50,15 +52,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             // the value is encoded as variant using reversible encoding
             // Even if the datatset mask flag is not set. This is not logical.
             // The pub sub formatter behaves differently, it uses raw encoding.
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""Temperature"":{""Type"":6,""Body"":25},
-    ""Pressure"":{""Type"":6,""Body"":1013},
-    ""Humidity"":{""Type"":6,""Body"":42}
+    "Temperature":{"Type":6,"Body":25},
+    "Pressure":{"Type":6,"Body":1013},
+    "Humidity":{"Type":6,"Body":42}
   }
 ]
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Theory]
@@ -70,15 +74,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-    ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-    ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+    "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+    "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+    "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
   }
 ]
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Theory]
@@ -90,21 +96,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-    ""MessageType"":""ua-keyframe"",
-    ""DataSetWriterName"":""Writer100"",
-    ""Payload"":
+    "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+    "MessageType":"ua-keyframe",
+    "DataSetWriterName":"Writer100",
+    "Payload":
     {
-      ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-      ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-      ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+      "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+      "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+      "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
     }
   }
 ]
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -113,32 +121,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1b, 0xff, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-  ""MessageType"":""ua-data"",
-  ""PublisherId"":""MyPublisher"",
-  ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-  ""Messages"":
+  "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+  "MessageType":"ua-data",
+  "PublisherId":"MyPublisher",
+  "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+  "Messages":
   [
     {
-      ""DataSetWriterId"":100,
-      ""SequenceNumber"":29766,
-      ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-      ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-      ""Status"":1073741824,
-      ""MessageType"":""ua-keyframe"",
-      ""DataSetWriterName"":""Writer100"",
-      ""Payload"":
+      "DataSetWriterId":100,
+      "SequenceNumber":29766,
+      "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+      "Timestamp":"2021-09-27T18:45:19.555Z",
+      "Status":1073741824,
+      "MessageType":"ua-keyframe",
+      "DataSetWriterName":"Writer100",
+      "Payload":
       {
-        ""Temperature"":{""Value"":{""Type"":6,""Body"":25},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-        ""Pressure"":{""Value"":{""Type"":6,""Body"":1013},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-        ""Humidity"":{""Value"":{""Type"":6,""Body"":42},""StatusCode"":1073741824,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+        "Temperature":{"Value":{"Type":6,"Body":25},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+        "Pressure":{"Value":{"Type":6,"Body":1013},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+        "Humidity":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
       }
     }
   ]
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -148,34 +158,36 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-    ""MessageType"":""ua-data"",
-    ""PublisherId"":""MyPublisher"",
-    ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-    ""Messages"":
+    "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+    "MessageType":"ua-data",
+    "PublisherId":"MyPublisher",
+    "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+    "Messages":
     [
       {
-        ""DataSetWriterId"":100,
-        ""SequenceNumber"":29766,
-        ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-        ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-        ""Status"":1073741824,
-        ""MessageType"":""ua-keyframe"",
-        ""DataSetWriterName"":""Writer100"",
-        ""Payload"":
+        "DataSetWriterId":100,
+        "SequenceNumber":29766,
+        "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+        "Timestamp":"2021-09-27T18:45:19.555Z",
+        "Status":1073741824,
+        "MessageType":"ua-keyframe",
+        "DataSetWriterName":"Writer100",
+        "Payload":
         {
-          ""Temperature"":{""Value"":{""Type"":6,""Body"":25},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-          ""Pressure"":{""Value"":{""Type"":6,""Body"":1013},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-          ""Humidity"":{""Value"":{""Type"":6,""Body"":42},""StatusCode"":1073741824,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+          "Temperature":{"Value":{"Type":6,"Body":25},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+          "Pressure":{"Value":{"Type":6,"Body":1013},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+          "Humidity":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
         }
       }
     ]
   }
 ]
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -184,32 +196,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1b, 0x7f, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-  ""MessageType"":""ua-data"",
-  ""PublisherId"":""MyPublisher"",
-  ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-  ""Messages"":
+  "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+  "MessageType":"ua-data",
+  "PublisherId":"MyPublisher",
+  "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+  "Messages":
   [
     {
-      ""DataSetWriterId"":100,
-      ""SequenceNumber"":29766,
-      ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-      ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-      ""Status"":1073741824,
-      ""MessageType"":""ua-keyframe"",
-      ""DataSetWriterName"":""Writer100"",
-      ""Payload"":
+      "DataSetWriterId":100,
+      "SequenceNumber":29766,
+      "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+      "Timestamp":"2021-09-27T18:45:19.555Z",
+      "Status":1073741824,
+      "MessageType":"ua-keyframe",
+      "DataSetWriterName":"Writer100",
+      "Payload":
       {
-        ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-        ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-        ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+        "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+        "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+        "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
       }
     }
   ]
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -218,13 +232,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1c, 0x62, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-  ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-  ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+  "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+  "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+  "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -233,19 +249,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1e, 0x62, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-  ""MessageType"":""ua-keyframe"",
-  ""DataSetWriterName"":""Writer100"",
-  ""Payload"":
+  "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+  "MessageType":"ua-keyframe",
+  "DataSetWriterName":"Writer100",
+  "Payload":
   {
-    ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-    ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-    ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+    "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+    "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+    "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
   }
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -254,30 +272,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1f, 0xff, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-  ""MessageType"":""ua-data"",
-  ""PublisherId"":""MyPublisher"",
-  ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-  ""Messages"":
+  "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+  "MessageType":"ua-data",
+  "PublisherId":"MyPublisher",
+  "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+  "Messages":
   {
-    ""DataSetWriterId"":100,
-    ""SequenceNumber"":29766,
-    ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-    ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-    ""Status"":1073741824,
-    ""MessageType"":""ua-keyframe"",
-    ""DataSetWriterName"":""Writer100"",
-    ""Payload"":
+    "DataSetWriterId":100,
+    "SequenceNumber":29766,
+    "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+    "Timestamp":"2021-09-27T18:45:19.555Z",
+    "Status":1073741824,
+    "MessageType":"ua-keyframe",
+    "DataSetWriterName":"Writer100",
+    "Payload":
     {
-      ""Temperature"":{""Value"":{""Type"":6,""Body"":25},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-      ""Pressure"":{""Value"":{""Type"":6,""Body"":1013},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-      ""Humidity"":{""Value"":{""Type"":6,""Body"":42},""StatusCode"":1073741824,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+      "Temperature":{"Value":{"Type":6,"Body":25},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+      "Pressure":{"Value":{"Type":6,"Body":1013},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+      "Humidity":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
     }
   }
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -286,30 +306,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1f, 0x7f, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-  ""MessageType"":""ua-data"",
-  ""PublisherId"":""MyPublisher"",
-  ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-  ""Messages"":
+  "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+  "MessageType":"ua-data",
+  "PublisherId":"MyPublisher",
+  "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+  "Messages":
   {
-    ""DataSetWriterId"":100,
-    ""SequenceNumber"":29766,
-    ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-    ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-    ""Status"":1073741824,
-    ""MessageType"":""ua-keyframe"",
-    ""DataSetWriterName"":""Writer100"",
-    ""Payload"":
+    "DataSetWriterId":100,
+    "SequenceNumber":29766,
+    "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+    "Timestamp":"2021-09-27T18:45:19.555Z",
+    "Status":1073741824,
+    "MessageType":"ua-keyframe",
+    "DataSetWriterName":"Writer100",
+    "Payload":
     {
-      ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-      ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-      ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+      "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+      "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+      "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
     }
   }
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -318,30 +340,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             var simple = CreateMessage(0x1f, 0x7f, 0x3f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 {
-  ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-  ""MessageType"":""ua-data"",
-  ""PublisherId"":""MyPublisher"",
-  ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-  ""Messages"":
+  "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+  "MessageType":"ua-data",
+  "PublisherId":"MyPublisher",
+  "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+  "Messages":
   {
-    ""DataSetWriterId"":100,
-    ""SequenceNumber"":29766,
-    ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-    ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-    ""Status"":1073741824,
-    ""MessageType"":""ua-keyframe"",
-    ""DataSetWriterName"":""Writer100"",
-    ""Payload"":
+    "DataSetWriterId":100,
+    "SequenceNumber":29766,
+    "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+    "Timestamp":"2021-09-27T18:45:19.555Z",
+    "Status":1073741824,
+    "MessageType":"ua-keyframe",
+    "DataSetWriterName":"Writer100",
+    "Payload":
     {
-      ""Temperature"":25,
-      ""Pressure"":1013,
-      ""Humidity"":42
+      "Temperature":25,
+      "Pressure":1013,
+      "Humidity":42
     }
   }
 }
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -351,32 +375,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-    ""MessageType"":""ua-data"",
-    ""PublisherId"":""MyPublisher"",
-    ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-    ""Messages"":
+    "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+    "MessageType":"ua-data",
+    "PublisherId":"MyPublisher",
+    "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+    "Messages":
     {
-      ""DataSetWriterId"":100,
-      ""SequenceNumber"":29766,
-      ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-      ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-      ""Status"":1073741824,
-      ""MessageType"":""ua-keyframe"",
-      ""DataSetWriterName"":""Writer100"",
-      ""Payload"":
+      "DataSetWriterId":100,
+      "SequenceNumber":29766,
+      "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+      "Timestamp":"2021-09-27T18:45:19.555Z",
+      "Status":1073741824,
+      "MessageType":"ua-keyframe",
+      "DataSetWriterName":"Writer100",
+      "Payload":
       {
-        ""Temperature"":{""Value"":25},
-        ""Pressure"":{""Value"":1013},
-        ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""}}
+        "Temperature":{"Value":25},
+        "Pressure":{"Value":1013},
+        "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"}}
       }
     }
   }
 ]
-"), new NewtonsoftJsonSerializer().Parse(buffer));
+
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         [Fact]
@@ -386,31 +412,33 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse(@"
+            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+
 [
   {
-    ""MessageId"":""9279C0B3-DA88-45A4-AF74-451CEBF82DB0"",
-    ""MessageType"":""ua-data"",
-    ""PublisherId"":""MyPublisher"",
-    ""DataSetClassId"":""5ae1a63a-9757-4aa7-ab71-0d88931266fc"",
-    ""Messages"":
+    "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
+    "MessageType":"ua-data",
+    "PublisherId":"MyPublisher",
+    "DataSetClassId":"5ae1a63a-9757-4aa7-ab71-0d88931266fc",
+    "Messages":
     {
-      ""DataSetWriterId"":100,
-      ""SequenceNumber"":29766,
-      ""MetaDataVersion"":{""MajorVersion"":672338910,""MinorVersion"":672341762},
-      ""Timestamp"":""2021-09-27T18:45:19.555Z"",
-      ""Status"":1073741824,
-      ""MessageType"":""ua-keyframe"",
-      ""DataSetWriterName"":""Writer100"",
-      ""Payload"":
+      "DataSetWriterId":100,
+      "SequenceNumber":29766,
+      "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
+      "Timestamp":"2021-09-27T18:45:19.555Z",
+      "Status":1073741824,
+      "MessageType":"ua-keyframe",
+      "DataSetWriterName":"Writer100",
+      "Payload":
       {
-        ""Temperature"":{""Value"":25,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-        ""Pressure"":{""Value"":1013,""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""},
-        ""Humidity"":{""Value"":42,""StatusCode"":{""Code"":1073741824,""Symbol"":""Uncertain""},""SourceTimestamp"":""2021-09-27T18:45:19.555Z"",""ServerTimestamp"":""2021-09-27T18:45:19.555Z""}
+        "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+        "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
+        "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
       }
     }
   }
-]"), new NewtonsoftJsonSerializer().Parse(buffer));
+]
+"""), new NewtonsoftJsonSerializer().Parse(buffer));
         }
 
         private static JsonNetworkMessage CreateMessage(uint messageMask, uint datasetMask, uint fieldMask)

@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Furly;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
@@ -112,11 +113,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader, IDataSetMetaDataResolver? resolver)
+            Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             if (reader.TryPeek(out var buffer))
             {
-                using var memoryStream = Memory.GetStream(buffer.ToArray());
+                using var memoryStream = buffer.IsSingleSegment ?
+                    Memory.GetStream(buffer.FirstSpan) :
+                    Memory.GetStream(buffer.ToArray());
                 var compression = UseGzipCompression ?
                     new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
                 try
@@ -137,10 +140,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
-            var chunks = new List<ReadOnlyMemory<byte>>();
+            var chunks = new List<ReadOnlySequence<byte>>();
             using var memoryStream = Memory.GetStream();
             var compression = UseGzipCompression ?
                 new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true) : null;
@@ -161,17 +164,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 compression?.Dispose();
             }
-            // TODO: instead of copy using ToArray we shall include the
-            // stream with the message and dispose it later when it is
-            // consumed.
-            var messageBuffer = memoryStream.ToArray();
+            var messageBuffer = memoryStream.GetReadOnlySequence();
             if (messageBuffer.Length < maxChunkSize)
             {
-                chunks.Add(messageBuffer);
+                // TODO: instead of copy using ToArray we shall include the
+                // stream with the message and dispose it later when it is
+                // consumed.
+                chunks.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
             }
             else
             {
-                chunks.Add(null);
+                chunks.Add(default);
             }
             return chunks;
         }
@@ -215,7 +218,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             PublisherId = decoder.ReadString(nameof(PublisherId));
             DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
-            MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(nameof(MetaData), typeof(DataSetMetaDataType));
+            MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(
+                nameof(MetaData), typeof(DataSetMetaDataType));
             DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             return true;
         }

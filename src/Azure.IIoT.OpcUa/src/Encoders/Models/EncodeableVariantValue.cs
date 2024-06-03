@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Encodeable wrapper for Json tokens
     /// </summary>
-    public sealed class EncodeableVariantValue : IEncodeable
+    public sealed class EncodeableVariantValue : IEncodeable, IJsonEncodeable
     {
         /// <summary>
         /// The encoded object
@@ -32,15 +32,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
-            nameof(EncodeableVariantValue);
+            "s=" + nameof(EncodeableVariantValue);
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
-            nameof(EncodeableVariantValue) + "_Encoding_DefaultBinary";
+            "s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultBinary";
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
-            nameof(EncodeableVariantValue) + "_Encoding_DefaultXml";
+            "s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultXml";
+
+        /// <inheritdoc/>
+        public ExpandedNodeId JsonEncodingId =>
+            "s=" + nameof(EncodeableVariantValue) + "_Encoding_DefaultJson";
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder)

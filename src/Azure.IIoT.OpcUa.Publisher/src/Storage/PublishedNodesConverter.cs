@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="items"></param>
         /// <param name="preferTimeSpan"></param>
         /// <returns></returns>
-        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(int version, DateTime lastChanged,
+        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(uint version, DateTime lastChanged,
             IEnumerable<WriterGroupModel> items, bool preferTimeSpan = true)
         {
             if (items == null)
@@ -127,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             BatchTriggerInterval = null,
                             Priority = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
                             MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
+                            DisableSubscriptionTransfer = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup =
@@ -420,6 +421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             SubscriptionSettings = new PublishedDataSetSettingsModel
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
+                                                RepublishAfterTransfer = b.Header.DisableSubscriptionTransfer,
                                                 Priority = b.Header.Priority,
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
                                                 // ...

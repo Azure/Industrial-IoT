@@ -35,15 +35,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
 
         /// <inheritdoc/>
         public ExpandedNodeId JsonEncodingId =>
-            nameof(EncodeableJToken) + "_Encoding_DefaultJson";
+            "s=" + nameof(EncodeableJToken) + "_Encoding_DefaultJson";
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
-            nameof(EncodeableJToken) + "_Encoding_DefaultBinary";
+            "s=" + nameof(EncodeableJToken) + "_Encoding_DefaultBinary";
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
-            nameof(EncodeableJToken) + "_Encoding_DefaultXml";
+            "s=" + nameof(EncodeableJToken) + "_Encoding_DefaultXml";
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder)

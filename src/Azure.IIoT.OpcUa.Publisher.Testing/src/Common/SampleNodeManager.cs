@@ -183,9 +183,7 @@ namespace Opc.Ua.Sample
         {
             lock (Lock)
             {
-                NodeState node = null;
-
-                if (!PredefinedNodes.TryGetValue(nodeId, out node))
+                if (!PredefinedNodes.TryGetValue(nodeId, out var node))
                 {
                     return null;
                 }
@@ -474,9 +472,7 @@ namespace Opc.Ua.Sample
                     var targetId = (NodeId)reference.TargetId;
 
                     // add inverse reference to internal targets.
-                    NodeState target = null;
-
-                    if (PredefinedNodes.TryGetValue(targetId, out target))
+                    if (PredefinedNodes.TryGetValue(targetId, out var target))
                     {
                         if (!target.ReferenceExists(reference.ReferenceTypeId, !reference.IsInverse, source.NodeId))
                         {
@@ -525,9 +521,8 @@ namespace Opc.Ua.Sample
             IDictionary<NodeId, IList<IReference>> externalReferences)
         {
             // get list of references to external nodes.
-            IList<IReference> referencesToAdd = null;
 
-            if (!externalReferences.TryGetValue(sourceId, out referencesToAdd))
+            if (!externalReferences.TryGetValue(sourceId, out var referencesToAdd))
             {
                 externalReferences[sourceId] = referencesToAdd = new List<IReference>();
             }
@@ -591,9 +586,7 @@ namespace Opc.Ua.Sample
                 return null;
             }
 
-            NodeState node = null;
-
-            if (!PredefinedNodes.TryGetValue(nodeId, out node))
+            if (!PredefinedNodes.TryGetValue(nodeId, out var node))
             {
                 return null;
             }
@@ -656,9 +649,7 @@ namespace Opc.Ua.Sample
                 }
 
                 // lookup the node.
-                NodeState node = null;
-
-                if (!PredefinedNodes.TryGetValue(nodeId, out node))
+                if (!PredefinedNodes.TryGetValue(nodeId, out var node))
                 {
                     return null;
                 }
@@ -2198,9 +2189,6 @@ namespace Opc.Ua.Sample
                         continue;
                     }
 
-                    MonitoringFilterResult filterError = null;
-                    IMonitoredItem monitoredItem = null;
-
                     errors[ii] = CreateMonitoredItem(
                         systemContext,
                         source,
@@ -2210,8 +2198,8 @@ namespace Opc.Ua.Sample
                         timestampsToReturn,
                         itemToCreate,
                         ref globalIdCounter,
-                        out filterError,
-                        out monitoredItem);
+                        out var filterError,
+                        out var monitoredItem);
 
                     // save any filter error details.
                     filterErrors[ii] = filterError;
@@ -2244,9 +2232,6 @@ namespace Opc.Ua.Sample
 
                     var itemToCreate = itemsToCreate[operation.Index];
 
-                    MonitoringFilterResult filterError = null;
-                    IMonitoredItem monitoredItem = null;
-
                     errors[operation.Index] = CreateMonitoredItem(
                         systemContext,
                         operation.Source,
@@ -2256,8 +2241,8 @@ namespace Opc.Ua.Sample
                         timestampsToReturn,
                         itemToCreate,
                         ref globalIdCounter,
-                        out filterError,
-                        out monitoredItem);
+                        out var filterError,
+                        out var monitoredItem);
 
                     // save any filter error details.
                     filterErrors[operation.Index] = filterError;
@@ -2666,7 +2651,6 @@ namespace Opc.Ua.Sample
                     }
 
                     // modify the monitored item.
-                    MonitoringFilterResult filterError = null;
 
                     errors[ii] = ModifyMonitoredItem(
                         systemContext,
@@ -2674,7 +2658,7 @@ namespace Opc.Ua.Sample
                         timestampsToReturn,
                         monitoredItems[ii],
                         itemToModify,
-                        out filterError);
+                        out var filterError);
 
                     // save any filter error details.
                     filterErrors[ii] = filterError;
@@ -2824,12 +2808,10 @@ namespace Opc.Ua.Sample
                     }
 
                     // delete the monitored item.
-                    var processed = false;
-
                     errors[ii] = DeleteMonitoredItem(
                         systemContext,
                         monitoredItems[ii],
-                        out processed);
+                        out var processed);
 
                     // indicate whether it was processed or not.
                     processedItems[ii] = processed;
@@ -2986,13 +2968,11 @@ namespace Opc.Ua.Sample
                     }
 
                     // update monitoring mode.
-                    var processed = false;
-
                     errors[ii] = SetMonitoringMode(
                         systemContext,
                         monitoredItems[ii],
                         monitoringMode,
-                        out processed);
+                        out var processed);
 
                     // indicate whether it was processed or not.
                     processedItems[ii] = processed;

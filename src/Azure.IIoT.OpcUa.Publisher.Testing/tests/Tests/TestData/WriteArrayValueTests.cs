@@ -746,386 +746,388 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10323";
 
-            var expected = _serializer.Parse(@"
+            var expected = _serializer.Parse("""
+
 [
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": true,
-            ""SByteValue"": -38,
-            ""ByteValue"": 110,
-            ""Int16Value"": 8055,
-            ""UInt16Value"": 55806,
-            ""Int32Value"": 256543409,
-            ""UInt32Value"": 1124716060,
-            ""Int64Value"": 6272273485009155588,
-            ""UInt64Value"": 8748332193282252019,
-            ""FloatValue"": 1.3550572E+28,
-            ""DoubleValue"": -55.151821136474609,
-            ""StringValue"": ""레몬 딸기^ 고양이) 파인애플"",
-            ""DateTimeValue"": ""2071-08-08T14:25:16.7814639Z"",
-            ""GuidValue"": ""2f1b64e2-9b6c-9ff9-9bcb-681a5030910b"",
-            ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
-            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-            ""NodeIdValue"": ""http://samples.org/UA/memorybuffer#b=672G6bOkm2X9OQ4V"",
-            ""ExpandedNodeIdValue"": ""g=b869d987-396a-5018-7e4d-556d5e591587"",
-            ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Dragon"",
-            ""LocalizedTextValue"": {
-                ""Text"": ""母牛@ 蛇 马- 蓝莓 猴子< 绿色 蛇{ 白色$ 绵羊 绵羊 紫色 紫色 猴子[ 猴子! 蓝莓("",
-                ""Locale"": ""zh-CN""
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": true,
+            "SByteValue": -38,
+            "ByteValue": 110,
+            "Int16Value": 8055,
+            "UInt16Value": 55806,
+            "Int32Value": 256543409,
+            "UInt32Value": 1124716060,
+            "Int64Value": 6272273485009155588,
+            "UInt64Value": 8748332193282252019,
+            "FloatValue": 1.3550572E+28,
+            "DoubleValue": -55.151821136474609,
+            "StringValue": "레몬 딸기^ 고양이) 파인애플",
+            "DateTimeValue": "2071-08-08T14:25:16.7814639Z",
+            "GuidValue": "2f1b64e2-9b6c-9ff9-9bcb-681a5030910b",
+            "ByteStringValue": "XmIaOczWGerdvT4+Y1BOuQ==",
+            "XmlElementValue": "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+            "NodeIdValue": "http://samples.org/UA/memorybuffer#b=672G6bOkm2X9OQ4V",
+            "ExpandedNodeIdValue": "g=b869d987-396a-5018-7e4d-556d5e591587",
+            "QualifiedNameValue": "http://opcfoundation.org/UA/Diagnostics#Dragon",
+            "LocalizedTextValue": {
+                "Text": "母牛@ 蛇 马- 蓝莓 猴子< 绿色 蛇{ 白色$ 绵羊 绵羊 紫色 紫色 猴子[ 猴子! 蓝莓(",
+                "Locale": "zh-CN"
             },
-            ""StatusCodeValue"": 6356992,
-            ""VariantValue"": {
-                ""Type"": ""ExtensionObject"",
-                ""Body"": {
-                    ""TypeId"": ""http://test.org/UA/Data//Instance#g=a2a62a11-ee81-11e2-c797-f015f0dcc7bf"",
-                    ""Body"": ""+ejk7JrPhOKfaxAk3LnqVYIbn5/Oh111kBH5HcAc46atRudt/iWP1h6eT3cBow==""
+            "StatusCodeValue": 6356992,
+            "VariantValue": {
+                "Type": "ExtensionObject",
+                "Body": {
+                    "TypeId": "http://test.org/UA/Data//Instance#g=a2a62a11-ee81-11e2-c797-f015f0dcc7bf",
+                    "Body": "+ejk7JrPhOKfaxAk3LnqVYIbn5/Oh111kBH5HcAc46atRudt/iWP1h6eT3cBow=="
                 }
             },
-            ""EnumerationValue"": 0,
-            ""StructureValue"": { ""TypeId"": null },
-            ""Number"": {
-                ""Type"": ""Double"",
-                ""Body"": 1.0
+            "EnumerationValue": 0,
+            "StructureValue": { "TypeId": null },
+            "Number": {
+                "Type": "Double",
+                "Body": 1.0
             },
-            ""Integer"": {
-                ""Type"": ""Int64"",
-                ""Body"": 1
+            "Integer": {
+                "Type": "Int64",
+                "Body": 1
             },
-            ""UInteger"": {
-                ""Type"": ""UInt64"",
-                ""Body"": 1
+            "UInteger": {
+                "Type": "UInt64",
+                "Body": 1
             }
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": true,
-            ""SByteValue"": -71,
-            ""ByteValue"": 165,
-            ""Int16Value"": -31474,
-            ""UInt16Value"": 60031,
-            ""Int32Value"": 1002303007,
-            ""UInt32Value"": 2322690949,
-            ""Int64Value"": -8682057831558849682,
-            ""UInt64Value"": 1004227894202161316,
-            ""FloatValue"": 4.1843192E-05,
-            ""DoubleValue"": 32635254472704.0,
-            ""StringValue"": ""Голубика> Дракон@"",
-            ""DateTimeValue"": ""2014-01-20T12:32:21.1556352Z"",
-            ""GuidValue"": ""252c98f0-ad64-fd43-2056-044339a3fb6e"",
-            ""ByteStringValue"": ""E3P8wU/iTsNcmseUhcjHs2z228AvXUXixBcwI448g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
-            ""XmlElementValue"": null,
-            ""NodeIdValue"": ""http://samples.org/UA/memorybuffer/Instance#i=4010681507"",
-            ""ExpandedNodeIdValue"": ""http://samples.org/UA/memorybuffer#g=979bd1d7-6e82-4d4e-813c-715d76a51cc9"",
-            ""QualifiedNameValue"": ""http://samples.org/UA/memorybuffer#%e8%8a%92%e6%9e%9c"",
-            ""LocalizedTextValue"": {
-                ""Text"": ""黄色 猿, ヒツジ@ 黒 ドラゴン 猿< ラット% ラット* 猿 パイナップル< 白い 黄色 赤い 黄色< 赤い ブタ マンゴ 猫= 象 緑 ブタ"",
-                ""Locale"": ""jp""
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": true,
+            "SByteValue": -71,
+            "ByteValue": 165,
+            "Int16Value": -31474,
+            "UInt16Value": 60031,
+            "Int32Value": 1002303007,
+            "UInt32Value": 2322690949,
+            "Int64Value": -8682057831558849682,
+            "UInt64Value": 1004227894202161316,
+            "FloatValue": 4.1843192E-05,
+            "DoubleValue": 32635254472704.0,
+            "StringValue": "Голубика> Дракон@",
+            "DateTimeValue": "2014-01-20T12:32:21.1556352Z",
+            "GuidValue": "252c98f0-ad64-fd43-2056-044339a3fb6e",
+            "ByteStringValue": "E3P8wU/iTsNcmseUhcjHs2z228AvXUXixBcwI448g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA==",
+            "XmlElementValue": null,
+            "NodeIdValue": "http://samples.org/UA/memorybuffer/Instance#i=4010681507",
+            "ExpandedNodeIdValue": "http://samples.org/UA/memorybuffer#g=979bd1d7-6e82-4d4e-813c-715d76a51cc9",
+            "QualifiedNameValue": "http://samples.org/UA/memorybuffer#%e8%8a%92%e6%9e%9c",
+            "LocalizedTextValue": {
+                "Text": "黄色 猿, ヒツジ@ 黒 ドラゴン 猿< ラット% ラット* 猿 パイナップル< 白い 黄色 赤い 黄色< 赤い ブタ マンゴ 猫= 象 緑 ブタ",
+                "Locale": "jp"
             },
-            ""StatusCodeValue"": 1441792,
-            ""VariantValue"": {
-                ""Type"": ""UInt16"",
-                ""Body"": 36671
+            "StatusCodeValue": 1441792,
+            "VariantValue": {
+                "Type": "UInt16",
+                "Body": 36671
             },
-            ""EnumerationValue"": 0,
-            ""StructureValue"": { ""TypeId"": null },
-            ""Number"": {
-                ""Type"": ""Double"",
-                ""Body"": 1.0
+            "EnumerationValue": 0,
+            "StructureValue": { "TypeId": null },
+            "Number": {
+                "Type": "Double",
+                "Body": 1.0
             },
-            ""Integer"": {
-                ""Type"": ""Int64"",
-                ""Body"": 1
+            "Integer": {
+                "Type": "Int64",
+                "Body": 1
             },
-            ""UInteger"": {
-                ""Type"": ""UInt64"",
-                ""Body"": 1
+            "UInteger": {
+                "Type": "UInt64",
+                "Body": 1
             }
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": false,
-            ""SByteValue"": -113,
-            ""ByteValue"": 42,
-            ""Int16Value"": -14982,
-            ""UInt16Value"": 59442,
-            ""Int32Value"": 85049805,
-            ""UInt32Value"": 2602718263,
-            ""Int64Value"": 3649290182186472621,
-            ""UInt64Value"": 4161862115548090842,
-            ""FloatValue"": -5.763605E-32,
-            ""DoubleValue"": 3.4576486746766018E-34,
-            ""StringValue"": ""Виноградина Слон:"",
-            ""DateTimeValue"": ""1923-03-18T00:11:38.731972Z"",
-            ""GuidValue"": ""82622490-4f77-4562-6290-1295bf97c2e1"",
-            ""ByteStringValue"": ""g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
-            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-            ""NodeIdValue"": ""s=%d0%93%d0%be%d0%bb%d1%83%d0%b1%d0%b8%d0%ba%d0%b0"",
-            ""ExpandedNodeIdValue"": ""http://test.org/UA/Data/#s=%e9%a9%ac%e7%b4%ab%e8%89%b2"",
-            ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Diagnostics#Elephant"",
-            ""LocalizedTextValue"": {
-                ""Text"": ""猪 猴子~ 红色\"" 黄色 红色 葡萄 芒果 香蕉 蓝莓 香蕉 芒果? 葡萄 马& 菠萝 白色< 白色 绿色 绿色= 鼠 白色 猪 蓝莓 草莓 猪 狗"",
-                ""Locale"": ""zh-CN""
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": false,
+            "SByteValue": -113,
+            "ByteValue": 42,
+            "Int16Value": -14982,
+            "UInt16Value": 59442,
+            "Int32Value": 85049805,
+            "UInt32Value": 2602718263,
+            "Int64Value": 3649290182186472621,
+            "UInt64Value": 4161862115548090842,
+            "FloatValue": -5.763605E-32,
+            "DoubleValue": 3.4576486746766018E-34,
+            "StringValue": "Виноградина Слон:",
+            "DateTimeValue": "1923-03-18T00:11:38.731972Z",
+            "GuidValue": "82622490-4f77-4562-6290-1295bf97c2e1",
+            "ByteStringValue": "g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA==",
+            "XmlElementValue": "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+            "NodeIdValue": "s=%d0%93%d0%be%d0%bb%d1%83%d0%b1%d0%b8%d0%ba%d0%b0",
+            "ExpandedNodeIdValue": "http://test.org/UA/Data/#s=%e9%a9%ac%e7%b4%ab%e8%89%b2",
+            "QualifiedNameValue": "http://opcfoundation.org/UA/Diagnostics#Elephant",
+            "LocalizedTextValue": {
+                "Text": "猪 猴子~ 红色\" 黄色 红色 葡萄 芒果 香蕉 蓝莓 香蕉 芒果? 葡萄 马& 菠萝 白色< 白色 绿色 绿色= 鼠 白色 猪 蓝莓 草莓 猪 狗",
+                "Locale": "zh-CN"
             },
-            ""StatusCodeValue"": {
-                ""Symbol"": ""GoodShutdownEvent"",
-                ""Code"": 11010048
+            "StatusCodeValue": {
+                "Symbol": "GoodShutdownEvent",
+                "Code": 11010048
             },
-            ""VariantValue"": {
-                ""Type"": ""Int64"",
-                ""Body"": 3678050018011977630
+            "VariantValue": {
+                "Type": "Int64",
+                "Body": 3678050018011977630
             },
-            ""EnumerationValue"": 1,
-            ""StructureValue"": { ""TypeId"": null },
-            ""Number"": {
-                ""Type"": ""Double"",
-                ""Body"": 1.0
+            "EnumerationValue": 1,
+            "StructureValue": { "TypeId": null },
+            "Number": {
+                "Type": "Double",
+                "Body": 1.0
             },
-            ""Integer"": {
-                ""Type"": ""Int64"",
-                ""Body"": 1
+            "Integer": {
+                "Type": "Int64",
+                "Body": 1
             },
-            ""UInteger"": {
-                ""Type"": ""UInt64"",
-                ""Body"": 1
+            "UInteger": {
+                "Type": "UInt64",
+                "Body": 1
             }
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": false,
-            ""SByteValue"": 82,
-            ""ByteValue"": 198,
-            ""Int16Value"": 9215,
-            ""UInt16Value"": 44960,
-            ""Int32Value"": 1970614820,
-            ""UInt32Value"": 4087763535,
-            ""Int64Value"": 3156392098576755738,
-            ""UInt64Value"": 1179071999846299015,
-            ""FloatValue"": -1.2796896E-06,
-            ""DoubleValue"": -2.4084619380135754E-35,
-            ""StringValue"": ""ヘビ~ 猫* 緑) マンゴ< レモン ブタ\"" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\"" 牛$"",
-            ""DateTimeValue"": ""1949-12-22T18:46:59.3619463Z"",
-            ""GuidValue"": ""bfa4b0cc-483b-8dcf-f31c-be1ab6a22373"",
-            ""ByteStringValue"": ""5k3/MiwysaJQb0S+h/ZadiHED6kKXOEV505s59Gg"",
-            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-            ""NodeIdValue"": ""http://opcfoundation.org/UA/Diagnostics#i=407765665"",
-            ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#g=f16b1f33-7701-a037-4b9b-c936ae51bc40"",
-            ""QualifiedNameValue"": ""http://opcfoundation.org/UA/Boiler//Instance#%ec%bd%94%eb%81%bc%eb%a6%ac"",
-            ""LocalizedTextValue"": {
-                ""Text"": ""Персик Пурпурово\"" Змейка` Овцы Крыса Пурпурово* Голубо< Бело& Крыса Змейка"",
-                ""Locale"": ""ru""
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": false,
+            "SByteValue": 82,
+            "ByteValue": 198,
+            "Int16Value": 9215,
+            "UInt16Value": 44960,
+            "Int32Value": 1970614820,
+            "UInt32Value": 4087763535,
+            "Int64Value": 3156392098576755738,
+            "UInt64Value": 1179071999846299015,
+            "FloatValue": -1.2796896E-06,
+            "DoubleValue": -2.4084619380135754E-35,
+            "StringValue": "ヘビ~ 猫* 緑) マンゴ< レモン ブタ\" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\" 牛$",
+            "DateTimeValue": "1949-12-22T18:46:59.3619463Z",
+            "GuidValue": "bfa4b0cc-483b-8dcf-f31c-be1ab6a22373",
+            "ByteStringValue": "5k3/MiwysaJQb0S+h/ZadiHED6kKXOEV505s59Gg",
+            "XmlElementValue": "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+            "NodeIdValue": "http://opcfoundation.org/UA/Diagnostics#i=407765665",
+            "ExpandedNodeIdValue": "http://opcfoundation.org/UA/Boiler/#g=f16b1f33-7701-a037-4b9b-c936ae51bc40",
+            "QualifiedNameValue": "http://opcfoundation.org/UA/Boiler//Instance#%ec%bd%94%eb%81%bc%eb%a6%ac",
+            "LocalizedTextValue": {
+                "Text": "Персик Пурпурово\" Змейка` Овцы Крыса Пурпурово* Голубо< Бело& Крыса Змейка",
+                "Locale": "ru"
             },
-            ""StatusCodeValue"": 4980736,
-            ""VariantValue"": {
-                ""Type"": ""SByte"",
-                ""Body"": -114
+            "StatusCodeValue": 4980736,
+            "VariantValue": {
+                "Type": "SByte",
+                "Body": -114
             },
-            ""EnumerationValue"": 1,
-            ""StructureValue"": { ""TypeId"": null },
-            ""Number"": {
-                ""Type"": ""Double"",
-                ""Body"": 1.0
+            "EnumerationValue": 1,
+            "StructureValue": { "TypeId": null },
+            "Number": {
+                "Type": "Double",
+                "Body": 1.0
             },
-            ""Integer"": {
-                ""Type"": ""Int64"",
-                ""Body"": 5
+            "Integer": {
+                "Type": "Int64",
+                "Body": 5
             },
-            ""UInteger"": {
-                ""Type"": ""UInt64"",
-                ""Body"": 1
+            "UInteger": {
+                "Type": "UInt64",
+                "Body": 1
             }
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": false,
-            ""SByteValue"": -97,
-            ""ByteValue"": 121,
-            ""Int16Value"": -29579,
-            ""UInt16Value"": 52214,
-            ""Int32Value"": 150448275,
-            ""UInt32Value"": 2074081332,
-            ""Int64Value"": -1011618571483371166,
-            ""UInt64Value"": 3946747598058890327,
-            ""FloatValue"": 7.858336E+35,
-            ""DoubleValue"": 10017916.0,
-            ""StringValue"": ""яблоко Ананас~ Овцы Корова Пурпурово_ Банан Крыса Собака Кот Бело( Корова'"",
-            ""DateTimeValue"": ""2034-12-05T15:52:28.675232Z"",
-            ""GuidValue"": ""0500899c-1c30-8180-cbc7-333928152ed2"",
-            ""ByteStringValue"": ""5xRa2IKDWkNPnQk0znSUOxE="",
-            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-            ""NodeIdValue"": ""http://opcfoundation.org/UA/Boiler//Instance#s=%e3%83%98%e3%83%93"",
-            ""ExpandedNodeIdValue"": ""http://opcfoundation.org/UA/Boiler/#i=3489247698"",
-            ""QualifiedNameValue"": ""DataAccess#%e9%a9%ac"",
-            ""LocalizedTextValue"": {
-                ""Text"": ""ブタ モモ 緑 いちご ドラゴン 犬; 青い~ モモ 黒; 緑 レモン} 猿% 馬 白い% 馬 牛 象 白い+ 象# いちご< 紫色: レモン~ モモ~ ブタ# マンゴ モモ"",
-                ""Locale"": ""jp""
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": false,
+            "SByteValue": -97,
+            "ByteValue": 121,
+            "Int16Value": -29579,
+            "UInt16Value": 52214,
+            "Int32Value": 150448275,
+            "UInt32Value": 2074081332,
+            "Int64Value": -1011618571483371166,
+            "UInt64Value": 3946747598058890327,
+            "FloatValue": 7.858336E+35,
+            "DoubleValue": 10017916.0,
+            "StringValue": "яблоко Ананас~ Овцы Корова Пурпурово_ Банан Крыса Собака Кот Бело( Корова'",
+            "DateTimeValue": "2034-12-05T15:52:28.675232Z",
+            "GuidValue": "0500899c-1c30-8180-cbc7-333928152ed2",
+            "ByteStringValue": "5xRa2IKDWkNPnQk0znSUOxE=",
+            "XmlElementValue": "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+            "NodeIdValue": "http://opcfoundation.org/UA/Boiler//Instance#s=%e3%83%98%e3%83%93",
+            "ExpandedNodeIdValue": "http://opcfoundation.org/UA/Boiler/#i=3489247698",
+            "QualifiedNameValue": "DataAccess#%e9%a9%ac",
+            "LocalizedTextValue": {
+                "Text": "ブタ モモ 緑 いちご ドラゴン 犬; 青い~ モモ 黒; 緑 レモン} 猿% 馬 白い% 馬 牛 象 白い+ 象# いちご< 紫色: レモン~ モモ~ ブタ# マンゴ モモ",
+                "Locale": "jp"
             },
-            ""StatusCodeValue"": 1245184,
-            ""VariantValue"": {
-                ""Type"": ""ExpandedNodeId"",
-                ""Body"": ""http://opcfoundation.org/UA/Boiler//Instance#b=4Ncr5uADYkU88S45mg%3d%3d""
+            "StatusCodeValue": 1245184,
+            "VariantValue": {
+                "Type": "ExpandedNodeId",
+                "Body": "http://opcfoundation.org/UA/Boiler//Instance#b=4Ncr5uADYkU88S45mg%3d%3d"
             },
-            ""EnumerationValue"": 1,
-            ""StructureValue"": { ""TypeId"": null },
-            ""Number"": {
-                ""Type"": ""Double"",
-                ""Body"": 1.0
+            "EnumerationValue": 1,
+            "StructureValue": { "TypeId": null },
+            "Number": {
+                "Type": "Double",
+                "Body": 1.0
             },
-            ""Integer"": {
-                ""Type"": ""Int64"",
-                ""Body"": 1
+            "Integer": {
+                "Type": "Int64",
+                "Body": 1
             },
-            ""UInteger"": {
-                ""Type"": ""UInt64"",
-                ""Body"": 88
+            "UInteger": {
+                "Type": "UInt64",
+                "Body": 88
             }
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9669"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": [ false, false, false, false, true ],
-            ""SByteValue"": [ 120, 27, 27, 57, 117, 61, -42, 106 ],
-            ""ByteValue"": [ 105, 241, 196, 82 ],
-            ""Int16Value"": [ 22001, -1270, 27022, -11160 ],
-            ""UInt16Value"": [ 31406, 22379, 11459, 18140 ],
-            ""Int32Value"": [ 1147924132, 937096171, 293419963, 1355723363, 1682226035, 921241048, 946417831, 483648971, 1150550410 ],
-            ""UInt32Value"": [ 405022290, 3763626854, 2219565007, 635093313, 1150728258 ],
-            ""Int64Value"": [ -1689618757610414770, -1598013270992443575, -6068487195887049228, 3886489167998855712 ],
-            ""UInt64Value"": [ 1434838700748177518, 579235881671951863, 1080167929345915653, 1330943213770414543 ],
-            ""FloatValue"": [ 4.311362E-33, 6.620173E-35, -8.877828E-29, -1.2760576E+29, -1.646687E-22, 1.802464E-21 ],
-            ""DoubleValue"": [ -6011373486080.0, 108132739055616.0, 8.3547184787473483E-36, 5.2422583022226784E+27, 1.0392232580248937E-32, 1.0094077198242765E+33, -8.35414627813762E-39 ],
-            ""StringValue"": [ ""녹색 들쭉 들쭉 돼지 녹색% 녹색 암소 원숭이 딸기+ 들쭉 암소~ 망고 망고 딸기 녹색 녹색 돼지 들쭉) 석회 개} 검정 쥐~ 쥐 코끼리= 들쭉"", ""Обезьяна Красно Зеленыйцвет Крыса"", ""Красно, Желтыйцвет Манго= Ананас Бело&"", ""Голубика Желтыйцвет"", ""蓝莓 大象~ 绵羊 柠檬 母牛 母牛 红色"", ""狗\"" 马 紫色` 葡萄@ 柠檬 芒果 猪 菠萝 龙^ 黑色* 马 绿色 绵羊 大象 红色) 蓝莓 蛇# 狗 香蕉 草莓 黑色@ 红色 鼠~ 蓝色 香蕉 猫 红色% 黑色"", ""Чернота- Собака Пурпурово# Голубика Чернота Голубо: Дракон яблоко Бело Зеленыйцвет"" ],
-            ""DateTimeValue"": [ ""1916-05-09T17:48:30.6223191Z"" ],
-            ""GuidValue"": [ ""842d41a6-6123-30ce-5970-6c26b28dd4de"", ""9aa488f4-bf70-5b49-848a-9197639e0990"", ""63306802-aacd-cf0e-20eb-70b1d72bdbe2"", ""5763cae3-358e-e7ef-f7d1-0098d037cdbb"", ""4924dc67-715c-4910-79d4-7a844f978358"", ""99b3afae-b13b-cc01-7949-6bfbaa75ffe9"", ""fb4ab41e-9107-7285-b919-deb9bb6a975f"", ""20eaa74e-3383-b67f-da57-d01305159e03"" ],
-            ""ByteStringValue"": [ ""ZppNiFEdKUHgItJIEQ+yC6wDi99l6zWUIa/Bcm2jetrkKQP9EsZVzPdCU1zjkUbBYPlpm3j1LHtkuGaiXLfUPQ=="", ""+GToC7X45q6+5yOY2bGPaf8RczrfYe79iJhaX7JwP20VteotXbarAYLtuQ0I44s="", ""1jk="", ""pWEDx5Z16oIcnof7Tqe1giTGYgtJZXK38qjg9KUNU4g="", ""FJoMEu1Tt3Mzj2L78Q=="", ""ZVNgZ0B0LhI/7kvV7pX23A9L/oI5DahvNnOqmBbWD7wAPHqgRKUT"", ""SgFaHcYXZSJ8Vn8X/G8xWKvwMMzKlvxp34/UsRpVmGk36zc3soqpHg2HG79W98CRCyL1U3VGSbQF8T43Q7MIJ74="", ""3xA3+aUgRxG/Q3o8EufOQqb4YETz8aKCMsFMcdtZfvQAQBivWhE="", ""1AxjhwY5yd9WaQANEMd6Iu1utMfj1NY1ZcSGO9HPH+iUe4s3kGqbSGni9QjbTG4thh4qQKVKmAA2LSFBs40Nh0kXeZQ7QpKD0mteAd/NWhlVWbWz"", ""3kJK4osBYkhaldvUbb7D0tnxQ4unbTnrlyBo0wjsWQ=="" ],
-            ""XmlElementValue"": [
-                ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-                ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=""
+        "TypeId": "http://test.org/UA/Data/#i=9669",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": [ false, false, false, false, true ],
+            "SByteValue": [ 120, 27, 27, 57, 117, 61, -42, 106 ],
+            "ByteValue": [ 105, 241, 196, 82 ],
+            "Int16Value": [ 22001, -1270, 27022, -11160 ],
+            "UInt16Value": [ 31406, 22379, 11459, 18140 ],
+            "Int32Value": [ 1147924132, 937096171, 293419963, 1355723363, 1682226035, 921241048, 946417831, 483648971, 1150550410 ],
+            "UInt32Value": [ 405022290, 3763626854, 2219565007, 635093313, 1150728258 ],
+            "Int64Value": [ -1689618757610414770, -1598013270992443575, -6068487195887049228, 3886489167998855712 ],
+            "UInt64Value": [ 1434838700748177518, 579235881671951863, 1080167929345915653, 1330943213770414543 ],
+            "FloatValue": [ 4.311362E-33, 6.620173E-35, -8.877828E-29, -1.2760576E+29, -1.646687E-22, 1.802464E-21 ],
+            "DoubleValue": [ -6011373486080.0, 108132739055616.0, 8.3547184787473483E-36, 5.2422583022226784E+27, 1.0392232580248937E-32, 1.0094077198242765E+33, -8.35414627813762E-39 ],
+            "StringValue": [ "녹색 들쭉 들쭉 돼지 녹색% 녹색 암소 원숭이 딸기+ 들쭉 암소~ 망고 망고 딸기 녹색 녹색 돼지 들쭉) 석회 개} 검정 쥐~ 쥐 코끼리= 들쭉", "Обезьяна Красно Зеленыйцвет Крыса", "Красно, Желтыйцвет Манго= Ананас Бело&", "Голубика Желтыйцвет", "蓝莓 大象~ 绵羊 柠檬 母牛 母牛 红色", "狗\" 马 紫色` 葡萄@ 柠檬 芒果 猪 菠萝 龙^ 黑色* 马 绿色 绵羊 大象 红色) 蓝莓 蛇# 狗 香蕉 草莓 黑色@ 红色 鼠~ 蓝色 香蕉 猫 红色% 黑色", "Чернота- Собака Пурпурово# Голубика Чернота Голубо: Дракон яблоко Бело Зеленыйцвет" ],
+            "DateTimeValue": [ "1916-05-09T17:48:30.6223191Z" ],
+            "GuidValue": [ "842d41a6-6123-30ce-5970-6c26b28dd4de", "9aa488f4-bf70-5b49-848a-9197639e0990", "63306802-aacd-cf0e-20eb-70b1d72bdbe2", "5763cae3-358e-e7ef-f7d1-0098d037cdbb", "4924dc67-715c-4910-79d4-7a844f978358", "99b3afae-b13b-cc01-7949-6bfbaa75ffe9", "fb4ab41e-9107-7285-b919-deb9bb6a975f", "20eaa74e-3383-b67f-da57-d01305159e03" ],
+            "ByteStringValue": [ "ZppNiFEdKUHgItJIEQ+yC6wDi99l6zWUIa/Bcm2jetrkKQP9EsZVzPdCU1zjkUbBYPlpm3j1LHtkuGaiXLfUPQ==", "+GToC7X45q6+5yOY2bGPaf8RczrfYe79iJhaX7JwP20VteotXbarAYLtuQ0I44s=", "1jk=", "pWEDx5Z16oIcnof7Tqe1giTGYgtJZXK38qjg9KUNU4g=", "FJoMEu1Tt3Mzj2L78Q==", "ZVNgZ0B0LhI/7kvV7pX23A9L/oI5DahvNnOqmBbWD7wAPHqgRKUT", "SgFaHcYXZSJ8Vn8X/G8xWKvwMMzKlvxp34/UsRpVmGk36zc3soqpHg2HG79W98CRCyL1U3VGSbQF8T43Q7MIJ74=", "3xA3+aUgRxG/Q3o8EufOQqb4YETz8aKCMsFMcdtZfvQAQBivWhE=", "1AxjhwY5yd9WaQANEMd6Iu1utMfj1NY1ZcSGO9HPH+iUe4s3kGqbSGni9QjbTG4thh4qQKVKmAA2LSFBs40Nh0kXeZQ7QpKD0mteAd/NWhlVWbWz", "3kJK4osBYkhaldvUbb7D0tnxQ4unbTnrlyBo0wjsWQ==" ],
+            "XmlElementValue": [
+                "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+                "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="
             ],
-            ""NodeIdValue"": [ ""http://samples.org/UA/memorybuffer#g=8c9312a3-b893-ea53-91d1-2382907eca95"", ""http://test.org/UA/Data//Instance#b=mZWnGBQiqm%2fQtuce1kejQM%2bdwkrCBDsAWl6ZeX3GfNZshJIz%2fPp%2fauhIgjOqs0w6"", ""nsu=DataAccess;s=파인애플"", ""http://test.org/UA/Data//Instance#s=%e8%9b%87%e7%8c%ab%e9%a6%99%e8%95%89"", ""http://opcfoundation.org/UA/Boiler//Instance#i=272173553"", ""nsu=DataAccess;b=b0PVHldheYEHVqYSX40/y4R9IYv92lU7yuG4V3n6mgH5hHz6JtoB6X4TUlAXoiijsj61kpDGuJXumVN2qSIIDbul"" ],
-            ""ExpandedNodeIdValue"": [ ""http://samples.org/UA/memorybuffer/Instance#g=7ca9a545-0c37-87ea-0423-27b914a43b44"", ""i=2349590220"", ""urn:manipc1:OPCFoundation:CoreSampleServer#g=94450a5c-8972-934d-6c99-0c1659b9ce0e"", ""http://test.org/UA/Data//Instance#s=%e6%a1%83%e5%ad%90"", ""http://opcfoundation.org/UA/Diagnostics#g=290ee634-1839-f122-f6b0-df426fb19e6b"", ""urn:manipc1:OPCFoundation:CoreSampleServer#i=2014900536"", ""http://opcfoundation.org/UA/Boiler//Instance#s=%ec%84%9d%ed%9a%8c"", ""http://test.org/UA/Data//Instance#b=4D2jPmkygekkYgnuy3rDjlEURSuQwxxtEVEYAMgjS9Cjxg%3d%3d"", ""http://opcfoundation.org/UA/Diagnostics#g=2005172c-cc4e-6fb5-0e0c-a653cb7c979a"", ""i=405616161"" ],
-            ""QualifiedNameValue"": [ ""DataAccess#%eb%b0%94%eb%82%98%eb%82%98"", ""http://samples.org/UA/memorybuffer#%d0%9a%d0%be%d1%80%d0%be%d0%b2%d0%b0"", ""%eb%b0%b1%ec%83%89"", ""http://samples.org/UA/memorybuffer/Instance#%e3%83%90%e3%83%8a%e3%83%8a"", ""DataAccess#%e3%83%91%e3%82%a4%e3%83%8a%e3%83%83%e3%83%97%e3%83%ab"", ""http://opcfoundation.org/UA/Boiler//Instance#Mango"" ],
-            ""LocalizedTextValue"": [
+            "NodeIdValue": [ "http://samples.org/UA/memorybuffer#g=8c9312a3-b893-ea53-91d1-2382907eca95", "http://test.org/UA/Data//Instance#b=mZWnGBQiqm%2fQtuce1kejQM%2bdwkrCBDsAWl6ZeX3GfNZshJIz%2fPp%2fauhIgjOqs0w6", "nsu=DataAccess;s=파인애플", "http://test.org/UA/Data//Instance#s=%e8%9b%87%e7%8c%ab%e9%a6%99%e8%95%89", "http://opcfoundation.org/UA/Boiler//Instance#i=272173553", "nsu=DataAccess;b=b0PVHldheYEHVqYSX40/y4R9IYv92lU7yuG4V3n6mgH5hHz6JtoB6X4TUlAXoiijsj61kpDGuJXumVN2qSIIDbul" ],
+            "ExpandedNodeIdValue": [ "http://samples.org/UA/memorybuffer/Instance#g=7ca9a545-0c37-87ea-0423-27b914a43b44", "i=2349590220", "urn:manipc1:OPCFoundation:CoreSampleServer#g=94450a5c-8972-934d-6c99-0c1659b9ce0e", "http://test.org/UA/Data//Instance#s=%e6%a1%83%e5%ad%90", "http://opcfoundation.org/UA/Diagnostics#g=290ee634-1839-f122-f6b0-df426fb19e6b", "urn:manipc1:OPCFoundation:CoreSampleServer#i=2014900536", "http://opcfoundation.org/UA/Boiler//Instance#s=%ec%84%9d%ed%9a%8c", "http://test.org/UA/Data//Instance#b=4D2jPmkygekkYgnuy3rDjlEURSuQwxxtEVEYAMgjS9Cjxg%3d%3d", "http://opcfoundation.org/UA/Diagnostics#g=2005172c-cc4e-6fb5-0e0c-a653cb7c979a", "i=405616161" ],
+            "QualifiedNameValue": [ "DataAccess#%eb%b0%94%eb%82%98%eb%82%98", "http://samples.org/UA/memorybuffer#%d0%9a%d0%be%d1%80%d0%be%d0%b2%d0%b0", "%eb%b0%b1%ec%83%89", "http://samples.org/UA/memorybuffer/Instance#%e3%83%90%e3%83%8a%e3%83%8a", "DataAccess#%e3%83%91%e3%82%a4%e3%83%8a%e3%83%83%e3%83%97%e3%83%ab", "http://opcfoundation.org/UA/Boiler//Instance#Mango" ],
+            "LocalizedTextValue": [
                 {
-                    ""Text"": ""Black~ Pig' Red Black' Lime! Black} Purple Blue Cat Strawberry:"",
-                    ""Locale"": ""en-US""
+                    "Text": "Black~ Pig' Red Black' Lime! Black} Purple Blue Cat Strawberry:",
+                    "Locale": "en-US"
                 },
                 {
-                    ""Text"": ""蓝色 芒果 猫 紫色. 鼠; 紫色 紫色 蛇 芒果 葡萄 狗' 母牛"",
-                    ""Locale"": ""zh-CN""
+                    "Text": "蓝色 芒果 猫 紫色. 鼠; 紫色 紫色 蛇 芒果 葡萄 狗' 母牛",
+                    "Locale": "zh-CN"
                 },
                 {
-                    ""Text"": ""草莓, 绵羊 龙 白色{ 白色} 大象, 绿色% 葡萄 菠萝) 蛇 香蕉} 蓝色' 猪 大象' 大象` 芒果^ 猫= 黄色 母牛("",
-                    ""Locale"": ""zh-CN""
+                    "Text": "草莓, 绵羊 龙 白色{ 白色} 大象, 绿色% 葡萄 菠萝) 蛇 香蕉} 蓝色' 猪 大象' 大象` 芒果^ 猫= 黄色 母牛(",
+                    "Locale": "zh-CN"
                 },
                 {
-                    ""Text"": ""绵羊< 石灰/ 母牛: 大象"",
-                    ""Locale"": ""zh-CN""
+                    "Text": "绵羊< 石灰/ 母牛: 大象",
+                    "Locale": "zh-CN"
                 },
                 {
-                    ""Text"": ""Овцы яблоко# Желтыйцвет Лимон( Змейка Собака Корова? Крыса Змейка> Лошадь Лошадь"",
-                    ""Locale"": ""ru""
+                    "Text": "Овцы яблоко# Желтыйцвет Лимон( Змейка Собака Корова? Крыса Змейка> Лошадь Лошадь",
+                    "Locale": "ru"
                 },
                 {
-                    ""Text"": ""菠萝' 草莓. 狗 红色: 蛇, 菠萝 龙 猴子/ 菠萝$ 柠檬# 草莓. 蓝莓= 猫 菠萝< 柠檬: 狗 大象 石灰 马= 葡萄( 芒果/ 鼠;"",
-                    ""Locale"": ""zh-CN""
+                    "Text": "菠萝' 草莓. 狗 红色: 蛇, 菠萝 龙 猴子/ 菠萝$ 柠檬# 草莓. 蓝莓= 猫 菠萝< 柠檬: 狗 大象 石灰 马= 葡萄( 芒果/ 鼠;",
+                    "Locale": "zh-CN"
                 },
                 {
-                    ""Text"": ""Dog) Cat( Strawberry` Cat Monkey Elephant Horse! Grape- Peach Monkey} Blueberry! Red"",
-                    ""Locale"": ""en-US""
+                    "Text": "Dog) Cat( Strawberry` Cat Monkey Elephant Horse! Grape- Peach Monkey} Blueberry! Red",
+                    "Locale": "en-US"
                 },
                 {
-                    ""Text"": ""Snake Grape Mango"",
-                    ""Locale"": ""en-US""
+                    "Text": "Snake Grape Mango",
+                    "Locale": "en-US"
                 },
                 {
-                    ""Text"": ""蛇, 大象@ 红色 桃子+ 鼠 红色 紫色 草莓 菠萝"",
-                    ""Locale"": ""zh-CN""
+                    "Text": "蛇, 大象@ 红色 桃子+ 鼠 红色 紫色 草莓 菠萝",
+                    "Locale": "zh-CN"
                 },
                 {
-                    ""Text"": ""Кот Крыса Слон Свинья' Голубика Пурпурово@ Дракон- Обезьяна? Бело("",
-                    ""Locale"": ""ru""
+                    "Text": "Кот Крыса Слон Свинья' Голубика Пурпурово@ Дракон- Обезьяна? Бело(",
+                    "Locale": "ru"
                 }
             ],
-            ""StatusCodeValue"": [ 6225920, 7995392, 5832704, 6553600, 3997696, 1900544, 8519680 ],
-            ""VariantValue"": [
+            "StatusCodeValue": [ 6225920, 7995392, 5832704, 6553600, 3997696, 1900544, 8519680 ],
+            "VariantValue": [
                 {
-                    ""Type"": ""Byte"",
-                    ""Body"": 82
+                    "Type": "Byte",
+                    "Body": 82
                 }
             ],
-            ""EnumerationValue"": [],
-            ""StructureValue"": [],
-            ""Number"": [],
-            ""Integer"": [],
-            ""UInteger"": []
+            "EnumerationValue": [],
+            "StructureValue": [],
+            "Number": [],
+            "Integer": [],
+            "UInteger": []
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": true,
-            ""SByteValue"": -56,
-            ""ByteValue"": 104,
-            ""Int16Value"": 3814,
-            ""UInt16Value"": 38042,
-            ""Int32Value"": 535350820,
-            ""UInt32Value"": 3693060540,
-            ""Int64Value"": -2577172637598593213,
-            ""UInt64Value"": 1118748778070163278,
-            ""FloatValue"": 1.931257E+17,
-            ""DoubleValue"": -0.00033564501791261137,
-            ""StringValue"": ""ラット} 馬` いちご 青い 白い 象 レモン. パイナップル"",
-            ""DateTimeValue"": ""1985-11-03T22:42:37.1296614Z"",
-            ""GuidValue"": ""5b9f4a59-1a25-042a-e156-e9e08f8eed3d"",
-            ""ByteStringValue"": ""wEYr6R2tv2YG6q2Z"",
-            ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-            ""NodeIdValue"": ""http://test.org/UA/Data//Instance#i=2103396786"",
-            ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#i=577318642"",
-            ""QualifiedNameValue"": ""DataAccess#%e7%8a%ac%e3%83%96%e3%82%bf"",
-            ""LocalizedTextValue"": {
-                ""Text"": ""Red Green Lemon# Elephant Dog Horse Monkey: Lime' Strawberry Monkey"",
-                ""Locale"": ""en-US""
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": true,
+            "SByteValue": -56,
+            "ByteValue": 104,
+            "Int16Value": 3814,
+            "UInt16Value": 38042,
+            "Int32Value": 535350820,
+            "UInt32Value": 3693060540,
+            "Int64Value": -2577172637598593213,
+            "UInt64Value": 1118748778070163278,
+            "FloatValue": 1.931257E+17,
+            "DoubleValue": -0.00033564501791261137,
+            "StringValue": "ラット} 馬` いちご 青い 白い 象 レモン. パイナップル",
+            "DateTimeValue": "1985-11-03T22:42:37.1296614Z",
+            "GuidValue": "5b9f4a59-1a25-042a-e156-e9e08f8eed3d",
+            "ByteStringValue": "wEYr6R2tv2YG6q2Z",
+            "XmlElementValue": "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+            "NodeIdValue": "http://test.org/UA/Data//Instance#i=2103396786",
+            "ExpandedNodeIdValue": "http://test.org/UA/Data//Instance#i=577318642",
+            "QualifiedNameValue": "DataAccess#%e7%8a%ac%e3%83%96%e3%82%bf",
+            "LocalizedTextValue": {
+                "Text": "Red Green Lemon# Elephant Dog Horse Monkey: Lime' Strawberry Monkey",
+                "Locale": "en-US"
             },
-            ""StatusCodeValue"": 1638400,
-            ""VariantValue"": {
-                ""Type"": ""ExpandedNodeId"",
-                ""Body"": ""http://samples.org/UA/memorybuffer#i=1429871234""
+            "StatusCodeValue": 1638400,
+            "VariantValue": {
+                "Type": "ExpandedNodeId",
+                "Body": "http://samples.org/UA/memorybuffer#i=1429871234"
             },
-            ""EnumerationValue"": 1,
-            ""StructureValue"": { ""TypeId"": null },
-            ""Number"": {
-                ""Type"": ""Double"",
-                ""Body"": 1.0
+            "EnumerationValue": 1,
+            "StructureValue": { "TypeId": null },
+            "Number": {
+                "Type": "Double",
+                "Body": 1.0
             },
-            ""Integer"": {
-                ""Type"": ""Int64"",
-                ""Body"": 33
+            "Integer": {
+                "Type": "Int64",
+                "Body": 33
             },
-            ""UInteger"": {
-                ""Type"": ""UInt64"",
-                ""Body"": 1
+            "UInteger": {
+                "Type": "UInt64",
+                "Body": 1
             }
         }
     }
 ]
-");
+
+""");
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {

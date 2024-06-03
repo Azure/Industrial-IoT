@@ -612,56 +612,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10239";
 
-            var expected = _serializer.Parse(@"
+            var expected = _serializer.Parse("""
+
 {
-    ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-    ""Encoding"": ""Json"",
-    ""Body"": {
-        ""BooleanValue"": false,
-        ""SByteValue"": 101,
-        ""ByteValue"": 16,
-        ""Int16Value"": -15522,
-        ""UInt16Value"": 30310,
-        ""Int32Value"": 1931620437,
-        ""UInt32Value"": 1871434347,
-        ""Int64Value"": -485429667643080766,
-        ""UInt64Value"": 455062722452308260,
-        ""FloatValue"": -5.00243E+26,
-        ""DoubleValue"": 0.00046682002721354365,
-        ""StringValue"": ""黄色) 黄色] 桃子{ 黑色 狗[ 紫色 桃子] 狗 红色 葡萄% 桃子? 猫 猴子 绵羊"",
-        ""DateTimeValue"": ""2027-02-05T11:29:29.9135123Z"",
-        ""GuidValue"": ""64a055c1-1e60-67a1-e801-f996fece3eec"",
-        ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
-        ""XmlElementValue"": ""PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4="",
-        ""NodeIdValue"": ""nsu=DataAccess;s=狗绵羊"",
-        ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#b=pQ%3d%3d"",
-        ""QualifiedNameValue"": ""http://test.org/UA/Data/#%e3%83%98%e3%83%93"",
-        ""LocalizedTextValue"": {
-            ""Text"": ""蓝色 紫色 蓝色 红色$"",
-            ""Locale"": ""zh-CN""
+    "TypeId": "http://test.org/UA/Data/#i=9440",
+    "Encoding": "Json",
+    "Body": {
+        "BooleanValue": false,
+        "SByteValue": 101,
+        "ByteValue": 16,
+        "Int16Value": -15522,
+        "UInt16Value": 30310,
+        "Int32Value": 1931620437,
+        "UInt32Value": 1871434347,
+        "Int64Value": -485429667643080766,
+        "UInt64Value": 455062722452308260,
+        "FloatValue": -5.00243E+26,
+        "DoubleValue": 0.00046682002721354365,
+        "StringValue": "黄色) 黄色] 桃子{ 黑色 狗[ 紫色 桃子] 狗 红色 葡萄% 桃子? 猫 猴子 绵羊",
+        "DateTimeValue": "2027-02-05T11:29:29.9135123Z",
+        "GuidValue": "64a055c1-1e60-67a1-e801-f996fece3eec",
+        "ByteStringValue": "XmIaOczWGerdvT4+Y1BOuQ==",
+        "XmlElementValue": "PG4wOum7hOiJsiDjg5bjgr/jg6Ljg6I9IlZhY2EiIOOBhOOBoeOBlD0iQ2VyZG8iIOefs+eBsD0iQXLDoW5kYW5vIiDppqw9IlBlcnJvIiB4bWxuczpuMD0iaHR0cDovL+efs+eBsCI+PG4wOue0q+iJsj5Nb25vIFZlcmRlIFV2YSBTZXJwaWVudGUgTW9ubyBBenVsIFBpw7FhIE92ZWphLiBNYW5nbyBMaW1hPC9uMDrntKvoibI+PG4wOuefs+eBsD5NZWxvY290w7NuOyBQZXJybyBBcsOhbmRhbm8gTGltw7NuJmd0OyBBbWFyaWxsbzwvbjA655+z54GwPjxuMDrjg5bjg4njgqY+T3ZlamF+IFBlcnJvIFDDunJwdXJhXiBMaW1hIFJhdGEhIEJsYW5jb18gUMO6cnB1cmE9IEdhdG88L24wOuODluODieOCpj48L24wOum7hOiJsj4=",
+        "NodeIdValue": "nsu=DataAccess;s=狗绵羊",
+        "ExpandedNodeIdValue": "http://test.org/UA/Data//Instance#b=pQ%3d%3d",
+        "QualifiedNameValue": "http://test.org/UA/Data/#%e3%83%98%e3%83%93",
+        "LocalizedTextValue": {
+            "Text": "蓝色 紫色 蓝色 红色$",
+            "Locale": "zh-CN"
         },
-        ""StatusCodeValue"": 1835008,
-        ""VariantValue"": {
-            ""Type"": ""Int32"",
-            ""Body"": 184297559
+        "StatusCodeValue": 1835008,
+        "VariantValue": {
+            "Type": "Int32",
+            "Body": 184297559
         },
-        ""EnumerationValue"": 0,
-        ""StructureValue"": { ""TypeId"": null },
-        ""Number"": {
-            ""Type"": ""Double"",
-            ""Body"": 0.0
+        "EnumerationValue": 0,
+        "StructureValue": { "TypeId": null },
+        "Number": {
+            "Type": "Double",
+            "Body": 0.0
         },
-        ""Integer"": {
-            ""Type"": ""Int64"",
-            ""Body"": 5
+        "Integer": {
+            "Type": "Int64",
+            "Body": 5
         },
-        ""UInteger"": {
-            ""Type"": ""UInt64"",
-            ""Body"": 0
+        "UInteger": {
+            "Type": "UInt64",
+            "Body": 0
         }
     }
 }
-");
+
+""");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel

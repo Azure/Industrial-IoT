@@ -90,5 +90,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "enableSequentialPublishing", Order = 9,
             EmitDefaultValue = false)]
         public bool? EnableSequentialPublishing { get; set; }
+
+        /// <summary>
+        /// Republish after transferring the subscription during
+        /// reconnect handling.
+        /// </summary>
+        [DataMember(Name = "republishAfterTransfer", Order = 10,
+            EmitDefaultValue = false)]
+        public bool? RepublishAfterTransfer { get; set; }
     }
 }

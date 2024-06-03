@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             = DateTime.UtcNow;
 
         /// <inheritdoc/>
-        public int Version { get; private set; }
+        public uint Version { get; private set; }
 
         /// <inheritdoc/>
         public TagList TagList { get; }
@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Current writer group job version
             /// </summary>
-            public int Version { get; internal set; }
+            public uint Version { get; internal set; }
 
             /// <summary>
             /// Create context
@@ -305,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="version"></param>
             /// <param name="id"></param>
             /// <param name="writerGroup"></param>
-            private WriterGroupJob(PublisherService outer, int version, string id,
+            private WriterGroupJob(PublisherService outer, uint version, string id,
                 WriterGroupModel writerGroup)
             {
                 _outer = outer;
@@ -326,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="ct"></param>
             /// <returns></returns>
             public static async ValueTask<WriterGroupJob> CreateAsync(PublisherService outer,
-                string id, int version, WriterGroupModel writerGroup, CancellationToken ct)
+                string id, uint version, WriterGroupModel writerGroup, CancellationToken ct)
             {
                 var context = new WriterGroupJob(outer, version, id, writerGroup);
                 try
@@ -349,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writerGroup"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async ValueTask UpdateAsync(int version, WriterGroupModel writerGroup,
+            public async ValueTask UpdateAsync(uint version, WriterGroupModel writerGroup,
                 CancellationToken ct)
             {
                 try

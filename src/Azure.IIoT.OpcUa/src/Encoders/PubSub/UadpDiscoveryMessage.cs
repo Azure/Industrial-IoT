@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
 
@@ -85,10 +86,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlyMemory<byte>> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
-            var messages = new List<ReadOnlyMemory<byte>>();
+            var messages = new List<ReadOnlySequence<byte>>();
             var isChunkMessage = false;
             var remainingChunks = EncodePayloadChunks(context, resolver).AsSpan();
 
@@ -129,12 +130,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         }
                         stream.SetLength(encoder.Position);
 
+                        var messageBuffer = stream.GetReadOnlySequence();
+
                         // TODO: instead of copy using ToArray we shall include the
                         // stream with the message and dispose it later when it is
                         // consumed. To get here the bug in BinaryEncoder that it
                         // disposes the underlying stream even if leaveOpen: true
                         // is set must be fixed.
-                        messages.Add(stream.ToArray());
+                        messages.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
                     }
                 }
             }

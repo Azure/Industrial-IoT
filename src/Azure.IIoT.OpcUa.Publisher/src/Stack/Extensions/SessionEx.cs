@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using NodeClass = Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
@@ -642,8 +643,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             };
             while (true)
             {
-                var response = await session.Services.BrowseAsync(header, null, 0, nodeToBrowse,
-                    ct).ConfigureAwait(false);
+                var response = await session.Services.BrowseAsync(header, null, 0,
+                    nodeToBrowse, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, s => s.StatusCode,
                     response.DiagnosticInfos, nodeToBrowse);
                 if (results.ErrorInfo != null)
@@ -839,8 +840,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(VariableMetadataModel?, ServiceResultModel?)> GetVariableMetadataAsync(
-            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId, NamespaceFormat namespaceFormat,
-            CancellationToken ct)
+            this IOpcUaSession session, RequestHeader requestHeader, NodeId nodeId,
+            NamespaceFormat namespaceFormat, CancellationToken ct)
         {
             var results = new List<VariableMetadataModel>();
             var errorInfo = await session.CollectVariableMetadataAsync(requestHeader,

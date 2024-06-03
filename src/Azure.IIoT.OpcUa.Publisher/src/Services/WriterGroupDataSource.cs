@@ -324,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // ...
                 };
 
-                var builder = new TopicBuilder(_outer._options, _outer._writerGroup.MessageType,
+                var builder = new TopicBuilder(_outer._options.Value, _outer._writerGroup.MessageType,
                     new TopicTemplatesOptions
                     {
                         Telemetry = _dataSetWriter.Publishing?.QueueName
@@ -935,7 +935,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _settings = settings;
                     _topic = new Lazy<string>(() =>
                     {
-                        return new TopicBuilder(subscription._outer._options,
+                        return new TopicBuilder(subscription._outer._options.Value,
                             subscription._outer._writerGroup.MessageType,
                             new TopicTemplatesOptions
                             {

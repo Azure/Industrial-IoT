@@ -87,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _topicCache = new ConcurrentDictionary<string, string>();
 
             _diagnosticInterval = options.Value.DiagnosticsInterval ?? TimeSpan.Zero;
-            _diagnostics = options.Value.DiagnosticsTarget ?? PublisherDiagnosticTargetType.Logger;
+            _diagnostics = options.Value.DiagnosticsTarget
+                ?? PublisherDiagnosticTargetType.Logger;
             if (_diagnosticInterval == TimeSpan.Zero)
             {
                 _diagnosticInterval = Timeout.InfiniteTimeSpan;
@@ -213,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         var renewalAfter = Certificate.NotAfter - now;
                         _logger.LogInformation(
-                            "Using valid Certificate found in {Store} store (renewal in {Duration})...",
+                    "Using valid Certificate found in {Store} store (renewal in {Duration})...",
                             apiKeyStore.Name, renewalAfter);
                         _renewalTimer.Change(renewalAfter, Timeout.InfiniteTimeSpan);
                         // Done
@@ -351,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await events.SendEventAsync(new TopicBuilder(_options).EventsTopic,
+                    await events.SendEventAsync(new TopicBuilder(_options.Value).EventsTopic,
                         _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
@@ -426,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var (writerGroupId, info) in diagnostics)
             {
                 var diagnosticsTopic = _topicCache.GetOrAdd(writerGroupId,
-                    id => new TopicBuilder(_options, variables: new Dictionary<string, string>
+                    id => new TopicBuilder(_options.Value, variables: new Dictionary<string, string>
                     {
                         [PublisherConfig.DataSetWriterGroupVariableName] =
                             id ?? Constants.DefaultWriterGroupName,

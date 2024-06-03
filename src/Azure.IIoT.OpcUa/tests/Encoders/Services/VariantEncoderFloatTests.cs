@@ -21,8 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123f);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str,
-                encoded);
+            Assert.Equal(str, encoded);
         }
 
         [Fact]
@@ -34,8 +33,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(new float[] { -123.123f, 124.124f, 0.0f });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str,
-                encoded);
+            Assert.Equal(str, encoded);
         }
 
         [Fact]
