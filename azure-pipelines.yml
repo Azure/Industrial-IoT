@@ -22,13 +22,7 @@ jobs:
       useCustomSourceVersion: false
       useSameBranch: false
       branchToUse: 'main'
-      waitForQueuedBuildsToFinish: true
-      waitForQueuedBuildsToFinishRefreshTime: '60'
-      failTaskIfBuildsNotSuccessful: true
-      cancelBuildsIfAnyFails: false
-      treatPartiallySucceededBuildAsSuccessful: false
-      downloadBuildArtifacts: true
-      storeInEnvironmentVariable: false
+      storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
       enableBuildInQueueCondition: true
       dependentOnSuccessfulBuildCondition: false
@@ -36,3 +30,24 @@ jobs:
       checkbuildsoncurrentbranch: false
       failTaskIfConditionsAreNotFulfilled: false
       templateParameters: 'ref: $(Build.SourceBranch)'
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        $buildId = $(TriggeredBuildIds)
+        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"
+        Write-Host "Triggered build $buildUrl ..."
+        Write-Host "##vso[build.addbuildtag]Industrial-IoT-PullRequest build $buildId"
+        Write-Host "##vso[task.logissue type=warning]$buildUrl"
+        Write-Host "##vso[build.updatebuildnumber]$buildId"
+  - task: WaitForBuildToFinish@3
+    inputs:
+      definitionIsInCurrentTeamProject: true
+      ignoreSslCertificateErrors: false
+      waitForQueuedBuildsToFinishRefreshTime: '60'
+      failTaskIfBuildsNotSuccessful: true
+      cancelBuildsIfAnyFails: false
+      treatPartiallySucceededBuildAsSuccessful: false
+      downloadBuildArtifacts: true
+      clearVariable: true
+      authenticationMethod: 'OAuth Token'

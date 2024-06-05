@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
+    using Asp.Versioning;
 
     /// <summary>
     /// <para>

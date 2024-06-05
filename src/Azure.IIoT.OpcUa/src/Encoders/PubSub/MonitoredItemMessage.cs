@@ -132,36 +132,41 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
             }
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0
-                && Value != null)
+
+            var valuePayload = Value;
+            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0)
             {
-                var status = Status ?? Payload.Values
-                    .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?
-                        .StatusCode ?? StatusCodes.Good;
-                encoder.WriteString(nameof(Status), StatusCode.LookupSymbolicId(status.Code));
+                var status = Status;
+                if (status == null)
+                {
+                    status = valuePayload != null ? StatusCode.IsNotGood(valuePayload.StatusCode) ?
+                        valuePayload.StatusCode : StatusCodes.Good : (StatusCode?)StatusCodes.BadNoData;
+                }
+                encoder.WriteString(nameof(Status), StatusCode.LookupSymbolicId(status.Value.Code));
             }
 
-            var value = new DataValue(Value?.WrappedValue ?? Variant.Null);
+            // Create a copy of the data value and update the timestamps and status
+            var value = new DataValue(valuePayload?.WrappedValue ?? Variant.Null);
             if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 ||
                 (Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0)
             {
-                value.StatusCode = Value?.StatusCode ?? StatusCodes.BadNoData;
+                value.StatusCode = valuePayload?.StatusCode ?? StatusCodes.BadNoData;
             }
 
             if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)
             {
-                value.SourceTimestamp = Value?.SourceTimestamp ?? DateTime.MinValue;
+                value.SourceTimestamp = valuePayload?.SourceTimestamp ?? DateTime.MinValue;
                 if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0)
                 {
-                    value.SourcePicoseconds = Value?.SourcePicoseconds ?? 0;
+                    value.SourcePicoseconds = valuePayload?.SourcePicoseconds ?? 0;
                 }
             }
             if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0)
             {
-                value.ServerTimestamp = Value?.ServerTimestamp ?? DateTime.MinValue;
+                value.ServerTimestamp = valuePayload?.ServerTimestamp ?? DateTime.MinValue;
                 if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0)
                 {
-                    value.ServerPicoseconds = Value?.ServerPicoseconds ?? 0;
+                    value.ServerPicoseconds = valuePayload?.ServerPicoseconds ?? 0;
                 }
             }
 

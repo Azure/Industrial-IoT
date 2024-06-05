@@ -388,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);
-        private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(5);
         private readonly CancellationTokenSource _cts;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();

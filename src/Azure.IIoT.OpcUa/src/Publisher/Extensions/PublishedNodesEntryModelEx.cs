@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.IsNullOrEmpty(model.OpcAuthenticationPassword))
             {
-                id.Append(model.OpcAuthenticationPassword);
+                id.Append(model.OpcAuthenticationPassword.ToSha1Hash());
             }
             if (!string.IsNullOrEmpty(model.EncryptedAuthUsername))
             {
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.IsNullOrEmpty(model.EncryptedAuthPassword))
             {
-                id.Append(model.EncryptedAuthPassword);
+                id.Append(model.EncryptedAuthPassword.ToSha1Hash());
             }
             if (!string.IsNullOrEmpty(model.DataSetName))
             {
@@ -259,6 +259,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             if (model.DataSetKeyFrameCount != null)
             {
                 id.Append(model.DataSetKeyFrameCount.Value);
+            }
+            if (model.DisableSubscriptionTransfer != null)
+            {
+                id.Append(model.DisableSubscriptionTransfer.Value);
             }
             if (model.SendKeepAliveDataSetMessages)
             {
@@ -377,6 +381,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.DataSetKeyFrameCount != that.DataSetKeyFrameCount)
+            {
+                return false;
+            }
+            if (model.DisableSubscriptionTransfer != that.DisableSubscriptionTransfer)
             {
                 return false;
             }

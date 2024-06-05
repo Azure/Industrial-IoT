@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new Dictionary<SubscriptionIdentifier, DataSetWriterModel>();
                 foreach (var writerEntry in writerGroup.DataSetWriters)
                 {
-                    var id = writerEntry.ToSubscriptionId(writerGroup.Name, _subscriptionConfig.Value);
+                    var id = writerEntry.ToSubscriptionId();
                     if (!dataSetWriterSubscriptionMap.TryAdd(id, writerEntry))
                     {
                         throw new ArgumentException(
@@ -642,8 +642,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Data set metadata notification
             /// </summary>
-            public sealed record class MetadataNotificationModel :
-                IOpcUaSubscriptionNotification
+            public sealed record class MetadataNotificationModel : IOpcUaSubscriptionNotification
             {
                 /// <inheritdoc/>
                 public uint SequenceNumber { get; }

@@ -125,6 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             BatchTriggerInterval = null,
                             Priority = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
                             MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
+                            DisableSubscriptionTransfer = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup =
@@ -148,7 +149,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             EndpointUrl = null,
                             UseSecurity = false,
                             UseReverseConnect = null,
-                            DisableSubscriptionTransfer = null,
                             EndpointSecurityPolicy = null,
                             EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,

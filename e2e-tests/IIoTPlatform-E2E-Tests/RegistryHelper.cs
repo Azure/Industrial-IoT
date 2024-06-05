@@ -68,7 +68,7 @@ namespace IIoTPlatformE2ETests
                     var m = modules.Count == 0 ? "No modules" : modules
                         .Select(m => $"{m.Id}({m.ConnectionState})")
                         .Aggregate((a, b) => a + ", " + b);
-                    _context.OutputHelper.WriteLine($"Waiting for IoT Edge modules: {m} on {deviceId}");
+                    //_context.OutputHelper.WriteLine($"Waiting for IoT Edge modules: {m} on {deviceId}");
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
                 }
             }

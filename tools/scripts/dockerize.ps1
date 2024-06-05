@@ -1,9 +1,9 @@
 <#
  .SYNOPSIS
-    Consumes tar balls creates dockerfiles and build contexts
+    Consumes tar files creates dockerfiles and build contexts
 
  .DESCRIPTION
-    Consumes tar balls created by publish.ps1 and creates dockerfiles
+    Consumes tar files created by publish.ps1 and creates dockerfiles
     and build context to be consumed in matrix based traditional docker
     builds.
 

@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var payload1 = messages[0].Message.GetProperty("Messages")[0].GetProperty("Payload");
             _output.WriteLine(payload1.ToString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
-            Assert.True(payload1.GetProperty("EventId").GetProperty("Value").GetBytesFromBase64().Length == 16);
+            Assert.Equal(16, payload1.GetProperty("EventId").GetProperty("Value").GetBytesFromBase64().Length);
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
                 payload1.GetProperty("EventType").GetProperty("Value").GetString());
             Assert.Equal("i=84", payload1.GetProperty("SourceNode").GetProperty("Value").GetString());
@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var payload2 = messages[1].Message.GetProperty("Messages")[0].GetProperty("Payload");
             _output.WriteLine(payload2.ToString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
-            Assert.True(payload2.GetProperty("EventId").GetProperty("Value").GetBytesFromBase64().Length == 16);
+            Assert.Equal(16, payload2.GetProperty("EventId").GetProperty("Value").GetBytesFromBase64().Length);
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",
                 payload2.GetProperty("EventType").GetProperty("Value").GetString());
             Assert.Equal("i=85", payload2.GetProperty("SourceNode").GetProperty("Value").GetString());

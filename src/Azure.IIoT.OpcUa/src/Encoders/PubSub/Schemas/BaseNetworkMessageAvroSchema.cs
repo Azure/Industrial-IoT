@@ -108,7 +108,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 payloadType = dataSetMessageSchemas[0].Schema;
             }
 
-
             var HasSingleDataSetMessage = contentMask
                 .HasFlag(NetworkMessageContentMask.SingleDataSetMessage);
             var HasNetworkMessageHeader = contentMask

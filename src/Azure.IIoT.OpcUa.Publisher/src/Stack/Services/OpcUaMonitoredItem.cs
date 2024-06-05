@@ -400,7 +400,15 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
             {
                 return false;
             }
-            LastReceivedValue = encodeablePayload;
+            try
+            {
+                LastReceivedValue = (IEncodeable)encodeablePayload.Clone();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "{Item}: Could not clone last value.", this);
+                LastReceivedValue = encodeablePayload;
+            }
             return true;
         }
 
