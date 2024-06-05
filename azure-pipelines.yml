@@ -28,7 +28,7 @@ jobs:
       # cancelBuildsIfAnyFails: false
       # treatPartiallySucceededBuildAsSuccessful: false
       # downloadBuildArtifacts: true
-      storeInEnvironmentVariable: true
+      storeInEnvironmentVariable: false
       authenticationMethod: 'OAuth Token'
       enableBuildInQueueCondition: true
       dependentOnSuccessfulBuildCondition: false
@@ -42,9 +42,11 @@ jobs:
       script: |
         $buildId = $env:TriggeredBuildIds
         $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId&view=results"
+        Write-Host "Triggered build $buildUrl..."
         Write-Host "##vso[build.addbuildtag]$($buildId)"
-        #Write-Host "##vso[build.addbuildtag]$($buildUrl)"
-        Write-Host "##vso[build.updatebuildnumber]$($buildUrl)"
+        Write-Host "##vso[build.addbuildtag]$($buildUrl)"
+        Write-Host "##vso[build.updatebuildnumber]$($buildId)"
+        #Write-Host "##vso[task.setvariable variable=TriggeredBuildIdsGlobal;isoutput=true]$buildId"
   - task: WaitForBuildToFinish@3
     inputs:
       definitionIsInCurrentTeamProject: true
