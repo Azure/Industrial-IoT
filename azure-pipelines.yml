@@ -40,13 +40,11 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $buildId = $env:TriggeredBuildIds
-        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId&view=results"
-        Write-Host "Triggered build $buildUrl..."
-        Write-Host "##vso[build.addbuildtag]$($buildId)"
+        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(TriggeredBuildIds)&view=results"
+        Write-Host "Triggered build $buildUrl ..."
+        Write-Host "##vso[build.addbuildtag]$(TriggeredBuildIds)"
         Write-Host "##vso[build.addbuildtag]$($buildUrl)"
-        Write-Host "##vso[build.updatebuildnumber]$($buildId)"
-        #Write-Host "##vso[task.setvariable variable=TriggeredBuildIdsGlobal;isoutput=true]$buildId"
+        Write-Host "##vso[build.updatebuildnumber]$(TriggeredBuildIds)"
   - task: WaitForBuildToFinish@3
     inputs:
       definitionIsInCurrentTeamProject: true
