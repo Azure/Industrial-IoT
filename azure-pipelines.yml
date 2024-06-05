@@ -44,8 +44,8 @@ jobs:
         $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId&view=results"
         Write-Host "Triggered build $buildUrl ..."
         Write-Host "##vso[build.addbuildtag]$buildId"
-        Write-Host "##vso[build.addbuildtag]$buildUrl"
-        Write-Host "##vso[build.updatebuildnumber]$buildId"
+        #Write-Host "##vso[build.addbuildtag]'$buildUrl'"
+        Write-Host "##vso[build.updatebuildnumber]$buildUrl"
   - task: WaitForBuildToFinish@3
     inputs:
       definitionIsInCurrentTeamProject: true
