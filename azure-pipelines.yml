@@ -28,7 +28,7 @@ jobs:
       # cancelBuildsIfAnyFails: false
       # treatPartiallySucceededBuildAsSuccessful: false
       # downloadBuildArtifacts: true
-      storeInEnvironmentVariable: false
+      storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
       enableBuildInQueueCondition: true
       dependentOnSuccessfulBuildCondition: false
@@ -40,11 +40,12 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(TriggeredBuildIds)&view=results"
+        $buildId = $(TriggeredBuildIds)
+        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId&view=results"
         Write-Host "Triggered build $buildUrl ..."
-        Write-Host "##vso[build.addbuildtag]$(TriggeredBuildIds)"
-        Write-Host "##vso[build.addbuildtag]$($buildUrl)"
-        Write-Host "##vso[build.updatebuildnumber]$(TriggeredBuildIds)"
+        Write-Host "##vso[build.addbuildtag]$buildId"
+        Write-Host "##vso[build.addbuildtag]$buildUrl"
+        Write-Host "##vso[build.updatebuildnumber]$buildId"
   - task: WaitForBuildToFinish@3
     inputs:
       definitionIsInCurrentTeamProject: true
