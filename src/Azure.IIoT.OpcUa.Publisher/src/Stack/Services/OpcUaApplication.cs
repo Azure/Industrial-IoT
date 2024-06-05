@@ -246,14 +246,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(_disposed, this);
             thumbprint = SanitizeThumbprint(thumbprint);
             using var rejected = await OpenAsync(CertificateStoreName.Rejected).ConfigureAwait(false);
+            var certCollection = await rejected.FindByThumbprint(thumbprint).ConfigureAwait(false);
+            if (certCollection.Count == 0)
+            {
+                throw new ResourceNotFoundException("Certificate not found");
+            }
+            var trustedCert = certCollection[0];
+            thumbprint = trustedCert.Thumbprint;
             try
             {
-                var certCollection = await rejected.FindByThumbprint(thumbprint).ConfigureAwait(false);
-                if (certCollection.Count == 0)
-                {
-                    throw new ResourceNotFoundException("Certificate not found");
-                }
-                var trustedCert = certCollection[0];
 
                 using var trusted = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
                 certCollection = await trusted.FindByThumbprint(thumbprint).ConfigureAwait(false);
@@ -274,8 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...",
-                    thumbprint);
+                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...", thumbprint);
                 throw;
             }
         }
