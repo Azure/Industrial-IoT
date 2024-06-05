@@ -377,13 +377,17 @@ The configuration schema is used with the file based configuration, but also wit
 {
   "EndpointUrl": "string",
   "UseSecurity": "bool",
+  "DataSetWriterGroup": "string",
+  "WriterGroupTransport": "string",
+  "WriterGroupQualityOfService": "string",
+  "WriterGroupPartitions": "integer",
   "EndpointSecurityMode": "string",
   "EndpointSecurityPolicy": "string",
   "OpcAuthenticationMode": "string",
   "OpcAuthenticationUsername": "string",
   "OpcAuthenticationPassword": "string",
-  "UseReverseConnect": "bool",
   "DisableSubscriptionTransfer": "bool",
+  "UseReverseConnect": "bool",
   "DataSetWriterId": "string",
   "DataSetClassId": "guid",
   "DataSetName": "string",
@@ -392,14 +396,14 @@ The configuration schema is used with the file based configuration, but also wit
   "DataSetPublishingIntervalTimespan": "string",
   "DataSetKeyFrameCount": "integer",
   "DataSetExtensionFields": "object",
+  "QueueName": "string",
+  "QualityOfService": "string",
+  "MetaDataQueueName": "string",
   "MetaDataUpdateTime": "integer",
   "MetaDataUpdateTimeTimespan": "string",
   "SendKeepAliveDataSetMessages": "boolean",
-  "DataSetWriterGroup": "string",
   "MessageEncoding": "string",
   "MessagingMode": "string",
-  "WriterGroupTransport": "string",
-  "WriterGroupQualityOfService": "string",
   "BatchSize": "integer",
   "BatchTriggerInterval": "integer",
   "BatchTriggerIntervalTimespan": "string",
@@ -477,10 +481,15 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `MessageEncoding` | No | String | `null` | The message encoding to use when publishing the data sets. <br>For the list of supported message type names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `MessagingMode` | No | String | `null` | The messaging mode to use when publishing the data sets. <br>For the list of supported messaging mode names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `WriterGroupTransport` | No | String | `null` | The transport technology to use when publishing messages. <br>For the list of supported transport names see [here](./transports.md) |
+| `WriterGroupPartitions` | No | Integer | `1` | Number of partitions to split the writer group into when publishing to target topics. |
 | `WriterGroupQualityOfService` | No | String | `null` | The quality of service for telemetry messages (if supported by transport). <br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Defaults to the value configured via `--qos` command line or if not provided `AtLeastOnce` (QOS 1). |
 | `BatchSize` | No | Integer | `null` | The optional number of notifications that are queued before a network message is generated. <br>For historic reasons the default value is 50 unless otherwise configured via `--bs` command line option. |
 | `BatchTriggerInterval` | No | Integer | `null` | The network message publishing interval. Network and meta data messages are published cyclically from the notification queue when the specified duration has passed (or when the batch size configuration triggered a network message).<br>For historic reasons the default value is 10 seconds unless otherwise configured via  the `--bi` command line option. |
 | `BatchTriggerIntervalTimespan` | No | String | `null` | Same as `BatchTriggerInterval` but expressed as duration string.<br>Takes precedence over the Integer value. |
+| `DisableSubscriptionTransfer` | No | Boolean | `false` | Disable subscription transfer on reconnect to override the default behavior per endpoint. |
+| `QueueName` | No | String | `null` |  Writer queue overrides the writer group queue name.<br>Network messages are then split across queues with Qos also accounted for. |
+| `QualityOfService` | No | String | `null` | Quality of service to use for the writer.<br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Overrides the Writer group quality of service and together with queue name causes network messages to be split.. |
+| `MetaDataQueueName` | No | String | `null` | Meta data queue name to use for the writer. <br>Overrides the default metadata topic template. |
 | `OpcNodes` | No | `List<OpcNode>` | empty | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
 *Note*: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
