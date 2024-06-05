@@ -341,7 +341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
 
             _publisher = new PublisherModule(null, null, null, null,
-                _testOutputHelper, arguments, version.Value, _logFactory);
+                _testOutputHelper, arguments, version, _logFactory);
             _logger.LogInformation("Publisher started in {Elapsed}.", sw.Elapsed);
         }
 
