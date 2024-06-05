@@ -22,12 +22,6 @@ jobs:
       useCustomSourceVersion: false
       useSameBranch: false
       branchToUse: 'main'
-      # waitForQueuedBuildsToFinish: true
-      # waitForQueuedBuildsToFinishRefreshTime: '60'
-      # failTaskIfBuildsNotSuccessful: true
-      # cancelBuildsIfAnyFails: false
-      # treatPartiallySucceededBuildAsSuccessful: false
-      # downloadBuildArtifacts: true
       storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
       enableBuildInQueueCondition: true
@@ -44,7 +38,7 @@ jobs:
         $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"
         Write-Host "Triggered build $buildUrl ..."
         Write-Host "##vso[build.addbuildtag]Industrial-IoT-PullRequest build $buildId"
-        Write-Host "##vso[task.logissue]$buildUrl"
+        Write-Host "##vso[task.logissue type=warning]$buildUrl"
         Write-Host "##vso[build.updatebuildnumber]$buildId"
   - task: WaitForBuildToFinish@3
     inputs:
