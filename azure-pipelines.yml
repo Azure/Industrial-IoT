@@ -22,13 +22,13 @@ jobs:
       useCustomSourceVersion: false
       useSameBranch: false
       branchToUse: 'main'
-      waitForQueuedBuildsToFinish: true
-      waitForQueuedBuildsToFinishRefreshTime: '60'
-      failTaskIfBuildsNotSuccessful: true
-      cancelBuildsIfAnyFails: false
-      treatPartiallySucceededBuildAsSuccessful: false
-      downloadBuildArtifacts: true
-      storeInEnvironmentVariable: false
+      # waitForQueuedBuildsToFinish: true
+      # waitForQueuedBuildsToFinishRefreshTime: '60'
+      # failTaskIfBuildsNotSuccessful: true
+      # cancelBuildsIfAnyFails: false
+      # treatPartiallySucceededBuildAsSuccessful: false
+      # downloadBuildArtifacts: true
+      storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
       enableBuildInQueueCondition: true
       dependentOnSuccessfulBuildCondition: false
@@ -45,3 +45,14 @@ jobs:
         Write-Host "##vso[build.addbuildtag]$($buildId)"
         #Write-Host "##vso[build.addbuildtag]$($buildUrl)"
         Write-Host "##vso[build.updatebuildnumber]$($buildUrl)"
+  - task: WaitForBuildToFinish@3
+    inputs:
+      definitionIsInCurrentTeamProject: true
+      ignoreSslCertificateErrors: false
+      waitForQueuedBuildsToFinishRefreshTime: '60'
+      failTaskIfBuildsNotSuccessful: true
+      cancelBuildsIfAnyFails: false
+      treatPartiallySucceededBuildAsSuccessful: false
+      downloadBuildArtifacts: true
+      clearVariable: true
+      authenticationMethod: 'OAuth Token'
