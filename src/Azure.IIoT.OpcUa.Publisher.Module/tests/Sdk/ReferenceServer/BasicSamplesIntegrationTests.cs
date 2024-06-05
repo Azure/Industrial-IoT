@@ -216,14 +216,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithReversibleEncodingSamplesTest()
         {
             // Arrange
             // Act
             var result = await ProcessMessagesAsync(
-                nameof(CanEncodeWithReversibleEncodingSamplesTest), publishedNodesFile,
+                nameof(CanEncodeWithReversibleEncodingSamplesTest), "./Resources/SimpleEvents.json",
                 arguments: new[] { "--mm=Samples", "--me=JsonReversible" }
             );
 

@@ -172,15 +172,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotNull(metadata);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithoutReversibleEncodingTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithoutReversibleEncodingTest()
         {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithoutReversibleEncodingTest),
-                publishedNodesFile, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", messageType: "ua-data",
                 arguments: new[] { "--mm=PubSub", "--me=Json", "--dm=false" }
             );
 
@@ -212,15 +211,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             AssertSimpleEventsMetadata(metadata);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithReversibleEncodingTest()
         {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingTest),
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
                 arguments: new[] { "--mm=PubSub", "--me=JsonReversible", "--dm=false" }
             );
 
@@ -258,15 +256,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             AssertSimpleEventsMetadata(metadata);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeEventWithCompliantEncodingTestTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeEventWithCompliantEncodingTestTest()
         {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeEventWithCompliantEncodingTestTest),
-                publishedNodesFile, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", messageType: "ua-data",
                 arguments: new[] { "-c", "--mm=PubSub", "--me=Json" });
 
             Assert.Single(result);
@@ -297,15 +294,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             AssertCompliantSimpleEventsMetadata(metadata);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest()
         {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest),
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
                 arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" });
 
             var messages = result
@@ -341,17 +337,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             AssertCompliantSimpleEventsMetadata(metadata);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents2.json")]
-        public async Task CanEncode2EventsWithCompliantEncodingTestTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncode2EventsWithCompliantEncodingTest()
         {
             var dataSetWriterNames = new HashSet<string>();
 
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanEncode2EventsWithCompliantEncodingTestTest),
-                publishedNodesFile, GetBothEvents, messageType: "ua-data",
+                nameof(CanEncode2EventsWithCompliantEncodingTest),
+                "./Resources/SimpleEvents2.json", GetBothEvents, messageType: "ua-data",
                 arguments: new[] { "-c", "--mm=PubSub", "--me=Json" });
 
             Assert.Single(result);
