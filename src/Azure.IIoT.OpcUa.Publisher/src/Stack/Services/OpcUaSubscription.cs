@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (session == null)
                 {
                     // Can only send with context
-                    _logger.LogWarning("Failed to send notification since no session exists " +
+                    _logger.LogDebug("Failed to send notification since no session exists " +
                         "to use as context. Notification was dropped.");
                     return;
                 }

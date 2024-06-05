@@ -17,6 +17,18 @@ namespace Azure.IIoT.OpcUa.Encoders
             "application/json+gzip";
 
         /// <summary>
+        /// Avro encoding
+        /// </summary>
+        public const string Avro =
+            "application/avro";
+
+        /// <summary>
+        /// Avro+Gzip encoding
+        /// </summary>
+        public const string AvroGzip =
+            "application/avro+gzip";
+
+        /// <summary>
         /// OPC UA json encoding as per OPC UA part 6
         /// </summary>
         public const string UaJson =

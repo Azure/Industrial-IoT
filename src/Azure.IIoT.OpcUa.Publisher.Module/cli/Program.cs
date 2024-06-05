@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
@@ -26,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Publisher module host process
@@ -53,6 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             string? publishProfile = null;
             string? publishedNodesFilePath = null;
             var useNullTransport = false;
+            string? dumpMessages = null;
+            string? dumpMessagesOutput = null;
             var scaleunits = 0u;
             var unknownArgs = new List<string>();
             try
@@ -115,6 +119,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "--with-server":
                             withServer = true;
                             break;
+                        case "-D":
+                        case "--dump-messages":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                dumpMessages = args[i];
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --dump-messages");
+                        case "-O":
+                        case "--dump-output":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                dumpMessagesOutput = args[i];
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --dump-output");
                         case "-P":
                         case "--publish-profile":
                             i++;
@@ -203,7 +225,12 @@ Options:
             Task hostingTask;
             try
             {
-                if (!withServer)
+                if (dumpMessages != null)
+                {
+                    hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, loggerFactory,
+                        TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, cts.Token);
+                }
+                else if (!withServer)
                 {
                     hostingTask = HostAsync(connectionString, loggerFactory,
                         deviceId, moduleId, args, reverseConnectPort, !checkTrust,
@@ -321,13 +348,16 @@ Options:
                 {
                     arguments.Add($"--pf={publishedNodesFilePath}");
                 }
-                if (cs != null)
+                if (!args.Any(a => a.StartsWith("-t=", StringComparison.OrdinalIgnoreCase)))
                 {
-                    arguments.Add($"--ec={cs}");
-                }
-                else
-                {
-                    arguments.Add("-t=Null");
+                    if (cs != null)
+                    {
+                        arguments.Add($"--ec={cs}");
+                    }
+                    else
+                    {
+                        arguments.Add("-t=Null");
+                    }
                 }
                 arguments.Add("--cl=5"); // enable 5 second client linger
                 if (acceptAll)
@@ -380,6 +410,143 @@ Options:
             catch (OperationCanceledException) { }
         }
 
+        /// <summary>
+        /// Dump messages
+        /// </summary>
+        /// <param name="messageMode"></param>
+        /// <param name="publishProfile"></param>
+        /// <param name="loggerFactory"></param>
+        /// <param name="duration"></param>
+        /// <param name="scaleunits"></param>
+        /// <param name="dumpMessagesOutput"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,
+            ILoggerFactory loggerFactory, TimeSpan duration, uint scaleunits, string? dumpMessagesOutput,
+            CancellationToken ct)
+        {
+            try
+            {
+                // Dump one message encoding at a time
+                var rootFolder = Path.Combine(dumpMessagesOutput ?? ".", "dump");
+                foreach (var messageProfile in MessagingProfile.Supported)
+                {
+                    if (messageProfile.MessageEncoding.HasFlag(MessageEncoding.IsGzipCompressed))
+                    {
+                        // No need to dump gzip
+                        continue;
+                    }
+
+                    if (messageMode != "all" &&
+                        !messageProfile.MessagingMode.ToString().Equals(
+                            messageMode, StringComparison.OrdinalIgnoreCase) &&
+                        !messageProfile.MessageEncoding.ToString().Equals(
+                            messageMode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"Skipping {messageProfile}...");
+                        continue;
+                    }
+
+                    var outputFolder = Path.Combine(rootFolder, messageProfile.MessagingMode.ToString(),
+                        messageProfile.MessageEncoding.ToString());
+                    if (Directory.Exists(outputFolder) && Directory.EnumerateFiles(outputFolder).Any())
+                    {
+                        continue;
+                    }
+                    Directory.CreateDirectory(outputFolder);
+                    await DumpPublishingProfiles(outputFolder, messageProfile, publishProfile).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) { }
+
+            // Dump message profile for all publishing profiles
+            async Task DumpPublishingProfiles(string rootFolder, MessagingProfile messageProfile, string? profile)
+            {
+                foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
+                {
+                    var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
+                    if (profile == null && publishProfileName.StartsWith("Unified", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    if (profile != null && !publishProfileName.Equals(profile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    var logger = loggerFactory.CreateLogger(publishProfileName);
+                    var outputFolder = Path.Combine(rootFolder, publishProfileName);
+                    if (Directory.Exists(outputFolder) && Directory.EnumerateFiles(outputFolder).Any())
+                    {
+                        continue;
+                    }
+                    Directory.CreateDirectory(outputFolder);
+                    await DumpMessagesForDuration(outputFolder, publishProfile,
+                            messageProfile).ConfigureAwait(false);
+                }
+            }
+
+            async Task DumpMessagesForDuration(string outputFolder, string publishProfile,
+                MessagingProfile messageProfile)
+            {
+                using var runtime = new CancellationTokenSource(duration);
+                try
+                {
+                    using var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(
+                        ct, runtime.Token);
+                    var name = Path.GetFileNameWithoutExtension(publishProfile);
+                    Console.Title = $"Dumping {messageProfile} for {name}...";
+                    await RunAsync(loggerFactory, publishProfile, messageProfile,
+                        outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
+            }
+
+            static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
+                MessagingProfile messageProfile, string outputFolder, uint scaleunits, CancellationToken ct)
+            {
+                // Start test server
+                using (var server = new ServerWrapper(scaleunits, loggerFactory, null))
+                {
+                    var name = Path.GetFileNameWithoutExtension(publishProfile);
+                    var publishedNodesFilePath = await LoadPnJson(server, name,
+                        $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
+                    if (publishedNodesFilePath == null)
+                    {
+                        return;
+                    }
+
+                    //
+                    // Check whether the profile overrides the messaging mode, then set it to the desired
+                    // one regardless of whether it will work or not
+                    //
+                    var check = await File.ReadAllTextAsync(publishedNodesFilePath, ct).ConfigureAwait(false);
+                    if (check.Contains("\"MessagingMode\":", StringComparison.InvariantCulture) &&
+                        !check.Contains($"\"MessagingMode\": \"{messageProfile.MessagingMode}\"",
+                        StringComparison.InvariantCulture))
+                    {
+                        check = ReplacePropertyValue(check, "MessagingMode", messageProfile.MessagingMode.ToString());
+                        await File.WriteAllTextAsync(publishedNodesFilePath, check, ct).ConfigureAwait(false);
+                    }
+
+                    var arguments = new List<string>
+                    {
+                        "-c",
+                        "--ps",
+                        $"--ssf={outputFolder}",
+                        $"--pf={publishedNodesFilePath}",
+                        $"--me={messageProfile.MessageEncoding}",
+                        $"--mm={messageProfile.MessagingMode}",
+                        $"--ttt={name}/{{WriterGroup}}",
+                        $"--mdt={name}/{{WriterGroup}}",
+                        "-t=FileSystem",
+                        $"-o={outputFolder}",
+                        "--aa"
+                    };
+                    await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
+                }
+            }
+        }
+
         private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,
             string endpointUrl, CancellationToken ct)
         {
@@ -387,21 +554,23 @@ Options:
             if (!string.IsNullOrEmpty(publishProfile))
             {
                 var publishedNodesFile = $"./Profiles/{publishProfile}.json";
-                if (File.Exists(publishedNodesFile))
+                if (!File.Exists(publishedNodesFile))
                 {
-                    await File.WriteAllTextAsync(publishedNodesFilePath,
-                        (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
-                        .Replace("{{EndpointUrl}}", endpointUrl,
-                            StringComparison.Ordinal), ct).ConfigureAwait(false);
-
-                    return publishedNodesFilePath;
+                    throw new ArgumentException($"Profile {publishProfile} does not exist");
                 }
+                await File.WriteAllTextAsync(publishedNodesFilePath,
+                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                    .Replace("{{EndpointUrl}}", endpointUrl,
+                        StringComparison.Ordinal), ct).ConfigureAwait(false);
+
+                return publishedNodesFilePath;
             }
 
             var testServer = await server.Server.Task.ConfigureAwait(false);
             if (testServer?.PublishedNodesJson != null)
             {
-                var json = testServer.PublishedNodesJson.Replace("{{EndpointUrl}}", endpointUrl, StringComparison.Ordinal);
+                var json = testServer.PublishedNodesJson.Replace("{{EndpointUrl}}",
+                    endpointUrl, StringComparison.Ordinal);
 
                 // var entries = JsonSerializer.Deserialize<PublishedNodesEntryModel[]>(server.PublishedNodesJson);
 
@@ -555,6 +724,13 @@ Options:
 
             private readonly CancellationTokenSource _cts;
             private readonly Task _server;
+        }
+
+        public static string ReplacePropertyValue(string json, string propertyName, string newValue)
+        {
+            var pattern = $"\"{propertyName}\"\\s*:\\s*\"[^\"]*\"";
+            var replacement = $"\"{propertyName}\": \"{newValue}\"";
+            return Regex.Replace(json, pattern, replacement);
         }
     }
 }

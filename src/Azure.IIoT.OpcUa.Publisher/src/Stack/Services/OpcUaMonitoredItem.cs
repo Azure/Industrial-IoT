@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 factory.CreateLogger<ModelChangeEventItem>());
                         }
                         break;
-                    case ExtensionFieldModel efm:
+                    case ExtensionFieldItemModel efm:
                         yield return new Field(efm,
                             factory.CreateLogger<Field>());
                         break;

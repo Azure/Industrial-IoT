@@ -32,14 +32,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Item as extension field
             /// </summary>
-            public ExtensionFieldModel Template { get; protected internal set; }
+            public ExtensionFieldItemModel Template { get; protected internal set; }
 
             /// <summary>
             /// Create wrapper
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public Field(ExtensionFieldModel template,
+            public Field(ExtensionFieldItemModel template,
                 ILogger<Field> logger) : base(logger, template.StartNodeId)
             {
                 Template = template;

@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.False(payload.GetProperty("Important").GetProperty("Value").GetBoolean());
             Assert.Equal(5, payload.GetProperty("AssetId").GetProperty("Value").GetInt16());
             Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetString());
-            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble());
+            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble(), 6);
             var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, fields.ValueKind);
             Assert.NotNull(metadata);

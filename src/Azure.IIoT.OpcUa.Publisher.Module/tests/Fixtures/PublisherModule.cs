@@ -97,13 +97,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="testOutputHelper"></param>
         /// <param name="arguments"></param>
         /// <param name="version"></param>
+        /// <param name="logFactory"></param>
         public PublisherModule(IMessageSink messageSink, IEnumerable<DeviceTwinModel> devices = null,
             string deviceId = null, string moduleId = null, ITestOutputHelper testOutputHelper = null,
-            string[] arguments = default, MqttVersion? version = null)
+            string[] arguments = default, MqttVersion? version = null, ILoggerFactory logFactory = null)
         {
-            _testOutputHelper = testOutputHelper;
-            ClientContainer = CreateIoTHubSdkClientContainer(messageSink,
-                _testOutputHelper, devices, version);
+            _logFactory = logFactory ??
+                (testOutputHelper != null ? LogFactory.Create(testOutputHelper, Logging.Config) : null);
+            ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
 
             // Create module identitity
             deviceId ??= Utils.GetHostName();
@@ -277,21 +278,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        public override async ValueTask DisposeAsync()
         {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                // Throw if we cannot dispose
-                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-                Task.Run(InnerDispose, cts.Token).Wait(cts.Token);
-            }
+            await base.DisposeAsync();
 
-            void InnerDispose()
+            // Throw if we cannot dispose
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            await InnerDisposeAsync().WaitAsync(cts.Token);
+
+            async Task InnerDisposeAsync()
             {
                 _connection.Close();
                 _handler1?.Dispose();
-                _handler2?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                if (_handler2 != null)
+                {
+                    await _handler2.DisposeAsync();
+                }
                 if (Directory.Exists(ServerPkiRootPath))
                 {
                     Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
@@ -326,12 +328,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);
 
-            if (_testOutputHelper != null)
+            if (_logFactory != null)
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                builder.RegisterInstance(LogFactory.Create(
-                    _testOutputHelper, Logging.Config));
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                builder.RegisterInstance(_logFactory);
             }
 
             // Register transport services
@@ -558,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly IAsyncDisposable _handler2;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly EventConsumer _consumer;
-        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly ILoggerFactory _logFactory;
     }
 
     public class ModuleStartup : Startup

@@ -5,7 +5,9 @@
 
 namespace Opc.Ua.Extensions
 {
+    using Azure.IIoT.OpcUa.Encoders;
     using System.IO;
+    using System.Text;
     using System.Xml;
 
     /// <summary>
@@ -50,6 +52,25 @@ namespace Opc.Ua.Extensions
                     encodeable.Encode(encoder);
                 }
                 return stream.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Convert encodeable to json
+        /// </summary>
+        /// <param name="encodeable"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static string AsJson(this IEncodeable encodeable,
+            IServiceMessageContext context)
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var encoder = new JsonEncoderEx(stream, context, leaveOpen: true))
+                {
+                    encodeable.Encode(encoder);
+                }
+                return Encoding.UTF8.GetString(stream.ToArray());
             }
         }
     }

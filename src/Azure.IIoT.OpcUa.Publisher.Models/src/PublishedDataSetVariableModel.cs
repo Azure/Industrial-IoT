@@ -17,11 +17,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedDataSetVariableModel
     {
         /// <summary>
-        /// Name of variable in the dataset.
+        /// Field index of this variable in the dataset.
         /// </summary>
-        [DataMember(Name = "id", Order = 0,
+        [DataMember(Name = "fieldIndex", Order = 0,
             EmitDefaultValue = false)]
-        public string? Id { get; set; }
+        public int FieldIndex { get; set; }
 
         /// <summary>
         /// Node id of the variable
@@ -94,13 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "substituteValue", Order = 10,
             EmitDefaultValue = false)]
         public VariantValue? SubstituteValue { get; set; }
-
-        /// <summary>
-        /// MetaData properties qualified names. (not supported yet)
-        /// </summary>
-        [DataMember(Name = "metaDataProperties", Order = 11,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<string>? MetaDataProperties { get; set; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)
@@ -194,5 +187,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishing", Order = 23,
             EmitDefaultValue = false)]
         public PublishingQueueSettingsModel? Publishing { get; set; }
+
+        /// <summary>
+        /// Unique Identifier of variable in the dataset.
+        /// </summary>
+        [DataMember(Name = "id", Order = 30,
+            EmitDefaultValue = false)]
+        public string? Id { get; set; }
     }
 }

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
@@ -28,6 +29,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 ExtensionFields = model.ExtensionFields?
                     .ToDictionary(k => k.Key, v => v.Value)
             });
+        }
+
+        /// <summary>
+        /// Get minor version of metadata for this data set
+        /// </summary>
+        /// <param name="dataSet"></param>
+        /// <returns></returns>
+        public static uint GetMetaDataMinorVersion(this PublishedDataSetModel dataSet)
+        {
+            return dataSet.EnumerateMetaData().Max(m => m.MetaData?.MinorVersion ?? 0u);
+        }
+
+        /// <summary>
+        /// Enumerate metadata of all fields in the data set
+        /// </summary>
+        /// <param name="dataSet"></param>
+        /// <returns></returns>
+        public static IEnumerable<
+            (string? FieldName, PublishedMetaDataModel? MetaData)> EnumerateMetaData(
+            this PublishedDataSetModel dataSet)
+        {
+            if (dataSet.DataSetSource == null)
+            {
+                yield break;
+            }
+            if (dataSet.DataSetSource.PublishedVariables?.PublishedData != null)
+            {
+                foreach (var item in dataSet.DataSetSource.PublishedVariables.PublishedData)
+                {
+               //     yield return (item.PublishedVariableDisplayName, item.MetaData);
+                }
+            }
+            if (dataSet.DataSetSource.PublishedEvents?.PublishedData != null)
+            {
+                foreach (var evt in dataSet.DataSetSource.PublishedEvents.PublishedData)
+                {
+                    if (evt.SelectedFields != null)
+                    {
+                        foreach (var item in evt.SelectedFields)
+                        {
+                            //             yield return (item.DisplayName, item.MetaData);
+                        }
+                    }
+                }
+            }
+          // if (dataSet.ExtensionFields != null)
+          // {
+          //     foreach (var item in dataSet.ExtensionFields)
+          //     {
+          //         yield return (item.DataSetFieldName, item.MetaData);
+          //     }
+          // }
         }
     }
 }

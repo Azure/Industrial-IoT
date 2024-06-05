@@ -52,11 +52,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Datasets are pure key value pairs without headers
         /// </summary>
+        [EnumMember(Value = "DataSets")]
+        DataSets,
+
+        /// <summary>
+        /// Single data set without headers
+        /// </summary>
+        [EnumMember(Value = "SingleDataSet")]
+        SingleDataSet,
+
+        /// <summary>
+        /// Datasets with raw values
+        /// </summary>
         [EnumMember(Value = "RawDataSets")]
         RawDataSets,
 
         /// <summary>
-        /// Single data set without headers
+        /// Single data set raw values
         /// </summary>
         [EnumMember(Value = "SingleRawDataSet")]
         SingleRawDataSet

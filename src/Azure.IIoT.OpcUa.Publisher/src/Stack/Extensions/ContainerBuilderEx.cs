@@ -38,6 +38,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<AvroFileWriter>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ZipFileWriter>()
+                .AsImplementedInterfaces();
 
             builder.RegisterType<FilterQueryParser>()
                 .AsImplementedInterfaces();

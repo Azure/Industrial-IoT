@@ -58,6 +58,13 @@ namespace Azure.IIoT.OpcUa.Publisher
                 ?? _options.TopicTemplates.DataSetMetaData);
 
         /// <summary>
+        /// Default schema topic
+        /// </summary>
+        public string SchemaTopic
+            => Format(nameof(SchemaTopic), _templates.Schema
+                ?? _options.TopicTemplates.Schema);
+
+        /// <summary>
         /// Create builder
         /// </summary>
         /// <param name="options"></param>

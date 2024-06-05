@@ -255,7 +255,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             thumbprint = trustedCert.Thumbprint;
             try
             {
-
                 using var trusted = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
                 certCollection = await trusted.FindByThumbprint(thumbprint).ConfigureAwait(false);
                 if (certCollection.Count != 0)

@@ -242,14 +242,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="extensionField"></param>
         /// <returns></returns>
-        internal static ExtensionFieldModel? ToMonitoredItemTemplate(
+        internal static ExtensionFieldItemModel? ToMonitoredItemTemplate(
             this KeyValuePair<string, VariantValue> extensionField)
         {
             if (string.IsNullOrEmpty(extensionField.Key))
             {
                 return null;
             }
-            return new ExtensionFieldModel
+            return new ExtensionFieldItemModel
             {
                 DataSetFieldName = extensionField.Key,
                 Value = extensionField.Value,

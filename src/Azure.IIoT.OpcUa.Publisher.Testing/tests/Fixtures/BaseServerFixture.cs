@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Timers;
+    using System.Diagnostics;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -133,6 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             Func<ILoggerFactory?, TimeService, IEnumerable<INodeManagerFactory>> nodesFactory,
             ILoggerFactory? loggerFactory = null, bool useReverseConnect = false)
         {
+            var sw = Stopwatch.StartNew();
             Host = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
             _container = CreateContainer(loggerFactory ?? Log.ConsoleFactory(LogLevel.Debug));
@@ -227,6 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     serverHost = null;
                 }
             }
+            logger.LogInformation("Server host {Host} started in {Elapsed}...", serverHost, sw.Elapsed);
         }
 
         /// <inheritdoc/>
@@ -246,6 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             {
                 if (disposing)
                 {
+                    var sw = Stopwatch.StartNew();
                     var logger = _container.Resolve<ILogger<BaseServerFixture>>();
                     logger.LogInformation("Disposing server host {Host} and client fixture...",
                         _serverHost);
@@ -262,13 +266,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     kPorts.TryRemove(_port, out _);
 
                     logger.LogInformation("Client fixture and server host {Host} disposed - " +
-                        "cleaning up server certificates at '{PkiRoot}'...", _serverHost, pkiPath);
+                        "cleaning up server certificates at '{PkiRoot}' ({Elapsed})...",
+                        _serverHost, pkiPath, sw.Elapsed);
 
                     // Clean up all created certificates
                     if (!string.IsNullOrEmpty(pkiPath))
                     {
                         Try.Op(() => Directory.Delete(pkiPath, true));
                     }
+                    logger.LogInformation("Disposing Server took {Elapsed}...", sw.Elapsed);
                 }
                 _disposedValue = true;
             }
