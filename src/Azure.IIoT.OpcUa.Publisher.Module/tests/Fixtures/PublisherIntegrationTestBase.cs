@@ -314,10 +314,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string[] arguments = default, MqttVersion? version = null, int? reverseConnectPort = null)
         {
             var sw = Stopwatch.StartNew();
-
-            // When the publisher module is stopped, the logger factory is disposed.
-            _logFactory.Dispose();
-            _logFactory = LogFactory.Create(_testOutputHelper, Logging.Config);
             _logger = _logFactory.CreateLogger(test);
 
             arguments ??= Array.Empty<string>();
@@ -345,7 +341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
 
             _publisher = new PublisherModule(null, null, null, null,
-                _testOutputHelper, arguments, version, _logFactory);
+                _testOutputHelper, arguments, version);
             _logger.LogInformation("Publisher started in {Elapsed}.", sw.Elapsed);
         }
 
@@ -414,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly CancellationTokenSource _cts;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();
-        private ILoggerFactory _logFactory;
+        private readonly ILoggerFactory _logFactory;
         private ILogger _logger;
         private PublisherModule _publisher;
         private string _publishedNodesFilePath;

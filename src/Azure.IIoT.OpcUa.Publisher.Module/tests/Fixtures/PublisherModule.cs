@@ -97,13 +97,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="testOutputHelper"></param>
         /// <param name="arguments"></param>
         /// <param name="version"></param>
-        /// <param name="logFactory"></param>
         public PublisherModule(IMessageSink messageSink, IEnumerable<DeviceTwinModel> devices = null,
             string deviceId = null, string moduleId = null, ITestOutputHelper testOutputHelper = null,
-            string[] arguments = default, MqttVersion? version = null, ILoggerFactory logFactory = null)
+            string[] arguments = default, MqttVersion? version = null)
         {
-            _logFactory = logFactory ??
-                (testOutputHelper != null ? LogFactory.Create(testOutputHelper, Logging.Config) : null);
+            _logFactory = testOutputHelper != null ? LogFactory.Create(testOutputHelper, Logging.Config) : null;
             ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
 
             // Create module identitity
@@ -285,6 +283,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // Throw if we cannot dispose
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             await InnerDisposeAsync().WaitAsync(cts.Token);
+
+            _logFactory.Dispose();
 
             async Task InnerDisposeAsync()
             {
