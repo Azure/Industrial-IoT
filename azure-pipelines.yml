@@ -36,3 +36,12 @@ jobs:
       checkbuildsoncurrentbranch: false
       failTaskIfConditionsAreNotFulfilled: false
       templateParameters: 'ref: $(Build.SourceBranch)'
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        $buildId = $env:TriggeredBuildIds
+        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId&view=results"
+        Write-Host "##vso[build.addbuildtag]$($buildId)"
+        #Write-Host "##vso[build.addbuildtag]$($buildUrl)"
+        Write-Host "##vso[build.updatebuildnumber]$($buildUrl)"
