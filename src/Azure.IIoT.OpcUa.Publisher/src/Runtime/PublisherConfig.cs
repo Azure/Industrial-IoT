@@ -78,6 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string PublisherIdVariableName = "PublisherId";
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string RootTopicVariableName = "RootTopic";
+        public const string TelemetryTopicVariableName = "TelemetryTopic";
         public const string DataSetWriterGroupVariableName = "DataSetWriterGroup";
         public const string WriterGroupVariableName = "WriterGroup";
         public const string WriterGroupIdVariableName = "WriterGroupId";
@@ -120,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public override void PostConfigure(string? name, PublisherOptions options)
         {
             options.PublisherId ??= GetStringOrDefault(PublisherIdKey,
-                    _identity?.Id ?? Dns.GetHostName());
+                    _identity?.Identity ?? Dns.GetHostName());
 
             options.SiteId ??= GetStringOrDefault(SiteIdKey);
 
@@ -268,7 +269,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 options.DebugLogNotificationsFilter =
                     GetStringOrDefault(DebugLogNotificationsFilterKey);
-                options.DebugLogNotifications ??= (options.DebugLogNotificationsFilter != null);
+                options.DebugLogNotifications ??=
+                    (options.DebugLogNotificationsFilter != null ? true : null);
             }
 
             if (options.DebugLogNotificationsWithHeartbeat == null)
@@ -278,15 +280,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DebugLogNotifications ??= options.DebugLogNotifications;
             }
 
-            if (options.DebugLogNotifications == null)
-            {
-                options.DebugLogNotifications = GetBoolOrDefault(DebugLogNotificationsKey);
-            }
-
-            if (options.DebugLogEncodedNotifications == null)
-            {
-                options.DebugLogEncodedNotifications = GetBoolOrDefault(DebugLogEncodedNotificationsKey);
-            }
+            options.DebugLogNotifications ??= GetBoolOrDefault(DebugLogNotificationsKey);
+            options.DebugLogEncodedNotifications ??= GetBoolOrDefault(DebugLogEncodedNotificationsKey);
 
             if (options.DiagnosticsInterval == null)
             {

@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Encodable Key DataValue Pair
     /// </summary>
-    public class KeyDataValuePair : IEncodeable
+    public class KeyDataValuePair : IEncodeable, IJsonEncodeable
     {
         /// <summary>
         /// Constructor only to be used when deserializing.
@@ -54,6 +54,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public virtual ExpandedNodeId? XmlEncodingId { get; }
 
         /// <inheritdoc/>
+        public virtual ExpandedNodeId? JsonEncodingId { get; }
+
+        /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder)
         {
             encoder.WriteString("Key", Key);
@@ -92,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <inheritdoc/>
         public object Clone()
         {
-            var clone = (KeyDataValuePair)base.MemberwiseClone();
+            var clone = (KeyDataValuePair)MemberwiseClone();
             clone.Key = (string)Utils.Clone(Key);
             clone.Value = (DataValue)Utils.Clone(Value);
             return clone;
@@ -113,13 +116,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// Initializes the collection with an initial capacity.
         /// </summary>
         /// <param name="capacity"></param>
-        public KeyDataValuePairCollection(int capacity) : base(capacity) { }
+        public KeyDataValuePairCollection(int capacity)
+            : base(capacity)
+        {
+        }
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
         /// <param name="collection"></param>
-        public KeyDataValuePairCollection(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
+        public KeyDataValuePairCollection(IEnumerable<KeyDataValuePair> collection)
+            : base(collection)
+        {
+        }
+
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>

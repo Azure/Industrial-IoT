@@ -839,8 +839,7 @@ namespace Opc.Ua.Test
             {
                 return null;
             }
-            object[] value = null;
-            if (!_boundaryValues.TryGetValue(type.Name, out value))
+            if (!_boundaryValues.TryGetValue(type.Name, out var value))
             {
                 return null;
             }
@@ -891,8 +890,7 @@ namespace Opc.Ua.Test
 
         private string CreateString(string locale, bool isSymbol)
         {
-            string[] value = null;
-            if (!_tokenValues.TryGetValue(locale, out value))
+            if (!_tokenValues.TryGetValue(locale, out var value))
             {
                 value = _tokenValues["en-US"];
             }

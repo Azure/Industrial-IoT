@@ -9,7 +9,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Microsoft.IO;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
+    using System.IO;
 
     /// <summary>
     /// Encodeable PubSub messages
@@ -55,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="reader"></param>
         /// <param name="resolver"></param>
         public abstract bool TryDecode(IServiceMessageContext context,
-            Queue<ReadOnlyMemory<byte>> reader,
+            Queue<ReadOnlySequence<byte>> reader,
             IDataSetMetaDataResolver? resolver = null);
 
         /// <summary>
@@ -66,12 +68,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="maxChunkSize"></param>
         /// <param name="resolver"></param>
         /// <returns></returns>
-        public abstract IReadOnlyList<ReadOnlyMemory<byte>> Encode(
+        public abstract IReadOnlyList<ReadOnlySequence<byte>> Encode(
             IServiceMessageContext context, int maxChunkSize,
             IDataSetMetaDataResolver? resolver = null);
 
         /// <summary>
-        /// Decode pub sub messages from buffer
+        /// Decode pub sub messages from a single network buffer. If the message
+        /// was chunked, the message might not be fully reconstituted.
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="contentType"></param>
@@ -79,17 +82,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="resolver"></param>
         /// <param name="messageSchema"></param>
         /// <returns></returns>
-        public static PubSubMessage? Decode(ReadOnlyMemory<byte> buffer, string contentType,
+        public static PubSubMessage? Decode(ReadOnlySequence<byte> buffer, string contentType,
             IServiceMessageContext context, IDataSetMetaDataResolver? resolver = null,
             string? messageSchema = null)
         {
-            var reader = new Queue<ReadOnlyMemory<byte>>();
+            var reader = new Queue<ReadOnlySequence<byte>>();
             reader.Enqueue(buffer);
             return DecodeOne(reader, contentType, context, resolver, messageSchema);
         }
 
         /// <summary>
-        /// Decode all from reader
+        /// Decode all messages from the provided chunk reader. The reader
+        /// is a queue of byte sequences, each representing a network buffer.
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="contentType"></param>
@@ -97,9 +101,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="resolver"></param>
         /// <param name="messageSchema"></param>
         /// <returns></returns>
-        public static IEnumerable<PubSubMessage> Decode(Queue<ReadOnlyMemory<byte>> reader,
+        public static IEnumerable<PubSubMessage> Decode(Queue<ReadOnlySequence<byte>> reader,
             string contentType, IServiceMessageContext context,
-            IDataSetMetaDataResolver resolver, string? messageSchema = null)
+            IDataSetMetaDataResolver? resolver = null, string? messageSchema = null)
         {
             while (true)
             {
@@ -124,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="resolver"></param>
         /// <param name="messageSchema"></param>
         /// <returns></returns>
-        internal static PubSubMessage? DecodeOne(Queue<ReadOnlyMemory<byte>> reader,
+        internal static PubSubMessage? DecodeOne(Queue<ReadOnlySequence<byte>> reader,
             string contentType, IServiceMessageContext context,
             IDataSetMetaDataResolver? resolver, string? messageSchema = null)
         {

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Microsoft.AspNetCore.Mvc;
     using System.Threading;
     using System.Threading.Tasks;
+    using Asp.Versioning;
 
     /// <summary>
     /// Configure discovery events

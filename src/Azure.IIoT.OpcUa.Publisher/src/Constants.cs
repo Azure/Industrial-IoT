@@ -64,10 +64,5 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default Site id
         /// </summary>
         public const string DefaultSiteId = "<<UnknownSite>>";
-
-        /// <summary>
-        /// Timestamp tag (start time)
-        /// </summary>
-        public const string TimeStampTag = "timestamp_utc";
     }
 }

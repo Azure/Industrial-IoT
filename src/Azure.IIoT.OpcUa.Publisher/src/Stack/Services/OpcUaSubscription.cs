@@ -428,8 +428,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-            var count = message.GetDiagnosticCounters(out var modelChanges, 
-				out var heartbeats, out var overflows);
+            var count = message.GetDiagnosticCounters(out var modelChanges,
+                out var heartbeats, out var overflows);
             if (messageType == MessageType.Event || messageType == MessageType.Condition)
             {
                 if (!diagnosticsOnly)
@@ -466,9 +466,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             FastEventCallback = OnSubscriptionEventNotificationList;
             PublishStatusChanged += OnPublishStatusChange;
             StateChanged += OnStateChange;
+
             TimestampsToReturn = Opc.Ua.TimestampsToReturn.Both;
             DisableMonitoredItemCache = true;
-            RepublishAfterTransfer = true;
 
             _callbacks.OnSubscriptionUpdated(_closed ? null : this);
         }
@@ -1188,6 +1188,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _template.Configuration?.EnableImmediatePublishing ?? false;
                 var sequentialPublishing =
                     _template.Configuration?.EnableSequentialPublishing ?? false;
+                var republishAfterTransfer =
+                    _template.Configuration?.RepublishAfterTransfer ?? false;
 
                 Handle = LocalIndex;
                 DisplayName = Name;
@@ -1197,8 +1199,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish;
                 LifetimeCount = configuredLifetimeCount;
                 Priority = configuredPriority;
+
                 // TODO: use a channel and reorder task before calling OnMessage
                 // to order or else republish is called too often
+                RepublishAfterTransfer = republishAfterTransfer;
                 SequentialPublishing = sequentialPublishing;
 
                 var result = session.AddSubscription(this);
@@ -2124,7 +2128,7 @@ Actual (revised) state/desired state:
                         })
                         .ToList();
 
-                    splitted.Last().PublishSequenceNumber = original;
+                    splitted[^1].PublishSequenceNumber = original;
 #if DEBUG
                     MarkProcessed();
 #endif

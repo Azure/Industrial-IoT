@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Asp.Versioning;
 
     /// <summary>
     /// Discovery

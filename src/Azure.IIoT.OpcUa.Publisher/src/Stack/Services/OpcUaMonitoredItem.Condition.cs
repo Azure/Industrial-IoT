@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var evFilter = Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter.SelectClauses
-                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                        .Find(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                             && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 
                 var state = _conditionHandlingState;
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var conditionHandlingState = new ConditionHandlingState();
 
                 var conditionIdClause = eventFilter.SelectClauses
-                    .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType
+                    .Find(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType
                         && x.AttributeId == Attributes.NodeId);
                 if (conditionIdClause != null)
                 {
@@ -343,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var retainClause = eventFilter.SelectClauses
-                    .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                    .Find(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
                         x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
                 if (retainClause != null)
                 {

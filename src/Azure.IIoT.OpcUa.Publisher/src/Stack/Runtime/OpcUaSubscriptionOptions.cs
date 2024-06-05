@@ -30,6 +30,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? DefaultSkipFirst { get; set; }
 
         /// <summary>
+        /// Republish messages after transfer
+        /// </summary>
+        public bool? DefaultRepublishAfterTransfer { get; set; }
+
+        /// <summary>
         /// The default flag whether to descard new items in queue
         /// </summary>
         public bool? DefaultDiscardNew { get; set; }

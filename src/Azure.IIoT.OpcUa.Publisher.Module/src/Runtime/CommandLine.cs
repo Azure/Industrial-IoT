@@ -289,10 +289,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Default data change trigger for all monitored items configured in the published nodes configuration unless explicitly overridden.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(DataChangeTriggerType)))}`\nDefault: `{nameof(DataChangeTriggerType.StatusValue)}` (which is the OPC UA default).\n",
                     (DataChangeTriggerType t) => this[OpcUaSubscriptionConfig.DefaultDataChangeTriggerKey] = t.ToString() },
                 { $"sf|skipfirst:|{OpcUaSubscriptionConfig.DefaultSkipFirstKey}:",
-                    "The publisher is using this as default value for the skip first setting of nodes configured without a skip first setting. A value of True will skip sending the first notification received when the monitored item is added to the subscription.\nDefault: `False` (disabled).\n",
+                    $"The publisher is using this as default value for the skip first setting of nodes configured without a skip first setting. A value of True will skip sending the first notification received when the monitored item is added to the subscription.\nDefault: `{OpcUaSubscriptionConfig.DefaultSkipFirstDefault}` (disabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.DefaultSkipFirstKey] = b?.ToString() ?? "True" },
                     { "skipfirstevent:", "Maintained for backwards compatibility, do not use.",
                         (string b) => this[OpcUaSubscriptionConfig.DefaultSkipFirstKey] = b ?? "True", /* hidden = */ true },
+                { $"rat|republishaftertransfer:|{OpcUaSubscriptionConfig.DefaultRepublishAfterTransferKey}:",
+                    $"Configure whether publisher republishes missed subscription notifications still in the server queue after transferring a subscription during reconnect handling.\nThis can result in out of order notifications after a reconnect but minimizes data loss.\nDefault: `{OpcUaSubscriptionConfig.DefaultRepublishAfterTransferDefault}` (disabled).\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.DefaultRepublishAfterTransferKey] = b?.ToString() ?? "True" },
                 { $"hbb|heartbeatbehavior=|{OpcUaSubscriptionConfig.DefaultHeartbeatBehaviorKey}=",
                     $"Default behavior of the heartbeat mechanism unless overridden in the published nodes configuration explicitly.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(HeartbeatBehavior)))}`\nDefault: `{nameof(HeartbeatBehavior.WatchdogLKV)}` (Sending LKV in a watchdog fashion).\n",
                     (HeartbeatBehavior b) => this[OpcUaSubscriptionConfig.DefaultHeartbeatBehaviorKey] = b.ToString() },
@@ -689,21 +692,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             Console.WriteLine(string.Format(CultureInfo.CurrentCulture,
                 messageTemplate, propertyValue0));
-        }
-
-        /// <summary>
-        /// Write a log event with the Debug level.
-        /// </summary>
-        /// <typeparam name="T0"></typeparam>
-        /// <typeparam name="T1"></typeparam>
-        /// <param name="messageTemplate">Message template describing the event.</param>
-        /// <param name="propertyValue0">Object positionally formatted into the message template.</param>
-        /// <param name="propertyValue1">Object positionally formatted into the message template.</param>
-        public virtual void Debug<T0, T1>(string messageTemplate,
-            T0 propertyValue0, T1 propertyValue1)
-        {
-            Console.WriteLine(string.Format(CultureInfo.CurrentCulture,
-                messageTemplate, propertyValue0, propertyValue1));
         }
     }
 }

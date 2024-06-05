@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
-            Assert.Equal(8, _publisher.Version);
+            Assert.Equal(8u, _publisher.Version);
 
             foreach (var request in publishNodesRequest)
             {
@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             }
 
             Assert.Empty(_publisher.WriterGroups);
-            Assert.Equal(15, _publisher.Version);
+            Assert.Equal(15u, _publisher.Version);
         }
 
         [Theory]

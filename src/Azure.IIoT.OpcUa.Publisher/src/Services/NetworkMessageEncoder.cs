@@ -53,8 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
-        public NetworkMessageEncoder(IOptions<PublisherOptions> options, IMetricsContext metrics,
-            ILogger<NetworkMessageEncoder> logger)
+        public NetworkMessageEncoder(IOptions<PublisherOptions> options,
+            IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
         {
             ArgumentNullException.ThrowIfNull(metrics);
             _logger = logger;
@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .SetRetain(retain)
                             .SetTtl(ttl)
                             .SetQoS(qos)
-                            .AddBuffers(chunks.Select(m => new ReadOnlySequence<byte>(m)))
+                            .AddBuffers(chunks)
                             ;
 
                         if (_options.Value.UseStandardsCompliantEncoding != true)
@@ -374,8 +374,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 {
                                                     if (notification.DataSetFieldName != null)
                                                     {
-                                                        _logger.LogTrace("Processing notification: {Notification}",
-                                                            notification.ToString());
                                                         var dataSetMessage = new MonitoredItemMessage
                                                         {
                                                             UseCompatibilityMode = !standardsCompliant,
@@ -553,7 +551,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (totalNotifications > 0)
             {
-                _logger.LogWarning("Dropped {TotalNotifications} values", totalNotifications);
+                _logger.LogWarning("Dropped {TotalNotifications} values",
+                    totalNotifications);
                 NotificationsDroppedCount += totalNotifications;
             }
         }
@@ -602,16 +601,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
         {
             var sb = new StringBuilder();
-            foreach (var item in notifications.Where(n => (n.Flags & MonitoredItemSourceFlags.ModelChanges) == 0))
+            foreach (var item in notifications
+                .Where(n => (n.Flags & MonitoredItemSourceFlags.ModelChanges) == 0))
             {
                 sb
                     .AppendLine()
                     .Append("   |")
-                    .Append(item.Value?.ServerTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                    .Append(item.Value?.ServerTimestamp
+                        .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
                     .Append('|')
                     .Append(item.DataSetFieldName ?? item.DataSetName)
                     .Append('|')
-                    .Append(item.Value?.SourceTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                    .Append(item.Value?.SourceTimestamp
+                        .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                    .Append('|')
+                    .Append(item.Value?.Value)
+                    .Append('|')
+                    .Append(item.Value?.StatusCode)
                     .Append('|')
                     ;
             }
@@ -626,14 +632,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             _meter.CreateObservableCounter("iiot_edge_publisher_encoded_notifications",
                 () => new Measurement<long>(NotificationsProcessedCount, metrics.TagList),
-                description: "Number of successfully processed subscription notifications received from OPC client.");
+                description: "Number of successfully processed subscription notifications " +
+                "received from OPC client.");
             _meter.CreateObservableCounter("iiot_edge_publisher_dropped_notifications",
                 () => new Measurement<long>(NotificationsDroppedCount, metrics.TagList),
-                description: "Number of incoming subscription notifications that are too big to be processed based " +
+                description: "Number of incoming subscription notifications that are too " +
+                "big to be processed based " +
                 "on the message size limits or other issues with the notification.");
             _meter.CreateObservableCounter("iiot_edge_publisher_processed_messages",
                 () => new Measurement<long>(MessagesProcessedCount, metrics.TagList),
-                description: "Number of successfully generated messages that are to be sent using the message sender");
+                description: "Number of successfully generated messages that are to be " +
+                "sent using the message sender");
             _meter.CreateObservableGauge("iiot_edge_publisher_notifications_per_message_average",
                 () => new Measurement<double>(AvgNotificationsPerMessage, metrics.TagList),
                 description: "Average subscription notifications packed into a message");
@@ -645,9 +654,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "IoT Hub chunk size average");
             _meter.CreateObservableGauge("iiot_edge_publisher_message_split_ratio_max",
                 () => new Measurement<double>(MaxMessageSplitRatio, metrics.TagList),
-                description: "The message split ration specifies into how many messages a subscription notification had " +
-                "to be split. Less is better for performance. If the number is large user should attempt to limit the " +
-                "number of notifications in a message using configuration.");
+                description: "The message split ration specifies into how many messages " +
+                "a subscription notification had to be split. Less is better for " +
+                "performance. If the number is large user should attempt to limit " +
+                "the number of notifications in a message using configuration.");
         }
 
         private static readonly ConfigurationVersionDataType kEmptyConfiguration = new() { MajorVersion = 1u };

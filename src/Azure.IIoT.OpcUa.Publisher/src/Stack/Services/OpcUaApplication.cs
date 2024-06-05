@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = logger;
             _options = options;
-            _identity = identity == null ? "opc-publisher" : identity.Id;
+            _identity = identity == null ? "opc-publisher" : identity.Identity;
             _configuration = BuildAsync();
         }
 
@@ -244,15 +244,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask ApproveRejectedCertificateAsync(string thumbprint, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            thumbprint = SanitizeThumbprint(thumbprint);
             using var rejected = await OpenAsync(CertificateStoreName.Rejected).ConfigureAwait(false);
+            var certCollection = await rejected.FindByThumbprint(thumbprint).ConfigureAwait(false);
+            if (certCollection.Count == 0)
+            {
+                throw new ResourceNotFoundException("Certificate not found");
+            }
+            var trustedCert = certCollection[0];
+            thumbprint = trustedCert.Thumbprint;
             try
             {
-                var certCollection = await rejected.FindByThumbprint(thumbprint).ConfigureAwait(false);
-                if (certCollection.Count == 0)
-                {
-                    throw new ResourceNotFoundException("Certificate not found");
-                }
-                var trustedCert = certCollection[0];
 
                 using var trusted = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
                 certCollection = await trusted.FindByThumbprint(thumbprint).ConfigureAwait(false);
@@ -340,6 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
+            thumbprint = SanitizeThumbprint(thumbprint);
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
             try
             {
@@ -811,6 +814,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        private static string SanitizeThumbprint(string thumbprint)
+        {
+            if (thumbprint.Length > kMaxThumbprintLength)
+            {
+                throw new ArgumentException("Bad thumbprint", nameof(thumbprint));
+            }
+            return thumbprint.ReplaceLineEndings();
+        }
+
+        private const int kMaxThumbprintLength = 64;
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly ILogger<OpcUaApplication> _logger;
         private readonly IOptions<OpcUaClientOptions> _options;

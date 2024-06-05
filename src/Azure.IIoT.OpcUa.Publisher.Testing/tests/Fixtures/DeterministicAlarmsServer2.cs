@@ -16,66 +16,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     /// </summary>
     public class DeterministicAlarmsServer2 : BaseServerFixture
     {
-        public static readonly string Config = @"
+        public static readonly string Config = """
+
 {
-  ""folders"": [
+  "folders": [
     {
-      ""name"": ""VendingMachines"",
-      ""sources"": [
+      "name": "VendingMachines",
+      "sources": [
         {
-          ""objectType"": ""BaseObjectState"",
-          ""name"": ""VendingMachine1"",
-          ""alarms"": [
+          "objectType": "BaseObjectState",
+          "name": "VendingMachine1",
+          "alarms": [
             {
-              ""objectType"": ""TripAlarmType"",
-              ""name"": ""VendingMachine1_DoorOpen"",
-              ""id"": ""V1_DoorOpen""
+              "objectType": "TripAlarmType",
+              "name": "VendingMachine1_DoorOpen",
+              "id": "V1_DoorOpen"
             }
           ]
         }
       ]
     }
   ],
-  ""script"": {
-    ""waitUntilStartInSeconds"": 5,
-    ""isScriptInRepeatingLoop"": false,
-    ""runningForSeconds"": 36000,
-    ""steps"": [
+  "script": {
+    "waitUntilStartInSeconds": 5,
+    "isScriptInRepeatingLoop": false,
+    "runningForSeconds": 36000,
+    "steps": [
       {
-        ""event"": {
-          ""alarmId"": ""V1_DoorOpen"",
-          ""reason"": ""Door Open"",
-          ""severity"": ""High"",
-          ""eventId"": ""V1_DoorOpen-1"",
-          ""stateChanges"": [
+        "event": {
+          "alarmId": "V1_DoorOpen",
+          "reason": "Door Open",
+          "severity": "High",
+          "eventId": "V1_DoorOpen-1",
+          "stateChanges": [
             {
-              ""stateType"": ""Enabled"",
-              ""state"": true
+              "stateType": "Enabled",
+              "state": true
             },
             {
-              ""stateType"": ""Activated"",
-              ""state"": true
+              "stateType": "Activated",
+              "state": true
             }
           ]
         }
       },
       {
-        ""sleepInSeconds"": 5
+        "sleepInSeconds": 5
       },
       {
-        ""event"": {
-          ""alarmId"": ""V1_DoorOpen"",
-          ""reason"": ""Door Closed"",
-          ""severity"": ""Medium"",
-          ""eventId"": ""V1_DoorOpen-2"",
-          ""stateChanges"": [
+        "event": {
+          "alarmId": "V1_DoorOpen",
+          "reason": "Door Closed",
+          "severity": "Medium",
+          "eventId": "V1_DoorOpen-2",
+          "stateChanges": [
             {
-              ""stateType"": ""Enabled"",
-              ""state"": false
+              "stateType": "Enabled",
+              "state": false
             },
             {
-              ""stateType"": ""Activated"",
-              ""state"": false
+              "stateType": "Activated",
+              "state": false
             }
           ]
         }
@@ -83,7 +84,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     ]
   }
 }
-";
+
+""";
         /// <inheritdoc/>
         public static IEnumerable<INodeManagerFactory> DeterministicAlarms2(
             ILoggerFactory? factory, TimeService timeservice)

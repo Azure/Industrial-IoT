@@ -259,6 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         !IsGoodDataValue(lastNotification?.Value))
                 {
                     // Currently no last known good value (LKG) to send
+                    _logger.LogDebug("{Item}: No last known good value to send.", this);
                     return;
                 }
 
@@ -271,6 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (lastValue == null)
                 {
                     // Currently no last known value (LKV) to send
+                    _logger.LogDebug("{Item}: No last known value to send.", this);
                     return;
                 }
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)

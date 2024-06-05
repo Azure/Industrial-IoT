@@ -197,6 +197,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <inheritdoc/>
         public override string ToString()
         {
+            return $"{MessagingMode}|{MessageEncoding}";
+        }
+
+        /// <inheritdoc/>
+        public string ToExpandedString()
+        {
             return new StringBuilder("| ")
                 .Append(MessagingMode)
                 .Append(" | ")

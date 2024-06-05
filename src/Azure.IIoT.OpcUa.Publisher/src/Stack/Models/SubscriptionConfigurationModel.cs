@@ -82,5 +82,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Use the sequential publishing feature in the stack.
         /// </summary>
         public bool EnableSequentialPublishing { get; set; }
+
+        /// <summary>
+        /// Republish after transfer
+        /// </summary>
+        public bool? RepublishAfterTransfer { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "Version", Order = 0,
             EmitDefaultValue = false)]
-        public int? Version { get; set; }
+        public uint? Version { get; set; }
 
         /// <summary>
         /// Last change to the entry
@@ -335,9 +335,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public int? WriterGroupPartitions { get; set; }
 
         /// <summary>
+        /// Disable subscription transfer on reconnect
+        /// </summary>
+        [DataMember(Name = "DisableSubscriptionTransfer", Order = 40,
+            EmitDefaultValue = false)]
+        public bool? DisableSubscriptionTransfer { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
-        [DataMember(Name = "NodeId", Order = 40,
+        [DataMember(Name = "NodeId", Order = 50,
             EmitDefaultValue = false)]
         public NodeIdModel? NodeId { get; set; }
     }

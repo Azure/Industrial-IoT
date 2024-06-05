@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Mqtt.Clients;
@@ -189,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var register = ClientContainer.Resolve<IEventSubscriber>();
                 var options = Resolve<IOptions<PublisherOptions>>();
 
-                var topicBuilder = new TopicBuilder(options);
+                var topicBuilder = new TopicBuilder(options.Value);
                 _handler2 = register.SubscribeAsync(topicBuilder.RootTopic + "/messages/#", _consumer)
                     .AsTask().GetAwaiter().GetResult();
                 Target = topicBuilder.MethodTopic;
@@ -317,6 +318,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             builder.RegisterType<IoTEdgeMockIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            if (_connection.EventClient is IProcessIdentity identity)
+            {
+                builder.RegisterInstance(identity);
+            }
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);

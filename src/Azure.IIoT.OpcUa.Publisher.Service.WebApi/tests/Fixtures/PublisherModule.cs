@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Models;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Utils;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -183,6 +184,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
             builder.RegisterType<IoTEdgeMockIdentity>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            if (_connection.EventClient is IProcessIdentity identity)
+            {
+                builder.RegisterInstance(identity);
+            }
+
             builder.RegisterInstance(_connection.EventClient);
             builder.RegisterInstance(_connection.RpcServer);
             builder.RegisterInstance(_connection.Twin);

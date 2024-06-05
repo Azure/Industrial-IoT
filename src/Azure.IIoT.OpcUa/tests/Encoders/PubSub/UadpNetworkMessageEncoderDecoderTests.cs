@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
@@ -430,9 +431,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
             }, (uint)dataSetFieldContentMask);
         }
 
-        private static Queue<ReadOnlyMemory<byte>> CreateReader(IReadOnlyList<ReadOnlyMemory<byte>> buffers)
+        private static Queue<ReadOnlySequence<byte>> CreateReader(IReadOnlyList<ReadOnlySequence<byte>> buffers)
         {
-            var reader = new Queue<ReadOnlyMemory<byte>>();
+            var reader = new Queue<ReadOnlySequence<byte>>();
             foreach (var buffer in buffers)
             {
                 reader.Enqueue(buffer);

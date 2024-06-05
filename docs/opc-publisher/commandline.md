@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.6 (.NET 8.0.2/win-x64/OPC Stack 1.5.373.121)
+                                                  2.9.8 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.54)
 
 General
 -------
@@ -47,6 +47,13 @@ General
                                command line and this option is ignored.
                                If a file was specified but does not exist and
                                should not be created the module exits.
+                               Default: `false`
+      --pol, --usepolling, --UseFileChangePolling[=VALUE]
+                             Poll for file changes instead of using a file
+                               system watcher.
+                               Use this setting when the underlying file system
+                               does not support file system notifications such
+                               as in some docker container setups.
                                Default: `false`
       --fe, --forceencryptedcredentials, --ForceCredentialEncryption[=VALUE]
                              If set to true the publisher will never write
@@ -556,6 +563,14 @@ Subscription settings
                                received when the monitored item is added to the
                                subscription.
                                Default: `False` (disabled).
+      --rat, --republishaftertransfer, --RepublishAfterTransfer[=VALUE]
+                             Configure whether publisher republishes missed
+                               subscription notifications still in the server
+                               queue after transferring a subscription during
+                               reconnect handling.
+                               This can result in out of order notifications
+                               after a reconnect but minimizes data loss.
+                               Default: `False` (disabled).
       --hbb, --heartbeatbehavior, --DefaultHeartbeatBehavior=VALUE
                              Default behavior of the heartbeat mechanism unless
                                overridden in the published nodes configuration
@@ -911,6 +926,11 @@ Diagnostic options
                              Log ingress subscription notifications at
                                Informational level to aid debugging.
                                Default: `disabled`.
+      --lnh, --lognotificationsandheartbeats[=VALUE]
+                             Include heartbeats in notifications log.
+                               If set also implicitly enables debug logging via
+                               `--ln`.
+                               Default: `disabled`.
       --lnf, --lognotificationfilter[=VALUE]
                              Only log notifications where the data set field
                                name, subscription name, or data set name match
@@ -918,6 +938,11 @@ Diagnostic options
                                If set implicitly enables debug logging via `--
                                ln`.
                                Default: `null` (matches all).
+      --len, --logencodednotifications[=VALUE]
+                             Log encoded subscription and monitored item
+                               notifications at Informational level to aid
+                               debugging.
+                               Default: `disabled`.
       --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.

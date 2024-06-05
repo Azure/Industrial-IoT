@@ -89,7 +89,7 @@ namespace IIoTPlatformE2ETests
                 try
                 {
                     using var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
-                        client => client.Authenticator = new HttpBasicAuth(clientId, clientSecret));
+                        client => client.Authenticator = new HttpBasicAuthenticator(clientId, clientSecret));
 
                     var request = new RestRequest("", Method.Post)
                     {

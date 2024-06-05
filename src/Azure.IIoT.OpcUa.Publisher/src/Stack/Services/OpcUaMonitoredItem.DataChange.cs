@@ -259,12 +259,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
                 DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
-                if (evt is MonitoredItemNotification min &&
-                    base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
+                if (evt is not MonitoredItemNotification min)
                 {
-                    return ProcessMonitoredItemNotification(sequenceNumber, timestamp, min, notifications);
+                    _logger.LogDebug("{Item}: Unexpected event type {Type} received.",
+                        this, evt?.GetType().Name ?? "null");
+                    return false;
                 }
-                return false;
+                if (!base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
+                {
+                    return false;
+                }
+                return ProcessMonitoredItemNotification(sequenceNumber, timestamp, min, notifications);
             }
 
             /// <inheritdoc/>

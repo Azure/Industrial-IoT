@@ -100,16 +100,21 @@ namespace OpcPublisherAEE2ETests.Standalone
         private static void ValidateBaseEventTypeFields(JObject ev)
         {
             // navigate to the event fields (nested several layers)
-            var fields = ev.Children();
-            Assert.Equal(9, fields.Count());
+            var fields = ev.Children().ToList();
+            Assert.Equal(13, fields.Count);
             Assert.Contains(fields, x => x.Path.EndsWith("EventId", StringComparison.Ordinal));
             Assert.Contains(fields, x => x.Path.EndsWith("EventType", StringComparison.Ordinal));
-            Assert.Contains(fields, x => x.Path.EndsWith("Message", StringComparison.Ordinal));
-            Assert.Contains(fields, x => x.Path.EndsWith("ReceiveTime", StringComparison.Ordinal));
-            Assert.Contains(fields, x => x.Path.EndsWith("Severity", StringComparison.Ordinal));
             Assert.Contains(fields, x => x.Path.EndsWith("SourceNode", StringComparison.Ordinal));
             Assert.Contains(fields, x => x.Path.EndsWith("SourceName", StringComparison.Ordinal));
             Assert.Contains(fields, x => x.Path.EndsWith("Time", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("ReceiveTime", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("LocalTime", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("Message", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("Severity", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("ConditionClassId", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("ConditionClassName", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("ConditionSubClassId", StringComparison.Ordinal));
+            Assert.Contains(fields, x => x.Path.EndsWith("ConditionSubClassName", StringComparison.Ordinal));
         }
 
         private static void ValidateSimpleEventFields(JObject ev)
