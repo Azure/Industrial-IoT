@@ -41,9 +41,9 @@ jobs:
       targetType: 'inline'
       script: |
         $buildId = $(TriggeredBuildIds)
-        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId&view=results"
+        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"
         Write-Host "Triggered build $buildUrl ..."
-        Write-Host "##vso[build.addbuildtag]$buildId"
+        Write-Host "##vso[build.addbuildtag]Industrial-IoT-PullRequest build $buildId"
         #Write-Host "##vso[build.addbuildtag]'$buildUrl'"
         Write-Host "##vso[build.updatebuildnumber]$buildUrl"
   - task: WaitForBuildToFinish@3
