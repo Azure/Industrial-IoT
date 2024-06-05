@@ -54,8 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             TimeSpan? timeout = null, string testName = null)
         {
             _cts = new CancellationTokenSource(timeout ?? kTotalTestTimeout);
-            _logFactory = LogFactory.Create(testOutputHelper, Logging.Config);
             _testOutputHelper = testOutputHelper;
+            _logFactory = LogFactory.Create(testOutputHelper, Logging.Config);
             _logger = _logFactory.CreateLogger(testName ?? "PublisherIntegrationTest");
         }
 
@@ -314,6 +314,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             string[] arguments = default, MqttVersion? version = null, int? reverseConnectPort = null)
         {
             var sw = Stopwatch.StartNew();
+
+            // When the publisher module is stopped, the logger factory is disposed.
+            _logFactory.Dispose();
+            _logFactory = LogFactory.Create(_testOutputHelper, Logging.Config);
             _logger = _logFactory.CreateLogger(test);
 
             arguments ??= Array.Empty<string>();
@@ -408,9 +412,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(5);
         private readonly CancellationTokenSource _cts;
-        private readonly ILoggerFactory _logFactory;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();
+        private ILoggerFactory _logFactory;
         private ILogger _logger;
         private PublisherModule _publisher;
         private string _publishedNodesFilePath;
