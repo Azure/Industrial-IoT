@@ -284,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             await InnerDisposeAsync().WaitAsync(cts.Token);
 
-            _logFactory.Dispose();
+            _logFactory?.Dispose();
 
             async Task InnerDisposeAsync()
             {
