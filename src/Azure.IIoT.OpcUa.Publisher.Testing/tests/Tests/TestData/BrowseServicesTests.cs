@@ -2386,7 +2386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
                 Assert.Null(results2.ErrorInfo);
-                Assert.NotNull(results.References);
+                Assert.NotNull(results2.References);
                 Assert.True(results2.References.Count > 0 && results2.References.Count <= maxCount);
                 continuationToken = results2.ContinuationToken;
             }

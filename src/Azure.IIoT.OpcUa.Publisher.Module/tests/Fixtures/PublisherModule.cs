@@ -552,10 +552,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly IConfiguration _config;
         private readonly bool _useMqtt;
         private readonly IoTHubTelemetryHandler _telemetry;
-#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly IDisposable _handler1;
         private readonly IAsyncDisposable _handler2;
-#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly EventConsumer _consumer;
         private readonly ILoggerFactory _logFactory;
     }

@@ -250,8 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
                         }
-                        var namespaceFormat = 
-							writerGroup.MessageSettings?.NamespaceFormat ?? 
+                        var namespaceFormat =
+							writerGroup.MessageSettings?.NamespaceFormat ??
 							// _options.Value.DefaultNamespaceFormat ?? // TODO: Fix tests
 							NamespaceFormat.Uri;
                         var networkMessageContentMask = messageMask.ToStackType(encoding);
