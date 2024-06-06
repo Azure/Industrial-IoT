@@ -106,7 +106,7 @@ namespace IIoTPlatformE2ETests.Twin
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, -1, "Object", null, cts.Token);
+            var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, -1, "Object", "i=85", cts.Token);
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
