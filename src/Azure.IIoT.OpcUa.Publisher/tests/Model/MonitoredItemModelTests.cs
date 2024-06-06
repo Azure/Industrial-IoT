@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
                         BrowsePath = new string[] { "EventBrowsePath "},
                         IndexRange = "SelectClauseIndexRange",
                         TypeDefinitionId = "SelectClauseTypeDefinitionId",
-                        DataSetFieldName = "SelectClauseDisplayName",
+                        DisplayName = "SelectClauseDisplayName",
                         DataSetClassFieldId = Guid.NewGuid()
                     }
                 }

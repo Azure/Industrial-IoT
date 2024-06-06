@@ -411,7 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     {
                         foreach (var item in evt.SelectedFields)
                         {
-                            CollectFieldMetaData(encoder, item.DataSetFieldName,
+                            CollectFieldMetaData(encoder, item.DisplayName,
                                 item.DataSetClassFieldId, item.MetaData, types,
                                 fields, ref minorVersion);
                         }

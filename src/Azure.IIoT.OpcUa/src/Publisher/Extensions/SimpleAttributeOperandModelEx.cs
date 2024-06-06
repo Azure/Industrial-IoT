@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (model.DataSetFieldName != other.DataSetFieldName)
+            if (model.DisplayName != other.DisplayName)
             {
                 return false;
             }

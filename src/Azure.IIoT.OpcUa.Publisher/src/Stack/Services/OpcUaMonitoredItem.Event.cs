@@ -332,9 +332,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var definedSelectClause = Template.EventFilter.SelectClauses?
                             .ElementAtOrDefault(eventFilter.SelectClauses.IndexOf(selectClause));
                         var fieldGuid = definedSelectClause?.DataSetClassFieldId;
-                        if (!string.IsNullOrEmpty(definedSelectClause?.DataSetFieldName))
+                        if (!string.IsNullOrEmpty(definedSelectClause?.DisplayName))
                         {
-                            fieldName = definedSelectClause.DataSetFieldName;
+                            fieldName = definedSelectClause.DisplayName;
                         }
                         else if (selectClause.BrowsePath != null && selectClause.BrowsePath.Count != 0)
                         {

@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         for (var i = 0; i < _event.SelectedFields.Count; i++)
                         {
                             var selectClause = _event.SelectedFields[i];
-                            var fieldName = selectClause.DataSetFieldName;
+                            var fieldName = selectClause.DisplayName;
                             if (fieldName == null)
                             {
                                 continue;
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return new SimpleAttributeOperandModel
                         {
                             DataSetClassFieldId = (Uuid)Guid.NewGuid(),
-                            DataSetFieldName = fieldName,
+                            DisplayName = fieldName,
                             MetaData = new PublishedMetaDataModel
                             {
                                 DataType = dataType ?? "i=" + (int)builtInType,
@@ -309,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     if (_event.SelectedFields
                         .Any(f => f.DataSetClassFieldId == Guid.Empty
-                            || string.IsNullOrEmpty(f.DataSetFieldName)))
+                            || string.IsNullOrEmpty(f.DisplayName)))
                     {
                         return true;
                     }
@@ -371,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 session.MessageContext, NamespaceFormat),
                             DataSetClassFieldId = Guid.NewGuid(), // Todo: Use constant here
                             IndexRange = null,
-                            DataSetFieldName = "ConditionId",
+                            DisplayName = "ConditionId",
                             AttributeId = NodeAttribute.NodeId
                         });
                     }
@@ -388,7 +388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             TypeDefinitionId = ObjectTypeIds.BaseEventType.AsString( // TODO: IS this correct?
                                 session.MessageContext, NamespaceFormat),
                             DataSetClassFieldId = Guid.NewGuid(),
-                            DataSetFieldName = browsePath.LastOrDefault() ?? string.Empty,
+                            DisplayName = browsePath.LastOrDefault() ?? string.Empty,
                             IndexRange = null,
                             AttributeId = NodeAttribute.Value,
                             BrowsePath = browsePath
@@ -432,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     foreach (var selectClause in selectClauses)
                     {
                         var fieldName = string.Empty;
-                        if (string.IsNullOrEmpty(selectClause.DataSetFieldName))
+                        if (string.IsNullOrEmpty(selectClause.DisplayName))
                         {
                             // TODO: Resolve names - Use FindNodeWithBrowsePathAsync()
 
@@ -458,9 +458,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             fieldName = "ConditionId";
                         }
-                        if (selectClause.DataSetFieldName != fieldName)
+                        if (selectClause.DisplayName != fieldName)
                         {
-                            selectClause.DataSetFieldName = fieldName;
+                            selectClause.DisplayName = fieldName;
                             MetaDataNeedsRefresh = true;
                         }
                     }

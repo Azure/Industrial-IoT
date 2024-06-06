@@ -46,9 +46,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Field name in the data set (Publisher extension)
         /// </summary>
-        [DataMember(Name = "dataSetFieldName", Order = 4,
+        [DataMember(Name = "displayName", Order = 4,
             EmitDefaultValue = false)]
-        public string? DataSetFieldName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// Optional data set class field id (Publisher extension)

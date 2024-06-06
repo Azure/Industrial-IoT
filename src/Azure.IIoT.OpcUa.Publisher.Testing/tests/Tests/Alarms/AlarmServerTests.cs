@@ -121,79 +121,79 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EventId.Value"
+                        DisplayName = "/EventId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EventType.Value"
+                        DisplayName = "/EventType.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceNode.Value"
+                        DisplayName = "/SourceNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceName.Value"
+                        DisplayName = "/SourceName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Time.Value"
+                        DisplayName = "/Time.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReceiveTime.Value"
+                        DisplayName = "/ReceiveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LocalTime.Value"
+                        DisplayName = "/LocalTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Message.Value"
+                        DisplayName = "/Message.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Severity.Value"
+                        DisplayName = "/Severity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassId.Value"
+                        DisplayName = "/ConditionClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassName.Value"
+                        DisplayName = "/ConditionClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassId.Value"
+                        DisplayName = "/ConditionSubClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassName.Value"
+                        DisplayName = "/ConditionSubClassName.Value"
                     }
                 }
             };
@@ -219,451 +219,451 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EventId.Value"
+                        DisplayName = "/EventId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EventType.Value"
+                        DisplayName = "/EventType.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceNode.Value"
+                        DisplayName = "/SourceNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceName.Value"
+                        DisplayName = "/SourceName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Time.Value"
+                        DisplayName = "/Time.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReceiveTime.Value"
+                        DisplayName = "/ReceiveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LocalTime.Value"
+                        DisplayName = "/LocalTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Message.Value"
+                        DisplayName = "/Message.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Severity.Value"
+                        DisplayName = "/Severity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassId.Value"
+                        DisplayName = "/ConditionClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassName.Value"
+                        DisplayName = "/ConditionClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassId.Value"
+                        DisplayName = "/ConditionSubClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassName.Value"
+                        DisplayName = "/ConditionSubClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionName.Value"
+                        DisplayName = "/ConditionName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/BranchId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/BranchId.Value"
+                        DisplayName = "/BranchId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Retain" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Retain.Value"
+                        DisplayName = "/Retain.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/SupportsFilteredRetain" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SupportsFilteredRetain.Value"
+                        DisplayName = "/SupportsFilteredRetain.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/EnabledState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState.Value"
+                        DisplayName = "/EnabledState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/EnabledState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/Id.Value"
+                        DisplayName = "/EnabledState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/EnabledState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/EffectiveDisplayName.Value"
+                        DisplayName = "/EnabledState/EffectiveDisplayName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/EnabledState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/TransitionTime.Value"
+                        DisplayName = "/EnabledState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/EnabledState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/EffectiveTransitionTime.Value"
+                        DisplayName = "/EnabledState/EffectiveTransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Quality" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Quality.Value"
+                        DisplayName = "/Quality.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Quality", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Quality/SourceTimestamp.Value"
+                        DisplayName = "/Quality/SourceTimestamp.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/LastSeverity" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LastSeverity.Value"
+                        DisplayName = "/LastSeverity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/LastSeverity", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LastSeverity/SourceTimestamp.Value"
+                        DisplayName = "/LastSeverity/SourceTimestamp.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Comment" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Comment.Value"
+                        DisplayName = "/Comment.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Comment", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Comment/SourceTimestamp.Value"
+                        DisplayName = "/Comment/SourceTimestamp.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AckedState.Value"
+                        DisplayName = "/AckedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AckedState/Id.Value"
+                        DisplayName = "/AckedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AckedState/TransitionTime.Value"
+                        DisplayName = "/AckedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConfirmedState.Value"
+                        DisplayName = "/ConfirmedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConfirmedState/Id.Value"
+                        DisplayName = "/ConfirmedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConfirmedState/TransitionTime.Value"
+                        DisplayName = "/ConfirmedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState.Value"
+                        DisplayName = "/ActiveState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/Id.Value"
+                        DisplayName = "/ActiveState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/EffectiveDisplayName.Value"
+                        DisplayName = "/ActiveState/EffectiveDisplayName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/TransitionTime.Value"
+                        DisplayName = "/ActiveState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/EffectiveTransitionTime.Value"
+                        DisplayName = "/ActiveState/EffectiveTransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/InputNode" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/InputNode.Value"
+                        DisplayName = "/InputNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedState.Value"
+                        DisplayName = "/SuppressedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedState/Id.Value"
+                        DisplayName = "/SuppressedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedState/TransitionTime.Value"
+                        DisplayName = "/SuppressedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OutOfServiceState.Value"
+                        DisplayName = "/OutOfServiceState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OutOfServiceState/Id.Value"
+                        DisplayName = "/OutOfServiceState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OutOfServiceState/TransitionTime.Value"
+                        DisplayName = "/OutOfServiceState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState.Value"
+                        DisplayName = "/ShelvingState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/CurrentState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/CurrentState.Value"
+                        DisplayName = "/ShelvingState/CurrentState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/CurrentState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/CurrentState/Id.Value"
+                        DisplayName = "/ShelvingState/CurrentState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/LastTransition" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/LastTransition.Value"
+                        DisplayName = "/ShelvingState/LastTransition.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/LastTransition/Id.Value"
+                        DisplayName = "/ShelvingState/LastTransition/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/LastTransition/TransitionTime.Value"
+                        DisplayName = "/ShelvingState/LastTransition/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/UnshelveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/UnshelveTime.Value"
+                        DisplayName = "/ShelvingState/UnshelveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/TimedShelve" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/TimedShelve.Value"
+                        DisplayName = "/ShelvingState/TimedShelve.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/TimedShelve", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/TimedShelve/InputArguments.Value"
+                        DisplayName = "/ShelvingState/TimedShelve/InputArguments.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/Unshelve" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/Unshelve.Value"
+                        DisplayName = "/ShelvingState/Unshelve.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/OneShotShelve" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/OneShotShelve.Value"
+                        DisplayName = "/ShelvingState/OneShotShelve.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedOrShelved" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedOrShelved.Value"
+                        DisplayName = "/SuppressedOrShelved.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/MaxTimeShelved" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/MaxTimeShelved.Value"
+                        DisplayName = "/MaxTimeShelved.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/AudibleEnabled" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AudibleEnabled.Value"
+                        DisplayName = "/AudibleEnabled.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/AudibleSound" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AudibleSound.Value"
+                        DisplayName = "/AudibleSound.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SilenceState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SilenceState.Value"
+                        DisplayName = "/SilenceState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SilenceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SilenceState/Id.Value"
+                        DisplayName = "/SilenceState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SilenceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SilenceState/TransitionTime.Value"
+                        DisplayName = "/SilenceState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OnDelay" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OnDelay.Value"
+                        DisplayName = "/OnDelay.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OffDelay" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OffDelay.Value"
+                        DisplayName = "/OffDelay.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/FirstInGroupFlag" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/FirstInGroupFlag.Value"
+                        DisplayName = "/FirstInGroupFlag.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/FirstInGroup" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/FirstInGroup.Value"
+                        DisplayName = "/FirstInGroup.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/LatchedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LatchedState.Value"
+                        DisplayName = "/LatchedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/LatchedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LatchedState/Id.Value"
+                        DisplayName = "/LatchedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/LatchedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LatchedState/TransitionTime.Value"
+                        DisplayName = "/LatchedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/%3cAlarmGroup%3e" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/<AlarmGroup>.Value"
+                        DisplayName = "/<AlarmGroup>.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ReAlarmTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReAlarmTime.Value"
+                        DisplayName = "/ReAlarmTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ReAlarmRepeatCount" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReAlarmRepeatCount.Value"
+                        DisplayName = "/ReAlarmRepeatCount.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=10637",
                         BrowsePath = new[] { "/NormalState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/NormalState.Value"
+                        DisplayName = "/NormalState.Value"
                     }
                 }
             };
@@ -696,19 +696,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Comment" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Comment.Value"
+                        DisplayName = "/Comment.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Severity.Value"
+                        DisplayName = "/Severity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceNode.Value"
+                        DisplayName = "/SourceNode.Value"
                     }
                 },
                 WhereClause = new ContentFilterModel
@@ -786,475 +786,475 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EventId.Value"
+                        DisplayName = "/EventId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/EventType" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EventType.Value"
+                        DisplayName = "/EventType.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceNode.Value"
+                        DisplayName = "/SourceNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/SourceName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SourceName.Value"
+                        DisplayName = "/SourceName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Time" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Time.Value"
+                        DisplayName = "/Time.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ReceiveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReceiveTime.Value"
+                        DisplayName = "/ReceiveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/LocalTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LocalTime.Value"
+                        DisplayName = "/LocalTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Message" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Message.Value"
+                        DisplayName = "/Message.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Severity.Value"
+                        DisplayName = "/Severity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassId.Value"
+                        DisplayName = "/ConditionClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassName.Value"
+                        DisplayName = "/ConditionClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassId.Value"
+                        DisplayName = "/ConditionSubClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2041",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassName.Value"
+                        DisplayName = "/ConditionSubClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassId.Value"
+                        DisplayName = "/ConditionClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionClassName.Value"
+                        DisplayName = "/ConditionClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionSubClassId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassId.Value"
+                        DisplayName = "/ConditionSubClassId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionSubClassName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionSubClassName.Value"
+                        DisplayName = "/ConditionSubClassName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/ConditionName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConditionName.Value"
+                        DisplayName = "/ConditionName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/BranchId" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/BranchId.Value"
+                        DisplayName = "/BranchId.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Retain" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Retain.Value"
+                        DisplayName = "/Retain.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/SupportsFilteredRetain" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SupportsFilteredRetain.Value"
+                        DisplayName = "/SupportsFilteredRetain.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/EnabledState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState.Value"
+                        DisplayName = "/EnabledState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/EnabledState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/Id.Value"
+                        DisplayName = "/EnabledState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/EnabledState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/EffectiveDisplayName.Value"
+                        DisplayName = "/EnabledState/EffectiveDisplayName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/EnabledState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/TransitionTime.Value"
+                        DisplayName = "/EnabledState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/EnabledState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/EnabledState/EffectiveTransitionTime.Value"
+                        DisplayName = "/EnabledState/EffectiveTransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Quality" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Quality.Value"
+                        DisplayName = "/Quality.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Quality", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Quality/SourceTimestamp.Value"
+                        DisplayName = "/Quality/SourceTimestamp.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/LastSeverity" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LastSeverity.Value"
+                        DisplayName = "/LastSeverity.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/LastSeverity", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LastSeverity/SourceTimestamp.Value"
+                        DisplayName = "/LastSeverity/SourceTimestamp.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Comment" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Comment.Value"
+                        DisplayName = "/Comment.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2782",
                         BrowsePath = new[] { "/Comment", "/SourceTimestamp" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/Comment/SourceTimestamp.Value"
+                        DisplayName = "/Comment/SourceTimestamp.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AckedState.Value"
+                        DisplayName = "/AckedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AckedState/Id.Value"
+                        DisplayName = "/AckedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/AckedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AckedState/TransitionTime.Value"
+                        DisplayName = "/AckedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConfirmedState.Value"
+                        DisplayName = "/ConfirmedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConfirmedState/Id.Value"
+                        DisplayName = "/ConfirmedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2881",
                         BrowsePath = new[] { "/ConfirmedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ConfirmedState/TransitionTime.Value"
+                        DisplayName = "/ConfirmedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState.Value"
+                        DisplayName = "/ActiveState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/Id.Value"
+                        DisplayName = "/ActiveState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/EffectiveDisplayName" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/EffectiveDisplayName.Value"
+                        DisplayName = "/ActiveState/EffectiveDisplayName.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/TransitionTime.Value"
+                        DisplayName = "/ActiveState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ActiveState", "/EffectiveTransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ActiveState/EffectiveTransitionTime.Value"
+                        DisplayName = "/ActiveState/EffectiveTransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/InputNode" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/InputNode.Value"
+                        DisplayName = "/InputNode.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedState.Value"
+                        DisplayName = "/SuppressedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedState/Id.Value"
+                        DisplayName = "/SuppressedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedState/TransitionTime.Value"
+                        DisplayName = "/SuppressedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OutOfServiceState.Value"
+                        DisplayName = "/OutOfServiceState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OutOfServiceState/Id.Value"
+                        DisplayName = "/OutOfServiceState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OutOfServiceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OutOfServiceState/TransitionTime.Value"
+                        DisplayName = "/OutOfServiceState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState.Value"
+                        DisplayName = "/ShelvingState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/CurrentState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/CurrentState.Value"
+                        DisplayName = "/ShelvingState/CurrentState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/CurrentState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/CurrentState/Id.Value"
+                        DisplayName = "/ShelvingState/CurrentState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/LastTransition" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/LastTransition.Value"
+                        DisplayName = "/ShelvingState/LastTransition.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/LastTransition/Id.Value"
+                        DisplayName = "/ShelvingState/LastTransition/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/LastTransition", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/LastTransition/TransitionTime.Value"
+                        DisplayName = "/ShelvingState/LastTransition/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/UnshelveTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/UnshelveTime.Value"
+                        DisplayName = "/ShelvingState/UnshelveTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/TimedShelve" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/TimedShelve.Value"
+                        DisplayName = "/ShelvingState/TimedShelve.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/TimedShelve", "/InputArguments" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/TimedShelve/InputArguments.Value"
+                        DisplayName = "/ShelvingState/TimedShelve/InputArguments.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/Unshelve" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/Unshelve.Value"
+                        DisplayName = "/ShelvingState/Unshelve.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ShelvingState", "/OneShotShelve" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ShelvingState/OneShotShelve.Value"
+                        DisplayName = "/ShelvingState/OneShotShelve.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SuppressedOrShelved" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SuppressedOrShelved.Value"
+                        DisplayName = "/SuppressedOrShelved.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/MaxTimeShelved" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/MaxTimeShelved.Value"
+                        DisplayName = "/MaxTimeShelved.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/AudibleEnabled" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AudibleEnabled.Value"
+                        DisplayName = "/AudibleEnabled.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/AudibleSound" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/AudibleSound.Value"
+                        DisplayName = "/AudibleSound.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SilenceState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SilenceState.Value"
+                        DisplayName = "/SilenceState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SilenceState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SilenceState/Id.Value"
+                        DisplayName = "/SilenceState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/SilenceState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/SilenceState/TransitionTime.Value"
+                        DisplayName = "/SilenceState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OnDelay" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OnDelay.Value"
+                        DisplayName = "/OnDelay.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/OffDelay" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/OffDelay.Value"
+                        DisplayName = "/OffDelay.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/FirstInGroupFlag" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/FirstInGroupFlag.Value"
+                        DisplayName = "/FirstInGroupFlag.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/FirstInGroup" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/FirstInGroup.Value"
+                        DisplayName = "/FirstInGroup.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/LatchedState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LatchedState.Value"
+                        DisplayName = "/LatchedState.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/LatchedState", "/Id" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LatchedState/Id.Value"
+                        DisplayName = "/LatchedState/Id.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/LatchedState", "/TransitionTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/LatchedState/TransitionTime.Value"
+                        DisplayName = "/LatchedState/TransitionTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/%3cAlarmGroup%3e" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/<AlarmGroup>.Value"
+                        DisplayName = "/<AlarmGroup>.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ReAlarmTime" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReAlarmTime.Value"
+                        DisplayName = "/ReAlarmTime.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=2915",
                         BrowsePath = new[] { "/ReAlarmRepeatCount" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/ReAlarmRepeatCount.Value"
+                        DisplayName = "/ReAlarmRepeatCount.Value"
                     },
                     new() {
                         TypeDefinitionId = "i=10637",
                         BrowsePath = new[] { "/NormalState" },
                         AttributeId = NodeAttribute.Value,
-                        DataSetFieldName = "/NormalState.Value"
+                        DisplayName = "/NormalState.Value"
                     }
                 },
                 WhereClause = new ContentFilterModel

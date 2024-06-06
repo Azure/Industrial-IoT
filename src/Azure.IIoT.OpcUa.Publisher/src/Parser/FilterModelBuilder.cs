@@ -241,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                     {
                         AttributeId = attribute,
                         BrowsePath = path,
-                        DataSetFieldName = displayName,
+                        DisplayName = displayName,
                         IndexRange = null, // TODO
                         TypeDefinitionId = type
                     };
@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                     {
                         AttributeId = NodeAttribute.Value,
                         BrowsePath = id.Value.BrowsePath,
-                        DataSetFieldName = "/" + id.Value.DisplayName.Trim('/')
+                        DisplayName = "/" + id.Value.DisplayName.Trim('/')
                             + ".Value",
                         TypeDefinitionId = id.Value.TypeDefinitionId
                     });
@@ -692,10 +692,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             // Check first if the id is an alias for a selector.
             if (_aliasForId.TryGetValue(pathId, out var operand) &&
                 operand.BrowsePath != null &&
-                operand.DataSetFieldName != null)
+                operand.DisplayName != null)
             {
                 typeDefinitionId = operand.TypeDefinitionId!;
-                displayName = operand.DataSetFieldName;
+                displayName = operand.DisplayName;
                 attribute = operand.AttributeId ?? NodeAttribute.Value;
                 alias = pathId;
                 return operand.BrowsePath;
@@ -949,7 +949,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             /// <inheritdoc/>
             public int GetHashCode([DisallowNull] SimpleAttributeOperandModel obj)
             {
-                return HashCode.Combine(obj.IndexRange, obj.AttributeId, obj.DataSetFieldName,
+                return HashCode.Combine(obj.IndexRange, obj.AttributeId, obj.DisplayName,
                     obj.DataSetClassFieldId, obj.TypeDefinitionId, obj.BrowsePath == null ? 0 :
                     new ImmutableRelativePath(obj.BrowsePath).GetHashCode());
             }

@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     {
                         foreach (var item in evt.SelectedFields)
                         {
-                            yield return (item.DataSetFieldName, item.MetaData);
+                            yield return (item.DisplayName, item.MetaData);
                         }
                     }
                 }
