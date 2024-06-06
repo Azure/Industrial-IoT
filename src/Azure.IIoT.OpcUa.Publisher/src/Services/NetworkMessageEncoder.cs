@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using Microsoft.Azure.Devices.Shared;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -270,8 +271,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                         dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                         dataSetMessage.MessageType = MessageType.KeepAlive;
-                                        dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
-                                            ?? kEmptyConfiguration;
+                                        dataSetMessage.MetaDataVersion = new ConfigurationVersionDataType
+                                        {
+                                            MajorVersion = Notification.MetaData?.DataSetMetaData.MajorVersion ?? 1,
+                                            MinorVersion = Notification.MetaData?.MinorVersion ?? 0
+                                        };
                                         dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                         dataSetMessage.Timestamp = GetTimestamp(Notification);
                                         dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
@@ -315,8 +319,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                             dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
                                             dataSetMessage.MessageType = Notification.MessageType;
-                                            dataSetMessage.MetaDataVersion = Notification.MetaData?.ConfigurationVersion
-                                                ?? kEmptyConfiguration;
+                                            dataSetMessage.MetaDataVersion = new ConfigurationVersionDataType
+                                            {
+                                                MajorVersion = Notification.MetaData?.DataSetMetaData.MajorVersion ?? 1,
+                                                MinorVersion = Notification.MetaData?.MinorVersion ?? 0
+                                            };
                                             dataSetMessage.DataSetMessageContentMask = dataSetMessageContentMask;
                                             dataSetMessage.Timestamp = GetTimestamp(Notification);
                                             dataSetMessage.SequenceNumber = Context.NextWriterSequenceNumber();
@@ -440,13 +447,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             UseAdvancedEncoding = !standardsCompliant,
                                             UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
                                             DataSetWriterId = Notification.SubscriptionId,
-                                            MetaData = Notification.MetaData,
+                                            MetaData = Notification.MetaData?.ToStackModel(Notification.ServiceMessageContext),
                                             MessageId = Guid.NewGuid().ToString(),
                                             DataSetWriterName = GetDataSetWriterName(Notification, Context)
                                         } : new UadpMetaDataMessage
                                         {
                                             DataSetWriterId = Notification.SubscriptionId,
-                                            MetaData = Notification.MetaData
+                                            MetaData = Notification.MetaData?.ToStackModel(Notification.ServiceMessageContext)
                                         };
                                     metadataMessage.PublisherId = publisherId;
                                     metadataMessage.DataSetWriterGroup = writerGroup.Name ?? Constants.DefaultWriterGroupName;
@@ -660,7 +667,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 "the number of notifications in a message using configuration.");
         }
 
-        private static readonly ConfigurationVersionDataType kEmptyConfiguration = new() { MajorVersion = 1u };
         private uint _sequenceNumber; // TODO: Use writer group context
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;

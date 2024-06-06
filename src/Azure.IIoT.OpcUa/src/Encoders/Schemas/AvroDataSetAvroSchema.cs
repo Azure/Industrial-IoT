@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -48,28 +47,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        public AvroDataSetAvroSchema(string? name, PublishedDataSetModel dataSet,
+        public AvroDataSetAvroSchema(string? name, PublishedDataSetMetaDataModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             SchemaOptions? options = null, HashSet<string>? uniqueNames = null)
             : base(dataSetFieldContentMask, new AvroBuiltInAvroSchemas(), options)
         {
             Schema = Compile(name, dataSet, uniqueNames) ?? AvroSchema.Null;
-        }
-
-        /// <summary>
-        /// Get avro schema for a dataset encoded in avro
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="options"></param>
-        /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        public AvroDataSetAvroSchema(DataSetWriterModel dataSetWriter,
-            SchemaOptions? options = null, HashSet<string>? uniqueNames = null) :
-            this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
-                    ?? throw new ArgumentException("Missing data set in writer"),
-                dataSetWriter.DataSetFieldContentMask, options, uniqueNames)
-        {
         }
 
         /// <inheritdoc/>
@@ -80,15 +63,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override IEnumerable<Schema> GetDataSetFieldSchemas(string? name,
-            PublishedDataSetModel dataSet, HashSet<string>? uniqueNames)
+            PublishedDataSetMetaDataModel dataSet, HashSet<string>? uniqueNames)
         {
-            var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
+            var singleValue = dataSet.Fields.Count == 1;
             GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
                 singleValue);
             if (omitFieldName)
             {
                 var set = new HashSet<Schema>();
-                foreach (var (_, fieldMetadata) in dataSet.EnumerateMetaData())
+                foreach (var fieldMetadata in dataSet.Fields)
                 {
                     if (fieldMetadata?.DataType != null)
                     {
@@ -106,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
             var fields = new List<Field>();
             var pos = 0;
-            foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
+            foreach (var fieldMetadata in dataSet.Fields)
             {
                 // Now collect the fields of the payload
                 pos++;
@@ -115,18 +98,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     var schema = LookupSchema(fieldMetadata.DataType,
                         SchemaUtils.GetRank(fieldMetadata.ValueRank),
                         fieldMetadata.ArrayDimensions);
-                    if (fieldName != null)
+                    if (fieldMetadata.Name != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(ns, fieldsAreDataValues,
                             schema, (Opc.Ua.BuiltInType)fieldMetadata.BuiltInType);
 
-                        fields.Add(new Field(schema, SchemaUtils.Escape(fieldName), pos));
+                        fields.Add(new Field(schema, SchemaUtils.Escape(fieldMetadata.Name), pos));
                     }
                 }
             }
             // Type name of the message record
-            name ??= dataSet.Name;
+            name ??= dataSet.DataSetMetaData.Name;
             if (string.IsNullOrEmpty(name))
             {
                 // Type name of the message record

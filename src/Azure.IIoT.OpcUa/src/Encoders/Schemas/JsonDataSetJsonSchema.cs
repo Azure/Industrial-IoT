@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="def"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public JsonDataSetJsonSchema(string? name, PublishedDataSetModel dataSet,
+        public JsonDataSetJsonSchema(string? name, PublishedDataSetMetaDataModel dataSet,
             DataSetFieldContentMask? dataSetFieldContentMask = null,
             SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null,
             HashSet<string>? uniqueNames = null)
@@ -79,23 +79,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             Ref = Compile(name, dataSet, uniqueNames);
         }
 
-        /// <summary>
-        /// Get json schema for a dataset
-        /// </summary>
-        /// <param name="dataSetWriter"></param>
-        /// <param name="options"></param>
-        /// <param name="def"></param>
-        /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        public JsonDataSetJsonSchema(DataSetWriterModel dataSetWriter,
-            SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null,
-            HashSet<string>? uniqueNames = null) :
-            this(dataSetWriter.DataSetWriterName, dataSetWriter.DataSet
-                    ?? throw new ArgumentException("Missing data set in writer"),
-                dataSetWriter.DataSetFieldContentMask, options, def, uniqueNames)
-        {
-        }
-
         /// <inheritdoc/>
         public override string? ToString()
         {
@@ -104,15 +87,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override IEnumerable<JsonSchema> GetDataSetFieldSchemas(string? name,
-            PublishedDataSetModel dataSet, HashSet<string>? uniqueNames)
+            PublishedDataSetMetaDataModel dataSet, HashSet<string>? uniqueNames)
         {
-            var singleValue = dataSet.EnumerateMetaData().Take(2).Count() != 1;
+            var singleValue = dataSet.Fields.Count == 1;
             GetEncodingMode(out var omitFieldName, out var fieldsAreDataValues,
                 singleValue);
             if (omitFieldName)
             {
                 var set = new HashSet<JsonSchema>();
-                foreach (var (_, fieldMetadata) in dataSet.EnumerateMetaData())
+                foreach (var fieldMetadata in dataSet.Fields)
                 {
                     if (fieldMetadata?.DataType != null)
                     {
@@ -128,25 +111,25 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var ns = _options.GetNamespaceUri();
             var properties = new Dictionary<string, JsonSchema>();
             var required = new List<string>();
-            foreach (var (fieldName, fieldMetadata) in dataSet.EnumerateMetaData())
+            foreach (var fieldMetadata in dataSet.Fields)
             {
                 if (fieldMetadata?.DataType != null)
                 {
                     var schema = LookupSchema(fieldMetadata.DataType,
                         SchemaUtils.GetRank(fieldMetadata.ValueRank),
                         fieldMetadata.ArrayDimensions);
-                    if (fieldName != null)
+                    if (fieldMetadata.Name != null)
                     {
                         // TODO: Add properties to the field type
                         schema = Encoding.GetSchemaForDataSetField(ns, fieldsAreDataValues,
                             schema, (Opc.Ua.BuiltInType)fieldMetadata.BuiltInType);
 
                         schema.Description = fieldMetadata.Description;
-                        properties.Add(fieldName, schema);
+                        properties.Add(fieldMetadata.Name, schema);
                     }
                 }
             }
-            var type = MakeUnique(name ?? dataSet.Name ?? "DataSet", uniqueNames);
+            var type = MakeUnique(name ?? dataSet.DataSetMetaData.Name ?? "DataSet", uniqueNames);
             return Definitions.Reference(_options.GetSchemaId(type), id => new JsonSchema
             {
                 Id = id,

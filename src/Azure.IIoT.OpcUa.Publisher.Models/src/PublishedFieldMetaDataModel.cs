@@ -5,22 +5,30 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Metadata containing the schema definitions for
-    /// an item produced by the dataset writer
+    /// Metadata containing the field schema definitions for
+    /// items produced by the dataset writer
     /// </summary>
     [DataContract]
-    public record class PublishedMetaDataModel
+    public record class PublishedFieldMetaDataModel
     {
         /// <summary>
-        /// Minor version
+        /// Name of the field
         /// </summary>
-        [DataMember(Name = "minorVersion", Order = 1,
+        [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
-        public uint MinorVersion { get; init; }
+        public required string Name { get; init; }
+
+        /// <summary>
+        /// Field id
+        /// </summary>
+        [DataMember(Name = "id", Order = 1,
+            EmitDefaultValue = false)]
+        public Guid Id { get; init; }
 
         /// <summary>
         /// Description
@@ -77,26 +85,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "properties", Order = 10,
             EmitDefaultValue = false)]
         public IReadOnlyList<ExtensionFieldModel>? Properties { get; init; }
-
-        /// <summary>
-        /// Structure schema definitions
-        /// </summary>
-        [DataMember(Name = "StructureDataTypes", Order = 11,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<StructureDescriptionModel>? StructureDataTypes { get; set; }
-
-        /// <summary>
-        /// Enum schema definitions
-        /// </summary>
-        [DataMember(Name = "enumDataTypes", Order = 12,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<EnumDescriptionModel>? EnumDataTypes { get; set; }
-
-        /// <summary>
-        /// Simple type schema definitions
-        /// </summary>
-        [DataMember(Name = "simpleDataTypes", Order = 13,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<SimpleTypeDescriptionModel>? SimpleDataTypes { get; set; }
     }
 }

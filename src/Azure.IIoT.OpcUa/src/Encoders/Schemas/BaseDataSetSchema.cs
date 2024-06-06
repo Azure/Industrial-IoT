@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="dataSet"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        protected T? Compile(string? name, PublishedDataSetModel dataSet,
+        protected T? Compile(string? name, PublishedDataSetMetaDataModel dataSet,
             HashSet<string>? uniqueNames)
         {
             // Collect types
@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
         protected abstract IEnumerable<T> GetDataSetFieldSchemas(string? name,
-            PublishedDataSetModel dataSet, HashSet<string>? uniqueNames);
+            PublishedDataSetMetaDataModel dataSet, HashSet<string>? uniqueNames);
 
         /// <summary>
         /// Create record schema for the structure
@@ -125,41 +125,35 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Collect types from data set
         /// </summary>
         /// <param name="dataSet"></param>
-        private void CollectTypes(PublishedDataSetModel dataSet)
+        private void CollectTypes(PublishedDataSetMetaDataModel dataSet)
         {
-            foreach (var (_, fieldMetadata) in dataSet!
-                .EnumerateMetaData()
-                .Where(m => m.MetaData != null))
+            if (dataSet.StructureDataTypes != null)
             {
-                Debug.Assert(fieldMetadata != null);
-                if (fieldMetadata.StructureDataTypes != null)
+                foreach (var t in dataSet.StructureDataTypes)
                 {
-                    foreach (var t in fieldMetadata.StructureDataTypes)
+                    if (!_types.ContainsKey(t.DataTypeId))
                     {
-                        if (!_types.ContainsKey(t.DataTypeId))
-                        {
-                            _types.Add(t.DataTypeId, new StructureType(t));
-                        }
+                        _types.Add(t.DataTypeId, new StructureType(t));
                     }
                 }
-                if (fieldMetadata.SimpleDataTypes != null)
+            }
+            if (dataSet.SimpleDataTypes != null)
+            {
+                foreach (var t in dataSet.SimpleDataTypes)
                 {
-                    foreach (var t in fieldMetadata.SimpleDataTypes)
+                    if (!_types.ContainsKey(t.DataTypeId))
                     {
-                        if (!_types.ContainsKey(t.DataTypeId))
-                        {
-                            _types.Add(t.DataTypeId, new SimpleType(t));
-                        }
+                        _types.Add(t.DataTypeId, new SimpleType(t));
                     }
                 }
-                if (fieldMetadata.EnumDataTypes != null)
+            }
+            if (dataSet.EnumDataTypes != null)
+            {
+                foreach (var t in dataSet.EnumDataTypes)
                 {
-                    foreach (var t in fieldMetadata.EnumDataTypes)
+                    if (!_types.ContainsKey(t.DataTypeId))
                     {
-                        if (!_types.ContainsKey(t.DataTypeId))
-                        {
-                            _types.Add(t.DataTypeId, new EnumType(t));
-                        }
+                        _types.Add(t.DataTypeId, new EnumType(t));
                     }
                 }
             }

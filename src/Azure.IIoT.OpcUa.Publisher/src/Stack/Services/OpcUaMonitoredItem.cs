@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Opc.Ua.Extensions;
+    using System.Linq;
 
     /// <summary>
     /// Update display name
@@ -240,8 +242,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="dataTypes"></param>
         /// <param name="ct"></param>
         public abstract ValueTask GetMetaDataAsync(IOpcUaSession session,
-            ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-            NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct);
+            ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
+            NodeIdDictionary<object> dataTypes, CancellationToken ct);
 
         /// <summary>
         /// Dispose
@@ -578,8 +580,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="fieldName"></param>
         /// <param name="dataSetClassFieldId"></param>
         /// <param name="ct"></param>
-        protected async ValueTask AddVariableFieldAsync(FieldMetaDataCollection fields,
-            NodeIdDictionary<DataTypeDescription> dataTypes, IOpcUaSession session,
+        protected async ValueTask AddVariableFieldAsync(List<PublishedFieldMetaDataModel> fields,
+            NodeIdDictionary<object> dataTypes, IOpcUaSession session,
             ComplexTypeSystem? typeSystem, VariableNode variable,
             string fieldName, Uuid dataSetClassFieldId, CancellationToken ct)
         {
@@ -594,15 +596,16 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _logger.LogInformation("{Item}: Failed to get built in type for type {DataType}" +
                     " with message: {Message}", this, variable.DataType, ex.Message);
             }
-            fields.Add(new FieldMetaData
+            fields.Add(new PublishedFieldMetaDataModel
             {
+                Flags = 0, // Set to 1 << 1 for PromotedField fields.
                 Name = fieldName,
-                DataSetFieldId = dataSetClassFieldId,
-                FieldFlags = 0, // Set to 1 << 1 for PromotedField fields.
-                DataType = variable.DataType,
+                Id = dataSetClassFieldId,
+                DataType = variable.DataType.AsString(session.MessageContext,
+                    NamespaceFormat.Expanded),
                 ArrayDimensions = variable.ArrayDimensions?.Count > 0
                     ? variable.ArrayDimensions : null,
-                Description = variable.Description,
+                Description = variable.Description?.Text,
                 ValueRank = variable.ValueRank,
                 MaxStringLength = 0,
                 // If the Property is EngineeringUnits, the unit of the Field Value
@@ -622,7 +625,8 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// <param name="session"></param>
         /// <param name="typeSystem"></param>
         /// <param name="ct"></param>
-        protected async ValueTask AddDataTypesAsync(NodeIdDictionary<DataTypeDescription> dataTypes,
+        /// <exception cref="ServiceResultException"></exception>
+        private async ValueTask AddDataTypesAsync(NodeIdDictionary<object> dataTypes,
             NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem,
             CancellationToken ct)
         {
@@ -631,85 +635,186 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 return;
             }
 
-            var baseType = dataTypeId;
-            while (!Opc.Ua.NodeId.IsNull(baseType))
+            var typesToResolve = new Queue<NodeId>();
+            typesToResolve.Enqueue(dataTypeId);
+            while (typesToResolve.Count > 0)
             {
-                try
+                var baseType = typesToResolve.Dequeue();
+                while (!Opc.Ua.NodeId.IsNull(baseType))
                 {
-                    var dataType = await session.NodeCache.FetchNodeAsync(baseType, ct).ConfigureAwait(false);
-                    if (dataType == null)
+                    try
                     {
-                        _logger.LogWarning("{Item}: Failed to find node for data type {BaseType}!",
-                            this, baseType);
-                        break;
-                    }
+                        var dataType = await session.NodeCache.FetchNodeAsync(baseType,
+                            ct).ConfigureAwait(false);
+                        if (dataType == null)
+                        {
+                            _logger.LogError(
+                                "{Item}: Failed to find node for data type {BaseType}!",
+                                this, baseType);
+                            break;
+                        }
 
-                    dataTypeId = dataType.NodeId;
-                    Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
-                    if (IsBuiltInType(dataTypeId))
-                    {
-                        // Do not add builtin types
-                        break;
-                    }
+                        dataTypeId = dataType.NodeId;
+                        Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
+                        if (IsBuiltInType(dataTypeId))
+                        {
+                            // Do not add builtin types - we are done here now
+                            break;
+                        }
 
-                    var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId, session.TypeTree,
-                        ct).ConfigureAwait(false);
-                    baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId, ct).ConfigureAwait(false);
+                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                            session.TypeTree, ct).ConfigureAwait(false);
+                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
+                            ct).ConfigureAwait(false);
 
-                    switch (builtInType)
-                    {
-                        case BuiltInType.Enumeration:
-                        case BuiltInType.ExtensionObject:
-                            var types = typeSystem?.GetDataTypeDefinitionsForDataType(
-                                dataType.NodeId);
-                            if (types == null || types.Count == 0)
-                            {
-                                dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(dataType, builtInType));
-                                break;
-                            }
-                            foreach (var type in types)
-                            {
-                                if (!dataTypes.ContainsKey(type.Key))
+                        var browseName = dataType.BrowseName
+                            .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                        var typeName = dataType.NodeId
+                            .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                        if (typeName == null)
+                        {
+                            // No type name - that should not happen
+                            throw new ServiceResultException(StatusCodes.BadDataTypeIdUnknown,
+                                $"Failed to get metadata type name for {dataType.NodeId}.");
+                        }
+                        switch (builtInType)
+                        {
+                            case BuiltInType.Enumeration:
+                            case BuiltInType.ExtensionObject:
+                                var types = typeSystem?.GetDataTypeDefinitionsForDataType(
+                                    dataType.NodeId);
+                                if (types == null || types.Count == 0)
                                 {
-                                    var description = type.Value switch
+                                    var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
+                                            ct).ConfigureAwait(false);
+                                    if (dtNode is DataTypeNode v &&
+                                        v.DataTypeDefinition.Body is DataTypeDefinition t)
                                     {
-                                        StructureDefinition s =>
-                                            new StructureDescription
-                                            {
-                                                DataTypeId = type.Key,
-                                                Name = dataType.BrowseName,
-                                                StructureDefinition = s
-                                            },
-                                        EnumDefinition e =>
-                                            new EnumDescription
-                                            {
-                                                DataTypeId = type.Key,
-                                                Name = dataType.BrowseName,
-                                                EnumDefinition = e
-                                            },
-                                        _ => GetDefault(dataType, builtInType),
-                                    };
-                                    dataTypes.AddOrUpdate(type.Key, description);
+                                        types ??= new NodeIdDictionary<DataTypeDefinition>();
+                                        types.Add(dataTypeId, t);
+                                    }
+                                    else
+                                    {
+                                        dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
+                                            dataType, builtInType, session.MessageContext));
+                                        break;
+                                    }
                                 }
-                            }
-                            break;
-                        default:
-                            dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescription
-                            {
-                                DataTypeId = dataTypeId,
-                                Name = dataType.BrowseName,
-                                BaseDataType = baseType,
-                                BuiltInType = (byte)builtInType
-                            });
-                            break;
+                                foreach (var type in types)
+                                {
+                                    if (!dataTypes.ContainsKey(type.Key))
+                                    {
+                                        var description = type.Value switch
+                                        {
+                                            StructureDefinition s =>
+                                                new StructureDescriptionModel
+                                                {
+                                                    DataTypeId = typeName,
+                                                    Name = browseName,
+                                                    BaseDataType = s.BaseDataType.AsString(
+                                                        session.MessageContext, NamespaceFormat.Expanded),
+                                                    DefaultEncodingId = s.DefaultEncodingId.AsString(
+                                                        session.MessageContext, NamespaceFormat.Expanded),
+                                                    StructureType = s.StructureType.ToServiceType(),
+                                                    Fields = GetFields(s.Fields, typesToResolve,
+                                                        session.MessageContext, NamespaceFormat.Expanded)
+                                                        .ToList()
+                                                },
+                                            EnumDefinition e =>
+                                                new EnumDescriptionModel
+                                                {
+                                                    DataTypeId = typeName,
+                                                    Name = browseName,
+                                                    BuiltInType = null,
+                                                    IsOptionSet = e.IsOptionSet,
+                                                    Fields = e.Fields
+                                                        .Select(f => new EnumFieldDescriptionModel
+                                                        {
+                                                            Value = f.Value,
+                                                            DisplayName = f.DisplayName?.Text,
+                                                            Name = f.Name,
+                                                            Description = f.Description?.Text
+                                                        })
+                                                        .ToList()
+                                                },
+                                            _ => GetDefault(dataType, builtInType, session.MessageContext),
+                                        };
+                                        dataTypes.AddOrUpdate(type.Key, description);
+                                    }
+                                }
+                                break;
+                            default:
+                                var baseName = baseType
+                                    .AsString(session.MessageContext, NamespaceFormat.Expanded);
+                                dataTypes.AddOrUpdate(dataTypeId, new SimpleTypeDescriptionModel
+                                {
+                                    DataTypeId = typeName,
+                                    Name = browseName,
+                                    BaseDataType = baseName,
+                                    BuiltInType = (byte)builtInType
+                                });
+                                break;
+                        }
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogInformation("{Item}: Failed to get meta data for type " +
+                            "{DataType} (base: {BaseType}) with message: {Message}", this,
+                            dataTypeId, baseType, ex.Message);
+                        break;
                     }
                 }
-                catch (Exception ex) when (ex is not OperationCanceledException)
+
+                object GetDefault(Node dataType, BuiltInType builtInType, IServiceMessageContext context)
                 {
-                    _logger.LogInformation("{Item}: Failed to get meta data for type {DataType}" +
-                        " (base: {BaseType}) with message: {Message}", this, dataTypeId,
-                        baseType, ex.Message);
-                    break;
+                    _logger.LogError("{Item}: Could not find a valid type definition for {Type} " +
+                        "({BuiltInType}). Adding a default placeholder with no fields instead.",
+                        this, dataType, builtInType);
+                    var name = dataType.BrowseName.AsString(context, NamespaceFormat.Expanded);
+                    var dataTypeId = dataType.NodeId.AsString(context, NamespaceFormat.Expanded);
+                    return dataTypeId == null
+                        ? throw new ServiceResultException(StatusCodes.BadConfigurationError)
+                        : builtInType == BuiltInType.Enumeration
+                        ? new EnumDescriptionModel
+                        {
+                            Fields = new List<EnumFieldDescriptionModel>(),
+                            DataTypeId = dataTypeId,
+                            Name = name
+                        }
+                        : new StructureDescriptionModel
+                        {
+                            Fields = new List<StructureFieldDescriptionModel>(),
+                            DataTypeId = dataTypeId,
+                            Name = name
+                        };
+                }
+
+                static IEnumerable<StructureFieldDescriptionModel> GetFields(
+                    StructureFieldCollection? fields, Queue<NodeId> typesToResolve,
+                    IServiceMessageContext context, NamespaceFormat namespaceFormat)
+                {
+                    if (fields == null)
+                    {
+                        yield break;
+                    }
+                    foreach (var f in fields)
+                    {
+                        if (!IsBuiltInType(f.DataType))
+                        {
+                            typesToResolve.Enqueue(f.DataType);
+                        }
+                        yield return new StructureFieldDescriptionModel
+                        {
+                            IsOptional = f.IsOptional,
+                            MaxStringLength = f.MaxStringLength,
+                            ValueRank = f.ValueRank,
+                            ArrayDimensions = f.ArrayDimensions,
+                            DataType = f.DataType.AsString(context, namespaceFormat)
+                                ?? string.Empty,
+                            Name = f.Name,
+                            Description = f.Description?.Text
+                        };
+                    }
                 }
             }
 
@@ -724,19 +829,6 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     }
                 }
                 return false;
-            }
-            static DataTypeDescription GetDefault(Node dataType, BuiltInType builtInType)
-            {
-                return builtInType == BuiltInType.Enumeration
-                    ? new EnumDescription
-                    {
-                        DataTypeId = dataType.NodeId,
-                        Name = dataType.BrowseName
-                    } : new StructureDescription
-                    {
-                        DataTypeId = dataType.NodeId,
-                        Name = dataType.BrowseName
-                    };
             }
         }
 

@@ -195,8 +195,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override async ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
+                ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
+                NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
                 var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))

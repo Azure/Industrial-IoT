@@ -177,8 +177,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override async ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
+                ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
+                NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
                 if (Filter is not EventFilter eventFilter)
                 {
@@ -196,20 +196,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             continue;
                         }
                         var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
-                        var targetNode = await FindNodeWithBrowsePathAsync(session, selectClause.BrowsePath,
-                            selectClause.TypeDefinitionId, ct).ConfigureAwait(false);
+                        var targetNode = await FindNodeWithBrowsePathAsync(session,
+                            selectClause.BrowsePath, selectClause.TypeDefinitionId,
+                            ct).ConfigureAwait(false);
                         if (targetNode is VariableNode variable)
                         {
-                            await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
-                                fieldName, dataSetClassFieldId, ct).ConfigureAwait(false);
+                            await AddVariableFieldAsync(fields, dataTypes, session,
+                                typeSystem, variable, fieldName, dataSetClassFieldId,
+                                ct).ConfigureAwait(false);
                         }
                         else
                         {
-                            fields.Add(new FieldMetaData
-                            {
-                                Name = fieldName,
-                                DataSetFieldId = dataSetClassFieldId
-                            });
+                            // Should this happen?
+                            await AddVariableFieldAsync(fields, dataTypes, session,
+                                typeSystem, new VariableNode
+                                {
+                                    DataType = (int)BuiltInType.Variant
+                                }, fieldName, dataSetClassFieldId,
+                                ct).ConfigureAwait(false);
                         }
                     }
                 }
@@ -471,7 +475,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
                     && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType))
                 {
-                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
+                    var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType,
+                        BrowseNames.EventType);
                     eventFilter.SelectClauses.Add(selectClause);
                     selectClauses.Add(selectClause);
                 }
@@ -511,7 +516,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 foreach (var node in nodes)
                 {
-                    await ParseFieldsAsync(session, fieldNames, node, string.Empty, ct).ConfigureAwait(false);
+                    await ParseFieldsAsync(session, fieldNames, node, string.Empty,
+                        ct).ConfigureAwait(false);
                 }
                 fieldNames = fieldNames
                     .Distinct()

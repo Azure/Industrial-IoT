@@ -75,15 +75,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-            if (obj is not JsonMetaDataMessage wrapper)
+            if (!base.Equals(obj))
             {
                 return false;
             }
-            if (!base.Equals(obj))
+            if (obj is not JsonMetaDataMessage wrapper)
             {
                 return false;
             }

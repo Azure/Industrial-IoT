@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Opc.Ua;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Resolve metadata during encoding and decoding
@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="majorVersion"></param>
         /// <param name="minorVersion"></param>
         /// <returns></returns>
-        DataSetMetaDataType Find(ushort writerId,
+        PublishedDataSetMetaDataModel Find(ushort writerId,
             uint majorVersion = 0, uint minorVersion = 0);
     }
 }

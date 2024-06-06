@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
@@ -44,12 +45,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             UadpDataSetMessageContentMask.Timestamp |
             UadpDataSetMessageContentMask.Status;
 
-        public const DataSetFieldContentMask DataSetFieldContentMaskDefault =
-            DataSetFieldContentMask.SourceTimestamp |
-            DataSetFieldContentMask.ServerTimestamp |
-            DataSetFieldContentMask.SourcePicoSeconds |
-            DataSetFieldContentMask.ServerPicoSeconds |
-            DataSetFieldContentMask.StatusCode;
+        public const Opc.Ua.DataSetFieldContentMask DataSetFieldContentMaskDefault =
+            Opc.Ua.DataSetFieldContentMask.SourceTimestamp |
+            Opc.Ua.DataSetFieldContentMask.ServerTimestamp |
+            Opc.Ua.DataSetFieldContentMask.SourcePicoSeconds |
+            Opc.Ua.DataSetFieldContentMask.ServerPicoSeconds |
+            Opc.Ua.DataSetFieldContentMask.StatusCode;
 
         [Theory]
         [InlineData(MessageType.KeyFrame, 1)]
@@ -301,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData))
+                    dataSetFieldContentMask: Opc.Ua.DataSetFieldContentMask.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(NetworkMessageContentMaskDefault
                 & ~(UadpNetworkMessageContentMask.GroupHeader | UadpNetworkMessageContentMask.PayloadHeader), messages);
@@ -347,8 +348,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     expectedPayload[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload, (uint)(
-                    DataSetFieldContentMask.StatusCode |
-                    DataSetFieldContentMask.SourceTimestamp));
+                    Opc.Ua.DataSetFieldContentMask.StatusCode |
+                    Opc.Ua.DataSetFieldContentMask.SourceTimestamp));
             }
         }
 
@@ -383,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="dataSetFieldContentMask"></param>
         private static UadpDataSetMessage CreateDataSetMessage(MessageType type, int sequenceNumber,
             UadpDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
-            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+            Opc.Ua.DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new UadpDataSetMessage
             {
@@ -399,17 +400,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             };
         }
 
-        public DataSetMetaDataType Find(ushort writerId, uint majorVersion = 0, uint minorVersion = 0)
+        public PublishedDataSetMetaDataModel Find(ushort writerId, uint majorVersion = 0, uint minorVersion = 0)
         {
             // Return independent on whether we receive valid writer id or major minor versions
             // In raw mode without payload headers there is no way to decode key frames without
             // preconfigured writer id and versioning, so we assume we have it by some means
-            return new DataSetMetaDataType
+            return new PublishedDataSetMetaDataModel
             {
-                Fields = new FieldMetaDataCollection {
-                    new FieldMetaData { Name = "1", BuiltInType = (byte)BuiltInType.Int32, ValueRank = ValueRanks.Scalar },
-                    new FieldMetaData { Name = "2", BuiltInType = (byte)BuiltInType.Float, ValueRank = ValueRanks.Scalar },
-                    new FieldMetaData { Name = "3", BuiltInType = (byte)BuiltInType.String, ValueRank = ValueRanks.Scalar }
+                DataSetMetaData = new DataSetMetaDataModel(),
+                Fields = new [] {
+                    new PublishedFieldMetaDataModel { Name = "1", BuiltInType = (byte)BuiltInType.Int32, ValueRank = ValueRanks.Scalar },
+                    new PublishedFieldMetaDataModel { Name = "2", BuiltInType = (byte)BuiltInType.Float, ValueRank = ValueRanks.Scalar },
+                    new PublishedFieldMetaDataModel { Name = "3", BuiltInType = (byte)BuiltInType.String, ValueRank = ValueRanks.Scalar }
                 }
             };
         }
@@ -420,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="deltaFrame"></param>
         /// <param name="dataSetFieldContentMask"></param>
         private static DataSet CreateDataSet(bool deltaFrame,
-            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+            Opc.Ua.DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return !deltaFrame ? new DataSet(new Dictionary<string, DataValue> {
                 { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
