@@ -26,6 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         Mqtt,
 
         /// <summary>
+        /// Azure Event Hub
+        /// </summary>
+        [EnumMember(Value = "EventHub")]
+        EventHub,
+
+        /// <summary>
         /// Dapr
         /// </summary>
         [EnumMember(Value = "Dapr")]
