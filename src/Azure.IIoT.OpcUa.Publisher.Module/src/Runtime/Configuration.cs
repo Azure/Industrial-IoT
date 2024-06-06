@@ -645,6 +645,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string HttpPortKey = "HttpPort";
             public const string GrpcPortKey = "GrpcPort";
             public const string SchemeKey = "Scheme";
+            public const string HostKey = "Host";
             public const string DaprConnectionStringKey = "DaprConnectionString";
 
             /// <inheritdoc/>
@@ -673,17 +674,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         scheme = "http";
                     }
 
+                    // Select the host, default to localhost
+                    if (!properties.TryGetValue(HostKey, out var host))
+                    {
+                        host = "localhost";
+                    }
+
                     // Permit the port to be set if provided, otherwise use defaults.
                     if (properties.TryGetValue(GrpcPortKey, out var value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                     {
-                        options.GrpcEndpoint = scheme + "://localhost:" + port;
+                        options.GrpcEndpoint = scheme + "://" + host + ":" + port;
                     }
 
                     if (properties.TryGetValue(HttpPortKey, out value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out port))
                     {
-                        options.HttpEndpoint = scheme + "://localhost:" + port;
+                        options.HttpEndpoint = scheme + "://" + host + ":" + port;
                     }
                 }
                 else
