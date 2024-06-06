@@ -74,23 +74,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         }
 
         /// <summary>
-        /// Convert to endpoint description
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="endpointUrl"></param>
-        /// <returns></returns>
-        public static EndpointDescription ToEndpointDescription(this EndpointModel endpoint,
-            string? endpointUrl = null)
-        {
-            return new EndpointDescription
-            {
-                EndpointUrl = endpointUrl ?? endpoint.Url,
-                SecurityPolicyUri = endpoint.SecurityPolicy,
-                SecurityMode = (endpoint.SecurityMode ?? SecurityMode.Best).ToStackType()
-            };
-        }
-
-        /// <summary>
         /// Convert diagnostics to request header
         /// </summary>
         /// <param name="model"></param>

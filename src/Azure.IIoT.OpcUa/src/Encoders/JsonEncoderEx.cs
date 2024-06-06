@@ -31,15 +31,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public IServiceMessageContext Context { get; }
 
-        /// <summary>
-        /// Whether to use reversible encoding or not
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseReversibleEncoding { get; set; } = true;
 
         /// <summary>
         /// Encode nodes as uri
         /// </summary>
         public bool UseUriEncoding { get; set; } = true;
+
+        /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public Publisher.Models.NamespaceFormat NamespaceFormat { get; set; }
+            = Publisher.Models.NamespaceFormat.Uri; // backcompat
 
         /// <summary>
         /// Encode using microsoft variant
@@ -479,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
                     WriteString(fieldName, value.AsString(Context,
-                        Publisher.Models.NamespaceFormat.Uri));
+						NamespaceFormat));
                 }
                 else
                 {
@@ -545,7 +549,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
                     WriteString(fieldName, value.AsString(Context,
-                        Publisher.Models.NamespaceFormat.Uri));
+                        NamespaceFormat));
                 }
                 else
                 {
@@ -694,7 +698,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (UseUriEncoding && UseAdvancedEncoding)
                 {
                     WriteString(fieldName, value.AsString(Context,
-                        Publisher.Models.NamespaceFormat.Uri));
+                        NamespaceFormat));
                 }
                 else
                 {

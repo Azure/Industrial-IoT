@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="configure"></param>
         /// <param name="extensionFields"></param>
         /// <returns></returns>
-        public static IList<BaseMonitoredItemModel> ToMonitoredItems(this PublishedDataSetSourceModel dataSetSource,
+        public static IReadOnlyList<BaseMonitoredItemModel> ToMonitoredItems(this PublishedDataSetSourceModel dataSetSource,
             OpcUaSubscriptionOptions options, Func<PublishingQueueSettingsModel?, object?> configure,
             IDictionary<string, VariantValue>? extensionFields = null)
         {

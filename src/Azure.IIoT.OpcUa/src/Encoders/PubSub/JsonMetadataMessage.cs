@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Opc.Ua;
     using System;
@@ -46,6 +47,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Flag that indicates if advanced encoding should be used
         /// </summary>
         public bool UseAdvancedEncoding { get; set; }
+
+        /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public NamespaceFormat NamespaceFormat { get; set; }
 
         /// <summary>
         /// Use gzip compression
@@ -108,6 +114,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
         public override bool TryDecode(IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
@@ -149,8 +162,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     (Stream?)compression ?? memoryStream, context)
                 {
                     UseAdvancedEncoding = UseAdvancedEncoding,
+                    NamespaceFormat = NamespaceFormat,
                     UseUriEncoding = UseAdvancedEncoding,
-                    IgnoreDefaultValues = UseAdvancedEncoding,
+                    IgnoreDefaultValues = true,
                     IgnoreNullValues = true,
                     UseReversibleEncoding = false
                 };

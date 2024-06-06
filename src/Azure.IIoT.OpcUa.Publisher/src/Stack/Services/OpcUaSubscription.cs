@@ -532,7 +532,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="monitoredItems"></param>
         /// <param name="ct"></param>
         private async Task<bool> SynchronizeMonitoredItemsAsync(
-            IEnumerable<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
+            IReadOnlyList<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
         {
             Debug.Assert(Session != null);
             if (Session is not OpcUaSession session)
@@ -1436,7 +1436,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "EventChange for subscription {Subscription} received without a session {Session}.",
@@ -1548,7 +1548,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "Keep alive event for subscription {Subscription} received without session {Session}.",
@@ -1610,7 +1610,7 @@ Actual (revised) state/desired state:
             Debug.Assert(ReferenceEquals(subscription, this));
             Debug.Assert(!_disposed);
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",
@@ -1681,7 +1681,7 @@ Actual (revised) state/desired state:
             Debug.Assert(!_disposed);
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",
@@ -1698,7 +1698,8 @@ Actual (revised) state/desired state:
                 var publishTime = notification.PublishTime;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
+                var message = new Notification(this, Id, session.MessageContext,
+                    sequenceNumber: sequenceNumber)
                 {
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1729,7 +1730,7 @@ Actual (revised) state/desired state:
                         dropped ? "dropped" : "already received", publishTime);
                 }
 
-                foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
+                foreach (var item in notification.MonitoredItems)
                 {
                     Debug.Assert(item != null);
                     if (TryGetMonitoredItemForNotification(item.ClientHandle, out var monitoredItem) &&
@@ -1835,7 +1836,7 @@ Actual (revised) state/desired state:
         {
             if (sequenceNumber.HasValue && Id == subscriptionId)
             {
-                _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
+                _logger.LogTrace("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
                 _currentSequenceNumber = sequenceNumber.Value;
             }

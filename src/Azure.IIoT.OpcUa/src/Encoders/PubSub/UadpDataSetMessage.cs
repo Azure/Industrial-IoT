@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Get DataSetFlags2
         /// </summary>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         internal DataSetFlags2EncodingMask DataSetFlags2
         {
             get
@@ -222,8 +222,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             // Default is key frame
                             break;
                         default:
-                            throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                                "Message type {0} not valid for data set messages.", MessageType);
+                            throw new EncodingException(
+                                $"Message type {MessageType} not valid for data set messages.");
                     }
 
                     // Bit range 4-5: timestamp
@@ -313,13 +313,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="resolver"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         internal bool TryDecode(BinaryDecoder decoder, IDataSetMetaDataResolver? resolver)
         {
             if (decoder is not BinaryDecoder binaryDecoder)
             {
-                throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                    "Must use Binary decoder here");
+                throw new DecodingException("Must use Binary decoder here");
             }
             try
             {
@@ -452,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private void ReadPayloadKeyFrame(BinaryDecoder binaryDecoder, PublishedDataSetMetaDataModel? metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
@@ -466,8 +465,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 else
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        "Requires metadata to decode");
+                    throw new DecodingException("Requires metadata to decode");
                 }
             }
             else
@@ -506,8 +504,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                     break;
                 default:
-                    throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                        $"Reserved field type {fieldType} not allowed.");
+                    throw new DecodingException($"Reserved field type {fieldType} not allowed.");
             }
         }
 
@@ -516,7 +513,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void WritePayloadKeyFrame(BinaryEncoder binaryEncoder, PublishedDataSetMetaDataModel? metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
@@ -549,7 +546,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                     break;
                 default:
-                    throw ServiceResultException.Create(StatusCodes.BadEncodingError,
+                    throw new EncodingException(
                         $"Reserved field type {fieldType} not allowed.");
             }
         }
@@ -560,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private void ReadPayloadDeltaFrame(BinaryDecoder binaryDecoder, PublishedDataSetMetaDataModel? metadata)
         {
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
@@ -589,8 +586,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         }
                         break;
                     default:
-                        throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-                            $"Reserved field type {fieldType} not allowed.");
+                        throw new DecodingException($"Reserved field type {fieldType} not allowed.");
                 }
             }
         }
@@ -600,7 +596,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="binaryEncoder"></param>
         /// <param name="metadata"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="EncodingException"></exception>
         private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, PublishedDataSetMetaDataModel? metadata)
         {
             // ignore null fields
@@ -634,8 +630,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         WriteFieldAsRawData(binaryEncoder, value.Value.WrappedValue, fieldMetadata);
                         break;
                     default:
-                        throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                            $"Reserved field type {fieldType} not allowed.");
+                        throw new EncodingException($"Reserved field type {fieldType} not allowed.");
                 }
             }
         }

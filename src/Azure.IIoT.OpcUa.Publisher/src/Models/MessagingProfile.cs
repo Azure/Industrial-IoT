@@ -247,6 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 .Append(" | ")
                 .Append(SupportsKeepAlive ? "X" : " ")
                 .AppendLine(" |")
+                .Append(SupportsSchemaPublishing ? "X" : " ")
+                .AppendLine(" |")
                 .ToString();
         }
 
@@ -398,8 +400,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             var builder = new StringBuilder();
             builder.Append(
-@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported | KeepAlive supported |
-   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|---------------------|
+@"| Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported | KeepAlive supported | Schema publishing |
+   |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|---------------------|-------------------|
 ");
             foreach (var profile in kProfiles)
             {

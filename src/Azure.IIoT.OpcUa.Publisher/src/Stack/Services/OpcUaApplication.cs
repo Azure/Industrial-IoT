@@ -274,7 +274,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...", thumbprint);
+                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...",
+                    thumbprint);
                 throw;
             }
         }
