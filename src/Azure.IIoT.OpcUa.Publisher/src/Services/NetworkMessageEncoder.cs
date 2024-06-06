@@ -250,8 +250,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
                         }
-                        var namespaceFormat = writerGroup.MessageSettings?.NamespaceFormat
-                            ?? _options.Value.DefaultNamespaceFormat ?? NamespaceFormat.Uri;
+                        var namespaceFormat = 
+							writerGroup.MessageSettings?.NamespaceFormat ?? 
+							_options.Value.DefaultNamespaceFormat ?? 
+							NamespaceFormat.Uri;
                         var networkMessageContentMask = messageMask.ToStackType(encoding);
                         foreach (var dataSetClass in groups
                             .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
