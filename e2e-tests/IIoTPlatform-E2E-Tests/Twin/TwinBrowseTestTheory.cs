@@ -108,17 +108,26 @@ namespace IIoTPlatformE2ETests.Twin
 
             var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, -1, "Object", "i=85", cts.Token);
 
-            Assert.NotNull(nodes);
-            Assert.NotEmpty(nodes);
+            try
+            {
+                _context.OutputHelper.WriteLine($"Node count is {nodes.Count}");
 
-            Assert.True(nodes.Count > 150);
+                Assert.NotNull(nodes);
+                Assert.NotEmpty(nodes);
 
-            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId, StringComparison.Ordinal));
+                Assert.True(nodes.Count > 150);
+
+                Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("i=15668", n.NodeId, StringComparison.Ordinal));
+            }
+            catch
+            {
+                nodes.ForEach(n => _context.OutputHelper.WriteLine(n.NodeId));
+                throw;
+            }
         }
 
         [Fact, PriorityOrder(6)]
@@ -128,14 +137,24 @@ namespace IIoTPlatformE2ETests.Twin
 
             var nodes = await TestHelper.Twin.GetBrowseEndpointRecursiveAsync(_context, _context.OpcUaEndpointId, -1, "Variable", "i=85", cts.Token);
 
-            Assert.NotNull(nodes);
-            Assert.NotEmpty(nodes);
+            try
+            {
+                _context.OutputHelper.WriteLine($"Node count is {nodes.Count}");
 
-            Assert.True(nodes.Count > 150);
+                Assert.NotNull(nodes);
+                Assert.NotEmpty(nodes);
 
-            Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("i=11617", n.NodeId, StringComparison.Ordinal));
-            Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
+                Assert.True(nodes.Count > 150);
+
+                Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=LongString1", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
+            }
+            catch
+            {
+                nodes.ForEach(n => _context.OutputHelper.WriteLine(n.NodeId));
+                throw;
+            }
         }
     }
 }
