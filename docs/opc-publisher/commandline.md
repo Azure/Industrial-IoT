@@ -331,7 +331,7 @@ Transport settings
                                side car connection if needed.
                                Use the format 'PubSubComponent=<PubSubComponent>
                                [;GrpcPort=<GrpcPort>;HttpPort=<HttpPort>[;
-                               Scheme=<'https'|'http'>]][;ApiKey=<ApiKey>]'.
+                               Scheme=<'https'|'http'>][;Host=<IPorDnsName>]][;ApiKey=<ApiKey>]'.
                                To publish through dapr by default specify `-t=
                                Dapr`.
                                Default: `not set`.
