@@ -118,14 +118,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadata", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithoutReversibleEncodingTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithoutReversibleEncodingTest()
         {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithoutReversibleEncodingTest),
-                publishedNodesFile, messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--me=Json", "--dm=false" },
+                "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--me=Json", "--dm=false" },
                 version: MqttVersion.v5);
 
             Assert.Single(result);
@@ -157,14 +156,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithReversibleEncodingTest()
         {
             // Arrange
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingTest),
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
                 arguments: new[] { "--mm=PubSub", "--me=JsonReversible", "--dm=False" },
                 version: MqttVersion.v311);
 
@@ -203,14 +201,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeEventWithCompliantEncodingTestTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeEventWithCompliantEncodingTest()
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeEventWithCompliantEncodingTestTest),
-                publishedNodesFile, messageType: "ua-data", arguments: new[] { "-c", "--mm=PubSub", "--me=Json" },
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeEventWithCompliantEncodingTest),
+                "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: new[] { "-c", "--mm=PubSub", "--me=Json" },
                 version: MqttVersion.v5);
 
             Assert.Single(result);
@@ -242,14 +239,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value);
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTest()
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestTest),
-                publishedNodesFile, TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTest),
+                "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
                 arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" },
                 version: MqttVersion.v311);
 

@@ -190,11 +190,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json);
             messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new DataSetMetaDataType
+            messages[10].MetaData = new PublishedDataSetMetaDataModel
             {
-                Name = "test",
-                Fields = new FieldMetaDataCollection {
-                    new FieldMetaData {
+                DataSetMetaData = new DataSetMetaDataModel
+                {
+                    Name = "test"
+                },
+                Fields = new []
+                {
+                    new PublishedFieldMetaDataModel
+                    {
                         Name = "test",
                         BuiltInType = (byte)BuiltInType.UInt16
                     }

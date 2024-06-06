@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ArgumentException(error, nameof(publisherId));
             }
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -127,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     _logger.LogDebug(ex, "Retrying updating supervisor...");
                 }
             }
+            throw new OperationCanceledException();
         }
 
         /// <inheritdoc/>

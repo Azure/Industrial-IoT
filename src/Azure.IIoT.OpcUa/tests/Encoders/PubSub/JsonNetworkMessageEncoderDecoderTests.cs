@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Furly.Extensions.Serializers;
@@ -441,7 +441,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new DataSet(new Dictionary<string, DataValue> {
-                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
+                { "1", new DataValue(new Variant(true), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue("abcd") }
             }, (uint)dataSetFieldContentMask);

@@ -117,6 +117,8 @@ Messaging configuration
                                    `FullSamples`
                                    `DataSetMessages`
                                    `SingleDataSetMessage`
+                                   `DataSets`
+                                   `SingleDataSet`
                                    `RawDataSets`
                                    `SingleRawDataSet`
                                Default: `PubSub` if `-c` is specified,

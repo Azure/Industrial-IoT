@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             finally
             {
                 server.Dispose();
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
 
             static JsonElement WaitUntilKeepAlive(JsonElement jsonElement)

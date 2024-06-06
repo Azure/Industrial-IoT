@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Opc Ua subscription notification
@@ -74,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Meta data
         /// </summary>
-        DataSetMetaDataType? MetaData { get; }
+        PublishedDataSetMetaDataModel? MetaData { get; }
 
         /// <summary>
         /// Message type

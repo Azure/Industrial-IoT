@@ -742,7 +742,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     case BuiltInType.DiagnosticInfo:
                         return ReadDiagnosticInfoArray(fieldName).ToArray();
                     default:
-                        throw new ServiceResultException(StatusCodes.BadDecodingError,
+                        throw new DecodingException(
                             $"Cannot decode unknown type in Array object with BuiltInType: {builtInType}.");
                 }
             }
@@ -1381,7 +1381,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
 
             // Try to decode non reversible encoding first.
-            var dimensions = array.GetDimensions(out var type);
+            var dimensions = GetDimensions(array, out var type);
             if (dimensions.Length > 1)
             {
                 var builtInType = BuiltInType.Variant;
@@ -1523,7 +1523,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (token is JArray jarray)
             {
                 // Check array dimensions
-                var dimensions = jarray.GetDimensions(out _);
+                var dimensions = GetDimensions(jarray, out _);
                 if (dimensions.Length > 1)
                 {
                     return ReadVariantMatrixBody(jarray, dimensions, type);
@@ -1625,7 +1625,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="dimensions"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private Variant ReadVariantMatrixBody(JArray array, int[] dimensions,
             BuiltInType type)
         {
@@ -1639,7 +1639,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             CopyToMatrixFlatArray(array, flatArray, ref index, type);
             if (index < length)
             {
-                throw new ServiceResultException(StatusCodes.BadDecodingError,
+                throw new DecodingException(
                     "Read matrix is smaller than array dimensions.");
             }
             return new Variant(new Matrix(flatArray, type, dimensions));
@@ -1652,7 +1652,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="target"></param>
         /// <param name="index"></param>
         /// <param name="type"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private void CopyToMatrixFlatArray(JArray array, Array target, ref int index,
             BuiltInType type)
         {
@@ -1756,7 +1756,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 else
                 {
-                    throw new ServiceResultException(StatusCodes.BadDecodingError,
+                    throw new DecodingException(
                         "Read matrix is larger than array dimensions.");
                 }
             }
@@ -2020,7 +2020,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="property"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         internal bool TryGetToken(string? property, [NotNullWhen(true)] out JToken? token)
         {
             JToken? top;
@@ -2075,8 +2075,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 return true;
             }
-            throw new ServiceResultException(StatusCodes.BadDecodingError,
-                "Expected object at top of stack");
+            throw new DecodingException("Expected object at top of stack");
         }
 
         /// <summary>
@@ -2113,7 +2112,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="fieldName"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private bool ReadArrayField(string? fieldName,
             [NotNullWhen(true)] out List<object>? array)
         {
@@ -2138,7 +2137,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < array.Count)
             {
-                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
+                throw new DecodingException(StatusCodes.BadEncodingLimitsExceeded,
+                    $"Maximum nesting level of {Context.MaxEncodingNestingLevels} was exceeded.");
             }
             return true;
         }
@@ -2152,7 +2152,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="elements"></param>
         /// <param name="dimensions"></param>
         /// <param name="level"></param>
-        /// <exception cref="ServiceResultException"></exception>
+        /// <exception cref="DecodingException"></exception>
         private void ReadMatrixPart(string? fieldName, List<object>? currentArray,
             BuiltInType builtInType, ref List<object> elements, ref List<int> dimensions, int level)
         {
@@ -2203,8 +2203,29 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             catch (Exception ex)
             {
-                throw new ServiceResultException(ex.Message);
+                throw new DecodingException(ex.Message, ex);
             }
+        }
+
+        /// <summary>
+        /// Returns dimensions of the multi dimensional array assuming
+        /// it is not jagged.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static int[] GetDimensions(JArray token, out JTokenType type)
+        {
+            var dimensions = new List<int>();
+            type = JTokenType.Undefined;
+            var array = token;
+            while (array != null && array.Count != 0)
+            {
+                dimensions.Add(array.Count);
+                type = array[0].Type;
+                array = array[0] as JArray;
+            }
+            return dimensions.ToArray();
         }
 
         /// <summary>

@@ -39,5 +39,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default metadata queue name
         /// </summary>
         public string? DataSetMetaData { get; set; }
+
+        /// <summary>
+        /// Default schema topic when schemas are published
+        /// </summary>
+        public string? Schema { get; set; }
     }
 }

@@ -1003,7 +1003,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private const int kMinPublishRequestCount = 3;
+        private const int kMinPublishRequestCount = 2;
         private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
@@ -1022,24 +1022,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
+            var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
+            if (minPublishRequests <= 0)
+            {
+                minPublishRequests = 1;
+            }
             var percentage = PublishRequestsPerSubscriptionPercent ?? 100;
-            var desiredRequests = Math.Max(
-                MinPublishRequests ?? kMinPublishRequestCount,
+            var desiredRequests = Math.Max(minPublishRequests,
                 percentage == 100 || percentage < 0 ? created :
                     (int)Math.Ceiling(created * (percentage / 100.0)));
-            if (desiredRequests < 0)
+            if (desiredRequests <= 0)
             {
-                _logger.LogDebug("Negative number of publish requests configured.");
-                desiredRequests = kMinPublishRequestCount;
+                // Dont allow negative or 0
+                desiredRequests = minPublishRequests;
             }
             if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
             {
                 desiredRequests = _maxPublishRequests.Value;
+                if (desiredRequests < minPublishRequests)
+                {
+                    desiredRequests = minPublishRequests;
+                }
             }
+
             session.MinPublishRequestCount = desiredRequests;
 
+            var currently = OutstandingRequestCount;
+            var additionalRequests = desiredRequests - currently;
+            if (additionalRequests <= 0)
+            {
+                return;
+            }
+
+            _logger.LogDebug(
+                "Ensuring publish request count {Count} is {Desired} requests.",
+                currently, desiredRequests);
+
             // Queue requests
-            for (var i = GoodPublishRequestCount; i < desiredRequests; i++)
+            for (var i = 0; i < additionalRequests; i++)
             {
                 session.BeginPublish(session.OperationTimeout);
             }
@@ -1190,9 +1210,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             switch (e.Status.Code)
             {
                 case StatusCodes.BadTooManyPublishRequests:
-                    _maxPublishRequests = GoodPublishRequestCount;
-                    _logger.LogDebug("Limiting number of queued publish requests to {Limit}...",
-                        _maxPublishRequests);
+                    var limit = GoodPublishRequestCount - 1;
+                    var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
+                    if (minPublishRequests <= 0)
+                    {
+                        minPublishRequests = 1;
+                    }
+                    if (limit <= minPublishRequests || limit == _maxPublishRequests)
+                    {
+                        break;
+                    }
+                    _maxPublishRequests = limit;
+                    _logger.LogInformation(
+                        "Too many publish request error: Limiting number of requests to {Limit}...",
+                        limit);
                     break;
                 case StatusCodes.BadSessionIdInvalid:
                 case StatusCodes.BadSecureChannelClosed:
@@ -1268,7 +1299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(
+                _logger.LogTrace(
                     "#{ThreadId}: Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})",
                     Environment.CurrentManagedThreadId, ToString(e.AcknowledgementsToSend),
                     ToString(e.DeferredAcknowledgementsToSend), session.GoodPublishRequestCount);
@@ -1303,13 +1334,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // start reconnect sequence on communication error.
+                Interlocked.Increment(ref _keepAliveCounter);
                 if (ServiceResult.IsBad(e.Status))
                 {
+                    _keepAliveCounter = 0;
                     TriggerReconnect(e.Status);
 
                     _logger.LogInformation(
                         "Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
                         e.Status, e.CurrentTime, e.Status);
+                }
+                else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
+                {
+                    EnsureMinimumNumberOfPublishRequestsQueued();
                 }
             }
             catch (Exception ex)
@@ -1721,6 +1758,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_client_connectivity_state",
                 () => new Measurement<int>((int)_lastState, _metrics.TagList),
                 description: "Client connectivity state.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_client_keep_alive_counter",
+                () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
+                description: "Number of successful keep alives since last keep alive error.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
                 description: "Number of client managed subscriptions.");
@@ -1762,6 +1802,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _refCount;
         private int? _maxPublishRequests;
         private int _publishTimeoutCounter;
+        private int _keepAliveCounter;
         private bool _traceMode;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();

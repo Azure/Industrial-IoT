@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Avro;
     using Furly;
     using Microsoft.IO;
     using Opc.Ua;
@@ -59,6 +60,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public abstract bool TryDecode(IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader,
             IDataSetMetaDataResolver? resolver = null);
+
+        /// <summary>
+        /// Decode the network message from the wire representation
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="stream"></param>
+        /// <param name="resolver"></param>
+        public abstract bool TryDecode(IServiceMessageContext context,
+            Stream stream, IDataSetMetaDataResolver? resolver = null);
 
         /// <summary>
         /// Encode the network message into network message chunks
@@ -120,7 +130,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <summary>
-        /// Decode one pub sub messages from buffer
+        /// Decode one pub sub messages from the chunks provided by the reader
+        /// Avro and JSON do not support chunking hence only ever one chunk is
+        /// pulled from the reader.
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="contentType"></param>

@@ -76,8 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         }
 
         /// <inheritdoc/>
-        public async Task UpdateGatewayAsync(string gatewayId,
-            GatewayUpdateModel request, CancellationToken ct)
+        public async Task UpdateGatewayAsync(string gatewayId, GatewayUpdateModel request,
+            CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
             if (string.IsNullOrEmpty(gatewayId))
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             // Get existing endpoint and compare to see if we need to patch.
             var deviceId = gatewayId;
 
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -134,7 +134,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 catch (ResourceOutOfDateException ex)
                 {
                     _logger.LogDebug(ex, "Retrying updating gateway...");
-                    continue;
                 }
             }
         }

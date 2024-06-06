@@ -255,7 +255,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             thumbprint = trustedCert.Thumbprint;
             try
             {
-
                 using var trusted = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
                 certCollection = await trusted.FindByThumbprint(thumbprint).ConfigureAwait(false);
                 if (certCollection.Count != 0)
@@ -275,7 +274,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...", thumbprint);
+                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...",
+                    thumbprint);
                 throw;
             }
         }

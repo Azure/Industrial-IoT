@@ -67,5 +67,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [EnumMember(Value = "JsonReversibleGzip")]
         JsonReversibleGzip = JsonGzip | IsReversible,
+
+        /// <summary>
+        /// Avro
+        /// </summary>
+        [EnumMember(Value = "Avro")]
+        Avro = 0x40,
+
+        /// <summary>
+        /// Avro Gzip
+        /// </summary>
+        [EnumMember(Value = "AvroGzip")]
+        AvroGzip = IsGzipCompressed | Avro,
     }
 }

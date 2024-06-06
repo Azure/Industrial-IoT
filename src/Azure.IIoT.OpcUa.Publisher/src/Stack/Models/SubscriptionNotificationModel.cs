@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public MessageType MessageType { get; set; }
 
         /// <inheritdoc/>
-        public DataSetMetaDataType? MetaData { get; set; }
+        public PublishedDataSetMetaDataModel? MetaData { get; set; }
 
         /// <inheritdoc/>
         public string? SubscriptionName { get; set; }

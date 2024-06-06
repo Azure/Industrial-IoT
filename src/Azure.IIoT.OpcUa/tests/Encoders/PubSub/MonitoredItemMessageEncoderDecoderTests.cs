@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
+namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Opc.Ua;
@@ -283,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Tests
         private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
         {
             return new DataSet(new Dictionary<string, DataValue> {
-                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) }
+                { "1", new DataValue(new Variant("test"), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) }
             }, (uint)dataSetFieldContentMask);
         }
     }

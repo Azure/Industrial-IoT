@@ -4,8 +4,6 @@ pr:
   branches:
     include:
     - '*'
-variables:
-  system_accesstoken: $(System.AccessToken)
 jobs:
 - job: OneBranchTrigger
   pool:
@@ -24,6 +22,7 @@ jobs:
       branchToUse: 'main'
       storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
+      password: $(System.AccessToken)
       enableBuildInQueueCondition: true
       dependentOnSuccessfulBuildCondition: false
       dependentOnFailedBuildCondition: false
@@ -51,3 +50,4 @@ jobs:
       downloadBuildArtifacts: true
       clearVariable: true
       authenticationMethod: 'OAuth Token'
+      password: $(System.AccessToken)

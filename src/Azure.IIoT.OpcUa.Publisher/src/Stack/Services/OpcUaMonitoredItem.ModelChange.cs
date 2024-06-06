@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -147,8 +148,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
+                ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
+                NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
                 fields.AddRange(_fields);
                 return ValueTask.CompletedTask;
@@ -214,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 DisplayName = Template.DisplayName;
                 AttributeId = Attributes.EventNotifier;
-                MonitoringMode = MonitoringMode.Reporting;
+                MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
                 QueueSize = Template.QueueSize;
                 SamplingInterval = 0;
@@ -394,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            private static IEnumerable<FieldMetaData> GetEventFields()
+            private static IEnumerable<PublishedFieldMetaDataModel> GetEventFields()
             {
                 yield return Create(BrowseNames.EventId, builtInType: BuiltInType.ByteString);
                 yield return Create(BrowseNames.EventType, builtInType: BuiltInType.NodeId);
@@ -402,13 +403,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
                 yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
 
-                static FieldMetaData Create(string fieldName, NodeId? dataType = null,
+                static PublishedFieldMetaDataModel Create(string fieldName, NodeId? dataType = null,
                     BuiltInType builtInType = BuiltInType.ExtensionObject)
                 {
-                    return new FieldMetaData
+                    return new PublishedFieldMetaDataModel
                     {
-                        DataSetFieldId = (Uuid)Guid.NewGuid(),
-                        DataType = dataType ?? new NodeId((uint)builtInType),
+                        Id = (Uuid)Guid.NewGuid(),
+                        DataType = "i=" + (uint)builtInType,
                         Name = fieldName,
                         ValueRank = ValueRanks.Scalar,
                         // ArrayDimensions =
@@ -421,7 +422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
             private static readonly ExpandedNodeId _nodeChangeType
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
-            private readonly FieldMetaData[] _fields;
+            private readonly PublishedFieldMetaDataModel[] _fields;
             private readonly IOpcUaClient _client;
             private IOpcUaBrowser? _browser;
             private Callback? _callback;

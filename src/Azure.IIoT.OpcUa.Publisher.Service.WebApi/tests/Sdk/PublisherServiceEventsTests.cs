@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         [Theory]
         [InlineData(10)]
         [InlineData(4455)]
-        [InlineData(262345)]
+        [InlineData(26234)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);

@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
     }

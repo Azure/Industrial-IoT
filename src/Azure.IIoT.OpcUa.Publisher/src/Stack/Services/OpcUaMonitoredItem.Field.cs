@@ -5,7 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -32,14 +34,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Item as extension field
             /// </summary>
-            public ExtensionFieldModel Template { get; protected internal set; }
+            public ExtensionFieldItemModel Template { get; protected internal set; }
 
             /// <summary>
             /// Create wrapper
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public Field(ExtensionFieldModel template,
+            public Field(ExtensionFieldItemModel template,
                 ILogger<Field> logger) : base(logger, template.StartNodeId)
             {
                 Template = template;
@@ -106,13 +108,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override ValueTask GetMetaDataAsync(IOpcUaSession session,
-                ComplexTypeSystem? typeSystem, FieldMetaDataCollection fields,
-                NodeIdDictionary<DataTypeDescription> dataTypes, CancellationToken ct)
+                ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
+                NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
-                return AddVariableFieldAsync(fields, dataTypes, session, typeSystem, new VariableNode
+                return AddVariableFieldAsync(fields, dataTypes, session, typeSystem,
+                    new VariableNode
+                    {
+                        DataType = GetBuiltInType(Template.Value),
+                        ValueRank = Template.Value.IsArray ?
+                            ValueRanks.OneDimension : ValueRanks.Scalar
+                    }, Template.DisplayName, (Uuid)_fieldId, ct);
+
+                static NodeId GetBuiltInType(VariantValue value)
                 {
-                    DataType = (int)BuiltInType.Variant
-                }, Template.DisplayName, (Uuid)_fieldId, ct);
+                    return new NodeId((uint)(value.GetTypeCode() switch
+                    {
+                        TypeCode.Boolean => BuiltInType.Boolean,
+                        TypeCode.SByte => BuiltInType.SByte,
+                        TypeCode.Byte => BuiltInType.Byte,
+                        TypeCode.Int16 => BuiltInType.Int16,
+                        TypeCode.UInt16 => BuiltInType.UInt16,
+                        TypeCode.Int32 => BuiltInType.Int32,
+                        TypeCode.UInt32 => BuiltInType.UInt32,
+                        TypeCode.Int64 => BuiltInType.Int64,
+                        TypeCode.UInt64 => BuiltInType.UInt64,
+                        TypeCode.Double => BuiltInType.Double,
+                        TypeCode.String => BuiltInType.String,
+                        TypeCode.DateTime => BuiltInType.DateTime,
+                        TypeCode.Empty => BuiltInType.Null,
+                        TypeCode.Object => BuiltInType.Variant, // Structure
+                        TypeCode.Char => BuiltInType.String,
+                        TypeCode.Single => BuiltInType.Float,
+                        TypeCode.Decimal => BuiltInType.Variant, // Number
+                        _ => BuiltInType.Variant
+                    }));
+                }
             }
 
             /// <inheritdoc/>

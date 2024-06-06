@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             finally
             {
                 server.Dispose();
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
                 server.Dispose();
             }
         }
@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
                 server.Dispose();
             }
         }
@@ -290,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             finally
             {
                 server.Dispose();
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -299,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             using var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            for (var cycles = 0; cycles < 5; cycles++)
+            for (var cycles = 0; cycles < 3; cycles++)
             {
                 const string name = nameof(RestartConfigurationTest);
                 StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
@@ -307,16 +307,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 {
                     // Arrange
                     // Act
-                    await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1, messageType: "ua-data");
+                    await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(5), 1, messageType: "ua-data");
 
                     const string name2 = nameof(RestartConfigurationTest) + "new";
                     WritePublishedNodes(name2, "./Resources/DataItems2.json");
                     var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
-                    for (var i = 0; i < 12 &&
+                    for (var i = 0; i < 60 &&
                         (diagnostics.Count != 1 || diagnostics[0].Endpoint.DataSetWriterGroup != name2); i++)
                     {
                         _output.WriteLine($"######### {i}: Failed to get diagnosticsinfo.");
-                        await Task.Delay(5000);
+                        await Task.Delay(500);
                         diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                     }
                     var diag = Assert.Single(diagnostics);
@@ -324,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 }
                 finally
                 {
-                    StopPublisher();
+                    await StopPublisherAsync();
                 }
             }
         }

@@ -55,5 +55,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "maxDataSetMessagesPerPublish", Order = 5,
             EmitDefaultValue = false)]
         public uint? MaxDataSetMessagesPerPublish { get; set; }
+
+        /// <summary>
+        /// Optional namespace format to use when serializing
+        /// nodes and qualified names in responses.
+        /// </summary>
+        [DataMember(Name = "namespaceFormat", Order = 6,
+            EmitDefaultValue = false)]
+        public NamespaceFormat? NamespaceFormat { get; set; }
     }
 }

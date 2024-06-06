@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Messaging.Clients;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -37,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public IMessageSource Source { get; }
 
         /// <summary>
-        /// Create engine
+        /// Create writer group network message sink
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="eventClients"></param>
@@ -55,33 +56,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             Source = source;
 
-            _metrics = metrics
-                ?? throw new ArgumentNullException(nameof(metrics));
-            _options = options;
+            _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _messageEncoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _diagnostics = diagnostics;
 
             // Reverse the registration to have highest prio first.
-            var registered = eventClients?.Reverse().ToList()
+            _eventClients = eventClients?.Reverse().ToList()
                 ?? throw new ArgumentNullException(nameof(eventClients));
-            if (registered.Count == 0)
+            if (_eventClients.Count == 0)
             {
                 throw new ArgumentException("No transports registered.",
                     nameof(eventClients));
             }
-            _eventClient =
-                   registered.Find(e => e.Name.Equals(
-                    writerGroup.Transport?.ToString(),
-                        StringComparison.OrdinalIgnoreCase))
-                ?? registered.Find(e => e.Name.Equals(
-                    options.Value.DefaultTransport?.ToString(),
-                        StringComparison.OrdinalIgnoreCase))
-                ?? registered[0];
-
-            _isIoTEdge = _eventClient.Name.Equals(nameof(WriterGroupTransport.IoTHub),
-                        StringComparison.OrdinalIgnoreCase);
-            _messageEncoder = encoder;
-            _logger = logger;
-            _diagnostics = diagnostics;
-            _cts = new CancellationTokenSource();
 
             _logNotificationsFilter = _options.Value.DebugLogNotificationsFilter == null ?
                 null : new Regex(_options.Value.DebugLogNotificationsFilter);
@@ -89,68 +77,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ? Filter : FilterHeartbeat;
             _logNotifications = _options.Value.DebugLogNotifications
                 ?? (_logNotificationsFilter != null);
-            _maxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
-                ?? _options.Value.BatchSize ?? 0;
-            _maxNetworkMessageSize = (int?)writerGroup.MaxNetworkMessageSize
-                ?? _options.Value.MaxNetworkMessageSize ?? 0;
+            _queue = new NullPublishQueue();
 
-            if (_maxNetworkMessageSize <= 0)
-            {
-                _maxNetworkMessageSize = int.MaxValue;
-            }
-            if (_maxNetworkMessageSize > _eventClient.MaxEventPayloadSizeInBytes)
-            {
-                _maxNetworkMessageSize = _eventClient.MaxEventPayloadSizeInBytes;
-            }
+			_transport = new TransportOptions(writerGroup, _eventClients, _options);
 
-            _batchTriggerInterval = writerGroup.PublishingInterval
-                ?? _options.Value.BatchTriggerInterval ?? TimeSpan.Zero;
-            //
-            // If the max notification per message is 1 then there is no need to
-            // have an interval publishing as the messages are emitted as soon
-            // as they arrive anyway
-            //
-            if (_maxNotificationsPerMessage == 1)
-            {
-                _batchTriggerInterval = TimeSpan.Zero;
-            }
-            _maxPublishQueueSize = (int?)writerGroup.PublishQueueSize
-                ?? _options.Value.MaxNetworkMessageSendQueueSize ?? kMaxQueueSize;
-
-            //
-            // If undefined, set notification buffer to 1 if no publishing interval
-            // otherwise queue as much as reasonable
-            //
-            if (_maxNotificationsPerMessage <= 0)
-            {
-                _maxNotificationsPerMessage = _batchTriggerInterval == TimeSpan.Zero ?
-                    1 : _maxPublishQueueSize;
-            }
-
-            var maxPublishQueuePartitions = writerGroup.PublishQueuePartitions ??
-                options.Value.DefaultWriterGroupPartitions ?? 0;
-            _queue = maxPublishQueuePartitions != 0
-                ? new PublishQueue(this, maxPublishQueuePartitions)
+            _queue = _transport.MaxPublishQueuePartitions != 0
+                ? new PublishQueue(this, _transport.MaxPublishQueuePartitions)
                 : new PublishQueuePartition(this, 0, _logger);
-
-            Source.OnMessage += OnMessageReceived;
-            Source.OnCounterReset += MessageTriggerCounterResetReceived;
 
             InitializeMetrics();
 
-            _logger.LogInformation("Writer group {WriterGroup} set up to publish notifications " +
-                "{Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and " +
-                "{MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...",
-                writerGroup.Name ?? Constants.DefaultWriterGroupName,
-                _batchTriggerInterval == TimeSpan.Zero ?
-                    "as soon as they arrive" : $"every {_batchTriggerInterval} (hh:mm:ss)",
-                _maxNotificationsPerMessage == 1 ?
-                    "and individually" :
-            $"or when a batch of {_maxNotificationsPerMessage} notifications is ready",
-                _maxNetworkMessageSize == int.MaxValue ?
-                    "unlimited size" : $"at most {_maxNetworkMessageSize / 1024} kb",
-                _eventClient.Name, writerGroup.HeaderLayoutUri ?? "unknown",
-                writerGroup.MessageType ?? MessageEncoding.Json, _maxPublishQueueSize);
+            Source.OnMessage += OnMessageReceived;
+            Source.OnCounterReset += OnReset;
+            _transport.Log(writerGroup, _logger);
+        }
+
+        /// <inheritdoc/>
+        private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
+        {
+            if (_dataFlowStartTime == DateTime.MinValue)
+            {
+                _diagnostics?.ResetWriterGroupDiagnostics();
+                _dataFlowStartTime = DateTime.UtcNow;
+            }
+
+            if (!_queue.TryPublish(args))
+            {
+                args.Dispose();
+            }
+        }
+
+        /// <inheritdoc/>
+        private void OnReset(object? sender, EventArgs e)
+        {
+            _dataFlowStartTime = DateTime.MinValue;
+            _queue.Reset();
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask UpdateAsync(WriterGroupModel writerGroup)
+        {
+            // TODO: Call update on sink
+            var options = new TransportOptions(writerGroup, _eventClients, _options);
+            if (options == _transport)
+            {
+                // Group change does not effect transport settings
+                return;
+            }
+
+            _transport = options;
+            // Todo: only check queue update
+
+            await _queue.DisposeAsync().ConfigureAwait(false);
+            _queue = options.MaxPublishQueuePartitions != 0
+                ? new PublishQueue(this, options.MaxPublishQueuePartitions)
+                : new PublishQueuePartition(this, 0, _logger);
+
+            _transport.Log(writerGroup, _logger);
         }
 
         /// <inheritdoc/>
@@ -159,10 +142,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _cts.CancelAsync().ConfigureAwait(false);
             try
             {
-                Source.OnCounterReset -= MessageTriggerCounterResetReceived;
+                Source.OnCounterReset -= OnReset;
                 Source.OnMessage -= OnMessageReceived;
 
                 await _queue.DisposeAsync().ConfigureAwait(false);
+
+                _queue = new NullPublishQueue();
+                _transport = new TransportOptions();
             }
             finally
             {
@@ -182,100 +168,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 DisposeAsync().AsTask().GetAwaiter().GetResult();
                 _cts.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Message received handler
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
-        private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
-        {
-            if (_dataFlowStartTime == DateTime.MinValue)
-            {
-                _diagnostics?.ResetWriterGroupDiagnostics();
-                _dataFlowStartTime = DateTime.UtcNow;
-            }
-
-            if (!_queue.TryPublish(args))
-            {
-                args.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Counter reset
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void MessageTriggerCounterResetReceived(object? sender, EventArgs e)
-        {
-            _dataFlowStartTime = DateTime.MinValue;
-            _queue.Reset();
-        }
-
-        /// <summary>
-        /// Log notifications for debugging
-        /// </summary>
-        /// <param name="args"></param>
-        /// <param name="dropped"></param>
-        private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
-        {
-            // Filter fields to log
-            if (_logNotificationsFilter != null)
-            {
-                var matched = args.SubscriptionName != null &&
-                    _logNotificationsFilter.IsMatch(args.SubscriptionName);
-
-                for (var i = 0; i < args.Notifications.Count && !matched; i++)
-                {
-                    var itemName =
-                        args.Notifications[i].DataSetFieldName ??
-                        args.Notifications[i].DataSetName;
-                    if (itemName != null)
-                    {
-                        matched = _logNotificationsFilter.IsMatch(itemName);
-                    }
-                }
-                if (!matched)
-                {
-                    // Do not log anything
-                    return;
-                }
-            }
-
-            var notifications = Stringify(_filterNotifications(args.Notifications));
-            if (!string.IsNullOrEmpty(notifications))
-            {
-                _logger.LogInformation(
-                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
-                    dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
-                    args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
-                    args.SubscriptionName, notifications);
-            }
-
-            static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
-            {
-                var sb = new StringBuilder();
-                foreach (var item in notifications)
-                {
-                    sb
-                        .AppendLine()
-                        .Append("   |")
-                        .Append(item.Value?.ServerTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
-                        .Append('|')
-                        .Append(item.DataSetFieldName ?? item.DataSetName)
-                        .Append('|')
-                        .Append(item.Value?.SourceTimestamp.ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
-                        .Append('|')
-                        .Append(item.Value?.Value)
-                        .Append('|')
-                        .Append(item.Value?.StatusCode)
-                        .Append('|')
-                        ;
-                }
-                return sb.ToString();
             }
         }
 
@@ -302,6 +194,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="args"></param>
             /// <returns></returns>
             bool TryPublish(IOpcUaSubscriptionNotification args);
+        }
+
+        /// <summary>
+        /// Dummy publish queue
+        /// </summary>
+        private sealed class NullPublishQueue : IPublishQueue
+        {
+            /// <inheritdoc/>
+            public int BufferOutput { get; }
+            /// <inheritdoc/>
+            public int EncodingInput { get; }
+            /// <inheritdoc/>
+            public int EncodingOutput { get; }
+            /// <inheritdoc/>
+            public int SendInput { get; }
+            /// <inheritdoc/>
+            public int PartitionCount { get; }
+            /// <inheritdoc/>
+            public int ActiveCount { get; }
+
+            /// <inheritdoc/>
+            public ValueTask DisposeAsync()
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            /// <inheritdoc/>
+            public void Reset()
+            {
+            }
+
+            /// <inheritdoc/>
+            public bool TryPublish(IOpcUaSubscriptionNotification args)
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -391,14 +319,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _índex = índex;
                 _logger = logger;
 
-                var maxBufferBlockCap = (int)Math.BigMul(_outer._maxPublishQueueSize,
-                    _outer._maxNotificationsPerMessage);
-                var maxEncodingBlockCap = (int)Math.BigMul(_outer._maxPublishQueueSize,
+                var maxBufferBlockCap = (int)Math.BigMul(_outer._transport.MaxPublishQueueSize,
+                    _outer._transport.MaxNotificationsPerMessage);
+                if (maxBufferBlockCap == 0)
+                {
+                    maxBufferBlockCap = DataflowBlockOptions.Unbounded;
+                }
+                var maxEncodingBlockCap = (int)Math.BigMul(_outer._transport.MaxPublishQueueSize,
                     _outer._options.Value.MaxNodesPerDataSet);
-
+                if (maxEncodingBlockCap == 0)
+                {
+                    maxEncodingBlockCap = DataflowBlockOptions.Unbounded;
+                }
                 _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
                 _notificationBufferBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
-                    _outer._maxNotificationsPerMessage, new GroupingDataflowBlockOptions
+                    Math.Max(1, _outer._transport.MaxNotificationsPerMessage), new GroupingDataflowBlockOptions
                     {
                         // BoundedCapacity = maxBufferBlockCap
                     });
@@ -412,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _sendBlock = new ActionBlock<(IEvent, Action)>(
                     SendAsync, new ExecutionDataflowBlockOptions
                     {
-                        BoundedCapacity = _outer._maxPublishQueueSize + 1,
+                        BoundedCapacity = _outer._transport.MaxPublishQueueSize + 1,
                         MaxDegreeOfParallelism = 1,
                         EnsureOrdered = true
                     });
@@ -461,9 +396,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (!_started)
                 {
                     _started = true;
-                    if (_outer._batchTriggerInterval > TimeSpan.Zero)
+                    if (_outer._transport.BatchTriggerInterval > TimeSpan.Zero)
                     {
-                        _batchTriggerIntervalTimer.Change(_outer._batchTriggerInterval,
+                        _batchTriggerIntervalTimer.Change(_outer._transport.BatchTriggerInterval,
                             Timeout.InfiniteTimeSpan);
                     }
                     _logger.LogInformation(
@@ -471,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _índex, args.SubscriptionName, args.EndpointUrl);
                 }
 
-                if (_sendBlock.InputCount >= _outer._maxPublishQueueSize)
+                if (_sendBlock.InputCount >= _outer._transport.MaxPublishQueueSize)
                 {
                     Interlocked.Increment(ref _outer._sendBlockInputDroppedCount);
 
@@ -594,8 +529,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     Interlocked.Add(ref _outer._notificationBufferInputCount, -input.Length);
-                    return _outer._messageEncoder.Encode(_outer._eventClient.CreateEvent,
-                        input, _outer._maxNetworkMessageSize, _outer._maxNotificationsPerMessage != 1);
+                    return _outer._messageEncoder.Encode(
+                        _outer._transport.EventClient.CreateEvent, input,
+                        _outer._transport.MaxNetworkMessageSize,
+                        _outer._transport.MaxNotificationsPerMessage != 1);
                 }
                 catch (Exception e)
                 {
@@ -611,13 +548,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="state"></param>
             private void BatchTriggerIntervalTimer_Elapsed(object? state)
             {
-                if (_outer._batchTriggerInterval > TimeSpan.Zero)
+                if (_outer._transport.BatchTriggerInterval > TimeSpan.Zero)
                 {
-                    _batchTriggerIntervalTimer.Change(_outer._batchTriggerInterval,
+                    _batchTriggerIntervalTimer.Change(_outer._transport.BatchTriggerInterval,
                         Timeout.InfiniteTimeSpan);
                 }
-                _logger.LogDebug("Trigger notification batch (Interval:{Interval})...",
-                   _outer._batchTriggerInterval);
+                _logger.LogTrace("Trigger notification batch (Interval:{Interval})...",
+                    _outer._transport.BatchTriggerInterval);
                 _notificationBufferBlock.TriggerBatch();
             }
 
@@ -647,6 +584,210 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Filter model changes
             return notifications
                 .Where(n => (n.Flags & MonitoredItemSourceFlags.ModelChanges) == 0);
+        }
+
+        /// <summary>
+        /// Log notifications for debugging
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="dropped"></param>
+        private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
+        {
+            // Filter fields to log
+            if (_logNotificationsFilter != null)
+            {
+                var matched = args.SubscriptionName != null &&
+                    _logNotificationsFilter.IsMatch(args.SubscriptionName);
+
+                for (var i = 0; i < args.Notifications.Count && !matched; i++)
+                {
+                    var itemName =
+                        args.Notifications[i].DataSetFieldName ??
+                        args.Notifications[i].DataSetName;
+                    if (itemName != null)
+                    {
+                        matched = _logNotificationsFilter.IsMatch(itemName);
+                    }
+                }
+                if (!matched)
+                {
+                    // Do not log anything
+                    return;
+                }
+            }
+
+            var notifications = Stringify(_filterNotifications(args.Notifications));
+            if (!string.IsNullOrEmpty(notifications))
+            {
+                _logger.LogInformation(
+                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
+                    dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
+                    args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
+                    args.SubscriptionName, notifications);
+            }
+
+            static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
+            {
+                var sb = new StringBuilder();
+                foreach (var item in notifications)
+                {
+                    sb
+                        .AppendLine()
+                        .Append("   |")
+                        .Append(item.Value?.ServerTimestamp
+                            .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                        .Append('|')
+                        .Append(item.DataSetFieldName ?? item.DataSetName)
+                        .Append('|')
+                        .Append(item.Value?.SourceTimestamp
+                            .ToString("hh:mm:ss:ffffff", CultureInfo.CurrentCulture))
+                        .Append('|')
+                        .Append(item.Value?.Value)
+                        .Append('|')
+                        .Append(item.Value?.StatusCode)
+                        .Append('|')
+                        ;
+                }
+                return sb.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Transport configuration
+        /// </summary>
+        internal record class TransportOptions
+        {
+            /// <summary>
+            /// Event client selected
+            /// </summary>
+            public IEventClient EventClient { get; }
+
+            /// <summary>
+            /// Notifications per message
+            /// </summary>
+            public int MaxNotificationsPerMessage { get; }
+
+            /// <summary>
+            /// Max network messages
+            /// </summary>
+            public int MaxNetworkMessageSize { get; }
+
+            /// <summary>
+            /// Max publish queue size
+            /// </summary>
+            public int MaxPublishQueueSize { get; }
+
+            /// <summary>
+            /// Max batch trigger interval
+            /// </summary>
+            public TimeSpan BatchTriggerInterval { get; }
+
+            /// <summary>
+            /// Iot edge configured
+            /// </summary>
+            public bool IsIoTEdge
+                => EventClient.Name.Equals(nameof(WriterGroupTransport.IoTHub),
+                        StringComparison.OrdinalIgnoreCase);
+
+            /// <summary>
+            /// Max publish queue partitions
+            /// </summary>
+            public int MaxPublishQueuePartitions { get; }
+
+            /// <summary>
+            /// Create null options
+            /// </summary>
+            public TransportOptions()
+            {
+                EventClient = new NullEventClient();
+            }
+
+            /// <summary>
+            /// Create options
+            /// </summary>
+            /// <param name="writerGroup"></param>
+            /// <param name="eventClients"></param>
+            /// <param name="options"></param>
+            public TransportOptions(WriterGroupModel writerGroup,
+                List<IEventClient> eventClients, IOptions<PublisherOptions> options)
+            {
+                EventClient = eventClients
+                        .Find(e => e.Name.Equals(writerGroup.Transport?.ToString(),
+                            StringComparison.OrdinalIgnoreCase))
+                    ?? eventClients
+                        .Find(e => e.Name.Equals(options.Value.DefaultTransport?.ToString(),
+                            StringComparison.OrdinalIgnoreCase))
+                    ?? eventClients[0];
+
+                MaxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
+                    ?? options.Value.BatchSize ?? 0;
+                MaxNetworkMessageSize = (int?)writerGroup.MaxNetworkMessageSize
+                    ?? options.Value.MaxNetworkMessageSize ?? 0;
+
+                if (MaxNetworkMessageSize <= 0)
+                {
+                    MaxNetworkMessageSize = int.MaxValue;
+                }
+                if (MaxNetworkMessageSize > EventClient.MaxEventPayloadSizeInBytes)
+                {
+                    MaxNetworkMessageSize = EventClient.MaxEventPayloadSizeInBytes;
+                }
+
+                BatchTriggerInterval = writerGroup.PublishingInterval
+                    ?? options.Value.BatchTriggerInterval ?? TimeSpan.Zero;
+                //
+                // If the max notification per message is 1 then there is no need to
+                // have an interval publishing as the messages are emitted as soon
+                // as they arrive anyway
+                //
+                if (MaxNotificationsPerMessage == 1)
+                {
+                    BatchTriggerInterval = TimeSpan.Zero;
+                }
+                MaxPublishQueueSize = (int?)writerGroup.PublishQueueSize
+                    ?? options.Value.MaxNetworkMessageSendQueueSize ?? kMaxQueueSize;
+
+                //
+                // If undefined, set notification buffer to 1 if no publishing interval
+                // otherwise queue as much as reasonable
+                //
+                if (MaxNotificationsPerMessage <= 0)
+                {
+                    MaxNotificationsPerMessage = BatchTriggerInterval == TimeSpan.Zero ?
+                        1 : MaxPublishQueueSize;
+                }
+
+                MaxPublishQueuePartitions = writerGroup.PublishQueuePartitions ??
+                    options.Value.DefaultWriterGroupPartitions ?? 0;
+            }
+
+            /// <summary>
+            /// Log the transportation options
+            /// </summary>
+            /// <param name="writerGroup"></param>
+            /// <param name="logger"></param>
+            public void Log(WriterGroupModel writerGroup, ILogger logger)
+            {
+                logger.LogInformation("Writer group {WriterGroup} set up to publish notifications " +
+                    "{Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and " +
+                    "{MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...",
+                    writerGroup.Name ?? Constants.DefaultWriterGroupName,
+                    BatchTriggerInterval == TimeSpan.Zero ?
+                        "as soon as they arrive" : $"every {BatchTriggerInterval} (hh:mm:ss)",
+                    MaxNotificationsPerMessage == 1 ?
+                        "and individually" :
+                $"or when a batch of {MaxNotificationsPerMessage} notifications is ready",
+                    MaxNetworkMessageSize == int.MaxValue ?
+                        "unlimited size" : $"at most {MaxNetworkMessageSize / 1024} kb",
+                    EventClient.Name, writerGroup.HeaderLayoutUri ?? "unknown",
+                    writerGroup.MessageType ?? MessageEncoding.Json, MaxPublishQueueSize);
+            }
+
+            /// <summary>
+            /// With 256k limit this is 1 GB.
+            /// TODO: Must be related to the actual limit size
+            /// </summary>
+            private const int kMaxQueueSize = 4096;
         }
 
         /// <summary>
@@ -689,30 +830,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "Number of failures sending a network message.");
 
             _meter.CreateObservableCounter("iiot_edge_publisher_sent_iot_messages",
-                () => new Measurement<long>(_isIoTEdge ? _messagesSentCount : 0, _metrics.TagList),
+                () => new Measurement<long>(_transport.IsIoTEdge ? _messagesSentCount : 0, _metrics.TagList),
                 description: "Number of IoT messages successfully sent via transport.");
             _meter.CreateObservableGauge("iiot_edge_publisher_sent_iot_messages_per_second",
-                () => new Measurement<double>(_isIoTEdge ? _messagesSentCount / UpTime : 0d, _metrics.TagList),
+                () => new Measurement<double>(_transport.IsIoTEdge ? _messagesSentCount / UpTime : 0d, _metrics.TagList),
                 description: "Messages/second sent via transport.");
             _meter.CreateObservableCounter("iiot_edge_publisher_iothub_queue_dropped_count",
-                () => new Measurement<long>(_isIoTEdge ? _sendBlockInputDroppedCount : 0, _metrics.TagList),
+                () => new Measurement<long>(_transport.IsIoTEdge ? _sendBlockInputDroppedCount : 0, _metrics.TagList),
                 description: "Telemetry messages dropped due to overflow of the send queue.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_iothub_queue_size",
-                () => new Measurement<long>(_isIoTEdge ? _queue.SendInput : 0, _metrics.TagList),
+                () => new Measurement<long>(_transport.IsIoTEdge ? _queue.SendInput : 0, _metrics.TagList),
                 description: "Telemetry messages queued for sending upstream.");
             _meter.CreateObservableCounter("iiot_edge_publisher_failed_iot_messages",
-                () => new Measurement<long>(_isIoTEdge ? _errorCount : 0, _metrics.TagList),
+                () => new Measurement<long>(_transport.IsIoTEdge ? _errorCount : 0, _metrics.TagList),
                 description: "Number of failures sending a network message.");
         }
 
         static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
-
-        /// <summary>
-        /// With 256k limit this is 1 GB.
-        /// TODO: Must be related to the actual limit size
-        /// </summary>
-        private const int kMaxQueueSize = 4096;
 
         private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
         private DateTime _dataFlowStartTime = DateTime.MinValue;
@@ -721,15 +856,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private long _sendBlockInputDroppedCount;
         private long _dataflowInputDroppedCount;
         private long _notificationBufferInputCount;
-        private readonly int _maxNotificationsPerMessage;
-        private readonly int _maxNetworkMessageSize;
-        private readonly int _maxPublishQueueSize;
-        private readonly TimeSpan _batchTriggerInterval;
         private readonly IOptions<PublisherOptions> _options;
         private readonly IMessageEncoder _messageEncoder;
-        private readonly IPublishQueue _queue;
-        private readonly IEventClient _eventClient;
-        private readonly bool _isIoTEdge;
+        private IPublishQueue _queue;
+        private TransportOptions _transport;
+        private readonly List<IEventClient> _eventClients;
         private readonly ILogger _logger;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
@@ -737,7 +868,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Func<IList<MonitoredItemNotificationModel>,
             IEnumerable<MonitoredItemNotificationModel>> _filterNotifications;
         private readonly DateTime _startTime = DateTime.UtcNow;
-        private readonly CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _cts = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }

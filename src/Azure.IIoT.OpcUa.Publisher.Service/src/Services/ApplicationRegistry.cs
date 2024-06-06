@@ -1052,10 +1052,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="updater"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="OperationCanceledException"></exception>
         private async Task<ApplicationInfoModel?> UpdateApplicationAsync(string applicationId,
             Func<ApplicationInfoModel, bool?, (bool?, bool?)> updater, CancellationToken ct)
         {
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -1081,6 +1082,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     _logger.LogDebug(ex, "Retry updating application...");
                 }
             }
+            throw new OperationCanceledException();
         }
 
         /// <summary>
@@ -1107,10 +1109,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="precondition"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <exception cref="OperationCanceledException"></exception>
         private async Task<ApplicationInfoModel?> DeleteApplicationAsync(string applicationId,
             Func<ApplicationInfoModel?, bool>? precondition, CancellationToken ct)
         {
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -1138,9 +1141,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 {
                     // Retry create/update
                     _logger.LogDebug(ex, "Retry deleting application...");
-                    continue;
                 }
             }
+            throw new OperationCanceledException();
         }
 
         /// <summary>

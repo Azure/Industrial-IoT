@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ArgumentException(error, nameof(supervisorId));
             }
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -119,9 +119,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 catch (ResourceOutOfDateException ex)
                 {
                     _logger.LogDebug(ex, "Retrying updating supervisor...");
-                    continue;
                 }
             }
+            throw new OperationCanceledException();
         }
 
         /// <inheritdoc/>
