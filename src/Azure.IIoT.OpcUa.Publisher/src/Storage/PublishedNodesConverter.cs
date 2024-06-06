@@ -582,7 +582,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         ReadDisplayNameFromNode = node.FetchDisplayName,
                         MonitoringMode = null,
                         SubstituteValue = null,
-                        MetaDataProperties = null,
                         SkipFirst = node.SkipFirst,
                         DataChangeTrigger = node.DataChangeTrigger,
                         DeadbandValue = node.DeadbandValue,

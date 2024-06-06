@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Opc.Ua;
+    using System;
 
     /// <summary>
     /// Samples message extension flags
@@ -47,5 +48,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Degrade a single data set field to just value instead of writing key value dictionary object
         /// </summary>
         public const DataSetFieldContentMask SingleFieldDegradeToValue = (DataSetFieldContentMask)64;
+    }
+
+    /// <summary>
+    /// Avro extension
+    /// </summary>
+    [Flags]
+    public enum AvroNetworkMessageContentMask
+    {
+        /// <summary>
+        /// None
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Network message header
+        /// </summary>
+        NetworkMessageHeader = 1,
+
+        /// <summary>
+        /// DataSet message header
+        /// </summary>
+        DataSetMessageHeader = 2,
+
+        /// <summary>
+        /// Single
+        /// </summary>
+        SingleDataSetMessage = 4
     }
 }

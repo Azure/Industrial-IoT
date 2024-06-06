@@ -15,8 +15,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
 	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.48" />
+    <PackageReference Include="Microsoft.Json.Schema" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Encoders\Schemas\**\*.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\*.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

@@ -113,11 +113,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
             messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new DataSetMetaDataType
+            messages[10].MetaData = new PublishedDataSetMetaDataModel
             {
-                Name = "test",
-                Fields = new FieldMetaDataCollection {
-                    new FieldMetaData {
+                DataSetMetaData = new DataSetMetaDataModel
+                {
+                    Name = "test"
+                },
+                Fields = new[]
+                {
+                    new PublishedFieldMetaDataModel
+                    {
                         Name = "test",
                         BuiltInType = (byte)BuiltInType.UInt16
                     }
@@ -141,15 +146,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 100;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
             messages[0].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[0].MetaData = new DataSetMetaDataType
+            messages[0].MetaData = new PublishedDataSetMetaDataModel
             {
-                Name = "test",
-                Fields = Enumerable.Range(0, 10000).Select(r =>
-                    new FieldMetaData
+                DataSetMetaData = new DataSetMetaDataModel
+                {
+                    Name = "test"
+                },
+                Fields = Enumerable.Range(0, 10000)
+                    .Select(r => new PublishedFieldMetaDataModel
                     {
                         Name = "testfield" + r,
                         BuiltInType = (byte)BuiltInType.UInt16
-                    }).ToArray()
+                    })
+                    .ToList()
             };
 
             using var encoder = GetEncoder();

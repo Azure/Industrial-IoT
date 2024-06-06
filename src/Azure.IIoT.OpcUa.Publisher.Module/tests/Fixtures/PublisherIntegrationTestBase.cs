@@ -24,6 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Neovolve.Logging.Xunit;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Json message
@@ -47,11 +49,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// </summary>
         /// <param name="testOutputHelper"></param>
         /// <param name="timeout"></param>
+        /// <param name="testName"></param>
         public PublisherIntegrationTestBase(ITestOutputHelper testOutputHelper,
-            TimeSpan? timeout = null)
+            TimeSpan? timeout = null, string testName = null)
         {
             _cts = new CancellationTokenSource(timeout ?? kTotalTestTimeout);
             _testOutputHelper = testOutputHelper;
+            _logFactory = LogFactory.Create(testOutputHelper, Logging.Config);
+            _logger = _logFactory.CreateLogger(testName ?? "PublisherIntegrationTest");
         }
 
         /// <summary>
@@ -66,13 +71,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
                 if (_cts.IsCancellationRequested)
                 {
-                    _testOutputHelper.WriteLine(
+                    _logger.LogError(
                         "OperationCanceledException thrown due to test time out.");
                 }
 
-                StopPublisher();
+                if (_publisher != null)
+                {
+                    StopPublisherAsync().GetAwaiter().GetResult();
+                }
 
                 _cts.Dispose();
+                _logFactory.Dispose();
             }
         }
 
@@ -165,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -249,6 +258,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 }
             }
             catch (OperationCanceledException) { }
+            _logger.LogInformation("Received {MessageCount} messages in {Elapsed}.",
+                messages.Count, stopWatch.Elapsed);
             return (metadata, messages.Take(messageCount).ToList());
 
             static void Add(List<JsonMessage> messages, JsonElement item, ref JsonMessage? metadata,
@@ -302,6 +313,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         protected void StartPublisher(string test, string publishedNodesFile = null,
             string[] arguments = default, MqttVersion? version = null, int? reverseConnectPort = null)
         {
+            var sw = Stopwatch.StartNew();
+            _logger = _logFactory.CreateLogger(test);
+
             arguments ??= Array.Empty<string>();
             _publishedNodesFilePath = Path.GetTempFileName();
             WritePublishedNodes(test, publishedNodesFile, reverseConnectPort != null);
@@ -328,6 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             _publisher = new PublisherModule(null, null, null, null,
                 _testOutputHelper, arguments, version);
+            _logger.LogInformation("Publisher started in {Elapsed}.", sw.Elapsed);
         }
 
         /// <summary>
@@ -355,17 +370,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <summary>
         /// Stop publisher
         /// </summary>
-        protected void StopPublisher()
+        protected async Task StopPublisherAsync()
         {
             if (_publisher != null)
             {
-                _publisher.Dispose();
+                var sw = Stopwatch.StartNew();
+
+                await _publisher.DisposeAsync();
                 _publisher = null;
 
                 if (File.Exists(_publishedNodesFilePath))
                 {
                     File.Delete(_publishedNodesFilePath);
                 }
+                _logger.LogInformation("Publisher stopped in {Elapsed}.", sw.Elapsed);
             }
         }
 
@@ -392,6 +410,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly CancellationTokenSource _cts;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = new();
+        private readonly ILoggerFactory _logFactory;
+        private ILogger _logger;
         private PublisherModule _publisher;
         private string _publishedNodesFilePath;
         private bool _disposedValue;

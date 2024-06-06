@@ -106,6 +106,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         ReplyTo = 0x4000,
 
         /// <summary>
+        /// Wrap messages in array (publisher extension)
+        /// </summary>
+        [EnumMember(Value = "UseArrayEnvelope")]
+        UseArrayEnvelope = 0x1000000,
+
+        /// <summary>
+        /// Use compatibility mode with 2.8 (publisher extension)
+        /// </summary>
+        [EnumMember(Value = "UseCompatibilityMode")]
+        UseCompatibilityMode = 0x2000000,
+
+        /// <summary>
         /// Monitored item message (publisher extension)
         /// </summary>
         [EnumMember(Value = "MonitoredItemMessage")]

@@ -29,6 +29,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             "application/x-network-message-uadp-v1";
 
         /// <summary>
+        /// Avro network message
+        /// </summary>
+        public const string NetworkMessageAvro =
+            "application/x-network-message-avro-v0";
+
+        /// <summary>
         /// Message contains discovery events
         /// </summary>
         public const string DiscoveryEvents =
@@ -57,11 +63,5 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         public const string DeviceLifecycleNotification =
             "deviceLifecycleNotification";
-
-        /// <summary>
-        /// Content is a twin change event
-        /// </summary>
-        public const string TwinChangeNotification =
-            "twinChangeNotification";
     }
 }

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Opc.Ua;
     using System;
@@ -48,6 +49,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public bool UseAdvancedEncoding { get; set; }
 
         /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public NamespaceFormat NamespaceFormat { get; set; }
+
+        /// <summary>
         /// Use gzip compression
         /// </summary>
         public bool UseGzipCompression { get; set; }
@@ -75,15 +81,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-            if (obj is not JsonMetaDataMessage wrapper)
+            if (!base.Equals(obj))
             {
                 return false;
             }
-            if (!base.Equals(obj))
+            if (obj is not JsonMetaDataMessage wrapper)
             {
                 return false;
             }
@@ -109,6 +111,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             hash.Add(DataSetWriterId);
             hash.Add(MetaData);
             return hash.ToHashCode();
+        }
+
+        /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
@@ -153,8 +162,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     (Stream?)compression ?? memoryStream, context)
                 {
                     UseAdvancedEncoding = UseAdvancedEncoding,
+                    NamespaceFormat = NamespaceFormat,
                     UseUriEncoding = UseAdvancedEncoding,
-                    IgnoreDefaultValues = UseAdvancedEncoding,
+                    IgnoreDefaultValues = true,
                     IgnoreNullValues = true,
                     UseReversibleEncoding = false
                 };

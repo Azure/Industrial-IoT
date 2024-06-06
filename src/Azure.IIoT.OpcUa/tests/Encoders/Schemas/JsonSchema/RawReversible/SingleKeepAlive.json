@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet",
+  "definitions": {
+    "org.opcfoundation.UA.ServerState": {
+      "$id": "http://opcfoundation.org/UA/#ServerState",
+      "title": "ServerState",
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "format": "int32"
+    },
+    "org.github.microsoft.opcpublisher.ServerStateVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#ServerStateVariant",
+      "title": "Variant Field of Type ServerState",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 29
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.ServerState"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
+      "type": "object",
+      "properties": {
+        "State": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ServerStateVariant"
+        }
+      }
+    }
+  }
+}

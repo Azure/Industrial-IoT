@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Opc.Ua;
     using System;
@@ -114,6 +115,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public bool UseAdvancedEncoding { get; set; }
 
         /// <summary>
+        /// Namespace format to use
+        /// </summary>
+        public NamespaceFormat NamespaceFormat { get; set; }
+
+        /// <summary>
         /// Wrap the resulting message into an array. This is for legacy compatiblity
         /// where we used to encode a set of network messages in arrays. This is the
         /// default in OPC Publisher 2.+ if strict compliance with standard is not
@@ -183,6 +189,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             hash.Add(MessageId);
             hash.Add(DataSetWriterGroup);
             return hash.ToHashCode();
+        }
+
+        /// <inheritdoc/>
+        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+            IDataSetMetaDataResolver? resolver)
+        {
+            var compression = UseGzipCompression ?
+                new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true) : null;
+            try
+            {
+                using var decoder = new JsonDecoderEx((Stream?)compression ?? stream,
+                    context, useJsonLoader: false);
+                var readArray = decoder.ReadArray(null, () => TryReadNetworkMessage(decoder));
+                if (readArray?.All(s => s) != true ||
+                    stream.Length != stream.Position)
+                {
+                    return false;
+                }
+                return true;
+            }
+            finally
+            {
+                compression?.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -261,6 +291,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         {
                             UseAdvancedEncoding = UseAdvancedEncoding,
                             UseUriEncoding = UseAdvancedEncoding,
+                            NamespaceFormat = NamespaceFormat,
                             IgnoreDefaultValues = true,
                             IgnoreNullValues = true,
                             UseReversibleEncoding = false

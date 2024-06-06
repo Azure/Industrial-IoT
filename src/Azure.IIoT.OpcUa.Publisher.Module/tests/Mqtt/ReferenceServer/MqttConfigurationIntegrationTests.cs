@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -305,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 

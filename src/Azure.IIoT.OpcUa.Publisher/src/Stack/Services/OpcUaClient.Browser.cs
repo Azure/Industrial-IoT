@@ -207,7 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         bool repeatBrowse;
                         var allBrowseResults = new List<(NodeId, RelativePath, BrowseResult)>();
                         var unprocessedOperations = new BrowseDescriptionCollection();
-
                         BrowseResultCollection? browseResultCollection = null;
                         do
                         {
@@ -366,6 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     _knownNodes.Clear();
                 }
+                catch (OperationCanceledException) { return; }
                 catch (Exception ex)
                 {
                     HandleException(foundReferences, foundNodes, ex);
@@ -432,8 +432,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="foundNodes"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId, RelativePath targetPath,
-                Dictionary<NodeId, (RelativePath Path, Node Node)> foundNodes, CancellationToken ct)
+            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId,
+                RelativePath targetPath, Dictionary<NodeId, (RelativePath Path, Node Node)> foundNodes,
+                CancellationToken ct)
             {
                 try
                 {

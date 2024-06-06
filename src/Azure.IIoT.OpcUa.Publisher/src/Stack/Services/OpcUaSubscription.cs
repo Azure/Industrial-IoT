@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Current metadata
         /// </summary>
-        internal DataSetMetaDataType? CurrentMetaData =>
+        internal PublishedDataSetMetaDataModel? CurrentMetaData =>
             _metaDataLoader.IsValueCreated ? _metaDataLoader.Value.MetaData : null;
 
         /// <summary>
@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (session == null)
                 {
                     // Can only send with context
-                    _logger.LogWarning("Failed to send notification since no session exists " +
+                    _logger.LogDebug("Failed to send notification since no session exists " +
                         "to use as context. Notification was dropped.");
                     return;
                 }
@@ -532,7 +532,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="monitoredItems"></param>
         /// <param name="ct"></param>
         private async Task<bool> SynchronizeMonitoredItemsAsync(
-            IEnumerable<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
+            IReadOnlyList<BaseMonitoredItemModel> monitoredItems, CancellationToken ct)
         {
             Debug.Assert(Session != null);
             if (Session is not OpcUaSession session)
@@ -1436,7 +1436,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "EventChange for subscription {Subscription} received without a session {Session}.",
@@ -1548,7 +1548,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "Keep alive event for subscription {Subscription} received without session {Session}.",
@@ -1610,7 +1610,7 @@ Actual (revised) state/desired state:
             Debug.Assert(ReferenceEquals(subscription, this));
             Debug.Assert(!_disposed);
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",
@@ -1681,7 +1681,7 @@ Actual (revised) state/desired state:
             Debug.Assert(!_disposed);
 
             var session = Session;
-            if (session?.MessageContext == null)
+            if (session is not IOpcUaSession sessionContext)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",
@@ -1698,7 +1698,8 @@ Actual (revised) state/desired state:
                 var publishTime = notification.PublishTime;
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new Notification(this, Id, session.MessageContext, sequenceNumber: sequenceNumber)
+                var message = new Notification(this, Id, session.MessageContext,
+                    sequenceNumber: sequenceNumber)
                 {
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1729,7 +1730,7 @@ Actual (revised) state/desired state:
                         dropped ? "dropped" : "already received", publishTime);
                 }
 
-                foreach (var item in notification.MonitoredItems.OrderBy(m => m.Value?.SourceTimestamp))
+                foreach (var item in notification.MonitoredItems)
                 {
                     Debug.Assert(item != null);
                     if (TryGetMonitoredItemForNotification(item.ClientHandle, out var monitoredItem) &&
@@ -1835,7 +1836,7 @@ Actual (revised) state/desired state:
         {
             if (sequenceNumber.HasValue && Id == subscriptionId)
             {
-                _logger.LogDebug("Advancing stream #{SubscriptionId} to #{Position}",
+                _logger.LogTrace("Advancing stream #{SubscriptionId} to #{Position}",
                     subscriptionId, sequenceNumber);
                 _currentSequenceNumber = sequenceNumber.Value;
             }
@@ -2048,7 +2049,7 @@ Actual (revised) state/desired state:
             public object? Context { get; set; }
 
             /// <inheritdoc/>
-            public DataSetMetaDataType? MetaData { get; private set; }
+            public PublishedDataSetMetaDataModel? MetaData { get; private set; }
 
             /// <inheritdoc/>
             public uint SequenceNumber { get; internal set; }
@@ -2211,7 +2212,7 @@ Actual (revised) state/desired state:
             /// <summary>
             /// Current meta data
             /// </summary>
-            public DataSetMetaDataType? MetaData { get; private set; }
+            public PublishedDataSetMetaDataModel? MetaData { get; private set; }
 
             /// <summary>
             /// Create loader
@@ -2306,19 +2307,18 @@ Actual (revised) state/desired state:
                 // such as twin, but this is ok for the sake of being able to have
                 // an incremental version number defining metadata changes.
                 //
-                var metaDataVersion = DateTime.UtcNow.ToBinary();
-                var major = (uint)(metaDataVersion >> 32);
-                var minor = (uint)metaDataVersion;
+                var minor = (uint)DateTime.UtcNow.ToBinary();
 
                 _subscription._logger.LogDebug(
                     "Loading Metadata {Major}.{Minor} for {Subscription}...",
-                    major, minor, this);
+                    _subscription._template.Configuration.MetaData.MajorVersion ?? 1,
+                    minor, this);
 
                 var sw = Stopwatch.StartNew();
                 var typeSystem = await args.sessionHandle.GetComplexTypeSystemAsync(
                     ct).ConfigureAwait(false);
-                var dataTypes = new NodeIdDictionary<DataTypeDescription>();
-                var fields = new FieldMetaDataCollection();
+                var dataTypes = new NodeIdDictionary<object>();
+                var fields = new List<PublishedFieldMetaDataModel>();
                 foreach (var monitoredItem in args.monitoredItemsInDataSet)
                 {
                     await monitoredItem.GetMetaDataAsync(args.sessionHandle, typeSystem,
@@ -2327,31 +2327,23 @@ Actual (revised) state/desired state:
 
                 _subscription._logger.LogInformation(
                     "Loading Metadata {Major}.{Minor} for {Subscription} took {Duration}.",
-                    major, minor, this, sw.Elapsed);
+                    _subscription._template.Configuration.MetaData.MajorVersion ?? 1,
+                    minor, this, sw.Elapsed);
 
-                MetaData = new DataSetMetaDataType
+                MetaData = new PublishedDataSetMetaDataModel
                 {
-                    Name =
-                        _subscription._template.Configuration.MetaData.Name,
-                    DataSetClassId =
-                        (Uuid)_subscription._template.Configuration.MetaData.DataSetClassId,
-                    Namespaces =
-                        args.namespaces.ToArray(),
+                    DataSetMetaData =
+                        _subscription._template.Configuration.MetaData.Clone(),
                     EnumDataTypes =
-                        dataTypes.Values.OfType<EnumDescription>().ToArray(),
+                        dataTypes.Values.OfType<EnumDescriptionModel>().ToList(),
                     StructureDataTypes =
-                        dataTypes.Values.OfType<StructureDescription>().ToArray(),
+                        dataTypes.Values.OfType<StructureDescriptionModel>().ToList(),
                     SimpleDataTypes =
-                        dataTypes.Values.OfType<SimpleTypeDescription>().ToArray(),
+                        dataTypes.Values.OfType<SimpleTypeDescriptionModel>().ToList(),
                     Fields =
                         fields,
-                    Description =
-                        _subscription._template.Configuration.MetaData.Description,
-                    ConfigurationVersion = new ConfigurationVersionDataType
-                    {
-                        MajorVersion = major,
-                        MinorVersion = minor
-                    }
+                    MinorVersion =
+                        minor
                 };
             }
 

@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ArgumentException(error, nameof(discovererId));
             }
 
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -140,9 +140,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 catch (ResourceOutOfDateException ex)
                 {
                     _logger.LogDebug(ex, "Retrying updating discoverer...");
-                    continue;
                 }
             }
+            throw new OperationCanceledException();
         }
 
         /// <inheritdoc/>

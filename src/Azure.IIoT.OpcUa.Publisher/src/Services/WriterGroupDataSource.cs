@@ -712,11 +712,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // Metadata reference is owned by the notification/message, a new metadata is
                                 // created when it changes so old one is not mutated and this should be safe.
                                 //
-                                if (_currentMetadataMajorVersion != notification.MetaData.ConfigurationVersion.MajorVersion &&
-                                    _currentMetadataMinorVersion != notification.MetaData.ConfigurationVersion.MinorVersion)
+                                if (_currentMetadataMajorVersion != notification.MetaData.DataSetMetaData.MajorVersion ||
+                                    _currentMetadataMinorVersion != notification.MetaData.MinorVersion)
                                 {
-                                    _currentMetadataMajorVersion = notification.MetaData.ConfigurationVersion.MajorVersion;
-                                    _currentMetadataMinorVersion = notification.MetaData.ConfigurationVersion.MinorVersion;
+                                    _currentMetadataMajorVersion = notification.MetaData.DataSetMetaData.MajorVersion;
+                                    _currentMetadataMinorVersion = notification.MetaData.MinorVersion;
                                     sendMetadata = true;
                                 }
                                 if (sendMetadata)
@@ -777,7 +777,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MessageType MessageType => MessageType.Metadata;
 
                 /// <inheritdoc/>
-                public DataSetMetaDataType? MetaData { get; }
+                public PublishedDataSetMetaDataModel? MetaData { get; }
 
                 /// <inheritdoc/>
                 public string? SubscriptionName { get; }
@@ -976,7 +976,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private DataSetWriterModel _dataSetWriter;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
-            private uint _currentMetadataMajorVersion;
+            private uint? _currentMetadataMajorVersion;
             private uint _currentMetadataMinorVersion;
             private bool _sendKeepAlives;
             private bool _disposed;

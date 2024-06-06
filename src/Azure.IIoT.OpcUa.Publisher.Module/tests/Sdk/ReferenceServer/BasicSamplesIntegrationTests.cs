@@ -117,7 +117,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTest), "./Resources/HeartbeatErrors.json",
+            var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTest),
+                "./Resources/HeartbeatErrors.json",
                 TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--hbb={behavior}" });
 
             // Assert
@@ -128,7 +129,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal("i=932534", message.GetProperty("NodeId").GetString());
             Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
             Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
-            Assert.Equal("BadNodeIdUnknown", message.GetProperty("Value").GetProperty("StatusCode").GetProperty("Symbol").GetString());
+            Assert.Equal("BadNodeIdUnknown", message.GetProperty("Value")
+                .GetProperty("StatusCode").GetProperty("Symbol").GetString());
         }
 
         [Fact]
@@ -136,7 +138,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTest), "./Resources/Deadband.json",
+            var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTest),
+                "./Resources/Deadband.json",
                 TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" });
 
             // Assert
@@ -213,14 +216,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotEmpty(message.GetProperty("Value").GetProperty("EventId").GetString());
         }
 
-        [Theory]
-        [InlineData("./Resources/SimpleEvents.json")]
-        public async Task CanEncodeWithReversibleEncodingSamplesTest(string publishedNodesFile)
+        [Fact]
+        public async Task CanEncodeWithReversibleEncodingSamplesTest()
         {
             // Arrange
             // Act
             var result = await ProcessMessagesAsync(
-                nameof(CanEncodeWithReversibleEncodingSamplesTest), publishedNodesFile,
+                nameof(CanEncodeWithReversibleEncodingSamplesTest), "./Resources/SimpleEvents.json",
                 arguments: new[] { "--mm=Samples", "--me=JsonReversible" }
             );
 
@@ -337,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -375,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -421,7 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -485,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 
@@ -555,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                StopPublisher();
+                await StopPublisherAsync();
             }
         }
 

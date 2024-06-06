@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum WriterGroupTransport
     {
         /// <summary>
-        /// IoT Hub or IoT Edge
+        /// Azure IoT Hub or Azure IoT Edge
         /// </summary>
         [EnumMember(Value = "IoTHub")]
         IoTHub,

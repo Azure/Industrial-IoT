@@ -26,9 +26,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="model"></param>
         /// <param name="that"></param>
-        /// <param name="includeTriggerNodes"></param>
+        /// <param name="includeTriggeredNodes"></param>
         public static bool IsSame(this OpcNodeModel? model, OpcNodeModel? that,
-            bool includeTriggerNodes = true)
+            bool includeTriggeredNodes = true)
         {
             if (ReferenceEquals(model, that))
             {
@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (includeTriggerNodes &&
+            if (includeTriggeredNodes &&
                 model.TriggeredNodes?.SetEqualsSafe(that.TriggeredNodes,
                     (a, b) => a.IsSame(b, false)) == false)
             {

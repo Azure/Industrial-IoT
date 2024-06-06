@@ -34,5 +34,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "description", Order = 4,
             EmitDefaultValue = false)]
         public string? Description { get; set; }
+
+        /// <summary>
+        /// Major version
+        /// </summary>
+        [DataMember(Name = "majorVersion", Order = 5,
+            EmitDefaultValue = false)]
+        public uint? MajorVersion { get; set; }
     }
 }
