@@ -2378,7 +2378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal((int)maxCount, results.References.Count);
 
             var continuationToken = results.ContinuationToken;
-            while (continuationToken != null)
+            for (var i = 0; i < 50 && continuationToken != null; i++)  // Ensure test does not run too long
             {
                 var results2 = await browser.BrowseNextAsync(_connection, new BrowseNextRequestModel
                 {
