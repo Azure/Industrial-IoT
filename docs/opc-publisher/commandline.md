@@ -280,6 +280,7 @@ Messaging configuration
                                Allowed values:
                                    `IoTHub`
                                    `Mqtt`
+                                   `EventHub`
                                    `Dapr`
                                    `Http`
                                    `FileSystem`
@@ -323,6 +324,15 @@ Transport settings
                                    `Any`
                                Default: `Mqtt` if device or edge hub connection
                                string is provided, ignored otherwise.
+      --eh, --eventhubnamespaceconnectionstring, --EventHubNamespaceConnectionString=VALUE
+                             The connection string of an existing event hub
+                               namespace to use for the Azure EventHub
+                               transport.
+                               Default: `not set`.
+      --sg, --schemagroup, --SchemaGroupName=VALUE
+                             The schema group in an event hub namespace to
+                               publish message schemas to.
+                               Default: `not set`.
   -d, --dcs, --daprconnectionstring, --DaprConnectionString=VALUE
                              Connect the OPC Publisher to a dapr pub sub
                                component using a connection string.
@@ -331,7 +341,8 @@ Transport settings
                                side car connection if needed.
                                Use the format 'PubSubComponent=<PubSubComponent>
                                [;GrpcPort=<GrpcPort>;HttpPort=<HttpPort>[;
-                               Scheme=<'https'|'http'>][;Host=<IPorDnsName>]][;ApiKey=<ApiKey>]'.
+                               Scheme=<'https'|'http'>][;Host=<IPorDnsName>]][;
+                               ApiKey=<ApiKey>]'.
                                To publish through dapr by default specify `-t=
                                Dapr`.
                                Default: `not set`.

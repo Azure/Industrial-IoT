@@ -117,11 +117,11 @@ namespace IIoTPlatformE2ETests.Twin
 
                 Assert.True(nodes.Count > 150);
 
-                Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId, StringComparison.Ordinal));
                 Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
                 Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5", n.NodeId, StringComparison.Ordinal));
                 Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc", n.NodeId, StringComparison.Ordinal));
                 Assert.Contains(nodes, n => string.Equals("i=15668", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/ReferenceTest;s=Scalar_Static_Mass_Boolean", n.NodeId, StringComparison.Ordinal));
             }
             catch
             {
@@ -144,11 +144,12 @@ namespace IIoTPlatformE2ETests.Twin
                 Assert.NotNull(nodes);
                 Assert.NotEmpty(nodes);
 
-                Assert.True(nodes.Count > 150);
+                Assert.True(nodes.Count > 5000);
 
                 Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=LongString1", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=LongString10kB", n.NodeId, StringComparison.Ordinal));
                 Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
+                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/ReferenceTest;s=Scalar_Simulation_Mass_Boolean_Boolean_22", n.NodeId, StringComparison.Ordinal));
             }
             catch
             {

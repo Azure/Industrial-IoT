@@ -6,6 +6,7 @@
 namespace IIoTPlatformE2ETests
 {
     using Azure.Messaging.EventHubs.Consumer;
+    using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices;
     using Newtonsoft.Json;
     using IIoTPlatformE2ETests.Config;
@@ -30,7 +31,6 @@ namespace IIoTPlatformE2ETests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json.Converters;
     using Xunit.Sdk;
-    using Microsoft.Azure.Devices.Common.Exceptions;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -175,7 +175,7 @@ namespace IIoTPlatformE2ETests
 
         private static async Task<PublishedNodesEntryModel[]> GetPublishedNodesEntryModel(string host, CancellationToken ct)
         {
-            for (var attempt = 0; ;  attempt++)
+            for (var attempt = 0; ; attempt++)
             {
                 try
                 {
