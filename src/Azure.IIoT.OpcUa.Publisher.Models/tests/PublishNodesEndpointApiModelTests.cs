@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
             var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
-            Assert.False(model.UseSecurity);
+            Assert.Null(model.UseSecurity);
 
             modelJson = """
 
