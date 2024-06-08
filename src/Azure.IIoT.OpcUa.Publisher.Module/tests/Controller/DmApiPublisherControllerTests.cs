@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 writer => Assert.Equal(publishNodesRequests[0].EndpointUrl,
                     writer.DataSet.DataSetSource.Connection.Endpoint.Url));
             Assert.Equal(publishNodesRequests
-                .Select(n => n.UseSecurity ? SecurityMode.SignAndEncrypt : SecurityMode.None)
+                .Select(n => (n.UseSecurity ?? false) ? SecurityMode.SignAndEncrypt : SecurityMode.None)
                 .ToHashSet(),
                 writerGroup.DataSetWriters
                 .Select(w => w.DataSet.DataSetSource.Connection.Endpoint.SecurityMode.Value)

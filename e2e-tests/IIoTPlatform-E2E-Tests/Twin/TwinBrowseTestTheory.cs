@@ -8,6 +8,7 @@ namespace IIoTPlatformE2ETests.Twin
     using IIoTPlatformE2ETests.TestExtensions;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -117,11 +118,18 @@ namespace IIoTPlatformE2ETests.Twin
 
                 Assert.True(nodes.Count > 150);
 
-                Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("i=15668", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/ReferenceTest;s=Scalar_Static_Mass_Boolean", n.NodeId, StringComparison.Ordinal));
+
+                var set = new HashSet<string>
+                {
+                    "i=2253",
+                    "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=5",
+                    "nsu=http://microsoft.com/Opc/OpcPlc/;s=OpcPlc",
+                    "i=15668",
+                    "nsu=http://microsoft.com/Opc/OpcPlc/ReferenceTest;s=Scalar_Static_Mass_Boolean",
+                };
+                var counted = nodes.Count(n => set.Contains(n.NodeId));
+                _context.OutputHelper.WriteLine($"Found count is {counted}");
+                Assert.Equal(set.Count, counted);
             }
             catch
             {
@@ -146,10 +154,16 @@ namespace IIoTPlatformE2ETests.Twin
 
                 Assert.True(nodes.Count > 5000);
 
-                Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=LongString10kB", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1", n.NodeId, StringComparison.Ordinal));
-                Assert.Contains(nodes, n => string.Equals("nsu=http://microsoft.com/Opc/OpcPlc/ReferenceTest;s=Scalar_Simulation_Mass_Boolean_Boolean_22", n.NodeId, StringComparison.Ordinal));
+                var set = new HashSet<string>
+                {
+                    "i=2254",
+                    "nsu=http://microsoft.com/Opc/OpcPlc/;s=LongString10kB",
+                    "nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt1",
+                    "nsu=http://microsoft.com/Opc/OpcPlc/ReferenceTest;s=Scalar_Simulation_Mass_Boolean_Boolean_22"
+                };
+                var counted = nodes.Count(n => set.Contains(n.NodeId));
+                _context.OutputHelper.WriteLine($"Found count is {counted}");
+                Assert.Equal(set.Count, counted);
             }
             catch
             {

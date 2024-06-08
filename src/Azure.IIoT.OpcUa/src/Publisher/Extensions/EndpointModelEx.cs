@@ -66,8 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if ((that.SecurityMode ?? SecurityMode.Best) !=
-                    (model.SecurityMode ?? SecurityMode.Best))
+            if ((that.SecurityMode ?? SecurityMode.NotNone) !=
+                    (model.SecurityMode ?? SecurityMode.NotNone))
             {
                 return false;
             }
@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     endpoint.SecurityPolicy ?? string.Empty);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(
-                    endpoint.SecurityMode ?? SecurityMode.Best);
+                    endpoint.SecurityMode ?? SecurityMode.NotNone);
 
             return hashCode;
         }

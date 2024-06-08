@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// endpoint. Overrides <see cref="UseSecurity"/> setting.
         /// If the security mode is not available with any
         /// configured security policy connectivity will fail.
-        /// Default: <see cref="SecurityMode.SignAndEncrypt"/> if
+        /// Default: <see cref="SecurityMode.NotNone"/> if
         /// <see cref="UseSecurity"/> is <c>true</c>,
         /// otherwise <see cref="SecurityMode.None"/>
         /// </summary>
@@ -264,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// the opc server.
         /// </summary>
         [DataMember(Name = "UseSecurity", Order = 30)]
-        public bool UseSecurity { get; set; }
+        public bool? UseSecurity { get; set; }
 
         /// <summary>
         /// authentication mode

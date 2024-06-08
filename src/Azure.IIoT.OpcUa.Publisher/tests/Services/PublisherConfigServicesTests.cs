@@ -57,6 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             _options.Value.PublishedNodesFile = _tempFile;
             _options.Value.UseFileChangePolling = true;
+            _options.Value.DefaultTransport = WriterGroupTransport.Mqtt;
             _options.Value.MessagingProfile = MessagingProfile.Get(
                 MessagingMode.PubSub, MessageEncoding.Json);
 
@@ -108,11 +109,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return configService;
         }
 
-        [Theory]
-        [InlineData("Publisher/pn_2.5_legacy.json")]
-        public async Task Legacy25PublishedNodesFile(string publishedNodesFile)
+        [Fact]
+        public async Task Legacy25PublishedNodesFile()
         {
-            Utils.CopyContent(publishedNodesFile, _tempFile);
+            Utils.CopyContent("Publisher/pn_2.5_legacy.json", _tempFile);
             await using (var configService = InitPublisherConfigService())
             {
                 var endpoints = await configService.GetConfiguredEndpointsAsync();
@@ -172,11 +172,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             }
         }
 
-        [Theory]
-        [InlineData("Publisher/pn_2.5_legacy_error.json")]
-        public async Task Legacy25PublishedNodesFileError(string publishedNodesFile)
+        [Fact]
+        public async Task Legacy25PublishedNodesFileError()
         {
-            Utils.CopyContent(publishedNodesFile, _tempFile);
+            Utils.CopyContent("Publisher/pn_2.5_legacy_error.json", _tempFile);
             await using var configService = InitPublisherConfigService();
 
             // Transformation of published nodes entries should throw a serialization error since
@@ -206,12 +205,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check null request.
             await FluentActions
                 .Invoking(async () => await configService
-                    .PublishNodesAsync(null)
-)
+                    .PublishNodesAsync(null))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage(exceptionResponse)
-;
+                .WithMessage(exceptionResponse);
 
             const int numberOfEndpoints = 1;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
@@ -227,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             await configService.PublishNodesAsync(endpoints[0]);
 
-            const string details = "{\"DataSetWriterId\":\"DataSetWriterId0\",\"DataSetWriterGroup\":\"DataSetWriterGroup\",\"OpcNodes\":[{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}],\"EndpointUrl\":\"opc.tcp://opcplc:50000\",\"UseSecurity\":false,\"OpcAuthenticationMode\":\"anonymous\"}";
+            const string details = "{\"DataSetWriterId\":\"DataSetWriterId0\",\"DataSetWriterGroup\":\"DataSetWriterGroup\",\"OpcNodes\":[{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}],\"EndpointUrl\":\"opc.tcp://opcplc:50000\",\"UseSecurity\":null,\"OpcAuthenticationMode\":\"anonymous\"}";
             exceptionResponse = "Response 404 Nodes not found: " + details;
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
@@ -242,12 +239,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // try to unpublish a not published nodes.
             await FluentActions
                 .Invoking(async () => await configService
-                    .UnpublishNodesAsync(endpointsToDelete[0])
-)
+                    .UnpublishNodesAsync(endpointsToDelete[0]))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage(exceptionResponse)
-;
+                .WithMessage(exceptionResponse);
 
             // test for null payload
             exceptionResponse = "Response 400 : ";
@@ -266,12 +261,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check null request.
             await FluentActions
                 .Invoking(async () => await configService
-                    .PublishNodesAsync(null)
-)
+                    .PublishNodesAsync(null))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 null request is provided")
-;
+                .WithMessage("Response 400 null request is provided");
 
             var request = new PublishedNodesEntryModel
             {
@@ -281,24 +274,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check null OpcNodes in request.
             await FluentActions
                 .Invoking(async () => await configService
-                    .PublishNodesAsync(request)
-)
+                    .PublishNodesAsync(request))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 null or empty OpcNodes is provided in request")
-;
+                .WithMessage("Response 400 null or empty OpcNodes is provided in request");
 
             request.OpcNodes = new List<OpcNodeModel>();
 
             // Check empty OpcNodes in request.
             await FluentActions
                 .Invoking(async () => await configService
-                    .PublishNodesAsync(request)
-)
+                    .PublishNodesAsync(request))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 null or empty OpcNodes is provided in request")
-;
+                .WithMessage("Response 400 null or empty OpcNodes is provided in request");
         }
 
         [Fact]
@@ -309,12 +298,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check null request.
             await FluentActions
                 .Invoking(async () => await configService
-                    .UnpublishNodesAsync(null)
-)
+                    .UnpublishNodesAsync(null))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 null request is provided")
-;
+                .WithMessage("Response 400 null request is provided");
         }
 
         [Theory]
@@ -352,11 +339,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check null or empty OpcNodes in request.
             await FluentActions
                 .Invoking(async () => await configService
-                    .UnpublishNodesAsync(endpoints[1])
-)
+                    .UnpublishNodesAsync(endpoints[1]))
                 .Should()
-                .NotThrowAsync()
-;
+                .NotThrowAsync();
 
             var configuredEndpoints = await configService
                 .GetConfiguredEndpointsAsync();
@@ -375,12 +360,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check call with null.
             await FluentActions
                 .Invoking(async () => await configService
-                    .GetConfiguredNodesOnEndpointAsync(null)
-)
+                    .GetConfiguredNodesOnEndpointAsync(null))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 null request is provided")
-;
+                .WithMessage("Response 400 null request is provided");
         }
 
         [Fact]
@@ -391,12 +374,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Check call with null.
             await FluentActions
                 .Invoking(async () => await configService
-                    .AddOrUpdateEndpointsAsync(null)
-)
+                    .AddOrUpdateEndpointsAsync(null))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 null request is provided")
-;
+                .WithMessage("Response 400 null request is provided");
         }
 
         [Fact]
@@ -427,12 +408,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .AddOrUpdateEndpointsAsync(endpoints))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2")
-;
+                .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2");
         }
 
         [Fact]
-        public async Task TestAddOrUpdateEndpointsMultipleEndpointEntriesTimesapn()
+        public async Task TestAddOrUpdateEndpointsWithNonDefaultWriterGroupTransportAndSecurity()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
+                })
+                .ToList();
+
+            var endpoints = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => GenerateEndpoint(i, opcNodes, false))
+                .ToList();
+
+            endpoints.ForEach(ep => ep.WriterGroupTransport = WriterGroupTransport.FileSystem);
+            endpoints.ForEach(ep => ep.EndpointSecurityMode = SecurityMode.Best);
+
+            await configService.AddOrUpdateEndpointsAsync(endpoints);
+
+            var configuredEndpoints = await configService.GetConfiguredEndpointsAsync();
+            Assert.All(configuredEndpoints, ep =>
+            {
+                Assert.Equal(WriterGroupTransport.FileSystem, ep.WriterGroupTransport);
+                Assert.Equal(SecurityMode.Best, ep.EndpointSecurityMode);
+            });
+        }
+
+        [Fact]
+        public async Task TestAddOrUpdateEndpointsMultipleEndpointEntriesTimespan()
         {
             await using var configService = InitPublisherConfigService();
 
@@ -463,8 +473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .AddOrUpdateEndpointsAsync(endpoints))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2")
-;
+                .WithMessage("Response 400 Request contains two entries for the same endpoint at index 0 and 2");
         }
 
         [Theory]
@@ -505,8 +514,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             for (var i = 0; i < numberOfEndpoints; i++)
             {
                 var endpointNodes = await configService
-                    .GetConfiguredNodesOnEndpointAsync(endpoints[i])
-;
+                    .GetConfiguredNodesOnEndpointAsync(endpoints[i]);
 
                 AssertSameNodes(endpoints[i], endpointNodes);
             }
@@ -546,28 +554,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     await FluentActions
                         .Invoking(async () => await configService
-                            .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
-)
+                            .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request }))
                         .Should()
                         .ThrowAsync<MethodCallStatusException>()
-                        .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}")
-;
+                        .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}");
                 }
                 else
                 {
                     await FluentActions
                         .Invoking(async () => await configService
-                            .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request })
-)
+                            .AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> { request }))
                         .Should()
-                        .NotThrowAsync()
-;
+                        .NotThrowAsync();
                 }
             }
 
             var configuredEndpoints = await configService
-                .GetConfiguredEndpointsAsync()
-;
+                .GetConfiguredEndpointsAsync();
             Assert.Empty(configuredEndpoints);
         }
 
@@ -602,8 +605,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             for (var i = 0; i < 3; i++)
             {
                 var endpointNodes = await configService
-                    .GetConfiguredNodesOnEndpointAsync(endpoints[i])
-;
+                    .GetConfiguredNodesOnEndpointAsync(endpoints[i]);
 
                 AssertSameNodes(endpoints[i], endpointNodes);
             }
@@ -616,19 +618,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             {
                 await FluentActions
                     .Invoking(async () => await publisherConfigurationService
-                        .GetConfiguredNodesOnEndpointAsync(endpoint)
-)
+                        .GetConfiguredNodesOnEndpointAsync(endpoint))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"Response 404 Endpoint not found: {endpoint.EndpointUrl}")
-;
+                    .WithMessage($"Response 404 Endpoint not found: {endpoint.EndpointUrl}");
             }
 
             // Those calls should throw.
             for (var i = 3; i < 5; i++)
             {
-                await AssertGetConfiguredNodesOnEndpointThrows(configService, endpoints[i])
-;
+                await AssertGetConfiguredNodesOnEndpointThrows(configService, endpoints[i]);
             }
 
             var updateRequest = Enumerable.Range(0, 5)
@@ -642,28 +641,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Should throw as updateRequest[3] endpoint is not present in current configuratoin.
             await FluentActions
                 .Invoking(async () => await configService
-                    .AddOrUpdateEndpointsAsync(updateRequest)
-)
+                    .AddOrUpdateEndpointsAsync(updateRequest))
                 .Should()
                 .ThrowAsync<MethodCallStatusException>()
-                .WithMessage($"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}")
-;
+                .WithMessage($"Response 404 Endpoint not found: {updateRequest[3].EndpointUrl}");
 
             updateRequest.RemoveAt(3);
             await configService.AddOrUpdateEndpointsAsync(updateRequest);
 
             // Check endpoint 0.
-            await AssertGetConfiguredNodesOnEndpointThrows(configService, endpoints[0])
-;
+            await AssertGetConfiguredNodesOnEndpointThrows(configService, endpoints[0]);
 
             // Check endpoint 1.
-            await AssertGetConfiguredNodesOnEndpointThrows(configService, endpoints[1])
-;
+            await AssertGetConfiguredNodesOnEndpointThrows(configService, endpoints[1]);
 
             // Check endpoint 2.
             var endpointNodes2 = await configService
-                .GetConfiguredNodesOnEndpointAsync(endpoints[2])
-;
+                .GetConfiguredNodesOnEndpointAsync(endpoints[2]);
 
             AssertSameNodes(updateRequest[2], endpointNodes2);
 
@@ -673,8 +667,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             // Check endpoint 4.
             var endpointNodes4 = await configService
-                .GetConfiguredNodesOnEndpointAsync(endpoints[4])
-;
+                .GetConfiguredNodesOnEndpointAsync(endpoints[4]);
 
             AssertSameNodes(updateRequest[3], endpointNodes4);
         }
@@ -691,8 +684,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Engine/empty_opc_nodes.json contains entries with null or empty OpcNodes.
             // Those entries should not result in any endpoint entries in publisherConfigurationService.
             var configuredEndpoints = await configService
-                .GetConfiguredEndpointsAsync()
-;
+                .GetConfiguredEndpointsAsync();
             Assert.Empty(configuredEndpoints);
 
             // There should also not be any job entries.
@@ -784,8 +776,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             _publisher.WriterGroups.Count
@@ -810,8 +801,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             _publisher.WriterGroups.Count
@@ -835,8 +825,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             _publisher.WriterGroups.Count
@@ -860,8 +849,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.UnpublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             _publisher.WriterGroups.Count
@@ -886,8 +874,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     .Invoking(async () => await configService.UnpublishNodesAsync(request))
                     .Should()
                     .ThrowAsync<MethodCallStatusException>()
-                    .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}")
-;
+                    .WithMessage($"Response 404 Endpoint not found: {request.EndpointUrl}");
             }
 
             _publisher.WriterGroups.Sum(writerGroup => writerGroup.DataSetWriters.Count)
@@ -931,8 +918,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             void CheckEndpointsAndNodes(
@@ -973,8 +959,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             // Check
@@ -986,8 +971,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 await FluentActions
                     .Invoking(async () => await configService.UnpublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             // Check

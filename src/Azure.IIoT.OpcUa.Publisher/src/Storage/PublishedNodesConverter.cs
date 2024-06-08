@@ -411,7 +411,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                     Url = b.Header.EndpointUrl,
                                                     SecurityPolicy = b.Header.EndpointSecurityPolicy,
                                                     SecurityMode = b.Header.EndpointSecurityMode ??
-                                                        (b.Header.UseSecurity ? SecurityMode.Best : SecurityMode.None)
+                                                        ((b.Header.UseSecurity ?? false) ? // Default for backcompat is no security
+                                                            SecurityMode.NotNone : SecurityMode.None)
                                                 },
                                                 User =
                                                     b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
@@ -689,18 +690,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 if (connection.Endpoint != null)
                 {
                     publishedNodesEntryModel.EndpointUrl = connection.Endpoint.Url;
-                    publishedNodesEntryModel.UseSecurity =
-                        connection.Endpoint.SecurityMode != null &&
-                        connection.Endpoint.SecurityMode != SecurityMode.None;
-                    publishedNodesEntryModel.EndpointSecurityMode = connection.Endpoint.SecurityMode;
                     publishedNodesEntryModel.EndpointSecurityPolicy = connection.Endpoint.SecurityPolicy;
-                    if (connection.Endpoint.SecurityPolicy == null &&
-                        connection.Endpoint.SecurityMode != SecurityMode.Sign &&
-                        connection.Endpoint.SecurityMode != SecurityMode.SignAndEncrypt)
+                    if (connection.Endpoint.SecurityMode == SecurityMode.None)
                     {
                         // Fall back to let UseSecurity decide on security (legacy)
-                        // This is either Best == true or None == false
+                        publishedNodesEntryModel.UseSecurity = false;
                         publishedNodesEntryModel.EndpointSecurityMode = null;
+                    }
+                    else if (connection.Endpoint.SecurityMode == SecurityMode.NotNone)
+                    {
+                        // Fall back to let UseSecurity decide on security (legacy)
+                        publishedNodesEntryModel.UseSecurity = true;
+                        publishedNodesEntryModel.EndpointSecurityMode = null;
+                    }
+                    else
+                    {
+                        publishedNodesEntryModel.UseSecurity = null;
+                        publishedNodesEntryModel.EndpointSecurityMode = connection.Endpoint.SecurityMode;
                     }
                 }
                 publishedNodesEntryModel.UseReverseConnect =

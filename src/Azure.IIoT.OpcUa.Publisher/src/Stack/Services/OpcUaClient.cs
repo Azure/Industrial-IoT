@@ -1100,7 +1100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Get the endpoint by connecting to server's discovery endpoint.
                     // Try to find the first endpoint with security.
                     //
-                    var securityMode = _connection.Endpoint.SecurityMode ?? SecurityMode.Best;
+                    var securityMode = _connection.Endpoint.SecurityMode ?? SecurityMode.NotNone;
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
                     if (_traceMode)
                     {
@@ -1130,7 +1130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (securityMode == SecurityMode.Best &&
                         endpointDescription.SecurityMode == MessageSecurityMode.None)
                     {
-                        _logger.LogWarning("Although the use of security was configured, " +
+                        _logger.LogWarning("Although the use of best security was configured, " +
                             "there was no security-enabled endpoint available at url " +
                             "{EndpointUrl}. An endpoint with no security will be used " +
                             "for session {Name} but no credentials will be sent over it.",
@@ -1550,8 +1550,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var filtered = endpoints
                     .Where(ep =>
                         SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
-                        (securityMode == SecurityMode.Best ||
-                            ep.SecurityMode == securityMode.ToStackType()) &&
+                        ep.SecurityMode.IsSame(securityMode) &&
                         (securityPolicy == null || string.Equals(ep.SecurityPolicyUri,
                             securityPolicy, StringComparison.OrdinalIgnoreCase)))
                     //

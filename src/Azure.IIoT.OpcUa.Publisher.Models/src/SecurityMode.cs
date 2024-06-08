@@ -5,12 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Security mode of endpoint
     /// </summary>
     [DataContract]
+    [Flags]
     public enum SecurityMode
     {
         /// <summary>
@@ -35,6 +37,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// No security
         /// </summary>
         [EnumMember(Value = "None")]
-        None
+        None,
+
+        /// <summary>
+        /// Use sign or sign and encrypt
+        /// </summary>
+        [EnumMember(Value = "NotNone")]
+        NotNone,
     }
 }

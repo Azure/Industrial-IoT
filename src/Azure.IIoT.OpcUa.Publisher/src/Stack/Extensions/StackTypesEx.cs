@@ -167,21 +167,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         }
 
         /// <summary>
-        /// Convert security mode
+        /// Match security model
         /// </summary>
         /// <param name="mode"></param>
+        /// <param name="securityMode"></param>
         /// <returns></returns>
-        public static UaSecurityMode ToStackType(this SecurityMode mode)
+        public static bool IsSame(this UaSecurityMode mode, SecurityMode securityMode)
         {
-            switch (mode)
+            switch (securityMode)
             {
-                case SecurityMode.Sign:
-                    return UaSecurityMode.Sign;
-                case SecurityMode.SignAndEncrypt:
                 case SecurityMode.Best:
-                    return UaSecurityMode.SignAndEncrypt;
+                    return true; // Any security mode
+                case SecurityMode.Sign:
+                    return mode == UaSecurityMode.Sign;
+                case SecurityMode.SignAndEncrypt:
+                    return mode == UaSecurityMode.SignAndEncrypt;
+                case SecurityMode.None:
+                    return mode == UaSecurityMode.None;
+                case SecurityMode.NotNone:
+                    return mode != UaSecurityMode.None;
                 default:
-                    return UaSecurityMode.None;
+                    return false;
             }
         }
 

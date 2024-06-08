@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 """;
 
             var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
-            Assert.False(model.UseSecurity);
+            Assert.Null(model.UseSecurity);
 
             modelJson = """
 
@@ -72,22 +72,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             var model = new PublishedNodesEntryModel
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
-                OpcNodes = new List<OpcNodeModel> {
-                    new() {
+                OpcNodes = new List<OpcNodeModel>
+                {
+                    new()
+                    {
                         Id = "i=2258"
                     }
                 }
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = false,
-                OpcNodes = new List<OpcNodeModel> {
-                    new() {
+                OpcNodes = new List<OpcNodeModel>
+                {
+                    new()
+                    {
                         Id = "i=2258"
                     }
                 }
@@ -100,8 +104,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = true,
-                OpcNodes = new List<OpcNodeModel> {
-                    new() {
+                OpcNodes = new List<OpcNodeModel>
+                {
+                    new()
+                    {
                         Id = "i=2258"
                     }
                 }
