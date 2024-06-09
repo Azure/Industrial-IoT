@@ -36,7 +36,7 @@ steps:
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ContainerRegistry "$(ContainerRegistryServer)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
   displayName: "Run deployment script"
