@@ -320,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                         Url = string.IsNullOrEmpty(registration.EndpointUrl) ?
                             registration.EndpointUrlLC : registration.EndpointUrl,
                         AlternativeUrls = registration.AlternativeUrls?.DecodeAsList().ToHashSetSafe(),
-                        SecurityMode = registration.SecurityMode == SecurityMode.Best ?
+                        SecurityMode = registration.SecurityMode == SecurityMode.NotNone ?
                             null : registration.SecurityMode,
                         SecurityPolicy = string.IsNullOrEmpty(registration.SecurityPolicy) ?
                             null : registration.SecurityPolicy,
@@ -360,7 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 AuthenticationMethods = model.Registration?.AuthenticationMethods?
                     .EncodeAsDictionary(),
                 SecurityMode = model.Registration?.Endpoint?.SecurityMode ??
-                    SecurityMode.Best,
+                    SecurityMode.NotNone,
                 SecurityPolicy = model.Registration?.Endpoint?.SecurityPolicy,
                 Thumbprint = model.Registration?.Endpoint?.Certificate
             };
@@ -454,7 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                     EqualityComparer<string>.Default.GetHashCode(obj.ApplicationId ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<SecurityMode>.Default.GetHashCode(
-                        obj.SecurityMode ?? SecurityMode.Best);
+                        obj.SecurityMode ?? SecurityMode.NotNone);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(obj.SecurityPolicy ?? string.Empty);
                 return hashCode;

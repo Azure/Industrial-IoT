@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel ?? 0);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<SecurityMode>.Default.GetHashCode(
-                    SecurityMode ?? Publisher.Models.SecurityMode.Best);
+                    SecurityMode ?? Publisher.Models.SecurityMode.NotNone);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(SecurityPolicy ?? string.Empty);
             return hashCode;

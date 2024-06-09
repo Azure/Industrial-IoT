@@ -22,8 +22,7 @@ namespace Opc.Ua
         public static bool IsSameAs(this EndpointDescription endpoint,
             EndpointModel model)
         {
-            if (endpoint.SecurityMode !=
-                (model.SecurityMode ?? SecurityMode.SignAndEncrypt).ToStackType())
+            if (endpoint.SecurityMode.IsSame(model.SecurityMode ?? SecurityMode.SignAndEncrypt))
             {
                 return false;
             }

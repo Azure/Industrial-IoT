@@ -125,11 +125,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return null;
             }
+
+            var useSecurity =
+                model.Endpoint?.SecurityMode == SecurityMode.None ? false :
+                model.Endpoint?.SecurityMode == SecurityMode.NotNone ? true :
+                (bool?)null;
+
             return new PublishedNodesEntryModel
             {
                 EndpointUrl = model.Endpoint?.Url,
-                UseSecurity = model.Endpoint?.SecurityMode != SecurityMode.None,
-                EndpointSecurityMode = model.Endpoint?.SecurityMode,
+                UseSecurity = useSecurity,
+                EndpointSecurityMode = !useSecurity.HasValue ? model.Endpoint?.SecurityMode : null,
                 EndpointSecurityPolicy = model.Endpoint?.SecurityPolicy,
                 OpcAuthenticationMode = ToAuthenticationModel(model.User?.Type),
                 OpcAuthenticationPassword = model.User.GetPassword(),
@@ -213,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 id.AppendLine();
             }
             var securityMode = model.EndpointSecurityMode ??
-                (model.UseSecurity ? SecurityMode.Best : SecurityMode.None);
+                ((model.UseSecurity ?? false) ? SecurityMode.NotNone : SecurityMode.None);
             if (securityMode != SecurityMode.None)
             {
                 id.Append(securityMode);
@@ -326,14 +332,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (model.UseSecurity != that.UseSecurity)
+            if ((model.UseSecurity ?? false) != (that.UseSecurity ?? false))
             {
                 return false;
             }
             if ((model.EndpointSecurityMode ??
-                    (model.UseSecurity ? SecurityMode.Best : SecurityMode.None)) !=
+                    ((model.UseSecurity ?? false) ? SecurityMode.NotNone : SecurityMode.None)) !=
                 (that.EndpointSecurityMode ??
-                    (that.UseSecurity ? SecurityMode.Best : SecurityMode.None)))
+                    ((that.UseSecurity ?? false) ? SecurityMode.NotNone : SecurityMode.None)))
             {
                 return false;
             }

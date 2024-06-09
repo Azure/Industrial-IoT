@@ -99,6 +99,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             $"{{{RootTopicVariableName}}}/methods";
         public const string EventsTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/events";
+        public const string MetadataTopicTemplateDefault =
+            $"{{{TelemetryTopicVariableName}}}/metadata";
         public const string DiagnosticsTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/diagnostics/{{{WriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =

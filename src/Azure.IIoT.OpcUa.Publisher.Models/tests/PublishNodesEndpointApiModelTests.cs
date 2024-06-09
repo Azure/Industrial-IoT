@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
             var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
-            Assert.False(model.UseSecurity);
+            Assert.Null(model.UseSecurity);
 
             modelJson = """
 
@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
-            Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
             {

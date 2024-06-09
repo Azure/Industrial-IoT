@@ -532,7 +532,6 @@ Options:
                     {
                         "-c",
                         "--ps",
-                        $"--ssf={outputFolder}",
                         $"--pf={publishedNodesFilePath}",
                         $"--me={messageProfile.MessageEncoding}",
                         $"--mm={messageProfile.MessagingMode}",

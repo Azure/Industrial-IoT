@@ -6,6 +6,7 @@
 namespace IIoTPlatformE2ETests
 {
     using Azure.Messaging.EventHubs.Consumer;
+    using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices;
     using Newtonsoft.Json;
     using IIoTPlatformE2ETests.Config;
@@ -30,7 +31,6 @@ namespace IIoTPlatformE2ETests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json.Converters;
     using Xunit.Sdk;
-    using Microsoft.Azure.Devices.Common.Exceptions;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -52,13 +52,21 @@ namespace IIoTPlatformE2ETests
             CancellationToken ct = default
         )
         {
-            return await GetTokenAsync(
+            if (context.Token != null && (DateTime.UtcNow + TimeSpan.FromSeconds(10) < context.TokenExpiration))
+            {
+                return context.Token;
+            }
+            var (expiration, token) = await GetTokenAsync(
                 context.IIoTPlatformConfigHubConfig.AuthTenant,
                 context.IIoTPlatformConfigHubConfig.AuthClientId,
                 context.IIoTPlatformConfigHubConfig.AuthClientSecret,
                 context.IIoTPlatformConfigHubConfig.AuthServiceId,
+                context.OutputHelper,
                 ct
             ).ConfigureAwait(false);
+            context.Token = token;
+            context.TokenExpiration = expiration;
+            return token;
         }
 
         /// <summary>
@@ -70,11 +78,12 @@ namespace IIoTPlatformE2ETests
         /// <param name="serviceId">service id of deployed Industrial IoT</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Return content of request token or empty string</returns>
-        public static async Task<string> GetTokenAsync(
+        public static async Task<(DateTime Expiration, string Token)> GetTokenAsync(
             string tenantId,
             string clientId,
             string clientSecret,
             string serviceId,
+            ITestOutputHelper outputHelper,
             CancellationToken ct = default
         )
         {
@@ -84,7 +93,7 @@ namespace IIoTPlatformE2ETests
             Assert.False(string.IsNullOrWhiteSpace(serviceId));
 
             Exception saved = new UnauthorizedAccessException();
-            for (var i = 0; i < 3; i++)
+            for (var i = 0; i < 10; i++)
             {
                 try
                 {
@@ -104,12 +113,21 @@ namespace IIoTPlatformE2ETests
                     dynamic json = JsonConvert.DeserializeObject(response.Content);
                     Assert.NotNull(json);
                     Assert.NotEmpty(json);
-                    return $"{json.token_type} {json.access_token}";
+
+                    var expiration = DateTime.UtcNow.AddMinutes(1);
+                    try
+                    {
+                        var seconds = (int)json.expires_in;
+                        expiration = DateTime.UtcNow.AddSeconds(seconds);
+                        outputHelper?.WriteLine($"Retrieved access token, token expires in {seconds} sec.");
+                    }
+                    catch { }
+                    return (DateTime.UtcNow.AddMinutes(5), $"{json.token_type} {json.access_token}");
                 }
                 catch (Exception ex)
                 {
                     saved = ex;
-                    Console.WriteLine($"Error occurred while requesting token: {ex.Message}");
+                    outputHelper?.WriteLine($"Error occurred while requesting token: {ex.Message}");
                     await Task.Delay(1000, ct).ConfigureAwait(false);
                 }
             }
@@ -175,7 +193,7 @@ namespace IIoTPlatformE2ETests
 
         private static async Task<PublishedNodesEntryModel[]> GetPublishedNodesEntryModel(string host, CancellationToken ct)
         {
-            for (var attempt = 0; ;  attempt++)
+            for (var attempt = 0; ; attempt++)
             {
                 try
                 {

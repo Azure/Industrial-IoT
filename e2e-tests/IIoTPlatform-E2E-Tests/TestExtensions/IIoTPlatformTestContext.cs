@@ -239,6 +239,9 @@ namespace IIoTPlatformE2ETests.TestExtensions
         public string ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
             () => "latest");
 
+        public string Token { get; internal set; }
+        public DateTime TokenExpiration { get; internal set; }
+
         public void LogEnvironment(ITestOutputHelper output)
         {
             if (output == null || _logged || output is DummyOutput)
