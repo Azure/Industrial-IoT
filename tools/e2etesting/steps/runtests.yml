@@ -68,7 +68,7 @@ steps:
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ContainerRegistry "$(ContainerRegistryServer)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
