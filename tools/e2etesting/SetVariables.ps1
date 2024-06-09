@@ -2,14 +2,14 @@
     [string] $BranchName,
     [string] $Region,
     [string] $ImageTag,
-    [string] $ContainerRegistry
+    [string] $ContainerRegistryServer
 )
 
 # Stop execution when an error occurs.
 $ErrorActionPreference = "Stop"
 # Set-PSDebug -Trace 2
 
-$registry = $script:ContainerRegistry
+$registry = $script:ContainerRegistryServer
 if ([string]::IsNullOrWhiteSpace($registry))
 {
     Write-Host "No container registry provided, using default."
