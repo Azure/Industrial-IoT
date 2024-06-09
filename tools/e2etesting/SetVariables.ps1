@@ -9,12 +9,55 @@
 $ErrorActionPreference = "Stop"
 # Set-PSDebug -Trace 2
 
-if ([string]::IsNullOrWhiteSpace($script:ContainerRegistry))
+$registry = $script:ContainerRegistry
+if ([string]::IsNullOrWhiteSpace($registry))
 {
-    throw "Must provide container registry name"
+    Write-Host "No container registry provided, using default."
+    $registry = "industrialiotdev"
 }
 
-$registry = $script:ContainerRegistry
+function Get-ContainerRegistrySecret
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $keyVaultName,
+
+        [Parameter(Mandatory=$true)]
+        [string] $secret
+    )
+    $secretValueSec = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $secret
+    $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretValueSec.SecretValue)
+    try
+    {
+        $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
+    }
+    finally
+    {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
+    }
+    Write-Host "##vso[task.setvariable variable=$($secret)]$($secretValueText)"
+}
+
+$KeyVaultName = $null
+if ($registry -eq "industrialiot")
+{
+    $KeyVaultName = "kv-release-pipeline"
+}
+if ($registry -eq "industrialiotdev")
+{
+    $KeyVaultName = "kv-developer-pipeline"
+}
+if ($registry -eq "industrialiotprod")
+{
+   # $KeyVaultName = "kv-release-pipeline" #todo
+}
+if ($KeyVaultName) 
+{
+    Write-Host "Looking up credentials for $($registry) registry in KV $KeyVaultName."
+    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryPassword"
+    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryServer"
+    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryUsername"
+}
 
 if ([string]::IsNullOrWhiteSpace($script:ImageTag))
 {
