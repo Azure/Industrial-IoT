@@ -57,7 +57,7 @@ steps:
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PCS-AUTH-SERVICE-APPID'
 
 - task: AzurePowerShell@5
-  displayName: 'Auto-Set Variables'
+  displayName: 'Select Image to test'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
@@ -68,7 +68,7 @@ steps:
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -ContainerRegistry "$(ContainerRegistryServer)"
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:

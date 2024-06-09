@@ -25,7 +25,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
 
 - task: AzurePowerShell@5
-  displayName: 'Auto-Set Variables'
+  displayName: 'Select Image to test'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
@@ -36,7 +36,7 @@ steps:
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -ContainerRegistry "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
   displayName: "Run deployment script"
