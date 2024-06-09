@@ -85,10 +85,15 @@ Write-Host ""
 
 Write-Host "##vso[task.setvariable variable=ImageTag]$($script:ImageTag)"
 Write-Host "##vso[task.setvariable variable=ImageNamespace]$($imageNamespace)"
-
 if ([string]::IsNullOrEmpty($script:Region))
 {
     $script:Region = "westus"
 }
 Write-Host "##vso[task.setvariable variable=Region]$($script:Region)"
 
+Write-Host "##vso[build.addbuildtag]$($script:ImageTag)"
+Write-Host "##vso[build.addbuildtag]$($registry)"
+if (![string]::IsNullOrWhiteSpace($imageNamespace)) 
+{
+    Write-Host "##vso[build.addbuildtag]$($imageNamespace)"
+}
