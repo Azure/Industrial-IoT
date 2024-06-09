@@ -11,7 +11,7 @@ steps:
       -BranchName "$(BranchName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
-      -ContainerRegistry "$(ContainerRegistryServer)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 # Need to do this so we can update the permissions in key vault for this
 # service principal in the next scripts
