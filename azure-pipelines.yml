@@ -21,7 +21,7 @@ jobs:
       useSameSourceVersion: false
       useCustomSourceVersion: false
       useSameBranch: false
-      branchToUse: 'official'
+      branchToUse: 'main'
       storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
       password: $(System.AccessToken)
