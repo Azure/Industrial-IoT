@@ -105,8 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             // TODO: add more
             if (!model.GetEndpointUrls().Any())
             {
-                throw new ArgumentException("Missing endpoints in connection",
-                    paramName);
+                throw new ArgumentException("Missing endpoints in connection", paramName);
             }
         }
 

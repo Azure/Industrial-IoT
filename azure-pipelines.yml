@@ -9,6 +9,8 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   displayName: Trigger Pull Request Build on Governed Pipeline
+  variables:
+    message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
   steps:
   - task: TriggerBuild@4
     inputs:
@@ -28,6 +30,7 @@ jobs:
       dependentOnFailedBuildCondition: false
       checkbuildsoncurrentbranch: false
       failTaskIfConditionsAreNotFulfilled: false
+      buildParameters: "BuildCommitMessage: $(message)"
       templateParameters: 'ref: $(Build.SourceBranch)'
   - task: PowerShell@2
     inputs:
