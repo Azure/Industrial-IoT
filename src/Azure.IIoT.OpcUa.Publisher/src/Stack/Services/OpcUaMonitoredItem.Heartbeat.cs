@@ -224,6 +224,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications);
             }
 
+            /// <inheritdoc/>
+            public override void NotifySessionConnectionState(bool disconnected)
+            {
+                //
+                // We change the reference here - we cloned the value and if it has been
+                // updated while we are doing this, a new value will be in in place and we
+                // should be connected again or we would not have received it.
+                //
+                var lastValue = LastReceivedValue as MonitoredItemNotification;
+                if (lastValue?.Value != null)
+                {
+                    if (disconnected)
+                    {
+                        _lastStatusCode = lastValue.Value.StatusCode;
+                        if (IsGoodDataValue(lastValue.Value))
+                        {
+                            lastValue.Value.StatusCode =
+                                StatusCodes.UncertainNoCommunicationLastUsableValue;
+                        }
+                        else
+                        {
+                            lastValue.Value.StatusCode =
+                                StatusCodes.BadNoCommunication;
+                        }
+                    }
+                    else if (_lastStatusCode.HasValue)
+                    {
+                        lastValue.Value.StatusCode = _lastStatusCode.Value;
+                        _lastStatusCode = null; // This is safe as we are called from the client thread
+                    }
+                }
+            }
+
             /// <summary>
             /// TODO: What is a Good value? Right now we say that it must either be full good or
             /// have a value and not a bad status code (to cover Good_, and Uncertain_ as well)
@@ -331,6 +364,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private TimeSpan _heartbeatInterval;
             private Callback? _callback;
             private DateTime? _lastValueReceived;
+            private StatusCode? _lastStatusCode;
         }
     }
 }
