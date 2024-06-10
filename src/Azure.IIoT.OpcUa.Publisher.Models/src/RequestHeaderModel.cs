@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public CredentialModel? Elevation { get; set; }
 
         /// <summary>
-        /// Optional list of locales in preference order.
+        /// Optional list of preferred locales in preference order.
         /// </summary>
         [DataMember(Name = "locales", Order = 1,
             EmitDefaultValue = false)]

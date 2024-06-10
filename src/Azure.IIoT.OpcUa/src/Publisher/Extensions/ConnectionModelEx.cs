@@ -51,6 +51,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
+            if (!that.Locales.SequenceEqualsSafe(model.Locales))
+            {
+                return false;
+            }
             return true;
         }
 
@@ -113,17 +117,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static int CreateConsistentHash(this ConnectionModel model)
         {
-            var hashCode = -1971667340;
-            hashCode = (hashCode * -1521134295) +
-                model.Endpoint?.CreateConsistentHash() ?? 0;
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<CredentialModel>.Default.GetHashCode(model.User ?? new CredentialModel());
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId ?? string.Empty);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(model.Group ?? string.Empty);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<ConnectionOptions>.Default.GetHashCode(model.Options);
+            var hashCode = HashCode.Combine(
+                model.Endpoint?.CreateConsistentHash() ?? 0,
+                model.User ?? new CredentialModel(),
+                model.Diagnostics?.AuditId ?? string.Empty,
+                model.Group ?? string.Empty,
+                model.Options);
+            foreach (var l in model.Locales ?? Enumerable.Empty<string>())
+            {
+                hashCode = HashCode.Combine(hashCode, l);
+            }
             return hashCode;
         }
 

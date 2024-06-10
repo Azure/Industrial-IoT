@@ -220,13 +220,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async Task<T> ExecuteAsync<T>(ConnectionModel connection,
-            Func<ServiceCallContext, Task<T>> func, CancellationToken ct)
+            Func<ServiceCallContext, Task<T>> func, RequestHeaderModel? header,
+            CancellationToken ct)
         {
-            if (connection.Endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint.Url))
+            connection = UpdateConnectionFromHeader(connection, header);
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
@@ -237,13 +235,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
             Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
-            CancellationToken ct)
+            RequestHeaderModel? header, CancellationToken ct)
         {
-            if (connection.Endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
-            if (string.IsNullOrEmpty(connection.Endpoint.Url))
+            connection = UpdateConnectionFromHeader(connection, header);
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
@@ -389,6 +384,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Update connection from header
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="header"></param>
+        /// <returns></returns>
+        private static ConnectionModel UpdateConnectionFromHeader(ConnectionModel connection,
+            RequestHeaderModel? header)
+        {
+            if (header == null)
+            {
+                return connection;
+            }
+            if (header.Elevation != null)
+            {
+                connection = connection with
+                {
+                    User = header.Elevation,
+                };
+            }
+            if (header.Locales != null)
+            {
+                connection = connection with
+                {
+                    Locales = header.Locales
+                };
+            }
+            return connection;
         }
 
         /// <summary>

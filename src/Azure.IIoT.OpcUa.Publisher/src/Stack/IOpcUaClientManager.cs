@@ -47,11 +47,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <typeparam name="TResult"></typeparam>
         /// <param name="connection"></param>
         /// <param name="func"></param>
+        /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<TResult> ExecuteAsync<TResult>(T connection,
             Func<ServiceCallContext, Task<TResult>> func,
-            CancellationToken ct = default);
+            RequestHeaderModel? header = null, CancellationToken ct = default);
 
         /// <summary>
         /// Execute the functions from stack on the provided
@@ -60,10 +61,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <typeparam name="TResult"></typeparam>
         /// <param name="connection"></param>
         /// <param name="stack"></param>
+        /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         IAsyncEnumerable<TResult> ExecuteAsync<TResult>(T connection,
             Stack<Func<ServiceCallContext, ValueTask<IEnumerable<TResult>>>> stack,
-            CancellationToken ct = default);
+            RequestHeaderModel? header = null, CancellationToken ct = default);
     }
 }
