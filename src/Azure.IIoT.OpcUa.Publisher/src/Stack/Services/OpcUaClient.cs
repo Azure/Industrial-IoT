@@ -83,6 +83,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool DisableComplexTypePreloading { get; set; }
 
         /// <summary>
+        /// Do active error handling on the publish path
+        /// </summary>
+        public bool ActivePublishErrorHandling { get; set; }
+
+        /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
         internal OperationLimits? LimitOverrides { get; set; }
@@ -688,6 +693,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     // If currently reconnecting, dispose the reconnect handler and stop timer
                                     _reconnectHandler.CancelReconnect();
                                     NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+                                    currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(true));
 
                                     // Clean up
                                     await CloseSessionAsync().ConfigureAwait(false);
@@ -739,6 +745,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 ct).ConfigureAwait(false);
 
                                             currentSessionState = SessionState.Connected;
+                                            currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
                                             break;
                                         case SessionState.Disconnected:
                                         case SessionState.Connected:
@@ -804,6 +811,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _session = null;
                                             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                                             currentSessionState = SessionState.Reconnecting;
+                                            _reconnectingSession?.SubscriptionHandles
+                                                .ForEach(h => h.NotifySessionConnectionState(true));
                                             break;
                                         case SessionState.Connecting:
                                         case SessionState.Disconnected:
@@ -868,6 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                             _reconnectRequired = 0;
                                             currentSessionState = SessionState.Connected;
+                                            currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
                                             break;
 
                                         case SessionState.Connected:
@@ -909,6 +919,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
 
                                     NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+                                    _session?.SubscriptionHandles
+                                        .ForEach(h => h.NotifySessionConnectionState(true));
 
                                     // Clean up
                                     await CloseSessionAsync().ConfigureAwait(false);
@@ -1234,8 +1246,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, limit);
                     return;
                 default:
-                    _logger.LogInformation("{Client}: Publish error: {Error}...", this, e.Status);
+                    _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
+                        this, e.Status, ActivePublishErrorHandling);
                     break;
+            }
+
+            if (!ActivePublishErrorHandling)
+            {
+                return;
             }
 
             switch (e.Status.Code)
@@ -1258,20 +1276,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         TriggerReconnect(e.Status);
                     }
                     return;
-                case StatusCodes.BadTooManyOperations:
-                    SetCode(e.Status, StatusCodes.BadServerHalted);
-                    break;
             }
             // Reset timeout counter - we only care about subsequent timeouts
             _publishTimeoutCounter = 0;
-
-            // Reach into the private field and update it.
-            static void SetCode(ServiceResult status, uint fixup)
-            {
-                typeof(ServiceResult).GetField("m_code",
-                    System.Reflection.BindingFlags.NonPublic |
-                    System.Reflection.BindingFlags.Instance)?.SetValue(status, fixup);
-            }
         }
 
         /// <summary>

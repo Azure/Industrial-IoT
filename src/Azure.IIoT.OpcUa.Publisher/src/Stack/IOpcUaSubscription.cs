@@ -36,6 +36,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             out uint sequenceNumber);
 
         /// <summary>
+        /// Notifiy session disconnected/reconnecting
+        /// </summary>
+        /// <returns></returns>
+        void NotifySessionConnectionState(bool disconnected);
+
+        /// <summary>
         /// Notifies the subscription that should remove
         /// itself from the session. If the session is null
         /// then there is no session and the subscription

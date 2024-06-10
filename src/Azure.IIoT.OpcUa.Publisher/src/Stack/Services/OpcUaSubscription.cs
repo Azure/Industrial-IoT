@@ -200,6 +200,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public void NotifySessionConnectionState(bool disconnected)
+        {
+            foreach (var item in CurrentlyMonitored)
+            {
+                item.NotifySessionConnectionState(disconnected);
+            }
+        }
+
+        /// <inheritdoc/>
         public IOpcUaSubscriptionNotification? CreateKeepAlive()
         {
             lock (_lock)

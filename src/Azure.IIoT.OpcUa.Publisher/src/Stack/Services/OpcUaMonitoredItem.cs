@@ -246,6 +246,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             NodeIdDictionary<object> dataTypes, CancellationToken ct);
 
         /// <summary>
+        /// Called when the underlying session is disconnected
+        /// </summary>
+        public virtual void NotifySessionConnectionState(bool disconnected)
+        {
+        }
+
+        /// <summary>
         /// Dispose
         /// </summary>
         /// <param name="disposing"></param>

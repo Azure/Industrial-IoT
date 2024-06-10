@@ -755,6 +755,15 @@ OPC UA Client configuration
                                want to ensure the complex types are never
                                loaded for an endpoint.
                                Default: `false`.
+      --peh, --activepublisherrorhandling, --ActivePublishErrorHandling[=VALUE]
+                             Actively handle reconnecting a session when
+                               publishing errors occur due to issues in the
+                               underlying connectivity rather than letting the
+                               stack and keep alive handling manage
+                               reconnecting.
+                               Note that the default will be `false` in future
+                               releases.
+                               Default: `True`.
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.
