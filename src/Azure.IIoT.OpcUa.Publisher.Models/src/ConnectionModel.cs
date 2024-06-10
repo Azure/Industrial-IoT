@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -40,6 +41,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "group", Order = 3,
              EmitDefaultValue = false)]
         public string? Group { get; set; }
+
+        /// <summary>
+        /// Optional list of preferred locales in preference order.
+        /// </summary>
+        [DataMember(Name = "locales", Order = 4,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<string>? Locales { get; set; }
 
         /// <summary>
         /// Connection options to apply to the created

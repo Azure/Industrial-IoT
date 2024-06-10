@@ -947,7 +947,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 HashSet<IOpcUaSubscription> extra, CancellationToken cancellationToken = default)
             {
                 var numberOfSubscriptions = subscriptions.Count + extra.Count;
-                _logger.LogDebug("{Client}: Applying changes to {Count} subscriptions...", 
+                _logger.LogDebug("{Client}: Applying changes to {Count} subscriptions...",
                     this, numberOfSubscriptions);
                 var sw = Stopwatch.StartNew();
 
@@ -1160,14 +1160,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation(
                         "#{Attempt} - {Client}: Creating session {Name} with endpoint {EndpointUrl}...",
                         ++attempt, this, _sessionName, endpointUrl);
-                    // Create the session with english as default and current language
-                    // locale as backup
-                    var preferredLocales = new HashSet<string>
-                    {
-                        "en-US",
-                        CultureInfo.CurrentCulture.Name
-                    }.ToList();
 
+                    var preferredLocales = _connection.Locales?.ToList() ?? new List<string>();
+                    if (preferredLocales.Count == 0)
+                    {
+                        // Create the session with english as default
+                        preferredLocales.Add("en-US");
+                        if (CultureInfo.CurrentCulture.Name != preferredLocales[0])
+                        {
+                            // and current language locale as backup
+                            preferredLocales.Add(CultureInfo.CurrentCulture.Name);
+                        }
+                    }
                     var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
                     var session = await CreateAsync(_configuration,
                         _reverseConnectManager, endpoint,
@@ -1444,7 +1448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 
-                    _logger.LogDebug("{Client}: Successfully closed session {Session}.", 
+                    _logger.LogDebug("{Client}: Successfully closed session {Session}.",
                         this, session);
                 }
                 catch (Exception ex)

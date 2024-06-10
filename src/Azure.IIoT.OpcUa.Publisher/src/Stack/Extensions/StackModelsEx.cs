@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -33,21 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         {
             return (header?.Diagnostics?.Level).ToRequestHeader(header?.Diagnostics?.AuditId,
                 header?.Diagnostics?.TimeStamp, timeoutHint);
-        }
-
-        /// <summary>
-        /// Convert diagnostics to request header
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="level"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="timeoutHint"></param>
-        /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this OperationContextModel? context,
-            DiagnosticsLevel? level = null, DateTime? timestamp = null,
-            uint timeoutHint = 0)
-        {
-            return level.ToRequestHeader(context?.AuthorityId, timestamp, timeoutHint);
         }
 
         /// <summary>

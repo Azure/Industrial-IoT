@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             return _client.ExecuteAsync(endpoint, async context =>
                 await context.Session.GetServerCapabilitiesAsync(GetNamespaceFormat(header),
-                ct).ConfigureAwait(false), ct: ct);
+                ct).ConfigureAwait(false), header, ct);
         }
 
         /// <inheritdoc/>
@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     ContinuationToken = context.TrackedToken,
                     ErrorInfo = errorInfo ?? nodeError
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     ContinuationToken = context.TrackedToken,
                     ErrorInfo = results[0].ErrorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -195,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             BrowseStreamRequestModel request, CancellationToken ct)
         {
             var stream = new BrowseStream(request, this, _activitySource, ct);
-            return _client.ExecuteAsync(endpoint, stream.Stack, ct);
+            return _client.ExecuteAsync(endpoint, stream.Stack, request.Header, ct);
         }
 
         /// <inheritdoc/>
@@ -247,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Targets = targets,
                     ErrorInfo = results[0].ErrorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -402,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Declarations = declarations
                     }
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
 
             static NodeType GetNodeType(List<NodeId> hierarchy)
             {
@@ -463,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         EventFilter = eventFilter,
                         ErrorInfo = context.ErrorInfo
                     };
-                }, ct: ct).ConfigureAwait(false);
+                }, request.Header, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -595,7 +595,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 return result;
-            }, ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -804,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Results = arguments,
                     ErrorInfo = results[0].ErrorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -877,7 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     DataType = type == BuiltInType.Null ? null : type.ToString(),
                     ErrorInfo = values[0].ErrorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -942,7 +942,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     ErrorInfo = values.ErrorInfo ?? values[0].ErrorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -993,7 +993,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             };
                         }).ToList()
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -1044,7 +1044,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             };
                         }).ToList()
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -1053,7 +1053,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             return _client.ExecuteAsync(endpoint, async context =>
                 await context.Session.GetHistoryCapabilitiesAsync(GetNamespaceFormat(header),
-                ct).ConfigureAwait(false), ct: ct);
+                ct).ConfigureAwait(false), header, ct);
         }
 
         /// <inheritdoc/>
@@ -1197,7 +1197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         EndOfArchive = endTime
                     }
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -1315,7 +1315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     History = history,
                     ErrorInfo = errorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -1371,7 +1371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     History = history,
                     ErrorInfo = errorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -1421,7 +1421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Results = inner.Select(r => r.ResultInfo).ToList(),
                     ErrorInfo = inner.ErrorInfo
                 };
-            }, ct: ct).ConfigureAwait(false);
+            }, request.Header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
