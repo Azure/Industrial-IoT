@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogInformation("Session {Session} disposed.", this);
+                    _logger.LogInformation("{Session}: Session disposed.", this);
                 }
                 finally
                 {
@@ -145,7 +145,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public override Session CloneSession(ITransportChannel channel, bool copyEventHandlers)
+        public override Session CloneSession(ITransportChannel channel, 
+            bool copyEventHandlers)
         {
             return new OpcUaSession(this, channel, this, copyEventHandlers);
         }
@@ -233,8 +234,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "Attempt #{Attempt}. Failed to get complex type system for client {Client}.",
-                        attempt, this);
+                        "{Session}: Attempt #{Attempt}. Failed to get complex type system.",
+                        this, attempt);
 
                     // Try again. TODO: Throttle using a timer or so...
                     _complexTypeSystem = LoadComplexTypeSystemAsync();
@@ -966,7 +967,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (Connected)
                     {
                         _logger.LogInformation(
-                            "Complex type system loaded into client {Client}.", this);
+                            "{Session}: Complex type system loaded into client.", this);
 
                         // Clear cache to release memory.
                         // TODO: we should have a real node cache here

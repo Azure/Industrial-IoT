@@ -841,16 +841,17 @@ Function New-Deployment() {
         }
         else {
             if ($script:acrSubscriptionName -eq "IOT_GERMANY") {
-                if (($script:acrRegistryName -eq "industrialiot") -or `
-                    ($script:acrRegistryName -eq "industrialiotprod")) {
-                    $namespace = "public"
-                }
-                elseif ($script:acrRegistryName -eq "industrialiotdev") {
+                if ($script:acrRegistryName -eq "industrialiotdev") {
                     $namespace = $script:branchName
                     if ($script:branchName.StartsWith("feature/")) {
                         $namespace = $namespace.Replace("feature/", "")
                     }
-                    $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+                    $namespace = $namespace.Replace("_", "/")
+                    $namespace = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
+                }
+                elseif (($script:acrRegistryName -eq "industrialiot") -or `
+                        ($script:acrRegistryName -eq "industrialiotprod")) {
+                    $namespace = "public"
                 }
             }
         }

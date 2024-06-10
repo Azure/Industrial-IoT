@@ -63,6 +63,11 @@ Write-Host "KeyVault: $($keyVault.VaultName)"
 Write-Host "IoTHub: $($IoTHubName)"
 Write-Host "=============================================="
 
+Write-Host "##vso[build.addbuildtag]$($suffix)"
+Write-Host "##vso[build.addbuildtag]$($context.Subscription.Id)"
+Write-Host "##vso[build.addbuildtag]$($ResourceGroupName)"
+Write-Host "##vso[build.addbuildtag]$($keyVault.VaultName)"
+
 ## Check existence of IoT Hub ##
 
 if (!$IoTHubName) {

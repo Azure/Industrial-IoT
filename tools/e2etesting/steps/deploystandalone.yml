@@ -1,6 +1,6 @@
 steps:
 - task: AzurePowerShell@5
-  displayName: 'Auto-Set Variables'
+  displayName: 'Select Image to test'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'

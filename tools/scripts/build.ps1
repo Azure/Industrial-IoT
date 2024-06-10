@@ -6,7 +6,7 @@
     is compared to the default images when publishing, which
     are debian.
 
- .PARAMETER Registry
+ .PARAMETER ContainerRegistry
     The name of the container registry to push to (optional)
  .PARAMETER Os
     Operating system to build for. Defaults to Linux
@@ -48,19 +48,22 @@ if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
 
-$repositoryName = $null
-if ($script:BranchName) {
-    # Set namespace name based on branch name
-    $namespace = $script:BranchName
-    if ($namespace.StartsWith("feature/")) {
-        # dev feature builds
-        $namespace = $namespace.Replace("feature/", "")
-    }
-    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "releases")) {
-        $namespace = "public"
-    }
-    $namespace = $namespace.Replace("_", "/")
-    $repositoryName = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
+$imageNamespace = $null
+if (![string]::IsNullOrWhiteSpace($script:ContainerRegistry)) {
+    $imageNamespace = "public"
+
+    if ($script:ContainerRegistry -eq "industrialiotdev") { 
+        if (![string]::IsNullOrWhiteSpace($script:BranchName)) {
+            # Set namespace name based on branch name
+            $namespace = $script:BranchName
+            if ($namespace.StartsWith("feature/")) {
+                # dev feature builds
+                $namespace = $namespace.Replace("feature/", "")
+            }
+            $namespace = $namespace.Replace("_", "/")
+            $imageNamespace = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
+        }
+    } 
 }
 
 $env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
@@ -99,8 +102,8 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         $fullName = ""
         $extra = @()
 
-        if ($repositoryName) {
-            $fullName = "$($fullName)$($repositoryName)/"
+        if ($imageNamespace) {
+            $fullName = "$($fullName)$($imageNamespace)/"
         }
         $fullName = "$($fullName)$($properties.ContainerRepository)"
 

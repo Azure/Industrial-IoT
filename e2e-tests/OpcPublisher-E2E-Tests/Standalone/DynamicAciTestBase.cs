@@ -154,17 +154,30 @@ namespace OpcPublisherAEE2ETests.Standalone
 
         protected async Task UnpublishAllNodesAsync(CancellationToken ct = default)
         {
-            var result = await CallMethodAsync(
-                new MethodParameterModel
-                {
-                    Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
+            MethodResultModel result = null;
+            for (var i = 0; i < 5; i++)
+            {
+                result = await CallMethodAsync(
+                    new MethodParameterModel
+                    {
+                        Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
 
-                    // TODO: Remove this line to test fix for null request crash
-                    JsonPayload = _serializer.SerializeToString(new PublishedNodesEntryModel())
-                },
-                ct
-            ).ConfigureAwait(false);
-            Assert.Equal((int)HttpStatusCode.OK, result.Status);
+                        // TODO: Remove this line to test fix for null request crash
+                        JsonPayload = _serializer.SerializeToString(new PublishedNodesEntryModel())
+                    },
+                    ct
+                ).ConfigureAwait(false);
+
+                if (result.Status == 405)
+                {
+                    // Retry if method not yet mounted
+                    _context.OutputHelper?.WriteLine(result.JsonPayload);
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
+                    continue;
+                }
+                break;
+            }
+            Assert.Equal((int)HttpStatusCode.OK, result?.Status);
 
             var result1 = await CallMethodAsync(
                 new MethodParameterModel
