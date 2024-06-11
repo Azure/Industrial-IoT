@@ -6,7 +6,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Json.Schema;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
+    using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
     using System;
     using System.Collections.Generic;
 
@@ -382,13 +382,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="fieldContentMask"></param>
         /// <param name="definitions"></param>
-        public JsonBuiltInJsonSchemas(DataSetFieldContentMask fieldContentMask,
+        public JsonBuiltInJsonSchemas(DataSetFieldContentFlags fieldContentMask,
             Dictionary<string, JsonSchema>? definitions = null)
         {
             Schemas = definitions ?? new();
             _encodeNamespacedValuesAsUri = true;
 
-            if ((fieldContentMask & DataSetFieldContentMask.RawData) != 0)
+            if ((fieldContentMask & DataSetFieldContentFlags.RawData) != 0)
             {
                 //
                 // If the DataSetFieldContentMask results in a RawData

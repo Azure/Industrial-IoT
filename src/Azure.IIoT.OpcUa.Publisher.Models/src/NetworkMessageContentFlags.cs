@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
-    public enum NetworkMessageContentMask
+    public enum NetworkMessageContentFlags
     {
         /// <summary>
         /// Publisher id

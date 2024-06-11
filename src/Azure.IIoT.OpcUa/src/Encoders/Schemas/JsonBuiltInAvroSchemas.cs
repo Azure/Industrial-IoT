@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Avro;
     using Opc.Ua;
-    using DataSetFieldContentMask = Publisher.Models.DataSetFieldContentMask;
+    using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -359,9 +359,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Create encoding schema
         /// </summary>
         /// <param name="fieldContentMask"></param>
-        public JsonBuiltInAvroSchemas(DataSetFieldContentMask fieldContentMask)
+        public JsonBuiltInAvroSchemas(DataSetFieldContentFlags fieldContentMask)
         {
-            if ((fieldContentMask & DataSetFieldContentMask.RawData) != 0)
+            if ((fieldContentMask & DataSetFieldContentFlags.RawData) != 0)
             {
                 //
                 // If the DataSetFieldContentMask results in a RawData

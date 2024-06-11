@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [Flags]
     [DataContract]
-    public enum DataSetFieldContentMask
+    public enum DataSetFieldContentFlags
     {
         /// <summary>
         /// Status code

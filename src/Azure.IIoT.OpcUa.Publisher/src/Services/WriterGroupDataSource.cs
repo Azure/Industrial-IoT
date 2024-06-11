@@ -246,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_options.Value.WriteValueWhenDataSetHasSingleEntry == true)
                 {
                     dataSetWriter.DataSetFieldContentMask
-                        |= Models.DataSetFieldContentMask.SingleFieldDegradeToValue;
+                        |= Models.DataSetFieldContentFlags.SingleFieldDegradeToValue;
                 }
             }
 

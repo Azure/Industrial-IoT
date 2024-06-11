@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
-    public enum DataSetContentMask
+    public enum DataSetMessageContentFlags
     {
         /// <summary>
         /// Timestamp

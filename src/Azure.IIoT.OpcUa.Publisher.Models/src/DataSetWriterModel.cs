@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetFieldContentMask", Order = 2,
             EmitDefaultValue = false)]
-        public DataSetFieldContentMask? DataSetFieldContentMask { get; set; }
+        public DataSetFieldContentFlags? DataSetFieldContentMask { get; set; }
 
         /// <summary>
         /// Data set message settings

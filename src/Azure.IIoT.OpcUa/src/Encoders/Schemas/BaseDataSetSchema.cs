@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="options"></param>
         /// <returns></returns>
         protected BaseDataSetSchema(
-            Publisher.Models.DataSetFieldContentMask? dataSetFieldContentMask,
+            Publisher.Models.DataSetFieldContentFlags? dataSetFieldContentMask,
             BaseBuiltInSchemas<T> encoding, SchemaOptions? options = null)
         {
             _dataSetFieldContentMask = dataSetFieldContentMask ?? default;
@@ -337,15 +337,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             out bool dataValueRepresentation, bool isSingleFieldDataSet)
         {
             writeSingleValue = isSingleFieldDataSet && _dataSetFieldContentMask
-                .HasFlag(Publisher.Models.DataSetFieldContentMask.SingleFieldDegradeToValue);
+                .HasFlag(Publisher.Models.DataSetFieldContentFlags.SingleFieldDegradeToValue);
             dataValueRepresentation = !_dataSetFieldContentMask
-                .HasFlag(Publisher.Models.DataSetFieldContentMask.RawData)
+                .HasFlag(Publisher.Models.DataSetFieldContentFlags.RawData)
                 && _dataSetFieldContentMask != 0;
         }
 
         /// <summary> Schema options </summary>
         protected readonly SchemaOptions _options;
-        private readonly Publisher.Models.DataSetFieldContentMask _dataSetFieldContentMask;
+        private readonly Publisher.Models.DataSetFieldContentFlags _dataSetFieldContentMask;
         private readonly Dictionary<string, TypedDescription> _types = new();
     }
 }

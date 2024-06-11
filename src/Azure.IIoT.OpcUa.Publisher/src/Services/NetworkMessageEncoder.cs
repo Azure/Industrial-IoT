@@ -245,10 +245,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
                         var messageMask = writerGroup.MessageSettings.NetworkMessageContentMask;
-                        var hasSamplesPayload = (messageMask & NetworkMessageContentMask.MonitoredItemMessage) != 0;
+                        var hasSamplesPayload = (messageMask & NetworkMessageContentFlags.MonitoredItemMessage) != 0;
                         if (hasSamplesPayload && !isBatched)
                         {
-                            messageMask |= NetworkMessageContentMask.SingleDataSetMessage;
+                            messageMask |= NetworkMessageContentFlags.SingleDataSetMessage;
                         }
                         var namespaceFormat =
 							writerGroup.MessageSettings?.NamespaceFormat ??
@@ -290,11 +290,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                         // Create regular data set messages
                                         BaseDataSetMessage dataSetMessage =
-                                            // encoding.HasFlag(MessageEncoding.Avro) ?
-                                            //     new AvroDataSetMessage
-                                            //     {
-                                            //         DataSetWriterName = GetDataSetWriterName(Context)
-                                            //     } :
+                                            encoding.HasFlag(MessageEncoding.Avro) ?
+                                                new AvroDataSetMessage
+                                                {
+                                                    DataSetWriterName = GetDataSetWriterName(Notification, Context)
+                                                } :
                                             encoding.HasFlag(MessageEncoding.Binary) ?
                                                 new UadpDataSetMessage() :
                                                 new JsonDataSetMessage
@@ -352,10 +352,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                     UseCompatibilityMode = !standardsCompliant,
                                                     DataSetWriterName = GetDataSetWriterName(Notification, Context)
                                                 } :
-                                                //encoding.HasFlag(MessageEncoding.Avro) ? new AvroDataSetMessage
-                                                //{
-                                                //    DataSetWriterName = GetDataSetWriterName(Context)
-                                                //} :
+                                                encoding.HasFlag(MessageEncoding.Avro) ? new AvroDataSetMessage
+                                                {
+                                                    DataSetWriterName = GetDataSetWriterName(Notification, Context)
+                                                } :
                                                 new UadpDataSetMessage();
 
                                             dataSetMessage.DataSetWriterId = Notification.SubscriptionId;
@@ -536,12 +536,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 Debug.Assert(!encoding.HasFlag(MessageEncoding.Avro) || schema is IAvroSchema);
                                 BaseNetworkMessage currentMessage =
-                                    //schema is IAvroSchema s && encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage
-                                    //{
-                                    //    Schema = s.Schema,
-                                    //    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                                    //    MessageId = () => Guid.NewGuid().ToString()
-                                    //} :
+                                    schema is IAvroSchema s && encoding.HasFlag(MessageEncoding.Avro) ? new AvroNetworkMessage
+                                    {
+                                        Schema = s.Schema,
+                                        UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                                        MessageId = () => Guid.NewGuid().ToString()
+                                    } :
                                     encoding.HasFlag(MessageEncoding.Binary) ? new UadpNetworkMessage
                                     {
                                         //   WriterGroupId = writerGroup.Index,

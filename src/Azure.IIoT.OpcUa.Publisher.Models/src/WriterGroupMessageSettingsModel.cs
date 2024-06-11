@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "networkMessageContentMask", Order = 0,
             EmitDefaultValue = false)]
-        public NetworkMessageContentMask? NetworkMessageContentMask { get; set; }
+        public NetworkMessageContentFlags? NetworkMessageContentMask { get; set; }
 
         /// <summary>
         /// Group version

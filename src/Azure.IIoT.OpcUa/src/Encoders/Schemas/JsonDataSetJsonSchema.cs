@@ -61,20 +61,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary>
         /// Get json schema for a dataset
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="dataSet"></param>
-        /// <param name="dataSetFieldContentMask"></param>
+        /// <param name="dataSetFieldContentFlags"></param>
         /// <param name="options"></param>
         /// <param name="def"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public JsonDataSetJsonSchema(string? name, PublishedDataSetMetaDataModel dataSet,
-            DataSetFieldContentMask? dataSetFieldContentMask = null,
+        public JsonDataSetJsonSchema(PublishedDataSetMetaDataModel dataSet,
+            DataSetFieldContentFlags? dataSetFieldContentFlags = null,
             SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null,
             HashSet<string>? uniqueNames = null)
-            : base(dataSetFieldContentMask, new JsonBuiltInJsonSchemas(
-                dataSetFieldContentMask ?? default, def), options)
+            : base(dataSetFieldContentFlags, new JsonBuiltInJsonSchemas(
+                dataSetFieldContentFlags ?? default, def), options)
         {
+            var name = dataSet.DataSetMetaData?.Name;
             Name = name ?? "DataSet";
             Ref = Compile(name, dataSet, uniqueNames);
         }
