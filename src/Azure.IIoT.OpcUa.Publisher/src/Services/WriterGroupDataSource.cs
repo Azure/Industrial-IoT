@@ -750,10 +750,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._logger.LogWarning(ex, "Failed to produce message.");
                 }
 
-                WriterGroupMessageContext CreateMessageContext(string topic, QoS? qos, Func<uint> sequenceNumber,
+                WriterGroupContext CreateMessageContext(string topic, QoS? qos, Func<uint> sequenceNumber,
                     MonitoredItemContext? item = null)
                 {
-                    return new WriterGroupMessageContext
+                    return new WriterGroupContext
                     {
                         PublisherId = _outer._options.Value.PublisherId ?? Constants.DefaultPublisherId,
                         Writer = _dataSetWriter,

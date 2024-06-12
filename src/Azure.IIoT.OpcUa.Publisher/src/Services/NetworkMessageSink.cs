@@ -267,7 +267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public bool TryPublish(IOpcUaSubscriptionNotification args)
             {
-                var hash = (args.Context as WriterGroupMessageContext)?
+                var hash = (args.Context as WriterGroupContext)?
                     .Topic?.GetHashCode(StringComparison.Ordinal) ?? 0;
                 return _partitions[(uint)hash % _partitions.Length].TryPublish(args);
             }

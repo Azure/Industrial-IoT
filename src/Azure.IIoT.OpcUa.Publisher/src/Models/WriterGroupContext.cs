@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// <summary>
     /// Data set message emitted by writer in a writer group.
     /// </summary>
-    public record class WriterGroupMessageContext
+    public record class WriterGroupContext
     {
         /// <summary>
         /// Topic for the message if not metadata message

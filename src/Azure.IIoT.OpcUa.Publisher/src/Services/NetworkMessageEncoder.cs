@@ -220,13 +220,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
             var result = new List<EncodedMessage>();
 
-            static QoS GetQos(WriterGroupMessageContext context, QoS? defaultQos)
+            static QoS GetQos(WriterGroupContext context, QoS? defaultQos)
             {
                 return context.Qos ?? defaultQos ?? QoS.AtLeastOnce;
             }
             // Group messages by topic and qos, then writer group and then by dataset class id
             foreach (var topics in messages
-                .Select(m => (Notification: m, Context: (m.Context as WriterGroupMessageContext)!))
+                .Select(m => (Notification: m, Context: (m.Context as WriterGroupContext)!))
                 .Where(m => m.Context != null)
                 .GroupBy(m => (m.Context!.Topic,
                     GetQos(m.Context, _options.Value.DefaultQualityOfService))))
@@ -471,7 +471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
 
                             static string GetDataSetWriterName(IOpcUaSubscriptionNotification Notification,
-                                WriterGroupMessageContext Context)
+                                WriterGroupContext Context)
                             {
                                 var dataSetWriterName = Context.Writer.DataSetWriterName
                                     ?? Constants.DefaultDataSetWriterName;

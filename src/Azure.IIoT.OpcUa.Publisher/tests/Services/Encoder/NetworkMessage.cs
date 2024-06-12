@@ -236,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
                 var message = new SubscriptionNotificationModel
                 {
-                    Context = new WriterGroupMessageContext
+                    Context = new WriterGroupContext
                     {
                         NextWriterSequenceNumber = () => i,
                         Qos = null,
