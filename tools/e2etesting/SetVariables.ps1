@@ -51,7 +51,7 @@ if ($registry -eq "industrialiotprod")
 {
    # $KeyVaultName = "kv-release-pipeline" #todo
 }
-if ($KeyVaultName) 
+if ($KeyVaultName)
 {
     Write-Host "Looking up credentials for $($registry) registry in KV $KeyVaultName."
     Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryPassword"
@@ -61,7 +61,15 @@ if ($KeyVaultName)
 
 if ([string]::IsNullOrWhiteSpace($script:ImageTag))
 {
-    $script:ImageTag = "$($env:Version_Prefix)$($env:Version_Prerelease)"
+    $script:ImageTag = "$($env:PlatformVersion)"
+}
+if ([string]::IsNullOrWhiteSpace($script:ImageTag))
+{
+    $script:ImageTag = "$($env:Version_Prefix)"
+    if (![string]::IsNullOrWhiteSpace($env:Version_Suffix))
+    {
+        Write-Host "##vso[task.setvariable variable=PlatformVersion]$($script:ImageTag)"
+    }
 }
 if ([string]::IsNullOrWhiteSpace($script:ImageTag))
 {
@@ -72,20 +80,25 @@ if ([string]::IsNullOrWhiteSpace($script:ImageTag))
     catch  {}
     try
     {
+        Write-Host "Using get-version to determine version."
         $props = $(nbgv get-version -f json) | ConvertFrom-Json
         if ($LastExitCode -ne 0) {
             throw "Error: 'nbgv get-version -f json' failed with $($LastExitCode)."
         }
         $version = $props.CloudBuildAllVars.NBGV_SimpleVersion
-        $prerelease = $props.CloudBuildAllVars.NBGV_PrereleaseVersion
-        $script:ImageTag = "$($version)$($prerelease)"
+        $script:ImageTag = "$($version)"
+        Write-Host "##vso[task.setvariable variable=PlatformVersion]$($script:ImageTag)"
     }
     catch
     {
-        # build as latest if not building from ci/cd pipeline
-        Write-Warning "Unable to determine version - use latest."
-        $script:ImageTag = "latest"
+        $script:ImageTag = $null
     }
+}
+if ([string]::IsNullOrWhiteSpace($script:ImageTag))
+{
+    # build as latest if not building from ci/cd pipeline
+    Write-Warning "Unable to determine version - use latest."
+    $script:ImageTag = "latest"
 }
 
 # Set namespace name based on branch name

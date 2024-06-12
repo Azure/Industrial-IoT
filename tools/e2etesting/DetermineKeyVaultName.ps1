@@ -35,7 +35,7 @@ else {
 
     foreach ($keyVault in $keyVaults) {
         $kvApplication = $keyVault.Tags["application"]
-    
+
         if ($kvApplication -ne $application) {
             continue
         } else {
