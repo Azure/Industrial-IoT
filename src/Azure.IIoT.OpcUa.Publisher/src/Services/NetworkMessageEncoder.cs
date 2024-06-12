@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         // Create regular data set messages
                                         var dataSetMessage = PubSubMessage.CreateDataSetMessage(encoding,
                                             GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                            MessageType.KeepAlive, GetDataSetWriterName(Notification, Context),
+                                            Notification.MessageType, GetDataSetWriterName(Notification, Context),
                                             Notification.SubscriptionId, new DataSet(),
                                             dataSetMessageContentMask, standardsCompliant, Notification.MetaData);
 
@@ -327,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             // Create regular data set messages
                                             var dataSetMessage = PubSubMessage.CreateDataSetMessage(encoding,
                                                 GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                                MessageType.KeepAlive, GetDataSetWriterName(Notification, Context),
+                                                Notification.MessageType, GetDataSetWriterName(Notification, Context),
                                                 Notification.SubscriptionId, new DataSet(orderedNotifications.ToDictionary(
                                                     s => s.DataSetFieldName!, s => s.Value), dataSetFieldContentMask),
                                                 dataSetMessageContentMask, standardsCompliant, Notification.MetaData);

@@ -8,9 +8,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
-    /// Type conversion
+    /// Default content masks
     /// </summary>
-    public static class Defaults
+    public static class DefaultContentMasks
     {
         /// <summary>
         /// Network message defaults

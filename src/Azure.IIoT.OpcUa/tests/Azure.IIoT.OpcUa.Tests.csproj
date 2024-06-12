@@ -28,4 +28,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Encoders\Schemas\AvroNetworkMessageAvroSchemaTests.cs" />
+    <Compile Remove="Encoders\Schemas\JsonNetworkMessageAvroSchemaTests.cs" />
+    <Compile Remove="Encoders\Schemas\JsonNetworkMessageJsonSchemaTests.cs" />
+  </ItemGroup>
 </Project>
