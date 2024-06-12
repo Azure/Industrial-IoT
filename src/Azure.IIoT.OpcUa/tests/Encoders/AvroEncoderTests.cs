@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Avro;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Opc.Ua;
     using Opc.Ua.Extensions;

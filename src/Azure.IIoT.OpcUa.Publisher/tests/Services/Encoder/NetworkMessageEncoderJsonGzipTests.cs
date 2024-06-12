@@ -196,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     Name = "test"
                 },
-                Fields = new []
+                Fields = new[]
                 {
                     new PublishedFieldMetaDataModel
                     {

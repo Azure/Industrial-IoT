@@ -13,8 +13,8 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using Xunit;
-    using System.Text.Json;
     using Opc.Ua.Extensions;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     public class AvroDataSetTests
     {
@@ -302,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayRawTest1(bool concise)
         {
             // Create dummy
-            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            var expected = new DataSet(DataSetFieldContentFlags.RawData)
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -338,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayRawTest2(bool concise)
         {
             // Create dummy
-            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            var expected = new DataSet(DataSetFieldContentFlags.RawData)
             {
                 ["abcd"] = null,
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -442,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleValueRawTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            var expected = new DataSet(DataSetFieldContentFlags.RawData)
             {
                 ["abcd"] = new DataValue(new Variant(1234),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
@@ -474,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleComplexValueRawTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            var expected = new DataSet(DataSetFieldContentFlags.RawData)
             {
                 ["abcd"] = new DataValue(new Variant(VariantVariants.Complex),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
@@ -510,7 +510,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayRawStreamTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet((uint)DataSetFieldContentMask.RawData)
+            var expected = new DataSet(DataSetFieldContentFlags.RawData)
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),

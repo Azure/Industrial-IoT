@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Furly;
     using Opc.Ua;
     using System;
     using System.Buffers;
@@ -813,14 +811,14 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestVariantWithEnumerations()
         {
             var context = new ServiceMessageContext();
-            var expected = new Variant(new [] { DiagnosticsLevel.Advanced, DiagnosticsLevel.Advanced });
+            var expected = new Variant(new[] { DiagnosticsLevel.Advanced, DiagnosticsLevel.Advanced });
             using var stream = new MemoryStream();
             using var encoder = new SchemalessAvroEncoder(stream, context, true);
             encoder.WriteVariant(null, expected);
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
             var result = decoder.ReadVariant(null).Value;
-            Assert.Equal(new int[] {1, 1}, result);
+            Assert.Equal(new int[] { 1, 1 }, result);
         }
     }
 }

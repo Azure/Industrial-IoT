@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
@@ -23,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
-    using UaStructureType = Opc.Ua.StructureType;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
     using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
     using System;
@@ -284,50 +282,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     return UaTimestampsToReturn.Source;
                 default:
                     return UaTimestampsToReturn.Both;
-            }
-        }
-
-        /// <summary>
-        /// Convert structure type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static UaStructureType ToStackType(this StructureType? type)
-        {
-            switch (type)
-            {
-                case StructureType.StructureWithOptionalFields:
-                    return UaStructureType.StructureWithOptionalFields;
-                case StructureType.Union:
-                    return UaStructureType.Union;
-                case StructureType.StructureWithSubtypedValues:
-                    return UaStructureType.StructureWithSubtypedValues;
-                case StructureType.UnionWithSubtypedValues:
-                    return UaStructureType.UnionWithSubtypedValues;
-                default:
-                    return UaStructureType.Structure;
-            }
-        }
-
-        /// <summary>
-        /// Convert structure type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static StructureType ToServiceType(this UaStructureType type)
-        {
-            switch (type)
-            {
-                case UaStructureType.StructureWithOptionalFields:
-                    return StructureType.StructureWithOptionalFields;
-                case UaStructureType.Union:
-                    return StructureType.Union;
-                case UaStructureType.StructureWithSubtypedValues:
-                    return StructureType.StructureWithSubtypedValues;
-                case UaStructureType.UnionWithSubtypedValues:
-                    return StructureType.UnionWithSubtypedValues;
-                default:
-                    return StructureType.Structure;
             }
         }
 

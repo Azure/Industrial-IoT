@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Opc.Ua;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
 
     /// <summary>
@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Content mask
         /// </summary>
-        public uint DataSetMessageContentMask { get; set; }
+        public DataSetMessageContentFlags DataSetMessageContentMask { get; set; }
 
         /// <summary>
         /// Dataset message type
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Metadata version
         /// </summary>
-        public ConfigurationVersionDataType? MetaDataVersion { get; set; }
+        public Opc.Ua.ConfigurationVersionDataType? MetaDataVersion { get; set; }
 
         /// <summary>
         /// Sequence number
@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Status
         /// </summary>
-        public StatusCode? Status { get; set; }
+        public Opc.Ua.StatusCode? Status { get; set; }
 
         /// <summary>
         /// Payload
@@ -72,12 +72,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
-                !Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
-                !Utils.IsEqual(wrapper.Status ?? StatusCodes.Good, Status ?? StatusCodes.Good) ||
-                !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
-                !Utils.IsEqual(wrapper.MessageType, MessageType) ||
-                !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.Status ?? Opc.Ua.StatusCodes.Good, Status ?? Opc.Ua.StatusCodes.Good) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.MessageType, MessageType) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion))
             {
                 return false;
             }

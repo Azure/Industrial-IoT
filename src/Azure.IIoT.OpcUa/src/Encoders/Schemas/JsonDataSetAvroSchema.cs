@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Avro;
     using Furly;
     using Furly.Extensions.Messaging;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 

@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var message = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             message = message with
             {
-                    NetworkMessageContentFlags =
+                NetworkMessageContentFlags =
                         NetworkMessageContentFlags.SingleDataSetMessage
             };
 

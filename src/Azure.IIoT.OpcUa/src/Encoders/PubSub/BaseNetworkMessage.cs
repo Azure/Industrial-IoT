@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Opc.Ua;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
 
@@ -18,12 +18,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Message content
         /// </summary>
-        public uint NetworkMessageContentMask { get; set; }
+        public NetworkMessageContentFlags NetworkMessageContentMask { get; set; }
 
         /// <summary>
         /// Dataset class id in case of ua-data message
         /// </summary>
         public Guid DataSetClassId { get; set; }
+
+        /// <summary>
+        /// Data set metadata in case this is a metadata message
+        /// </summary>
+        public PublishedDataSetMetaDataModel? MetaData { get; set; }
 
         /// <summary>
         /// DataSet Messages
@@ -47,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
-                !Utils.IsEqual(wrapper.Messages, Messages))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.Messages, Messages))
             {
                 return false;
             }

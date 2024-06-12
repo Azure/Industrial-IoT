@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Furly;
     using Furly.Extensions.Messaging;
     using Json.Schema;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -186,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <inheritdoc/>
         protected override JsonSchema CreateEnumSchema(EnumDescriptionModel description,
-			SchemaRank rank)
+            SchemaRank rank)
         {
             var scalar = Definitions.Reference(description.DataTypeId
                 .GetSchemaId(description.Name, Context), id =>

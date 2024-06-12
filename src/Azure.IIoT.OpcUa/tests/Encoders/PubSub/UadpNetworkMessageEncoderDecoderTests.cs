@@ -24,33 +24,33 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// All
         /// </summary>
-        public const UadpNetworkMessageContentMask NetworkMessageContentMaskDefault =
-            UadpNetworkMessageContentMask.PublisherId |
-            UadpNetworkMessageContentMask.GroupHeader |
-            UadpNetworkMessageContentMask.WriterGroupId |
-            UadpNetworkMessageContentMask.GroupVersion |
-            UadpNetworkMessageContentMask.NetworkMessageNumber |
-            UadpNetworkMessageContentMask.SequenceNumber |
-            UadpNetworkMessageContentMask.PayloadHeader |
-            UadpNetworkMessageContentMask.Timestamp |
-            UadpNetworkMessageContentMask.PicoSeconds |
-            UadpNetworkMessageContentMask.DataSetClassId |
-            UadpNetworkMessageContentMask.PromotedFields;
+        public const NetworkMessageContentFlags NetworkMessageContentMaskDefault =
+            NetworkMessageContentFlags.PublisherId |
+            NetworkMessageContentFlags.GroupHeader |
+            NetworkMessageContentFlags.WriterGroupId |
+            NetworkMessageContentFlags.GroupVersion |
+            NetworkMessageContentFlags.NetworkMessageNumber |
+            NetworkMessageContentFlags.SequenceNumber |
+            NetworkMessageContentFlags.PayloadHeader |
+            NetworkMessageContentFlags.Timestamp |
+            NetworkMessageContentFlags.Picoseconds |
+            NetworkMessageContentFlags.DataSetClassId |
+            NetworkMessageContentFlags.PromotedFields;
 
-        public const UadpDataSetMessageContentMask DataSetMessageContentMaskDefault =
-            UadpDataSetMessageContentMask.PicoSeconds |
-            UadpDataSetMessageContentMask.SequenceNumber |
-            UadpDataSetMessageContentMask.MajorVersion |
-            UadpDataSetMessageContentMask.MinorVersion |
-            UadpDataSetMessageContentMask.Timestamp |
-            UadpDataSetMessageContentMask.Status;
+        public const DataSetMessageContentFlags DataSetMessageContentMaskDefault =
+            DataSetMessageContentFlags.PicoSeconds |
+            DataSetMessageContentFlags.SequenceNumber |
+            DataSetMessageContentFlags.MajorVersion |
+            DataSetMessageContentFlags.MinorVersion |
+            DataSetMessageContentFlags.Timestamp |
+            DataSetMessageContentFlags.Status;
 
-        public const Opc.Ua.DataSetFieldContentMask DataSetFieldContentMaskDefault =
-            Opc.Ua.DataSetFieldContentMask.SourceTimestamp |
-            Opc.Ua.DataSetFieldContentMask.ServerTimestamp |
-            Opc.Ua.DataSetFieldContentMask.SourcePicoSeconds |
-            Opc.Ua.DataSetFieldContentMask.ServerPicoSeconds |
-            Opc.Ua.DataSetFieldContentMask.StatusCode;
+        public const DataSetFieldContentFlags DataSetFieldContentFlagsDefault =
+            DataSetFieldContentFlags.SourceTimestamp |
+            DataSetFieldContentFlags.ServerTimestamp |
+            DataSetFieldContentFlags.SourcePicoSeconds |
+            DataSetFieldContentFlags.ServerPicoSeconds |
+            DataSetFieldContentFlags.StatusCode;
 
         [Theory]
         [InlineData(MessageType.KeyFrame, 1)]
@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(
-                NetworkMessageContentMaskDefault & ~UadpNetworkMessageContentMask.GroupHeader, messages);
+                NetworkMessageContentMaskDefault & ~NetworkMessageContentFlags.GroupHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize, this);
@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(
-                NetworkMessageContentMaskDefault & ~UadpNetworkMessageContentMask.PayloadHeader, messages);
+                NetworkMessageContentMaskDefault & ~NetworkMessageContentFlags.PayloadHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize, this);
@@ -258,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(NetworkMessageContentMaskDefault
-                & ~(UadpNetworkMessageContentMask.GroupHeader | UadpNetworkMessageContentMask.PayloadHeader), messages);
+                & ~(NetworkMessageContentFlags.GroupHeader | NetworkMessageContentFlags.PayloadHeader), messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize, this);
@@ -302,10 +302,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber,
-                    dataSetFieldContentMask: Opc.Ua.DataSetFieldContentMask.RawData))
+                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(NetworkMessageContentMaskDefault
-                & ~(UadpNetworkMessageContentMask.GroupHeader | UadpNetworkMessageContentMask.PayloadHeader), messages);
+                & ~(NetworkMessageContentFlags.GroupHeader | NetworkMessageContentFlags.PayloadHeader), messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize, this);
@@ -347,9 +347,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     expectedPayload[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
-                dataSetMessage.Payload = new DataSet(expectedPayload, (uint)(
-                    Opc.Ua.DataSetFieldContentMask.StatusCode |
-                    Opc.Ua.DataSetFieldContentMask.SourceTimestamp));
+                dataSetMessage.Payload = new DataSet(expectedPayload,
+                    DataSetFieldContentFlags.StatusCode |
+                    DataSetFieldContentFlags.SourceTimestamp);
             }
         }
 
@@ -359,7 +359,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="contentMask"></param>
         /// <param name="messages"></param>
         private UadpNetworkMessage CreateNetworkMessage(
-            UadpNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages)
+            NetworkMessageContentFlags contentMask, List<BaseDataSetMessage> messages)
         {
             return new UadpNetworkMessage
             {
@@ -370,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 SequenceNumber = () => _lastSequenceNumber++,
                 DataSetClassId = Guid.NewGuid(),
                 PublisherId = "PublisherId",
-                NetworkMessageContentMask = (uint)contentMask
+                NetworkMessageContentMask = contentMask
             };
         }
         private ushort _lastSequenceNumber;
@@ -383,8 +383,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="dataSetMessageContentMask"></param>
         /// <param name="dataSetFieldContentMask"></param>
         private static UadpDataSetMessage CreateDataSetMessage(MessageType type, int sequenceNumber,
-            UadpDataSetMessageContentMask dataSetMessageContentMask = DataSetMessageContentMaskDefault,
-            Opc.Ua.DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+            DataSetMessageContentFlags dataSetMessageContentMask = DataSetMessageContentMaskDefault,
+            DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault)
         {
             return new UadpDataSetMessage
             {
@@ -396,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 MessageType = type,
                 Picoseconds = 1,
                 Payload = CreateDataSet(type == MessageType.DeltaFrame, dataSetFieldContentMask),
-                DataSetMessageContentMask = (uint)dataSetMessageContentMask
+                DataSetMessageContentMask = dataSetMessageContentMask
             };
         }
 
@@ -408,7 +408,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return new PublishedDataSetMetaDataModel
             {
                 DataSetMetaData = new DataSetMetaDataModel(),
-                Fields = new [] {
+                Fields = new[] {
                     new PublishedFieldMetaDataModel { Name = "1", BuiltInType = (byte)BuiltInType.Int32, ValueRank = ValueRanks.Scalar },
                     new PublishedFieldMetaDataModel { Name = "2", BuiltInType = (byte)BuiltInType.Float, ValueRank = ValueRanks.Scalar },
                     new PublishedFieldMetaDataModel { Name = "3", BuiltInType = (byte)BuiltInType.String, ValueRank = ValueRanks.Scalar }
@@ -422,15 +422,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="deltaFrame"></param>
         /// <param name="dataSetFieldContentMask"></param>
         private static DataSet CreateDataSet(bool deltaFrame,
-            Opc.Ua.DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+            DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault)
         {
-            return !deltaFrame ? new DataSet(new Dictionary<string, DataValue> {
+            return !deltaFrame ? new DataSet(new Dictionary<string, DataValue>
+            {
                 { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue("abcd") }
-            }, (uint)dataSetFieldContentMask) : new DataSet(new Dictionary<string, DataValue> {
+            }, dataSetFieldContentMask) : new DataSet(new Dictionary<string, DataValue>
+            {
                 { "3", new DataValue("abcd") }
-            }, (uint)dataSetFieldContentMask);
+            }, dataSetFieldContentMask);
         }
 
         private static Queue<ReadOnlySequence<byte>> CreateReader(IReadOnlyList<ReadOnlySequence<byte>> buffers)

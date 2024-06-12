@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Avro;
-    using Opc.Ua;
     using System;
     using System.Linq;
 
@@ -46,11 +45,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetName, DataSetName))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetName, DataSetName))
             {
                 return false;
             }
@@ -243,12 +242,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId); // Do we need this?
             encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
             encoder.WriteEncodeable(nameof(MetaDataVersion), MetaDataVersion,
-                typeof(ConfigurationVersionDataType));
+                typeof(Opc.Ua.ConfigurationVersionDataType));
             encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
 
             var status = Status ?? Payload.Values
-                .FirstOrDefault(s => StatusCode.IsNotGood(
-                    s?.StatusCode ?? StatusCodes.BadNoData))?.StatusCode ?? StatusCodes.Good;
+                .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(
+                    s?.StatusCode ?? Opc.Ua.StatusCodes.BadNoData))?.StatusCode ?? Opc.Ua.StatusCodes.Good;
             encoder.WriteStatusCode(nameof(Status), status);
         }
 
@@ -291,8 +290,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));// Do we need this?
             SequenceNumber = decoder.ReadUInt32(nameof(SequenceNumber));
-            MetaDataVersion = (ConfigurationVersionDataType?)decoder.ReadEncodeable(
-                    nameof(MetaDataVersion), typeof(ConfigurationVersionDataType));
+            MetaDataVersion = (Opc.Ua.ConfigurationVersionDataType?)decoder.ReadEncodeable(
+                    nameof(MetaDataVersion), typeof(Opc.Ua.ConfigurationVersionDataType));
             Timestamp = decoder.ReadDateTime(nameof(Timestamp));
             Status = decoder.ReadStatusCode(nameof(Status));
             return true;

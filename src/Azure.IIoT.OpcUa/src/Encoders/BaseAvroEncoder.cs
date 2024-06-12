@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Newtonsoft.Json.Linq;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteDataSet(string? fieldName, DataSet dataSet)
         {
             var fieldContentMask = dataSet.DataSetFieldContentMask;
-            if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
+            if ((fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData)) ||
                 fieldContentMask == 0)
             {
                 foreach (var value in dataSet)

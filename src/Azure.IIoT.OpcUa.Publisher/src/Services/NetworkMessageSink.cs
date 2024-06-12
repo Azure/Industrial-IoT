@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? (_logNotificationsFilter != null);
             _queue = new NullPublishQueue();
 
-			_transport = new TransportOptions(writerGroup, _eventClients, _options);
+            _transport = new TransportOptions(writerGroup, _eventClients, _options);
 
             _queue = _transport.MaxPublishQueuePartitions != 0
                 ? new PublishQueue(this, _transport.MaxPublishQueuePartitions)

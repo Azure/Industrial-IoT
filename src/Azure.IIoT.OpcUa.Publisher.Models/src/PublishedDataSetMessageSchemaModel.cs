@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "metaData", Order = 1,
             EmitDefaultValue = false)]
-        public required PublishedDataSetMetaDataModel MetaData { get; init;}
+        public required PublishedDataSetMetaDataModel MetaData { get; init; }
 
         /// <summary>
         /// Dataset content encoding flags

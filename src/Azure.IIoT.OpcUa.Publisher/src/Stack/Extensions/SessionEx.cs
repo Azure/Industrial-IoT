@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using NodeClass = Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -62,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
             if (withHeader)
             {
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0)
+                if ((DataSetMessageContentMask & DataSetMessageContentFlags.DataSetWriterId) != 0)
                 {
                     if (!UseCompatibilityMode)
                     {
@@ -74,22 +75,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         encoder.WriteString(nameof(DataSetWriterId), DataSetWriterName);
                     }
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0)
+                if ((DataSetMessageContentMask & DataSetMessageContentFlags.SequenceNumber) != 0)
                 {
                     encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MetaDataVersion) != 0)
+                if ((DataSetMessageContentMask & DataSetMessageContentFlags.MetaDataVersion) != 0)
                 {
                     encoder.WriteEncodeable(nameof(MetaDataVersion), MetaDataVersion, typeof(ConfigurationVersionDataType));
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) != 0)
+                if ((DataSetMessageContentMask & DataSetMessageContentFlags.Timestamp) != 0)
                 {
                     encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0)
+                if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
                 {
                     var status = Status ?? Payload.Values
-                        .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?.StatusCode ?? StatusCodes.Good;
+                        .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ??
+                            StatusCodes.BadNoData))?.StatusCode ?? StatusCodes.Good;
                     if (!UseCompatibilityMode)
                     {
                         encoder.WriteUInt32(nameof(Status), status.Code);
@@ -100,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         encoder.WriteStatusCode(nameof(Status), status);
                     }
                 }
-                if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.MessageType) != 0)
+                if ((DataSetMessageContentMask & DataSetMessageContentFlags.MessageType) != 0)
                 {
                     switch (MessageType)
                     {
@@ -122,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                 }
                 if (!UseCompatibilityMode &&
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterName) != 0)
+                    (DataSetMessageContentMask & DataSetMessageContentFlags.DataSetWriterName) != 0)
                 {
                     encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
                 }
@@ -136,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             void WritePayload(JsonEncoderEx jsonEncoder, string? propertyName = null)
             {
                 var useReversibleEncoding =
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.ReversibleFieldEncoding) != 0;
+                    (DataSetMessageContentMask & DataSetMessageContentFlags.ReversibleFieldEncoding) != 0;
                 var prevReversibleEncoding = jsonEncoder.UseReversibleEncoding;
                 try
                 {
@@ -197,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
 
             // Read the data set message header
-            bool TryReadDataSetMessageHeader(JsonDecoderEx jsonDecoder, out uint dataSetMessageContentMask)
+            bool TryReadDataSetMessageHeader(JsonDecoderEx jsonDecoder, out DataSetMessageContentFlags dataSetMessageContentMask)
             {
                 dataSetMessageContentMask = 0;
                 if (jsonDecoder.HasField(nameof(DataSetWriterId)))
@@ -210,8 +212,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         if (DataSetWriterName != null)
                         {
                             UseCompatibilityMode = true;
-                            dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
-                            dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterName;
+                            dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterId;
+                            dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterName;
                         }
                         else
                         {
@@ -221,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
                     else
                     {
-                        dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
+                        dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterId;
                     }
                 }
 
@@ -231,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         nameof(MetaDataVersion), typeof(ConfigurationVersionDataType));
                     if (MetaDataVersion != null)
                     {
-                        dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.MetaDataVersion;
+                        dataSetMessageContentMask |= DataSetMessageContentFlags.MetaDataVersion;
                     }
                     else
                     {
@@ -243,19 +245,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (jsonDecoder.HasField(nameof(SequenceNumber)))
                 {
                     SequenceNumber = jsonDecoder.ReadUInt32(nameof(SequenceNumber));
-                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
+                    dataSetMessageContentMask |= DataSetMessageContentFlags.SequenceNumber;
                 }
 
                 if (jsonDecoder.HasField(nameof(Timestamp)))
                 {
                     Timestamp = jsonDecoder.ReadDateTime(nameof(Timestamp));
-                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
+                    dataSetMessageContentMask |= DataSetMessageContentFlags.Timestamp;
                 }
 
                 if (jsonDecoder.HasField(nameof(Status)))
                 {
                     UseCompatibilityMode = jsonDecoder.IsObject(nameof(Status));
-                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;
+                    dataSetMessageContentMask |= DataSetMessageContentFlags.Status;
                     if (!UseCompatibilityMode)
                     {
                         Status = jsonDecoder.ReadUInt32(nameof(Status));
@@ -270,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (jsonDecoder.HasField(nameof(MessageType)))
                 {
                     var messageType = jsonDecoder.ReadString(nameof(MessageType));
-                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.MessageType;
+                    dataSetMessageContentMask |= DataSetMessageContentFlags.MessageType;
 
                     if (messageType != null)
                     {
@@ -305,7 +307,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (jsonDecoder.HasField(nameof(DataSetWriterName)))
                 {
                     DataSetWriterName = jsonDecoder.ReadString(nameof(DataSetWriterName));
-                    dataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterName;
+                    dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterName;
                 }
                 return jsonDecoder.HasField(nameof(Payload));
             }

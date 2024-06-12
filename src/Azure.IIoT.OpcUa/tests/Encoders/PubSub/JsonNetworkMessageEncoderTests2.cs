@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
@@ -715,12 +716,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return new JsonNetworkMessage
             {
                 DataSetClassId = Guid.Parse("5ae1a63a-9757-4aa7-ab71-0d88931266fc"),
-                NetworkMessageContentMask = messageMask,
+                NetworkMessageContentMask = (NetworkMessageContentFlags)messageMask,
                 MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
                 PublisherId = "MyPublisher",
                 Messages = new List<BaseDataSetMessage> {
                     new JsonDataSetMessage {
-                        DataSetMessageContentMask = datasetMask,
+                        DataSetMessageContentMask = (DataSetMessageContentFlags)datasetMask,
                         DataSetWriterId = 100,
                         SequenceNumber = 29766,
                         MetaDataVersion = new ConfigurationVersionDataType
@@ -731,7 +732,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         Status = 1073741824,
                         MessageType = MessageType.KeyFrame,
                         DataSetWriterName = "Writer100",
-                        Payload = new DataSet(fieldMask) {
+                        Payload = new DataSet((DataSetFieldContentFlags)fieldMask) {
     ["Temperature"] = new DataValue(25, StatusCodes.Good,
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture)),
@@ -744,7 +745,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         }
                     },
                     new JsonDataSetMessage {
-                        DataSetMessageContentMask = datasetMask,
+                        DataSetMessageContentMask = (DataSetMessageContentFlags)datasetMask,
                         DataSetWriterId = 100,
                         SequenceNumber = 29767,
                         MetaDataVersion = new ConfigurationVersionDataType
@@ -756,7 +757,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         Status = 1073741824,
                         MessageType = MessageType.DeltaFrame,
                         DataSetWriterName = "Writer100",
-                        Payload = new DataSet(fieldMask) {
+                        Payload = new DataSet((DataSetFieldContentFlags)fieldMask) {
     ["Temperature"] = new DataValue(26, StatusCodes.Good,
         DateTime.Parse("2021-09-27T18:45:19.556Z", CultureInfo.InvariantCulture),
         DateTime.Parse("2021-09-27T18:45:19.556Z", CultureInfo.InvariantCulture)),

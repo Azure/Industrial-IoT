@@ -406,7 +406,7 @@ namespace Json.Schema
         /// <summary>
         /// Self reference
         /// </summary>
-        public static readonly UriOrFragment Self = new ("#");
+        public static readonly UriOrFragment Self = new("#");
 
         /// <summary>
         /// Create a fragment

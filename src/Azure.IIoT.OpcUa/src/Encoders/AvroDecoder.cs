@@ -13,8 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
-    using Newtonsoft.Json.Linq;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
@@ -302,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 if (isRaw)
                 {
-                    dataSet.DataSetFieldContentMask = (uint)DataSetFieldContentMask.RawData;
+                    dataSet.DataSetFieldContentMask = DataSetFieldContentFlags.RawData;
                 }
                 return dataSet;
             }

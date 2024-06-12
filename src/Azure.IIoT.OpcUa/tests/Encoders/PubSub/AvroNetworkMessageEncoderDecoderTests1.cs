@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Avro;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
@@ -21,26 +22,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     /// </summary>
     public class AvroNetworkMessageEncoderDecoderTests1
     {
-        public const AvroNetworkMessageContentMask NetworkMessageContentMaskDefault =
-            AvroNetworkMessageContentMask.NetworkMessageHeader |
-            AvroNetworkMessageContentMask.DataSetMessageHeader;
+        public const NetworkMessageContentFlags NetworkMessageContentMaskDefault =
+            NetworkMessageContentFlags.NetworkMessageHeader |
+            NetworkMessageContentFlags.DataSetMessageHeader;
 
-        public const DataSetFieldContentMask DataSetFieldContentMaskDefault =
-            DataSetFieldContentMask.SourceTimestamp |
-            DataSetFieldContentMask.ServerTimestamp |
-            DataSetFieldContentMask.SourcePicoSeconds |
-            DataSetFieldContentMask.ServerPicoSeconds |
-            DataSetFieldContentMask.StatusCode;
+        public const DataSetFieldContentFlags DataSetFieldContentFlagsDefault =
+            DataSetFieldContentFlags.SourceTimestamp |
+            DataSetFieldContentFlags.ServerTimestamp |
+            DataSetFieldContentFlags.SourcePicoSeconds |
+            DataSetFieldContentFlags.ServerPicoSeconds |
+            DataSetFieldContentFlags.StatusCode;
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1, MessageType.KeyFrame)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 1, MessageType.KeyFrame)]
         [InlineData(false, NetworkMessageContentMaskDefault, 3, MessageType.Condition)]
         [InlineData(false, NetworkMessageContentMaskDefault, 1, MessageType.DeltaFrame)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1, MessageType.KeyFrame)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 1, MessageType.KeyFrame)]
         [InlineData(true, NetworkMessageContentMaskDefault, 3, MessageType.KeepAlive)]
         [InlineData(true, NetworkMessageContentMaskDefault, 1, MessageType.Event)]
         public void EncodeDecodeNetworkMessage(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, MessageType messageType)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, MessageType messageType)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
@@ -67,14 +68,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1, MessageType.KeyFrame)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 1, MessageType.KeyFrame)]
         [InlineData(false, NetworkMessageContentMaskDefault, 3, MessageType.Condition)]
         [InlineData(false, NetworkMessageContentMaskDefault, 1, MessageType.DeltaFrame)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1, MessageType.KeyFrame)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 1, MessageType.KeyFrame)]
         [InlineData(true, NetworkMessageContentMaskDefault, 3, MessageType.KeepAlive)]
         [InlineData(true, NetworkMessageContentMaskDefault, 1, MessageType.Event)]
         public void EncodeDecodeNetworkMessageWithNullableDataValue(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, MessageType messageType)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, MessageType messageType)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
@@ -104,14 +105,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1, MessageType.KeyFrame)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 1, MessageType.KeyFrame)]
         [InlineData(false, NetworkMessageContentMaskDefault, 3, MessageType.Condition)]
         [InlineData(false, NetworkMessageContentMaskDefault, 1, MessageType.DeltaFrame)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 1, MessageType.KeyFrame)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 1, MessageType.KeyFrame)]
         [InlineData(true, NetworkMessageContentMaskDefault, 3, MessageType.KeepAlive)]
         [InlineData(true, NetworkMessageContentMaskDefault, 1, MessageType.Event)]
         public void EncodeDecodeNetworkMessageWithMissingDataValue(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, MessageType messageType)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, MessageType messageType)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
@@ -147,20 +148,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessages(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
@@ -187,20 +188,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(false, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(false, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(true, NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesWithNullableDataValue(bool compress,
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
@@ -234,20 +235,20 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoNetworkMessageHeader(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber, messageType: MessageType.Event))
                 .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask & ~AvroNetworkMessageContentMask.NetworkMessageHeader, messages);
+            var networkMessage = CreateNetworkMessage(contentMask & ~NetworkMessageContentFlags.NetworkMessageHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -265,21 +266,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoNetworkMessageHeaderRaw(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData, messageType: MessageType.Condition))
+                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData, messageType: MessageType.Condition))
                 .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask & ~AvroNetworkMessageContentMask.NetworkMessageHeader, messages);
+            var networkMessage = CreateNetworkMessage(contentMask & ~NetworkMessageContentFlags.NetworkMessageHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -303,21 +304,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoDataSetMessageHeader(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~AvroNetworkMessageContentMask.DataSetMessageHeader, messages);
+                & ~NetworkMessageContentFlags.DataSetMessageHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -336,21 +337,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoDataSetMessageHeaderWithNullableDataValues(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~AvroNetworkMessageContentMask.DataSetMessageHeader, messages);
+                & ~NetworkMessageContentFlags.DataSetMessageHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -376,22 +377,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoDataSetMessageHeaderRaw(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData))
+                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~AvroNetworkMessageContentMask.DataSetMessageHeader, messages);
+                & ~NetworkMessageContentFlags.DataSetMessageHeader, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -416,21 +417,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoHeader(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~(AvroNetworkMessageContentMask.NetworkMessageHeader | AvroNetworkMessageContentMask.DataSetMessageHeader), messages);
+                & ~(NetworkMessageContentFlags.NetworkMessageHeader | NetworkMessageContentFlags.DataSetMessageHeader), messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -461,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber))
                 .ToList();
-            var networkMessage = CreateNetworkMessage(AvroNetworkMessageContentMask.SingleDataSetMessage, messages);
+            var networkMessage = CreateNetworkMessage(NetworkMessageContentFlags.SingleDataSetMessage, messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -488,22 +489,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoHeaderRaw(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData))
+                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~(AvroNetworkMessageContentMask.NetworkMessageHeader | AvroNetworkMessageContentMask.DataSetMessageHeader), messages);
+                & ~(NetworkMessageContentFlags.NetworkMessageHeader | NetworkMessageContentFlags.DataSetMessageHeader), messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -530,22 +531,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoHeaderRawAndNullableDataValue(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData))
+                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~(AvroNetworkMessageContentMask.NetworkMessageHeader | AvroNetworkMessageContentMask.DataSetMessageHeader), messages);
+                & ~(NetworkMessageContentFlags.NetworkMessageHeader | NetworkMessageContentFlags.DataSetMessageHeader), messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -580,22 +581,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         [Theory]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 256 * 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 256 * 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(NetworkMessageContentMaskDefault | AvroNetworkMessageContentMask.SingleDataSetMessage, 5, 1024)]
+        [InlineData(NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 10, 1024)]
         [InlineData(NetworkMessageContentMaskDefault, 15, 1024)]
         public void EncodeDecodeNetworkMessagesNoHeaderRawAndMissingDataValue(
-            AvroNetworkMessageContentMask contentMask, int numberOfMessages, int maxMessageSize)
+            NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
         {
             var messages = Enumerable
                 .Range(3, numberOfMessages)
                 .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentMask.RawData))
+                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
                 .ToList();
             var networkMessage = CreateNetworkMessage(contentMask
-                & ~(AvroNetworkMessageContentMask.NetworkMessageHeader | AvroNetworkMessageContentMask.DataSetMessageHeader), messages);
+                & ~(NetworkMessageContentFlags.NetworkMessageHeader | NetworkMessageContentFlags.DataSetMessageHeader), messages);
 
             var context = new ServiceMessageContext();
             var buffers = networkMessage.Encode(context, maxMessageSize);
@@ -644,9 +645,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     expectedPayload[entry.Key] = entry.Value == null ? null : new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
-                dataSetMessage.Payload = new DataSet(expectedPayload, (uint)(
-                    DataSetFieldContentMask.StatusCode |
-                    DataSetFieldContentMask.SourceTimestamp));
+                dataSetMessage.Payload = new DataSet(expectedPayload,
+                    DataSetFieldContentFlags.StatusCode |
+                    DataSetFieldContentFlags.SourceTimestamp);
             }
         }
 
@@ -656,7 +657,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="contentMask"></param>
         /// <param name="messages"></param>
         private static AvroNetworkMessage CreateNetworkMessage(
-            AvroNetworkMessageContentMask contentMask, List<BaseDataSetMessage> messages)
+            NetworkMessageContentFlags contentMask, List<BaseDataSetMessage> messages)
         {
             return new AvroNetworkMessage
             {
@@ -665,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 DataSetWriterGroup = "group",
                 DataSetClassId = Guid.NewGuid(),
                 PublisherId = "PublisherId",
-                NetworkMessageContentMask = (uint)contentMask
+                NetworkMessageContentMask = contentMask
             };
         }
 
@@ -677,7 +678,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="messageType"></param>
         /// <param name="statusCode"></param>
         private static AvroDataSetMessage CreateDataSetMessage(int sequenceNumber,
-            DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault,
+            DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault,
             MessageType messageType = MessageType.KeyFrame, uint? statusCode = StatusCodes.Bad)
         {
             return new AvroDataSetMessage
@@ -698,7 +699,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Create dataset
         /// </summary>
         /// <param name="dataSetFieldContentMask"></param>
-        private static DataSet CreateDataSet(DataSetFieldContentMask dataSetFieldContentMask = DataSetFieldContentMaskDefault)
+        private static DataSet CreateDataSet(DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault)
         {
             return new DataSet(new Dictionary<string, DataValue> {
                 { "1", new DataValue(new Variant(true), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
@@ -708,7 +709,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 { "5", new DataValue(new Variant(Array.Empty<float>()), StatusCodes.Good, DateTime.Now) },
                 { "6", new DataValue() },
                 { "7", new DataValue("abcd") }
-            }, (uint)dataSetFieldContentMask);
+            }, dataSetFieldContentMask);
         }
     }
 }

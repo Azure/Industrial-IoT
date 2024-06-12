@@ -7,13 +7,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
     using System.Collections.Generic;
     using Furly.Extensions.Messaging;
     using Furly;
     using Json.Schema;
-    using System.Linq;
-    using System;
 
     /// <summary>
     /// Monitored item message json schema

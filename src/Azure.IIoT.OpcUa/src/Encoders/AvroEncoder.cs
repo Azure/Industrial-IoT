@@ -14,8 +14,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
-    using Newtonsoft.Json.Linq;
-    using Avro.Generic;
     using System.Globalization;
 
     /// <summary>

@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Utils;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Data value for variable change notification
         /// </summary>
-        public DataValue? Value => Payload.Values.SingleOrDefault();
+        public Opc.Ua.DataValue? Value => Payload.Values.SingleOrDefault();
 
         /// <summary>
         /// Extension fields
@@ -70,9 +70,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
-                !Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
-                !Utils.IsEqual(wrapper.NodeId, NodeId))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.NodeId, NodeId))
             {
                 return false;
             }
@@ -111,60 +111,62 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return;
             }
 
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.NodeId) != 0)
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.NodeId))
             {
                 encoder.WriteString(nameof(NodeId), NodeId);
             }
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.EndpointUrl) != 0)
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.EndpointUrl))
             {
                 encoder.WriteString(nameof(EndpointUrl), EndpointUrl);
             }
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.ApplicationUri) != 0)
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ApplicationUri))
             {
                 encoder.WriteString(nameof(ApplicationUri), ApplicationUri);
             }
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.DisplayName) != 0 &&
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.DisplayName) &&
                 !string.IsNullOrEmpty(DisplayName))
             {
                 encoder.WriteString(nameof(DisplayName), DisplayName);
             }
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Timestamp) != 0)
+            if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Timestamp))
             {
                 encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
             }
 
             var valuePayload = Value;
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0)
+            if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Status))
             {
                 var status = Status;
                 if (status == null)
                 {
-                    status = valuePayload != null ? StatusCode.IsNotGood(valuePayload.StatusCode) ?
-                        valuePayload.StatusCode : StatusCodes.Good : (StatusCode?)StatusCodes.BadNoData;
+                    status = valuePayload != null ?
+                        Opc.Ua.StatusCode.IsNotGood(valuePayload.StatusCode) ?
+                            valuePayload.StatusCode : Opc.Ua.StatusCodes.Good :
+                       (Opc.Ua.StatusCode?)Opc.Ua.StatusCodes.BadNoData;
                 }
-                encoder.WriteString(nameof(Status), StatusCode.LookupSymbolicId(status.Value.Code));
+                encoder.WriteString(nameof(Status), Opc.Ua.StatusCode.LookupSymbolicId(status.Value.Code));
             }
 
             // Create a copy of the data value and update the timestamps and status
-            var value = new DataValue(valuePayload?.WrappedValue ?? Variant.Null);
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.Status) != 0 ||
-                (Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0)
+            var value = new Opc.Ua.DataValue(valuePayload?.WrappedValue ?? Opc.Ua.Variant.Null);
+            if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Status) ||
+                Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.StatusCode))
             {
-                value.StatusCode = valuePayload?.StatusCode ?? StatusCodes.BadNoData;
+                value.StatusCode = valuePayload?.StatusCode ?? Opc.Ua.StatusCodes.BadNoData;
             }
 
-            if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.SourceTimestamp))
             {
                 value.SourceTimestamp = valuePayload?.SourceTimestamp ?? DateTime.MinValue;
-                if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0)
+                if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.SourcePicoSeconds))
                 {
                     value.SourcePicoseconds = valuePayload?.SourcePicoseconds ?? 0;
                 }
             }
-            if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0)
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ServerTimestamp))
             {
                 value.ServerTimestamp = valuePayload?.ServerTimestamp ?? DateTime.MinValue;
-                if ((Payload.DataSetFieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0)
+                if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ServerPicoSeconds))
                 {
                     value.ServerPicoseconds = valuePayload?.ServerPicoseconds ?? 0;
                 }
@@ -174,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             try
             {
                 encoder.UseReversibleEncoding =
-                    (DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.ReversibleFieldEncoding) != 0;
+                    DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.ReversibleFieldEncoding);
                 encoder.WriteDataValue(nameof(Value), value);
             }
             finally
@@ -182,12 +184,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 encoder.UseReversibleEncoding = reversibleMode;
             }
 
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMask.SequenceNumber) != 0)
+            if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.SequenceNumber))
             {
                 encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
             }
 
-            if ((DataSetMessageContentMask & (uint)JsonDataSetMessageContentMaskEx.ExtensionFields) != 0)
+            if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ExtensionFields))
             {
                 var extensionFields = new KeyValuePair<string, string?>(nameof(DataSetWriterId), DataSetWriterName)
                     .YieldReturn();
@@ -223,28 +225,28 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
 
             var value = decoder.ReadDataValue(nameof(Value));
-            var dataSetFieldContentMask = 0u;
+            DataSetFieldContentFlags dataSetFieldContentMask = 0u;
             if (value != null)
             {
                 if (value.ServerTimestamp != DateTime.MinValue)
                 {
-                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.ServerTimestamp;
+                    dataSetFieldContentMask |= DataSetFieldContentFlags.ServerTimestamp;
                 }
                 if (value.ServerPicoseconds != 0)
                 {
-                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.ServerPicoSeconds;
+                    dataSetFieldContentMask |= DataSetFieldContentFlags.ServerPicoSeconds;
                 }
                 if (value.SourceTimestamp != DateTime.MinValue)
                 {
-                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.SourceTimestamp;
+                    dataSetFieldContentMask |= DataSetFieldContentFlags.SourceTimestamp;
                 }
                 if (value.SourcePicoseconds != 0)
                 {
-                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.SourcePicoSeconds;
+                    dataSetFieldContentMask |= DataSetFieldContentFlags.SourcePicoSeconds;
                 }
                 if (value.StatusCode != 0)
                 {
-                    dataSetFieldContentMask |= (uint)DataSetFieldContentMask.StatusCode;
+                    dataSetFieldContentMask |= DataSetFieldContentFlags.StatusCode;
                 }
             }
 
@@ -253,27 +255,27 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var displayName = decoder.ReadString(nameof(DisplayName));
             if (displayName != null)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.DisplayName;
+                dataSetFieldContentMask |= DataSetFieldContentFlags.DisplayName;
             }
             NodeId = decoder.ReadString(nameof(NodeId));
             if (NodeId != null)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.NodeId;
+                dataSetFieldContentMask |= DataSetFieldContentFlags.NodeId;
             }
             EndpointUrl = decoder.ReadString(nameof(EndpointUrl));
             if (EndpointUrl != null)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.EndpointUrl;
+                dataSetFieldContentMask |= DataSetFieldContentFlags.EndpointUrl;
             }
             ApplicationUri = decoder.ReadString(nameof(ApplicationUri));
             if (ApplicationUri != null)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.ApplicationUri;
+                dataSetFieldContentMask |= DataSetFieldContentFlags.ApplicationUri;
             }
             Timestamp = decoder.ReadDateTime(nameof(Timestamp));
             if (Timestamp != DateTime.MinValue)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
+                DataSetMessageContentMask |= DataSetMessageContentFlags.Timestamp;
             }
             var status = decoder.ReadString(nameof(Status));
             if (status != null)
@@ -284,18 +286,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 else
                 {
-                    Status = status == "Good" ? StatusCodes.Good : StatusCodes.Bad;
+                    Status = status == "Good" ? Opc.Ua.StatusCodes.Good : Opc.Ua.StatusCodes.Bad;
                 }
             }
             SequenceNumber = decoder.ReadUInt32(nameof(SequenceNumber));
             if (SequenceNumber != 0)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
+                DataSetMessageContentMask |= DataSetMessageContentFlags.SequenceNumber;
             }
             var extensionFields = decoder.ReadStringDictionary(nameof(ExtensionFields));
             if (extensionFields != null)
             {
-                DataSetMessageContentMask |= (uint)JsonDataSetMessageContentMaskEx.ExtensionFields;
+                dataSetFieldContentMask |= DataSetFieldContentFlags.ExtensionFields;
                 ExtensionFields = new Dictionary<string, VariantValue>();
                 foreach (var item in extensionFields)
                 {

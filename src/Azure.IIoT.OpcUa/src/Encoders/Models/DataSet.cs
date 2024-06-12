@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -17,14 +19,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// Field mask
         /// </summary>
-        public uint DataSetFieldContentMask { get; set; }
+        public DataSetFieldContentFlags DataSetFieldContentMask { get; set; }
 
         /// <summary>
         /// Create payload
         /// </summary>
         /// <param name="values"></param>
         /// <param name="fieldContentMask"></param>
-        public DataSet(IDictionary<string, DataValue?> values, uint fieldContentMask)
+        public DataSet(IDictionary<string, DataValue?> values,
+            DataSetFieldContentFlags? fieldContentMask)
             : this(fieldContentMask)
         {
             foreach (var value in values)
@@ -39,7 +42,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <param name="fieldContentMask"></param>
-        public DataSet(string field, DataValue? value, uint fieldContentMask)
+        public DataSet(string field, DataValue? value,
+            DataSetFieldContentFlags? fieldContentMask)
             : this(fieldContentMask)
         {
             this[field] = value;
@@ -49,14 +53,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// Create default dataset
         /// </summary>
         /// <param name="fieldContentMask"></param>
-        public DataSet(uint fieldContentMask = (uint)(
-            Opc.Ua.DataSetFieldContentMask.StatusCode |
-            Opc.Ua.DataSetFieldContentMask.SourcePicoSeconds |
-            Opc.Ua.DataSetFieldContentMask.SourceTimestamp |
-            Opc.Ua.DataSetFieldContentMask.ServerPicoSeconds |
-            Opc.Ua.DataSetFieldContentMask.ServerTimestamp))
+        public DataSet(DataSetFieldContentFlags? fieldContentMask = null)
         {
-            DataSetFieldContentMask = fieldContentMask;
+            DataSetFieldContentMask = fieldContentMask ??
+                PubSubMessage.DefaultDataSetFieldContentFlags;
         }
 
         /// <inheritdoc/>
@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             {
                 return false;
             }
-#if NEED_FIX
+#if !NEED_FIX
             if (!Values.SequenceEqualsSafe(set.Values,
                 (x, y) => Utils.IsEqual(x?.Value, y?.Value)))
             {

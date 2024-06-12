@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Microsoft.IO;
-    using Opc.Ua;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -189,38 +189,37 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     // Bit range 0-3: Version of the UADP NetworkMessage, always 1.
                     _uadpFlags = UADPFlagsEncodingMask.VersionBit1;
 
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.PublisherId) != 0)
                     {
                         // UADPFlags: Bit 4: PublisherId enabled
                         _uadpFlags |= UADPFlagsEncodingMask.PublisherId;
                     }
-                    if ((NetworkMessageContentMask & (uint)(UadpNetworkMessageContentMask.GroupHeader |
-                                                      UadpNetworkMessageContentMask.WriterGroupId |
-                                                      UadpNetworkMessageContentMask.GroupVersion |
-                                                      UadpNetworkMessageContentMask.NetworkMessageNumber |
-                                                      UadpNetworkMessageContentMask.SequenceNumber)) != 0)
+                    if ((NetworkMessageContentMask & (NetworkMessageContentFlags.GroupHeader |
+                                                      NetworkMessageContentFlags.WriterGroupId |
+                                                      NetworkMessageContentFlags.GroupVersion |
+                                                      NetworkMessageContentFlags.NetworkMessageNumber |
+                                                      NetworkMessageContentFlags.SequenceNumber)) != 0)
                     {
                         // UADPFlags: Bit 5: GroupHeader enabled
                         _uadpFlags |= UADPFlagsEncodingMask.GroupHeader;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PayloadHeader) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.PayloadHeader) != 0)
                     {
                         // UADPFlags: Bit 6: PayloadHeader enabled
                         _uadpFlags |= UADPFlagsEncodingMask.PayloadHeader;
                     }
 
-                    if ((NetworkMessageContentMask & (uint)(
-                                                      UadpNetworkMessageContentMask.DataSetClassId |
-                                                      UadpNetworkMessageContentMask.Timestamp |
-                                                      UadpNetworkMessageContentMask.PicoSeconds |
-                                                      UadpNetworkMessageContentMask.PromotedFields)) != 0)
+                    if ((NetworkMessageContentMask & (NetworkMessageContentFlags.DataSetClassId |
+                                                      NetworkMessageContentFlags.Timestamp |
+                                                      NetworkMessageContentFlags.Picoseconds |
+                                                      NetworkMessageContentFlags.PromotedFields)) != 0)
                     {
                         // UADPFlags: Bit 7: Enable ExtendedFlags1
                         _uadpFlags |= UADPFlagsEncodingMask.ExtendedFlags1;
                     }
 
                     if (!string.IsNullOrEmpty(PublisherId) &&
-                        (NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0)
+                        (NetworkMessageContentMask & NetworkMessageContentFlags.PublisherId) != 0)
                     {
                         // UADPFlags: Bit 7: Enable ExtendedFlags1
                         _uadpFlags |= UADPFlagsEncodingMask.ExtendedFlags1;
@@ -235,12 +234,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // UADPFlags: Bit 4: PublisherId enabled
                 if ((value & UADPFlagsEncodingMask.PublisherId) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.PublisherId;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.PublisherId;
                 }
                 // UADPFlags: Bit 6: PayloadHeader enabled
                 if ((value & UADPFlagsEncodingMask.PayloadHeader) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.PayloadHeader;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.PayloadHeader;
                 }
             }
         }
@@ -255,22 +254,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (_groupFlags == null)
                 {
                     _groupFlags = 0;
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.WriterGroupId) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.WriterGroupId) != 0)
                     {
                         // GroupFlags: Bit 0: WriterGroupId enabled
                         _groupFlags |= GroupFlagsEncodingMask.WriterGroupId;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.GroupVersion) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.GroupVersion) != 0)
                     {
                         // GroupFlags: Bit 1: GroupVersion enabled
                         _groupFlags |= GroupFlagsEncodingMask.GroupVersion;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.NetworkMessageNumber) != 0)
                     {
                         // GroupFlags: Bit 2: NetworkMessageNumber enabled
                         _groupFlags |= GroupFlagsEncodingMask.NetworkMessageNumber;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.SequenceNumber) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.SequenceNumber) != 0)
                     {
                         // GroupFlags: Bit 3: SequenceNumber enabled
                         _groupFlags |= GroupFlagsEncodingMask.SequenceNumber;
@@ -285,22 +284,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // GroupFlags: Bit 0: WriterGroupId enabled
                 if ((value & GroupFlagsEncodingMask.WriterGroupId) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.WriterGroupId;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.WriterGroupId;
                 }
                 // GroupFlags: Bit 1: GroupVersion enabled
                 if ((value & GroupFlagsEncodingMask.GroupVersion) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.GroupVersion;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.GroupVersion;
                 }
                 // GroupFlags: Bit 2: NetworkMessageNumber enabled
                 if ((value & GroupFlagsEncodingMask.NetworkMessageNumber) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.NetworkMessageNumber;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.NetworkMessageNumber;
                 }
                 // GroupFlags: Bit 3: SequenceNumber enabled
                 if ((value & GroupFlagsEncodingMask.SequenceNumber) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.SequenceNumber;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.SequenceNumber;
                 }
             }
         }
@@ -315,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (_extendedFlags2 == null)
                 {
                     _extendedFlags2 = 0;
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PromotedFields) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.PromotedFields) != 0)
                     {
                         // ExtendedFlags2: Bit 1: PromotedFields enabled
                         _extendedFlags2 |= ExtendedFlags2EncodingMask.PromotedFields;
@@ -333,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // ExtendedFlags2: Bit 1: PromotedFields enabled
                 if ((value & ExtendedFlags2EncodingMask.PromotedFields) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.PromotedFields;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.PromotedFields;
                 }
 
                 // Bit range 2-4: UADP NetworkMessage type
@@ -354,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                     // ExtendedFlags1: Bit range 0-2: PublisherId Type
                     if (!string.IsNullOrEmpty(PublisherId) &&
-                        (NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0)
+                        (NetworkMessageContentMask & NetworkMessageContentFlags.PublisherId) != 0)
                     {
                         if (byte.TryParse(PublisherId, out _))
                         {
@@ -377,22 +376,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             _extendedFlags1 |= ExtendedFlags1EncodingMask.PublisherIdTypeString;
                         }
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.DataSetClassId) != 0)
                     {
                         // ExtendedFlags1 Bit 3: DataSetClassId enabled
                         _extendedFlags1 |= ExtendedFlags1EncodingMask.DataSetClassId;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.Timestamp) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.Timestamp) != 0)
                     {
                         // ExtendedFlags1: Bit 5: Timestamp enabled
                         _extendedFlags1 |= ExtendedFlags1EncodingMask.Timestamp;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PicoSeconds) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.Picoseconds) != 0)
                     {
                         // ExtendedFlags1: Bit 6: PicoSeconds enabled
                         _extendedFlags1 |= ExtendedFlags1EncodingMask.PicoSeconds;
                     }
-                    if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PromotedFields) != 0)
+                    if ((NetworkMessageContentMask & NetworkMessageContentFlags.PromotedFields) != 0)
                     {
                         // ExtendedFlags1: Bit 7: ExtendedFlags2 enabled
                         _extendedFlags1 |= ExtendedFlags1EncodingMask.ExtendedFlags2;
@@ -417,17 +416,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // ExtendedFlags1 Bit 3: DataSetClassId enabled
                 if ((value & ExtendedFlags1EncodingMask.DataSetClassId) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.DataSetClassId;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.DataSetClassId;
                 }
                 // ExtendedFlags1 Bit 5: Timestamp enabled
                 if ((value & ExtendedFlags1EncodingMask.Timestamp) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.Timestamp;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.Timestamp;
                 }
                 // ExtendedFlags1 Bit 6: PicoSeconds enabled
                 if ((value & ExtendedFlags1EncodingMask.PicoSeconds) != 0)
                 {
-                    NetworkMessageContentMask |= (uint)UadpNetworkMessageContentMask.PicoSeconds;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.Picoseconds;
                 }
             }
         }
@@ -441,13 +440,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+        public override bool TryDecode(Opc.Ua.IServiceMessageContext context, Stream stream,
             IDataSetMetaDataResolver? resolver)
         {
             var chunks = new List<Message>();
             while (stream.Position != stream.Length)
             {
-                using (var binaryDecoder = new BinaryDecoder(stream, context))
+                using (var binaryDecoder = new Opc.Ua.BinaryDecoder(stream, context))
                 {
                     ReadNetworkMessageHeaderFlags(binaryDecoder);
 
@@ -480,13 +479,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context,
+        public override bool TryDecode(Opc.Ua.IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             var chunks = new List<Message>();
             while (reader.TryPeek(out var buffer))
             {
-                using (var binaryDecoder = new BinaryDecoder(buffer.ToArray(), context))
+                using (var binaryDecoder = new Opc.Ua.BinaryDecoder(buffer.ToArray(), context))
                 {
                     ReadNetworkMessageHeaderFlags(binaryDecoder);
 
@@ -521,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
         /// <inheritdoc/>
         public override IReadOnlyList<ReadOnlySequence<byte>> Encode(
-            IServiceMessageContext context, int maxChunkSize, IDataSetMetaDataResolver? resolver)
+            Opc.Ua.IServiceMessageContext context, int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
             var messages = new List<ReadOnlySequence<byte>>();
             var isChunkMessage = false;
@@ -540,7 +539,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                 using (var stream = Memory.GetStream())
                 {
-                    using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true))
+                    using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
                     {
                         //
                         // Try to write all unless we are writing chunk messages.
@@ -615,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="binaryDecoder"></param>
         /// <param name="isFirstChunk"></param>
         /// <returns></returns>
-        protected virtual bool TryReadNetworkMessageHeader(BinaryDecoder binaryDecoder,
+        protected virtual bool TryReadNetworkMessageHeader(Opc.Ua.BinaryDecoder binaryDecoder,
             bool isFirstChunk)
         {
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryTypeBits) != 0)
@@ -638,7 +637,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="context"></param>
         /// <param name="buffers"></param>
         /// <param name="resolver"></param>
-        protected virtual void DecodePayloadChunks(IServiceMessageContext context,
+        protected virtual void DecodePayloadChunks(Opc.Ua.IServiceMessageContext context,
             IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver? resolver)
         {
             var payloadLength = buffers.Sum(b => b.Length);
@@ -650,7 +649,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     stream.Write(buffer);
                 }
                 stream.Position = 0;
-                using (var decoder = new BinaryDecoder(stream, context))
+                using (var decoder = new Opc.Ua.BinaryDecoder(stream, context))
                 {
                     foreach (UadpDataSetMessage message in Messages)
                     {
@@ -684,7 +683,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="context"></param>
         /// <param name="resolver"></param>
         /// <returns></returns>
-        protected virtual Message[] EncodePayloadChunks(IServiceMessageContext context,
+        protected virtual Message[] EncodePayloadChunks(Opc.Ua.IServiceMessageContext context,
             IDataSetMetaDataResolver? resolver)
         {
             var chunks = new Message[Messages.Count];
@@ -693,7 +692,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 var message = (UadpDataSetMessage)Messages[i];
                 using (var stream = Memory.GetStream())
                 {
-                    using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true))
+                    using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
                     {
                         message.Encode(encoder, resolver);
 
@@ -713,7 +712,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read Network Message Header
         /// </summary>
         /// <param name="decoder"></param>
-        private void ReadNetworkMessageHeaderFlags(BinaryDecoder decoder)
+        private void ReadNetworkMessageHeaderFlags(Opc.Ua.BinaryDecoder decoder)
         {
             UadpFlags = (UADPFlagsEncodingMask)decoder.ReadByte(null);
 
@@ -765,7 +764,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="encoder"></param>
         /// <param name="isChunkMessage"></param>
         /// <exception cref="EncodingException"></exception>
-        protected void WriteNetworkMessageHeaderFlags(BinaryEncoder encoder, bool isChunkMessage)
+        protected void WriteNetworkMessageHeaderFlags(Opc.Ua.BinaryEncoder encoder, bool isChunkMessage)
         {
             if (isChunkMessage)
             {
@@ -813,7 +812,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         break;
                 }
             }
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.DataSetClassId) != 0)
             {
                 encoder.WriteGuid(null, DataSetClassId);
             }
@@ -823,7 +822,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read Group Message Header
         /// </summary>
         /// <param name="decoder"></param>
-        private bool TryReadGroupMessageHeader(BinaryDecoder decoder)
+        private bool TryReadGroupMessageHeader(Opc.Ua.BinaryDecoder decoder)
         {
             // Decode GroupHeader (that holds GroupFlags)
             if ((UadpFlags & UADPFlagsEncodingMask.GroupHeader) != 0)
@@ -858,30 +857,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="encoder"></param>
         /// <param name="networkMessageNumber"></param>
-        private void WriteGroupMessageHeader(BinaryEncoder encoder, ushort networkMessageNumber)
+        private void WriteGroupMessageHeader(Opc.Ua.BinaryEncoder encoder, ushort networkMessageNumber)
         {
-            if ((NetworkMessageContentMask & (uint)
-                    (UadpNetworkMessageContentMask.GroupHeader |
-                     UadpNetworkMessageContentMask.WriterGroupId |
-                     UadpNetworkMessageContentMask.GroupVersion |
-                     UadpNetworkMessageContentMask.NetworkMessageNumber |
-                     UadpNetworkMessageContentMask.SequenceNumber)) != 0)
+            if ((NetworkMessageContentMask &
+                    (NetworkMessageContentFlags.GroupHeader |
+                     NetworkMessageContentFlags.WriterGroupId |
+                     NetworkMessageContentFlags.GroupVersion |
+                     NetworkMessageContentFlags.NetworkMessageNumber |
+                     NetworkMessageContentFlags.SequenceNumber)) != 0)
             {
                 encoder.WriteByte(null, (byte)GroupFlags);
             }
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.WriterGroupId) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.WriterGroupId) != 0)
             {
                 encoder.WriteUInt16(null, WriterGroupId);
             }
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.GroupVersion) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.GroupVersion) != 0)
             {
                 encoder.WriteUInt32(null, GroupVersion);
             }
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.NetworkMessageNumber) != 0)
             {
                 encoder.WriteUInt16(null, networkMessageNumber);
             }
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.SequenceNumber) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.SequenceNumber) != 0)
             {
                 encoder.WriteUInt16(null, SequenceNumber());
             }
@@ -892,7 +891,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="isFirstChunk"></param>
-        private bool TryReadPayloadHeader(BinaryDecoder decoder, bool isFirstChunk)
+        private bool TryReadPayloadHeader(Opc.Ua.BinaryDecoder decoder, bool isFirstChunk)
         {
             // Decode PayloadHeader
             if ((UadpFlags & UADPFlagsEncodingMask.PayloadHeader) != 0)
@@ -931,10 +930,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="encoder"></param>
         /// <param name="messages"></param>
         /// <param name="isChunkMessage"></param>
-        private void WritePayloadHeader(BinaryEncoder encoder, ReadOnlySpan<Message> messages,
+        private void WritePayloadHeader(Opc.Ua.BinaryEncoder encoder, ReadOnlySpan<Message> messages,
             bool isChunkMessage)
         {
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PayloadHeader) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.PayloadHeader) != 0)
             {
                 // Write data set message payload header
                 if (isChunkMessage)
@@ -962,7 +961,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read extended network message header
         /// </summary>
         /// <param name="decoder"></param>
-        private bool TryReadExtendedNetworkMessageHeader(BinaryDecoder decoder)
+        private bool TryReadExtendedNetworkMessageHeader(Opc.Ua.BinaryDecoder decoder)
         {
             // Decode Timestamp
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Timestamp) != 0)
@@ -981,13 +980,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write extended network message header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteExtendedNetworkMessageHeader(BinaryEncoder encoder)
+        private void WriteExtendedNetworkMessageHeader(Opc.Ua.BinaryEncoder encoder)
         {
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.Timestamp) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.Timestamp) != 0)
             {
                 encoder.WriteDateTime(null, Timestamp);
             }
-            if ((NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PicoSeconds) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.Picoseconds) != 0)
             {
                 encoder.WriteUInt16(null, PicoSeconds);
             }
@@ -997,7 +996,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read security header
         /// </summary>
         /// <param name="decoder"></param>
-        private bool TryReadSecurityHeader(BinaryDecoder decoder)
+        private bool TryReadSecurityHeader(Opc.Ua.BinaryDecoder decoder)
         {
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Security) != 0)
             {
@@ -1019,7 +1018,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write security header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteSecurityHeader(BinaryEncoder encoder)
+        private void WriteSecurityHeader(Opc.Ua.BinaryEncoder encoder)
         {
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Security) != 0)
             {
@@ -1042,7 +1041,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <param name="chunks"></param>
-        private List<byte[]> ReadPayload(BinaryDecoder decoder, List<Message> chunks)
+        private List<byte[]> ReadPayload(Opc.Ua.BinaryDecoder decoder, List<Message> chunks)
         {
             var messages = new List<byte[]>();
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.ChunkMessage) != 0)
@@ -1112,7 +1111,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="isChunkMessage">Sets chunk mode on or off</param>
         /// <returns></returns>
         /// <exception cref="EncodingException"></exception>
-        protected bool TryWritePayload(BinaryEncoder encoder, int maxMessageSize,
+        protected bool TryWritePayload(Opc.Ua.BinaryEncoder encoder, int maxMessageSize,
             ref Span<Message> writeSpan, ref Span<Message> remainingChunks, ref bool isChunkMessage)
         {
             const int kChunkHeaderSize =
@@ -1145,7 +1144,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return true;
             }
 
-            var hasHeader = (NetworkMessageContentMask & (uint)UadpNetworkMessageContentMask.PayloadHeader) != 0;
+            var hasHeader = (NetworkMessageContentMask & NetworkMessageContentFlags.PayloadHeader) != 0;
             var headerSize = hasHeader ? 2 : 0;
             var chunk = writeSpan[0];
             //
@@ -1234,7 +1233,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read security footer
         /// </summary>
         /// <param name="decoder"></param>
-        protected void ReadSecurityFooter(BinaryDecoder decoder)
+        protected void ReadSecurityFooter(Opc.Ua.BinaryDecoder decoder)
         {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
             {
@@ -1246,7 +1245,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write security footer
         /// </summary>
         /// <param name="encoder"></param>
-        protected void WriteSecurityFooter(BinaryEncoder encoder)
+        protected void WriteSecurityFooter(Opc.Ua.BinaryEncoder encoder)
         {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
             {
@@ -1258,7 +1257,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Read signature
         /// </summary>
         /// <param name="decoder"></param>
-        protected void ReadSignature(BinaryDecoder decoder)
+        protected void ReadSignature(Opc.Ua.BinaryDecoder decoder)
         {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0)
             {
@@ -1270,7 +1269,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write signature
         /// </summary>
         /// <param name="encoder"></param>
-        protected void WriteSignature(BinaryEncoder encoder)
+        protected void WriteSignature(Opc.Ua.BinaryEncoder encoder)
         {
             if ((SecurityFlags & SecurityFlagsEncodingMask.SecurityFooter) != 0 &&
                 Signature.Length > 0)

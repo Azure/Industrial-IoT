@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Opc.Ua;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -26,11 +26,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Data set writer name in case of ua-metadata message
         /// </summary>
         public ushort DataSetWriterId { get; set; }
-
-        /// <summary>
-        /// Data set metadata in case this is a metadata message
-        /// </summary>
-        public DataSetMetaDataType? MetaData { get; set; }
 
         /// <summary>
         /// If discovery request
@@ -86,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(Opc.Ua.IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
             var messages = new List<ReadOnlySequence<byte>>();
@@ -109,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 using (var stream = Memory.GetStream())
                 {
-                    using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true))
+                    using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
                     {
                         var writeSpan = remainingChunks;
                         while (true)
@@ -146,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        protected override bool TryReadNetworkMessageHeader(BinaryDecoder binaryDecoder,
+        protected override bool TryReadNetworkMessageHeader(Opc.Ua.BinaryDecoder binaryDecoder,
             bool isFirstChunk)
         {
             if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryProbe) != 0)
@@ -173,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Write discovery header
         /// </summary>
         /// <param name="encoder"></param>
-        private void WriteNetworkMessageHeader(BinaryEncoder encoder)
+        private void WriteNetworkMessageHeader(Opc.Ua.BinaryEncoder encoder)
         {
             if (IsProbe)
             {
@@ -194,12 +189,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        protected override Message[] EncodePayloadChunks(IServiceMessageContext context,
+        protected override Message[] EncodePayloadChunks(Opc.Ua.IServiceMessageContext context,
             IDataSetMetaDataResolver? resolver)
         {
+            if (MetaData == null)
+            {
+                throw new InvalidOperationException("Metadata is null or empty");
+            }
             using (var stream = Memory.GetStream())
             {
-                using (var encoder = new BinaryEncoder(stream, context, leaveOpen: true))
+                using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
                 {
                     if (!IsProbe)
                     {
@@ -207,10 +206,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         {
                             case UADPDiscoveryAnnouncementType.DataSetMetaData:
                                 encoder.WriteUInt16(null, DataSetWriterId);
-                                encoder.WriteEncodeable(null, MetaData,
-                                    typeof(DataSetMetaDataType));
+                                encoder.WriteEncodeable(null, MetaData.ToStackModel(context),
+                                    typeof(Opc.Ua.DataSetMetaDataType));
                                 // temporary write StatusCode.Good
-                                encoder.WriteStatusCode(null, StatusCodes.Good);
+                                encoder.WriteStatusCode(null, Opc.Ua.StatusCodes.Good);
                                 break;
                             case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
                             case UADPDiscoveryAnnouncementType.PublisherEndpoints:
@@ -242,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        protected override void DecodePayloadChunks(IServiceMessageContext context,
+        protected override void DecodePayloadChunks(Opc.Ua.IServiceMessageContext context,
             IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver? resolver)
         {
             if (buffers.Count == 0)
@@ -252,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Debug.Assert(buffers.Count == 1);
             using (var stream = Memory.GetStream(buffers[0]))
             {
-                using (var decoder = new BinaryDecoder(stream, context))
+                using (var decoder = new Opc.Ua.BinaryDecoder(stream, context))
                 {
                     if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryAnnouncement) != 0)
                     {
@@ -260,8 +259,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         {
                             case UADPDiscoveryAnnouncementType.DataSetMetaData:
                                 DataSetWriterId = decoder.ReadUInt16(null);
-                                MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(null,
-                                    typeof(DataSetMetaDataType));
+                                var metaData = (Opc.Ua.DataSetMetaDataType)decoder.ReadEncodeable(null,
+                                    typeof(Opc.Ua.DataSetMetaDataType));
+                                MetaData = metaData.ToServiceModel(context);
                                 // temporary read
                                 var status = decoder.ReadStatusCode(null);
                                 break;
@@ -302,8 +302,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
-                !Utils.IsEqual(wrapper.MetaData, MetaData))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.MetaData, MetaData))
             {
                 return false;
             }
