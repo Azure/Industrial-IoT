@@ -10,7 +10,7 @@
     <None Remove="TestResults\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.11.3" />
+    <PackageReference Include="Azure.Identity" Version="1.11.4" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.3" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.38.1" />

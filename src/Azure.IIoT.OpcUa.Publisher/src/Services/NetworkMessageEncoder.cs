@@ -121,10 +121,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .SetContentType(m.networkMessage.ContentType)
                             .SetTopic(m.topic)
                             .SetRetain(m.retain)
-                            .SetTtl(m.ttl)
                             .SetQoS(m.qos)
                             .AddBuffers(chunks)
                             ;
+
+                        if (m.ttl != default)
+                        {
+                            chunkedMessage = chunkedMessage
+                                .SetTtl(m.ttl);
+                        }
 
                         if (m.networkMessage is IEventSchema schema)
                         {
