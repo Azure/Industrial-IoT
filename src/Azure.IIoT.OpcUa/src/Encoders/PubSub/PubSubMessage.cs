@@ -391,7 +391,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             PublishedNetworkMessageSchemaModel networkMessage,
             [NotNullWhen(true)] out IEventSchema? schema, SchemaOptions? options = null)
         {
-            if (encoding.HasFlag(MessageEncoding.Json))
+            if (encoding.HasFlag(MessageEncoding.Json) && options?.PreferAvroOverJsonSchema == true)
+            {
+                schema = new Schemas.Avro.JsonNetworkMessage(networkMessage, options);
+            }
+            else if (encoding.HasFlag(MessageEncoding.Json))
             {
                 schema = new Schemas.Json.JsonNetworkMessage(networkMessage, options);
             }

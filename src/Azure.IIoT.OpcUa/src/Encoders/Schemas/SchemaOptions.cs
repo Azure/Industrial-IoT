@@ -26,5 +26,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Namespace table
         /// </summary>
         public NamespaceTable? Namespaces { get; set; }
+
+        /// <summary>
+        /// Prefer generating avro schema over json schema
+        /// </summary>
+        public bool? PreferAvroOverJsonSchema { get; set; }
     }
 }

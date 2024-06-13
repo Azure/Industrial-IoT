@@ -73,6 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultDataSetRoutingKey = "DefaultDataSetRouting";
         public const string ApiKeyOverrideKey = "ApiKey";
         public const string PublishMessageSchemaKey = "PublishMessageSchema";
+        public const string PreferAvroOverJsonSchemaKey = "PreferAvroOverJsonSchema";
         public const string SchemaNamespaceKey = "SchemaNamespace";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -368,13 +369,15 @@ namespace Azure.IIoT.OpcUa.Publisher
             if (options.MessagingProfile?.SupportsSchemaPublishing ?? false)
             {
                 var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
-                if (schemaNamespace != null || GetBoolOrDefault(PublishMessageSchemaKey))
+                var avroPreferred = GetBoolOrNull(PreferAvroOverJsonSchemaKey);
+                if (schemaNamespace != null || avroPreferred != null || GetBoolOrDefault(PublishMessageSchemaKey))
                 {
                     options.SchemaOptions ??= new SchemaOptions();
                 }
                 if (options.SchemaOptions != null)
                 {
                     options.SchemaOptions.Namespace ??= schemaNamespace;
+                    options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
                 }
             }
         }

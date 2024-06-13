@@ -166,10 +166,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"amt|asyncmetadatathreshold=|{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey}=",
                     $"The default threshold of monitored items in a subscription under which meta data is loaded synchronously during subscription creation.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to always load metadata asynchronously.\nOnly used if meta data is supported and enabled.\nDefault: `{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdDefault}`.\n",
                     (uint i) => this[OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey] = TimeSpan.FromMilliseconds(i).ToString() },
-
                 { $"ps|publishschemas:|{PublisherConfig.PublishMessageSchemaKey}:",
                     "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nOnly has effect if the messaging profile supports publishing schemas.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",
                     (bool? b) => this[PublisherConfig.PublishMessageSchemaKey] = b?.ToString() ?? "True" },
+                    { $"preferavro:|{PublisherConfig.PreferAvroOverJsonSchemaKey}:",
+                        "Publish Avro schema even for Json encoded messages.\nAutomatically enables publishing schemas as if `--ps` was set.\nDefault: `False`.\n",
+                        (bool? b) => this[PublisherConfig.PreferAvroOverJsonSchemaKey] = b?.ToString() ?? "True" },
                 { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
                     $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
                     (uint i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
