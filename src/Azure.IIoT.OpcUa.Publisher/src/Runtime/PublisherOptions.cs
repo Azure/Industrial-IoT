@@ -215,7 +215,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public DataSetRoutingMode? DefaultDataSetRouting { get; set; }
 
         /// <summary>
-        /// Schema options
+        /// Schema generation options if schema generation is
+        /// enabled.
         /// </summary>
         public SchemaOptions? SchemaOptions { get; set; }
     }

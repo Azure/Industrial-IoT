@@ -1,0 +1,234 @@
+{
+  "type": "record",
+  "name": "NetworkMessage",
+  "namespace": "com.microsoft",
+  "fields": [
+    {
+      "name": "MessageId",
+      "type": {
+        "type": "record",
+        "name": "String",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_12"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageType",
+      "type": "org.opcfoundation.UA.String"
+    },
+    {
+      "name": "PublisherId",
+      "type": "org.opcfoundation.UA.String"
+    },
+    {
+      "name": "DataSetClassId",
+      "type": {
+        "type": "record",
+        "name": "Guid",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_14"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": {
+              "type": "string",
+              "logicalType": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataSetWriterGroup",
+      "type": "org.opcfoundation.UA.String"
+    },
+    {
+      "name": "Messages",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "DataSetMessage",
+          "namespace": "com.microsoft",
+          "fields": [
+            {
+              "name": "MessageType",
+              "type": "org.opcfoundation.UA.String"
+            },
+            {
+              "name": "DataSetWriterName",
+              "type": "org.opcfoundation.UA.String"
+            },
+            {
+              "name": "DataSetWriterId",
+              "type": {
+                "type": "record",
+                "name": "UInt16",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_5"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SequenceNumber",
+              "type": {
+                "type": "record",
+                "name": "UInt32",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_7"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "MetaDataVersion",
+              "type": {
+                "type": "record",
+                "name": "ConfigurationVersionDataType",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_14593"
+                ],
+                "fields": [
+                  {
+                    "name": "MajorVersion",
+                    "type": "UInt32"
+                  },
+                  {
+                    "name": "MinorVersion",
+                    "type": "UInt32"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Timestamp",
+              "type": {
+                "type": "record",
+                "name": "DateTime",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_13"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Status",
+              "type": {
+                "type": "record",
+                "name": "StatusCode",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_19"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Payload",
+              "type": {
+                "type": "record",
+                "name": "DataSet",
+                "fields": [
+                  {
+                    "name": "State",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "ServerStateDataValue",
+                        "namespace": "com.microsoft",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": [
+                              "null",
+                              {
+                                "type": "enum",
+                                "name": "ServerState",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_x95_852"
+                                ],
+                                "symbols": [
+                                  "Running",
+                                  "Failed",
+                                  "NoConfiguration",
+                                  "Suspended",
+                                  "Shutdown",
+                                  "Test",
+                                  "CommunicationFault",
+                                  "Unknown"
+                                ],
+                                "default": "Running",
+                                "uaDataTypeId": "i=852"
+                              }
+                            ]
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

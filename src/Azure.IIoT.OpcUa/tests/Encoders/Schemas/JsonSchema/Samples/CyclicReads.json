@@ -1,0 +1,1079 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessages",
+  "definitions": {
+    "org.opcfoundation.UA.DateTime": {
+      "$id": "http://opcfoundation.org/UA/#DateTime",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
+    },
+    "org.opcfoundation.UA.UInt32": {
+      "$id": "http://opcfoundation.org/UA/#UInt32",
+      "title": "OPC UA built in type UInt32",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "default": 0,
+      "format": "uint32"
+    },
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
+    "org.opcfoundation.UA.StatusCode": {
+      "$id": "http://opcfoundation.org/UA/#StatusCode",
+      "title": "OPC UA built in type StatusCode",
+      "type": "object",
+      "properties": {
+        "Code": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "Symbol": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.UInt16": {
+      "$id": "http://opcfoundation.org/UA/#UInt16",
+      "title": "OPC UA built in type UInt16",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "default": 0,
+      "format": "uint16"
+    },
+    "org.github.microsoft.opcpublisher.DateTimeDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#DateTimeDataValue",
+      "title": "Dataset Field of Type DateTime",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Status": {
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
+        },
+        "SourceTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        },
+        "ServerTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.UInt32DataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#UInt32DataValue",
+      "title": "Dataset Field of Type UInt32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "Status": {
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
+        },
+        "SourceTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        },
+        "ServerTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Boolean": {
+      "$id": "http://opcfoundation.org/UA/#Boolean",
+      "title": "OPC UA built in type Boolean",
+      "type": "boolean"
+    },
+    "org.github.microsoft.opcpublisher.BooleanDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#BooleanDataValue",
+      "title": "Dataset Field of Type Boolean",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
+        },
+        "Status": {
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
+        },
+        "SourceTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        },
+        "ServerTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Int32": {
+      "$id": "http://opcfoundation.org/UA/#Int32",
+      "title": "OPC UA built in type Int32",
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "default": 0,
+      "format": "int32"
+    },
+    "org.github.microsoft.opcpublisher.Int32DataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#Int32DataValue",
+      "title": "Dataset Field of Type Int32",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Int32"
+        },
+        "Status": {
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
+        },
+        "SourceTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        },
+        "ServerTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Double": {
+      "$id": "http://opcfoundation.org/UA/#Double",
+      "title": "OPC UA built in type Double",
+      "type": "number",
+      "minimum": -1.7976931348623157E+308,
+      "maximum": 1.7976931348623157E+308,
+      "default": 0,
+      "format": "double"
+    },
+    "org.github.microsoft.opcpublisher.DoubleDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#DoubleDataValue",
+      "title": "Dataset Field of Type Double",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Double"
+        },
+        "Status": {
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
+        },
+        "SourceTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        },
+        "ServerTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Number": {
+      "$id": "http://opcfoundation.org/UA/#Number",
+      "title": "OPC UA built in type Number",
+      "type": "number"
+    },
+    "org.github.microsoft.opcpublisher.NumberDataValue": {
+      "$id": "http://github.org/microsoft/opcpublisher#NumberDataValue",
+      "title": "Dataset Field of Type Number",
+      "type": "object",
+      "properties": {
+        "Value": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Number"
+        },
+        "Status": {
+          "$ref": "#/definitions/org.opcfoundation.UA.StatusCode"
+        },
+        "SourceTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "SourcePicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        },
+        "ServerTimestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "ServerPicoSeconds": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage1": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage1",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage2": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage2",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage3": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage3",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage4": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage4",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.Int32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage5": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage5",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage6": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage6",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage7": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage7",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage8": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage8",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage9": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage9",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage10": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage10",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage11": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage11",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage12": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage12",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage13": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage13",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage14": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage14",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage15": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage15",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage16": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage16",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage17": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage17",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage18": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage18",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage19": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage19",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage20": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage20",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage21": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage21",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage22": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage22",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32DataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage23": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage23",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessage24": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessage24",
+      "type": "object",
+      "properties": {
+        "NodeId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "EndpointUrl": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "ApplicationUri": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "DisplayName": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Timestamp": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        },
+        "Value": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NumberDataValue"
+        },
+        "SequenceNumber": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        },
+        "ExtensionFields": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.MonitoredItemMessages": {
+      "$id": "http://github.org/microsoft/opcpublisher#MonitoredItemMessages",
+      "type": "object",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage1"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage2"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage3"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage4"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage5"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage6"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage7"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage8"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage9"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage10"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage11"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage12"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage13"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage14"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage15"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage16"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage17"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage18"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage19"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage20"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage21"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage22"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage23"
+        },
+        {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.MonitoredItemMessage24"
+        }
+      ]
+    }
+  }
+}

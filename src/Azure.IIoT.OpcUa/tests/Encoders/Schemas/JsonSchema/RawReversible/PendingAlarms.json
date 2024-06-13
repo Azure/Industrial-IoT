@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet",
+  "definitions": {
+    "org.opcfoundation.UA.NodeId": {
+      "$id": "http://opcfoundation.org/UA/#NodeId",
+      "title": "OPC UA built in type NodeId",
+      "type": "string",
+      "format": "opcuaNodeId"
+    },
+    "org.github.microsoft.opcpublisher.NodeIdVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#NodeIdVariant",
+      "title": "Variant Field of Type NodeId",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 17
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
+    "org.opcfoundation.UA.LocalizedText": {
+      "$id": "http://opcfoundation.org/UA/#LocalizedText",
+      "title": "OPC UA built in type LocalizedText",
+      "type": "object",
+      "properties": {
+        "Locale": {
+          "title": "OPC UA built in type String",
+          "type": "string",
+          "format": "rfc3066"
+        },
+        "Text": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.LocalizedTextVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#LocalizedTextVariant",
+      "title": "Variant Field of Type LocalizedText",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 21
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.NodeIdArrayVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#NodeIdArrayVariant",
+      "title": "Variant Field of Type NodeIdArray",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 17
+        },
+        "Body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/org.opcfoundation.UA.NodeId"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.LocalizedTextArrayVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#LocalizedTextArrayVariant",
+      "title": "Variant Field of Type LocalizedTextArray",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 21
+        },
+        "Body": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.ByteString": {
+      "$id": "http://opcfoundation.org/UA/#ByteString",
+      "title": "OPC UA built in type ByteString",
+      "type": "string",
+      "format": "byte"
+    },
+    "org.github.microsoft.opcpublisher.ByteStringVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#ByteStringVariant",
+      "title": "Variant Field of Type ByteString",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 15
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.ByteString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Int16": {
+      "$id": "http://opcfoundation.org/UA/#Int16",
+      "title": "OPC UA built in type Int16",
+      "type": "integer",
+      "minimum": -32768,
+      "maximum": 32767,
+      "default": 0,
+      "format": "int16"
+    },
+    "org.opcfoundation.UA.Boolean": {
+      "$id": "http://opcfoundation.org/UA/#Boolean",
+      "title": "OPC UA built in type Boolean",
+      "type": "boolean"
+    },
+    "org.opcfoundation.UA.TimeZoneDataType": {
+      "$id": "http://opcfoundation.org/UA/#TimeZoneDataType",
+      "title": "TimeZoneDataType",
+      "type": "object",
+      "properties": {
+        "Offset": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Int16"
+        },
+        "DaylightSavingInOffset": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
+        }
+      },
+      "required": [
+        "Offset",
+        "DaylightSavingInOffset"
+      ],
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.TimeZoneDataTypeVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#TimeZoneDataTypeVariant",
+      "title": "Variant Field of Type TimeZoneDataType",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 22
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.TimeZoneDataType"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.DateTime": {
+      "$id": "http://opcfoundation.org/UA/#DateTime",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
+    },
+    "org.github.microsoft.opcpublisher.DateTimeVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#DateTimeVariant",
+      "title": "Variant Field of Type DateTime",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 13
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.UInt16": {
+      "$id": "http://opcfoundation.org/UA/#UInt16",
+      "title": "OPC UA built in type UInt16",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "default": 0,
+      "format": "uint16"
+    },
+    "org.github.microsoft.opcpublisher.UInt16Variant": {
+      "$id": "http://github.org/microsoft/opcpublisher#UInt16Variant",
+      "title": "Variant Field of Type UInt16",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 5
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt16"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.StringVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#StringVariant",
+      "title": "Variant Field of Type String",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 12
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
+      "type": "object",
+      "properties": {
+        "ConditionClassId": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdVariant"
+        },
+        "ConditionClassName": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextVariant"
+        },
+        "ConditionSubClassId": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdArrayVariant"
+        },
+        "ConditionSubClassName": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextArrayVariant"
+        },
+        "EventId": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.ByteStringVariant"
+        },
+        "EventType": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdVariant"
+        },
+        "LocalTime": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.TimeZoneDataTypeVariant"
+        },
+        "Message": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.LocalizedTextVariant"
+        },
+        "ReceiveTime": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeVariant"
+        },
+        "Severity": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt16Variant"
+        },
+        "SourceName": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.StringVariant"
+        },
+        "SourceNode": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NodeIdVariant"
+        },
+        "Time": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeVariant"
+        }
+      }
+    }
+  }
+}

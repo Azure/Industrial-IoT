@@ -233,11 +233,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         private static async ValueTask<T> LoadAsync<T>(string file)
         {
-            var serializer = new NewtonsoftJsonSerializer();
             await using (var fs = new FileStream(file, FileMode.Open,
                 FileAccess.Read, FileShare.Read))
             {
-                return await ((IJsonSerializer)serializer).DeserializeAsync<T>(fs);
+                return await JsonSerializer.DeserializeAsync<T>(fs);
             }
         }
 
@@ -251,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var document = JsonDocument.Parse(json);
             json = JsonSerializer.Serialize(document, kIndented).ReplaceLineEndings();
             Assert.NotNull(json);
-#if !WRITE
+#if WRITE
             var folder = Path.Combine(".", "JavroSchema", name);
             if (!Directory.Exists(folder))
             {

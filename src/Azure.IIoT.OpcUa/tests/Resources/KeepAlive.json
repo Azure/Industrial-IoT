@@ -1,0 +1,94 @@
+{
+    "DataSetMessages": [
+        {
+            "MetaData": {
+                "MinorVersion": 3632325695,
+                "DataSetMetaData": {
+                    "Name": null,
+                    "DataSetClassId": "00000000-0000-0000-0000-000000000000",
+                    "Description": null,
+                    "MajorVersion": null
+                },
+                "Fields": [
+                    {
+                        "Name": "State",
+                        "Id": "081ffb7a-b0e4-484a-a57e-8065c350ad1c",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 29,
+                        "DataType": "i=852",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    }
+                ],
+                "StructureDataTypes": [],
+                "EnumDataTypes": [
+                    {
+                        "DataTypeId": "i=852",
+                        "Name": "ServerState",
+                        "Fields": [
+                            {
+                                "Name": "Running",
+                                "Value": 0,
+                                "DisplayName": "Running",
+                                "Description": null
+                            },
+                            {
+                                "Name": "Failed",
+                                "Value": 1,
+                                "DisplayName": "Failed",
+                                "Description": null
+                            },
+                            {
+                                "Name": "NoConfiguration",
+                                "Value": 2,
+                                "DisplayName": "NoConfiguration",
+                                "Description": null
+                            },
+                            {
+                                "Name": "Suspended",
+                                "Value": 3,
+                                "DisplayName": "Suspended",
+                                "Description": null
+                            },
+                            {
+                                "Name": "Shutdown",
+                                "Value": 4,
+                                "DisplayName": "Shutdown",
+                                "Description": null
+                            },
+                            {
+                                "Name": "Test",
+                                "Value": 5,
+                                "DisplayName": "Test",
+                                "Description": null
+                            },
+                            {
+                                "Name": "CommunicationFault",
+                                "Value": 6,
+                                "DisplayName": "CommunicationFault",
+                                "Description": null
+                            },
+                            {
+                                "Name": "Unknown",
+                                "Value": 7,
+                                "DisplayName": "Unknown",
+                                "Description": null
+                            }
+                        ],
+                        "BuiltInType": null,
+                        "IsOptionSet": false
+                    }
+                ],
+                "SimpleDataTypes": []
+            },
+            "DataSetMessageContentFlags": 868,
+            "DataSetFieldContentFlags": 458755,
+            "TypeName": null
+        }
+    ],
+    "NetworkMessageContentFlags": 6901,
+    "TypeName": null
+}

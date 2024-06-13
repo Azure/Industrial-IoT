@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet",
+  "definitions": {
+    "org.opcfoundation.UA.ByteString": {
+      "$id": "http://opcfoundation.org/UA/#ByteString",
+      "title": "OPC UA built in type ByteString",
+      "type": "string",
+      "format": "byte"
+    },
+    "org.opcfoundation.UA.LocalizedText": {
+      "$id": "http://opcfoundation.org/UA/#LocalizedText",
+      "title": "OPC UA built in type LocalizedText",
+      "type": "string"
+    },
+    "org.opcfoundation.UA.String": {
+      "$id": "http://opcfoundation.org/UA/#String",
+      "title": "OPC UA built in type String",
+      "type": "string"
+    },
+    "org.opcfoundation.UA.Double": {
+      "$id": "http://opcfoundation.org/UA/#Double",
+      "title": "OPC UA built in type Double",
+      "type": "number",
+      "minimum": -1.7976931348623157E+308,
+      "maximum": 1.7976931348623157E+308,
+      "default": 0,
+      "format": "double"
+    },
+    "org.opcfoundation.SimpleEvents.CycleStepDataType": {
+      "$id": "http://opcfoundation.org/SimpleEvents#CycleStepDataType",
+      "title": "nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
+      "type": "object",
+      "properties": {
+        "Name": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "Duration": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Double"
+        }
+      },
+      "required": [
+        "Name",
+        "Duration"
+      ],
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
+      "type": "object",
+      "properties": {
+        "EventId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.ByteString"
+        },
+        "Message": {
+          "$ref": "#/definitions/org.opcfoundation.UA.LocalizedText"
+        },
+        "http://opcfoundation.org/SimpleEvents#CycleId": {
+          "$ref": "#/definitions/org.opcfoundation.UA.String"
+        },
+        "http://opcfoundation.org/SimpleEvents#CurrentStep": {
+          "$ref": "#/definitions/org.opcfoundation.SimpleEvents.CycleStepDataType"
+        }
+      }
+    }
+  }
+}

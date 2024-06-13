@@ -1,0 +1,57 @@
+{
+  "type": "record",
+  "name": "DataSet",
+  "fields": [
+    {
+      "name": "EventId",
+      "type": "bytes"
+    },
+    {
+      "name": "Message",
+      "type": {
+        "type": "record",
+        "name": "LocalizedText",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_21"
+        ],
+        "fields": [
+          {
+            "name": "Locale",
+            "type": "string"
+          },
+          {
+            "name": "Text",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "http_x58__x47__x47_opcfoundation_x46_org_x47_SimpleEvents_x35_CycleId",
+      "type": "string"
+    },
+    {
+      "name": "http_x58__x47__x47_opcfoundation_x46_org_x47_SimpleEvents_x35_CurrentStep",
+      "type": {
+        "type": "record",
+        "name": "CycleStepDataType",
+        "namespace": "org.opcfoundation.SimpleEvents",
+        "aliases": [
+          "org.opcfoundation.SimpleEvents.i_x95_183"
+        ],
+        "fields": [
+          {
+            "name": "Name",
+            "type": "string"
+          },
+          {
+            "name": "Duration",
+            "type": "double"
+          }
+        ],
+        "uaDataTypeId": "nsu=http://opcfoundation.org/SimpleEvents;i=183"
+      }
+    }
+  ]
+}

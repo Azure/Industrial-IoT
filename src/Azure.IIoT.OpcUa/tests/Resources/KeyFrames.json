@@ -1,0 +1,92 @@
+{
+    "DataSetMessages": [
+        {
+            "MetaData": {
+                "MinorVersion": 275393594,
+                "DataSetMetaData": {
+                    "Name": null,
+                    "DataSetClassId": "00000000-0000-0000-0000-000000000000",
+                    "Description": null,
+                    "MajorVersion": null
+                },
+                "Fields": [
+                    {
+                        "Name": "CurrentTime",
+                        "Id": "b94d9c20-63ef-419f-a76e-ffcb280a3b13",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 13,
+                        "DataType": "i=294",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "EngineeringUnits",
+                        "Id": "6995a326-df96-4e00-9247-f7eea034f810",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 12,
+                        "DataType": "i=12",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "AssetId",
+                        "Id": "9a647079-3f64-4ab4-9b86-437a3438b931",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 24,
+                        "DataType": "i=24",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "Important",
+                        "Id": "3d8f7712-0d10-4390-b5bb-7c6484816c68",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 1,
+                        "DataType": "i=1",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "Variance",
+                        "Id": "fa7707aa-4b5d-477e-a441-f5cd203b0523",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 10,
+                        "DataType": "i=10",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    }
+                ],
+                "StructureDataTypes": [],
+                "EnumDataTypes": [],
+                "SimpleDataTypes": [
+                    {
+                        "DataTypeId": "i=294",
+                        "Name": "UtcTime",
+                        "BaseDataType": "i=13",
+                        "BuiltInType": 13
+                    }
+                ]
+            },
+            "DataSetMessageContentFlags": 868,
+            "DataSetFieldContentFlags": 458755,
+            "TypeName": null
+        }
+    ],
+    "NetworkMessageContentFlags": 6901,
+    "TypeName": null
+}

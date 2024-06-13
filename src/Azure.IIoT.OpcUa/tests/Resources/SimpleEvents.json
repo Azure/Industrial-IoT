@@ -1,0 +1,101 @@
+{
+    "DataSetMessages": [
+        {
+            "MetaData": {
+                "MinorVersion": 173068024,
+                "DataSetMetaData": {
+                    "Name": null,
+                    "DataSetClassId": "00000000-0000-0000-0000-000000000000",
+                    "Description": null,
+                    "MajorVersion": null
+                },
+                "Fields": [
+                    {
+                        "Name": "EventId",
+                        "Id": "0e461d96-defd-4b43-8414-c2e3676e440f",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 15,
+                        "DataType": "i=15",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "Message",
+                        "Id": "df0e9f02-943a-41a3-9f16-e766dd0a7644",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 21,
+                        "DataType": "i=21",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "http://opcfoundation.org/SimpleEvents#CycleId",
+                        "Id": "09377953-35be-4d90-ae56-010d9172adf9",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 12,
+                        "DataType": "i=12",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "http://opcfoundation.org/SimpleEvents#CurrentStep",
+                        "Id": "505473a1-4a65-41d1-a451-68848a06bca6",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 22,
+                        "DataType": "nsu=http://opcfoundation.org/SimpleEvents;i=183",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    }
+                ],
+                "StructureDataTypes": [
+                    {
+                        "DataTypeId": "nsu=http://opcfoundation.org/SimpleEvents;i=183",
+                        "Name": "nsu=http://opcfoundation.org/SimpleEvents;CycleStepDataType",
+                        "StructureType": 0,
+                        "Fields": [
+                            {
+                                "Name": "Name",
+                                "DataType": "i=12",
+                                "Description": null,
+                                "IsOptional": false,
+                                "ValueRank": -1,
+                                "ArrayDimensions": [],
+                                "MaxStringLength": 0
+                            },
+                            {
+                                "Name": "Duration",
+                                "DataType": "i=11",
+                                "Description": null,
+                                "IsOptional": false,
+                                "ValueRank": -1,
+                                "ArrayDimensions": [],
+                                "MaxStringLength": 0
+                            }
+                        ],
+                        "BaseDataType": "i=22",
+                        "DefaultEncodingId": null
+                    }
+                ],
+                "EnumDataTypes": [],
+                "SimpleDataTypes": []
+            },
+            "DataSetMessageContentFlags": 0,
+            "DataSetFieldContentFlags": 3080199,
+            "TypeName": null
+        }
+    ],
+    "NetworkMessageContentFlags": 8192,
+    "TypeName": null
+}

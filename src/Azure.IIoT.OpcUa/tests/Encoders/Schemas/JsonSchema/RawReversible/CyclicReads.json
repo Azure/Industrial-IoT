@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/org.github.microsoft.opcpublisher.DataSet",
+  "definitions": {
+    "org.opcfoundation.UA.DateTime": {
+      "$id": "http://opcfoundation.org/UA/#DateTime",
+      "title": "OPC UA built in type DateTime",
+      "type": "string",
+      "format": "date-time"
+    },
+    "org.github.microsoft.opcpublisher.DateTimeVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#DateTimeVariant",
+      "title": "Variant Field of Type DateTime",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 13
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.DateTime"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.UInt32": {
+      "$id": "http://opcfoundation.org/UA/#UInt32",
+      "title": "OPC UA built in type UInt32",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "default": 0,
+      "format": "uint32"
+    },
+    "org.github.microsoft.opcpublisher.UInt32Variant": {
+      "$id": "http://github.org/microsoft/opcpublisher#UInt32Variant",
+      "title": "Variant Field of Type UInt32",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 7
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.UInt32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Boolean": {
+      "$id": "http://opcfoundation.org/UA/#Boolean",
+      "title": "OPC UA built in type Boolean",
+      "type": "boolean"
+    },
+    "org.github.microsoft.opcpublisher.BooleanVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#BooleanVariant",
+      "title": "Variant Field of Type Boolean",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 1
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Int32": {
+      "$id": "http://opcfoundation.org/UA/#Int32",
+      "title": "OPC UA built in type Int32",
+      "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
+      "default": 0,
+      "format": "int32"
+    },
+    "org.github.microsoft.opcpublisher.Int32Variant": {
+      "$id": "http://github.org/microsoft/opcpublisher#Int32Variant",
+      "title": "Variant Field of Type Int32",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 6
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Int32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Double": {
+      "$id": "http://opcfoundation.org/UA/#Double",
+      "title": "OPC UA built in type Double",
+      "type": "number",
+      "minimum": -1.7976931348623157E+308,
+      "maximum": 1.7976931348623157E+308,
+      "default": 0,
+      "format": "double"
+    },
+    "org.github.microsoft.opcpublisher.DoubleVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#DoubleVariant",
+      "title": "Variant Field of Type Double",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 11
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Double"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.opcfoundation.UA.Number": {
+      "$id": "http://opcfoundation.org/UA/#Number",
+      "title": "OPC UA built in type Number",
+      "type": "number"
+    },
+    "org.github.microsoft.opcpublisher.NumberVariant": {
+      "$id": "http://github.org/microsoft/opcpublisher#NumberVariant",
+      "title": "Variant Field of Type Number",
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "integer",
+          "const": 26
+        },
+        "Body": {
+          "$ref": "#/definitions/org.opcfoundation.UA.Number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "org.github.microsoft.opcpublisher.DataSet": {
+      "$id": "http://github.org/microsoft/opcpublisher#DataSet",
+      "title": "DataSet",
+      "type": "object",
+      "properties": {
+        "i=2258": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DateTimeVariant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.BooleanVariant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomSignedInt32": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.Int32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomUnsignedInt32": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DipData": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleVariant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=NegativeTrendData": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleVariant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=PositiveTrendData": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleVariant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.UInt32Variant"
+        },
+        "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SpikeData": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.DoubleVariant"
+        },
+        "ns=23;i=1259": {
+          "$ref": "#/definitions/org.github.microsoft.opcpublisher.NumberVariant"
+        }
+      }
+    }
+  }
+}

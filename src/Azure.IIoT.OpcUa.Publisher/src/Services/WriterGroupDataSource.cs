@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
-    using Microsoft.Azure.Amqp.Framing;
+    using System.Text.Json;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -269,24 +269,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     if (_lastMetadataChange != _metadataChanges)
                     {
+                        // Check for schema support and create schema only if enabled
                         writerGroup = _writerGroup;
-
-                        // TODO: Check for schema support and create schema only if enabled
-
-                        if (PubSubMessage.TryCreateNetworkMessageSchema(
-                            writerGroup.MessageType ?? MessageEncoding.Json,
-                            new PublishedNetworkMessageSchemaModel
+                        if (_options.Value.SchemaOptions == null)
+                        {
+                            schema = null;
+                        }
+                        else
+                        {
+                            var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
+                            var input = new PublishedNetworkMessageSchemaModel
                             {
                                 DataSetMessages = _subscriptions.Values
                                     .Select(s => s.LastMetaData)
                                     .ToList(),
                                 NetworkMessageContentFlags =
                                     writerGroup.MessageSettings?.NetworkMessageContentMask
-                            }, out schema, _options.Value.SchemaOptions))
-                        {
-                            _schema = schema;
+                            };
+#if !DUMP_METADATA
+#pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
+                            System.IO.File.WriteAllText(
+                                $"md_{DateTime.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
+                                JsonSerializer.Serialize(input, new JsonSerializerOptions
+                            {
+                                WriteIndented = true
+                            }));
+#pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
+#endif
+                            if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
+                                out schema, _options.Value.SchemaOptions))
+                            {
+                                _logger.LogWarning("Failed to create schema for {Encoding} " +
+                                    "encoded messages for writer group {WriterGroup}.",
+                                    encoding, writerGroup.Id);
+                            }
                         }
-
+                        _schema = schema;
                         _lastMetadataChange = _metadataChanges;
                         return;
                     }
