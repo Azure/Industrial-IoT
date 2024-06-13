@@ -7,12 +7,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Microsoft.Json.Schema;
+    using global::Json.Schema;
     using System.IO;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -31,8 +31,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             Assert.NotNull(json);
             await AssertAsync("NetworkMessageDefault", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
+
+            // var instance = JsonNode.Parse("{\"foo\":\"a value\",\"bar\":42}");
+            // var results = schema2.Evaluate(instance);
+            // Assert.True(results.IsValid);
+            // Assert.False(results.HasErrors);
         }
 
         [Theory]
@@ -47,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
             var json = schema.ToString();
             await AssertAsync("NetworkMessage", messageMetaDataFile, json);
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -66,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("Multiple", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -86,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("Single", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -105,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("Default", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -129,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("Raw", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -154,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("RawReversible", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -191,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("Samples", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -225,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("SamplesRaw", messageMetaDataFile, json);
 
-            var schema2 = SchemaReader.ReadSchema(json, ".");
+            var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 

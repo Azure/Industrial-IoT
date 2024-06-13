@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Furly.Extensions.Messaging;
-    using global::Json.Schema;
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Linq;

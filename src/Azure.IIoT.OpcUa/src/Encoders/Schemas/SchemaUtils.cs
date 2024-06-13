@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Json.Schema;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;

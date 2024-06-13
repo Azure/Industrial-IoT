@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
     using System.Collections.Generic;
     using Furly.Extensions.Messaging;
     using Furly;
-    using global::Json.Schema;
 
     /// <summary>
     /// Monitored item message json schema

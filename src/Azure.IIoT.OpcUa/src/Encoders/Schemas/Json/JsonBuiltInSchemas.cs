@@ -4,7 +4,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
-    using global::Json.Schema;
     using Opc.Ua;
     using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
     using System;
