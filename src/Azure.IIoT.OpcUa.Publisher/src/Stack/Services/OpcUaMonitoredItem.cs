@@ -248,6 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Called when the underlying session is disconnected
         /// </summary>
+        /// <param name="disconnected"></param>
         public virtual void NotifySessionConnectionState(bool disconnected)
         {
         }

@@ -38,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Notifiy session disconnected/reconnecting
         /// </summary>
+        /// <param name="disconnected"></param>
         /// <returns></returns>
         void NotifySessionConnectionState(bool disconnected);
 
