@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
     using System;
@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
     /// </summary>
-    internal class JsonBuiltInAvroSchemas : BaseBuiltInSchemas<Schema>
+    internal class JsonBuiltInSchemas : BaseBuiltInSchemas<Schema>
     {
         private Schema EnumerationSchema
         {
@@ -349,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="reversibleEncoding"></param>
         /// <param name="useUriEncoding"></param>
-        public JsonBuiltInAvroSchemas(bool reversibleEncoding, bool useUriEncoding)
+        public JsonBuiltInSchemas(bool reversibleEncoding, bool useUriEncoding)
         {
             _reversibleEncoding = reversibleEncoding;
             _useUriEncoding = useUriEncoding;
@@ -359,7 +359,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Create encoding schema
         /// </summary>
         /// <param name="fieldContentMask"></param>
-        public JsonBuiltInAvroSchemas(DataSetFieldContentFlags fieldContentMask)
+        public JsonBuiltInSchemas(DataSetFieldContentFlags fieldContentMask)
         {
             if ((fieldContentMask & DataSetFieldContentFlags.RawData) != 0)
             {

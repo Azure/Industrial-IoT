@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -257,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             var expected = new Variant(value);
 
-            var schemas = new AvroBuiltInAvroSchemas();
+            var schemas = new AvroBuiltInSchemas();
             var valueSchema = schemas.GetSchemaForBuiltInType(expected.TypeInfo.BuiltInType);
             var schema = valueSchema.AsNullable().CreateRoot();
 
@@ -1553,7 +1554,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             var expected = new Variant(Enumerable.Repeat("test", 3).ToArray());
 
-            var schemas = new AvroBuiltInAvroSchemas();
+            var schemas = new AvroBuiltInSchemas();
             var valueSchema = schemas.GetSchemaForBuiltInType(expected.TypeInfo.BuiltInType,
                 SchemaRank.Collection);
             var schema = valueSchema.AsNullable().CreateRoot();
@@ -1585,7 +1586,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var context = new ServiceMessageContext();
             var expected = new Variant(Enumerable.Repeat("test", 3).ToArray());
 
-            var schemas = new AvroBuiltInAvroSchemas();
+            var schemas = new AvroBuiltInSchemas();
             var valueSchema = schemas.GetSchemaForBuiltInType(expected.TypeInfo.BuiltInType,
                 SchemaRank.Collection);
             var schema = valueSchema.CreateRoot();

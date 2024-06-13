@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Linq;
     using System.Xml;
     using System.Globalization;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
 
     /// <summary>
     /// Encodes objects via Avro schema using underlying encoder.
@@ -1053,7 +1054,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return _schema.Current;
         }
 
-        private readonly AvroBuiltInAvroSchemas _builtIns = new();
+        private readonly AvroBuiltInSchemas _builtIns = new();
         private readonly AvroSchemaTraverser _schema;
     }
 

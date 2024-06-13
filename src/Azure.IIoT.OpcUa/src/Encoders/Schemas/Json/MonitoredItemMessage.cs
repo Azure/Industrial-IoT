@@ -3,19 +3,20 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using Furly.Extensions.Messaging;
     using Furly;
-    using Json.Schema;
+    using global::Json.Schema;
 
     /// <summary>
     /// Monitored item message json schema
     /// </summary>
-    public sealed class MonitoredItemMessageJsonSchema : IEventSchema
+    public sealed class MonitoredItemMessage : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.Json;
@@ -43,25 +44,27 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         internal Dictionary<string, JsonSchema> Definitions { get; }
 
         /// <summary>
-        /// Get json schema for message
+        /// Get json schema for monitored item message
         /// </summary>
         /// <param name="dataSetMessage"></param>
         /// <param name="withDataSetMessageHeader"></param>
         /// <param name="options"></param>
         /// <param name="definitions"></param>
         /// <param name="uniqueNames"></param>
-        internal MonitoredItemMessageJsonSchema(PublishedDataSetMessageSchemaModel dataSetMessage,
+        internal MonitoredItemMessage(PublishedDataSetMessageSchemaModel dataSetMessage,
             bool withDataSetMessageHeader, SchemaOptions options,
             Dictionary<string, JsonSchema> definitions, HashSet<string> uniqueNames)
         {
             _options = options;
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new JsonDataSetJsonSchema(dataSetMessage.MetaData,
+            _dataSet = new JsonDataSet(dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, definitions, uniqueNames);
             Definitions = definitions ?? new Dictionary<string, JsonSchema>();
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
-            _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags;
-            Ref = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags, uniqueNames);
+            _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags
+                    ?? PubSubMessage.DefaultDataSetFieldContentFlags;
+            Ref = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags
+                    ?? PubSubMessage.DefaultDataSetMessageContentFlags, uniqueNames);
         }
 
         /// <inheritdoc/>
@@ -124,50 +127,50 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private JsonSchema? Compile(string name, DataSetMessageContentFlags dataSetMessageContentMask,
             JsonSchema valueSchema)
         {
-            var encoding = new JsonBuiltInJsonSchemas(true, true, Definitions);
+            var encoding = new JsonBuiltInSchemas(true, true, Definitions);
             var properties = new Dictionary<string, JsonSchema>();
 
             if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.NodeId))
             {
-                properties.Add(nameof(MonitoredItemMessage.NodeId),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.NodeId),
                    encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.String));
             }
             if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.EndpointUrl))
             {
-                properties.Add(nameof(MonitoredItemMessage.EndpointUrl),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.EndpointUrl),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.String));
             }
             if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ApplicationUri))
             {
-                properties.Add(nameof(MonitoredItemMessage.ApplicationUri),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.ApplicationUri),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.String));
             }
             if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.DisplayName))
             {
-                properties.Add(nameof(MonitoredItemMessage.DisplayName),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.DisplayName),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.String));
             }
             if (dataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Timestamp))
             {
-                properties.Add(nameof(MonitoredItemMessage.Timestamp),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.Timestamp),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.DateTime));
             }
             if (dataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Status))
             {
-                properties.Add(nameof(MonitoredItemMessage.Status),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.Status),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.String));
             }
 
-            properties.Add(nameof(MonitoredItemMessage.Value), valueSchema);
+            properties.Add(nameof(PubSub.MonitoredItemMessage.Value), valueSchema);
 
             if (dataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.SequenceNumber))
             {
-                properties.Add(nameof(MonitoredItemMessage.SequenceNumber),
+                properties.Add(nameof(PubSub.MonitoredItemMessage.SequenceNumber),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.UInt32));
             }
             if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ExtensionFields))
             {
-                properties.Add(nameof(MonitoredItemMessage.ExtensionFields), new JsonSchema
+                properties.Add(nameof(PubSub.MonitoredItemMessage.ExtensionFields), new JsonSchema
                 {
                     Type = SchemaType.Object,
                     AdditionalProperties = new JsonSchema { Allowed = true }
@@ -192,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += nameof(MonitoredItemMessage);
+            typeName += nameof(PubSub.MonitoredItemMessage);
             if (uniqueNames != null)
             {
                 var uniqueName = typeName;
@@ -209,6 +212,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         private readonly DataSetFieldContentFlags _dataSetFieldContentMask;
         private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
-        private readonly JsonDataSetJsonSchema _dataSet;
+        private readonly JsonDataSet _dataSet;
     }
 }

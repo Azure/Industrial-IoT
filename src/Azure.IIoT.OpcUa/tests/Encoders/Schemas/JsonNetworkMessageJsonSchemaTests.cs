@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub.Schemas;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public async Task CreateNetworkMessageJsonSchemas(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public async Task CreateJsonNetworkMessageWithNs(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData, new SchemaOptions
+            var schema = new JsonNetworkMessage(messageMetaData, new SchemaOptions
             {
                 Namespace = "http://www.microsoft.com"
             });
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 NetworkMessageContentFlags = NetworkMessageContentFlags.DataSetMessageHeader
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Multiple", messageMetaDataFile, json);
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     | NetworkMessageContentFlags.SingleDataSetMessage
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Single", messageMetaDataFile, json);
@@ -100,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 NetworkMessageContentFlags = NetworkMessageContentFlags.SingleDataSetMessage
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Default", messageMetaDataFile, json);
@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Raw", messageMetaDataFile, json);
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("RawReversible", messageMetaDataFile, json);
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Samples", messageMetaDataFile, json);
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageJsonSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("SamplesRaw", messageMetaDataFile, json);

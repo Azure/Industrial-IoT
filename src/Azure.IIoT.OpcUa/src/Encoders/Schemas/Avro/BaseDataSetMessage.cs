@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// Base Dataset message avro schema
     /// </summary>
-    public abstract class BaseDataSetMessageAvroSchema : IEventSchema, IAvroSchema
+    public abstract class BaseDataSetMessage : IEventSchema, IAvroSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName = SchemaUtils.Escape(typeName) + (defaultName ?? kMessageTypeName);
+            typeName = SchemaUtils.Escape(typeName) + (defaultName ?? PubSub.BaseDataSetMessage.kMessageTypeName);
 
             if (uniqueNames != null)
             {
@@ -116,7 +116,5 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
             return typeName;
         }
-
-        internal const string kMessageTypeName = "DataSetMessage";
     }
 }

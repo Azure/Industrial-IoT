@@ -3,19 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Json Network message avro schema
     /// </summary>
-    public sealed class JsonNetworkMessageAvroSchema : BaseNetworkMessageAvroSchema
+    public sealed class JsonNetworkMessage : BaseNetworkMessage
     {
         /// <inheritdoc/>
         public override Schema Schema { get; }
@@ -27,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="options"></param>
         /// <param name="useCompatibilityMode"></param>
         /// <param name="useArrayEnvelope"></param>
-        public JsonNetworkMessageAvroSchema(PublishedNetworkMessageSchemaModel networkMessage,
+        public JsonNetworkMessage(PublishedNetworkMessageSchemaModel networkMessage,
             SchemaOptions? options = null, bool useCompatibilityMode = false, bool useArrayEnvelope = false)
         {
             networkMessage = SetAdditionalFlags(networkMessage, useCompatibilityMode, useArrayEnvelope);
@@ -41,19 +40,21 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             if (networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.MonitoredItemMessage))
             {
-                return new MonitoredItemMessageAvroSchema(dataSetMessage, networkMessageContentFlags,
+                return new MonitoredItemMessage(dataSetMessage, networkMessageContentFlags,
                     options, uniqueNames).Schema;
             }
-            return new JsonDataSetMessageAvroSchema(dataSetMessage, networkMessageContentFlags,
+            return new JsonDataSetMessage(dataSetMessage, networkMessageContentFlags,
                 options, uniqueNames).Schema;
         }
 
         /// <inheritdoc/>
-        protected override Schema Compile(PublishedNetworkMessageSchemaModel networkMessage, SchemaOptions? options)
+        protected override Schema Compile(PublishedNetworkMessageSchemaModel networkMessage,
+            SchemaOptions? options)
         {
             var messageSchema = base.Compile(networkMessage, options);
 
-            if (networkMessage.NetworkMessageContentFlags.HasFlag(NetworkMessageContentFlags.UseArrayEnvelope))
+            if (networkMessage.NetworkMessageContentFlags?
+                .HasFlag(NetworkMessageContentFlags.UseArrayEnvelope) ?? false)
             {
                 // set array as root
                 return messageSchema.AsArray(true);
@@ -63,34 +64,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
 
         /// <inheritdoc/>
         protected override IEnumerable<Field> CollectFields(
-            NetworkMessageContentFlags contentMask, Schema? payloadType)
+            NetworkMessageContentFlags contentMask, Schema payloadType)
         {
-            var encoding = new JsonBuiltInAvroSchemas(true, false);
+            var encoding = new JsonBuiltInSchemas(true, false);
             var pos = 0;
             var fields = new List<Field>
             {
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    nameof(JsonNetworkMessage.MessageId), pos++),
+                    nameof(PubSub.JsonNetworkMessage.MessageId), pos++),
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    nameof(JsonNetworkMessage.MessageType), pos++)
+                    nameof(PubSub.JsonNetworkMessage.MessageType), pos++)
             };
 
             if (contentMask.HasFlag(NetworkMessageContentFlags.PublisherId))
             {
                 fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                    nameof(JsonNetworkMessage.PublisherId), pos++));
+                    nameof(PubSub.JsonNetworkMessage.PublisherId), pos++));
             }
             if (contentMask.HasFlag(NetworkMessageContentFlags.DataSetClassId))
             {
                 fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.Guid),
-                    nameof(JsonNetworkMessage.DataSetClassId), pos++));
+                    nameof(PubSub.JsonNetworkMessage.DataSetClassId), pos++));
             }
 
             fields.Add(new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                nameof(JsonNetworkMessage.DataSetWriterGroup), pos++));
+                nameof(PubSub.JsonNetworkMessage.DataSetWriterGroup), pos++));
 
             // Now write messages - this is either one of or array of one of
-            fields.Add(new(payloadType, nameof(JsonNetworkMessage.Messages), pos++));
+            fields.Add(new(payloadType, nameof(PubSub.JsonNetworkMessage.Messages), pos++));
             return fields;
         }
 

@@ -18,14 +18,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetMessages", Order = 1,
             EmitDefaultValue = false)]
-        public required IReadOnlyList<PublishedDataSetMessageSchemaModel> DataSetMessages { get; init; }
+        public required IReadOnlyList<PublishedDataSetMessageSchemaModel?> DataSetMessages { get; init; }
 
         /// <summary>
         /// Dataset content encoding flags
         /// </summary>
         [DataMember(Name = "networkMessageContentFlags", Order = 2,
             EmitDefaultValue = false)]
-        public required NetworkMessageContentFlags NetworkMessageContentFlags { get; init; }
+        public required NetworkMessageContentFlags? NetworkMessageContentFlags { get; init; }
 
         /// <summary>
         /// Optional type name for the message type

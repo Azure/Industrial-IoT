@@ -6,8 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using System;
     using System.IO;
@@ -15,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Xunit;
     using Opc.Ua.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
 
     public class AvroDataSetTests
     {

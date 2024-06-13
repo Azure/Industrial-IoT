@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Json.Schema;
+    using global::Json.Schema;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;

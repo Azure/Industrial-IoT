@@ -2,9 +2,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
-    using Json.Schema;
+    using global::Json.Schema;
     using Opc.Ua;
     using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
     using System;
@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema
     /// </summary>
-    internal class JsonBuiltInJsonSchemas : BaseBuiltInSchemas<JsonSchema>
+    internal class JsonBuiltInSchemas : BaseBuiltInSchemas<JsonSchema>
     {
         /// <summary>
         /// Schema definitions
@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="reversibleEncoding"></param>
         /// <param name="useUriEncoding"></param>
         /// <param name="definitions"></param>
-        public JsonBuiltInJsonSchemas(bool reversibleEncoding,
+        public JsonBuiltInSchemas(bool reversibleEncoding,
             bool useUriEncoding, Dictionary<string, JsonSchema>? definitions)
         {
             Schemas = definitions ?? new();
@@ -382,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// </summary>
         /// <param name="fieldContentMask"></param>
         /// <param name="definitions"></param>
-        public JsonBuiltInJsonSchemas(DataSetFieldContentFlags fieldContentMask,
+        public JsonBuiltInSchemas(DataSetFieldContentFlags fieldContentMask,
             Dictionary<string, JsonSchema>? definitions = null)
         {
             Schemas = definitions ?? new();

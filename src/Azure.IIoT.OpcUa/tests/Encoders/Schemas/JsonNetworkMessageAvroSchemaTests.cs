@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub.Schemas;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public async Task CreateJsonNetworkMessageSchemas(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             var document = JsonDocument.Parse(json);
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             Assert.NotNull(json);
             await AssertAsync("NetworkMessageDefault", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public async Task CreateJsonNetworkMessageWithNs(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData, new SchemaOptions
+            var schema = new JsonNetworkMessage(messageMetaData, new SchemaOptions
             {
                 Namespace = "http://www.microsoft.com"
             });
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             var json = schema.ToString();
             await AssertAsync("NetworkMessage", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -61,12 +61,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 NetworkMessageContentFlags = NetworkMessageContentFlags.DataSetMessageHeader
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Multiple", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -82,12 +82,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     | NetworkMessageContentFlags.SingleDataSetMessage
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Single", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -101,12 +101,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 NetworkMessageContentFlags = NetworkMessageContentFlags.SingleDataSetMessage
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Default", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -125,12 +125,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Raw", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -150,12 +150,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("RawReversible", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
 
             //Assert.Equal(schema.Schema, schema2);
         }
@@ -188,12 +188,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("Samples", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 
@@ -222,12 +222,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                 }).ToList()
             };
 
-            var schema = new JsonNetworkMessageAvroSchema(messageMetaData);
+            var schema = new JsonNetworkMessage(messageMetaData);
 
             var json = schema.ToString();
             await AssertAsync("SamplesRaw", messageMetaDataFile, json);
 
-            var schema2 = Avro.Schema.Parse(json);
+            var schema2 = global::Avro.Schema.Parse(json);
             //Assert.Equal(schema.Schema, schema2);
         }
 

@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// Provides the Avro schemas of built in types and objects
     /// for the Avro binary encoding
     /// </summary>
-    internal class AvroBuiltInAvroSchemas : BaseBuiltInSchemas<Schema>
+    internal class AvroBuiltInSchemas : BaseBuiltInSchemas<Schema>
     {
         private static Schema EnumerationSchema
         {

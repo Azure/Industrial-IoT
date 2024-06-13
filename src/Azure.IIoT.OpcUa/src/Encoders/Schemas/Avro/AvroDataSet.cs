@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using System.Collections.Generic;
@@ -15,12 +15,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
     /// <summary>
     /// Extensions to convert metadata into avro schema. Note that this class
-    /// generates a schema that complies with the json representation in
-    /// <see cref="JsonEncoderEx.WriteDataSet(string?, Models.DataSet?)"/>.
-    /// This depends on the network settings and reversible vs. nonreversible
-    /// encoding mode.
+    /// generates a schema that complies with the avro representation in
+    /// <see cref="AvroEncoder.WriteDataSet(string?, Models.DataSet?)"/>.
     /// </summary>
-    public class JsonDataSetAvroSchema : BaseDataSetSchema<Schema>, IAvroSchema,
+    public class AvroDataSet : BaseDataSetSchema<Schema>, IAvroSchema,
         IEventSchema
     {
         /// <inheritdoc/>
@@ -45,15 +43,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Get avro schema for a dataset
         /// </summary>
         /// <param name="dataSet"></param>
-        /// <param name="dataSetFieldContentMask"></param>
+        /// <param name="dataSetFieldContentFlags"></param>
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
-        /// <returns></returns>
-        public JsonDataSetAvroSchema(PublishedDataSetMetaDataModel dataSet,
-            DataSetFieldContentFlags? dataSetFieldContentMask = null,
+        public AvroDataSet(PublishedDataSetMetaDataModel dataSet,
+            DataSetFieldContentFlags? dataSetFieldContentFlags = null,
             SchemaOptions? options = null, HashSet<string>? uniqueNames = null)
-            : base(dataSetFieldContentMask, new JsonBuiltInAvroSchemas(
-                dataSetFieldContentMask ?? default), options)
+            : base(dataSetFieldContentFlags, new AvroBuiltInSchemas(), options)
         {
             Schema = Compile(dataSet.DataSetMetaData?.Name, dataSet, uniqueNames)
                 ?? AvroSchema.Null;
@@ -112,10 +108,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
                     }
                 }
             }
-            if (fields.Count == 0)
-            {
-                return Enumerable.Empty<Schema>();
-            }
             // Type name of the message record
             name ??= dataSet.DataSetMetaData.Name;
             if (string.IsNullOrEmpty(name))
@@ -166,9 +158,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             }
 
             var (ns1, dt) = SchemaUtils.SplitNodeId(description.DataTypeId, Context, true);
-            var scalar = RecordSchema.Create(
-                SchemaUtils.SplitQualifiedName(description.Name, Context, ns1),
-                fields, ns1, new[] { dt },
+            var name = SchemaUtils.SplitQualifiedName(description.Name, Context, ns1);
+            var scalar = RecordSchema.Create(name, fields, ns1, new[] { dt },
                 customProperties: AvroSchema.Properties(description.DataTypeId));
             return Encoding.GetSchemaForRank(scalar, rank);
         }

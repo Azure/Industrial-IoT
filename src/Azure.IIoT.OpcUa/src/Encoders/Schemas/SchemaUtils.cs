@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using global::Json.Schema;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -203,8 +204,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 typeId = new ExpandedNodeId(typeId.Identifier, 0, Namespaces.OpcUa, 0);
             }
-            return typeId.AsString(context, NamespaceFormat.Uri)
-                .GetSchemaId(name, context).ToFragment();
+            var typeIdString = typeId.AsString(context, NamespaceFormat.Uri);
+            var qn = name.ToQualifiedName(context);
+            var ns = qn.NamespaceIndex != 0 ?
+                context.NamespaceUris.GetString(qn.NamespaceIndex) :
+                SplitNodeId(typeIdString, context, false).Namespace;
+            return NamespaceUriToNamespace(ns) + "." + Escape(qn.Name);
         }
 
         /// <summary>

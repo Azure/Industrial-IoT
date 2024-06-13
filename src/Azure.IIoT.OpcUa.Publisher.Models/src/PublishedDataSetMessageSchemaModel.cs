@@ -24,14 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetMessageContentFlags", Order = 2,
             EmitDefaultValue = false)]
-        public required DataSetMessageContentFlags DataSetMessageContentFlags { get; init; }
+        public required DataSetMessageContentFlags? DataSetMessageContentFlags { get; init; }
 
         /// <summary>
         /// Dataset field encoding flags
         /// </summary>
         [DataMember(Name = "dataSetFieldContentFlags", Order = 3,
             EmitDefaultValue = false)]
-        public required DataSetFieldContentFlags DataSetFieldContentFlags { get; init; }
+        public required DataSetFieldContentFlags? DataSetFieldContentFlags { get; init; }
 
         /// <summary>
         /// Optional type name for the message type

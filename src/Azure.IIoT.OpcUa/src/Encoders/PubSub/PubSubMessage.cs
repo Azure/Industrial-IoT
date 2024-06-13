@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Avro;
     using Furly;
     using Microsoft.IO;
     using System;
@@ -16,6 +15,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System.IO;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Encodeable PubSub messages
@@ -120,6 +121,293 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             IDataSetMetaDataResolver? resolver = null);
 
         /// <summary>
+        /// Create metadata message
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <param name="publisherId"></param>
+        /// <param name="writerGroupName"></param>
+        /// <param name="dataSetWriterName"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="metaData"></param>
+        /// <param name="namespaceFormat"></param>
+        /// <param name="standardsCompliant"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool TryCreateMetaDataMessage(MessageEncoding encoding,
+            string? publisherId, string writerGroupName, string dataSetWriterName,
+            ushort dataSetWriterId, PublishedDataSetMetaDataModel metaData,
+            NamespaceFormat namespaceFormat, bool standardsCompliant,
+            [NotNullWhen(true)] out PubSubMessage? message)
+        {
+            if (encoding.HasFlag(MessageEncoding.Json))
+            {
+                message = new JsonMetaDataMessage
+                {
+                    UseAdvancedEncoding = !standardsCompliant,
+                    NamespaceFormat = namespaceFormat,
+                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                    DataSetWriterId = dataSetWriterId,
+                    MetaData = metaData,
+                    MessageId = Guid.NewGuid().ToString(),
+                    DataSetWriterName = dataSetWriterName,
+                    PublisherId = publisherId,
+                    DataSetWriterGroup = writerGroupName
+                };
+            }
+            else if (encoding.HasFlag(MessageEncoding.Binary))
+            {
+                message = new UadpMetaDataMessage
+                {
+                    DataSetWriterId = dataSetWriterId,
+                    MetaData = metaData,
+                    PublisherId = publisherId,
+                    DataSetWriterGroup = writerGroupName
+                };
+            }
+            else
+            {
+                message = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Create dataset message
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <param name="dataSetWriterName"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="dataSetMessageContentFlags"></param>
+        /// <param name="messageType"></param>
+        /// <param name="payload"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="standardsCompliant"></param>
+        /// <param name="metaData"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool TryCreateDataSetMessage(MessageEncoding encoding,
+            string dataSetWriterName, ushort dataSetWriterId,
+            DataSetMessageContentFlags? dataSetMessageContentFlags,
+            MessageType messageType, DataSet payload, DateTime? timestamp,
+            uint sequenceNumber, bool standardsCompliant,
+            PublishedDataSetMetaDataModel? metaData,
+            [NotNullWhen(true)] out BaseDataSetMessage? message)
+        {
+            dataSetMessageContentFlags ??= DefaultDataSetMessageContentFlags;
+            var version = new Opc.Ua.ConfigurationVersionDataType
+            {
+                MajorVersion = metaData?.DataSetMetaData.MajorVersion ?? 1,
+                MinorVersion = metaData?.MinorVersion ?? 0
+            };
+
+            if (encoding.HasFlag(MessageEncoding.Json))
+            {
+                message = new JsonDataSetMessage
+                {
+                    UseCompatibilityMode = !standardsCompliant,
+                    DataSetWriterName = dataSetWriterName,
+                    DataSetWriterId = dataSetWriterId,
+                    MessageType = messageType,
+                    MetaDataVersion = version,
+                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
+                    Timestamp = timestamp,
+                    SequenceNumber = sequenceNumber,
+                    Payload = payload
+                };
+            }
+            else if (encoding.HasFlag(MessageEncoding.Avro))
+            {
+                message = new AvroDataSetMessage
+                {
+                    DataSetWriterName = dataSetWriterName,
+                    DataSetWriterId = dataSetWriterId,
+                    MessageType = messageType,
+                    MetaDataVersion = version,
+                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
+                    Timestamp = timestamp,
+                    SequenceNumber = sequenceNumber,
+                    Payload = payload
+                };
+            }
+            else if (encoding.HasFlag(MessageEncoding.Binary))
+            {
+                message = new UadpDataSetMessage
+                {
+                    DataSetWriterId = dataSetWriterId,
+                    MessageType = messageType,
+                    MetaDataVersion = version,
+                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
+                    Timestamp = timestamp,
+                    SequenceNumber = sequenceNumber,
+                    Payload = payload
+                };
+            }
+            else
+            {
+                message = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Create monitored item message
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <param name="writerGroupName"></param>
+        /// <param name="dataSetMessageContentFlags"></param>
+        /// <param name="messageType"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="payload"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="endpointUrl"></param>
+        /// <param name="applicationUri"></param>
+        /// <param name="standardsCompliant"></param>
+        /// <param name="extensionFields"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool TryCreateMonitoredItemMessage(MessageEncoding encoding,
+            string? writerGroupName, DataSetMessageContentFlags? dataSetMessageContentFlags,
+            MessageType messageType, DateTime? timestamp, uint sequenceNumber, DataSet payload,
+            string? nodeId, string? endpointUrl, string? applicationUri,
+            bool standardsCompliant, IDictionary<string, VariantValue>? extensionFields,
+            [NotNullWhen(true)] out BaseDataSetMessage? message)
+        {
+            if (encoding.HasFlag(MessageEncoding.Json))
+            {
+                message = new MonitoredItemMessage
+                {
+                    UseCompatibilityMode = !standardsCompliant,
+                    ApplicationUri = applicationUri,
+                    EndpointUrl = endpointUrl,
+                    NodeId = nodeId,
+                    ExtensionFields = extensionFields,
+                    WriterGroupId = writerGroupName,
+                    MessageType = messageType,
+                    DataSetMessageContentMask = dataSetMessageContentFlags
+                      ?? DefaultDataSetMessageContentFlags,
+                    Timestamp = timestamp,
+                    SequenceNumber = sequenceNumber,
+                    Payload = payload
+                };
+            }
+            else
+            {
+                message = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Create network message
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <param name="publisherId"></param>
+        /// <param name="writerGroupName"></param>
+        /// <param name="networkMessageContentFlags"></param>
+        /// <param name="dataSetClassId"></param>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="namespaceFormat"></param>
+        /// <param name="standardsCompliant"></param>
+        /// <param name="isBatched"></param>
+        /// <param name="schema"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static bool TryCreateNetworkMessage(MessageEncoding encoding,
+            string publisherId, string writerGroupName,
+            NetworkMessageContentFlags? networkMessageContentFlags,
+            Guid dataSetClassId, Func<ushort> sequenceNumber,
+            NamespaceFormat namespaceFormat, bool standardsCompliant, bool isBatched,
+            IEventSchema? schema, [NotNullWhen(true)] out BaseNetworkMessage? message)
+        {
+            if (encoding.HasFlag(MessageEncoding.Json))
+            {
+                message = new JsonNetworkMessage
+                {
+                    UseAdvancedEncoding = !standardsCompliant,
+                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                    NamespaceFormat = namespaceFormat,
+                    UseArrayEnvelope = !standardsCompliant && isBatched,
+                    MessageId = () => Guid.NewGuid().ToString(),
+                    NetworkMessageContentMask = networkMessageContentFlags
+                        ?? DefaultNetworkMessageContentFlags,
+                    PublisherId = publisherId,
+                    DataSetClassId = dataSetClassId,
+                    DataSetWriterGroup = writerGroupName
+                };
+            }
+            else if (encoding.HasFlag(MessageEncoding.Avro))
+            {
+                message = new AvroNetworkMessage
+                {
+                    Schema = (schema is Schemas.Avro.IAvroSchema s) ? s.Schema :
+                        schema == null ? null : Avro.Schema.Parse(schema.Schema),
+                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
+                    MessageId = () => Guid.NewGuid().ToString(),
+                    NetworkMessageContentMask = networkMessageContentFlags
+                        ?? DefaultNetworkMessageContentFlags,
+                    PublisherId = publisherId,
+                    DataSetClassId = dataSetClassId,
+                    DataSetWriterGroup = writerGroupName
+                };
+            }
+            else if (encoding.HasFlag(MessageEncoding.Binary))
+            {
+                message = new UadpNetworkMessage
+                {
+                    //   WriterGroupId = writerGroup.Index,
+                    //   GroupVersion = writerGroup.Version,
+                    SequenceNumber = sequenceNumber,
+                    Timestamp = DateTime.UtcNow,
+                    PicoSeconds = 0,
+                    NetworkMessageContentMask = networkMessageContentFlags
+                        ?? DefaultNetworkMessageContentFlags,
+                    PublisherId = publisherId,
+                    DataSetClassId = dataSetClassId,
+                    DataSetWriterGroup = writerGroupName
+                };
+            }
+            else
+            {
+                message = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Create network message schema
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <param name="networkMessage"></param>
+        /// <param name="schema"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static bool TryCreateNetworkMessageSchema(MessageEncoding encoding,
+            PublishedNetworkMessageSchemaModel networkMessage,
+            [NotNullWhen(true)] out IEventSchema? schema, SchemaOptions? options = null)
+        {
+            if (encoding.HasFlag(MessageEncoding.Json))
+            {
+                schema = new Schemas.Json.JsonNetworkMessage(networkMessage, options);
+            }
+            else if (encoding.HasFlag(MessageEncoding.Avro))
+            {
+                schema = new Schemas.Avro.AvroNetworkMessage(networkMessage, options);
+            }
+            else
+            {
+                schema = default;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Decode pub sub messages from a single network buffer. If the message
         /// was chunked, the message might not be fully reconstituted.
         /// </summary>
@@ -136,237 +424,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var reader = new Queue<ReadOnlySequence<byte>>();
             reader.Enqueue(buffer);
             return DecodeOne(reader, contentType, context, resolver, messageSchema);
-        }
-
-        /// <summary>
-        /// Create metadata message
-        /// </summary>
-        /// <param name="writerGroupName"></param>
-        /// <param name="encoding"></param>
-        /// <param name="publisherId"></param>
-        /// <param name="writerName"></param>
-        /// <param name="dataSetWriterId"></param>
-        /// <param name="metaData"></param>
-        /// <param name="namespaceFormat"></param>
-        /// <param name="standardsCompliant"></param>
-        /// <returns></returns>
-        /// <exception cref="NotSupportedException"></exception>
-        public static PubSubMessage CreateMetaDataMessage(string writerGroupName,
-            MessageEncoding encoding, string? publisherId,
-            string writerName, ushort dataSetWriterId, PublishedDataSetMetaDataModel metaData,
-            NamespaceFormat namespaceFormat, bool standardsCompliant)
-        {
-            if (encoding.HasFlag(MessageEncoding.Json))
-            {
-                return new JsonMetaDataMessage
-                {
-                    UseAdvancedEncoding = !standardsCompliant,
-                    NamespaceFormat = namespaceFormat,
-                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                    DataSetWriterId = dataSetWriterId,
-                    MetaData = metaData,
-                    MessageId = Guid.NewGuid().ToString(),
-                    DataSetWriterName = writerName,
-                    PublisherId = publisherId,
-                    DataSetWriterGroup = writerGroupName
-                };
-            }
-            if (encoding.HasFlag(MessageEncoding.Binary))
-            {
-                return new UadpMetaDataMessage
-                {
-                    DataSetWriterId = dataSetWriterId,
-                    MetaData = metaData,
-                    PublisherId = publisherId,
-                    DataSetWriterGroup = writerGroupName
-                };
-            }
-            throw new NotSupportedException($"Encoding {encoding} not supported");
-        }
-
-        /// <summary>
-        /// Create dataset message
-        /// </summary>
-        /// <param name="encoding"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="messageType"></param>
-        /// <param name="writerName"></param>
-        /// <param name="dataSetWriterId"></param>
-        /// <param name="payload"></param>
-        /// <param name="dataSetMessageContentFlags"></param>
-        /// <param name="standardsCompliant"></param>
-        /// <param name="metaData"></param>
-        /// <returns></returns>
-        /// <exception cref="NotSupportedException"></exception>
-        public static BaseDataSetMessage CreateDataSetMessage(MessageEncoding encoding,
-            DateTime? timestamp, uint sequenceNumber, MessageType messageType,
-            string writerName, ushort dataSetWriterId, DataSet payload,
-            DataSetMessageContentFlags? dataSetMessageContentFlags,
-            bool standardsCompliant, PublishedDataSetMetaDataModel? metaData = null)
-        {
-            dataSetMessageContentFlags ??= DefaultDataSetMessageContentFlags;
-            var version = new Opc.Ua.ConfigurationVersionDataType
-            {
-                MajorVersion = metaData?.DataSetMetaData.MajorVersion ?? 1,
-                MinorVersion = metaData?.MinorVersion ?? 0
-            };
-
-            if (encoding.HasFlag(MessageEncoding.Avro))
-            {
-                return new AvroDataSetMessage
-                {
-                    DataSetWriterName = writerName,
-                    DataSetWriterId = dataSetWriterId,
-                    MessageType = messageType,
-                    MetaDataVersion = version,
-                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
-                    Timestamp = timestamp,
-                    SequenceNumber = sequenceNumber,
-                    Payload = payload
-                };
-            }
-            if (encoding.HasFlag(MessageEncoding.Binary))
-            {
-                return new UadpDataSetMessage
-                {
-                    DataSetWriterId = dataSetWriterId,
-                    MessageType = messageType,
-                    MetaDataVersion = version,
-                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
-                    Timestamp = timestamp,
-                    SequenceNumber = sequenceNumber,
-                    Payload = payload
-                };
-            }
-            if (encoding.HasFlag(MessageEncoding.Json))
-            {
-                return new JsonDataSetMessage
-                {
-                    UseCompatibilityMode = !standardsCompliant,
-                    DataSetWriterName = writerName,
-                    DataSetWriterId = dataSetWriterId,
-                    MessageType = messageType,
-                    MetaDataVersion = version,
-                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
-                    Timestamp = timestamp,
-                    SequenceNumber = sequenceNumber,
-                    Payload = payload
-                };
-            }
-            throw new NotSupportedException($"Encoding {encoding} not supported");
-        }
-
-        /// <summary>
-        /// Create monitored item message
-        /// </summary>
-        /// <param name="writerGroupName"></param>
-        /// <param name="encoding"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="messageType"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="endpointUrl"></param>
-        /// <param name="applicationUri"></param>
-        /// <param name="payload"></param>
-        /// <param name="dataSetMessageContentFlags"></param>
-        /// <param name="standardsCompliant"></param>
-        /// <param name="extensionFields"></param>
-        /// <returns></returns>
-        /// <exception cref="NotSupportedException"></exception>
-        public static BaseDataSetMessage CreateMonitoredItemMessage(string? writerGroupName,
-            MessageEncoding encoding, DateTime? timestamp, uint sequenceNumber,
-            MessageType messageType, string? nodeId, string? endpointUrl, string? applicationUri,
-            DataSet payload, DataSetMessageContentFlags? dataSetMessageContentFlags,
-            bool standardsCompliant, IDictionary<string, VariantValue>? extensionFields = null)
-        {
-            if (encoding.HasFlag(MessageEncoding.Json))
-            {
-                return new MonitoredItemMessage
-                {
-                    UseCompatibilityMode = !standardsCompliant,
-                    ApplicationUri = applicationUri,
-                    EndpointUrl = endpointUrl,
-                    NodeId = nodeId,
-                    ExtensionFields = extensionFields,
-                    WriterGroupId = writerGroupName,
-                    MessageType = messageType,
-                    DataSetMessageContentMask = dataSetMessageContentFlags
-                      ?? DefaultDataSetMessageContentFlags,
-                    Timestamp = timestamp,
-                    SequenceNumber = sequenceNumber,
-                    Payload = payload
-                };
-            }
-            throw new NotSupportedException($"Encoding {encoding} not supported");
-        }
-
-        /// <summary>
-        /// Create network message
-        /// </summary>
-        /// <param name="writerGroupName"></param>
-        /// <param name="encoding"></param>
-        /// <param name="networkMessageContentFlags"></param>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="dataSetClassId"></param>
-        /// <param name="publisherId"></param>
-        /// <param name="namespaceFormat"></param>
-        /// <param name="standardsCompliant"></param>
-        /// <param name="isBatched"></param>
-        /// <returns></returns>
-        /// <exception cref="NotSupportedException"></exception>
-        public static BaseNetworkMessage CreateNetworkMessage(string writerGroupName,
-            MessageEncoding encoding, NetworkMessageContentFlags? networkMessageContentFlags,
-            Func<ushort> sequenceNumber, Guid dataSetClassId, string publisherId,
-            NamespaceFormat namespaceFormat, bool standardsCompliant, bool isBatched)
-        {
-            if (encoding.HasFlag(MessageEncoding.Avro))
-            {
-                return new AvroNetworkMessage
-                {
-                    // Schema = s.Schema,
-                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                    MessageId = () => Guid.NewGuid().ToString(),
-                    NetworkMessageContentMask = networkMessageContentFlags
-                        ?? DefaultNetworkMessageContentFlags,
-                    PublisherId = publisherId,
-                    DataSetClassId = dataSetClassId,
-                    DataSetWriterGroup = writerGroupName
-                };
-            }
-            if (encoding.HasFlag(MessageEncoding.Binary))
-            {
-                return new UadpNetworkMessage
-                {
-                    //   WriterGroupId = writerGroup.Index,
-                    //   GroupVersion = writerGroup.Version,
-                    SequenceNumber = sequenceNumber,
-                    Timestamp = DateTime.UtcNow,
-                    PicoSeconds = 0,
-                    NetworkMessageContentMask = networkMessageContentFlags
-                        ?? DefaultNetworkMessageContentFlags,
-                    PublisherId = publisherId,
-                    DataSetClassId = dataSetClassId,
-                    DataSetWriterGroup = writerGroupName
-                };
-            }
-            if (encoding.HasFlag(MessageEncoding.Json))
-            {
-                return new JsonNetworkMessage
-                {
-                    UseAdvancedEncoding = !standardsCompliant,
-                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                    NamespaceFormat = namespaceFormat,
-                    UseArrayEnvelope = !standardsCompliant && isBatched,
-                    MessageId = () => Guid.NewGuid().ToString(),
-                    NetworkMessageContentMask = networkMessageContentFlags
-                        ?? DefaultNetworkMessageContentFlags,
-                    PublisherId = publisherId,
-                    DataSetClassId = dataSetClassId,
-                    DataSetWriterGroup = writerGroupName
-                };
-            }
-            throw new NotSupportedException($"Encoding {encoding} not supported");
         }
 
         /// <summary>

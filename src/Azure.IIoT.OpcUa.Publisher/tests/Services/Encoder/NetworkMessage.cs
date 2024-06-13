@@ -242,6 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Qos = null,
                         Topic = string.Empty,
                         PublisherId = publisherId,
+                        Schema = null,
                         Writer = writer,
                         WriterGroup = writerGroup
                     },

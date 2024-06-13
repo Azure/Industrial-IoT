@@ -3,11 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Furly;
     using Furly.Extensions.Messaging;
     using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// Network message avro schema
     /// </summary>
-    public abstract class BaseNetworkMessageAvroSchema : IEventSchema, IAvroSchema
+    public abstract class BaseNetworkMessage : IEventSchema, IAvroSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.AvroSchema;
@@ -55,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             SchemaOptions? options = null)
         {
             options ??= new SchemaOptions();
-            var networkMessageContentFlags = networkMessage.NetworkMessageContentFlags;
+            var networkMessageContentFlags = networkMessage.NetworkMessageContentFlags
+                    ?? PubSubMessage.DefaultNetworkMessageContentFlags;
             var dataSetMessages = networkMessage.DataSetMessages;
             var typeName = networkMessage.TypeName;
             var MonitoredItemMessage = networkMessageContentFlags
@@ -66,8 +68,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             }
 
             var dataSetMessageSchemas = dataSetMessages
-                .Select(writer => Compile(writer, networkMessageContentFlags,
-                    options, _uniqueNames))
+                .Select((dataSet, i) => dataSet != null ?
+                    Compile(dataSet, networkMessageContentFlags, options, _uniqueNames) :
+                    AvroSchema.CreatePlaceHolder("Empty" + i, SchemaUtils.PublisherNamespace))
                 .ToList();
 
             if (dataSetMessageSchemas.Count == 0)
@@ -118,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="payloadType"></param>
         /// <returns></returns>
         protected abstract IEnumerable<Field> CollectFields(
-            NetworkMessageContentFlags contentMask, Schema? payloadType);
+            NetworkMessageContentFlags contentMask, Schema payloadType);
 
         /// <summary>
         /// Get schema
@@ -141,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName = SchemaUtils.Escape(typeName) + kMessageTypeName;
+            typeName = SchemaUtils.Escape(typeName) + PubSub.BaseNetworkMessage.kMessageTypeName;
             return MakeUnique(typeName);
         }
 
@@ -161,7 +164,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return uniqueName;
         }
 
-        internal const string kMessageTypeName = "NetworkMessage";
         private readonly HashSet<string> _uniqueNames = new();
     }
 }

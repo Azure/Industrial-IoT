@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Avro;
+    using global::Avro;
     using Furly;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;

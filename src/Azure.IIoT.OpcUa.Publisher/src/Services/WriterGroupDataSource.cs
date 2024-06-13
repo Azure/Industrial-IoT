@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using Microsoft.Azure.Amqp.Framing;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -98,6 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
+                Interlocked.Increment(ref _metadataChanges);
                 writerGroup = Copy(writerGroup);
 
                 if (writerGroup.DataSetWriters == null ||
@@ -254,6 +256,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Safely get the writer group
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <param name="schema"></param>
+        private void GetWriterGroup(out WriterGroupModel writerGroup, out IEventSchema? schema)
+        {
+            if (_lastMetadataChange != _metadataChanges)
+            {
+                _lock.Wait();
+                try
+                {
+                    if (_lastMetadataChange != _metadataChanges)
+                    {
+                        writerGroup = _writerGroup;
+
+                        // TODO: Check for schema support and create schema only if enabled
+
+                        if (PubSubMessage.TryCreateNetworkMessageSchema(
+                            writerGroup.MessageType ?? MessageEncoding.Json,
+                            new PublishedNetworkMessageSchemaModel
+                            {
+                                DataSetMessages = _subscriptions.Values
+                                    .Select(s => s.LastMetaData)
+                                    .ToList(),
+                                NetworkMessageContentFlags =
+                                    writerGroup.MessageSettings?.NetworkMessageContentMask
+                            }, out schema, _options.Value.SchemaOptions))
+                        {
+                            _schema = schema;
+                        }
+
+                        _lastMetadataChange = _metadataChanges;
+                        return;
+                    }
+                }
+                finally
+                {
+                    _lock.Release();
+                }
+            }
+            writerGroup = _writerGroup;
+            schema = _schema;
+        }
+
+        /// <summary>
         /// Helper to manage subscriptions
         /// </summary>
         private sealed class DataSetWriterSubscription : IDisposable, ISubscriptionCallbacks,
@@ -261,6 +308,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             /// <inheritdoc/>
             public TagList TagList { get; }
+
+            /// <summary>
+            /// Data set writer name assigned if none was chosen
+            /// </summary>
+            public string? DataSetWriterName { get; }
+
+            /// <summary>
+            /// Last meta data
+            /// </summary>
+            public PublishedDataSetMessageSchemaModel? LastMetaData { get; private set; }
 
             /// <summary>
             /// Subscription id
@@ -712,11 +769,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // Metadata reference is owned by the notification/message, a new metadata is
                                 // created when it changes so old one is not mutated and this should be safe.
                                 //
-                                if (_currentMetadataMajorVersion != notification.MetaData.DataSetMetaData.MajorVersion ||
-                                    _currentMetadataMinorVersion != notification.MetaData.MinorVersion)
+                                if (LastMetaData?.MetaData.DataSetMetaData.MajorVersion
+                                        != notification.MetaData.DataSetMetaData.MajorVersion ||
+                                    LastMetaData?.MetaData.MinorVersion
+                                        != notification.MetaData.MinorVersion)
                                 {
-                                    _currentMetadataMajorVersion = notification.MetaData.DataSetMetaData.MajorVersion;
-                                    _currentMetadataMinorVersion = notification.MetaData.MinorVersion;
+                                    LastMetaData = new PublishedDataSetMessageSchemaModel
+                                    {
+                                        MetaData = notification.MetaData,
+                                        TypeName = null,
+                                        DataSetFieldContentFlags =
+                                            _dataSetWriter.DataSetFieldContentMask,
+                                        DataSetMessageContentFlags =
+                                            _dataSetWriter.MessageSettings?.DataSetMessageContentMask
+                                    };
+                                    Interlocked.Increment(ref _outer._metadataChanges);
                                     sendMetadata = true;
                                 }
                                 if (sendMetadata)
@@ -753,12 +820,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroupContext CreateMessageContext(string topic, QoS? qos, Func<uint> sequenceNumber,
                     MonitoredItemContext? item = null)
                 {
+                    _outer.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     return new WriterGroupContext
                     {
                         PublisherId = _outer._options.Value.PublisherId ?? Constants.DefaultPublisherId,
                         Writer = _dataSetWriter,
                         NextWriterSequenceNumber = sequenceNumber,
-                        WriterGroup = _outer._writerGroup,
+                        WriterGroup = writerGroup,
+                        Schema = networkMessageSchema,
                         Topic = item?.Topic ?? topic,
                         Qos = item?.Qos ?? qos
                     };
@@ -970,14 +1039,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly Dictionary<string, string> _variables;
             private readonly DataSetRoutingMode _routing;
             private SubscriptionModel _subscriptionInfo;
-
-            public string? DataSetWriterName { get; }
-
             private DataSetWriterModel _dataSetWriter;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
-            private uint? _currentMetadataMajorVersion;
-            private uint _currentMetadataMinorVersion;
             private bool _sendKeepAlives;
             private bool _disposed;
         }
@@ -1132,8 +1196,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly RollingAverage _modelChanges = new();
         private readonly RollingAverage _heartbeats = new();
         private readonly RollingAverage _overflows = new();
-        private long _keepAliveCount;
         private WriterGroupModel _writerGroup;
+        private long _keepAliveCount;
+        private int _metadataChanges;
+        private int _lastMetadataChange = -1;
+        private IEventSchema? _schema;
         private readonly DateTime _startTime = DateTime.UtcNow;
     }
 }

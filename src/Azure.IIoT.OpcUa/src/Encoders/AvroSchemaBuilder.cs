@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Xml;
     using System.Reflection;
     using System.Runtime.Serialization;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
 
     /// <summary>
     /// Encodes objects and inline builds the schema from it
@@ -787,7 +788,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         private readonly Stack<Schema> _schemas = new();
-        private readonly AvroBuiltInAvroSchemas _builtIns = new();
+        private readonly AvroBuiltInSchemas _builtIns = new();
         private readonly bool _emitConciseSchemas;
         private bool _skipInnerSchemas;
     }

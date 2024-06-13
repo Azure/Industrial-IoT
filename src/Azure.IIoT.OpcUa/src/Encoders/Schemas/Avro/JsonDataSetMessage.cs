@@ -3,18 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Dataset message avro schema
     /// </summary>
-    public sealed class JsonDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
+    public sealed class JsonDataSetMessage : BaseDataSetMessage
     {
         /// <inheritdoc/>
         public override Schema Schema { get; }
@@ -30,13 +31,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        internal JsonDataSetMessageAvroSchema(PublishedDataSetMessageSchemaModel dataSetMessage,
+        internal JsonDataSetMessage(PublishedDataSetMessageSchemaModel dataSetMessage,
             NetworkMessageContentFlags networkMessageContentFlags,
             SchemaOptions options, HashSet<string> uniqueNames)
         {
-            DataSetSchema = new JsonDataSetAvroSchema(dataSetMessage.MetaData,
+            DataSetSchema = new JsonDataSet(dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, uniqueNames);
-            Schema = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags,
+            Schema = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags
+                    ?? PubSubMessage.DefaultDataSetMessageContentFlags,
                 uniqueNames, networkMessageContentFlags, options);
         }
 
@@ -48,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             var useCompatibilityMode = networkMessageContentFlags
                 .HasFlag(NetworkMessageContentFlags.UseCompatibilityMode);
 
-            var encoding = new JsonBuiltInAvroSchemas(true, true);
+            var encoding = new JsonBuiltInSchemas(true, true);
             var pos = 0;
             var fields = new List<Field>();
             if (dataSetMessageContentFlags.HasFlag(DataSetMessageContentFlags.DataSetWriterId))
@@ -101,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 else
                 {
                     // Up to version 2.8 we wrote the full status code
-                    fields.Add(new(new JsonBuiltInAvroSchemas(false, false)
+                    fields.Add(new(new JsonBuiltInSchemas(false, false)
                         .GetSchemaForBuiltInType(BuiltInType.StatusCode),
                             nameof(DataSetMessageContentFlags.Status), pos++));
                 }
@@ -120,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                         nameof(DataSetMessageContentFlags.DataSetWriterName), pos++));
             }
 
-            fields.Add(new(valueSchema, nameof(JsonDataSetMessage.Payload), pos++));
+            fields.Add(new(valueSchema, nameof(PubSub.JsonDataSetMessage.Payload), pos++));
             return fields;
         }
     }

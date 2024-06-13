@@ -3,19 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Avro;
+    using global::Avro;
     using Opc.Ua;
     using System.Collections.Generic;
 
     /// <summary>
     /// Avro Dataset message avro schema
     /// </summary>
-    public sealed class AvroDataSetMessageAvroSchema : BaseDataSetMessageAvroSchema
+    public sealed class AvroDataSetMessage : BaseDataSetMessage
     {
         /// <inheritdoc/>
         public override Schema Schema { get; }
@@ -31,13 +31,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        internal AvroDataSetMessageAvroSchema(PublishedDataSetMessageSchemaModel dataSetMessage,
+        internal AvroDataSetMessage(PublishedDataSetMessageSchemaModel dataSetMessage,
             NetworkMessageContentFlags networkMessageContentFlags,
             SchemaOptions options, HashSet<string> uniqueNames)
         {
-            DataSetSchema = new AvroDataSetAvroSchema(dataSetMessage.MetaData,
+            DataSetSchema = new AvroDataSet(dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, uniqueNames);
-            Schema = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags,
+            Schema = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags
+                    ?? PubSubMessage.DefaultDataSetMessageContentFlags,
                 uniqueNames, networkMessageContentFlags, options);
         }
 
@@ -46,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             DataSetMessageContentFlags dataSetMessageContentFlags,
             NetworkMessageContentFlags networkMessageContentFlags, Schema valueSchema)
         {
-            var encoding = new AvroBuiltInAvroSchemas();
+            var encoding = new AvroBuiltInSchemas();
             var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
                 new List<Field>
             {
@@ -74,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.StatusCode),
                     nameof(DataSetMessageContentFlags.Status), 6),
 
-                new(valueSchema, nameof(AvroDataSetMessage.Payload), 7)
+                new(valueSchema, nameof(PubSub.AvroDataSetMessage.Payload), 7)
             };
         }
     }

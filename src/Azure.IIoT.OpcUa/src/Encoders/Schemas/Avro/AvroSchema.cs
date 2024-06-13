@@ -3,9 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
-    using Avro;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using global::Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -217,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <returns></returns>
         public static Schema AsUnion(params Schema[] schemas)
         {
-            return AsUnion(schemas, customProperties: null);
+            return schemas.AsUnion(customProperties: null);
         }
 
         /// <summary>

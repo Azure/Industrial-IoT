@@ -5,9 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Avro;
+    using global::Avro;
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -16,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
 
     /// <summary>
     /// Avro encoder decoder tests

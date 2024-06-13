@@ -42,5 +42,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Writer group model reference
         /// </summary>
         public required WriterGroupModel WriterGroup { get; init; }
+
+        /// <summary>
+        /// The applicable network message schema
+        /// </summary>
+        public required IEventSchema? Schema { get; init; }
     }
 }

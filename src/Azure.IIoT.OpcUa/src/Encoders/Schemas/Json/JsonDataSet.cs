@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Furly.Extensions.Messaging;
-    using Json.Schema;
+    using global::Json.Schema;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>
-    public sealed class JsonDataSetJsonSchema : BaseDataSetSchema<JsonSchema>,
+    public sealed class JsonDataSet : BaseDataSetSchema<JsonSchema>,
         IEventSchema
     {
         /// <inheritdoc/>
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// Definitions
         /// </summary>
         internal Dictionary<string, JsonSchema> Definitions
-            => ((JsonBuiltInJsonSchemas)Encoding).Schemas;
+            => ((JsonBuiltInSchemas)Encoding).Schemas;
 
         /// <summary>
         /// Get json schema for a dataset
@@ -66,11 +66,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="def"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public JsonDataSetJsonSchema(PublishedDataSetMetaDataModel dataSet,
+        public JsonDataSet(PublishedDataSetMetaDataModel dataSet,
             DataSetFieldContentFlags? dataSetFieldContentFlags = null,
             SchemaOptions? options = null, Dictionary<string, JsonSchema>? def = null,
             HashSet<string>? uniqueNames = null)
-            : base(dataSetFieldContentFlags, new JsonBuiltInJsonSchemas(
+            : base(dataSetFieldContentFlags, new JsonBuiltInSchemas(
                 dataSetFieldContentFlags ?? default, def), options)
         {
             var name = dataSet.DataSetMetaData?.Name;

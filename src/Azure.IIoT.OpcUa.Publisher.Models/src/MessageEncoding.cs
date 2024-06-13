@@ -22,6 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         Binary = 0x1,
 
         /// <summary>
+        /// Uadp
+        /// </summary>
+        [EnumMember(Value = "Uadp")]
+        Uadp = Binary,
+
+        /// <summary>
         /// The encoding is based on Json
         /// </summary>
         [EnumMember(Value = "Json")]
@@ -34,16 +40,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         Xml = 0x4,
 
         /// <summary>
+        /// Avro
+        /// </summary>
+        [EnumMember(Value = "Avro")]
+        Avro = 0x8,
+
+        /// <summary>
         /// Messages can be decoded to the original data
         /// </summary>
         [EnumMember(Value = "IsReversible")]
-        IsReversible = 0x8,
-
-        /// <summary>
-        /// Uadp
-        /// </summary>
-        [EnumMember(Value = "Uadp")]
-        Uadp = Binary | IsReversible,
+        IsReversible = 0x40,
 
         /// <summary>
         /// Json reversible encoding
@@ -54,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Messages are gzip compressed.
         /// </summary>
-        IsGzipCompressed = 0x10,
+        IsGzipCompressed = 0x80,
 
         /// <summary>
         /// Json gzip
@@ -63,21 +69,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         JsonGzip = Json | IsGzipCompressed,
 
         /// <summary>
-        /// Json reversible
-        /// </summary>
-        [EnumMember(Value = "JsonReversibleGzip")]
-        JsonReversibleGzip = JsonGzip | IsReversible,
-
-        /// <summary>
-        /// Avro
-        /// </summary>
-        [EnumMember(Value = "Avro")]
-        Avro = 0x40,
-
-        /// <summary>
         /// Avro Gzip
         /// </summary>
         [EnumMember(Value = "AvroGzip")]
         AvroGzip = IsGzipCompressed | Avro,
+
+        /// <summary>
+        /// Json reversible
+        /// </summary>
+        [EnumMember(Value = "JsonReversibleGzip")]
+        JsonReversibleGzip = JsonGzip | IsReversible,
     }
 }

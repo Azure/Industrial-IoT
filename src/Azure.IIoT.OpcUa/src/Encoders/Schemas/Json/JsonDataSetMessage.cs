@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
+namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Furly.Extensions.Messaging;
-    using Json.Schema;
+    using global::Json.Schema;
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Linq;
@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
     /// <summary>
     /// DataSet message Json schema
     /// </summary>
-    public sealed class JsonDataSetMessageJsonSchema : IEventSchema
+    public sealed class JsonDataSetMessage : IEventSchema
     {
         /// <inheritdoc/>
         public string Type => ContentMimeType.Json;
@@ -65,18 +65,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         /// <param name="useCompatibilityMode"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        internal JsonDataSetMessageJsonSchema(PublishedDataSetMessageSchemaModel dataSetMessage,
+        internal JsonDataSetMessage(PublishedDataSetMessageSchemaModel dataSetMessage,
             bool withDataSetMessageHeader, SchemaOptions options,
             Dictionary<string, JsonSchema> definitions, bool useCompatibilityMode,
             HashSet<string> uniqueNames)
         {
             _options = options;
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new JsonDataSetJsonSchema(dataSetMessage.MetaData,
+            _dataSet = new JsonDataSet(dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, definitions, uniqueNames);
             UseCompatibilityMode = useCompatibilityMode;
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
-            Ref = Compile(dataSetMessage.DataSetMessageContentFlags);
+            Ref = Compile(dataSetMessage.DataSetMessageContentFlags
+                ?? PubSubMessage.DefaultDataSetMessageContentFlags);
         }
 
         /// <inheritdoc/>
@@ -108,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 return _dataSet.Ref;
             }
 
-            var encoding = new JsonBuiltInJsonSchemas(true, true, Definitions);
+            var encoding = new JsonBuiltInSchemas(true, true, Definitions);
             var properties = new Dictionary<string, JsonSchema>();
             if (dataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.DataSetWriterId))
             {
@@ -161,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                 {
                     // Up to version 2.8 we wrote the full status code
                     properties.Add(nameof(DataSetMessageContentFlags.Status),
-                        new JsonBuiltInJsonSchemas(false, false, Definitions)
+                        new JsonBuiltInSchemas(false, false, Definitions)
                         .GetSchemaForBuiltInType(BuiltInType.StatusCode));
                 }
             }
@@ -177,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
 
-            properties.Add(nameof(JsonDataSetMessage.Payload), _dataSet.Ref);
+            properties.Add(nameof(PubSub.JsonDataSetMessage.Payload), _dataSet.Ref);
 
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
@@ -199,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += BaseDataSetMessageAvroSchema.kMessageTypeName;
+            typeName += BaseDataSetMessage.kMessageTypeName;
             if (uniqueNames != null)
             {
                 var uniqueName = typeName;
@@ -213,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub.Schemas
             return typeName;
         }
 
-        private readonly JsonDataSetJsonSchema _dataSet;
+        private readonly JsonDataSet _dataSet;
         private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
     }
