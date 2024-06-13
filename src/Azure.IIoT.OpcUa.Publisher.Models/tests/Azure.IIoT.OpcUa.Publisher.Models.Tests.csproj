@@ -15,9 +15,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Json" Version="1.0.48" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.48" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.48" />
+    <PackageReference Include="Furly.Extensions.Json" Version="1.0.49" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.49" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.49" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />

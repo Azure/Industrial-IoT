@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public override Session CloneSession(ITransportChannel channel, 
+        public override Session CloneSession(ITransportChannel channel,
             bool copyEventHandlers)
         {
             return new OpcUaSession(this, channel, this, copyEventHandlers);
