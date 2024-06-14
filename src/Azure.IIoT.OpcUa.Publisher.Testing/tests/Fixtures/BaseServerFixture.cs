@@ -177,7 +177,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         {
                             Url = EndpointUrl
                         }
-                    }, new TestConnectionRequestModel()).GetAwaiter().GetResult();
+                    }, new TestConnectionRequestModel()).WaitAsync(TimeSpan.FromSeconds(10))
+                        .GetAwaiter().GetResult();
                     if (result.ErrorInfo != null)
                     {
                         throw new IOException(
@@ -215,7 +216,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     UseReverseConnect = true;
                     ReverseConnectPort = clientPort;
                     var clientUrl = $"opc.tcp://{HostName}:{clientPort}";
-                    _serverHost.AddReverseConnectionAsync(new Uri(clientUrl), 4).GetAwaiter().GetResult();
+                    _serverHost.AddReverseConnectionAsync(new Uri(clientUrl), 4)
+                        .WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
                     logger.LogInformation("Start reverse connect to client at {Url}...", clientUrl);
                     break;
                 }

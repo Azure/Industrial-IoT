@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
                 if (_publisher != null)
                 {
-                    StopPublisherAsync().GetAwaiter().GetResult();
+                    StopPublisherAsync().WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
                 }
 
                 _cts.Dispose();
