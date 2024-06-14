@@ -16,18 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Validate response
         /// </summary>
-        /// <param name="response"></param>
-        public static ServiceResponse<object, object> Validate(
-            this IServiceResponse response)
-        {
-            return new ServiceResponse<object, object>(response,
-                Enumerable.Empty<object>(),
-                _ => StatusCodes.BadUnexpectedError, null, null);
-        }
-
-        /// <summary>
-        /// Validate response
-        /// </summary>
         /// <typeparam name="TRequest"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="response"></param>
