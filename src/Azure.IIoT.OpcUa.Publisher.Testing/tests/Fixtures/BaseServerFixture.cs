@@ -25,13 +25,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Timers;
-    using System.Diagnostics;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests

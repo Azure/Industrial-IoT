@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
@@ -163,6 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 builder.AddFileSystemEventClient();
                 builder.RegisterType<FileSystem>()
+                    .AsImplementedInterfaces();
+                builder.RegisterType<AvroWriter>()
                     .AsImplementedInterfaces();
             }
         }
@@ -955,6 +958,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public MqttBroker(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Avro file writer configuration
+        /// </summary>
+        internal sealed class AvroWriter : ConfigureOptionBase<AvroFileWriterOptions>
+        {
+            public const string DisableKey = "DisableAvroFileWriter";
+
+            public override void Configure(string? name, AvroFileWriterOptions options)
+            {
+                options.Disabled = GetBoolOrDefault(DisableKey);
+            }
+
+            /// <summary>
+            /// Transport configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public AvroWriter(IConfiguration configuration)
                 : base(configuration)
             {
             }

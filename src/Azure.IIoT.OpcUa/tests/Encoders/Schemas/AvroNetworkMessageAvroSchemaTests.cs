@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System.IO;
     using System.Linq;

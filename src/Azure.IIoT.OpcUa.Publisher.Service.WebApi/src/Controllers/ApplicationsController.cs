@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Asp.Versioning;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Http;
     using Microsoft.AspNetCore.Authorization;
@@ -17,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Asp.Versioning;
 
     /// <summary>
     /// CRUD and Query application resources

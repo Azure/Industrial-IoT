@@ -6,13 +6,13 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
+    using Asp.Versioning;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Asp.Versioning;
 
     /// <summary>
     /// <para>

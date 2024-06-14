@@ -21,11 +21,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Text;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
-    using System.Text.Json;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -286,14 +286,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 NetworkMessageContentFlags =
                                     writerGroup.MessageSettings?.NetworkMessageContentMask
                             };
-#if !DUMP_METADATA
+#if DUMP_METADATA
 #pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
                             System.IO.File.WriteAllText(
-                                $"md_{DateTime.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
+                 $"md_{DateTime.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
                                 JsonSerializer.Serialize(input, new JsonSerializerOptions
-                            {
-                                WriteIndented = true
-                            }));
+                                {
+                                    WriteIndented = true
+                                }));
 #pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
 #endif
                             if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,

@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
@@ -366,19 +366,17 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultDataSetRouting = routingMode;
             }
 
-            if (options.MessagingProfile?.SupportsSchemaPublishing ?? false)
+            var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
+            var avroPreferred = GetBoolOrNull(PreferAvroOverJsonSchemaKey);
+            if (schemaNamespace != null || avroPreferred != null ||
+                GetBoolOrDefault(PublishMessageSchemaKey))
             {
-                var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
-                var avroPreferred = GetBoolOrNull(PreferAvroOverJsonSchemaKey);
-                if (schemaNamespace != null || avroPreferred != null || GetBoolOrDefault(PublishMessageSchemaKey))
-                {
-                    options.SchemaOptions ??= new SchemaOptions();
-                }
-                if (options.SchemaOptions != null)
-                {
-                    options.SchemaOptions.Namespace ??= schemaNamespace;
-                    options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
-                }
+                options.SchemaOptions ??= new SchemaOptions();
+            }
+            if (options.SchemaOptions != null)
+            {
+                options.SchemaOptions.Namespace ??= schemaNamespace;
+                options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
             }
         }
 

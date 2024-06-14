@@ -7,14 +7,14 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using global::Avro;
     using Opc.Ua;
     using System;
     using System.IO;
     using System.Linq;
     using System.Xml;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided

@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
@@ -25,9 +25,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Publisher module host process
@@ -122,6 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         case "-D":
                         case "--dump-messages":
                             i++;
+                            useNullTransport = true;
                             if (i < args.Length)
                             {
                                 dumpMessages = args[i];
@@ -228,7 +229,7 @@ Options:
                 if (dumpMessages != null)
                 {
                     hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, loggerFactory,
-                        TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, cts.Token);
+                        TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, args, cts.Token);
                 }
                 else if (!withServer)
                 {
@@ -423,7 +424,7 @@ Options:
         /// <returns></returns>
         private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,
             ILoggerFactory loggerFactory, TimeSpan duration, uint scaleunits, string? dumpMessagesOutput,
-            CancellationToken ct)
+            string[] args, CancellationToken ct)
         {
             try
             {
@@ -481,12 +482,12 @@ Options:
                     }
                     Directory.CreateDirectory(outputFolder);
                     await DumpMessagesForDuration(outputFolder, publishProfile,
-                            messageProfile).ConfigureAwait(false);
+                            messageProfile, args).ConfigureAwait(false);
                 }
             }
 
             async Task DumpMessagesForDuration(string outputFolder, string publishProfile,
-                MessagingProfile messageProfile)
+                MessagingProfile messageProfile, string[] args)
             {
                 using var runtime = new CancellationTokenSource(duration);
                 try
@@ -496,13 +497,14 @@ Options:
                     var name = Path.GetFileNameWithoutExtension(publishProfile);
                     Console.Title = $"Dumping {messageProfile} for {name}...";
                     await RunAsync(loggerFactory, publishProfile, messageProfile,
-                        outputFolder, scaleunits, linkedToken.Token).ConfigureAwait(false);
+                        outputFolder, scaleunits, args, linkedToken.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
             }
 
             static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
-                MessagingProfile messageProfile, string outputFolder, uint scaleunits, CancellationToken ct)
+                MessagingProfile messageProfile, string outputFolder, uint scaleunits, string[] args,
+                CancellationToken ct)
             {
                 // Start test server
                 using (var server = new ServerWrapper(scaleunits, loggerFactory, null))
@@ -528,7 +530,7 @@ Options:
                         await File.WriteAllTextAsync(publishedNodesFilePath, check, ct).ConfigureAwait(false);
                     }
 
-                    var arguments = new List<string>
+                    var arguments = new HashSet<string>
                     {
                         "-c",
                         "--ps",
@@ -541,6 +543,7 @@ Options:
                         $"-o={outputFolder}",
                         "--aa"
                     };
+                    args.ForEach(a => arguments.Add(a));
                     await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
                 }
             }

@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Extensions;
-    using System.Linq;
 
     /// <summary>
     /// Update display name

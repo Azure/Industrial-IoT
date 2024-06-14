@@ -112,6 +112,38 @@ X |
   |
 | SingleRawDataSet | Uadp | SingleDataSetMessage<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) | X | X | X |
   |
+| PubSub | Avro | SingleDataSetMessage<br>(0x4) | 0<br>(0xF2000000) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| PubSub | AvroGzip | SingleDataSetMessage<br>(0x4) | 0<br>(0xF2000000) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| FullNetworkMessages | Avro | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| FullNetworkMessages | AvroGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| DataSetMessages | Avro | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| DataSetMessages | AvroGzip | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| SingleDataSetMessage | Avro | DataSetMessageHeader, SingleDataSetMessage<br>(0x6) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| SingleDataSetMessage | AvroGzip | DataSetMessageHeader, SingleDataSetMessage<br>(0x6) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| DataSets | Avro | 0<br>(0x0) | 0<br>(0xF2000000) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| DataSets | AvroGzip | 0<br>(0x0) | 0<br>(0xF2000000) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| SingleDataSet | Avro | SingleDataSetMessage<br>(0x4) | 0<br>(0xF2000000) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| SingleDataSet | AvroGzip | SingleDataSetMessage<br>(0x4) | 0<br>(0xF2000000) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+X |
+| RawDataSets | Avro | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
+X |
+| RawDataSets | AvroGzip | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
+X |
+| SingleRawDataSet | Avro | SingleDataSetMessage<br>(0x4) | 0<br>(0x0) | RawData<br>(0x20) | X | X | X |
+X |
+| SingleRawDataSet | AvroGzip | SingleDataSetMessage<br>(0x4) | 0<br>(0x0) | RawData<br>(0x20) | X | X | X |
+X |
 
 ## OPC UA Pub Sub Encoding
 

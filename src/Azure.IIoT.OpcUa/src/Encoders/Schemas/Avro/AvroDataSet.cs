@@ -7,9 +7,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Avro;
     using Furly;
     using Furly.Extensions.Messaging;
+    using global::Avro;
     using System.Collections.Generic;
     using System.Linq;
 

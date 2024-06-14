@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -19,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Models;
 
     internal abstract partial class OpcUaMonitoredItem
     {

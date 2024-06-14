@@ -7,11 +7,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
+    using Asp.Versioning;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Threading;
     using System.Threading.Tasks;
-    using Asp.Versioning;
 
     /// <summary>
     /// Configure discovery events

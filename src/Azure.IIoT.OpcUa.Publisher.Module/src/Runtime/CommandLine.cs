@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Azure.IoT.Edge;
@@ -169,9 +170,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ps|publishschemas:|{PublisherConfig.PublishMessageSchemaKey}:",
                     "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nOnly has effect if the messaging profile supports publishing schemas.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",
                     (bool? b) => this[PublisherConfig.PublishMessageSchemaKey] = b?.ToString() ?? "True" },
-                    { $"preferavro:|{PublisherConfig.PreferAvroOverJsonSchemaKey}:",
+                    { $"asj|preferavro:|{PublisherConfig.PreferAvroOverJsonSchemaKey}:",
                         "Publish Avro schema even for Json encoded messages.\nAutomatically enables publishing schemas as if `--ps` was set.\nDefault: `False`.\n",
                         (bool? b) => this[PublisherConfig.PreferAvroOverJsonSchemaKey] = b?.ToString() ?? "True" },
+                    { $"daf|disableavrofiles:|{AvroWriter.DisableKey}:",
+                        "Disable writing avro files and instead dump messages and schema as zip files using the filesystem transport.\nDefault: `False`.\n",
+                        (bool? b) => this[AvroWriter.DisableKey] = b?.ToString() ?? "True" },
                 { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
                     $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
                     (uint i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },

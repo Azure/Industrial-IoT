@@ -6,11 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Opc Ua subscription notification

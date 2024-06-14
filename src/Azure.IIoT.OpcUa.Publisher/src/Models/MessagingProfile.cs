@@ -42,24 +42,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <summary>
-        /// Returns true if messaging profile supports schemas
-        /// </summary>
-        public bool SupportsSchemaPublishing
-        {
-            get
-            {
-                switch (MessagingMode)
-                {
-                    case MessagingMode.FullSamples:
-                    case MessagingMode.Samples:
-                        return false;
-                    default:
-                        return MessageEncoding != MessageEncoding.Uadp;
-                }
-            }
-        }
-
-        /// <summary>
         /// Returns true if messaging profiles supports keyframes
         /// </summary>
         public bool SupportsKeyFrames
@@ -246,9 +228,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 .Append(SupportsKeyFrames ? "X" : " ")
                 .Append(" | ")
                 .Append(SupportsKeepAlive ? "X" : " ")
-                .AppendLine(" |")
-                .Append(SupportsSchemaPublishing ? "X" : " ")
-                .AppendLine(" |")
+                .Append(" |")
+                .AppendLine()
                 .ToString();
         }
 

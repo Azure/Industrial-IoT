@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Buffers;
     using System.Collections.Generic;

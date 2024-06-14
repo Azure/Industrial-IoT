@@ -5,10 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using global::Avro;
     using Furly;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
+    using global::Avro;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -18,18 +19,29 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Xunit;
 
     /// <summary>
-    /// Test file writers
+    /// Test avro file writer
     /// </summary>
     public sealed class AvroFileWriterTests
     {
         [Fact]
         public void SupportsContentTypeTests()
         {
-            using var writer = new AvroFileWriter(Log.Console<AvroFileWriter>());
+            using var writer = new AvroFileWriter(Options.Create(new AvroFileWriterOptions()),
+                Log.Console<AvroFileWriter>());
             Assert.True(writer.SupportsContentType(ContentType.Avro));
             Assert.True(writer.SupportsContentType(ContentType.AvroGzip));
             Assert.False(writer.SupportsContentType(ContentType.Uadp));
             Assert.False(writer.SupportsContentType(ContentMimeType.Binary));
+        }
+        [Fact]
+        public void SupportsNothingWhenDisabledTests()
+        {
+            using var writer = new AvroFileWriter(Options.Create(
+                new AvroFileWriterOptions { Disabled = true }),
+                Log.Console<AvroFileWriter>());
+            Assert.False(writer.SupportsContentType(ContentType.Avro));
+            Assert.False(writer.SupportsContentType(ContentType.AvroGzip));
+            Assert.False(writer.SupportsContentType(ContentType.Uadp));
         }
 
         [Fact]
@@ -38,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var file = Path.GetTempFileName();
             try
             {
-                using (var writer = new AvroFileWriter(Log.Console<AvroFileWriter>()))
+                using (var writer = new AvroFileWriter(Options.Create(new AvroFileWriterOptions()),
+                    Log.Console<AvroFileWriter>()))
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
@@ -74,7 +87,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var file = Path.GetTempFileName();
             try
             {
-                using (var writer = new AvroFileWriter(Log.Console<AvroFileWriter>()))
+                using (var writer = new AvroFileWriter(Options.Create(new AvroFileWriterOptions()),
+                    Log.Console<AvroFileWriter>()))
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
@@ -112,7 +126,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var file = Path.GetTempFileName();
             try
             {
-                using (var writer = new AvroFileWriter(Log.Console<AvroFileWriter>()))
+                using (var writer = new AvroFileWriter(Options.Create(new AvroFileWriterOptions()),
+                    Log.Console<AvroFileWriter>()))
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, Array.Empty<ReadOnlySequence<byte>>(),
                         null, new DummyEventSchema(), ContentType.Avro);
@@ -137,7 +152,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 const string expected = "teststring";
                 var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(expected));
-                using (var writer = new AvroFileWriter(Log.Console<AvroFileWriter>()))
+                using (var writer = new AvroFileWriter(Options.Create(new AvroFileWriterOptions()),
+                    Log.Console<AvroFileWriter>()))
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
@@ -174,7 +190,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 const string expected = "teststring";
                 var buffer = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(expected));
-                using (var writer = new AvroFileWriter(Log.Console<AvroFileWriter>()))
+                using (var writer = new AvroFileWriter(Options.Create(new AvroFileWriterOptions()),
+                    Log.Console<AvroFileWriter>()))
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {

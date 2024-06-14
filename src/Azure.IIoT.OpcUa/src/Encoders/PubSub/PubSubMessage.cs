@@ -5,18 +5,18 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
+    using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
     using Microsoft.IO;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.IO;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Messaging;
-    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using System.Diagnostics.CodeAnalysis;
+    using System.IO;
 
     /// <summary>
     /// Encodeable PubSub messages
@@ -402,6 +402,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             else if (encoding.HasFlag(MessageEncoding.Avro))
             {
                 schema = new Schemas.Avro.AvroNetworkMessage(networkMessage, options);
+            }
+            else if (encoding.HasFlag(MessageEncoding.Binary))
+            {
+                schema = new Schemas.Uadp.UadpNetworkMessage(networkMessage);
             }
             else
             {
