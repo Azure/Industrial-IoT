@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                  2.9.8 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.54)
+                                                  2.9.9 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.54)
 
 General
 -------
@@ -133,13 +133,15 @@ Messaging configuration
                              The message encoding for messages
                                Allowed values:
                                    `Binary`
+                                   `Uadp`
                                    `Json`
                                    `Xml`
+                                   `Avro`
                                    `IsReversible`
-                                   `Uadp`
                                    `JsonReversible`
                                    `IsGzipCompressed`
                                    `JsonGzip`
+                                   `AvroGzip`
                                    `JsonReversibleGzip`
                                Default: `Json`.
       --bi, --batchtriggerinterval, --BatchTriggerInterval=VALUE
@@ -216,14 +218,6 @@ Messaging configuration
                                If the chosen messaging profile does not support
                                keep alive messages this setting is ignored.
                                Default: `False` (to save bandwidth).
-      --eip, --immediatepublishing, --EnableImmediatePublishing[=VALUE]
-                             By default OPC Publisher will create a
-                               subscription with publishing disabled and only
-                               enable it after it has filled it with all
-                               configured monitored items. Use this setting to
-                               create the subscription with publishing already
-                               enabled.
-                               Default: `False`.
       --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
@@ -257,10 +251,20 @@ Messaging configuration
                                metadata asynchronously.
                                Only used if meta data is supported and enabled.
                                Default: `30`.
-      --dsg, --disablesessionpergroup, --DisableSessionPerWriterGroup[=VALUE]
-                             Disable creating a separate session per writer
-                               group. Instead sessions are re-used across
-                               writer groups.
+      --ps, --publishschemas, --PublishMessageSchema[=VALUE]
+                             Publish the Avro or Json message schemas to schema
+                               registry or subtopics.
+                               Automatically enables complex type system and
+                               metadata support.
+                               Only has effect if the messaging profile
+                               supports publishing schemas.
+                               Default: `True` if the message encoding requires
+                               schemas (for example Avro) otherwise `False`.
+      --preferavro, --PreferAvroOverJsonSchema[=VALUE]
+                             Publish Avro schema even for Json encoded messages.
+
+                               Automatically enables publishing schemas as if `-
+                               -ps` was set.
                                Default: `False`.
       --om, --maxsendqueuesize, --MaxNetworkMessageSendQueueSize=VALUE
                              The maximum number of messages to buffer on the
@@ -480,6 +484,21 @@ Routing configuration
                                is sent to the same output as regular messages.
                                If specified without value, the default output
                                is `{TelemetryTopic}/metadata`.
+      --stt, --schematopictemplate, --SchemaTopicTemplate[=VALUE]
+                             The topic that schemas should be sent to if schema
+                               publishing is configured.
+                               In case of MQTT schemas will not be sent with .
+                               Only valid if schema publishing is enabled (`--
+                               ps`).
+                               The template variables
+                                   `{RootTopic}`
+                                   `{SiteId}`
+                                   `{PublisherId}`
+                                   `{TelemetryTopic}`
+                               can be used as variables inside the template.
+                               Default: `{TelemetryTopic}/schema` which means
+                               the schema is sent to a sub topic where the
+                               telemetry message is sent to.
       --uns, --datasetrouting, --DefaultDataSetRouting=VALUE
                              Configures whether messages should automatically
                                be routed using the browse path of the monitored
@@ -523,6 +542,14 @@ Subscription settings
                                Also can be set using `DefaultPublishingInterval`
                                 environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
+      --eip, --immediatepublishing, --EnableImmediatePublishing[=VALUE]
+                             By default OPC Publisher will create a
+                               subscription with publishing disabled and only
+                               enable it after it has filled it with all
+                               configured monitored items. Use this setting to
+                               create the subscription with publishing already
+                               enabled.
+                               Default: `False`.
       --ska, --keepalivecount, --DefaultKeepAliveCount=VALUE
                              Specifies the default number of publishing
                                intervals before a keep alive is returned with
@@ -642,6 +669,11 @@ Subscription settings
                              Do not attempt to transfer subscriptions when
                                reconnecting but re-establish the subscription.
                                Default: `false`.
+      --dsg, --disablesessionpergroup, --DisableSessionPerWriterGroup[=VALUE]
+                             Disable creating a separate session per writer
+                               group. Instead sessions are re-used across
+                               writer groups.
+                               Default: `False`.
 
 OPC UA Client configuration
 ---------------------------
