@@ -653,14 +653,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             else
             {
                 options.WriteOptionDescriptions(Console.Out);
-                var markdown = MessagingProfile.GetAllAsMarkdownTable();
-#if WRITETABLE
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("The following messaging profiles are supported (selected with --mm and --me):");
-                Console.WriteLine();
-                Console.WriteLine(markdown);
-#endif
                 _logger.ExitProcess(0);
             }
 

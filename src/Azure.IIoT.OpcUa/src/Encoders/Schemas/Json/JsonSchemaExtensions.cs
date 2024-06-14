@@ -208,21 +208,5 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 SchemaUtils.SplitNodeId(nodeId, context, false).Namespace;
             return new UriOrFragment(qn.Name, ns);
         }
-
-        /// <summary>
-        /// Create identifier of a schema
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static UriOrFragment GetSchemaId(this ExpandedNodeId nodeId,
-            IServiceMessageContext context)
-        {
-            if (string.IsNullOrEmpty(nodeId.NamespaceUri))
-            {
-                nodeId = new ExpandedNodeId(nodeId.Identifier, 0, Namespaces.OpcUa, 0);
-            }
-            return nodeId.AsString(context, NamespaceFormat.Uri).GetSchemaId(context);
-        }
     }
 }

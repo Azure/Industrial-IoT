@@ -73,22 +73,5 @@ namespace System.Linq
                 yield return item;
             }
         }
-
-        /// <summary>
-        /// Flattens a enumerable of typed enumerables
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> obj)
-        {
-            foreach (var contained in obj)
-            {
-                foreach (var cont in contained)
-                {
-                    yield return cont;
-                }
-            }
-        }
     }
 }

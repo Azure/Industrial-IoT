@@ -208,7 +208,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new List<DataSetWriterModel>() :
                     model.DataSetWriters.Select(f => f.Clone()).ToList(),
                 LocaleIds = model.LocaleIds?.ToList(),
-                MessageSettings = model.MessageSettings.Clone(),
+                MessageSettings = model.MessageSettings == null ? null :
+                    model.MessageSettings with { },
                 SecurityKeyServices = model.SecurityKeyServices?
                     .Select(c => c.Clone())
                     .ToList()
