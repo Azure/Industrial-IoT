@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 DataSetMetaData = new DataSetMetaDataModel
                 {
                     Name = model.Name,
-                    Description = model.Description?.Text,
+                    Description = model.Description.AsString(),
                     DataSetClassId = model.DataSetClassId,
                     MajorVersion = model.ConfigurationVersion.MajorVersion
                 },
@@ -168,7 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return new EnumFieldDescriptionModel
             {
                 Name = model.Name,
-                DisplayName = model.DisplayName?.Text,
+                DisplayName = model.DisplayName.AsString(),
                 Value = model.Value
             };
         }
@@ -260,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 ArrayDimensions = model.ArrayDimensions?.ToArray(),
                 IsOptional = model.IsOptional,
                 DataType = model.DataType.AsString(context, NamespaceFormat.Expanded) ?? string.Empty,
-                Description = model.Description?.Text,
+                Description = model.Description.AsString(),
                 MaxStringLength = model.MaxStringLength,
                 ValueRank = model.ValueRank
             };
@@ -345,7 +345,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 ArrayDimensions = field.ArrayDimensions?.ToArray(),
                 BuiltInType = field.BuiltInType,
                 DataType = field.DataType.AsString(context, NamespaceFormat.Expanded),
-                Description = field.Description?.Text,
+                Description = field.Description.AsString(),
                 MaxStringLength = field.MaxStringLength,
                 ValueRank = field.ValueRank,
                 Flags = field.FieldFlags,

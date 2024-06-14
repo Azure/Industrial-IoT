@@ -391,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         TypeHierarchy = hierarchy.ConvertAll(e => new NodeModel
                         {
                             NodeId = AsString(e.Item2.NodeId, context.Session.MessageContext, request.Header),
-                            DisplayName = e.Item2.DisplayName.Text,
+                            DisplayName = e.Item2.DisplayName.AsString(),
                             BrowseName = AsString(e.Item2.BrowseName, context.Session.MessageContext, request.Header),
                             NodeClass = e.Item2.NodeClass.ToServiceType()
                         }),
