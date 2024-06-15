@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nOnly has effect if the messaging profile supports publishing schemas.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",
                     (bool? b) => this[PublisherConfig.PublishMessageSchemaKey] = b?.ToString() ?? "True" },
                     { $"asj|preferavro:|{PublisherConfig.PreferAvroOverJsonSchemaKey}:",
-                        "Publish Avro schema even for Json encoded messages.\nAutomatically enables publishing schemas as if `--ps` was set.\nDefault: `False`.\n",
+                        "Publish Avro schema even for Json encoded messages. Automatically enables publishing schemas as if `--ps` was set.\nDefault: `False`.\n",
                         (bool? b) => this[PublisherConfig.PreferAvroOverJsonSchemaKey] = b?.ToString() ?? "True" },
                     { $"daf|disableavrofiles:|{AvroWriter.DisableKey}:",
                         "Disable writing avro files and instead dump messages and schema as zip files using the filesystem transport.\nDefault: `False`.\n",
