@@ -10,6 +10,7 @@ OPC Publisher translates these northbound transport protocols to and from OPC UA
 
 - [Azure IoT Hub and Azure IoT Edge](#azure-iot-hub-and-azure-iot-edge)
 - [MQTT](#mqtt)
+- [Azure EventHub](#azure-eventhub)
 - [Dapr](#dapr)
 - [HTTP](#http)
   - [Built-in HTTP API server](#built-in-http-api-server)
@@ -74,6 +75,31 @@ The following table shows the supported features of the MQTT transport implement
 | Integrated with Web-Api  | No         | |
 
 To configure MQTT as the default transport for telemetry publishing specify the `-t=Mqtt` command line argument. This default choice can be individually overridden for a writer group in the OPC Publisher [configuration](./readme.md#configuration-schema) using the `WriterGroupTransport` attribute.
+
+The message schema can optionally be published to a schema topic, a schema topic template can be configured using the `--stt` command line option.  This feature is currently experimental.
+
+## Azure EventHub
+
+> This transport is in preview
+
+OPC Publisher can be configured to publish to [Azure EventHubs](https://dapr.io/). The event hub connectivity information can be configured in OPC Publisher using a connection string using the `--eh, --eventhubnamespaceconnectionstring` command line options. The connection string can be obtained from the Azure portal.
+
+The following table shows the supported features of the Azure EventHub transport implementation inside OPC Publisher:
+
+| Feature                  | Supported  | Notes |
+| ------------------------ | ---------- | ----- |
+| State store              | No         | |
+| Configuration API        | No         | |
+| Twin and Discovery       | No         | |
+| Streaming (Browse/HDA)   | No         | |
+| Payload size limits      | No         | |
+| Telemetry publishing     | Yes        | |
+| Discovery Events         | Yes        | |
+| Operational Events       | Yes        | |
+| Message size limits      | Yes        | |
+| Integrated with Web-Api  | No         | |
+
+In addition, OPC Publisher can publish message schemas to the Azure schema registry (Experimental). The schema group can be selected using the `--sg, --schemagroup` command line options. Publishing to the schema registry requires OPC Publisher to authenticate using an Azure identity e.g., a managed service identity, user or service principal.
 
 ## Dapr
 

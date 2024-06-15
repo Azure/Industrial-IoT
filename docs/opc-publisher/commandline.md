@@ -260,11 +260,16 @@ Messaging configuration
                                supports publishing schemas.
                                Default: `True` if the message encoding requires
                                schemas (for example Avro) otherwise `False`.
-      --preferavro, --PreferAvroOverJsonSchema[=VALUE]
+      --asj, --preferavro, --PreferAvroOverJsonSchema[=VALUE]
                              Publish Avro schema even for Json encoded messages.
 
                                Automatically enables publishing schemas as if `-
                                -ps` was set.
+                               Default: `False`.
+      --daf, --disableavrofiles, --DisableAvroFileWriter[=VALUE]
+                             Disable writing avro files and instead dump
+                               messages and schema as zip files using the
+                               filesystem transport.
                                Default: `False`.
       --om, --maxsendqueuesize, --MaxNetworkMessageSendQueueSize=VALUE
                              The maximum number of messages to buffer on the
