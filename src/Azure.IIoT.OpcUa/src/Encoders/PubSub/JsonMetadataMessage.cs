@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             if (!Opc.Ua.Utils.IsEqual(wrapper.MessageId, MessageId) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
-                // !Opc.Ua.Utils.IsEqual(wrapper.MetaData, MetaData) ||  TODO
+                !wrapper.MetaData.IsSameAs(MetaData) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId))
             {
                 return false;
