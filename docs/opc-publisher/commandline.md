@@ -262,7 +262,6 @@ Messaging configuration
                                schemas (for example Avro) otherwise `False`.
       --asj, --preferavro, --PreferAvroOverJsonSchema[=VALUE]
                              Publish Avro schema even for Json encoded messages.
-
                                Automatically enables publishing schemas as if `-
                                -ps` was set.
                                Default: `False`.
