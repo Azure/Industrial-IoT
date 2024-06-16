@@ -1,0 +1,272 @@
+[
+  {
+    "type": "record",
+    "name": "DataSet",
+    "fields": [
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_StepUp",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "intDataValue",
+            "namespace": "com.microsoft",
+            "fields": [
+              {
+                "name": "Value",
+                "type": "int"
+              },
+              {
+                "name": "Status",
+                "type": {
+                  "type": "record",
+                  "name": "StatusCode",
+                  "namespace": "org.opcfoundation.UA",
+                  "fields": [
+                    {
+                      "name": "Code",
+                      "type": "int"
+                    },
+                    {
+                      "name": "Symbol",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "SourceTimestamp",
+                "type": "string"
+              },
+              {
+                "name": "SourcePicoseconds",
+                "type": "int"
+              },
+              {
+                "name": "ServerTimestamp",
+                "type": "string"
+              },
+              {
+                "name": "ServerPicoseconds",
+                "type": "int"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_AlternatingBoolean",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "booleanDataValue",
+            "namespace": "com.microsoft",
+            "fields": [
+              {
+                "name": "Value",
+                "type": "boolean"
+              },
+              {
+                "name": "Status",
+                "type": "org.opcfoundation.UA.StatusCode"
+              },
+              {
+                "name": "SourceTimestamp",
+                "type": "string"
+              },
+              {
+                "name": "SourcePicoseconds",
+                "type": "int"
+              },
+              {
+                "name": "ServerTimestamp",
+                "type": "string"
+              },
+              {
+                "name": "ServerPicoseconds",
+                "type": "int"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_RandomSignedInt32",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_RandomUnsignedInt32",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_DipData",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "doubleDataValue",
+            "namespace": "com.microsoft",
+            "fields": [
+              {
+                "name": "Value",
+                "type": "double"
+              },
+              {
+                "name": "Status",
+                "type": "org.opcfoundation.UA.StatusCode"
+              },
+              {
+                "name": "SourceTimestamp",
+                "type": "string"
+              },
+              {
+                "name": "SourcePicoseconds",
+                "type": "int"
+              },
+              {
+                "name": "ServerTimestamp",
+                "type": "string"
+              },
+              {
+                "name": "ServerPicoseconds",
+                "type": "int"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar1",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar2",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar3",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar1",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar2",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar3",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_NegativeTrendData",
+        "type": [
+          "null",
+          "com.microsoft.doubleDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_PositiveTrendData",
+        "type": [
+          "null",
+          "com.microsoft.doubleDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SpikeData",
+        "type": [
+          "null",
+          "com.microsoft.doubleDataValue"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "record",
+    "name": "DataSet1",
+    "fields": [
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar1",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar2",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar3",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowUIntScalar1",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar1",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar2",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar3",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      },
+      {
+        "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowRandomUIntScalar1",
+        "type": [
+          "null",
+          "com.microsoft.intDataValue"
+        ]
+      }
+    ]
+  }
+]

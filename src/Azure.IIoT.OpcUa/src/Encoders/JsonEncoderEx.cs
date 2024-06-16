@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -483,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 if (UseUriEncoding || UseReversibleEncoding)
                 {
                     WriteString(fieldName, value.AsString(Context,
-						NamespaceFormat));
+                        NamespaceFormat));
                 }
                 else
                 {
@@ -1168,8 +1168,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var fieldContentMask = dataSet.DataSetFieldContentMask;
                 var writeSingleValue = (dataSet.Count == 1) &&
-                   ((fieldContentMask & (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue) != 0);
-                if ((fieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0)
+                   fieldContentMask.HasFlag(DataSetFieldContentFlags.SingleFieldDegradeToValue);
+                if (fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData))
                 {
                     //
                     // If the DataSetFieldContentMask results in a RawData representation,
@@ -1208,22 +1208,22 @@ namespace Azure.IIoT.OpcUa.Encoders
                             WriteVariant("Value", value?.WrappedValue ?? default);
                             if (value != null)
                             {
-                                if ((fieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0)
+                                if (fieldContentMask.HasFlag(DataSetFieldContentFlags.StatusCode))
                                 {
                                     WriteStatusCode("StatusCode", value.StatusCode);
                                 }
-                                if ((fieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0)
+                                if (fieldContentMask.HasFlag(DataSetFieldContentFlags.SourceTimestamp))
                                 {
                                     WriteDateTime("SourceTimestamp", value.SourceTimestamp);
-                                    if ((fieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0)
+                                    if (fieldContentMask.HasFlag(DataSetFieldContentFlags.SourcePicoSeconds))
                                     {
                                         WriteUInt16("SourcePicoseconds", value.SourcePicoseconds);
                                     }
                                 }
-                                if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0)
+                                if (fieldContentMask.HasFlag(DataSetFieldContentFlags.ServerTimestamp))
                                 {
                                     WriteDateTime("ServerTimestamp", value.ServerTimestamp);
-                                    if ((fieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0)
+                                    if (fieldContentMask.HasFlag(DataSetFieldContentFlags.ServerPicoSeconds))
                                     {
                                         WriteUInt16("ServerPicoseconds", value.ServerPicoseconds);
                                     }
@@ -1663,7 +1663,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             static EncodingException GetException(object value, Array arr, object item,
                 Exception ex)
             {
-                return new EncodingException( "Bad variant: " +
+                return new EncodingException("Bad variant: " +
                     $"Value '{value}' with length {arr.Length} of type '{value.GetType().FullName}'" +
                     $" with item '{item}' of type '{item.GetType().FullName}' is not of type " +
                     $"'{typeof(T).GetType().FullName}'.", ex);

@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                     // DataSetFlags1: Bit range 1-2: Field Encoding
                     _dataSetFlags1 &= ~DataSetFlags1EncodingMask.FieldTypeUsedBits;
-                    if ((Payload.DataSetFieldContentMask & (uint)Opc.Ua.DataSetFieldContentMask.RawData) != 0)
+                    if ((Payload.DataSetFieldContentMask & DataSetFieldContentFlags.RawData) != 0)
                     {
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.FieldTypeRawData;
                     }
@@ -110,30 +110,30 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.FieldTypeDataValue;
                     }
 
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.SequenceNumber) != 0)
+                    if ((DataSetMessageContentMask & DataSetMessageContentFlags.SequenceNumber) != 0)
                     {
                         // DataSetFlags1: Bit range 3: sequence
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.DataSetMessageSequenceNumber;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0)
+                    if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
                     {
                         // DataSetFlags1: Bit range 4: status
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.Status;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0)
+                    if ((DataSetMessageContentMask & DataSetMessageContentFlags.MajorVersion) != 0)
                     {
                         // DataSetFlags1: Bit range 5: major version
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.MinorVersion) != 0)
+                    if ((DataSetMessageContentMask & DataSetMessageContentFlags.MinorVersion) != 0)
                     {
                         // DataSetFlags1: Bit range 6: minor version
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion;
                     }
 
                     // DataSetFlags1: Bit 7 if needed
-                    if ((DataSetMessageContentMask & (uint)(UadpDataSetMessageContentMask.Timestamp |
-                                                            UadpDataSetMessageContentMask.PicoSeconds)) != 0)
+                    if ((DataSetMessageContentMask & (DataSetMessageContentFlags.Timestamp |
+                                                      DataSetMessageContentFlags.PicoSeconds)) != 0)
                     {
                         _dataSetFlags1 |= DataSetFlags1EncodingMask.DataSetFlags2;
                     }
@@ -152,15 +152,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     // DataSetFlags1: Bit range 1-2: Field Encoding
                     if ((value & DataSetFlags1EncodingMask.FieldTypeRawData) != 0)
                     {
-                        Payload.DataSetFieldContentMask = (uint)Opc.Ua.DataSetFieldContentMask.RawData;
+                        Payload.DataSetFieldContentMask = DataSetFieldContentFlags.RawData;
                     }
                     else if ((value & DataSetFlags1EncodingMask.FieldTypeDataValue) != 0)
                     {
-                        Payload.DataSetFieldContentMask = (uint)(Opc.Ua.DataSetFieldContentMask.StatusCode
-                                                          | Opc.Ua.DataSetFieldContentMask.SourceTimestamp
-                                                          | Opc.Ua.DataSetFieldContentMask.ServerTimestamp
-                                                          | Opc.Ua.DataSetFieldContentMask.SourcePicoSeconds
-                                                          | Opc.Ua.DataSetFieldContentMask.ServerPicoSeconds);
+                        Payload.DataSetFieldContentMask = DataSetFieldContentFlags.StatusCode
+                                                        | DataSetFieldContentFlags.SourceTimestamp
+                                                        | DataSetFieldContentFlags.ServerTimestamp
+                                                        | DataSetFieldContentFlags.SourcePicoSeconds
+                                                        | DataSetFieldContentFlags.ServerPicoSeconds;
                     }
                     else
                     {
@@ -170,22 +170,22 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     // DataSetFlags1: Bit range 3: sequence
                     if ((value & DataSetFlags1EncodingMask.DataSetMessageSequenceNumber) != 0)
                     {
-                        DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.SequenceNumber;
+                        DataSetMessageContentMask |= DataSetMessageContentFlags.SequenceNumber;
                     }
                     if ((value & DataSetFlags1EncodingMask.Status) != 0)
                     {
                         // DataSetFlags1: Bit range 4: status
-                        DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.Status;
+                        DataSetMessageContentMask |= DataSetMessageContentFlags.Status;
                     }
                     if ((value & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0)
                     {
                         // DataSetFlags1: Bit range 5: major version
-                        DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.MajorVersion;
+                        DataSetMessageContentMask |= DataSetMessageContentFlags.MajorVersion;
                     }
                     if ((value & DataSetFlags1EncodingMask.ConfigurationVersionMinorVersion) != 0)
                     {
                         // DataSetFlags1: Bit range 6: minor version
-                        DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.MinorVersion;
+                        DataSetMessageContentMask |= DataSetMessageContentFlags.MinorVersion;
                     }
                 }
             }
@@ -227,11 +227,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     }
 
                     // Bit range 4-5: timestamp
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0)
+                    if ((DataSetMessageContentMask & DataSetMessageContentFlags.Timestamp) != 0)
                     {
                         _dataSetFlags2 |= DataSetFlags2EncodingMask.Timestamp;
                     }
-                    if ((DataSetMessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0)
+                    if ((DataSetMessageContentMask & DataSetMessageContentFlags.PicoSeconds) != 0)
                     {
                         _dataSetFlags2 |= DataSetFlags2EncodingMask.PicoSeconds;
                     }
@@ -263,11 +263,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // Bit range 4-5: timestamp
                 if ((value & DataSetFlags2EncodingMask.Timestamp) != 0)
                 {
-                    DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.Timestamp;
+                    DataSetMessageContentMask |= DataSetMessageContentFlags.Timestamp;
                 }
                 if ((value & DataSetFlags2EncodingMask.PicoSeconds) != 0)
                 {
-                    DataSetMessageContentMask |= (uint)UadpDataSetMessageContentMask.PicoSeconds;
+                    DataSetMessageContentMask |= DataSetMessageContentFlags.PicoSeconds;
                 }
             }
         }

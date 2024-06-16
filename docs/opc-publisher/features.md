@@ -108,8 +108,8 @@ The following table shows the supported features of OPC Publisher and planned fe
 | [MQTT](./transports.md#mqtt) request response-based API and configuration |||||
 | | v5 request response |-|X|Preview|
 | | v3.11 using IoT Hub like &rid= correlation |-|X|Experimental|
-| Kafka request response-based API and configuration ||-|-||
 | [HTTP](./transports.md#built-in-http-api-server) REST command/control and configuration API ||-|X|Preview|
+| Kafka request response-based API and configuration ||-|-||
 | Configuration via OPC UA endpoint ||-|-||
 | Prometheus [Metrics](./observability.md) |||||
 | | For module metrics |X|X||
@@ -123,9 +123,10 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Message and event publishing [transports](./transports.md) |||||
 | | IoT Hub |X|X||
 | | MQTT topics |-|X|Preview|
+| | Publishing to [Azure EventHub](./transports.md#azure-eventhub) |-|X|Preview|
 | | Dapr Pub/Sub (Kafka, Redis, etc.) |-|X|Experimental|
 | | Publishing to a Web hook|-|X|Experimental|
-| | File system dump|-|X|Experimental|
+| | Dump messages and schemas to zip files in file system |-|X|Experimental|
 | | Null sink|-|X|Experimental|
 | Multiple cloud transports enabled in parallel ||-|X|Preview|
 | Select desired transport per writer group ||-|X|Preview|
@@ -134,13 +135,16 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | (Full and simple) data set messages |X|X||
 | | (Full and simple) Network messages |X|X||
 | | Raw message format |-|X||
+| | Single data set format |-|X||
 | | Custom configuration using content flags |-|-||
 | | Configurable per writer group |-|X||
 | OPC UA Pub Sub message [encoding](./messageformats.md) |||||
 | | JSON Encoding |X|X||
 | | JSON Encoding per standard |-|X||
 | | GZIP JSON Encoding |-|X||
+| | JSON Schema publishing for JSON encoding |-|X|Experimental|
 | | UADP Binary encoding |-|X|Preview|
+| | Avro and Avro+Gzip encoding with Schema publishing |-|X|Experimental|
 | | [Reversible Encoding](./messageformats.md#reversible-encoding) |-|X|Preview|
 | | [Samples JSON encoding](./messageformats.md#samples-mode-encoding-legacy) – Legacy |X|X|Deprecated|
 | | Samples Binary encoding – Legacy |X|-||
@@ -154,5 +158,5 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Discovery messages |-|-||
 | | Publisher status messages |-|-||
 | Unified Namespace |||||
-| | Topic templates at writer group, writer, and node level |-|X|Preview|
-| | Automatic topic routing using OPC UA browse paths |-|X|Preview|
+| | Topic templates at writer group and dataset writer level |-|X|Preview|
+| | Automatic topic routing using OPC UA browse paths |-|X|Experimental|

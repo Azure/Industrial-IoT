@@ -103,31 +103,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         }
 
         /// <summary>
-        /// Make sure to get the registration information from the right place.
-        /// Reported (truth) properties take precedence over desired. However,
-        /// if there is nothing reported, it means the endpoint is not currently
-        /// serviced, thus we use desired as if they are attributes of the
-        /// endpoint.
-        /// </summary>
-        /// <param name="twin"></param>
-        /// <param name="connected"></param>
-        /// <returns></returns>
-        public static GatewayRegistration? ToGatewayRegistration(this DeviceTwinModel twin,
-            out bool connected)
-        {
-            if (twin == null)
-            {
-                connected = false;
-                return null;
-            }
-            twin.Tags ??= new Dictionary<string, VariantValue>();
-
-            var consolidated = ToGatewayRegistration(twin);
-            connected = consolidated?.Connected ?? false;
-            return consolidated;
-        }
-
-        /// <summary>
         /// Patch this registration and create patch twin model to upload
         /// </summary>
         /// <param name="model"></param>

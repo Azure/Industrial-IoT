@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? (_logNotificationsFilter != null);
             _queue = new NullPublishQueue();
 
-			_transport = new TransportOptions(writerGroup, _eventClients, _options);
+            _transport = new TransportOptions(writerGroup, _eventClients, _options);
 
             _queue = _transport.MaxPublishQueuePartitions != 0
                 ? new PublishQueue(this, _transport.MaxPublishQueuePartitions)
@@ -267,7 +267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public bool TryPublish(IOpcUaSubscriptionNotification args)
             {
-                var hash = (args.Context as WriterGroupMessageContext)?
+                var hash = (args.Context as WriterGroupContext)?
                     .Topic?.GetHashCode(StringComparison.Ordinal) ?? 0;
                 return _partitions[(uint)hash % _partitions.Length].TryPublish(args);
             }

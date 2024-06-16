@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
@@ -956,7 +957,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public DataSet? ReadDataSet(string? property)
         {
-            var fieldMask = 0u;
+            DataSetFieldContentFlags fieldMask = 0u;
             var couldBeRawData = false;
             var dictionary = ReadDictionary(property, () =>
             {
@@ -966,23 +967,23 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         if (HasAnyOf(o, "StatusCode"))
                         {
-                            fieldMask |= (uint)DataSetFieldContentMask.StatusCode;
+                            fieldMask |= DataSetFieldContentFlags.StatusCode;
                         }
                         if (HasAnyOf(o, "SourceTimestamp"))
                         {
-                            fieldMask |= (uint)DataSetFieldContentMask.SourceTimestamp;
+                            fieldMask |= DataSetFieldContentFlags.SourceTimestamp;
                         }
                         if (HasAnyOf(o, "ServerTimestamp"))
                         {
-                            fieldMask |= (uint)DataSetFieldContentMask.ServerTimestamp;
+                            fieldMask |= DataSetFieldContentFlags.ServerTimestamp;
                         }
                         if (HasAnyOf(o, "SourcePicoseconds"))
                         {
-                            fieldMask |= (uint)DataSetFieldContentMask.SourcePicoSeconds;
+                            fieldMask |= DataSetFieldContentFlags.SourcePicoSeconds;
                         }
                         if (HasAnyOf(o, "ServerPicoseconds"))
                         {
-                            fieldMask |= (uint)DataSetFieldContentMask.ServerPicoSeconds;
+                            fieldMask |= DataSetFieldContentFlags.ServerPicoSeconds;
                         }
                     }
                     else if (token is JValue)
@@ -993,9 +994,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 return ReadDataValue(null);
             });
-            return dictionary == null ? null :
-                new DataSet(dictionary, fieldMask != 0 || !couldBeRawData ? fieldMask :
-                    (uint)DataSetFieldContentMask.RawData);
+            fieldMask = ((uint)fieldMask != 0 || !couldBeRawData) ? fieldMask :
+                DataSetFieldContentFlags.RawData;
+            return dictionary == null ? null : new DataSet(dictionary, fieldMask);
         }
 
         /// <inheritdoc/>

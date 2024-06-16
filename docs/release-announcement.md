@@ -2,6 +2,14 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.8](#azure-industrial-iot-opc-publisher-298)
+  - [Changes in 2.9.8](#changes-in-298)
+- [Azure Industrial IoT OPC Publisher 2.9.7](#azure-industrial-iot-opc-publisher-297)
+  - [Changes in 2.9.7](#changes-in-297)
+- [Azure Industrial IoT OPC Publisher 2.9.6](#azure-industrial-iot-opc-publisher-296)
+  - [Changes in 2.9.6](#changes-in-296)
+- [Azure Industrial IoT OPC Publisher 2.9.5](#azure-industrial-iot-opc-publisher-295)
+  - [Changes in 2.9.5](#changes-in-295)
 - [Azure Industrial IoT OPC Publisher 2.9.4](#azure-industrial-iot-opc-publisher-294)
   - [Breaking changes in 2.9.4](#breaking-changes-in-294)
   - [Changes in 2.9.4](#changes-in-294)
@@ -40,6 +48,55 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.8
+
+We are pleased to announce the release of version 2.9.8 of OPC Publisher and the companion web api service. This release comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.8
+
+- Update OPC UA .net stack to the latest 1.05 version and move forward other dependencies
+- Telemetry messages are sent with non default (0) ttl now to support DAPR >= 1.13 (#2243)
+- Elevation property in request header does work now when service calls are sent using edge API (#2218)
+- Add more Info to Logs in case of publishing errors, e.g. "Too many publish request error" (#2229)
+- New Security mode "NotNone" reflecting the legacy "UseSecurity":true setting in nodes. "Best" (any) is persisting after Opc Publisher is restarted (#2228)
+- Latest OPC UA .net stack fixes "CRL with zero revoked certificates fails to be decoded (#2214)
+- Enable the definition of the GRPC endpoint host name for DAPR (#2235)
+- Diagnostic info API returns incorrect information (#2230)
+- Make TransferSubscriptionsOnReconnect configurable (via publishednodes.json) (#2205)
+- Ability to disable Complex type system loading (#2185)
+- Several improvements for cyclic read (#2169)
+  - Only submit publish requests for active subscriptions rather than any subscription. (#2184)
+  - Better diagnostic messages of number of cyclic read, heartbeat, events per minute (#2175)
+  - Track # of missed intervals / samples due to latency of read (#2174)
+- BadNodeIdUnknown not re-evaluated despite short retry delays? (#2188)
+- Additional information in diagnostic messages including resource consumption (total)
+- Persistency of published nodes file now uses .net storage provider which supports enabling file change polling via command line option (needed on some linux setups)
+
+## Azure Industrial IoT OPC Publisher 2.9.7
+
+### Changes in 2.9.7
+
+- Added additional diagnostic logging option to capture the encoded notifications as well
+
+## Azure Industrial IoT OPC Publisher 2.9.6
+
+We are pleased to announce the release of version 2.9.6 of OPC Publisher and the companion web api service. This release comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.6
+
+- Update OPC UA .net stack to the latest 1.05 version and move forward other dependencies fixing several reported CVE vulnerabilities. 
+- Additional option to log encoded notifications to trace data all the way to send path.
+- Hardened code paths that made it possible that no more publishing requests are enqueued after a while. Continuously ensure minimum amount of publish requests are in progress when receiving good session keep alives.
+
+## Azure Industrial IoT OPC Publisher 2.9.5
+
+We are pleased to announce the release of version 2.9.5 of OPC Publisher and the companion web api service. This release comes with several bug and security fixes and is the latest supported release.
+
+### Changes in 2.9.5
+
+- Update OPC UA .net stack to the latest 1.05 version and move forward other dependencies
+- Fixed a bug where OPC Publisher could not connect when the port provided in the endpoint during discovery is different than the port in of the discovery URL.
 
 ## Azure Industrial IoT OPC Publisher 2.9.4
 

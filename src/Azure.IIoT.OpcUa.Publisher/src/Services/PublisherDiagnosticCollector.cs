@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
+    using Microsoft.Extensions.Diagnostics.ResourceMonitoring;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
@@ -15,9 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
     using System.Linq;
-    using Microsoft.Extensions.Diagnostics.ResourceMonitoring;
-    using Irony;
-    using System.Resources;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener

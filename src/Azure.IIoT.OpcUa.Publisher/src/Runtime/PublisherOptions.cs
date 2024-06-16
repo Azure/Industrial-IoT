@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Furly.Extensions.Messaging;
     using System;
 
@@ -212,5 +213,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// browse paths.
         /// </summary>
         public DataSetRoutingMode? DefaultDataSetRouting { get; set; }
+
+        /// <summary>
+        /// Schema generation options if schema generation is
+        /// enabled.
+        /// </summary>
+        public SchemaOptions? SchemaOptions { get; set; }
     }
 }

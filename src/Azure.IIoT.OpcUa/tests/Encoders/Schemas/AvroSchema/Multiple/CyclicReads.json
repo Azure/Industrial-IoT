@@ -1,0 +1,1618 @@
+{
+  "type": "record",
+  "name": "NetworkMessage",
+  "namespace": "org.github.microsoft.opc.publisher",
+  "fields": [
+    {
+      "name": "Messages",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "DataSetMessage",
+          "namespace": "org.github.microsoft.opc.publisher",
+          "fields": [
+            {
+              "name": "MessageType",
+              "type": {
+                "type": "record",
+                "name": "String",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_12"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "DataSetWriterName",
+              "type": "org.opcfoundation.UA.String"
+            },
+            {
+              "name": "DataSetWriterId",
+              "type": {
+                "type": "record",
+                "name": "UInt16",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_5"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SequenceNumber",
+              "type": {
+                "type": "record",
+                "name": "UInt32",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_7"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "MetaDataVersion",
+              "type": {
+                "type": "record",
+                "name": "ConfigurationVersionDataType",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_14593"
+                ],
+                "fields": [
+                  {
+                    "name": "MajorVersion",
+                    "type": "UInt32"
+                  },
+                  {
+                    "name": "MinorVersion",
+                    "type": "UInt32"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Timestamp",
+              "type": {
+                "type": "record",
+                "name": "DateTime",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_13"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Status",
+              "type": {
+                "type": "record",
+                "name": "StatusCode",
+                "namespace": "org.opcfoundation.UA",
+                "aliases": [
+                  "org.opcfoundation.UA.i_19"
+                ],
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": "long"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Payload",
+              "type": {
+                "type": "record",
+                "name": "DataSet",
+                "fields": [
+                  {
+                    "name": "i_x61_2258",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "DateTimeDataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": [
+                              "null",
+                              "org.opcfoundation.UA.DateTime"
+                            ]
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_StepUp",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "UInt32DataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": [
+                              "null",
+                              "org.opcfoundation.UA.UInt32"
+                            ]
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_AlternatingBoolean",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "BooleanDataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": [
+                              "null",
+                              {
+                                "type": "record",
+                                "name": "Boolean",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_1"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "boolean"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_RandomSignedInt32",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "Int32DataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": [
+                              "null",
+                              {
+                                "type": "record",
+                                "name": "Int32",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_6"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "int"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_RandomUnsignedInt32",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_DipData",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "DoubleDataValue",
+                        "namespace": "org.github.microsoft.opc.publisher",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": [
+                              "null",
+                              {
+                                "type": "record",
+                                "name": "Double",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_11"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "double"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "org.opcfoundation.UA.StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "org.opcfoundation.UA.DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "org.opcfoundation.UA.UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar1",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar2",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastUIntScalar3",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar2",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_FastRandomUIntScalar3",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_NegativeTrendData",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.DoubleDataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_PositiveTrendData",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.DoubleDataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar1",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar2",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowUIntScalar3",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowUIntScalar1",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar2",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SlowRandomUIntScalar3",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_BadSlowRandomUIntScalar1",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.UInt32DataValue"
+                    ]
+                  },
+                  {
+                    "name": "nsu_x61_http_x58__x47__x47_opcfoundation_x46_org_x47_UA_x47_Plc_x47_Applications_x59_s_x61_SpikeData",
+                    "type": [
+                      "null",
+                      "org.github.microsoft.opc.publisher.DoubleDataValue"
+                    ]
+                  },
+                  {
+                    "name": "ns_x61_23_x59_i_x61_1259",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "DataValue",
+                        "namespace": "org.opcfoundation.UA",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "record",
+                              "name": "Variant",
+                              "namespace": "org.opcfoundation.UA",
+                              "aliases": [
+                                "org.opcfoundation.UA.i_24"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": [
+                                    "null",
+                                    "Boolean",
+                                    {
+                                      "type": "record",
+                                      "name": "SByte",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_2"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "int"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Byte",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_3"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "int"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int16",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_4"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "int"
+                                        }
+                                      ]
+                                    },
+                                    "UInt16",
+                                    "Int32",
+                                    "UInt32",
+                                    {
+                                      "type": "record",
+                                      "name": "Int64",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_8"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "int"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt64",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_23"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": [
+                                            "int",
+                                            {
+                                              "type": "fixed",
+                                              "name": "ulong",
+                                              "namespace": "org.opcfoundation.UA",
+                                              "size": 8
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Float",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_10"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "float"
+                                        }
+                                      ]
+                                    },
+                                    "Double",
+                                    "String",
+                                    "DateTime",
+                                    {
+                                      "type": "record",
+                                      "name": "Guid",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_14"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "string",
+                                            "logicalType": "uuid"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ByteString",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_15"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "bytes"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "XmlElement",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_16"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "NodeId",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_17"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Namespace",
+                                          "type": "String"
+                                        },
+                                        {
+                                          "name": "Identifier",
+                                          "type": [
+                                            "UInt32",
+                                            "String",
+                                            "Guid",
+                                            "ByteString"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ExpandedNodeId",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_18"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Namespace",
+                                          "type": "String"
+                                        },
+                                        {
+                                          "name": "Identifier",
+                                          "type": [
+                                            "UInt32",
+                                            "String",
+                                            "Guid",
+                                            "ByteString"
+                                          ]
+                                        },
+                                        {
+                                          "name": "ServerUri",
+                                          "type": "String"
+                                        }
+                                      ]
+                                    },
+                                    "StatusCode",
+                                    {
+                                      "type": "record",
+                                      "name": "QualifiedName",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_20"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Namespace",
+                                          "type": "String"
+                                        },
+                                        {
+                                          "name": "Name",
+                                          "type": "String"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "LocalizedText",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_21"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Locale",
+                                          "type": "String"
+                                        },
+                                        {
+                                          "name": "Text",
+                                          "type": "String"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ExtensionObject",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_22"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": [
+                                            {
+                                              "type": "record",
+                                              "name": "EncodedDataType",
+                                              "namespace": "org.opcfoundation.UA",
+                                              "fields": [
+                                                {
+                                                  "name": "TypeId",
+                                                  "type": "NodeId"
+                                                },
+                                                {
+                                                  "name": "Body",
+                                                  "type": "ByteString"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    "DataValue",
+                                    {
+                                      "type": "record",
+                                      "name": "Enumeration",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "aliases": [
+                                        "org.opcfoundation.UA.i_29"
+                                      ],
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": "int"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "BooleanCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Boolean"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "SByteCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "SByte"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int16Collection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Int16"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt16Collection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "UInt16"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int32Collection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Int32"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt32Collection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "UInt32"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int64Collection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Int64"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt64Collection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "UInt64"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "FloatCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Float"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "DoubleCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Double"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "StringCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "String"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "DateTimeCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "DateTime"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "GuidCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Guid"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ByteStringCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "ByteString"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "XmlElementCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "XmlElement"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "NodeIdCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "NodeId"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ExpandedNodeIdCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "ExpandedNodeId"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "StatusCodeCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "StatusCode"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "QualifiedNameCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "QualifiedName"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "LocalizedTextCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "LocalizedText"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ExtensionObjectCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "ExtensionObject"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "DataValueCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "DataValue"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "VariantCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Variant"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "EnumerationCollection",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Enumeration"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "BooleanMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Boolean"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "SByteMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "SByte"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ByteMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Byte"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int16Matrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Int16"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt16Matrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "UInt16"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int32Matrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Int32"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt32Matrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "UInt32"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "Int64Matrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Int64"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "UInt64Matrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "UInt64"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "FloatMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Float"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "DoubleMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Double"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "StringMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "String"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "DateTimeMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "DateTime"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "GuidMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Guid"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ByteStringMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "ByteString"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "XmlElementMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "XmlElement"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "NodeIdMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "NodeId"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ExpandedNodeIdMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "ExpandedNodeId"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "StatusCodeMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "StatusCode"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "QualifiedNameMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "QualifiedName"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "LocalizedTextMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "LocalizedText"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "ExtensionObjectMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "ExtensionObject"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "DataValueMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "DataValue"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "VariantMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Variant"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "record",
+                                      "name": "EnumerationMatrix",
+                                      "namespace": "org.opcfoundation.UA",
+                                      "fields": [
+                                        {
+                                          "name": "Dimensions",
+                                          "type": "Int32Collection"
+                                        },
+                                        {
+                                          "name": "Value",
+                                          "type": {
+                                            "type": "array",
+                                            "items": "Enumeration"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "StatusCode",
+                            "type": "StatusCode"
+                          },
+                          {
+                            "name": "SourceTimestamp",
+                            "type": "DateTime"
+                          },
+                          {
+                            "name": "SourcePicoseconds",
+                            "type": "UInt16"
+                          },
+                          {
+                            "name": "ServerTimestamp",
+                            "type": "DateTime"
+                          },
+                          {
+                            "name": "ServerPicoseconds",
+                            "type": "UInt16"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

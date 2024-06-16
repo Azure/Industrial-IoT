@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
@@ -23,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
-    using UaStructureType = Opc.Ua.StructureType;
     using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
     using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
     using System;
@@ -288,50 +286,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         }
 
         /// <summary>
-        /// Convert structure type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static UaStructureType ToStackType(this StructureType? type)
-        {
-            switch (type)
-            {
-                case StructureType.StructureWithOptionalFields:
-                    return UaStructureType.StructureWithOptionalFields;
-                case StructureType.Union:
-                    return UaStructureType.Union;
-                case StructureType.StructureWithSubtypedValues:
-                    return UaStructureType.StructureWithSubtypedValues;
-                case StructureType.UnionWithSubtypedValues:
-                    return UaStructureType.UnionWithSubtypedValues;
-                default:
-                    return UaStructureType.Structure;
-            }
-        }
-
-        /// <summary>
-        /// Convert structure type
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static StructureType ToServiceType(this UaStructureType type)
-        {
-            switch (type)
-            {
-                case UaStructureType.StructureWithOptionalFields:
-                    return StructureType.StructureWithOptionalFields;
-                case UaStructureType.Union:
-                    return StructureType.Union;
-                case UaStructureType.StructureWithSubtypedValues:
-                    return StructureType.StructureWithSubtypedValues;
-                case UaStructureType.UnionWithSubtypedValues:
-                    return StructureType.UnionWithSubtypedValues;
-                default:
-                    return StructureType.Structure;
-            }
-        }
-
-        /// <summary>
         /// Convert deadband type
         /// </summary>
         /// <param name="mode"></param>
@@ -557,14 +511,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="mask"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding)
+        public static uint ToStackType(this NetworkMessageContentFlags? mask, MessageEncoding? encoding)
         {
             mask ??=
-                    NetworkMessageContentMask.NetworkMessageHeader |
-                    NetworkMessageContentMask.NetworkMessageNumber |
-                    NetworkMessageContentMask.DataSetMessageHeader |
-                    NetworkMessageContentMask.PublisherId |
-                    NetworkMessageContentMask.DataSetClassId;
+                    NetworkMessageContentFlags.NetworkMessageHeader |
+                    NetworkMessageContentFlags.NetworkMessageNumber |
+                    NetworkMessageContentFlags.DataSetMessageHeader |
+                    NetworkMessageContentFlags.PublisherId |
+                    NetworkMessageContentFlags.DataSetClassId;
             switch (encoding)
             {
                 case MessageEncoding.Uadp:
@@ -582,19 +536,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="fieldMask"></param>
         /// <param name="encoding"></param>
         /// <returns></returns>
-        public static uint ToStackType(this DataSetContentMask? mask,
-            DataSetFieldContentMask? fieldMask, MessageEncoding? encoding)
+        public static uint ToStackType(this DataSetMessageContentFlags? mask,
+            DataSetFieldContentFlags? fieldMask, MessageEncoding? encoding)
         {
             mask ??=
-                    DataSetContentMask.DataSetWriterId |
-                    DataSetContentMask.DataSetWriterName |
-                    DataSetContentMask.MetaDataVersion |
-                    DataSetContentMask.MajorVersion |
-                    DataSetContentMask.MinorVersion |
-                    DataSetContentMask.SequenceNumber |
-                    DataSetContentMask.Timestamp |
-                    DataSetContentMask.MessageType |
-                    DataSetContentMask.Status;
+                    DataSetMessageContentFlags.DataSetWriterId |
+                    DataSetMessageContentFlags.DataSetWriterName |
+                    DataSetMessageContentFlags.MetaDataVersion |
+                    DataSetMessageContentFlags.MajorVersion |
+                    DataSetMessageContentFlags.MinorVersion |
+                    DataSetMessageContentFlags.SequenceNumber |
+                    DataSetMessageContentFlags.Timestamp |
+                    DataSetMessageContentFlags.MessageType |
+                    DataSetMessageContentFlags.Status;
             switch (encoding)
             {
                 case MessageEncoding.Uadp:
@@ -610,22 +564,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        private static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask mask)
+        private static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentFlags mask)
         {
             var result = JsonNetworkMessageContentMask.None;
-            if ((mask & NetworkMessageContentMask.PublisherId) != 0)
+            if ((mask & NetworkMessageContentFlags.PublisherId) != 0)
             {
                 result |= JsonNetworkMessageContentMask.PublisherId;
             }
-            if ((mask & NetworkMessageContentMask.DataSetClassId) != 0)
+            if ((mask & NetworkMessageContentFlags.DataSetClassId) != 0)
             {
                 result |= JsonNetworkMessageContentMask.DataSetClassId;
             }
-            if ((mask & NetworkMessageContentMask.ReplyTo) != 0)
+            if ((mask & NetworkMessageContentFlags.ReplyTo) != 0)
             {
                 result |= JsonNetworkMessageContentMask.ReplyTo;
             }
-            if ((mask & NetworkMessageContentMask.NetworkMessageHeader) != 0)
+            if ((mask & NetworkMessageContentFlags.NetworkMessageHeader) != 0)
             {
                 result |= JsonNetworkMessageContentMask.NetworkMessageHeader;
             }
@@ -634,16 +588,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 // If not set, bits 3, 4 and 5 can also not be set
                 result = JsonNetworkMessageContentMask.None;
             }
-            if ((mask & NetworkMessageContentMask.MonitoredItemMessage) != 0)
+            if ((mask & NetworkMessageContentFlags.MonitoredItemMessage) != 0)
             {
                 // If monitored item message, then no network message header
                 result = JsonNetworkMessageContentMask.None;
             }
-            if ((mask & NetworkMessageContentMask.DataSetMessageHeader) != 0)
+            if ((mask & NetworkMessageContentFlags.DataSetMessageHeader) != 0)
             {
                 result |= JsonNetworkMessageContentMask.DataSetMessageHeader;
             }
-            if ((mask & NetworkMessageContentMask.SingleDataSetMessage) != 0)
+            if ((mask & NetworkMessageContentFlags.SingleDataSetMessage) != 0)
             {
                 result |= JsonNetworkMessageContentMask.SingleDataSetMessage;
             }
@@ -656,62 +610,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="mask"></param>
         /// <param name="fieldMask"></param>
         /// <returns></returns>
-        private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask mask,
-            DataSetFieldContentMask? fieldMask)
+        private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetMessageContentFlags mask,
+            DataSetFieldContentFlags? fieldMask)
         {
             var result = JsonDataSetMessageContentMask.None;
-            if ((mask & DataSetContentMask.Timestamp) != 0)
+            if ((mask & DataSetMessageContentFlags.Timestamp) != 0)
             {
                 result |= JsonDataSetMessageContentMask.Timestamp;
             }
-            if ((mask & DataSetContentMask.Status) != 0)
+            if ((mask & DataSetMessageContentFlags.Status) != 0)
             {
                 result |= JsonDataSetMessageContentMask.Status;
             }
-            if ((mask & DataSetContentMask.MetaDataVersion) != 0)
+            if ((mask & DataSetMessageContentFlags.MetaDataVersion) != 0)
             {
                 result |= JsonDataSetMessageContentMask.MetaDataVersion;
             }
-            if ((mask & DataSetContentMask.SequenceNumber) != 0)
+            if ((mask & DataSetMessageContentFlags.SequenceNumber) != 0)
             {
                 result |= JsonDataSetMessageContentMask.SequenceNumber;
             }
-            if ((mask & DataSetContentMask.DataSetWriterId) != 0)
+            if ((mask & DataSetMessageContentFlags.DataSetWriterId) != 0)
             {
                 result |= JsonDataSetMessageContentMask.DataSetWriterId;
             }
-            if ((mask & DataSetContentMask.MessageType) != 0)
+            if ((mask & DataSetMessageContentFlags.MessageType) != 0)
             {
                 result |= JsonDataSetMessageContentMask.MessageType;
             }
-            if ((mask & DataSetContentMask.DataSetWriterName) != 0)
+            if ((mask & DataSetMessageContentFlags.DataSetWriterName) != 0)
             {
                 result |= JsonDataSetMessageContentMask.DataSetWriterName;
             }
-            if ((mask & DataSetContentMask.ReversibleFieldEncoding) != 0)
+            if ((mask & DataSetMessageContentFlags.ReversibleFieldEncoding) != 0)
             {
                 result |= JsonDataSetMessageContentMask.ReversibleFieldEncoding;
             }
 
             if (fieldMask != null)
             {
-                if ((fieldMask & DataSetFieldContentMask.NodeId) != 0)
+                if ((fieldMask & DataSetFieldContentFlags.NodeId) != 0)
                 {
                     result |= JsonDataSetMessageContentMaskEx.NodeId;
                 }
-                if ((fieldMask & DataSetFieldContentMask.DisplayName) != 0)
+                if ((fieldMask & DataSetFieldContentFlags.DisplayName) != 0)
                 {
                     result |= JsonDataSetMessageContentMaskEx.DisplayName;
                 }
-                if ((fieldMask & DataSetFieldContentMask.ExtensionFields) != 0)
+                if ((fieldMask & DataSetFieldContentFlags.ExtensionFields) != 0)
                 {
                     result |= JsonDataSetMessageContentMaskEx.ExtensionFields;
                 }
-                if ((fieldMask & DataSetFieldContentMask.EndpointUrl) != 0)
+                if ((fieldMask & DataSetFieldContentFlags.EndpointUrl) != 0)
                 {
                     result |= JsonDataSetMessageContentMaskEx.EndpointUrl;
                 }
-                if ((fieldMask & DataSetFieldContentMask.ApplicationUri) != 0)
+                if ((fieldMask & DataSetFieldContentFlags.ApplicationUri) != 0)
                 {
                     result |= JsonDataSetMessageContentMaskEx.ApplicationUri;
                 }
@@ -724,50 +678,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        private static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask mask)
+        private static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentFlags mask)
         {
             var result = UadpNetworkMessageContentMask.None;
-            if ((mask & NetworkMessageContentMask.PublisherId) != 0)
+            if ((mask & NetworkMessageContentFlags.PublisherId) != 0)
             {
                 result |= UadpNetworkMessageContentMask.PublisherId;
             }
-            if ((mask & NetworkMessageContentMask.GroupHeader) != 0)
+            if ((mask & NetworkMessageContentFlags.GroupHeader) != 0)
             {
                 result |= UadpNetworkMessageContentMask.GroupHeader;
             }
-            if ((mask & NetworkMessageContentMask.WriterGroupId) != 0)
+            if ((mask & NetworkMessageContentFlags.WriterGroupId) != 0)
             {
                 result |= UadpNetworkMessageContentMask.WriterGroupId;
             }
-            if ((mask & NetworkMessageContentMask.GroupVersion) != 0)
+            if ((mask & NetworkMessageContentFlags.GroupVersion) != 0)
             {
                 result |= UadpNetworkMessageContentMask.GroupVersion;
             }
-            if ((mask & NetworkMessageContentMask.NetworkMessageNumber) != 0)
+            if ((mask & NetworkMessageContentFlags.NetworkMessageNumber) != 0)
             {
                 result |= UadpNetworkMessageContentMask.NetworkMessageNumber;
             }
-            if ((mask & NetworkMessageContentMask.SequenceNumber) != 0)
+            if ((mask & NetworkMessageContentFlags.SequenceNumber) != 0)
             {
                 result |= UadpNetworkMessageContentMask.SequenceNumber;
             }
-            if ((mask & NetworkMessageContentMask.PayloadHeader) != 0)
+            if ((mask & NetworkMessageContentFlags.PayloadHeader) != 0)
             {
                 result |= UadpNetworkMessageContentMask.PayloadHeader;
             }
-            if ((mask & NetworkMessageContentMask.Timestamp) != 0)
+            if ((mask & NetworkMessageContentFlags.Timestamp) != 0)
             {
                 result |= UadpNetworkMessageContentMask.Timestamp;
             }
-            if ((mask & NetworkMessageContentMask.Picoseconds) != 0)
+            if ((mask & NetworkMessageContentFlags.Picoseconds) != 0)
             {
                 result |= UadpNetworkMessageContentMask.PicoSeconds;
             }
-            if ((mask & NetworkMessageContentMask.DataSetClassId) != 0)
+            if ((mask & NetworkMessageContentFlags.DataSetClassId) != 0)
             {
                 result |= UadpNetworkMessageContentMask.DataSetClassId;
             }
-            if ((mask & NetworkMessageContentMask.PromotedFields) != 0)
+            if ((mask & NetworkMessageContentFlags.PromotedFields) != 0)
             {
                 result |= UadpNetworkMessageContentMask.PromotedFields;
             }
@@ -779,30 +733,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        private static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask mask)
+        private static UadpDataSetMessageContentMask ToUadpStackType(this DataSetMessageContentFlags mask)
         {
             var result = UadpDataSetMessageContentMask.None;
-            if ((mask & DataSetContentMask.Timestamp) != 0)
+            if ((mask & DataSetMessageContentFlags.Timestamp) != 0)
             {
                 result |= UadpDataSetMessageContentMask.Timestamp;
             }
-            if ((mask & DataSetContentMask.PicoSeconds) != 0)
+            if ((mask & DataSetMessageContentFlags.PicoSeconds) != 0)
             {
                 result |= UadpDataSetMessageContentMask.PicoSeconds;
             }
-            if ((mask & DataSetContentMask.Status) != 0)
+            if ((mask & DataSetMessageContentFlags.Status) != 0)
             {
                 result |= UadpDataSetMessageContentMask.Status;
             }
-            if ((mask & DataSetContentMask.SequenceNumber) != 0)
+            if ((mask & DataSetMessageContentFlags.SequenceNumber) != 0)
             {
                 result |= UadpDataSetMessageContentMask.SequenceNumber;
             }
-            if ((mask & DataSetContentMask.MinorVersion) != 0)
+            if ((mask & DataSetMessageContentFlags.MinorVersion) != 0)
             {
                 result |= UadpDataSetMessageContentMask.MinorVersion;
             }
-            if ((mask & DataSetContentMask.MajorVersion) != 0)
+            if ((mask & DataSetMessageContentFlags.MajorVersion) != 0)
             {
                 result |= UadpDataSetMessageContentMask.MajorVersion;
             }
@@ -814,41 +768,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask)
+        public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentFlags? mask)
         {
             mask ??=
-                DataSetFieldContentMask.StatusCode |
-                DataSetFieldContentMask.SourceTimestamp |
-                DataSetFieldContentMask.SourcePicoSeconds |
-                DataSetFieldContentMask.ServerPicoSeconds |
-                DataSetFieldContentMask.ServerTimestamp
+                DataSetFieldContentFlags.StatusCode |
+                DataSetFieldContentFlags.SourceTimestamp |
+                DataSetFieldContentFlags.SourcePicoSeconds |
+                DataSetFieldContentFlags.ServerPicoSeconds |
+                DataSetFieldContentFlags.ServerTimestamp
                 ;
             var result = UaDataSetFieldContentMask.None;
-            if ((mask & DataSetFieldContentMask.StatusCode) != 0)
+            if ((mask & DataSetFieldContentFlags.StatusCode) != 0)
             {
                 result |= UaDataSetFieldContentMask.StatusCode;
             }
-            if ((mask & DataSetFieldContentMask.SourceTimestamp) != 0)
+            if ((mask & DataSetFieldContentFlags.SourceTimestamp) != 0)
             {
                 result |= UaDataSetFieldContentMask.SourceTimestamp;
             }
-            if ((mask & DataSetFieldContentMask.ServerTimestamp) != 0)
+            if ((mask & DataSetFieldContentFlags.ServerTimestamp) != 0)
             {
                 result |= UaDataSetFieldContentMask.ServerTimestamp;
             }
-            if ((mask & DataSetFieldContentMask.SourcePicoSeconds) != 0)
+            if ((mask & DataSetFieldContentFlags.SourcePicoSeconds) != 0)
             {
                 result |= UaDataSetFieldContentMask.SourcePicoSeconds;
             }
-            if ((mask & DataSetFieldContentMask.ServerPicoSeconds) != 0)
+            if ((mask & DataSetFieldContentFlags.ServerPicoSeconds) != 0)
             {
                 result |= UaDataSetFieldContentMask.ServerPicoSeconds;
             }
-            if ((mask & DataSetFieldContentMask.RawData) != 0)
+            if ((mask & DataSetFieldContentFlags.RawData) != 0)
             {
                 result |= UaDataSetFieldContentMask.RawData;
             }
-            if ((mask & DataSetFieldContentMask.SingleFieldDegradeToValue) != 0)
+            if ((mask & DataSetFieldContentFlags.SingleFieldDegradeToValue) != 0)
             {
                 result |= DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
             }

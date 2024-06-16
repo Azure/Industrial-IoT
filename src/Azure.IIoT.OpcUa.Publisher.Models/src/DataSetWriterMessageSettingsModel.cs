@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataSetMessageContentMask", Order = 0,
             EmitDefaultValue = false)]
-        public DataSetContentMask? DataSetMessageContentMask { get; set; }
+        public DataSetMessageContentFlags? DataSetMessageContentMask { get; set; }
 
         /// <summary>
         /// Configured size of network message

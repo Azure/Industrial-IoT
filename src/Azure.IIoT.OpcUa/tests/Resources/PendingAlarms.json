@@ -1,0 +1,220 @@
+{
+    "DataSetMessages": [
+        {
+            "MetaData": {
+                "MinorVersion": 2585633434,
+                "DataSetMetaData": {
+                    "Name": null,
+                    "DataSetClassId": "00000000-0000-0000-0000-000000000000",
+                    "Description": null,
+                    "MajorVersion": null
+                },
+                "Fields": [
+                    {
+                        "Name": "ConditionClassId",
+                        "Id": "d46eb7cd-98d4-4a82-bfd4-adfd098e982c",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 17,
+                        "DataType": "i=17",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "ConditionClassName",
+                        "Id": "2da0aa36-960e-4409-b124-14dd6f668d29",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 21,
+                        "DataType": "i=21",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "ConditionSubClassId",
+                        "Id": "3a16f3f9-7dab-482d-8330-41a5cf07e6cb",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 17,
+                        "DataType": "i=17",
+                        "ValueRank": 1,
+                        "ArrayDimensions": [
+                            0
+                        ],
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "ConditionSubClassName",
+                        "Id": "3b995804-43a6-4ced-ba94-393a2ab458c1",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 21,
+                        "DataType": "i=21",
+                        "ValueRank": 1,
+                        "ArrayDimensions": [
+                            0
+                        ],
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "EventId",
+                        "Id": "c6437e7e-02d5-4522-87cf-9191072e73f6",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 15,
+                        "DataType": "i=15",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "EventType",
+                        "Id": "a13496e8-fb1d-482c-a624-80afc6482290",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 17,
+                        "DataType": "i=17",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "LocalTime",
+                        "Id": "9a72a21a-9530-4049-ae24-253442ff2c56",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 22,
+                        "DataType": "i=8912",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "Message",
+                        "Id": "06e2bdcd-889f-4383-b619-a64d03cb6736",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 21,
+                        "DataType": "i=21",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "ReceiveTime",
+                        "Id": "5479a4b9-57ce-45e0-b1ad-c8656be69b7c",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 13,
+                        "DataType": "i=294",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "Severity",
+                        "Id": "e98bb881-66b6-4bdd-8e07-0a0f8745f655",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 5,
+                        "DataType": "i=5",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "SourceName",
+                        "Id": "9d7858f8-e9b1-486b-a4c3-675b04b94f0a",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 12,
+                        "DataType": "i=12",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "SourceNode",
+                        "Id": "782a5509-524f-42da-9d10-273e69aa28db",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 17,
+                        "DataType": "i=17",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "Time",
+                        "Id": "9e644e13-fe64-4969-8728-ec11ae75426c",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 13,
+                        "DataType": "i=294",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    }
+                ],
+                "StructureDataTypes": [
+                    {
+                        "DataTypeId": "i=8912",
+                        "Name": "TimeZoneDataType",
+                        "StructureType": 0,
+                        "Fields": [
+                            {
+                                "Name": "Offset",
+                                "DataType": "i=4",
+                                "Description": null,
+                                "IsOptional": false,
+                                "ValueRank": -1,
+                                "ArrayDimensions": [],
+                                "MaxStringLength": 0
+                            },
+                            {
+                                "Name": "DaylightSavingInOffset",
+                                "DataType": "i=1",
+                                "Description": null,
+                                "IsOptional": false,
+                                "ValueRank": -1,
+                                "ArrayDimensions": [],
+                                "MaxStringLength": 0
+                            }
+                        ],
+                        "BaseDataType": "i=22",
+                        "DefaultEncodingId": "i=8917"
+                    }
+                ],
+                "EnumDataTypes": [],
+                "SimpleDataTypes": [
+                    {
+                        "DataTypeId": "i=294",
+                        "Name": "UtcTime",
+                        "BaseDataType": "i=13",
+                        "BuiltInType": 13
+                    }
+                ]
+            },
+            "DataSetMessageContentFlags": 0,
+            "DataSetFieldContentFlags": 3080199,
+            "TypeName": null
+        }
+    ],
+    "NetworkMessageContentFlags": 8192,
+    "TypeName": null
+}

@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json,
-                NetworkMessageContentMask.SingleDataSetMessage);
+                NetworkMessageContentFlags.SingleDataSetMessage);
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, true, MessageEncoding.Json,
-                NetworkMessageContentMask.SingleDataSetMessage);
+                NetworkMessageContentFlags.SingleDataSetMessage);
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);
@@ -196,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     Name = "test"
                 },
-                Fields = new []
+                Fields = new[]
                 {
                     new PublishedFieldMetaDataModel
                     {

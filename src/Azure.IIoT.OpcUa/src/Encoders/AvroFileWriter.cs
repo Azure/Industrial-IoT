@@ -10,13 +10,13 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Microsoft.IO;
     using System;
     using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
-    using System.IO.Compression;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -30,6 +30,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public bool SupportsContentType(string contentType)
         {
+            if (_options.Value.Disabled)
+            {
+                return false;
+            }
             return
                 contentType.Equals(ContentType.Avro,
                     StringComparison.OrdinalIgnoreCase) ||
@@ -40,9 +44,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Create writer
         /// </summary>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
-        public AvroFileWriter(ILogger<AvroFileWriter> logger)
+        public AvroFileWriter(IOptions<AvroFileWriterOptions> options,
+            ILogger<AvroFileWriter> logger)
         {
+            _options = options;
             _logger = logger;
         }
 
@@ -268,6 +275,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         private const int kBlockSize = 16000;
         internal static readonly RecyclableMemoryStreamManager kStreams = new();
         private readonly ConcurrentDictionary<string, AvroFile> _files = new();
+        private readonly IOptions<AvroFileWriterOptions> _options;
         private readonly ILogger _logger;
     }
 }

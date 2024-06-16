@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public static IList<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
-            NetworkMessageContentMask extraNetworkMessageMask = 0,
+            NetworkMessageContentFlags extraNetworkMessageMask = 0,
             bool isSampleMode = false)
         {
             var messages = new List<SubscriptionNotificationModel>();
@@ -137,15 +137,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 MessageSettings = new WriterGroupMessageSettingsModel
                 {
                     NetworkMessageContentMask =
-                        NetworkMessageContentMask.PublisherId |
-                        NetworkMessageContentMask.WriterGroupId |
-                        NetworkMessageContentMask.NetworkMessageNumber |
-                        NetworkMessageContentMask.SequenceNumber |
-                        NetworkMessageContentMask.PayloadHeader |
-                        NetworkMessageContentMask.Timestamp |
-                        NetworkMessageContentMask.DataSetClassId |
-                        (isSampleMode ? NetworkMessageContentMask.MonitoredItemMessage : NetworkMessageContentMask.NetworkMessageHeader) |
-                        NetworkMessageContentMask.DataSetMessageHeader |
+                        NetworkMessageContentFlags.PublisherId |
+                        NetworkMessageContentFlags.WriterGroupId |
+                        NetworkMessageContentFlags.NetworkMessageNumber |
+                        NetworkMessageContentFlags.SequenceNumber |
+                        NetworkMessageContentFlags.PayloadHeader |
+                        NetworkMessageContentFlags.Timestamp |
+                        NetworkMessageContentFlags.DataSetClassId |
+                        (isSampleMode ? NetworkMessageContentFlags.MonitoredItemMessage : NetworkMessageContentFlags.NetworkMessageHeader) |
+                        NetworkMessageContentFlags.DataSetMessageHeader |
                         extraNetworkMessageMask
                 },
                 MessageType = encoding
@@ -236,12 +236,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
                 var message = new SubscriptionNotificationModel
                 {
-                    Context = new WriterGroupMessageContext
+                    Context = new WriterGroupContext
                     {
                         NextWriterSequenceNumber = () => i,
                         Qos = null,
                         Topic = string.Empty,
                         PublisherId = publisherId,
+                        Schema = null,
                         Writer = writer,
                         WriterGroup = writerGroup
                     },

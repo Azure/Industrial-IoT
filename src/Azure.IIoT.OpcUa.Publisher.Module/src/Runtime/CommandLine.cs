@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using static Azure.IIoT.OpcUa.Publisher.Module.Runtime.Configuration;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Azure.IoT.Edge;
@@ -154,9 +155,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ka|sendkeepalives:|{OpcUaSubscriptionConfig.EnableDataSetKeepAlivesKey}:",
                     "Enables sending keep alive messages triggered by writer subscription's keep alive notifications. This setting can be used to enable the messaging profile's support for keep alive messages.\nIf the chosen messaging profile does not support keep alive messages this setting is ignored.\nDefault: `False` (to save bandwidth).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.EnableDataSetKeepAlivesKey] = b?.ToString() ?? "True" },
-                { $"eip|immediatepublishing:|{OpcUaSubscriptionConfig.EnableImmediatePublishingKey}:",
-                    "By default OPC Publisher will create a subscription with publishing disabled and only enable it after it has filled it with all configured monitored items. Use this setting to create the subscription with publishing already enabled.\nDefault: `False`.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.EnableImmediatePublishingKey] = b?.ToString() ?? "True" },
                 { $"msi|metadatasendinterval=|{OpcUaSubscriptionConfig.DefaultMetaDataUpdateTimeKey}=",
                     "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n",
                     (uint i) => this[OpcUaSubscriptionConfig.DefaultMetaDataUpdateTimeKey] = TimeSpan.FromMilliseconds(i).ToString() },
@@ -169,10 +167,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"amt|asyncmetadatathreshold=|{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey}=",
                     $"The default threshold of monitored items in a subscription under which meta data is loaded synchronously during subscription creation.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to always load metadata asynchronously.\nOnly used if meta data is supported and enabled.\nDefault: `{OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdDefault}`.\n",
                     (uint i) => this[OpcUaSubscriptionConfig.AsyncMetaDataLoadThresholdKey] = TimeSpan.FromMilliseconds(i).ToString() },
-                { $"dsg|disablesessionpergroup:|{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey}:",
-                    $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupDefault}`.\n",
-                    (bool? b) => this[OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
-
+                { $"ps|publishschemas:|{PublisherConfig.PublishMessageSchemaKey}:",
+                    "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nOnly has effect if the messaging profile supports publishing schemas.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",
+                    (bool? b) => this[PublisherConfig.PublishMessageSchemaKey] = b?.ToString() ?? "True" },
+                    { $"asj|preferavro:|{PublisherConfig.PreferAvroOverJsonSchemaKey}:",
+                        "Publish Avro schema even for Json encoded messages. Automatically enables publishing schemas as if `--ps` was set.\nDefault: `False`.\n",
+                        (bool? b) => this[PublisherConfig.PreferAvroOverJsonSchemaKey] = b?.ToString() ?? "True" },
+                    { $"daf|disableavrofiles:|{AvroWriter.DisableKey}:",
+                        "Disable writing avro files and instead dump messages and schema as zip files using the filesystem transport.\nDefault: `False`.\n",
+                        (bool? b) => this[AvroWriter.DisableKey] = b?.ToString() ?? "True" },
                 { $"om|maxsendqueuesize=|{PublisherConfig.MaxNetworkMessageSendQueueSizeKey}=",
                     $"The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `{PublisherConfig.MaxNetworkMessageSendQueueSizeDefault}`\n",
                     (uint i) => this[PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = i.ToString(CultureInfo.InvariantCulture) },
@@ -249,6 +252,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"mdt|metadatatopictemplate:|{PublisherConfig.DataSetMetaDataTopicTemplateKey}:",
                     "The topic that metadata should be sent to.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{Encoding}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriter}}` and\n    `{{WriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/metadata`.\n",
                     s => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : PublisherConfig.MetadataTopicTemplateDefault },
+                { $"stt|schematopictemplate:|{PublisherConfig.SchemaTopicTemplateKey}:",
+                    "The topic that schemas should be sent to if schema publishing is configured.\nIn case of MQTT schemas will not be sent with .\nOnly valid if schema publishing is enabled (`--ps`).\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{TelemetryTopic}}`\ncan be used as variables inside the template. \nDefault: `{{TelemetryTopic}}/schema` which means the schema is sent to a sub topic where the telemetry message is sent to.\n",
+                    s => this[PublisherConfig.SchemaTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : PublisherConfig.SchemaTopicTemplateDefault },
                 { $"uns|datasetrouting=|{PublisherConfig.DefaultDataSetRoutingKey}=",
                     $"Configures whether messages should automatically be routed using the browse path of the monitored item inside the address space starting from the RootFolder.\nThe browse path is appended as topic structure to the telemetry topic root which can be configured using `--ttt`. Reserved characters in browse names are escaped with their hex ASCII code.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(DataSetRoutingMode)))}`\nDefault: `{nameof(DataSetRoutingMode.None)}` (Topics must be configured).\n",
                     (DataSetRoutingMode m) => this[PublisherConfig.DefaultDataSetRoutingKey] = m.ToString() },
@@ -267,6 +273,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"op|opcpublishinginterval=|{OpcUaSubscriptionConfig.DefaultPublishingIntervalKey}=",
                     "Default value in milliseconds for the publishing interval setting of a subscription created with an OPC UA server. This value is used if an explicit publishing interval was not configured.\nDefault: `1000`.\nAlso can be set using `DefaultPublishingInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n",
                     (uint i) => this[OpcUaSubscriptionConfig.DefaultPublishingIntervalKey] = TimeSpan.FromMilliseconds(i).ToString() },
+                { $"eip|immediatepublishing:|{OpcUaSubscriptionConfig.EnableImmediatePublishingKey}:",
+                    "By default OPC Publisher will create a subscription with publishing disabled and only enable it after it has filled it with all configured monitored items. Use this setting to create the subscription with publishing already enabled.\nDefault: `False`.\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.EnableImmediatePublishingKey] = b?.ToString() ?? "True" },
                 { $"ska|keepalivecount=|{OpcUaSubscriptionConfig.DefaultKeepAliveCountKey}=",
                     $"Specifies the default number of publishing intervals before a keep alive is returned with the next queued publishing response.\nDefault: `{OpcUaSubscriptionConfig.DefaultKeepAliveCountDefault}`.\n",
                     (uint u) => this[OpcUaSubscriptionConfig.DefaultKeepAliveCountKey] = u.ToString(CultureInfo.CurrentCulture) },
@@ -329,6 +338,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"dtr|disabletransferonreconnect:|{OpcUaSubscriptionConfig.DisableSubscriptionTransferKey}:",
                     "Do not attempt to transfer subscriptions when reconnecting but re-establish the subscription.\nDefault: `false`.\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.DisableSubscriptionTransferKey] = b?.ToString() ?? "True" },
+                { $"dsg|disablesessionpergroup:|{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey}:",
+                    $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupDefault}`.\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
 
                 "",
                 "OPC UA Client configuration",
@@ -641,14 +653,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             else
             {
                 options.WriteOptionDescriptions(Console.Out);
-                var markdown = MessagingProfile.GetAllAsMarkdownTable();
-#if WRITETABLE
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("The following messaging profiles are supported (selected with --mm and --me):");
-                Console.WriteLine();
-                Console.WriteLine(markdown);
-#endif
                 _logger.ExitProcess(0);
             }
 

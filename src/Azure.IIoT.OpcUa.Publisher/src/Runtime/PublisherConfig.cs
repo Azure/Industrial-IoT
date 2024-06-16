@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
@@ -42,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EventsTopicTemplateKey = "EventsTopicTemplate";
         public const string DiagnosticsTopicTemplateKey = "DiagnosticsTopicTemplate";
         public const string DataSetMetaDataTopicTemplateKey = "DataSetMetaDataTopicTemplate";
+        public const string SchemaTopicTemplateKey = "SchemaTopicTemplate";
         public const string DefaultWriterGroupPartitionCountKey = "DefaultWriterGroupPartitionCount";
         public const string DefaultMaxMessagesPerPublishKey = "DefaultMaxMessagesPerPublish";
         public const string MaxNetworkMessageSendQueueSizeKey = "MaxNetworkMessageSendQueueSize";
@@ -70,6 +72,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
         public const string DefaultDataSetRoutingKey = "DefaultDataSetRouting";
         public const string ApiKeyOverrideKey = "ApiKey";
+        public const string PublishMessageSchemaKey = "PublishMessageSchema";
+        public const string PreferAvroOverJsonSchemaKey = "PreferAvroOverJsonSchema";
+        public const string SchemaNamespaceKey = "SchemaNamespace";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -105,6 +110,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             $"{{{RootTopicVariableName}}}/diagnostics/{{{WriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
+        public const string SchemaTopicTemplateDefault =
+            $"{{{TelemetryTopicVariableName}}}/schema";
         public const string PublishedNodesFileDefault = "publishednodes.json";
         public const string RuntimeStateRoutingInfoDefault = "runtimeinfo";
         public const bool EnableRuntimeStateReportingDefault = false;
@@ -256,6 +263,12 @@ namespace Azure.IIoT.OpcUa.Publisher
                     DataSetMetaDataTopicTemplateKey);
             }
 
+            if (options.TopicTemplates.Schema == null)
+            {
+                options.TopicTemplates.Schema = GetStringOrDefault(
+                    SchemaTopicTemplateKey, SchemaTopicTemplateDefault);
+            }
+
             options.DisableOpenApiEndpoint ??= GetBoolOrNull(DisableOpenApiEndpointKey);
 
             options.EnableRuntimeStateReporting ??= GetBoolOrDefault(
@@ -351,6 +364,19 @@ namespace Azure.IIoT.OpcUa.Publisher
                     out var routingMode))
             {
                 options.DefaultDataSetRouting = routingMode;
+            }
+
+            var schemaNamespace = GetStringOrDefault(SchemaNamespaceKey);
+            var avroPreferred = GetBoolOrNull(PreferAvroOverJsonSchemaKey);
+            if (schemaNamespace != null || avroPreferred != null ||
+                GetBoolOrDefault(PublishMessageSchemaKey))
+            {
+                options.SchemaOptions ??= new SchemaOptions();
+            }
+            if (options.SchemaOptions != null)
+            {
+                options.SchemaOptions.Namespace ??= schemaNamespace;
+                options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
             }
         }
 

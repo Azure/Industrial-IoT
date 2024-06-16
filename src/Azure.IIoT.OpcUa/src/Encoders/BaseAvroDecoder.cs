@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Buffers.Binary;
@@ -398,7 +399,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var fieldNames = Array.Empty<string>();
                 var dataSet = avroFieldContent == 0 ?
                     new DataSet() :
-                    new DataSet((uint)DataSetFieldContentMask.RawData);
+                    new DataSet(DataSetFieldContentFlags.RawData);
 
                 if (avroFieldContent == 1) // Raw mode
                 {

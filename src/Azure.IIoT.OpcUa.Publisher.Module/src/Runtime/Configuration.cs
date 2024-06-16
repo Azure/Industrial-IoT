@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
@@ -106,6 +107,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddMqttClient();
                 builder.RegisterType<MqttBroker>()
                     .AsImplementedInterfaces();
+                builder.RegisterType<SchemaTopicBuilder>()
+                    .AsImplementedInterfaces();
             }
         }
 
@@ -161,6 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 builder.AddFileSystemEventClient();
                 builder.RegisterType<FileSystem>()
+                    .AsImplementedInterfaces();
+                builder.RegisterType<AvroWriter>()
                     .AsImplementedInterfaces();
             }
         }
@@ -956,6 +961,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 : base(configuration)
             {
             }
+        }
+
+        /// <summary>
+        /// Avro file writer configuration
+        /// </summary>
+        internal sealed class AvroWriter : ConfigureOptionBase<AvroFileWriterOptions>
+        {
+            public const string DisableKey = "DisableAvroFileWriter";
+
+            public override void Configure(string? name, AvroFileWriterOptions options)
+            {
+                options.Disabled = GetBoolOrDefault(DisableKey);
+            }
+
+            /// <summary>
+            /// Transport configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public AvroWriter(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Configure schema topic templates
+        /// </summary>
+        internal sealed class SchemaTopicBuilder : ConfigureOptionBase<MqttOptions>
+        {
+            /// <inheritdoc/>
+            public override void Configure(string? name, MqttOptions options)
+            {
+                if (_options.Value.SchemaOptions != null &&
+                    _options.Value.TopicTemplates.Schema != null)
+                {
+                    options.ConfigureSchemaMessage = message =>
+                    {
+                        //
+                        // Set the telemetry topic template to the passed
+                        // in message topic
+                        //
+                        var templates = new TopicTemplatesOptions
+                        {
+                            Telemetry = message.Topic
+                        };
+                        message.Topic = new TopicBuilder(_options.Value,
+                            templates: templates).SchemaTopic;
+                    };
+                }
+            }
+
+            /// <inheritdoc/>
+            public SchemaTopicBuilder(IConfiguration configuration,
+                IOptions<PublisherOptions> options)
+                : base(configuration)
+            {
+                _options = options;
+            }
+
+            private readonly IOptions<PublisherOptions> _options;
         }
 
         /// <summary>

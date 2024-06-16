@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.IO;
@@ -166,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
             };
 
-            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
+            expected.DataSetFieldContentMask |= DataSetFieldContentFlags.SingleFieldDegradeToValue;
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -196,8 +196,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
             };
 
-            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMaskEx.SingleFieldDegradeToValue;
-            expected.DataSetFieldContentMask |= (uint)DataSetFieldContentMask.RawData;
+            expected.DataSetFieldContentMask |= DataSetFieldContentFlags.SingleFieldDegradeToValue;
+            expected.DataSetFieldContentMask |= DataSetFieldContentFlags.RawData;
 
             byte[] buffer;
             var context = new ServiceMessageContext();

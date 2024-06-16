@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
-    using Opc.Ua;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -76,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Data set metadata in case this is a metadata message
         /// </summary>
-        public DataSetMetaDataType? MetaData { get; set; }
+        public PublishedDataSetMetaDataModel? MetaData { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -89,11 +88,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.MessageId, MessageId) ||
-                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
-                !Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
-                !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
-                !Utils.IsEqual(wrapper.MetaData, MetaData))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.MessageId, MessageId) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName) ||
+                !wrapper.MetaData.IsSameAs(MetaData) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId))
             {
                 return false;
             }
@@ -114,14 +113,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+        public override bool TryDecode(Opc.Ua.IServiceMessageContext context, Stream stream,
             IDataSetMetaDataResolver? resolver)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context,
+        public override bool TryDecode(Opc.Ua.IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
             if (reader.TryPeek(out var buffer))
@@ -149,7 +148,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(
+            Opc.Ua.IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
             var chunks = new List<ReadOnlySequence<byte>>();
@@ -193,8 +193,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Encode metadata
         /// </summary>
         /// <param name="encoder"></param>
-        internal void Encode(IEncoder encoder)
+        /// <exception cref="EncodingException"></exception>
+        internal void Encode(Opc.Ua.IEncoder encoder)
         {
+            if (MetaData == null)
+            {
+                throw new EncodingException("No metadata to encode.");
+            }
             encoder.WriteString(nameof(MessageId), MessageId);
             encoder.WriteString(nameof(MessageType), MessageType);
 
@@ -210,7 +215,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
             }
-            encoder.WriteEncodeable(nameof(MetaData), MetaData, typeof(DataSetMetaDataType));
+            var dataSetMetaData = MetaData.ToStackModel(encoder.Context);
+            encoder.WriteEncodeable(nameof(MetaData), dataSetMetaData,
+                typeof(Opc.Ua.DataSetMetaDataType));
             if (!string.IsNullOrEmpty(DataSetWriterName))
             {
                 encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
@@ -218,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        internal bool TryDecode(IDecoder decoder)
+        internal bool TryDecode(Opc.Ua.IDecoder decoder)
         {
             MessageId = decoder.ReadString(nameof(MessageId));
             var messageType = decoder.ReadString(nameof(MessageType));
@@ -228,8 +235,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             PublisherId = decoder.ReadString(nameof(PublisherId));
             DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
-            MetaData = (DataSetMetaDataType)decoder.ReadEncodeable(
-                nameof(MetaData), typeof(DataSetMetaDataType));
+            var dataSetMetaData = (Opc.Ua.DataSetMetaDataType)decoder.ReadEncodeable(
+                nameof(MetaData), typeof(Opc.Ua.DataSetMetaDataType));
+            MetaData = dataSetMetaData.ToServiceModel(decoder.Context);
             DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             return true;
         }

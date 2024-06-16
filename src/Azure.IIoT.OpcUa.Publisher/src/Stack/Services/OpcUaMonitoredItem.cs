@@ -12,13 +12,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Extensions;
-    using System.Linq;
 
     /// <summary>
     /// Update display name
@@ -613,7 +613,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     NamespaceFormat.Expanded),
                 ArrayDimensions = variable.ArrayDimensions?.Count > 0
                     ? variable.ArrayDimensions : null,
-                Description = variable.Description?.Text,
+                Description = variable.Description.AsString(),
                 ValueRank = variable.ValueRank,
                 MaxStringLength = 0,
                 // If the Property is EngineeringUnits, the unit of the Field Value
@@ -739,9 +739,9 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                                                         .Select(f => new EnumFieldDescriptionModel
                                                         {
                                                             Value = f.Value,
-                                                            DisplayName = f.DisplayName?.Text,
+                                                            DisplayName = f.DisplayName.AsString(),
                                                             Name = f.Name,
-                                                            Description = f.Description?.Text
+                                                            Description = f.Description.AsString()
                                                         })
                                                         .ToList()
                                                 },
@@ -820,7 +820,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                             DataType = f.DataType.AsString(context, namespaceFormat)
                                 ?? string.Empty,
                             Name = f.Name,
-                            Description = f.Description?.Text
+                            Description = f.Description.AsString()
                         };
                     }
                 }

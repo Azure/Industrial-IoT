@@ -1,0 +1,320 @@
+{
+    "DataSetMessages": [
+        {
+            "MetaData": {
+                "MinorVersion": 2035898649,
+                "DataSetMetaData": {
+                    "Name": null,
+                    "DataSetClassId": "00000000-0000-0000-0000-000000000000",
+                    "Description": null,
+                    "MajorVersion": null
+                },
+                "Fields": [
+                    {
+                        "Name": "i=2258",
+                        "Id": "0a8fa57d-53f1-4d36-a6bf-aea8c266236a",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 13,
+                        "DataType": "i=294",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp",
+                        "Id": "b4966f7d-c3b8-456b-a34d-33375e96a44f",
+                        "Description": "Constantly increasing value",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean",
+                        "Id": "a0fbd59d-bf90-481d-8148-0cf3f95f72db",
+                        "Description": "Alternating boolean value",
+                        "Flags": 0,
+                        "BuiltInType": 1,
+                        "DataType": "i=1",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomSignedInt32",
+                        "Id": "2fd5d646-b318-4794-8f76-900a5349e473",
+                        "Description": "Random signed 32 bit integer value",
+                        "Flags": 0,
+                        "BuiltInType": 6,
+                        "DataType": "i=6",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomUnsignedInt32",
+                        "Id": "e18cd56a-62cd-4513-ac53-95acec4175d9",
+                        "Description": "Random unsigned 32 bit integer value",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DipData",
+                        "Id": "2a46ec59-56f8-4d48-a8a3-b3ae6fb2e416",
+                        "Description": "Value with random dips",
+                        "Flags": 0,
+                        "BuiltInType": 11,
+                        "DataType": "i=11",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1",
+                        "Id": "2031bf9e-d182-4ccf-86cf-0c41a2dda649",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2",
+                        "Id": "08d04674-0330-48ef-a0b8-e84d12305262",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3",
+                        "Id": "bc08ef8e-c316-496f-bbb8-3274530ccd17",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar1",
+                        "Id": "02c26a87-ef62-4196-9cfd-4ea01f1fbb4a",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar2",
+                        "Id": "43e3f216-61a4-4d59-801a-3d4e27e23c0a",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar3",
+                        "Id": "c3130fd7-318f-4889-9c48-dd316341d300",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=NegativeTrendData",
+                        "Id": "baf8c090-104a-4b51-8e26-433258108cae",
+                        "Description": "Value with a slow negative trend",
+                        "Flags": 0,
+                        "BuiltInType": 11,
+                        "DataType": "i=11",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=PositiveTrendData",
+                        "Id": "2717fada-a74b-4277-923c-f759e29db569",
+                        "Description": "Value with a slow positive trend",
+                        "Flags": 0,
+                        "BuiltInType": 11,
+                        "DataType": "i=11",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1",
+                        "Id": "386cfed8-026d-44c2-8f93-ed615cb9c7c2",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2",
+                        "Id": "353428b9-10b9-4045-a1f4-cf8068b9010e",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3",
+                        "Id": "0df6f7e9-e2d9-4bcd-ae46-f068356a8f13",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1",
+                        "Id": "83d68c47-e6c2-4002-8d1c-1cfa80063c5a",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1",
+                        "Id": "208b6ac5-2996-47c9-a361-8f129d8cc1d1",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2",
+                        "Id": "99b85816-0e7e-4d14-adc2-ffbf47e9c344",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3",
+                        "Id": "9c9178c5-5037-42f8-8c5a-f70f51464270",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1",
+                        "Id": "1885cb44-3ebd-4246-b522-b3271c867e9b",
+                        "Description": "Constantly increasing value(s)",
+                        "Flags": 0,
+                        "BuiltInType": 7,
+                        "DataType": "i=7",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SpikeData",
+                        "Id": "03161fb9-a405-4950-b4d2-efdedf7c47a5",
+                        "Description": "Value with random spikes",
+                        "Flags": 0,
+                        "BuiltInType": 11,
+                        "DataType": "i=11",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    },
+                    {
+                        "Name": "ns=23;i=1259",
+                        "Id": "bdc40f73-e20d-4102-8baa-ed171cbc4bd1",
+                        "Description": null,
+                        "Flags": 0,
+                        "BuiltInType": 26,
+                        "DataType": "i=26",
+                        "ValueRank": -1,
+                        "ArrayDimensions": null,
+                        "MaxStringLength": 0,
+                        "Properties": null
+                    }
+                ],
+                "StructureDataTypes": [],
+                "EnumDataTypes": [],
+                "SimpleDataTypes": [
+                    {
+                        "DataTypeId": "i=294",
+                        "Name": "UtcTime",
+                        "BaseDataType": "i=13",
+                        "BuiltInType": 13
+                    }
+                ]
+            },
+            "DataSetMessageContentFlags": 0,
+            "DataSetFieldContentFlags": 3080199,
+            "TypeName": null
+        }
+    ],
+    "NetworkMessageContentFlags": 8192,
+    "TypeName": null
+}

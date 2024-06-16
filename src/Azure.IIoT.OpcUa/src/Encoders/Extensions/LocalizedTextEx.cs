@@ -15,11 +15,11 @@ namespace Opc.Ua.Extensions
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string AsString(this LocalizedText value)
+        public static string? AsString(this LocalizedText? value)
         {
             if (value == null || value.Text == null)
             {
-                return string.Empty;
+                return null;
             }
             var full = value.Text;
             if (!string.IsNullOrEmpty(value.Locale))

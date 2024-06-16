@@ -110,12 +110,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     DefaultKeepAliveCountDefault);
             options.DefaultLifeTimeCount ??= (uint)GetIntOrDefault(DefaultLifetimeCountKey,
                     DefaultLifetimeCountDefault);
-            // Set a default from the strict setting
 
             options.DisableComplexTypeSystem ??= GetBoolOrNull(DisableComplexTypeSystemKey);
             options.DisableDataSetMetaData = options.DisableComplexTypeSystem;
+            // Set a default from the strict setting
             options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
                 !(_options.Value.UseStandardsCompliantEncoding ?? false));
+            if (_options.Value.SchemaOptions != null)
+            {
+                // Always turn on metadata for schema publishing
+                options.DisableComplexTypeSystem = false;
+                options.DisableDataSetMetaData = false;
+            }
             options.AsyncMetaDataLoadThreshold ??= GetIntOrDefault(
                     AsyncMetaDataLoadThresholdKey, AsyncMetaDataLoadThresholdDefault);
             if (options.DefaultMetaDataUpdateTime == null && options.DisableDataSetMetaData != true)

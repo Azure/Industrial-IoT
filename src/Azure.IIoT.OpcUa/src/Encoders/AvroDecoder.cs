@@ -7,14 +7,14 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Avro;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using global::Avro;
     using Opc.Ua;
     using System;
     using System.IO;
     using System.Linq;
     using System.Xml;
-    using Newtonsoft.Json.Linq;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
@@ -302,7 +302,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 if (isRaw)
                 {
-                    dataSet.DataSetFieldContentMask = (uint)DataSetFieldContentMask.RawData;
+                    dataSet.DataSetFieldContentMask = DataSetFieldContentFlags.RawData;
                 }
                 return dataSet;
             }
@@ -1031,7 +1031,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             return _schema.Current;
         }
 
-        private readonly AvroBuiltInAvroSchemas _builtIns = new();
+        private readonly AvroBuiltInSchemas _builtIns = new();
         private readonly AvroSchemaTraverser _schema;
     }
 

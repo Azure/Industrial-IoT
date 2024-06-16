@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas
 {
-    using Opc.Ua;
-
     /// <summary>
     /// Options for the schema generation
     /// </summary>
@@ -18,13 +16,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         public string? Namespace { get; set; }
 
         /// <summary>
-        /// Escape field names and symbols in schema
+        /// Prefer generating avro schema over json schema
         /// </summary>
-        public bool EscapeSymbols { get; set; }
-
-        /// <summary>
-        /// Namespace table
-        /// </summary>
-        public NamespaceTable? Namespaces { get; set; }
+        public bool? PreferAvroOverJsonSchema { get; set; }
     }
 }

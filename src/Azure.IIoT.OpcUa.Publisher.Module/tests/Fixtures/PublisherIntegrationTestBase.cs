@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using Microsoft.Extensions.Logging;
+    using Neovolve.Logging.Xunit;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -24,8 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Neovolve.Logging.Xunit;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Json message
@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
                 if (_publisher != null)
                 {
-                    StopPublisherAsync().GetAwaiter().GetResult();
+                    StopPublisherAsync().WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
                 }
 
                 _cts.Dispose();

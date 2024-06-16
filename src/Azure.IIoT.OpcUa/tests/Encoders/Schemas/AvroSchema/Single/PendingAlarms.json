@@ -1,0 +1,652 @@
+{
+  "type": "record",
+  "name": "DataSetMessage",
+  "namespace": "org.github.microsoft.opc.publisher",
+  "fields": [
+    {
+      "name": "MessageType",
+      "type": {
+        "type": "record",
+        "name": "String",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_12"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataSetWriterName",
+      "type": "org.opcfoundation.UA.String"
+    },
+    {
+      "name": "DataSetWriterId",
+      "type": {
+        "type": "record",
+        "name": "UInt16",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_5"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "int"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SequenceNumber",
+      "type": {
+        "type": "record",
+        "name": "UInt32",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_7"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "int"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MetaDataVersion",
+      "type": {
+        "type": "record",
+        "name": "ConfigurationVersionDataType",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_14593"
+        ],
+        "fields": [
+          {
+            "name": "MajorVersion",
+            "type": "UInt32"
+          },
+          {
+            "name": "MinorVersion",
+            "type": "UInt32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Timestamp",
+      "type": {
+        "type": "record",
+        "name": "DateTime",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_13"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "long"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Status",
+      "type": {
+        "type": "record",
+        "name": "StatusCode",
+        "namespace": "org.opcfoundation.UA",
+        "aliases": [
+          "org.opcfoundation.UA.i_19"
+        ],
+        "fields": [
+          {
+            "name": "Value",
+            "type": "long"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Payload",
+      "type": {
+        "type": "record",
+        "name": "DataSet",
+        "fields": [
+          {
+            "name": "ConditionClassId",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "NodeIdDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "NodeId",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_17"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Namespace",
+                            "type": "String"
+                          },
+                          {
+                            "name": "Identifier",
+                            "type": [
+                              "UInt32",
+                              "String",
+                              {
+                                "type": "record",
+                                "name": "Guid",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_14"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": {
+                                      "type": "string",
+                                      "logicalType": "uuid"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "record",
+                                "name": "ByteString",
+                                "namespace": "org.opcfoundation.UA",
+                                "aliases": [
+                                  "org.opcfoundation.UA.i_15"
+                                ],
+                                "fields": [
+                                  {
+                                    "name": "Value",
+                                    "type": "bytes"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "ConditionClassName",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "LocalizedTextDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "LocalizedText",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_21"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Locale",
+                            "type": "String"
+                          },
+                          {
+                            "name": "Text",
+                            "type": "String"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "ConditionSubClassId",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "NodeIdCollectionDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "NodeIdCollection",
+                        "namespace": "org.opcfoundation.UA",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "array",
+                              "items": "NodeId"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "ConditionSubClassName",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "LocalizedTextCollectionDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "LocalizedTextCollection",
+                        "namespace": "org.opcfoundation.UA",
+                        "fields": [
+                          {
+                            "name": "Value",
+                            "type": {
+                              "type": "array",
+                              "items": "LocalizedText"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "EventId",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "ByteStringDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.ByteString"
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "EventType",
+            "type": [
+              "null",
+              "org.github.microsoft.opc.publisher.NodeIdDataValue"
+            ]
+          },
+          {
+            "name": "LocalTime",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "TimeZoneDataTypeDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      {
+                        "type": "record",
+                        "name": "TimeZoneDataType",
+                        "namespace": "org.opcfoundation.UA",
+                        "aliases": [
+                          "org.opcfoundation.UA.i_x95_8912"
+                        ],
+                        "fields": [
+                          {
+                            "name": "Offset",
+                            "type": {
+                              "type": "record",
+                              "name": "Int16",
+                              "namespace": "org.opcfoundation.UA",
+                              "aliases": [
+                                "org.opcfoundation.UA.i_4"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "int"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": "DaylightSavingInOffset",
+                            "type": {
+                              "type": "record",
+                              "name": "Boolean",
+                              "namespace": "org.opcfoundation.UA",
+                              "aliases": [
+                                "org.opcfoundation.UA.i_1"
+                              ],
+                              "fields": [
+                                {
+                                  "name": "Value",
+                                  "type": "boolean"
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "uaDataTypeId": "i=8912"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Message",
+            "type": [
+              "null",
+              "org.github.microsoft.opc.publisher.LocalizedTextDataValue"
+            ]
+          },
+          {
+            "name": "ReceiveTime",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "DateTimeDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.DateTime"
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Severity",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "UInt16DataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.UInt16"
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "SourceName",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "StringDataValue",
+                "namespace": "org.github.microsoft.opc.publisher",
+                "fields": [
+                  {
+                    "name": "Value",
+                    "type": [
+                      "null",
+                      "org.opcfoundation.UA.String"
+                    ]
+                  },
+                  {
+                    "name": "StatusCode",
+                    "type": "org.opcfoundation.UA.StatusCode"
+                  },
+                  {
+                    "name": "SourceTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "SourcePicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  },
+                  {
+                    "name": "ServerTimestamp",
+                    "type": "org.opcfoundation.UA.DateTime"
+                  },
+                  {
+                    "name": "ServerPicoseconds",
+                    "type": "org.opcfoundation.UA.UInt16"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "SourceNode",
+            "type": [
+              "null",
+              "org.github.microsoft.opc.publisher.NodeIdDataValue"
+            ]
+          },
+          {
+            "name": "Time",
+            "type": [
+              "null",
+              "org.github.microsoft.opc.publisher.DateTimeDataValue"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

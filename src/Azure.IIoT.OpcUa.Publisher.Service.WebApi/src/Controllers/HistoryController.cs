@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Asp.Versioning;
     using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
-    using Asp.Versioning;
 
     /// <summary>
     /// History raw access services

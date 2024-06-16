@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using NodeClass = Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
@@ -742,8 +741,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     map.TryGetValue(relativePath, out var overriden);
 
                     var displayName =
-                        LocalizedText.IsNullOrEmpty(reference.DisplayName) ?
-                        reference.BrowseName.Name : reference.DisplayName.Text;
+                        LocalizedText.IsNullOrEmpty(reference.DisplayName?.Text) ?
+                            reference.BrowseName.Name : reference.DisplayName.AsString();
                     var child = new InstanceDeclarationModel
                     {
                         RootTypeId = typeId.AsString(session.MessageContext,
@@ -815,7 +814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     children[nodeId] = children[nodeId] with
                     {
-                        Description = description.Item1?.Text
+                        Description = description.Item1.AsString()
                     };
                 }
 

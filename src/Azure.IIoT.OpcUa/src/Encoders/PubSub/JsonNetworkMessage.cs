@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
-    using Opc.Ua;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -53,19 +52,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Get flag that indicates if message has network message header
         /// </summary>
         public bool HasNetworkMessageHeader
-            => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0;
+            => (NetworkMessageContentMask & NetworkMessageContentFlags.NetworkMessageHeader) != 0;
 
         /// <summary>
         /// Flag that indicates if the Network message contains a single dataset message
         /// </summary>
         public bool HasSingleDataSetMessage
-            => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0;
+            => (NetworkMessageContentMask & NetworkMessageContentFlags.SingleDataSetMessage) != 0;
 
         /// <summary>
         /// Flag that indicates if the Network message dataSets have header
         /// </summary>
         public bool HasDataSetMessageHeader
-            => (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetMessageHeader) != 0;
+            => (NetworkMessageContentMask & NetworkMessageContentFlags.DataSetMessageHeader) != 0;
 
         /// <summary>
         /// Flag that indicates if the Network message payload is monitored item samples
@@ -173,8 +172,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.MessageId(), MessageId()) ||
-                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.MessageId(), MessageId()) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup))
             {
                 return false;
             }
@@ -192,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context, Stream stream,
+        public override bool TryDecode(Opc.Ua.IServiceMessageContext context, Stream stream,
             IDataSetMetaDataResolver? resolver)
         {
             var compression = UseGzipCompression ?
@@ -216,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override bool TryDecode(IServiceMessageContext context,
+        public override bool TryDecode(Opc.Ua.IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver = null)
         {
             // Decodes a single buffer
@@ -251,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(IServiceMessageContext context,
+        public override IReadOnlyList<ReadOnlySequence<byte>> Encode(Opc.Ua.IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver = null)
         {
             var chunks = new List<ReadOnlySequence<byte>>();
@@ -383,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (decoder.IsObject(nameof(Messages)))
                 {
                     // Single message
-                    networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                    networkMessageContentMask |= NetworkMessageContentFlags.SingleDataSetMessage;
                 }
                 else if (!decoder.IsArray(nameof(Messages)))
                 {
@@ -404,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             if (decoder.IsObject(null))
             {
                 // Treat this object as the single message
-                NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.SingleDataSetMessage;
+                NetworkMessageContentMask |= NetworkMessageContentFlags.SingleDataSetMessage;
             }
             else if (!decoder.IsArray(null))
             {
@@ -444,11 +443,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 if (hasDataSetMessageHeader)
                 {
-                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetMessageHeader;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.DataSetMessageHeader;
                 }
                 if (publisherId != null)
                 {
-                    NetworkMessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
+                    NetworkMessageContentMask |= NetworkMessageContentFlags.PublisherId;
                     PublisherId = null;
                 }
                 return true;
@@ -463,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         private void WriteNetworkMessage(JsonEncoderEx encoder, JsonDataSetMessage[] messages)
         {
             var publisherId =
-                (NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) == 0
+                (NetworkMessageContentMask & NetworkMessageContentFlags.PublisherId) == 0
                     ? null : PublisherId;
             if (HasNetworkMessageHeader)
             {
@@ -530,7 +529,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="decoder"></param>
         /// <param name="networkMessageContentMask"></param>
         /// <returns></returns>
-        private bool TryReadNetworkMessageHeader(JsonDecoderEx decoder, out uint networkMessageContentMask)
+        private bool TryReadNetworkMessageHeader(JsonDecoderEx decoder,
+            out NetworkMessageContentFlags networkMessageContentMask)
         {
             networkMessageContentMask = 0;
             if (!decoder.HasField(nameof(MessageId)) || HasSamplesPayload)
@@ -550,14 +550,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 // Not a dataset network message
                 return false;
             }
-            networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
+            networkMessageContentMask |= NetworkMessageContentFlags.NetworkMessageHeader;
 
             if (decoder.HasField(nameof(PublisherId)))
             {
                 PublisherId = decoder.ReadString(nameof(PublisherId));
                 if (PublisherId != null)
                 {
-                    networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
+                    networkMessageContentMask |= NetworkMessageContentFlags.PublisherId;
                 }
                 else
                 {
@@ -573,7 +573,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (dataSetClassId != null && Guid.TryParse(dataSetClassId, out var result))
                 {
                     DataSetClassId = result;
-                    networkMessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
+                    networkMessageContentMask |= NetworkMessageContentFlags.DataSetClassId;
                 }
                 else
                 {
@@ -604,11 +604,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // The encoder was set up as object beforehand based on IsJsonArray result
             encoder.WriteString(nameof(MessageId), MessageId());
             encoder.WriteString(nameof(MessageType), MessageType);
-            if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0)
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.PublisherId) != 0)
             {
                 encoder.WriteString(nameof(PublisherId), PublisherId);
             }
-            if ((NetworkMessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
+            if ((NetworkMessageContentMask & NetworkMessageContentFlags.DataSetClassId) != 0 &&
                 DataSetClassId != Guid.Empty)
             {
                 encoder.WriteString(nameof(DataSetClassId), DataSetClassId.ToString());
