@@ -878,6 +878,15 @@ OPC UA Client configuration
                                    `Directory`
                                    `X509Store`
                                Default: `Directory`.
+      --cfa, --configurefromappcert, --TryConfigureFromExistingAppCert[=VALUE]
+                             Automatically set the application subject name,
+                               host name and application uri from the first
+                               valid application certificate found in the
+                               application certificate store path.
+                               If the chosen certificate is valid, it will be
+                               used, otherwise a new, self-signed certificate
+                               with the information will be created.
+                               Default: `False`.
       --apw, --appcertstorepwd, --ApplicationCertificatePassword=VALUE
                              Password to use when storing the application
                                certificate in the store folder if the store is
