@@ -1005,10 +1005,6 @@ Diagnostic options
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.
                                Default: `disabled`.
-      --eri, --runtimeinstrumentation, --OtlpRuntimeInstrumentation[=VALUE]
-                             Include metrics captured for the underlying
-                               runtime and web server.
-                               Default: `False`.
       --oxi, --otlpexportinterval, --OtlpExportIntervalMilliseconds=VALUE
                              The interval in milliseconds when OpenTelemetry is
                                exported to the collector endpoint.
@@ -1022,6 +1018,14 @@ Diagnostic options
                                metrics directly on the standard path.
                                Default: `disabled` if Otlp collector is
                                configured, otherwise `enabled`.
+      --ari, --addruntimeinstrumentation, --OtlpRuntimeInstrumentation[=VALUE]
+                             Include metrics captured for the underlying
+                               runtime and web server.
+                               Default: `False`.
+      --ats, --addtotalsuffix, --OtlpTotalNameSuffixForCounters[=VALUE]
+                             Add total suffix to all counter instrument names
+                               when exporting metrics via prometheus exporter.
+                               Default: `False`.
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).
