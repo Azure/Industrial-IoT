@@ -86,5 +86,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// in the private key infrastructure.
         /// </summary>
         public string? ApplicationCertificatePassword { get; set; }
+
+        /// <summary>
+        /// Try to use the configuration from the first application
+        /// certificate found in the application certificate store
+        /// configured above.
+        /// </summary>
+        public bool? TryUseConfigurationFromExistingAppCert { get; set; }
     }
 }

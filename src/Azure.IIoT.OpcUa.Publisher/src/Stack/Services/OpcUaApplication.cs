@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Runtime.ConstrainedExecution;
 
     /// <summary>
     /// Client configuration
@@ -118,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = logger;
             _options = options;
-            _identity = identity == null ? "opc-publisher" : identity.Identity;
+            _identity = identity?.Identity;
             _configuration = BuildAsync();
         }
 
@@ -477,12 +478,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var hostname = !string.IsNullOrWhiteSpace(_identity) ?
+                    Uri.CheckHostName(_identity) != UriHostNameType.Unknown ? _identity :
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
                     new IPAddress(SHA1.HashData(Encoding.UTF8.GetBytes(_identity))
                         .AsSpan()[..16], 0).ToString() :
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
                     Utils.GetHostName();
+
                 var applicationUri = _options.Value.ApplicationUri;
+                if (_options.Value.Security.TryUseConfigurationFromExistingAppCert == true)
+                {
+                    (applicationUri, hostname) = await UpdateFromExistingCertificateAsync(
+                        applicationUri, hostname, _options.Value.Security).ConfigureAwait(false);
+                }
                 if (applicationUri == null)
                 {
                     applicationUri = $"urn:{hostname}:opc-publisher";
@@ -557,6 +565,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger.LogCritical("Failed to configure OPC UA stack - exit.");
             throw new InvalidProgramException("OPC UA stack configuration not possible.",
                 innerException);
+
+            async ValueTask<(string?, string)> UpdateFromExistingCertificateAsync(string? applicationUri,
+                string hostName, SecurityOptions options)
+            {
+                try
+                {
+                    var now = DateTime.UtcNow;
+                    if (options.ApplicationCertificate?.StorePath != null &&
+                        options.ApplicationCertificate.StoreType != null)
+                    {
+                        using var certStore = CertificateStoreIdentifier.CreateStore(
+                            options.ApplicationCertificate.StoreType);
+                        certStore.Open(options.ApplicationCertificate.StorePath, false);
+                        var certs = await certStore.Enumerate().ConfigureAwait(false);
+                        var subjects = new List<string>();
+                        foreach (var cert in certs.Where(c => c != null).OrderBy(c => c.NotAfter))
+                        {
+                            // Select first certificate that has valid information
+                            options.ApplicationCertificate.SubjectName = cert.Subject;
+                            var san = cert.FindExtension<X509SubjectAltNameExtension>();
+                            var uris = san?.Uris;
+                            var hostNames = san?.DomainNames;
+                            if (uris != null && hostNames != null &&
+                                uris.Count > 0 && hostNames.Count > 0)
+                            {
+                                return (uris[0], hostNames[0]);
+                            }
+                            _logger.LogDebug(
+                                "Found invalid certificate for {Subject} [{Thumbprint}].",
+                                cert.Subject, cert.Thumbprint);
+                        }
+                    }
+                    _logger.LogDebug("Could not find a certificate to take information from.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Failed to find a certificate to take information from.");
+                }
+                return (applicationUri, hostName);
+            }
         }
 
         /// <summary>
@@ -715,12 +763,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async ValueTask<ApplicationConfiguration> BuildSecurityConfiguration(
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
             SecurityOptions securityOptions, ApplicationConfiguration applicationConfiguration,
-            string hostname)
+            string? hostname = null)
         {
+            var subjectName = securityOptions.ApplicationCertificate?.SubjectName;
+            if (hostname != null && subjectName != null)
+            {
+                subjectName = subjectName.Replace("localhost", hostname,
+                    StringComparison.InvariantCulture);
+            }
             var options = applicationConfigurationBuilder
-                .AddSecurityConfiguration(
-                    securityOptions.ApplicationCertificate?.SubjectName?
-                        .Replace("localhost", hostname, StringComparison.InvariantCulture),
+                .AddSecurityConfiguration(subjectName,
                     securityOptions.PkiRootPath)
                 .SetAutoAcceptUntrustedCertificates(
                     securityOptions.AutoAcceptUntrustedCertificates ?? false)
@@ -827,7 +879,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly ILogger<OpcUaApplication> _logger;
         private readonly IOptions<OpcUaClientOptions> _options;
-        private readonly string _identity;
+        private readonly string? _identity;
         private bool _disposed;
     }
 }
