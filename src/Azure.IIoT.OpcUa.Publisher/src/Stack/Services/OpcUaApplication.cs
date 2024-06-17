@@ -872,7 +872,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Bad thumbprint", nameof(thumbprint));
             }
-            return thumbprint.ReplaceLineEndings();
+            return thumbprint.ReplaceLineEndings().Replace(Environment.NewLine, "");
         }
 
         private const int kMaxThumbprintLength = 64;
