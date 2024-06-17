@@ -472,7 +472,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var context = new ServiceCallContext(_session);
                         var result = await service(context).ConfigureAwait(false);
 
-                        if (context.TrackedToken != null)
+                        //
+                        // Check wether tracked and untracked token are the same. This is the case
+                        // with kepserver, which uses the same token for all continuations. If it
+                        // is the same, it is already tracked. If it is different, we need to untrack
+                        // and track the new one
+                        //
+                        if (context.TrackedToken != null && context.TrackedToken != context.UntrackedToken)
                         {
                             AddRef(context.TrackedToken);
                         }
@@ -480,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             AddRef(_sessionName, LingerTimeout);
                         }
-                        if (context.UntrackedToken != null)
+                        if (context.UntrackedToken != null && context.TrackedToken != context.UntrackedToken)
                         {
                             Release(context.UntrackedToken);
                         }

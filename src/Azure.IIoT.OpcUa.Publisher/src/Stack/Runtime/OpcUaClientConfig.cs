@@ -198,8 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 var lingerTimeout = GetIntOrDefault(LingerTimeoutSecondsKey);
                 if (lingerTimeout > 0)
                 {
-                    options.LingerTimeoutDuration =
-                        TimeSpan.FromSeconds(lingerTimeout);
+                    options.LingerTimeoutDuration = TimeSpan.FromSeconds(lingerTimeout);
                 }
             }
 
