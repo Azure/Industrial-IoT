@@ -68,6 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string SubscriptionManagementIntervalSecondsKey = "SubscriptionManagementIntervalSeconds";
         public const string LingerTimeoutSecondsKey = "LingerTimeoutSeconds";
         public const string ApplicationCertificatePasswordKey = "ApplicationCertificatePassword";
+        public const string TryConfigureFromExistingAppCertKey = "TryConfigureFromExistingAppCert";
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
         public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
@@ -448,6 +449,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.Security.ApplicationCertificatePassword =
                     GetStringOrDefault(ApplicationCertificatePasswordKey);
+            }
+            if (options.Security.TryUseConfigurationFromExistingAppCert == null)
+            {
+                options.Security.TryUseConfigurationFromExistingAppCert =
+                    GetBoolOrNull(TryConfigureFromExistingAppCertKey);
             }
         }
 
