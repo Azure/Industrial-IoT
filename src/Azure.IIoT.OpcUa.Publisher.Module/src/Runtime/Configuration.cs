@@ -225,6 +225,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add runtime instrumentation if requested
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static MeterProviderBuilder AddRuntimeInstrumentation(this MeterProviderBuilder builder,
+            IConfiguration configuration)
+        {
+            var options = new Otlp(configuration);
+            if (options.AddRuntimeInstrumentation)
+            {
+                builder
+                    .AddRuntimeInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddAspNetCoreInstrumentation();
+            }
+            return builder;
+        }
+
+        /// <summary>
         /// Add otlp exporter if configured
         /// </summary>
         /// <param name="builder"></param>
@@ -257,7 +277,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 builder.ConfigureServices(services => services.AddSingleton<Otlp>());
                 builder.SetMaxMetricStreams(option.MaxMetricStreams);
-                builder.AddPrometheusExporter();
+
+                builder.AddPrometheusExporter(options =>
+                {
+                    options.DisableTotalNameSuffixForCounters =
+                        !option.EnableTotalNameSuffixForCounters;
+
+                    //
+                    // Configures scrape endpoint response caching. Multiple scrape requests
+                    // within the cache duration time period will receive the same previously
+                    // generated response. Disable response caching. The default value is 300.
+                    //
+                    options.ScrapeResponseCacheDurationMilliseconds = 0;
+                });
             }
             return builder;
         }
@@ -394,9 +426,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
             public const string OtlpMaxMetricStreamsKey = "OtlpMaxMetricStreams";
             public const string OtlpExportIntervalMillisecondsKey = "OtlpExportIntervalMilliseconds";
+            public const string OtlpRuntimeInstrumentationKey = "OtlpRuntimeInstrumentation";
+            public const string OtlpTotalNameSuffixForCountersKey = "OtlpTotalNameSuffixForCounters";
 
             public const int OtlpExportIntervalMillisecondsDefault = 15000;
-            public const int OtlpMaxMetricDefault = 3000;
+            public const int OtlpMaxMetricDefault = 4000;
+            public const bool OtlpRuntimeInstrumentationDefault = false;
+            public const bool OtlpTotalNameSuffixForCountersDefault = false;
             internal const string OtlpEndpointDisabled = "disabled";
 
             /// <summary>
@@ -412,6 +448,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public int MaxMetricStreams
                 => Math.Max(1, GetIntOrDefault(OtlpMaxMetricStreamsKey,
                         OtlpMaxMetricDefault));
+
+            /// <summary>
+            /// Add runtime instrumentation
+            /// </summary>
+            public bool AddRuntimeInstrumentation
+                => GetBoolOrDefault(OtlpRuntimeInstrumentationKey,
+                        OtlpRuntimeInstrumentationDefault);
+
+            /// <summary>
+            /// Enable total suffix
+            /// </summary>
+            public bool EnableTotalNameSuffixForCounters
+                => GetBoolOrDefault(OtlpTotalNameSuffixForCountersKey,
+                        OtlpTotalNameSuffixForCountersDefault);
 
             /// <summary>
             /// Create otlp configuration

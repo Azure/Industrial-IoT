@@ -531,6 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "len|logencodednotifications:",
                     "Log encoded subscription and monitored item notifications at Informational level to aid debugging.\nDefault: `disabled`.\n",
                     (bool? b) => this[PublisherConfig.DebugLogEncodedNotificationsKey] = b?.ToString() ?? "True" },
+
                 { $"oc|otlpcollector=|{Configuration.Otlp.OtlpCollectorEndpointKey}=",
                     "Specifiy the OpenTelemetry collector grpc endpoint url to export diagnostics to.\nDefault: `disabled`.\n",
                     s => this[Configuration.Otlp.OtlpCollectorEndpointKey] = s },
@@ -540,9 +541,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"mms|maxmetricstreams=|{Configuration.Otlp.OtlpMaxMetricStreamsKey}=",
                     $"Specifiy the max number of streams to collect in the default view.\nDefault: `{Configuration.Otlp.OtlpMaxMetricDefault}`.\n",
                     (uint u) => this[Configuration.Otlp.OtlpMaxMetricStreamsKey] = u.ToString(CultureInfo.CurrentCulture) },
-                { $"em|enableprometheusendpoint=|{Configuration.Otlp.EnableMetricsKey}=",
+                { $"em|enableprometheusendpoint:|{Configuration.Otlp.EnableMetricsKey}:",
                     "Explicitly enable or disable exporting prometheus metrics directly on the standard path.\nDefault: `disabled` if Otlp collector is configured, otherwise `enabled`.\n",
                     (bool? b) => this[Configuration.Otlp.EnableMetricsKey] = b?.ToString() ?? "True" },
+                { $"ari|addruntimeinstrumentation:|{Configuration.Otlp.OtlpRuntimeInstrumentationKey}:",
+                    $"Include metrics captured for the underlying runtime and web server.\nDefault: `{Configuration.Otlp.OtlpRuntimeInstrumentationDefault}`.\n",
+                    (bool? b) => this[Configuration.Otlp.OtlpRuntimeInstrumentationKey] = b?.ToString() ?? "True" },
+                { $"ats|addtotalsuffix:|{Configuration.Otlp.OtlpTotalNameSuffixForCountersKey}:",
+                    $"Add total suffix to all counter instrument names when exporting metrics via prometheus exporter.\nDefault: `{Configuration.Otlp.OtlpTotalNameSuffixForCountersDefault}`.\n",
+                    (bool? b) => this[Configuration.Otlp.OtlpTotalNameSuffixForCountersKey] = b?.ToString() ?? "True" },
 
                 // testing purposes
 

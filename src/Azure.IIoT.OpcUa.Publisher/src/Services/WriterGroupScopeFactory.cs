@@ -67,13 +67,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 TagList = new TagList(new[]
                 {
                     new KeyValuePair<string, object?>(Constants.SiteIdTag,
-                        _outer._options?.Value.SiteId ?? Constants.DefaultSiteId),
+                        _outer._options?.Value.SiteId),
                     new KeyValuePair<string, object?>(Constants.PublisherIdTag,
-                        _outer._options?.Value.PublisherId ?? Constants.DefaultPublisherId),
+                        _outer._options?.Value.PublisherId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupIdTag,
                         _writerGroupId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupNameTag,
-                        writerGroup.Name ?? Constants.DefaultWriterGroupName)
+                        writerGroup.Name)
                 });
 
                 _scope = _outer._lifetimeScope.BeginLifetimeScope(builder =>
