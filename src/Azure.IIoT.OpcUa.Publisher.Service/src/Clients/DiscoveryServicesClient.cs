@@ -85,7 +85,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                 var client = new DiscoveryApiClient(_client, publisher.Id, kTimeout, _serializer);
                 try
                 {
-                    return await client.FindServerAsync(query, ct).ConfigureAwait(false);
+                    var discoveredResult = await client.FindServerAsync(query, ct).ConfigureAwait(false);
+                    //
+                    // Update discovery id to consistent value that matches the publisher
+                    // that found the resource. This is the same we do when processing
+                    // discovery results
+                    //
+                    discoveredResult.Application.DiscovererId = publisher.Id;
+                    discoveredResult.Endpoints?.ForEach(ep => ep.DiscovererId = publisher.Id);
+                    return discoveredResult;
                 }
                 catch (Exception ex)
                 {
