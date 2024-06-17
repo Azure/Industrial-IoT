@@ -262,8 +262,8 @@ Messaging configuration
                                schemas (for example Avro) otherwise `False`.
       --asj, --preferavro, --PreferAvroOverJsonSchema[=VALUE]
                              Publish Avro schema even for Json encoded messages.
-                               Automatically enables publishing schemas as if `-
-                               -ps` was set.
+                                Automatically enables publishing schemas as if `
+                               --ps` was set.
                                Default: `False`.
       --daf, --disableavrofiles, --DisableAvroFileWriter[=VALUE]
                              Disable writing avro files and instead dump
@@ -1005,6 +1005,10 @@ Diagnostic options
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.
                                Default: `disabled`.
+      --eri, --runtimeinstrumentation, --OtlpRuntimeInstrumentation[=VALUE]
+                             Include metrics captured for the underlying
+                               runtime and web server.
+                               Default: `False`.
       --oxi, --otlpexportinterval, --OtlpExportIntervalMilliseconds=VALUE
                              The interval in milliseconds when OpenTelemetry is
                                exported to the collector endpoint.
@@ -1012,8 +1016,8 @@ Diagnostic options
       --mms, --maxmetricstreams, --OtlpMaxMetricStreams=VALUE
                              Specifiy the max number of streams to collect in
                                the default view.
-                               Default: `3000`.
-      --em, --enableprometheusendpoint, --EnableMetrics=VALUE
+                               Default: `4000`.
+      --em, --enableprometheusendpoint, --EnableMetrics[=VALUE]
                              Explicitly enable or disable exporting prometheus
                                metrics directly on the standard path.
                                Default: `disabled` if Otlp collector is
