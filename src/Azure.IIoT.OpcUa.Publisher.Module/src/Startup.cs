@@ -97,9 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddOtlpExporter(Configuration))
                 .WithMetrics(builder => builder
                     .AddMeter(Diagnostics.Meter.Name)
-                    .AddRuntimeInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation()
+                    .AddRuntimeInstrumentation(Configuration)
                     .AddPrometheusExporter(Configuration)
                     .AddOtlpExporter(Configuration))
                 ;
