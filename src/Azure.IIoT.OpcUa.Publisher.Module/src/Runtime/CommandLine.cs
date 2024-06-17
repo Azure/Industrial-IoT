@@ -374,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The operation service call timeout of the publisher OPC UA client in milliseconds. \nDefault: `{OpcUaClientConfig.OperationTimeoutDefault}` milliseconds.\n",
                     (uint u) => this[OpcUaClientConfig.OperationTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"cl|clientlinger=|{OpcUaClientConfig.LingerTimeoutSecondsKey}=",
-                    "Amount of time in seconds to delay closing a client and underlying session after the a last service call.\nUse this setting to speed up multiple subsequent calls to a server or where session state is required between calls (e.g., browse).\nDefault: `0` sec (no linger).\n",
+                    "Amount of time in seconds to delay closing a client and underlying session after the a last service call.\nUse this setting to speed up multiple subsequent calls.\nDefault: `0` sec (no linger).\n",
                     (uint u) => this[OpcUaClientConfig.LingerTimeoutSecondsKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"rcp|reverseconnectport=|{OpcUaClientConfig.ReverseConnectPortKey}=",
                     $"The port to use when accepting inbound reverse connect requests from servers.\nDefault: `{OpcUaClientConfig.ReverseConnectPortDefault}`.\n",
