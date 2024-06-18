@@ -789,7 +789,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 // Reschedule connecting
                                                 Debug.Assert(reconnectPeriod != 0, "Reconnect period should not be 0.");
                                                 var retryDelay = _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod);
-                                                _logger.LogInformation("{Client}: Retrying connecting session in {RetryDelay}...",
+                                                _logger.LogInformation("{Client}: Retrying connecting session in {RetryDelay} ms...",
                                                     this, retryDelay);
                                                 reconnectTimer.Change(retryDelay, Timeout.Infinite);
                                                 reconnectPeriod = _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
