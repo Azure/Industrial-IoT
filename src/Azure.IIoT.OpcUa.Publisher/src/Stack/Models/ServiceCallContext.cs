@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
+    using System.Threading;
+
     /// <summary>
     /// Context for a service call invocation
     /// </summary>
@@ -28,12 +30,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public string? UntrackedToken { get; set; }
 
         /// <summary>
+        /// Cancel any calls on this token
+        /// </summary>
+        public CancellationToken Ct { get; }
+
+        /// <summary>
         /// Create context
         /// </summary>
         /// <param name="session"></param>
-        internal ServiceCallContext(IOpcUaSession session)
+        /// <param name="ct"></param>
+        internal ServiceCallContext(
+            IOpcUaSession session, CancellationToken ct)
         {
             Session = session;
+            Ct = ct;
         }
     }
 }

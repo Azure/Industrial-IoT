@@ -28,12 +28,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public string? ProductUri { get; set; }
 
         /// <summary>
-        /// Default session timeout.
+        /// Default session timeout. This is the timoout used to
+        /// establish a session with the server.
         /// </summary>
         public TimeSpan? DefaultSessionTimeoutDuration { get; set; }
 
         /// <summary>
-        /// Keep alive interval.
+        /// Default service call timeout duration. If the service
+        /// call timeout is not specified in the request header and
+        /// the this value is used.
+        /// </summary>
+        public TimeSpan? DefaultServiceCallTimeoutDuration { get; set; }
+
+        /// <summary>
+        /// Keep alive interval. The client will send keep alives
+        /// to the server at this interval and expect a response
+        /// or initiate a session recovery / reconnect sequence.
         /// </summary>
         public TimeSpan? KeepAliveIntervalDuration { get; set; }
 

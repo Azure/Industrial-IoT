@@ -27,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ApplicationUriKey = "ApplicationUri";
         public const string ProductUriKey = "ProductUri";
         public const string DefaultSessionTimeoutKey = "DefaultSessionTimeout";
+        public const string DefaultServiceCallTimeoutKey = "DefaultServiceCallTimeout";
         public const string KeepAliveIntervalKey = "KeepAliveInterval";
         public const string ApplicationCertificateStorePathKey = "ApplicationCertificateStorePath";
         public const string ApplicationCertificateStoreTypeKey = "ApplicationCertificateStoreType";
@@ -99,6 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int InvalidMonitoredItemRetryDelayDefaultSec = 5 * 60;
         public const int BadMonitoredItemRetryDelayDefaultSec = 30 * 60;
         public const int DefaultSessionTimeoutDefaultSec = 60;
+        public const int DefaultServiceCallTimeoutDefaultSec = 3 * 60;
         public const int KeepAliveIntervalDefaultSec = 10;
         public const int CreateSessionTimeoutDefaultSec = 5;
         public const int MaxReconnectDelayDefault = 60 * 1000;
@@ -147,6 +149,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 if (sessionTimeout > 0)
                 {
                     options.DefaultSessionTimeoutDuration = TimeSpan.FromSeconds(sessionTimeout);
+                }
+            }
+
+            if (options.DefaultServiceCallTimeoutDuration == null)
+            {
+                var serviceCallTimeout = GetIntOrDefault(DefaultServiceCallTimeoutKey,
+                    DefaultServiceCallTimeoutDefaultSec);
+                if (serviceCallTimeout > 0)
+                {
+                    options.DefaultServiceCallTimeoutDuration = TimeSpan.FromSeconds(serviceCallTimeout);
                 }
             }
 

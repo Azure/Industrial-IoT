@@ -42,5 +42,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "namespaceFormat", Order = 3,
             EmitDefaultValue = false)]
         public NamespaceFormat? NamespaceFormat { get; set; }
+
+        /// <summary>
+        /// Operation timeout. This applies to every operation
+        /// that is invoked, not to the entire transaction and
+        /// overrides the configured operation timeout.
+        /// </summary>
+        [DataMember(Name = "operationTimeout", Order = 4,
+            EmitDefaultValue = false)]
+        public int? OperationTimeout { get; set; }
+
+        /// <summary>
+        /// Service call timeout. As opposed to the operation
+        /// timeout this terminates the entire transaction if
+        /// it takes longer than the timeout to complete. Note
+        /// that a connect and reconnect during the service call
+        /// resets the timeout therefore the overall time for
+        /// the call to complete can be longer than specified.
+        /// </summary>
+        [DataMember(Name = "serviceCallTimeout", Order = 5,
+            EmitDefaultValue = false)]
+        public int? ServiceCallTimeout { get; set; }
     }
 }

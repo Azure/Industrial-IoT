@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     var results = await context.Session.GetBrowsePathsFromRootAsync(new RequestHeader(),
                         nodes.Select(n => n.ToNodeId(context.Session.MessageContext)).ToList(),
-                        default);
+                        context.Ct);
 
                     return results.Select(r => r.Path.Elements
                         .Select(e => e.TargetName.AsString(context.Session.MessageContext, NamespaceFormat.Index))
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return await context.Session.GetBrowsePathsFromRootAsync(new RequestHeader(),
                         nodes.Select(n => n.ToNodeId(context.Session.MessageContext)).ToList(),
-                        default);
+                        context.Ct);
                 });
 
             var result = Assert.Single(results);
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     var results = await context.Session.GetBrowsePathsFromRootAsync(new RequestHeader(),
                         nodes.Select(n => n.ToNodeId(context.Session.MessageContext)).ToList(),
-                        default);
+                        context.Ct);
 
                     return results.Select(r => r.Path.Elements
                         .Select(e => e.TargetName.AsString(context.Session.MessageContext, NamespaceFormat.Index))
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return await context.Session.GetBrowsePathsFromRootAsync(new RequestHeader(),
                         nodes.Select(n => n.ToNodeId(context.Session.MessageContext)).ToList(),
-                        default);
+                        context.Ct);
                 });
 
             Assert.Collection(results,
@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     var results = await context.Session.GetBrowsePathsFromRootAsync(new RequestHeader(),
                         nodes.ConvertAll(n => n.ToNodeId(context.Session.MessageContext)),
-                        default);
+                        context.Ct);
 
                     return results.Select(r => r.Path.Elements
                         .Select(e => e.TargetName.AsString(context.Session.MessageContext, NamespaceFormat.Index))
@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 async context =>
                 {
                     var results = await context.Session.GetBrowsePathsFromRootAsync(
-                        new RequestHeader(), nodes, default);
+                        new RequestHeader(), nodes, context.Ct);
 
                     return results
                         .Select(r => r.Path.Elements
