@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetConfiguration", "GetConf
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WriteReadbackValue", "WriteReadbackValue\WriteReadbackValue.csproj", "{BCD71531-64F1-4060-9B24-96C3BEE778F5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReadAttributes", "ReadAttributes\ReadAttributes.csproj", "{730E7493-016C-4AED-8C35-609E93CA5A59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{BCD71531-64F1-4060-9B24-96C3BEE778F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCD71531-64F1-4060-9B24-96C3BEE778F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCD71531-64F1-4060-9B24-96C3BEE778F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{730E7493-016C-4AED-8C35-609E93CA5A59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{730E7493-016C-4AED-8C35-609E93CA5A59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{730E7493-016C-4AED-8C35-609E93CA5A59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{730E7493-016C-4AED-8C35-609E93CA5A59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
