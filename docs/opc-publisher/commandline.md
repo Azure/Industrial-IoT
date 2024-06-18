@@ -75,7 +75,7 @@ General
                              Enable that when publisher starts or restarts it
                                reports its runtime state using a restart
                                message.
-                               Default: `False` (disabled)
+                               Default: `false` (disabled)
       --api-key, --ApiKey=VALUE
                              Sets the api key that must be used to authenticate
                                calls on the publisher REST endpoint.
@@ -84,7 +84,7 @@ General
       --doa, --disableopenapi, --DisableOpenApiEndpoint[=VALUE]
                              Disable the OPC Publisher Open API endpoint
                                exposed by the built-in HTTP server.
-                               Default: `False` (enabled).
+                               Default: `false` (enabled).
 
 Messaging configuration
 -----------------------
@@ -96,7 +96,7 @@ Messaging configuration
                                Be aware that explicitly specifying other
                                command line options can result in non-
                                comnpliance despite this option being set.
-                               Default: `False` for backwards compatibility (2.
+                               Default: `false` for backwards compatibility (2.
                                5.x - 2.8.x)
       --nf, --namespaceformat, --DefaultNamespaceFormat=VALUE
                              The format to use when serializing node ids and
@@ -128,7 +128,7 @@ Messaging configuration
                                will write only the value of a data set entry
                                and omit the key.
                                This is not compliant with OPC UA Part 14.
-                               Default: `False`.
+                               Default: `false`.
       --me, --messageencoding, --MessageEncoding=VALUE
                              The message encoding for messages
                                Allowed values:
@@ -168,7 +168,7 @@ Messaging configuration
                                value's source timestamp.
                                Only applies to `Samples` mode, otherwise this
                                setting is ignored.
-                               Default: `False` (keep all duplicate values).
+                               Default: `false` (keep all duplicate values).
       --ms, --maxmessagesize, --iothubmessagesize, --IoTHubMaxMessageSize=VALUE
                              The maximum size of the messages to emit. In case
                                the encoder cannot encode a message because the
@@ -217,7 +217,7 @@ Messaging configuration
                                profile's support for keep alive messages.
                                If the chosen messaging profile does not support
                                keep alive messages this setting is ignored.
-                               Default: `False` (to save bandwidth).
+                               Default: `false` (to save bandwidth).
       --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
@@ -237,7 +237,7 @@ Messaging configuration
                                It is recommended to disable sending metadata
                                when too many nodes are part of a data set as
                                this can slow down start up time.
-                               Default: `False` if the messaging profile
+                               Default: `false` if the messaging profile
                                selected supports sending metadata and `--strict`
                                 is set but not '--dct', `True` otherwise.
       --amt, --asyncmetadatathreshold, --AsyncMetaDataLoadThreshold=VALUE
@@ -264,12 +264,12 @@ Messaging configuration
                              Publish Avro schema even for Json encoded messages.
                                 Automatically enables publishing schemas as if `
                                --ps` was set.
-                               Default: `False`.
+                               Default: `false`.
       --daf, --disableavrofiles, --DisableAvroFileWriter[=VALUE]
                              Disable writing avro files and instead dump
                                messages and schema as zip files using the
                                filesystem transport.
-                               Default: `False`.
+                               Default: `false`.
       --om, --maxsendqueuesize, --MaxNetworkMessageSendQueueSize=VALUE
                              The maximum number of messages to buffer on the
                                send path before messages are dropped.
@@ -553,7 +553,7 @@ Subscription settings
                                configured monitored items. Use this setting to
                                create the subscription with publishing already
                                enabled.
-                               Default: `False`.
+                               Default: `false`.
       --ska, --keepalivecount, --DefaultKeepAliveCount=VALUE
                              Specifies the default number of publishing
                                intervals before a keep alive is returned with
@@ -571,7 +571,7 @@ Subscription settings
                                in the configuration.
                                Note: This has high impact on OPC Publisher
                                startup performance.
-                               Default: `False` (disabled).
+                               Default: `false` (disabled).
       --fp, --fetchpathfromroot, --FetchOpcBrowsePathFromRoot[=VALUE]
                              (Experimental) Explicitly disable or enable
                                retrieving relative paths from root for
@@ -588,7 +588,7 @@ Subscription settings
                                configuration. Setting to true will ensure that
                                new values are dropped before older ones are
                                drained.
-                               Default: `False` (which is the OPC UA default).
+                               Default: `false` (which is the OPC UA default).
       --mc, --monitoreditemdatachangetrigger, --DefaulDataChangeTrigger=VALUE
                              Default data change trigger for all monitored
                                items configured in the published nodes
@@ -733,8 +733,8 @@ OPC UA Client configuration
                                used.
                                This value can be overridden in the request
                                header.
-                               If not specified the default service call
-                               timeout value is used.
+                               Default: `not set` (in this case the default
+                               service call timeout value is used).
       --ot, --operationtimeout, --OperationTimeout=VALUE
                              The operation service call timeout of individual
                                service requests to the server in milliseconds.
