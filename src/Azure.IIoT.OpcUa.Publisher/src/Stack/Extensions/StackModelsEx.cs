@@ -25,13 +25,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Convert diagnostics to request header
         /// </summary>
         /// <param name="header"></param>
-        /// <param name="timeoutHint"></param>
         /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this RequestHeaderModel? header,
-            uint timeoutHint = 0)
+        public static RequestHeader ToRequestHeader(this RequestHeaderModel? header)
         {
             return (header?.Diagnostics?.Level).ToRequestHeader(header?.Diagnostics?.AuditId,
-                header?.Diagnostics?.TimeStamp, timeoutHint);
+                header?.Diagnostics?.TimeStamp, header?.OperationTimeout ?? 0);
         }
 
         /// <summary>
@@ -43,8 +41,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="timeoutHint"></param>
         /// <returns></returns>
         public static RequestHeader ToRequestHeader(this DiagnosticsLevel? level,
-            string? auditId = null, DateTime? timestamp = null, uint timeoutHint = 0)
+            string? auditId = null, DateTime? timestamp = null, int timeoutHint = 0)
         {
+            ArgumentOutOfRangeException.ThrowIfNegative(timeoutHint);
             return new RequestHeader
             {
                 AuditEntryId = auditId ?? Guid.NewGuid().ToString(),
@@ -52,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     (uint)(level ?? DiagnosticsLevel.Status)
                      .ToStackType(),
                 Timestamp = timestamp ?? DateTime.UtcNow,
-                TimeoutHint = timeoutHint,
+                TimeoutHint = (uint)timeoutHint,
                 AdditionalHeader = null // TODO
             };
         }

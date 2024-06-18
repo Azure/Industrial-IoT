@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   ############################
   # OPC PLC Simulation
@@ -39,6 +38,7 @@ services:
       "--bi=0",
       "--di=60",
       "--cl=5",
+      "--cto=10",
       "--rs",
       "--dm=True",
       "--lfm=syslog",

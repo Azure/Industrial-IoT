@@ -63,6 +63,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
+        /// Service call timeout
+        /// </summary>
+        public TimeSpan? ServiceCallTimeout { get; set; }
+
+        /// <summary>
+        /// Connect timeout for service calls
+        /// </summary>
+        public TimeSpan? ConnectTimeout { get; set; }
+
+        /// <summary>
         /// Minimum number of publish requests to queue
         /// </summary>
         public int? MinPublishRequests { get; set; }
@@ -446,18 +456,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="service"></param>
-        /// <param name="ct"></param>
+        /// <param name="connectTimeout"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
-        internal async Task<T> RunAsync<T>(
-            Func<ServiceCallContext, Task<T>> service, CancellationToken ct)
+        internal async Task<T> RunAsync<T>(Func<ServiceCallContext, Task<T>> service,
+            int? connectTimeout, int? serviceCallTimeout, CancellationToken cancellationToken)
         {
+            var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var ct = cts.Token;
+            cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
             while (true)
             {
                 if (_disposed)
                 {
                     throw new ConnectionException($"Session {_sessionName} was closed.");
                 }
+                ct.ThrowIfCancellationRequested();
                 try
                 {
                     using var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
@@ -466,13 +483,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (!DisableComplexTypeLoading && !_session.IsTypeSystemLoaded)
                         {
                             // Ensure type system is loaded
+                            cts.CancelAfter(timeout);
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
-                        var context = new ServiceCallContext(_session);
+                        var context = new ServiceCallContext(_session, ct);
+                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
                         var result = await service(context).ConfigureAwait(false);
 
-                        if (context.TrackedToken != null)
+                        //
+                        // Check wether tracked and untracked token are the same. This is the case
+                        // with kepserver, which uses the same token for all continuations. If it
+                        // is the same, it is already tracked. If it is different, we need to untrack
+                        // and track the new one
+                        //
+                        if (context.TrackedToken != null && context.TrackedToken != context.UntrackedToken)
                         {
                             AddRef(context.TrackedToken);
                         }
@@ -480,19 +505,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             AddRef(_sessionName, LingerTimeout);
                         }
-                        if (context.UntrackedToken != null)
+                        if (context.UntrackedToken != null && context.TrackedToken != context.UntrackedToken)
                         {
                             Release(context.UntrackedToken);
                         }
                         return result;
                     }
+                    // We are not resetting the timeout here since we have not yet been
+                    // able to obtain a session in the current timeout.
                 }
                 catch (Exception ex) when (!IsConnected)
                 {
                     _logger.LogInformation("{Client}: Session disconnected during service call " +
                         "with message {Message}, retrying.", this, ex.Message);
+
+                    cts.CancelAfter(timeout); // Reset timeout again to wait again for session
                 }
-                ct.ThrowIfCancellationRequested();
             }
         }
 
@@ -502,15 +530,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="stack"></param>
-        /// <param name="ct"></param>
+        /// <param name="connectTimeout"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         internal async IAsyncEnumerable<T> RunAsync<T>(
             Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
-            [EnumeratorCancellation] CancellationToken ct)
+            int? connectTimeout, int? serviceCallTimeout,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
+            var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var ct = cts.Token;
+            cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
             while (stack.Count > 0)
             {
+                ct.ThrowIfCancellationRequested();
                 if (_disposed)
                 {
                     throw new ConnectionException($"Session {_sessionName} was closed.");
@@ -524,10 +560,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // Ensure type system is loaded
                         if (!DisableComplexTypeLoading && !_session.IsTypeSystemLoaded)
                         {
+                            cts.CancelAfter(timeout);
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
-                        var context = new ServiceCallContext(_session);
+                        var context = new ServiceCallContext(_session, ct);
+                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
                         results = await stack.Peek()(context).ConfigureAwait(false);
 
                         // Success
@@ -535,6 +573,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     else
                     {
+                        // We are not resetting the timeout here since we have not yet been
+                        // able to obtain a session in the current timeout.
                         continue;
                     }
                 }
@@ -542,14 +582,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logger.LogInformation("{Client}: Session disconnected during service call " +
                         "with message {Message}, retrying.", this, ex.Message);
+
+                    cts.CancelAfter(timeout); // Reset timeout again to wait again for session
                     continue;
                 }
 
-                ct.ThrowIfCancellationRequested();
                 foreach (var result in results)
                 {
                     yield return result;
                 }
+                cts.CancelAfter(timeout); // Reset timeout now to wait max timeout for session
             }
         }
 
@@ -1725,6 +1767,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return state;
         }
 
+        /// <summary>
+        /// Get the real timeout for the service call
+        /// </summary>
+        /// <param name="serviceCallTimeout"></param>
+        /// <returns></returns>
+        private TimeSpan GetServiceCallTimeout(int? serviceCallTimeout)
+        {
+            if (serviceCallTimeout.HasValue && serviceCallTimeout.Value > 0)
+            {
+                return TimeSpan.FromMilliseconds(serviceCallTimeout.Value);
+            }
+            if (ServiceCallTimeout.HasValue)
+            {
+                return ServiceCallTimeout.Value;
+            }
+            if (OperationTimeout.HasValue && OperationTimeout > kDefaultServiceCallTimeout)
+            {
+                return OperationTimeout.Value;
+            }
+            return kDefaultServiceCallTimeout;
+        }
+
+        /// <summary>
+        /// Get the real timeout for the connectivity of session
+        /// </summary>
+        /// <param name="connectTimeout"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <returns></returns>
+        private TimeSpan GetConnectCallTimeout(int? connectTimeout, int? serviceCallTimeout)
+        {
+            if (connectTimeout.HasValue && connectTimeout.Value > 0)
+            {
+                return TimeSpan.FromMilliseconds(connectTimeout.Value);
+            }
+            if (ConnectTimeout.HasValue)
+            {
+                return ConnectTimeout.Value;
+            }
+            if (serviceCallTimeout.HasValue && serviceCallTimeout.Value > 0)
+            {
+                return TimeSpan.FromMilliseconds(serviceCallTimeout.Value);
+            }
+            if (ServiceCallTimeout.HasValue)
+            {
+                return ServiceCallTimeout.Value;
+            }
+            return kDefaultConnectTimeout;
+        }
+
         private enum ConnectionEvent
         {
             Connect,
@@ -1849,5 +1940,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
+        private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan kDefaultConnectTimeout = TimeSpan.FromMinutes(1);
     }
 }

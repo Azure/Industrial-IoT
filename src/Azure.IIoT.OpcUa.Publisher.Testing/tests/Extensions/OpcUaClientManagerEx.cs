@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 };
                 var response = await context.Session.Services.ReadAsync(
                     new RequestHeader(), 0, TimestampsToReturn.Both,
-                    nodesToRead, ct).ConfigureAwait(false);
+                    nodesToRead, context.Ct).ConfigureAwait(false);
                 return new JsonVariantEncoder(context.Session.MessageContext, serializer)
                     .Encode(response.Results[0].WrappedValue, out var tmp);
             }, ct: ct);
