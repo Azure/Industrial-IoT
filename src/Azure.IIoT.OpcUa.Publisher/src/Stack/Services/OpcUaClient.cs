@@ -474,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     throw new ConnectionException($"Session {_sessionName} was closed.");
                 }
-                ct.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     using var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
@@ -514,6 +514,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // We are not resetting the timeout here since we have not yet been
                     // able to obtain a session in the current timeout.
                 }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    throw new TimeoutException(
+                        "Connecting to the endpoint or the request itself timed out.");
+                }
                 catch (Exception ex) when (!IsConnected)
                 {
                     _logger.LogInformation("{Client}: Session disconnected during service call " +
@@ -546,7 +555,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
             while (stack.Count > 0)
             {
-                ct.ThrowIfCancellationRequested();
+                if (_disposed)
+                {
+                    throw new ConnectionException($"Session {_sessionName} was closed.");
+                }
+                cancellationToken.ThrowIfCancellationRequested();
                 if (_disposed)
                 {
                     throw new ConnectionException($"Session {_sessionName} was closed.");
@@ -577,6 +590,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // able to obtain a session in the current timeout.
                         continue;
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    throw new TimeoutException(
+                        "Connecting to the endpoint or a request operation timed out.");
                 }
                 catch (Exception ex) when (!IsConnected)
                 {
