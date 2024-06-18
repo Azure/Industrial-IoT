@@ -373,7 +373,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Maximum amount of time in seconds that a service call should take before it is being cancelled.\nThis value can be overridden in the request header.\nDefault: `{OpcUaClientConfig.DefaultServiceCallTimeoutDefaultSec}` seconds.\n",
                     (uint u) => this[OpcUaClientConfig.DefaultServiceCallTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"cto|connecttimeout=|{OpcUaClientConfig.DefaultConnectTimeoutKey}=",
-                    $"Maximum amount of time in seconds that a service call should wait for a connected session to be used.\nThis value can be overridden in the request header.\nDefault: `not set` (in this case the default service call timeout value is used).\n",
+                    "Maximum amount of time in seconds that a service call should wait for a connected session to be used.\nThis value can be overridden in the request header.\nDefault: `not set` (in this case the default service call timeout value is used).\n",
                     (uint u) => this[OpcUaClientConfig.DefaultConnectTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ot|operationtimeout=|{OpcUaClientConfig.OperationTimeoutKey}=",
                     $"The operation service call timeout of individual service requests to the server in milliseconds. As opposed to the `--sco` timeout, this is the timeout hint provided to the server in every request.\nThis value can be overridden in the request header.\nDefault: `{OpcUaClientConfig.OperationTimeoutDefault}` milliseconds.\n",
