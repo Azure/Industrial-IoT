@@ -721,16 +721,35 @@ OPC UA Client configuration
                                keep alive messages to the OPC servers on the
                                endpoints it is connected to.
                                Default: `10` seconds.
+      --sct, --servicecalltimeout, --DefaultServiceCallTimeout=VALUE
+                             Maximum amount of time in seconds that a service
+                               call should take before it is being cancelled.
+                               This value can be overridden in the request
+                               header.
+                               Default: `180` seconds.
+      --cto, --connecttimeout, --DefaultConnectTimeout=VALUE
+                             Maximum amount of time in seconds that a service
+                               call should wait for a connected session to be
+                               used.
+                               This value can be overridden in the request
+                               header.
+                               If not specified the default service call
+                               timeout value is used.
       --ot, --operationtimeout, --OperationTimeout=VALUE
-                             The operation service call timeout of the
-                               publisher OPC UA client in milliseconds.
+                             The operation service call timeout of individual
+                               service requests to the server in milliseconds.
+                               As opposed to the `--sco` timeout, this is the
+                               timeout hint provided to the server in every
+                               request.
+                               This value can be overridden in the request
+                               header.
                                Default: `120000` milliseconds.
       --cl, --clientlinger, --LingerTimeoutSeconds=VALUE
                              Amount of time in seconds to delay closing a
                                client and underlying session after the a last
                                service call.
                                Use this setting to speed up multiple subsequent
-                               calls to a server.
+                               calls.
                                Default: `0` sec (no linger).
       --rcp, --reverseconnectport, --ReverseConnectPort=VALUE
                              The port to use when accepting inbound reverse
@@ -886,7 +905,7 @@ OPC UA Client configuration
                                If the chosen certificate is valid, it will be
                                used, otherwise a new, self-signed certificate
                                with the information will be created.
-                               Default: `False`.
+                               Default: `false`.
       --apw, --appcertstorepwd, --ApplicationCertificatePassword=VALUE
                              Password to use when storing the application
                                certificate in the store folder if the store is

@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ProductUriKey = "ProductUri";
         public const string DefaultSessionTimeoutKey = "DefaultSessionTimeout";
         public const string DefaultServiceCallTimeoutKey = "DefaultServiceCallTimeout";
+        public const string DefaultConnectTimeoutKey = "DefaultConnectTimeout";
         public const string KeepAliveIntervalKey = "KeepAliveInterval";
         public const string ApplicationCertificateStorePathKey = "ApplicationCertificateStorePath";
         public const string ApplicationCertificateStoreTypeKey = "ApplicationCertificateStoreType";
@@ -159,6 +160,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 if (serviceCallTimeout > 0)
                 {
                     options.DefaultServiceCallTimeoutDuration = TimeSpan.FromSeconds(serviceCallTimeout);
+                }
+            }
+
+            if (options.DefaultConnectTimeoutDuration == null)
+            {
+                var connectTimeout = GetIntOrNull(DefaultConnectTimeoutKey);
+                if (connectTimeout > 0)
+                {
+                    options.DefaultConnectTimeoutDuration = TimeSpan.FromSeconds(connectTimeout.Value);
                 }
             }
 

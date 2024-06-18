@@ -229,8 +229,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
             using var client = GetOrAddClient(connection);
-            return await client.RunAsync(func, header?.ServiceCallTimeout,
-                ct).ConfigureAwait(false);
+            return await client.RunAsync(func, header?.ConnectTimeout,
+                header?.ServiceCallTimeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -250,7 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 using var client = GetOrAddClient(connection);
                 await foreach (var result in client.RunAsync(stack,
-                    header?.ServiceCallTimeout, ct).ConfigureAwait(false))
+                    header?.ConnectTimeout, header?.ServiceCallTimeout,
+                    ct).ConfigureAwait(false))
                 {
                     yield return result;
                 }
@@ -539,6 +540,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     CreateSessionTimeout = _options.Value.CreateSessionTimeoutDuration,
                     KeepAliveInterval = _options.Value.KeepAliveIntervalDuration,
                     ServiceCallTimeout = _options.Value.DefaultServiceCallTimeoutDuration,
+                    ConnectTimeout = _options.Value.DefaultConnectTimeoutDuration,
                     SessionTimeout = _options.Value.DefaultSessionTimeoutDuration,
                     LingerTimeout = _options.Value.LingerTimeoutDuration,
                     LimitOverrides = new OperationLimits

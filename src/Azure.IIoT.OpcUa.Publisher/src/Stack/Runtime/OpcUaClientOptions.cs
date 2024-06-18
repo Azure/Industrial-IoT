@@ -41,6 +41,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? DefaultServiceCallTimeoutDuration { get; set; }
 
         /// <summary>
+        /// Default connect timeout duration. If the connect timeout
+        /// is not specified in the request header this value is used.
+        /// If not specified the default service call timeout is used.
+        /// </summary>
+        public TimeSpan? DefaultConnectTimeoutDuration { get; set; }
+
+        /// <summary>
         /// Keep alive interval. The client will send keep alives
         /// to the server at this interval and expect a response
         /// or initiate a session recovery / reconnect sequence.

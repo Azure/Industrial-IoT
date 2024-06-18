@@ -68,6 +68,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan? ServiceCallTimeout { get; set; }
 
         /// <summary>
+        /// Connect timeout for service calls
+        /// </summary>
+        public TimeSpan? ConnectTimeout { get; set; }
+
+        /// <summary>
         /// Minimum number of publish requests to queue
         /// </summary>
         public int? MinPublishRequests { get; set; }
@@ -451,14 +456,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="service"></param>
+        /// <param name="connectTimeout"></param>
         /// <param name="serviceCallTimeout"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         internal async Task<T> RunAsync<T>(Func<ServiceCallContext, Task<T>> service,
-            int? serviceCallTimeout, CancellationToken cancellationToken)
+            int? connectTimeout, int? serviceCallTimeout, CancellationToken cancellationToken)
         {
-            var timeout = GetServiceCallTimeout(serviceCallTimeout);
+            var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var ct = cts.Token;
             cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
@@ -482,7 +488,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         var context = new ServiceCallContext(_session, ct);
-                        cts.CancelAfter(timeout);
+                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
                         var result = await service(context).ConfigureAwait(false);
 
                         //
@@ -524,15 +530,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="stack"></param>
+        /// <param name="connectTimeout"></param>
         /// <param name="serviceCallTimeout"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         internal async IAsyncEnumerable<T> RunAsync<T>(
             Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
-            int? serviceCallTimeout, [EnumeratorCancellation] CancellationToken cancellationToken)
+            int? connectTimeout, int? serviceCallTimeout,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var timeout = GetServiceCallTimeout(serviceCallTimeout);
+            var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var ct = cts.Token;
             cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
@@ -557,7 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         var context = new ServiceCallContext(_session, ct);
-                        cts.CancelAfter(timeout);
+                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
                         results = await stack.Peek()(context).ConfigureAwait(false);
 
                         // Success
@@ -1781,6 +1789,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return kDefaultServiceCallTimeout;
         }
 
+        /// <summary>
+        /// Get the real timeout for the connectivity of session
+        /// </summary>
+        /// <param name="connectTimeout"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <returns></returns>
+        private TimeSpan GetConnectCallTimeout(int? connectTimeout, int? serviceCallTimeout)
+        {
+            if (connectTimeout.HasValue && connectTimeout.Value > 0)
+            {
+                return TimeSpan.FromMilliseconds(connectTimeout.Value);
+            }
+            if (ConnectTimeout.HasValue)
+            {
+                return ConnectTimeout.Value;
+            }
+            if (serviceCallTimeout.HasValue && serviceCallTimeout.Value > 0)
+            {
+                return TimeSpan.FromMilliseconds(serviceCallTimeout.Value);
+            }
+            if (ServiceCallTimeout.HasValue)
+            {
+                return ServiceCallTimeout.Value;
+            }
+            return kDefaultConnectTimeout;
+        }
+
         private enum ConnectionEvent
         {
             Connect,
@@ -1869,7 +1904,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
             "iiot_edge_publisher_session_count", description: "Number of active sessions.");
 
-        private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
         private OpcUaSession? _reconnectingSession;
         private int _reconnectRequired;
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -1906,5 +1940,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private readonly Task _sessionManager;
+        private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan kDefaultConnectTimeout = TimeSpan.FromMinutes(1);
     }
 }

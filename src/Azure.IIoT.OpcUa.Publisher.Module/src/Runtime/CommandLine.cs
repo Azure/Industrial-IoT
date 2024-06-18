@@ -370,9 +370,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ki|keepaliveinterval=|{OpcUaClientConfig.KeepAliveIntervalKey}=",
                     $"The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nDefault: `{OpcUaClientConfig.KeepAliveIntervalDefaultSec}` seconds.\n",
                     (uint i) => this[OpcUaClientConfig.KeepAliveIntervalKey] = i.ToString(CultureInfo.CurrentCulture) },
-                { $"sco|servicecalltimeout=|{OpcUaClientConfig.DefaultServiceCallTimeoutKey}=",
+                { $"sct|servicecalltimeout=|{OpcUaClientConfig.DefaultServiceCallTimeoutKey}=",
                     $"Maximum amount of time in seconds that a service call should take before it is being cancelled.\nThis value can be overridden in the request header.\nDefault: `{OpcUaClientConfig.DefaultServiceCallTimeoutDefaultSec}` seconds.\n",
                     (uint u) => this[OpcUaClientConfig.DefaultServiceCallTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"cto|connecttimeout=|{OpcUaClientConfig.DefaultConnectTimeoutKey}=",
+                    $"Maximum amount of time in seconds that a service call should wait for a connected session to be used.\nThis value can be overridden in the request header.\nIf not specified the default service call timeout value is used.\n",
+                    (uint u) => this[OpcUaClientConfig.DefaultConnectTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ot|operationtimeout=|{OpcUaClientConfig.OperationTimeoutKey}=",
                     $"The operation service call timeout of individual service requests to the server in milliseconds. As opposed to the `--sco` timeout, this is the timeout hint provided to the server in every request.\nThis value can be overridden in the request header.\nDefault: `{OpcUaClientConfig.OperationTimeoutDefault}` milliseconds.\n",
                     (uint u) => this[OpcUaClientConfig.OperationTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
@@ -469,7 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The own application cert store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.ApplicationCertificateStoreTypeKey, "apt") },
                 { $"cfa|configurefromappcert:|{OpcUaClientConfig.TryConfigureFromExistingAppCertKey}:",
-                    "Automatically set the application subject name, host name and application uri from the first valid application certificate found in the application certificate store path.\nIf the chosen certificate is valid, it will be used, otherwise a new, self-signed certificate with the information will be created.\nDefault: `False`.\n",
+                    "Automatically set the application subject name, host name and application uri from the first valid application certificate found in the application certificate store path.\nIf the chosen certificate is valid, it will be used, otherwise a new, self-signed certificate with the information will be created.\nDefault: `false`.\n",
                     (bool? b) => this[OpcUaClientConfig.TryConfigureFromExistingAppCertKey] = b?.ToString() ?? "True" },
                 { $"apw|appcertstorepwd=|{OpcUaClientConfig.ApplicationCertificatePasswordKey}=",
                     "Password to use when storing the application certificate in the store folder if the store is of type `Directory`.\nDefault: empty, which means application certificate is not protected by default.\n",
@@ -559,7 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
                 // testing purposes
 
-                { "sc|scaletestcount=",
+                { "stc|scaletestcount=",
                     "The number of monitored item clones in scale tests.\n",
                     (string i) => this[PublisherConfig.ScaleTestCountKey] = i, true },
 
@@ -592,7 +595,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "dt|devicecertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("dt|devicecertstoretype"), true },
                 { "dp|devicecertstorepath=", "Legacy - do not use.", _ => legacyOptions.Add("dp|devicecertstorepath"), true },
                 { "i|install", "Legacy - do not use.", _ => legacyOptions.Add("i|install"), true },
-                { "st|opcstacktracemask=", "Legacy - do not use.", _ => legacyOptions.Add("st|opcstacktracemask"), true },
                 { "sd|shopfloordomain=", "Legacy - do not use.", _ => legacyOptions.Add("sd|shopfloordomain"), true },
                 { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },
