@@ -38,6 +38,7 @@ services:
       "--bi=0",
       "--di=60",
       "--cl=5",
+      "--cto=10",
       "--rs",
       "--dm=True",
       "--lfm=syslog",
