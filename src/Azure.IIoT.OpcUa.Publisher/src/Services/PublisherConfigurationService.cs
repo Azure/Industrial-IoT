@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishStartAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+                throw new BadRequestException(message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -97,10 +97,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStartResponseModel();
-            }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally
             {
@@ -123,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishStopAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+                throw new BadRequestException(message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -138,10 +134,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishStopResponseModel();
-            }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally
             {
@@ -164,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishBulkAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+                throw new BadRequestException(message);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -193,10 +185,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
                 return new PublishBulkResponseModel();
             }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
-            }
             finally
             {
                 _api.Release();
@@ -217,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishListAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, kNullRequestMessage);
+                throw new BadRequestException(kNullRequestMessage);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -241,10 +229,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .ToList()
                 };
             }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
-            }
             finally
             {
                 _api.Release();
@@ -266,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(PublishNodesAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, message);
+                throw new BadRequestException(message);
             }
             request.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct).ConfigureAwait(false);
@@ -314,10 +298,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
-            }
             finally
             {
                 _api.Release();
@@ -338,8 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(UnpublishNodesAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                    kNullRequestMessage);
+                throw new BadRequestException(kNullRequestMessage);
             }
 
             //
@@ -381,17 +360,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Report error if no matching endpoint was found.
                 if (matchingGroups.Count == 0)
                 {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                        $"Endpoint not found: {request.EndpointUrl}");
+                    throw new ResourceNotFoundException($"Endpoint not found: {request.EndpointUrl}");
                 }
 
                 // Report error if there were entries that we were not able to find.
                 if (nodesToRemoveSet.Count != 0)
                 {
                     request.OpcNodes = nodesToRemoveSet.ToList();
-                    var entriesNotFoundJson = _jsonSerializer.SerializeToMemory(request);
-                    throw new MethodCallStatusException(entriesNotFoundJson,
-                        (int)HttpStatusCode.NotFound, "Nodes not found");
+                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
+                    throw new ResourceNotFoundException($"Nodes not found: \n{entriesNotFoundJson}");
                 }
 
                 // Create HashSet of nodes to remove again for the second pass.
@@ -441,10 +418,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
-            }
             finally
             {
                 _api.Release();
@@ -493,8 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Report error if there were entries that did not have any nodes
                     if (!found)
                     {
-                        throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                            $"Endpoint or node not found: {request.EndpointUrl}");
+                        throw new ResourceNotFoundException($"Endpoint or node not found: {request.EndpointUrl}");
                     }
 
                     var jobs = _publishedNodesJobConverter.ToWriterGroups(matchingGroups);
@@ -505,10 +477,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     await _publisherHost.UpdateAsync(Enumerable.Empty<WriterGroupModel>()).ConfigureAwait(false);
                 }
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
-            }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally
             {
@@ -532,8 +500,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     methodName, sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                    kNullRequestMessage);
+                throw new BadRequestException(kNullRequestMessage);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -564,8 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     methodName, sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                    kNullRequestMessage);
+                throw new BadRequestException(kNullRequestMessage);
             }
 
             // First, let's check that there are no 2 entries for the same endpoint in the request.
@@ -579,7 +545,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         request[itemIndex].PropagatePublishingIntervalToNodes();
                         if (request[itemIndex].HasSameDataSet(request[prevItemIndex]))
                         {
-                            throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
+                            throw new BadRequestException(
                                 "Request contains two entries for the same endpoint " +
                                 $"at index {prevItemIndex} and {itemIndex}");
                         }
@@ -597,8 +563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var removed = currentNodes.RemoveWhere(entry => entry.HasSameDataSet(removeRequest));
                     if (removed == 0)
                     {
-                        throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                            $"Endpoint not found: {removeRequest.EndpointUrl}");
+                        throw new ResourceNotFoundException($"Endpoint not found: {removeRequest.EndpointUrl}");
                     }
                 }
                 foreach (var updateRequest in request.Where(e => e.OpcNodes?.Count > 0))
@@ -647,11 +612,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 return endpoints.ToList();
             }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                    e.Message);
-            }
             finally
             {
                 _api.Release();
@@ -674,8 +634,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation("{Method} method finished in {Elapsed}.",
                     nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
                 sw.Stop();
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                    kNullRequestMessage);
+                throw new BadRequestException(kNullRequestMessage);
             }
 
             request.PropagatePublishingIntervalToNodes();
@@ -698,14 +657,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (!endpointFound)
                 {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                        $"Endpoint not found: {request.EndpointUrl}");
+                    throw new ResourceNotFoundException($"Endpoint not found: {request.EndpointUrl}");
                 }
-            }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest,
-                    e.Message);
             }
             finally
             {
@@ -730,8 +683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_diagnostics == null)
                 {
                     // Diagnostics disabled
-                    throw new MethodCallStatusException((int)HttpStatusCode.ServiceUnavailable,
-                        "Diagnostics service is disabled.");
+                    throw new ResourceInvalidStateException("Diagnostics service is disabled.");
                 }
                 foreach (var nodes in GetCurrentPublishedNodes().GroupBy(k => k.GetUniqueWriterGroupId()))
                 {
@@ -773,11 +725,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     });
                 }
                 return result;
-            }
-            catch (Exception e) when (e is not MethodCallStatusException)
-            {
-                _logger.LogError(e, "Failed to get diagnostics information.");
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally
             {
