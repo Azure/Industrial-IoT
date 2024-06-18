@@ -208,8 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 await FluentActions
                     .Invoking(async () => await methodsController.PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             var writerGroup = Assert.Single(_publisher.WriterGroups);
@@ -224,8 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .UnpublishAllNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             Assert.Empty(_publisher.WriterGroups);
@@ -377,8 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                         .Invoking(async () => await methodsController
                         .GetConfiguredNodesOnEndpointAsync(endpoints[i]))
                         .Should()
-                        .NotThrowAsync()
-;
+                        .NotThrowAsync();
 
                 response.Subject.OpcNodes.Count
                     .Should()
@@ -409,8 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
@@ -448,8 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             await d.DisposeAsync();
 
             response.Subject.OpcNodes.Count
@@ -542,8 +537,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .Invoking(async () => await methodsController
                 .GetConfiguredEndpointsAsync())
                 .Should()
-                .NotThrowAsync()
-;
+                .NotThrowAsync();
 
             endpoints.Subject.Endpoints.Count.Should().Be(0);
 
@@ -554,8 +548,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .PublishNodesAsync(request))
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
             }
 
             // Check configured endpoints count
@@ -563,8 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .Invoking(async () => await methodsController
                 .GetConfiguredEndpointsAsync())
                 .Should()
-                .NotThrowAsync()
-;
+                .NotThrowAsync();
 
             endpoints.Subject.Endpoints.Count.Should().Be(5);
             var tags = endpoints.Subject.Endpoints.Select(e => e.DataSetName).ToHashSet();

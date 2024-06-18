@@ -751,11 +751,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         // Start connecting
                                         reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
                                         currentSessionState = SessionState.Connecting;
+                                        reconnectPeriod = GetMinReconnectPeriod();
                                     }
                                     goto case ConnectionEvent.ConnectRetry;
                                 case ConnectionEvent.ConnectRetry:
-                                    reconnectPeriod = trigger == ConnectionEvent.Connect ? GetMinReconnectPeriod() :
-                                        _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
                                     switch (currentSessionState)
                                     {
                                         case SessionState.Connecting:
@@ -766,8 +765,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             if (!await TryConnectAsync(ct).ConfigureAwait(false))
                                             {
                                                 // Reschedule connecting
+                                                Debug.Assert(reconnectPeriod != 0, "Reconnect period should not be 0.");
                                                 var retryDelay = _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod);
+                                                _logger.LogInformation("{Client}: Retrying connecting session in {RetryDelay}...",
+                                                    this, retryDelay);
                                                 reconnectTimer.Change(retryDelay, Timeout.Infinite);
+                                                reconnectPeriod = _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
                                                 break;
                                             }
 
@@ -918,6 +921,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 ct).ConfigureAwait(false);
 
                                             _reconnectRequired = 0;
+                                            reconnectPeriod = GetMinReconnectPeriod();
                                             currentSessionState = SessionState.Connected;
                                             currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
                                             break;
@@ -946,7 +950,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     _disconnectLock ??= await _lock.WriterLockAsync(ct);
 
                                     _numberOfConnectRetries = 0;
-
+                                    reconnectPeriod = 0;
                                     if (_session != null)
                                     {
                                         try
@@ -1774,7 +1778,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private TimeSpan GetServiceCallTimeout(int? serviceCallTimeout)
         {
-            if (serviceCallTimeout.HasValue && serviceCallTimeout.Value > 0)
+            if (serviceCallTimeout > 0)
             {
                 return TimeSpan.FromMilliseconds(serviceCallTimeout.Value);
             }
@@ -1797,7 +1801,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private TimeSpan GetConnectCallTimeout(int? connectTimeout, int? serviceCallTimeout)
         {
-            if (connectTimeout.HasValue && connectTimeout.Value > 0)
+            if (connectTimeout > 0)
             {
                 return TimeSpan.FromMilliseconds(connectTimeout.Value);
             }
@@ -1805,15 +1809,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return ConnectTimeout.Value;
             }
-            if (serviceCallTimeout.HasValue && serviceCallTimeout.Value > 0)
+            if (serviceCallTimeout > 0)
             {
                 return TimeSpan.FromMilliseconds(serviceCallTimeout.Value);
             }
-            if (ServiceCallTimeout.HasValue)
-            {
-                return ServiceCallTimeout.Value;
-            }
-            return kDefaultConnectTimeout;
+            return ServiceCallTimeout ?? kDefaultConnectTimeout;
         }
 
         private enum ConnectionEvent

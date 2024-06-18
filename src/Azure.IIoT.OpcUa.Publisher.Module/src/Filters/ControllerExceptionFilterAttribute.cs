@@ -78,8 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception);
                     break;
-                case NotImplementedException ne:
                 case NotSupportedException ns:
+                case NotImplementedException ne:
                     context.Result = GetResponse(HttpStatusCode.NotImplemented,
                         context.Exception);
                     break;

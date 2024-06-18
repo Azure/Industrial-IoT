@@ -64,7 +64,7 @@ For a complete overview of all production deployment settings for IoT Edge, see 
 
 [Retrieve the logs](./observability.md) from publisher and examine.
 
-If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` command line option. Using the logs:
+If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` c[command line options](./commandline.md). Using the logs:
 
 - Observe data throughput and make sure that the data changes over time are as you are expecting.
 - Check whether all endpoints are connected. This can be seen during session establishment and in the periodic diagnostic logs.

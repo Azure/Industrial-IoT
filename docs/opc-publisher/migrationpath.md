@@ -36,7 +36,7 @@ We reacted by combining all 3 edge modules into OPC Publisher 2.9 and combining 
 
 We provided backwards compatibility (e.g., you need to use the `-c`, `--strict` command line argument to enable standards compliance) in OPC Publisher. *OPC Publisher 2.9 is therefore a drop in replacement for OPC Publisher 2.8 in standalone mode* with the following exceptions:
 
-- Log levels specified through the `--loglevel` command line option have been aligned to standard .net log levels, e.g., to specify verbose logging, use `Trace`.
+- Log levels specified through the `--loglevel` [command line option](./commandline.md) have been aligned to standard .net log levels, e.g., to specify verbose logging, use `Trace`.
 
 However, if you were using the 2.8 micro services before then you must be aware of the following breaking changes:
 

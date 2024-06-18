@@ -488,8 +488,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var applicationUri = _options.Value.ApplicationUri;
                 if (_options.Value.Security.TryUseConfigurationFromExistingAppCert == true)
                 {
-                    (applicationUri, hostname) = await UpdateFromExistingCertificateAsync(
-                        applicationUri, hostname, _options.Value.Security).ConfigureAwait(false);
+                    (applicationUri, appInstance.ApplicationName, hostname) =
+                        await UpdateFromExistingCertificateAsync(
+                            applicationUri, appInstance.ApplicationName, hostname,
+                            _options.Value.Security).ConfigureAwait(false);
                 }
                 if (applicationUri == null)
                 {
@@ -566,8 +568,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             throw new InvalidProgramException("OPC UA stack configuration not possible.",
                 innerException);
 
-            async ValueTask<(string?, string)> UpdateFromExistingCertificateAsync(string? applicationUri,
-                string hostName, SecurityOptions options)
+            async ValueTask<(string?, string, string)> UpdateFromExistingCertificateAsync(
+                string? applicationUri, string appName, string hostName, SecurityOptions options)
             {
                 try
                 {
@@ -584,13 +586,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             // Select first certificate that has valid information
                             options.ApplicationCertificate.SubjectName = cert.Subject;
+                            var name = cert.SubjectName.EnumerateRelativeDistinguishedNames()
+                                .Where(dn => dn.GetSingleElementType().FriendlyName == "CN")
+                                .Select(dn => dn.GetSingleElementValue())
+                                .FirstOrDefault(dn => dn != null);
+                            if (name != null)
+                            {
+                                appName = name;
+                            }
                             var san = cert.FindExtension<X509SubjectAltNameExtension>();
                             var uris = san?.Uris;
                             var hostNames = san?.DomainNames;
                             if (uris != null && hostNames != null &&
                                 uris.Count > 0 && hostNames.Count > 0)
                             {
-                                return (uris[0], hostNames[0]);
+                                return (uris[0], appName, hostNames[0]);
                             }
                             _logger.LogDebug(
                                 "Found invalid certificate for {Subject} [{Thumbprint}].",
@@ -603,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logger.LogDebug(ex, "Failed to find a certificate to take information from.");
                 }
-                return (applicationUri, hostName);
+                return (applicationUri, appName, hostName);
             }
         }
 

@@ -106,7 +106,7 @@ Select the "Get It Now" button to log into the [Azure portal](https://portal.azu
 
 ### Specifying Container Create Options in the Azure portal
 
-Container create options are used to specify the container and configuration command line arguments of OPC Publisher. The docker create options can be specified in the "Update IoT Edge Module" page of OPC Publisher and must be in JSON format. Specifically the OPC Publisher command line arguments can be specified via the "Cmd" key. Here an example for a configuration on a Linux host system:
+Container create options are used to specify the container and configuration [command line arguments](./commandline.md) of OPC Publisher. The docker create options can be specified in the "Update IoT Edge Module" page of OPC Publisher and must be in JSON format. Specifically the OPC Publisher command line arguments can be specified via the "Cmd" key. Here an example for a configuration on a Linux host system:
 
 ``` json
 {
@@ -482,7 +482,7 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `MessagingMode` | No | String | `null` | The messaging mode to use when publishing the data sets. <br>For the list of supported messaging mode names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `WriterGroupTransport` | No | String | `null` | The transport technology to use when publishing messages. <br>For the list of supported transport names see [here](./transports.md) |
 | `WriterGroupPartitions` | No | Integer | `1` | Number of partitions to split the writer group into when publishing to target topics. |
-| `WriterGroupQualityOfService` | No | String | `null` | The quality of service for telemetry messages (if supported by transport). <br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Defaults to the value configured via `--qos` command line or if not provided `AtLeastOnce` (QOS 1). |
+| `WriterGroupQualityOfService` | No | String | `null` | The quality of service for telemetry messages (if supported by transport). <br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Defaults to the value configured via `--qos` command line option or if not provided `AtLeastOnce` (QOS 1). |
 | `BatchSize` | No | Integer | `null` | The optional number of notifications that are queued before a network message is generated. <br>For historic reasons the default value is 50 unless otherwise configured via `--bs` command line option. |
 | `BatchTriggerInterval` | No | Integer | `null` | The network message publishing interval. Network and meta data messages are published cyclically from the notification queue when the specified duration has passed (or when the batch size configuration triggered a network message).<br>For historic reasons the default value is 10 seconds unless otherwise configured via  the `--bi` command line option. |
 | `BatchTriggerIntervalTimespan` | No | String | `null` | Same as `BatchTriggerInterval` but expressed as duration string.<br>Takes precedence over the Integer value. |
@@ -542,9 +542,13 @@ The following configuration properties of the published nodes entry model apply 
 - Batch size and batch publishing interval (`BatchSize`, `BatchTriggerIntervalTimespan`)
 - Desired transport (`WriterGroupTransport`)
 
+> IMPORTANT: It is important to set a unique `DataSetWriterGroup` name when configuring the above settings. Not doing so will yield unexpected behavior as all configurations with the same writer group name are collated into a single one with differing settings being clobbered.
+
 A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSetPublishingInterval` of the writer. A group of nodes with the same publishing interval becomes a writer inside a writer group, regardless of using the same `DataSetWriterId`. If the same `DataSetWriterId` is used but with nodes that have different effective publishing intervals, then a postfix string is added to the name to further disambiguate.
 
-OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due to historic reasons, a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created.
+> IMPORTANT: Just like the writer group configuration, it is important to set a unique `DataSetWriterId` name when configuring multiple writers with different settings (publishing interval excluded). Not doing so will yield unexpected behavior as all configurations with the same dataset writer name are collated into a single one with differing settings being clobbered.
+
+OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due to historic reasons, by default a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created. To minimize the number of sessions against a server, the default behavior can be overridden using the `--dsg, --disablesessionpergroup` command line option which results in a session per endpoint url across multiple writer groups.
 
 ### Sampling and Publishing Interval configuration
 
@@ -631,7 +635,7 @@ Some use cases require to publish data values in constant intervals. OPC Publish
   "HeartbeatInterval": 3600,
 ```
 
-The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavior` command line options or the
+The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavior` [command line options](./commandline.md) or the
 
 ``` json
   "HeartbeatBehavior": "...",
@@ -649,13 +653,13 @@ When you want to analyze time series of data sets (where the value timestamps of
 
 > NOTE: The Timestamp property is not part of the regular legacy samples messages.  You must set `--fm=True` for them to be included.
 
-The timestamp of the message is the time the notification *was received from the OPC UA server*. Using the `--mts` command line option other sources for this timestamp can be chosen, e.g., the time of encoding (which is shortly before sending to the data sink), or the `PublishTime` property of the subscription notification received from the server (provided by OPC UA server).
+The timestamp of the message is the time the notification *was received from the OPC UA server*. Using the `--mts` [command line options](./commandline.md) other sources for this timestamp can be chosen, e.g., the time of encoding (which is shortly before sending to the data sink), or the `PublishTime` property of the subscription notification received from the server (provided by OPC UA server).
 
 > Note that if the `PublishTime` is selected as message timestamp, heartbeat messages will not have a message timestamp as they are generated locally and not as a result of a publish operation.
 
 ##### Legacy behavior
 
-We still support a heartbeat behavior that mimics the behavior of heartbeat in 2.8 and below. Here the source timestamp of the value will be shifted by the time passed since receiving it. This behavior can be enabled by specifying `--hbb=WatchdogLKVWithUpdatedTimestamps` as command line argument during deployment.
+We still support a heartbeat behavior that mimics the behavior of heartbeat in 2.8 and below. Here the source timestamp of the value will be shifted by the time passed since receiving it. This behavior can be enabled by specifying `--hbb=WatchdogLKVWithUpdatedTimestamps` as [command line argument](./commandline.md) during deployment.
 
 This behavior only mimics the old behavior. In past versions of OPC Publisher the heartbeat option layered on top of the Keep Alive mechanism of the subscription and was similar to `WatchdogLKVWithUpdatedTimestamps`. In 2.9 and higher the heartbeat is emitted every heartbeat interval from the last received value until a new value is received following a watchdog pattern. Given that the previous mechanism resulted in unexpected behavior, the new mechanism has a simpler and more reliable pattern leading to the desired outcome. It is also better because heartbeats are also sent when OPC Publisher is not connected to the server (during intermittent disconnects).
 
@@ -675,7 +679,7 @@ The OPC UA subscription/monitored items service due to its async model (server s
 
 ### Configuring Security
 
-IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use [X.509 certificates](#opc-ua-certificates) fo mutual authentication of both OPC Publisher clients and the OPC UA server and to establish a secure channel between both. OPC Publisher can be configured to [store these certificates](#pki-management) in a file system based certificate store which root can be configured using the `--pki` command line argument. During startup, OPC Publisher checks if there's already a private certificate it should use as its identity. If it cannot find one, a self-signed certificate is created.
+IoT Edge automatically provides OPC Publisher with a secure configuration to access IoT Hub. OPC UA does use [X.509 certificates](#opc-ua-certificates) fo mutual authentication of both OPC Publisher clients and the OPC UA server and to establish a secure channel between both. OPC Publisher can be configured to [store these certificates](#pki-management) in a file system based certificate store which root can be configured using the `--pki` [command line argument](./commandline.md). During startup, OPC Publisher checks if there's already a private certificate it should use as its identity. If it cannot find one, a self-signed certificate is created.
 
 > Self-signed certificates don't provide any trust value and we don't recommend using them in production.
 
@@ -707,11 +711,11 @@ OPC Publisher version 2.5 and below encrypts the username and password in the co
 
 You can let servers connect to OPC Publisher using the OPC UA reverse connect mode. This allows an OPC UA server to connect to OPC Publisher located in a higher layer network instead of opening up inbound ports to let OPC Publisher connect to it. Consequently only an outbound port needs to be opened in the lower layer network. You can find more information in [OPC UA standard Part 6](https://reference.opcfoundation.org/v104/Core/docs/Part6/7.1.3/).
 
-Reverse connect mode can be enabled per endpoint. This can be done using the `UseReverseConnect` property inside the published nodes configuration entry. An OPC Publisher-wide default for the case the property is missing can be configured using the `--urc` command line option.
+Reverse connect mode can be enabled per endpoint. This can be done using the `UseReverseConnect` property inside the published nodes configuration entry. An OPC Publisher-wide default for the case the property is missing can be configured using the `--urc` [command line options](./commandline.md).
 
 Reverse connect is only supported for the opc.tcp scheme of endpoint urls. Reverse connecting other transports is not supported. If OPC Publisher cannot find a Url candidate with the opc.tcp scheme to use when reverse connecting it will try to establish a regular connection to any of the other candidate endpoints instead (see [ConnectionModel](./definitions.md#connectionmodel) for more information).
 
-OPC Publisher will listen for reverse connect requests on port 4840, unless a different port is configured through the `--rcp` command line option. You must open the port on the OPC Publisher docker container for external OPC UA servers to be able to access it. This must be done in the IoT Edge deployment manifest's create options. Add a port binding entry for port 4840 (or otherwise chosen port) container port and the host port you want to open (e.g., 4840):
+OPC Publisher will listen for reverse connect requests on port 4840, unless a different port is configured through the `--rcp` [command line options](./commandline.md). You must open the port on the OPC Publisher docker container for external OPC UA servers to be able to access it. This must be done in the IoT Edge deployment manifest's create options. Add a port binding entry for port 4840 (or otherwise chosen port) container port and the host port you want to open (e.g., 4840):
 
 ```json
     "createOptions": "{\"User\":\"root\",\"HostConfig\":{\"PortBindings\":{\"4840/tcp\":[{\"HostPort\":\"4840\"}],  ...
@@ -924,7 +928,7 @@ An example OPC UA PubSub message emitted by OPC Publisher version 2.9 and higher
 }
 ```
 
-OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` command line option. For backwards compatibility this option is off by default. Strict mode automatically enables all OPC UA Pub Sub features, including metadata messages. To disable metadata messages use the `--dm=true` flag. To enable metadata messages when strict mode is not used (compatible to 2.8), use `--dm=false`.
+OPC Publisher 2.9 and above supports strict adherence to Part 6 and Part 14 of the OPC UA specification when it comes to network message encoding. To enable strict mode use the `-c` or `--strict` [command line options](./commandline.md). For backwards compatibility this option is off by default. Strict mode automatically enables all OPC UA Pub Sub features, including metadata messages. To disable metadata messages use the `--dm=true` flag. To enable metadata messages when strict mode is not used (compatible to 2.8), use `--dm=false`.
 
 > It is highly recommended to always run OPC Publisher with strict adherence turned on.
 
@@ -1147,7 +1151,7 @@ A single session is opened on demand per endpoint so the OPC UA server is not ov
 
 OPC Publisher connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into the OPC Publisher Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish *trust* between the client and the server. This is done through *mutual* authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server.
 
-The pki path of OPC Publisher can be configured using the `PkiRootPath` or `--pki` command line argument (the default folder is `/pki`). It is usually a good idea to specify a volume that is mounted to the host operating system and therefore persists during restarts of the OPC Publisher container. The individual stores are found under the PKI root path. These by default follow the layout guidance of the [OPC UA standard](https://reference.opcfoundation.org/GDS/v105/docs/F.1).
+The pki path of OPC Publisher can be configured using the `PkiRootPath` or `--pki` [command line argument](./commandline.md) (the default folder is `/pki`). It is usually a good idea to specify a volume that is mounted to the host operating system and therefore persists during restarts of the OPC Publisher container. The individual stores are found under the PKI root path. These by default follow the layout guidance of the [OPC UA standard](https://reference.opcfoundation.org/GDS/v105/docs/F.1).
 
 By default, the OPC Publisher module will create a self signed x509 *Application certificate* with a 1 year expiration in the `own` store. This default, self signed cert includes the Subject `Microsoft.Azure.IIoT`. This certificate is fine as a demonstration, but for production systems customers may want to [use their own certificate](#pki-management).
 
@@ -1159,7 +1163,7 @@ The `certificate stores` in OPC Publisher live in the file system. They can be m
 
 By default, the OPC Publisher module will create a self signed x509 certificate with a 1 year expiration which is fine for demonstration. For real applications, customers may want to use their own certificate.
 
-You can use `openssl` to create your own self-signed certificate, e.g., with a 2 year expiration and a custom subject. If you desire a different application name, you must provide said application name using the `--an` command line argument (The default is `publisher`). If you desire a different subject name than the default, the OPC Publisher must be started with `--sn` command line providing the desired subject name (for example `CN=<application-name>,O=mycompany`). In the following example script, replace `<application-name>` and `<subject-name>` with the application name and subject name you configured:
+You can use `openssl` to create your own self-signed certificate, e.g., with a 2 year expiration and a custom subject. In the following example script, replace `<application-name>` and `<subject-name>` with the application name and subject name you desire:
 
 ```bash
 # Create cert.pem and key.pem
@@ -1181,7 +1185,13 @@ rm -f key.pem
 
 The resulting .pfx file can now be copied to the `own/private` folder under pki root (or to an alternative application certificate folder configured) and the .der file to the `own/certs` and `trusted/certs` folders. Alternatively you can also push the pfx file content to OPC Publisher's PKI through the [OPC Publisher API](./api.md#addcertificate).
 
-As part of above script you will be prompted to enter and verify an export password to protect the PFX file. If you are copying the PFX file into the `own` folder, then by default the password should be blank (hit enter), unless you specify the password using the `--apw=<pwd>` command line option. In this case the password should be the same password.
+As part of above script you will be prompted to enter and verify an export password to protect the PFX file. If you are copying the PFX file into the `own` folder, then by default the password should be blank (hit enter), unless you specify the password using the `--apw=<pwd>` [command line options](./commandline.md). In this case the password should be the same password.
+
+OPC Publisher can retrieve the application Uri, application name, subject Name and Host name (DNS Domain name) from the first certificate found in the `own/certs` folder under the PKI root folder if you start it with the `--cfa` [command line argument](./commandline.md).
+
+If you need to select a specific certificate in the `own/certs` store (e.g., because you configured more than one) or would like to have OPC Publisher generate a self-signed certificate with different content than the default, a application name can be provided using the `--an` command line argument (The default is `Microsoft.Azure.IIoT`). If you desire a different subject name than the default, the OPC Publisher must be started with `--sn` command line providing the desired subject name (for example `CN=<application-name>,O=mycompany`). If you desire a different application Uri than the default, it can be specified using the `--au` command line option. In this case, do not set the `--cfa` command line argument or it will override these settings from the first certificate found.
+
+> TIP: Using the `--cfa` command line option simplifies setting up OPC Publisher and also enables easier version to version upgrade without chances that a new application certificate is generated after the update because the desired certificate is not found.
 
 If you intend to provide the certificate using the  [OPC Publisher API](./api.md#addcertificate) you must provide any password you choose as part of the API call so that the API server in OPC Publisher is able to export the key from the PFX blob. If the OPC Publisher was started using the `--tm` command line option any certificate added to the `own` store will also be added to the `trusted` store.
 
@@ -1189,7 +1199,7 @@ If you intend to provide the certificate using the  [OPC Publisher API](./api.md
 
 To simplify the getting started experience, the OPC Publisher Edge module has a setting to automatically trust all *untrusted* server certificates presented to OPC Publisher (`--aa`). This does not mean OPC Publisher will accept any certificate presented. If Certificates are malformed or if certificates chains cannot be validated the certificate is considered broken (and not untrusted) and will be rejected as per OPC Foundation Security guidelines. In particular if a server does not provide a full chain it should be configured to do so, or the entire chain must be pre-provisioned in the OPC Publishers `pki` folder structure.
 
-> IMPORTANT: Automatically trusting any server certificate provided by an endpoint exposes OPC Publisher to man in the middle attacks. Do not use OPC Publisher with auto accept mode in production.
+> WARNING: Automatically trusting any server certificate provided by an endpoint exposes OPC Publisher to man in the middle attacks. Do not use OPC Publisher with auto accept mode in production.
 
 ## OPC UA stack
 
