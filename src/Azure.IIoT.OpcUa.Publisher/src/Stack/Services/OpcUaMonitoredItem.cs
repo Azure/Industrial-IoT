@@ -126,6 +126,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public IEncodeable? LastReceivedValue { get; private set; }
 
         /// <summary>
+        /// Last value received
+        /// </summary>
+        public DateTime? LastReceivedTime { get; private set; }
+
+        /// <summary>
         /// Create item
         /// </summary>
         /// <param name="logger"></param>
@@ -149,6 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             NodeId = item.NodeId;
             _logger = item._logger;
 
+            LastReceivedTime = item.LastReceivedTime;
             LastReceivedValue = item.LastReceivedValue;
             Valid = item.Valid;
         }
@@ -251,6 +257,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="disconnected"></param>
         public virtual void NotifySessionConnectionState(bool disconnected)
         {
+        }
+
+        /// <summary>
+        /// Check whether the monitored item is late
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public virtual bool WasLastValueReceivedBefore(DateTime dateTime)
+        {
+            if (!Valid || !AttachedToSubscription)
+            {
+                return false;
+            }
+            return !LastReceivedTime.HasValue || LastReceivedTime.Value < dateTime;
         }
 
         /// <summary>
@@ -457,6 +477,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _logger.LogDebug(ex, "{Item}: Could not clone last value.", this);
                 LastReceivedValue = encodeablePayload;
             }
+            LastReceivedTime = DateTime.UtcNow;
             return true;
         }
 

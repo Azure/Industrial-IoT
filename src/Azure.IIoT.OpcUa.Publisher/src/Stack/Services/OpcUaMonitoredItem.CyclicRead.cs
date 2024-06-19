@@ -169,7 +169,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
+
                 LastReceivedValue = cyclicReadNotification;
+                LastReceivedTime = DateTime.UtcNow;
                 notifications.Add(ToMonitoredItemNotification(sequenceNumber,
                     cyclicReadNotification.Value, cyclicReadNotification.Overflow));
                 return true;

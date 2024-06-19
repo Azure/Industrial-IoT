@@ -51,6 +51,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? options.EnableSequentialPublishing ?? true,
                 RepublishAfterTransfer = dataSetSource.SubscriptionSettings?.RepublishAfterTransfer
                     ?? options.DefaultRepublishAfterTransfer ?? true,
+                MonitoredItemWatchdogTimeout = dataSetSource.SubscriptionSettings?.MonitoredItemWatchdogTimeout
+                    ?? options.DefaultMonitoredItemWatchdogTimeout,
+                WatchdogBehavior = dataSetSource.SubscriptionSettings?.WatchdogBehavior
+                    ?? options.DefaultWatchdogBehavior,
                 ResolveBrowsePathFromRoot = fetchBrowsePathFromRootOverride
                     ?? options.FetchOpcBrowsePathFromRoot ?? false,
                 MetaData = options.DisableDataSetMetaData == true

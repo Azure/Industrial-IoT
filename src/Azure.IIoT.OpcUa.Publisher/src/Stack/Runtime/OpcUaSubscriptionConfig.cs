@@ -47,6 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
         public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
+        public const string DefaultWatchdogBehaviorKey = "DefaultWatchdogBehavior";
+        public const string DefaultMonitoredItemWatchdogSecondsKey = "DefaultMonitoredItemWatchdogSeconds";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -106,6 +108,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultPublishingIntervalKey,
                     DefaultPublishingIntervalDefaultMillis));
             }
+
+            if (options.DefaultMonitoredItemWatchdogTimeout == null)
+            {
+                var watchdogInterval = GetIntOrNull(DefaultMonitoredItemWatchdogSecondsKey);
+                if (watchdogInterval.HasValue)
+                {
+                    options.DefaultMonitoredItemWatchdogTimeout =
+                        TimeSpan.FromSeconds(watchdogInterval.Value);
+                }
+            }
+            if (options.DefaultWatchdogBehavior == null &&
+                Enum.TryParse<SubscriptionWatchdogBehavior>(GetStringOrDefault(DefaultWatchdogBehaviorKey),
+                    out var watchdogBehavior))
+            {
+                options.DefaultWatchdogBehavior = watchdogBehavior;
+            }
+
             options.DefaultKeepAliveCount ??= (uint)GetIntOrDefault(DefaultKeepAliveCountKey,
                     DefaultKeepAliveCountDefault);
             options.DefaultLifeTimeCount ??= (uint)GetIntOrDefault(DefaultLifetimeCountKey,

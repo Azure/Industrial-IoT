@@ -599,6 +599,23 @@ Subscription settings
                                    `StatusValueTimestamp`
                                Default: `StatusValue` (which is the OPC UA
                                default).
+      --mwt, --monitoreditemwatchdog, --DefaultMonitoredItemWatchdogSeconds=VALUE
+                             The subscription and monitored item watchdog
+                               timeout in seconds the subscription uses to
+                               check on late reporting monitored items unless
+                               overridden in the published nodes configuration
+                               explicitly.
+                               Default: `not set` (watchdog disabled).
+      --dwb, --watchdogbehavior, --DefaultWatchdogBehavior=VALUE
+                             Default behavior of the subscription and monitored
+                               item watchdog mechanism unless overridden in the
+                               published nodes configuration explicitly.
+                               Allowed values:
+                                   `Diagnostic`
+                                   `Reset`
+                                   `FailFast`
+                                   `ExitProcess`
+                               Default: `Diagnostic` (if enabled).
       --sf, --skipfirst, --DefaultSkipFirst[=VALUE]
                              The publisher is using this as default value for
                                the skip first setting of nodes configured

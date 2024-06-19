@@ -249,6 +249,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             writers.Sum(w => w.MonitoredOpcNodesFailedCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
+                        MonitoredOpcNodesLateCount = MonitoredOpcNodesLateCount +
+                            writers.Sum(w => w.MonitoredOpcNodesLateCount),
                         OpcEndpointConnected = NumberOfConnectedEndpoints != 0,
                         PublishRequestsRatio = PublishRequestsRatio +
                             writers.Sum(w => w.PublishRequestsRatio),
@@ -290,6 +292,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.MonitoredOpcNodesSucceededCount = (long)i,
                 ["iiot_edge_publisher_bad_nodes"] =
                     (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
+                ["iiot_edge_publisher_late_nodes"] =
+                    (d, i) => d.MonitoredOpcNodesLateCount = (long)i,
                 ["iiot_edge_publisher_is_connection_ok"] =
                     (d, i) => d.NumberOfConnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_is_disconnected"] =

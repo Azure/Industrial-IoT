@@ -101,6 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             _timer = new Timer(OnSubscriptionManagementTriggered);
             _keepAliveWatcher = new Timer(OnKeepAliveMissing);
+            _monitoredItemWatcher = new Timer(OnMonitoredItemWatchdog);
 
             InitializeMetrics();
             TriggerManageSubscription(true);
@@ -130,6 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _goodMonitoredItems = subscription._goodMonitoredItems;
             _badMonitoredItems = subscription._badMonitoredItems;
+            _lateMonitoredItems = subscription._lateMonitoredItems;
             _reportingItems = subscription._reportingItems;
             _disabledItems = subscription._disabledItems;
             _samplingItems = subscription._samplingItems;
@@ -148,6 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
             _timer = new Timer(OnSubscriptionManagementTriggered);
             _keepAliveWatcher = new Timer(OnKeepAliveMissing);
+            _monitoredItemWatcher = new Timer(OnMonitoredItemWatchdog);
 
             InitializeMetrics();
 
@@ -305,6 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Finalize closing the subscription
             ResetKeepAliveTimer();
+            ResetMonitoredItemWatchdogTimer(false);
 
             _callbacks.OnSubscriptionUpdated(null);
 
@@ -359,6 +363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         try
                         {
+                            ResetMonitoredItemWatchdogTimer(false);
                             _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
 
                             FastDataChangeCallback = null;
@@ -377,6 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         finally
                         {
                             _keepAliveWatcher.Dispose();
+                            _monitoredItemWatcher.Dispose();
                             _timer.Dispose();
                             _meter.Dispose();
 
@@ -509,6 +515,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _disabledItems = 0;
                 _samplingItems = 0;
                 _notAppliedItems = 0;
+
+                ResetMonitoredItemWatchdogTimer(false);
 
                 await Try.Async(
                     () => SetPublishingModeAsync(false)).ConfigureAwait(false);
@@ -798,6 +806,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation(
                         "Disabled empty Subscription {Subscription} in session {Session}.",
                         this, session);
+
+                    ResetMonitoredItemWatchdogTimer(false);
                 }
             }
 
@@ -1171,6 +1181,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogInformation(
                     "{State} Subscription {Subscription} in session {Session}.",
                     shouldEnable ? "Enabled" : "Disabled", this, session);
+
+                ResetMonitoredItemWatchdogTimer(shouldEnable);
             }
         }
 
@@ -1235,6 +1247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         $"Failed to create subscription {this} in session {session}");
                 }
 
+                ResetMonitoredItemWatchdogTimer(enablePublishing);
                 LogRevisedValues(true);
                 Debug.Assert(Id != 0);
                 Debug.Assert(Created);
@@ -1297,6 +1310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "Subscription {Subscription} in session {Session} successfully modified.",
                         this, session);
                     LogRevisedValues(false);
+                    ResetMonitoredItemWatchdogTimer(PublishingEnabled);
                 }
             }
             ResetKeepAliveTimer();
@@ -1556,7 +1570,7 @@ Actual (revised) state/desired state:
             }
 
             var session = Session;
-            if (session is not IOpcUaSession sessionContext)
+            if (session is not IOpcUaSession)
             {
                 _logger.LogWarning(
                     "Keep alive event for subscription {Subscription} received without session {Session}.",
@@ -1877,6 +1891,98 @@ Actual (revised) state/desired state:
         }
 
         /// <summary>
+        /// Reset the monitored item watchdog
+        /// </summary>
+        /// <param name="publishingEnabled"></param>
+        private void ResetMonitoredItemWatchdogTimer(bool publishingEnabled)
+        {
+            var timeout = _template.Configuration?.MonitoredItemWatchdogTimeout;
+            if (timeout == null || timeout.Value == TimeSpan.Zero)
+            {
+                return;
+            }
+            if (!publishingEnabled)
+            {
+                _lastMonitoredItemCheck = null;
+                _monitoredItemWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+            }
+            else
+            {
+                _lastMonitoredItemCheck = DateTime.UtcNow;
+                _monitoredItemWatcher.Change(timeout.Value, timeout.Value);
+            }
+        }
+
+        /// <summary>
+        /// Checks status of monitored items
+        /// </summary>
+        /// <param name="state"></param>
+        private void OnMonitoredItemWatchdog(object? state)
+        {
+            if (_disposed || _monitoredItemWatcher == null)
+            {
+                Debug.Fail("Should not be called after dispose");
+                return;
+            }
+
+            if (!IsOnline || _lastMonitoredItemCheck == null)
+            {
+                // Stop watchdog
+                _monitoredItemWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+                return;
+            }
+
+            if (_goodMonitoredItems == 0)
+            {
+                _lastMonitoredItemCheck = DateTime.UtcNow;
+                return;
+            }
+
+            var lastCount = _lateMonitoredItems;
+            foreach (var item in CurrentlyMonitored)
+            {
+                if (item.WasLastValueReceivedBefore(_lastMonitoredItemCheck.Value))
+                {
+#if DEBUG
+                    _logger.LogDebug(
+                        "Monitored item {Item} in subscription {Subscription} is late.",
+                        item, this);
+#endif
+                    _lateMonitoredItems++;
+                }
+            }
+            _lastMonitoredItemCheck = DateTime.UtcNow;
+            if (lastCount == _lateMonitoredItems)
+            {
+                _logger.LogDebug("All monitored items in {Subscription} are reporting.",
+                    this);
+                return;
+            }
+            var action = _template.Configuration?.WatchdogBehavior;
+            if (action == null)
+            {
+                return;
+            }
+
+            var msg = $"Subscription {this} has {_lateMonitoredItems} late monitored items.";
+            switch (action)
+            {
+                case SubscriptionWatchdogBehavior.Reset:
+                    _forceRecreate = true;
+                    _lastMonitoredItemCheck = null;
+                    OnSubscriptionManagementTriggered(this);
+                    break;
+                case SubscriptionWatchdogBehavior.FailFast:
+                    Publisher.Runtime.FailFast(msg, null);
+                    break;
+                case SubscriptionWatchdogBehavior.ExitProcess:
+                    Console.WriteLine(msg);
+                    Publisher.Runtime.Exit(-10);
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Called when keep alive callback was missing
         /// </summary>
         /// <param name="state"></param>
@@ -1934,12 +2040,14 @@ Actual (revised) state/desired state:
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
                 _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+                ResetMonitoredItemWatchdogTimer(false);
                 _publishingStopped = true;
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Recovered))
             {
                 _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
                 ResetKeepAliveTimer();
+                ResetMonitoredItemWatchdogTimer(true);
                 _publishingStopped = false;
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Transferred))
@@ -2392,7 +2500,10 @@ Actual (revised) state/desired state:
                 description: "Monitored items successfully created.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_nodes",
                 () => new Measurement<long>(_badMonitoredItems, _metrics.TagList),
-                description: "Monitored items with errors.");
+                description: "Monitored items that were not successfully created.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_late_nodes",
+                () => new Measurement<long>(_lateMonitoredItems, _metrics.TagList),
+                description: "Monitored items that are late reporting.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_reporting_nodes",
                 () => new Measurement<long>(_reportingItems, _metrics.TagList),
                 description: "Monitored items reporting.");
@@ -2460,6 +2571,8 @@ Actual (revised) state/desired state:
         private readonly IMetricsContext _metrics;
         private readonly Timer _timer;
         private readonly Timer _keepAliveWatcher;
+        private readonly Timer _monitoredItemWatcher;
+        private DateTime? _lastMonitoredItemCheck;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
         private int _metadataLoadSuccess;
@@ -2475,6 +2588,7 @@ Actual (revised) state/desired state:
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
+        private int _lateMonitoredItems;
         private readonly object _lock = new();
     }
 }

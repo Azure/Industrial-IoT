@@ -342,6 +342,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? DisableSubscriptionTransfer { get; set; }
 
         /// <summary>
+        /// The timeout to use to monitor the monitored items in the
+        /// subscription are continously reporting fresh data.
+        /// </summary>
+        [DataMember(Name = "MonitoredItemWatchdogTimespan", Order = 41,
+            EmitDefaultValue = false)]
+        public TimeSpan? MonitoredItemWatchdogTimespan { get; set; }
+
+        /// <summary>
+        /// Subscription watchdog behavior
+        /// </summary>
+        [DataMember(Name = "WatchdogBehavior", Order = 42,
+            EmitDefaultValue = false)]
+        public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 50,

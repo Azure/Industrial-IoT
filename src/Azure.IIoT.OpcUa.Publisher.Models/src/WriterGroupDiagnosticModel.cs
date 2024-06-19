@@ -448,5 +448,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MaximumMemoryInBytes", Order = 66,
             EmitDefaultValue = true)]
         public ulong MaximumMemoryInBytes { get; set; }
+
+        /// <summary>
+        /// Nodes that are late reporting if watchdog is enabled
+        /// </summary>
+        [DataMember(Name = "MonitoredOpcNodesLateCount", Order = 67,
+            EmitDefaultValue = true)]
+        public long MonitoredOpcNodesLateCount { get; set; }
     }
 }

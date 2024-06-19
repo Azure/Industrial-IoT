@@ -127,7 +127,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             BatchTriggerInterval = null,
                             Priority = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
                             MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
-                            DisableSubscriptionTransfer = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
+                            DisableSubscriptionTransfer =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
+                            MonitoredItemWatchdogTimespan =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogTimeout,
+                            WatchdogBehavior =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.WatchdogBehavior,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup =
@@ -423,6 +428,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
                                                 RepublishAfterTransfer = b.Header.DisableSubscriptionTransfer,
+                                                MonitoredItemWatchdogTimeout = b.Header.MonitoredItemWatchdogTimespan,
+                                                WatchdogBehavior = b.Header.WatchdogBehavior,
                                                 Priority = b.Header.Priority,
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
                                                 // ...
