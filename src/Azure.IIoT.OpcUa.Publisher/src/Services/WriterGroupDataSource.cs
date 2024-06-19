@@ -1196,15 +1196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
                 () => new Measurement<int>(DisconnectedClients, _metrics.TagList),
                 description: "OPC UA endpoints that are disconnected.");
-
-            _meter.CreateObservableGauge("iiot_edge_publisher_metadata_major_version",
-                () => new Measurement<long>(
-                    LastMetaData?.MetaData.DataSetMetaData.MajorVersion ?? 0, _metrics.TagList),
-                description: "Current metadata major version.");
-            _meter.CreateObservableGauge("iiot_edge_publisher_metadata_minor_version",
-                () => new Measurement<long>(
-                    LastMetaData?.MetaData.MinorVersion ?? 0, _metrics.TagList),
-                description: "Current metadata minor version.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
