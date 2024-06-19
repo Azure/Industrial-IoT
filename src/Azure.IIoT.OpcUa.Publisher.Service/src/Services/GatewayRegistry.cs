@@ -105,12 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Update registration from update request
-                    var patched = registration.ToServiceModel();
-                    if (patched == null)
-                    {
-                        throw new ResourceInvalidStateException($"{gatewayId} is not a valid gateway.");
-                    }
-
+                    var patched = registration.ToServiceModel()
+                        ?? throw new ResourceInvalidStateException($"{gatewayId} is not a valid gateway.");
                     if (request.SiteId != null)
                     {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?

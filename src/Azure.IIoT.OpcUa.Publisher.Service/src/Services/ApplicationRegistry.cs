@@ -59,11 +59,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             var context = request.Context.Validate();
 
             var application = await AddOrUpdateApplicationAsync(
-                request.ToApplicationInfo(context), null, false, ct).ConfigureAwait(false);
-            if (application == null)
-            {
-                throw new InvalidOperationException("Application could not be added.");
-            }
+                request.ToApplicationInfo(context), null, false, ct).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("Application could not be added.");
             if (_applicationEvents != null)
             {
                 await _applicationEvents.OnApplicationNewAsync(context,
@@ -152,11 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     return (true, true);
                 }
                 return (null, null);
-            }, ct).ConfigureAwait(false);
-            if (app == null)
-            {
-                throw new InvalidOperationException("Failed to update application.");
-            }
+            }, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Failed to update application.");
             await HandleApplicationDisabledAsync(context, app).ConfigureAwait(false);
         }
 
@@ -176,11 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     return (true, false);
                 }
                 return (null, null);
-            }, ct).ConfigureAwait(false);
-            if (app == null)
-            {
-                throw new InvalidOperationException("Failed to update application.");
-            }
+            }, ct).ConfigureAwait(false) ?? throw new InvalidOperationException("Failed to update application.");
             if (_applicationEvents != null)
             {
                 await _applicationEvents.OnApplicationEnabledAsync(context,
@@ -220,11 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 existing.Patch(request);
                 existing.Updated = context;
                 return (true, null);
-            }, ct).ConfigureAwait(false);
-            if (application == null)
-            {
-                throw new InvalidOperationException("Failed to update application.");
-            }
+            }, ct).ConfigureAwait(false) ?? throw new InvalidOperationException("Failed to update application.");
             if (_applicationEvents != null)
             {
                 await _applicationEvents.OnApplicationUpdatedAsync(context,
@@ -366,11 +352,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         {
             var registration = await GetApplicationRegistrationAsync(applicationId,
                 ct).ConfigureAwait(false);
-            var application = registration.ToServiceModel();
-            if (application == null)
-            {
-                throw new ResourceNotFoundException("Found registration is invalid.");
-            }
+            var application = registration.ToServiceModel()
+                ?? throw new ResourceNotFoundException("Found registration is invalid.");
 
             // Include deleted twins if the application itself is deleted.  Otherwise omit.
             var endpoints = await GetEndpointsAsync(applicationId,
@@ -466,12 +449,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var device = await _iothub.GetAsync(endpointId, null, ct).ConfigureAwait(false);
-            var endpoint = TwinModelToEndpointRegistrationModel(device, onlyServerState, false);
-            if (endpoint == null)
-            {
-                throw new ResourceNotFoundException("Invalid endpoint found.");
-            }
-            return endpoint;
+            return TwinModelToEndpointRegistrationModel(device, onlyServerState, false)
+                ?? throw new ResourceNotFoundException("Invalid endpoint found.");
         }
 
         /// <inheritdoc/>
@@ -682,12 +661,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                                     }
                                     unchanged++;
                                     return (null, null);
-                                }, default).ConfigureAwait(false);
-
-                            if (app == null)
-                            {
-                                throw new InvalidOperationException("Failed to update application.");
-                            }
+                                }, default).ConfigureAwait(false)
+                                    ?? throw new InvalidOperationException("Failed to update application.");
                             if (wasUpdated && _applicationEvents != null)
                             {
                                 await _applicationEvents.OnApplicationUpdatedAsync(context,
@@ -723,12 +698,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     application.DiscovererId = discovererId;
 
                     var app = await AddOrUpdateApplicationAsync(application, false,
-                        false, default).ConfigureAwait(false);
-
-                    if (app == null)
-                    {
-                        throw new InvalidOperationException("Failed to add or update application.");
-                    }
+                        false, default).ConfigureAwait(false)
+                        ?? throw new InvalidOperationException("Failed to add or update application.");
                     // Notify addition!
                     if (_applicationEvents != null)
                     {
@@ -791,12 +762,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             application.Updated = context;
                             updated++;
                             return (true, false);
-                        }, default).ConfigureAwait(false);
-
-                    if (app == null)
-                    {
-                        throw new InvalidOperationException("Failed to update application.");
-                    }
+                        }, default).ConfigureAwait(false)
+                        ?? throw new InvalidOperationException("Failed to update application.");
                     if (wasDisabled)
                     {
                         await HandleApplicationEnabledAsync(context, app).ConfigureAwait(false);
@@ -970,11 +937,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     {
                         await _iothub.PatchAsync(exists.Patch(patch, _serializer),
                             true).ConfigureAwait(false);
-                        var endpoint = patch.ToServiceModel();
-                        if (endpoint == null)
-                        {
-                            throw new ResourceInvalidStateException("Bad item provided during discovery");
-                        }
+                        var endpoint = patch.ToServiceModel()
+                            ?? throw new ResourceInvalidStateException("Bad item provided during discovery");
                         // await OnEndpointUpdatedAsync(context, endpoint);
                         if ((exists.IsDisabled ?? false) && _endpointEvents != null)
                         {
@@ -1012,11 +976,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     var created = await _iothub.CreateOrUpdateAsync(item.ToDeviceTwin(_serializer),
                         true).ConfigureAwait(false);
 
-                    var endpoint = item.ToServiceModel();
-                    if (endpoint == null)
-                    {
-                        throw new ResourceInvalidStateException("Bad item provided during discovery");
-                    }
+                    var endpoint = item.ToServiceModel()
+                        ?? throw new ResourceInvalidStateException("Bad item provided during discovery");
                     if (_endpointEvents != null)
                     {
                         await _endpointEvents.OnEndpointNewAsync(context,
@@ -1158,12 +1119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         private async Task<ApplicationRegistration> GetApplicationRegistrationAsync(
             string applicationId, CancellationToken ct)
         {
-            var registration = await FindApplicationRegistrationAsync(applicationId, ct).ConfigureAwait(false);
-            if (registration is null)
-            {
-                throw new ResourceNotFoundException("Not an application registration");
-            }
-            return registration;
+            return await FindApplicationRegistrationAsync(applicationId, ct).ConfigureAwait(false)
+                ?? throw new ResourceNotFoundException("Not an application registration");
         }
 
         /// <summary>

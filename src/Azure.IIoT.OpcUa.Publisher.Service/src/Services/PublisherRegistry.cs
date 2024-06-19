@@ -53,12 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ResourceNotFoundException($"{publisherId} is not a publisher registration.");
             }
-            var publisherModel = registration.ToPublisherModel();
-            if (publisherModel == null)
-            {
-                throw new ResourceInvalidStateException($"{publisherId} is not a valid publisher model.");
-            }
-            return publisherModel;
+            return registration.ToPublisherModel()
+                ?? throw new ResourceInvalidStateException($"{publisherId} is not a valid publisher model.");
         }
 
         /// <inheritdoc/>
@@ -91,11 +87,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             $"{publisherId} is not a publisher registration.");
                     }
                     // Update registration from update request
-                    var patched = registration.ToPublisherModel();
-                    if (patched == null)
-                    {
-                        throw new ResourceInvalidStateException($"{publisherId} is not a valid publisher model.");
-                    }
+                    var patched = registration.ToPublisherModel()
+                        ?? throw new ResourceInvalidStateException($"{publisherId} is not a valid publisher model.");
                     if (request.SiteId != null)
                     {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?

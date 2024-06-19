@@ -76,6 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
         public const string ActivePublishErrorHandlingKey = "ActivePublishErrorHandling";
         public const string MinPublishRequestsKey = "MinPublishRequests";
+        public const string MaxPublishRequestsKey = "MaxPublishRequests";
         public const string MaxNodesPerBrowseOverrideKey = "MaxNodesPerBrowseOverride";
         public const string MaxNodesPerReadOverrideKey = "MaxNodesPerReadOverride";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -113,7 +114,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool AddAppCertToTrustedStoreDefault = true;
         public const bool RejectUnknownRevocationStatusDefault = true;
         public const bool ActivePublishErrorHandlingDefault = true;
-        public const int MinPublishRequestsDefault = 3;
+        public const int MinPublishRequestsDefault = 2;
+        public const int MaxPublishRequestsDefault = 10;
         public const int PublishRequestsPerSubscriptionPercentDefault = 100;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -266,18 +268,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 }
             }
 
-            options.MinPublishRequests ??= GetIntOrDefault(MinPublishRequestsKey,
-                    MinPublishRequestsDefault);
+            options.MinPublishRequests ??= GetIntOrDefault(MinPublishRequestsKey);
+            options.MaxPublishRequests ??= GetIntOrDefault(MaxPublishRequestsKey);
 
             options.PublishRequestsPerSubscriptionPercent ??= GetIntOrNull(
-                    PublishRequestsPerSubscriptionPercentKey,
-                    PublishRequestsPerSubscriptionPercentDefault);
+                    PublishRequestsPerSubscriptionPercentKey);
 
             options.ActivePublishErrorHandling ??= GetBoolOrDefault(
                     ActivePublishErrorHandlingKey, ActivePublishErrorHandlingDefault);
 
             options.MaxNodesPerReadOverride ??= GetIntOrNull(MaxNodesPerReadOverrideKey);
-
             options.MaxNodesPerBrowseOverride ??= GetIntOrNull(MaxNodesPerBrowseOverrideKey);
 
             if (options.Security.MinimumCertificateKeySize == 0)

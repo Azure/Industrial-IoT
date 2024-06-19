@@ -56,13 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ResourceNotFoundException(
                     $"{discovererId} is not a discoverer registration.");
             }
-            var model = registration.ToDiscovererModel();
-            if (model is null)
-            {
-                throw new ResourceInvalidStateException(
+            return registration.ToDiscovererModel() ?? throw new ResourceInvalidStateException(
                     $"{discovererId} is not a valid discoverer registration.");
-            }
-            return model;
         }
 
         /// <inheritdoc/>
@@ -98,13 +93,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Update registration from update request
-                    var patched = registration.ToDiscovererModel();
-                    if (patched == null)
-                    {
-                        throw new ResourceInvalidStateException(
+                    var patched = registration.ToDiscovererModel() ?? throw new ResourceInvalidStateException(
                             $"{discovererId} is not a valid publisher registration.");
-                    }
-
                     if (request.Discovery != null && request.Discovery != DiscoveryMode.Off)
                     {
                         _logger.LogWarning("Discovery mode setting is no longer supported." +

@@ -427,6 +427,7 @@ Options:
         /// <param name="duration"></param>
         /// <param name="scaleunits"></param>
         /// <param name="dumpMessagesOutput"></param>
+        /// <param name="args"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,

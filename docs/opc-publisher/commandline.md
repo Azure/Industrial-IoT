@@ -768,11 +768,16 @@ OPC UA Client configuration
       --mpr, --minpublishrequests, --MinPublishRequests=VALUE
                              Minimum number of publish requests to queue once
                                subscriptions are created in the session.
-                               Default: `3`.
+                               Default: `2`.
       --ppr, --percentpublishrequests, --PublishRequestsPerSubscriptionPercent=VALUE
                              Percentage ratio of publish requests per
-                               subscriptions in the session in percent.
+                               subscriptions in the session in percent up to
+                               the number configured using `--xpr`.
                                Default: `100`% (1 request per subscription).
+      --xpr, --maxpublishrequests, --MaxPublishRequests=VALUE
+                             Maximum number of publish requests to every queue
+                               once subscriptions are created in the session.
+                               Default: `10`.
       --smi, --subscriptionmanagementinterval, --SubscriptionManagementIntervalSeconds=VALUE
                              The interval in seconds after which the publisher
                                re-applies the desired state of the subscription

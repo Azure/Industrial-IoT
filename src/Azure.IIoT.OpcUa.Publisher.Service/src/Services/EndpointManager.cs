@@ -32,23 +32,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
             CancellationToken ct = default)
         {
-            var application = await _discovery.FindServerAsync(query, ct).ConfigureAwait(false);
-            if (application == null)
-            {
-                throw new ResourceNotFoundException("Could not find any endpoint");
-            }
+            var application = await _discovery.FindServerAsync(query, ct).ConfigureAwait(false)
+                ?? throw new ResourceNotFoundException("Could not find any endpoint");
             var registered = await _registry.AddDiscoveredApplicationAsync(application,
                 ct).ConfigureAwait(false);
             if (registered.Endpoints == null || registered.Endpoints.Count == 0)
             {
                 throw new ResourceNotFoundException("No endpoint registered.");
             }
-            var id = registered.Endpoints[0].Id;
-            if (id == null)
-            {
-                throw new ResourceInvalidStateException("Failed to register endpoint.");
-            }
-            return id;
+            return registered.Endpoints[0].Id
+                ?? throw new ResourceInvalidStateException("Failed to register endpoint.");
         }
 
         private readonly IServerDiscovery _discovery;

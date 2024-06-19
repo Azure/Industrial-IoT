@@ -228,8 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 .Append(SupportsKeyFrames ? "X" : " ")
                 .Append(" | ")
                 .Append(SupportsKeepAlive ? "X" : " ")
-                .Append(" |")
-                .AppendLine()
+                .AppendLine(" |")
                 .ToString();
         }
 

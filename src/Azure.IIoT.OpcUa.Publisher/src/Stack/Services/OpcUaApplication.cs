@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.ConstrainedExecution;
 
     /// <summary>
     /// Client configuration
@@ -882,7 +881,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Bad thumbprint", nameof(thumbprint));
             }
-            return thumbprint.ReplaceLineEndings().Replace(Environment.NewLine, "");
+            return thumbprint.ReplaceLineEndings(string.Empty);
         }
 
         private const int kMaxThumbprintLength = 64;

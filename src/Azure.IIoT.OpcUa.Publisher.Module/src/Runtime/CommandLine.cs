@@ -396,8 +396,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MinPublishRequestsDefault}`.\n",
                     (uint u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },
                 { $"ppr|percentpublishrequests=|{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey}=",
-                    $"Percentage ratio of publish requests per subscriptions in the session in percent.\nDefault: `{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentDefault}`% (1 request per subscription).\n",
+                    $"Percentage ratio of publish requests per subscriptions in the session in percent up to the number configured using `--xpr`.\nDefault: `{OpcUaClientConfig.PublishRequestsPerSubscriptionPercentDefault}`% (1 request per subscription).\n",
                     (ushort u) => this[OpcUaClientConfig.PublishRequestsPerSubscriptionPercentKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"xpr|maxpublishrequests=|{OpcUaClientConfig.MaxPublishRequestsKey}=",
+                    $"Maximum number of publish requests to every queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MaxPublishRequestsDefault}`.\n",
+                    (uint u) => this[OpcUaClientConfig.MaxPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },
 
                 { $"smi|subscriptionmanagementinterval=|{OpcUaClientConfig.SubscriptionManagementIntervalSecondsKey}=",
                     "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `0` (only on configuration change).\n",

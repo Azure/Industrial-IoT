@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 
         /// <summary>
         /// Minimum number of publish requests to queue
-        /// at all times. Default is 3.
+        /// at all times. Default is 2.
         /// </summary>
         public int? MinPublishRequests { get; set; }
 
@@ -143,6 +143,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// subscription. Use this to control network latency
         /// </summary>
         public int? PublishRequestsPerSubscriptionPercent { get; set; }
+
+        /// <summary>
+        /// Max number of publish requests to queue
+        /// at all times. Default is 15.
+        /// </summary>
+        public int? MaxPublishRequests { get; set; }
 
         /// <summary>
         /// Limit max nodes to read in a batch operation
