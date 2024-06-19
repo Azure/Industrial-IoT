@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using static Azure.IIoT.OpcUa.Publisher.Stack.Services.OpcUaSubscription;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes

@@ -1011,8 +1011,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ToFrozenDictionary(m => m.ClientHandle, m => m);
 
             _badMonitoredItems = invalidItems;
-            _goodMonitoredItems = set
-                .Count - invalidItems;
+            _goodMonitoredItems = Math.Max(set.Count - invalidItems, 0);
             _reportingItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Reporting);
             _disabledItems = set
@@ -1935,11 +1934,13 @@ Actual (revised) state/desired state:
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
                 _keepAliveWatcher.Change(Timeout.Infinite, Timeout.Infinite);
+                _publishingStopped = true;
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Recovered))
             {
                 _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
                 ResetKeepAliveTimer();
+                _publishingStopped = false;
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Transferred))
             {
@@ -1963,6 +1964,7 @@ Actual (revised) state/desired state:
                 // needs to be recreated.
                 //
                 _forceRecreate = true;
+                _publishingStopped = true;
                 OnSubscriptionManagementTriggered(this);
             }
         }
@@ -1984,6 +1986,7 @@ Actual (revised) state/desired state:
             if (e.Status.HasFlag(SubscriptionChangeMask.Created))
             {
                 _logger.LogDebug("Subscription {Subscription} created.", this);
+                _publishingStopped = false;
             }
             if (e.Status.HasFlag(SubscriptionChangeMask.Deleted))
             {
@@ -2278,6 +2281,7 @@ Actual (revised) state/desired state:
                     {
                         await UpdateMetaDataAsync(args, ct).ConfigureAwait(false);
                         args.tcs?.TrySetResult();
+                        Interlocked.Increment(ref _subscription._metadataLoadSuccess);
                     }
                     catch (OperationCanceledException)
                     {
@@ -2290,6 +2294,7 @@ Actual (revised) state/desired state:
                             this, ex.Message);
 
                         args.tcs?.TrySetException(ex);
+                        Interlocked.Increment(ref _subscription._metadataLoadFailures);
                     }
                 }
             }
@@ -2400,6 +2405,15 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_nodes_monitoring_mode_inconsistent",
                 () => new Measurement<long>(_notAppliedItems, _metrics.TagList),
                 description: "Monitored items with monitoring mode not applied.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscription_stopped_count",
+                () => new Measurement<int>(_publishingStopped ? 1 : 0, _metrics.TagList),
+                description: "Number of subscriptions that stopped publishing.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_metadata",
+                () => new Measurement<long>(_metadataLoadSuccess, _metrics.TagList),
+                description: "Number of successful metadata load operations.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_metadata",
+                () => new Measurement<long>(_metadataLoadFailures, _metrics.TagList),
+                description: "Number of failed metadata load operations.");
 
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
@@ -2414,6 +2428,16 @@ Actual (revised) state/desired state:
                 () => new Measurement<double>(Ratio(State.MinPublishRequestCount, State.SubscriptionCount),
                 _metrics.TagList), description: "Min publish requests queued per subsciption.");
 
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_deferred_acks_enabled_count",
+                () => new Measurement<int>(_useDeferredAcknoledge ? 1 : 0, _metrics.TagList),
+                description: "Number of subscriptions with deferred acknoledgements enabled.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_deferred_acks_last_sequencenumber",
+                () => new Measurement<long>(_sequenceNumber, _metrics.TagList),
+                description: "Sequence number of the last notification received in subscription.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_deferred_acks_completed_sequencenumber",
+                () => new Measurement<long>(_currentSequenceNumber, _metrics.TagList),
+                description: "Sequence number of the next notification to acknoledge in subscription.");
+
             static double Ratio(int value, int count) => count == 0 ? 0.0 : (double)value / count;
         }
 
@@ -2422,8 +2446,9 @@ Actual (revised) state/desired state:
         private SubscriptionModel _template;
         private IOpcUaClient? _client;
         private uint _previousSequenceNumber;
-        private bool _useDeferredAcknoledge;
         private uint _sequenceNumber;
+        private uint _currentSequenceNumber;
+        private bool _useDeferredAcknoledge;
         private bool _closed;
         private bool _forceRecreate;
         private readonly ISubscriptionCallbacks _callbacks;
@@ -2437,7 +2462,8 @@ Actual (revised) state/desired state:
         private readonly Timer _keepAliveWatcher;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
-        private uint _currentSequenceNumber;
+        private int _metadataLoadSuccess;
+        private int _metadataLoadFailures;
         private int _goodMonitoredItems;
         private int _reportingItems;
         private int _disabledItems;
@@ -2447,6 +2473,7 @@ Actual (revised) state/desired state:
         private int _missingKeepAlives;
         private int _continuouslyMissingKeepAlives;
         private long _unassignedNotifications;
+        private bool _publishingStopped;
         private bool _disposed;
         private readonly object _lock = new();
     }

@@ -30,7 +30,7 @@ jobs:
       dependentOnFailedBuildCondition: false
       checkbuildsoncurrentbranch: false
       failTaskIfConditionsAreNotFulfilled: false
-      buildParameters: 'BuildCommitMessage: "$(Build.Repository.Name) $(Build.SourceBranchName) $(message)"'
+      buildParameters: 'buildInfo: "$(Build.Repository.Name) $(Build.SourceBranchName) $(message)"'
       templateParameters: 'ref: $(Build.SourceBranch)'
   - task: PowerShell@2
     inputs:

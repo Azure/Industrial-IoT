@@ -9,6 +9,7 @@ using MQTTnet.Formatter;
 using MQTTnet;
 using MQTTnet.Extensions.Rpc;
 using System.Text.Json;
+using System.Text;
 
 // Connect to mqtt broker
 var mqttFactory = new MqttFactory();
@@ -74,11 +75,18 @@ while (true)
             }
         }), MqttQualityOfServiceLevel.AtMostOnce).ConfigureAwait(false);
 
-    var resopnseJson = JsonSerializer.Deserialize<JsonElement>(response);
-    Console.WriteLine();
-    foreach (var item in resopnseJson.GetProperty("results").EnumerateArray())
+    try
     {
-        Console.WriteLine(item.GetProperty("value").ToString());
+        var resopnseJson = JsonSerializer.Deserialize<JsonElement>(response);
+        Console.WriteLine();
+        foreach (var item in resopnseJson.GetProperty("results").EnumerateArray())
+        {
+            Console.WriteLine(item.GetProperty("value").ToString());
+        }
+    }
+    catch
+    {
+        Console.WriteLine(Encoding.UTF8.GetString(response));
     }
 }
 

@@ -82,7 +82,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 case TaskCanceledException:
                 case OperationCanceledException:
                     status = (int)HttpStatusCode.Gone;
-                    break;
+                    return new OperationCanceledException(
+                        "Request was canceled by the client or after timeout.");
 
                 //
                 // The following will most certainly be retried by our
