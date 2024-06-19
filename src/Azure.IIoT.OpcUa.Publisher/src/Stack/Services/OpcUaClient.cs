@@ -1900,6 +1900,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
                 description: "Number of client managed subscriptions.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_sampler_count",
+                () => new Measurement<int>(_samplers.Count, _metrics.TagList),
+                description: "Number of active client samplers.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_browser_count",
+                () => new Measurement<int>(_browsers.Count, _metrics.TagList),
+                description: "Number of active browsers.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_retry_count",
                 () => new Measurement<int>(_numberOfConnectRetries, _metrics.TagList),
                 description: "Number of connectivity retries on this connection.");
