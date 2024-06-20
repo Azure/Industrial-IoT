@@ -23,11 +23,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <param name="serializer"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwin(
-            this ApplicationRegistration registration, IJsonSerializer serializer)
+        public static DeviceTwinModel ToDeviceTwin(this ApplicationRegistration registration,
+            IJsonSerializer serializer, TimeProvider timeProvider)
         {
-            return Patch(null, registration, serializer);
+            return Patch(null, registration, serializer, timeProvider);
         }
 
         /// <summary>
@@ -36,9 +37,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="existing"></param>
         /// <param name="update"></param>
         /// <param name="serializer"></param>
+        /// <param name="timeProvider"></param>
         /// <exception cref="ArgumentException"></exception>
         public static DeviceTwinModel Patch(this ApplicationRegistration? existing,
-            ApplicationRegistration update, IJsonSerializer serializer)
+            ApplicationRegistration update, IJsonSerializer serializer, TimeProvider timeProvider)
         {
             var tags = new Dictionary<string, VariantValue>();
             var desired = new Dictionary<string, VariantValue>();
@@ -57,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
                 tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
-                    DateTime.UtcNow : (DateTime?)null);
+                    timeProvider.GetUtcNow().UtcDateTime : (DateTime?)null);
             }
 
             if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)
@@ -321,15 +323,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 ApplicationType = model.ApplicationType,
                 ApplicationUri = model.ApplicationUri,
                 ProductUri = model.ProductUri,
-                NotSeenSince = model.NotSeenSince,
+                NotSeenSince = model.NotSeenSince?.UtcDateTime,
                 DiscoveryProfileUri = model.DiscoveryProfileUri,
                 GatewayServerUri = model.GatewayServerUri,
                 Capabilities = model.Capabilities.EncodeAsDictionary(true),
                 DiscoveryUrls = model.DiscoveryUrls?.ToList().EncodeAsDictionary(),
                 CreateAuthorityId = model.Created?.AuthorityId,
-                CreateTime = model.Created?.Time,
+                CreateTime = model.Created?.Time.UtcDateTime,
                 UpdateAuthorityId = model.Updated?.AuthorityId,
-                UpdateTime = model.Updated?.Time,
+                UpdateTime = model.Updated?.Time.UtcDateTime,
                 Version = null,
                 Connected = false
             };
@@ -353,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 Locale = registration.Locale,
                 LocalizedNames = registration.LocalizedNames,
                 HostAddresses = registration.HostAddresses.DecodeAsList().ToHashSetSafe(),
-                NotSeenSince = registration.NotSeenSince,
+                NotSeenSince = registration.NotSeenSince.ToDateTimeOffsetUtc(),
                 ApplicationType = registration.ApplicationType ?? ApplicationType.Server,
                 ApplicationUri = string.IsNullOrEmpty(registration.ApplicationUri) ?
                     registration.ApplicationUriLC! : registration.ApplicationUri,
@@ -408,8 +410,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             return new OperationContextModel
             {
                 AuthorityId = authorityId,
-                Time = time ?? DateTime.MinValue
+                Time = time.ToDateTimeOffsetUtc() ?? DateTimeOffset.MinValue
             };
+        }
+
+        /// <summary>
+        /// Set the kind to utc and convert to date time offset
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static DateTimeOffset? ToDateTimeOffsetUtc(this DateTime? time)
+        {
+            if (time == null)
+            {
+                return null;
+            }
+            return new DateTimeOffset(DateTime.SpecifyKind(time.Value, DateTimeKind.Utc));
         }
     }
 }

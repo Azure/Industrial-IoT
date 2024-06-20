@@ -35,15 +35,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="logger"></param>
         /// <param name="endpointEvents"></param>
         /// <param name="applicationEvents"></param>
+        /// <param name="timeProvider"></param>
         public ApplicationRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
             ILogger<ApplicationRegistry> logger, IEndpointRegistryListener? endpointEvents = null,
-            IApplicationRegistryListener? applicationEvents = null)
+            IApplicationRegistryListener? applicationEvents = null, TimeProvider? timeProvider = null)
         {
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _iothub = iothub;
+            _logger = logger;
+            _serializer = serializer;
             _endpointEvents = endpointEvents;
             _applicationEvents = applicationEvents;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -56,14 +58,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ArgumentException("Application Uri missing", nameof(request));
             }
 
-            var context = request.Context.Validate();
+            var context = request.Context.Validate(_timeProvider);
 
             var application = await AddOrUpdateApplicationAsync(
-                request.ToApplicationInfo(context), null, false, ct).ConfigureAwait(false);
-            if (application == null)
-            {
-                throw new InvalidOperationException("Application could not be added.");
-            }
+                request.ToApplicationInfo(context), null, false, ct).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("Application could not be added.");
             if (_applicationEvents != null)
             {
                 await _applicationEvents.OnApplicationNewAsync(context,
@@ -94,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
             var registration = application.Application with
             {
-                Created = application.Application.Created.Validate(),
+                Created = application.Application.Created.Validate(_timeProvider),
                 Updated = null
             };
             registration = await AddOrUpdateApplicationAsync(registration,
@@ -140,23 +139,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task DisableApplicationAsync(string applicationId,
             OperationContextModel? context, CancellationToken ct)
         {
-            context = context.Validate();
+            context = context.Validate(_timeProvider);
 
             var app = await UpdateApplicationAsync(applicationId, (application, disabled) =>
             {
                 // Disable application
                 if (!(disabled ?? false))
                 {
-                    application.NotSeenSince = DateTime.UtcNow;
+                    application.NotSeenSince = _timeProvider.GetUtcNow();
                     application.Updated = context;
                     return (true, true);
                 }
                 return (null, null);
-            }, ct).ConfigureAwait(false);
-            if (app == null)
-            {
-                throw new InvalidOperationException("Failed to update application.");
-            }
+            }, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Failed to update application.");
             await HandleApplicationDisabledAsync(context, app).ConfigureAwait(false);
         }
 
@@ -164,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task EnableApplicationAsync(string applicationId,
             OperationContextModel? context, CancellationToken ct)
         {
-            context = context.Validate();
+            context = context.Validate(_timeProvider);
 
             var app = await UpdateApplicationAsync(applicationId, (application, disabled) =>
             {
@@ -176,11 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     return (true, false);
                 }
                 return (null, null);
-            }, ct).ConfigureAwait(false);
-            if (app == null)
-            {
-                throw new InvalidOperationException("Failed to update application.");
-            }
+            }, ct).ConfigureAwait(false) ?? throw new InvalidOperationException("Failed to update application.");
             if (_applicationEvents != null)
             {
                 await _applicationEvents.OnApplicationEnabledAsync(context,
@@ -192,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task UnregisterApplicationAsync(string applicationId,
             OperationContextModel? context, CancellationToken ct)
         {
-            context = context.Validate();
+            context = context.Validate(_timeProvider);
 
             await DeleteEndpointsAsync(context, applicationId).ConfigureAwait(false);
 
@@ -213,18 +205,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             ApplicationRegistrationUpdateModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
-            var context = request.Context.Validate();
+            var context = request.Context.Validate(_timeProvider);
 
             var application = await UpdateApplicationAsync(applicationId, (existing, _) =>
             {
                 existing.Patch(request);
                 existing.Updated = context;
                 return (true, null);
-            }, ct).ConfigureAwait(false);
-            if (application == null)
-            {
-                throw new InvalidOperationException("Failed to update application.");
-            }
+            }, ct).ConfigureAwait(false) ?? throw new InvalidOperationException("Failed to update application.");
             if (_applicationEvents != null)
             {
                 await _applicationEvents.OnApplicationUpdatedAsync(context,
@@ -366,11 +354,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         {
             var registration = await GetApplicationRegistrationAsync(applicationId,
                 ct).ConfigureAwait(false);
-            var application = registration.ToServiceModel();
-            if (application == null)
-            {
-                throw new ResourceNotFoundException("Found registration is invalid.");
-            }
+            var application = registration.ToServiceModel()
+                ?? throw new ResourceNotFoundException("Found registration is invalid.");
 
             // Include deleted twins if the application itself is deleted.  Otherwise omit.
             var endpoints = await GetEndpointsAsync(applicationId,
@@ -408,8 +393,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
             OperationContextModel? context, CancellationToken ct)
         {
-            context = context.Validate();
-            var absolute = DateTime.UtcNow - notSeenFor;
+            context = context.Validate(_timeProvider);
+            var absolute = _timeProvider.GetUtcNow() - notSeenFor;
             string? continuation = null;
             do
             {
@@ -466,12 +451,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var device = await _iothub.GetAsync(endpointId, null, ct).ConfigureAwait(false);
-            var endpoint = TwinModelToEndpointRegistrationModel(device, onlyServerState, false);
-            if (endpoint == null)
-            {
-                throw new ResourceNotFoundException("Invalid endpoint found.");
-            }
-            return endpoint;
+            return TwinModelToEndpointRegistrationModel(device, onlyServerState, false)
+                ?? throw new ResourceNotFoundException("Invalid endpoint found.");
         }
 
         /// <inheritdoc/>
@@ -576,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ArgumentNullException(nameof(discovererId));
             }
             ArgumentNullException.ThrowIfNull(result);
-            var context = result.Context.Validate();
+            var context = result.Context.Validate(_timeProvider);
 
             //
             // Get all applications for this discoverer or the site the application
@@ -674,7 +655,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                                     // Disable application
                                     if (!(disabled ?? false))
                                     {
-                                        application.NotSeenSince = DateTime.UtcNow;
+                                        application.NotSeenSince = _timeProvider.GetUtcNow();
                                         application.Updated = context;
                                         removed++;
                                         wasUpdated = true;
@@ -682,12 +663,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                                     }
                                     unchanged++;
                                     return (null, null);
-                                }, default).ConfigureAwait(false);
-
-                            if (app == null)
-                            {
-                                throw new InvalidOperationException("Failed to update application.");
-                            }
+                                }, default).ConfigureAwait(false)
+                                    ?? throw new InvalidOperationException("Failed to update application.");
                             if (wasUpdated && _applicationEvents != null)
                             {
                                 await _applicationEvents.OnApplicationUpdatedAsync(context,
@@ -715,7 +692,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 try
                 {
-                    var application = addition.Clone();
+                    var application = addition.Clone(_timeProvider);
                     application.SiteId = siteId;
                     application.ApplicationId = ApplicationInfoModelEx.CreateApplicationId(application);
                     application.Created = context;
@@ -723,12 +700,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     application.DiscovererId = discovererId;
 
                     var app = await AddOrUpdateApplicationAsync(application, false,
-                        false, default).ConfigureAwait(false);
-
-                    if (app == null)
-                    {
-                        throw new InvalidOperationException("Failed to add or update application.");
-                    }
+                        false, default).ConfigureAwait(false)
+                        ?? throw new InvalidOperationException("Failed to add or update application.");
                     // Notify addition!
                     if (_applicationEvents != null)
                     {
@@ -791,12 +764,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             application.Updated = context;
                             updated++;
                             return (true, false);
-                        }, default).ConfigureAwait(false);
-
-                    if (app == null)
-                    {
-                        throw new InvalidOperationException("Failed to update application.");
-                    }
+                        }, default).ConfigureAwait(false)
+                        ?? throw new InvalidOperationException("Failed to update application.");
                     if (wasDisabled)
                     {
                         await HandleApplicationEnabledAsync(context, app).ConfigureAwait(false);
@@ -849,7 +818,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             bool registerOnly, string discovererId, string? applicationId,
             bool hardDelete)
         {
-            context = context.Validate();
+            context = context.Validate(_timeProvider);
             var found = newEndpoints
                 .Select(e => e.ToEndpointRegistration(false, discovererId))
                 .ToList();
@@ -917,7 +886,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                                 var endpoint = item.ToServiceModel();
                                 Debug.Assert(endpoint != null);
                                 var update = endpoint.ToEndpointRegistration(true);
-                                await _iothub.PatchAsync(item.Patch(update, _serializer),
+                                await _iothub.PatchAsync(item.Patch(update, _serializer, _timeProvider),
                                     true).ConfigureAwait(false);
                                 if (_endpointEvents != null)
                                 {
@@ -968,13 +937,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
                     if (exists != patch)
                     {
-                        await _iothub.PatchAsync(exists.Patch(patch, _serializer),
+                        await _iothub.PatchAsync(exists.Patch(patch, _serializer, _timeProvider),
                             true).ConfigureAwait(false);
-                        var endpoint = patch.ToServiceModel();
-                        if (endpoint == null)
-                        {
-                            throw new ResourceInvalidStateException("Bad item provided during discovery");
-                        }
+                        var endpoint = patch.ToServiceModel()
+                            ?? throw new ResourceInvalidStateException("Bad item provided during discovery");
                         // await OnEndpointUpdatedAsync(context, endpoint);
                         if ((exists.IsDisabled ?? false) && _endpointEvents != null)
                         {
@@ -1009,14 +975,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 try
                 {
-                    var created = await _iothub.CreateOrUpdateAsync(item.ToDeviceTwin(_serializer),
+                    var created = await _iothub.CreateOrUpdateAsync(item.ToDeviceTwin(_serializer, _timeProvider),
                         true).ConfigureAwait(false);
 
-                    var endpoint = item.ToServiceModel();
-                    if (endpoint == null)
-                    {
-                        throw new ResourceInvalidStateException("Bad item provided during discovery");
-                    }
+                    var endpoint = item.ToServiceModel()
+                        ?? throw new ResourceInvalidStateException("Bad item provided during discovery");
                     if (_endpointEvents != null)
                     {
                         await _endpointEvents.OnEndpointNewAsync(context,
@@ -1071,7 +1034,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     if (patch ?? false)
                     {
                         var update = application.ToApplicationRegistration(disabled);
-                        var twin = await _iothub.PatchAsync(registration.Patch(update, _serializer), ct: ct).ConfigureAwait(false);
+                        var twin = await _iothub.PatchAsync(registration.Patch(update, _serializer,
+                            _timeProvider), ct: ct).ConfigureAwait(false);
                         registration = twin.ToApplicationRegistration();
                     }
                     return registration.ToServiceModel();
@@ -1098,7 +1062,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         {
             var registration = application.ToApplicationRegistration(disabled);
             var twin = await _iothub.CreateOrUpdateAsync(
-                registration.ToDeviceTwin(_serializer), allowUpdate, ct).ConfigureAwait(false);
+                registration.ToDeviceTwin(_serializer, _timeProvider), allowUpdate, ct).ConfigureAwait(false);
             return twin.ToApplicationRegistration()?.ToServiceModel();
         }
 
@@ -1158,12 +1122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         private async Task<ApplicationRegistration> GetApplicationRegistrationAsync(
             string applicationId, CancellationToken ct)
         {
-            var registration = await FindApplicationRegistrationAsync(applicationId, ct).ConfigureAwait(false);
-            if (registration is null)
-            {
-                throw new ResourceNotFoundException("Not an application registration");
-            }
-            return registration;
+            return await FindApplicationRegistrationAsync(applicationId, ct).ConfigureAwait(false)
+                ?? throw new ResourceNotFoundException("Not an application registration");
         }
 
         /// <summary>
@@ -1220,7 +1180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     endpoint.NotSeenSince = null;
                     var update = endpoint.ToEndpointRegistration(false);
                     await _iothub.PatchAsync(registration.Patch(update,
-                        _serializer)).ConfigureAwait(false);
+                        _serializer, _timeProvider)).ConfigureAwait(false);
                     if (_endpointEvents != null)
                     {
                         await _endpointEvents.OnEndpointEnabledAsync(context,
@@ -1262,10 +1222,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                         {
                             continue;
                         }
-                        endpoint.NotSeenSince = DateTime.UtcNow;
+                        endpoint.NotSeenSince = _timeProvider.GetUtcNow();
                         var update = endpoint.ToEndpointRegistration(true);
                         await _iothub.PatchAsync(registration.Patch(update,
-                            _serializer)).ConfigureAwait(false);
+                            _serializer, _timeProvider)).ConfigureAwait(false);
                         if (_endpointEvents != null)
                         {
                             await _endpointEvents.OnEndpointDisabledAsync(context,
@@ -1382,6 +1342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         private readonly IEndpointRegistryListener? _endpointEvents;
         private readonly IApplicationRegistryListener? _applicationEvents;
+        private readonly TimeProvider _timeProvider;
         private readonly IJsonSerializer _serializer;
         private readonly IIoTHubTwinServices _iothub;
         private readonly ILogger _logger;

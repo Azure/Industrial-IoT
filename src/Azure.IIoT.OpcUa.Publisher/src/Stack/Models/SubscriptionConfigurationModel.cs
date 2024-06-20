@@ -87,5 +87,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Republish after transfer
         /// </summary>
         public bool? RepublishAfterTransfer { get; set; }
+
+        /// <summary>
+        /// Subscription watchdog behavior
+        /// </summary>
+        public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
+
+        /// <summary>
+        /// Monitored item watchdog timeout
+        /// </summary>
+        public TimeSpan? MonitoredItemWatchdogTimeout { get; set; }
     }
 }

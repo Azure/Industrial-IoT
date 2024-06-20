@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="items"></param>
         /// <param name="preferTimeSpan"></param>
         /// <returns></returns>
-        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(uint version, DateTime lastChanged,
+        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(uint version, DateTimeOffset lastChanged,
             IEnumerable<WriterGroupModel> items, bool preferTimeSpan = true)
         {
             if (items == null)
@@ -127,7 +127,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             BatchTriggerInterval = null,
                             Priority = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
                             MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
-                            DisableSubscriptionTransfer = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
+                            RepublishAfterTransfer =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
+                            MonitoredItemWatchdogTimespan =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogTimeout,
+                            WatchdogBehavior =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.WatchdogBehavior,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup =
@@ -150,6 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             EndpointUrl = null,
                             UseSecurity = false,
                             UseReverseConnect = null,
+                            DisableSubscriptionTransfer = null,
                             EndpointSecurityPolicy = null,
                             EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,
@@ -404,8 +410,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             Connection = new ConnectionModel
                                             {
                                                 Options =
-                                                    b.Header.UseReverseConnect == true ?
-                                                         ConnectionOptions.UseReverseConnect : ConnectionOptions.None,
+                                                    (b.Header.UseReverseConnect == true ?
+                                                         ConnectionOptions.UseReverseConnect : ConnectionOptions.None) |
+                                                    (b.Header.DisableSubscriptionTransfer == true ?
+                                                         ConnectionOptions.NoSubscriptionTransfer : ConnectionOptions.None),
                                                 Endpoint = new EndpointModel
                                                 {
                                                     Url = b.Header.EndpointUrl,
@@ -422,7 +430,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             SubscriptionSettings = new PublishedDataSetSettingsModel
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
-                                                RepublishAfterTransfer = b.Header.DisableSubscriptionTransfer,
+                                                RepublishAfterTransfer = b.Header.RepublishAfterTransfer,
+                                                MonitoredItemWatchdogTimeout = b.Header.MonitoredItemWatchdogTimespan,
+                                                WatchdogBehavior = b.Header.WatchdogBehavior,
                                                 Priority = b.Header.Priority,
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
                                                 // ...
@@ -711,6 +721,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
                 publishedNodesEntryModel.UseReverseConnect =
                     connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null;
+                publishedNodesEntryModel.DisableSubscriptionTransfer =
+                    connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null;
             }
             return publishedNodesEntryModel;
 

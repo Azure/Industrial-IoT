@@ -64,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="client"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="channel"></param>
         /// <param name="configuration"></param>
         /// <param name="endpoint"></param>
@@ -71,8 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="availableEndpoints"></param>
         /// <param name="discoveryProfileUris"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public OpcUaSession(OpcUaClient client,
-            IJsonSerializer serializer, ILogger<OpcUaSession> logger,
+        public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
+            ILogger<OpcUaSession> logger, TimeProvider timeProvider,
             ITransportChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate = null,
             EndpointDescriptionCollection? availableEndpoints = null,
@@ -80,9 +81,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             : base(channel, configuration, endpoint, clientCertificate,
                   availableEndpoints, discoveryProfileUris)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _logger = logger;
+            _client = client;
+            _serializer = serializer;
+            _timeProvider = timeProvider;
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, serializer);
@@ -102,6 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = session._logger;
             _client = session._client;
             _serializer = session._serializer;
+            _timeProvider = session._timeProvider;
 
             _complexTypeSystem = session._complexTypeSystem;
             _history = session._history;
@@ -993,7 +996,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var error = new T();
                 error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
-                error.ResponseHeader.Timestamp = DateTime.UtcNow;
+                error.ResponseHeader.Timestamp = _timeProvider.GetUtcNow().UtcDateTime;
                 var text = error.ResponseHeader.StringTable.Count;
                 error.ResponseHeader.StringTable.Add("Session not connected.");
                 var locale = error.ResponseHeader.StringTable.Count;
@@ -1012,7 +1015,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 header.RequestHandle = NewRequestHandle();
                 header.AuthenticationToken = AuthenticationToken;
-                header.Timestamp = DateTime.UtcNow;
+                header.Timestamp = _timeProvider.GetUtcNow().UtcDateTime;
             }
             return activity;
         }
@@ -1109,6 +1112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;
         private readonly IJsonSerializer _serializer;
+        private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);

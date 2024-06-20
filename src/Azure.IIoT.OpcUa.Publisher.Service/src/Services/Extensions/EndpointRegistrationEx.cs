@@ -30,11 +30,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <param name="serializer"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
         public static DeviceTwinModel ToDeviceTwin(this EndpointRegistration registration,
-            IJsonSerializer serializer)
+            IJsonSerializer serializer, TimeProvider timeProvider)
         {
-            return Patch(null, registration, serializer);
+            return Patch(null, registration, serializer, timeProvider);
         }
 
         /// <summary>
@@ -43,9 +44,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// <param name="existing"></param>
         /// <param name="update"></param>
         /// <param name="serializer"></param>
+        /// <param name="timeProvider"></param>
         /// <exception cref="ArgumentException"></exception>
         public static DeviceTwinModel Patch(this EndpointRegistration? existing,
-            EndpointRegistration? update, IJsonSerializer serializer)
+            EndpointRegistration? update, IJsonSerializer serializer, TimeProvider timeProvider)
         {
             var tags = new Dictionary<string, VariantValue>();
             var desired = new Dictionary<string, VariantValue>();
@@ -64,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
                 tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
-                    DateTime.UtcNow : (DateTime?)null);
+                    timeProvider.GetUtcNow().UtcDateTime : (DateTime?)null);
             }
 
             if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)
@@ -327,7 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                         Certificate = registration.Thumbprint
                     }
                 },
-                NotSeenSince = registration.NotSeenSince,
+                NotSeenSince = registration.NotSeenSince.ToDateTimeOffsetUtc(),
                 EndpointState = registration.State
             };
         }
@@ -347,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             return new EndpointRegistration
             {
                 IsDisabled = disabled,
-                NotSeenSince = model.NotSeenSince,
+                NotSeenSince = model.NotSeenSince?.UtcDateTime,
                 ApplicationId = model.ApplicationId,
                 SiteId = model.Registration?.SiteId,
                 DiscovererId = discoverId ?? model.Registration?.DiscovererId,

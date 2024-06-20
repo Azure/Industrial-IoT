@@ -48,11 +48,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
         /// <param name="diagnostics"></param>
+        /// <param name="timeProvider"></param>
         public NetworkMessageSink(WriterGroupModel writerGroup,
             IEnumerable<IEventClient> eventClients, IMessageSource source,
             IMessageEncoder encoder, IOptions<PublisherOptions> options,
             ILogger<NetworkMessageSink> logger, IMetricsContext metrics,
-            IWriterGroupDiagnostics? diagnostics = null)
+            IWriterGroupDiagnostics? diagnostics = null, TimeProvider? timeProvider = null)
         {
             Source = source;
 
@@ -61,6 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _messageEncoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _diagnostics = diagnostics;
+            _timeProvider = timeProvider ?? TimeProvider.System;
 
             // Reverse the registration to have highest prio first.
             _eventClients = eventClients?.Reverse().ToList()
@@ -89,16 +91,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             Source.OnMessage += OnMessageReceived;
             Source.OnCounterReset += OnReset;
+            _startTime = _timeProvider.GetTimestamp();
             _transport.Log(writerGroup, _logger);
         }
 
         /// <inheritdoc/>
         private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
         {
-            if (_dataFlowStartTime == DateTime.MinValue)
+            if (_dataFlowStartTime == 0)
             {
                 _diagnostics?.ResetWriterGroupDiagnostics();
-                _dataFlowStartTime = DateTime.UtcNow;
+                _dataFlowStartTime = _timeProvider.GetTimestamp();
             }
 
             if (!_queue.TryPublish(args))
@@ -110,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         private void OnReset(object? sender, EventArgs e)
         {
-            _dataFlowStartTime = DateTime.MinValue;
+            _dataFlowStartTime = 0;
             _queue.Reset();
         }
 
@@ -331,7 +334,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     maxEncodingBlockCap = DataflowBlockOptions.Unbounded;
                 }
-                _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
+                _batchTriggerIntervalTimer = _outer._timeProvider.CreateTimer(
+                    BatchTriggerIntervalTimer_Elapsed, null,
+                    Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 _notificationBufferBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
                     Math.Max(1, _outer._transport.MaxNotificationsPerMessage), new GroupingDataflowBlockOptions
                     {
@@ -368,7 +373,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     await _cts.CancelAsync().ConfigureAwait(false);
-                    _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _batchTriggerIntervalTimer.Change(
+                        Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                     _batchTriggerIntervalTimer.Dispose();
 
                     //
@@ -562,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly ILogger _logger;
             private readonly NetworkMessageSink _outer;
             private readonly int _índex;
-            private readonly Timer _batchTriggerIntervalTimer;
+            private readonly ITimer _batchTriggerIntervalTimer;
             private readonly BatchBlock<IOpcUaSubscriptionNotification> _notificationBufferBlock;
             private readonly TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
             private readonly ActionBlock<(IEvent, Action)> _sendBlock;
@@ -849,8 +855,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
 
-        private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
-        private DateTime _dataFlowStartTime = DateTime.MinValue;
+        private double UpTime => _timeProvider.GetElapsedTime(_startTime).TotalSeconds;
         private long _messagesSentCount;
         private long _errorCount;
         private long _sendBlockInputDroppedCount;
@@ -862,12 +867,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private TransportOptions _transport;
         private readonly List<IEventClient> _eventClients;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
         private readonly Regex? _logNotificationsFilter;
         private readonly Func<IList<MonitoredItemNotificationModel>,
             IEnumerable<MonitoredItemNotificationModel>> _filterNotifications;
-        private readonly DateTime _startTime = DateTime.UtcNow;
+        private readonly long _startTime;
+        private long _dataFlowStartTime;
         private readonly CancellationTokenSource _cts = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

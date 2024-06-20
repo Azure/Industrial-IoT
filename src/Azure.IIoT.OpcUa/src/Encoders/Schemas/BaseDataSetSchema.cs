@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <param name="options"></param>
         /// <returns></returns>
         protected BaseDataSetSchema(
-            Publisher.Models.DataSetFieldContentFlags? dataSetFieldContentMask,
+            DataSetFieldContentFlags? dataSetFieldContentMask,
             BaseBuiltInSchemas<T> encoding, SchemaOptions? options = null)
         {
             _dataSetFieldContentMask = dataSetFieldContentMask ?? default;
@@ -345,7 +345,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
 
         /// <summary> Schema options </summary>
         protected readonly SchemaOptions _options;
-        private readonly Publisher.Models.DataSetFieldContentFlags _dataSetFieldContentMask;
+        private readonly DataSetFieldContentFlags _dataSetFieldContentMask;
         private readonly Dictionary<string, TypedDescription> _types = new();
     }
 }

@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public static bool TryCreateDataSetMessage(MessageEncoding encoding,
             string dataSetWriterName, ushort dataSetWriterId,
             DataSetMessageContentFlags? dataSetMessageContentFlags,
-            MessageType messageType, DataSet payload, DateTime? timestamp,
+            MessageType messageType, DataSet payload, DateTimeOffset? timestamp,
             uint sequenceNumber, bool standardsCompliant,
             PublishedDataSetMetaDataModel? metaData,
             [NotNullWhen(true)] out BaseDataSetMessage? message)
@@ -271,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <returns></returns>
         public static bool TryCreateMonitoredItemMessage(MessageEncoding encoding,
             string? writerGroupName, DataSetMessageContentFlags? dataSetMessageContentFlags,
-            MessageType messageType, DateTime? timestamp, uint sequenceNumber, DataSet payload,
+            MessageType messageType, DateTimeOffset? timestamp, uint sequenceNumber, DataSet payload,
             string? nodeId, string? endpointUrl, string? applicationUri,
             bool standardsCompliant, IDictionary<string, VariantValue>? extensionFields,
             [NotNullWhen(true)] out BaseDataSetMessage? message)
@@ -311,6 +311,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="networkMessageContentFlags"></param>
         /// <param name="dataSetClassId"></param>
         /// <param name="sequenceNumber"></param>
+        /// <param name="timestamp"></param>
         /// <param name="namespaceFormat"></param>
         /// <param name="standardsCompliant"></param>
         /// <param name="isBatched"></param>
@@ -320,7 +321,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public static bool TryCreateNetworkMessage(MessageEncoding encoding,
             string publisherId, string writerGroupName,
             NetworkMessageContentFlags? networkMessageContentFlags,
-            Guid dataSetClassId, Func<ushort> sequenceNumber,
+            Guid dataSetClassId, Func<ushort> sequenceNumber, DateTimeOffset timestamp,
             NamespaceFormat namespaceFormat, bool standardsCompliant, bool isBatched,
             IEventSchema? schema, [NotNullWhen(true)] out BaseNetworkMessage? message)
         {
@@ -362,7 +363,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     //   WriterGroupId = writerGroup.Index,
                     //   GroupVersion = writerGroup.Version,
                     SequenceNumber = sequenceNumber,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = timestamp,
                     PicoSeconds = 0,
                     NetworkMessageContentMask = networkMessageContentFlags
                         ?? DefaultNetworkMessageContentFlags,

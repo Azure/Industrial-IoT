@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using global::Avro;
+    using Avro;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -688,7 +688,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = (ushort)sequenceNumber,
                 Status = statusCode,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 MessageType = messageType,
                 Picoseconds = 1,
                 Payload = CreateDataSet(dataSetFieldContentMask)

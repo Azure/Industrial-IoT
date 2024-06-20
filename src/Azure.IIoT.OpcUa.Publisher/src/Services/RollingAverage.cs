@@ -37,6 +37,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
+        public RollingAverage(TimeProvider timeProvider)
+        {
+            _timeProvider = timeProvider;
+        }
+
         /// <summary>
         /// Iterates the array and add up all values
         /// </summary>
@@ -44,8 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="lastPointer"></param>
         /// <param name="bucketWidth"></param>
         /// <param name="lastWriteTime"></param>
-        private static long CalculateSumForRingBuffer(long[] array, ref int lastPointer,
-            int bucketWidth, DateTime lastWriteTime)
+        private long CalculateSumForRingBuffer(long[] array, ref int lastPointer,
+            int bucketWidth, DateTimeOffset lastWriteTime)
         {
             // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
             UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
@@ -66,8 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="bucketWidth"></param>
         /// <param name="difference"></param>
         /// <param name="lastWriteTime"></param>
-        private static void IncreaseRingBuffer(long[] array, ref int lastPointer,
-            int bucketWidth, long difference, ref DateTime lastWriteTime)
+        private void IncreaseRingBuffer(long[] array, ref int lastPointer,
+            int bucketWidth, long difference, ref DateTimeOffset lastWriteTime)
         {
             var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer,
                 bucketWidth, ref lastWriteTime);
@@ -81,14 +86,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="lastPointer"></param>
         /// <param name="bucketWidth"></param>
         /// <param name="lastWriteTime"></param>
-        private static int UpdateRingBufferBuckets(long[] array, ref int lastPointer,
-            int bucketWidth, ref DateTime lastWriteTime)
+        private int UpdateRingBufferBuckets(long[] array, ref int lastPointer,
+            int bucketWidth, ref DateTimeOffset lastWriteTime)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow();
             var indexPointer = now.Second % bucketWidth;
 
             // if last update was > bucketsize seconds in the past delete whole array
-            if (lastWriteTime != DateTime.MinValue)
+            if (lastWriteTime != DateTimeOffset.MinValue)
             {
                 var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
                 if (deleteWholeArray)
@@ -111,7 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private int _lastPointer;
         private long _count;
-        private DateTime _lastWriteTime = DateTime.MinValue;
+        private DateTimeOffset _lastWriteTime = DateTimeOffset.MinValue;
+        private readonly TimeProvider _timeProvider;
         private readonly long[] _buffer = new long[_bucketWidth];
         private const int _bucketWidth = 60;
     }

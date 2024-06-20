@@ -599,6 +599,23 @@ Subscription settings
                                    `StatusValueTimestamp`
                                Default: `StatusValue` (which is the OPC UA
                                default).
+      --mwt, --monitoreditemwatchdog, --DefaultMonitoredItemWatchdogSeconds=VALUE
+                             The subscription and monitored item watchdog
+                               timeout in seconds the subscription uses to
+                               check on late reporting monitored items unless
+                               overridden in the published nodes configuration
+                               explicitly.
+                               Default: `not set` (watchdog disabled).
+      --dwb, --watchdogbehavior, --DefaultWatchdogBehavior=VALUE
+                             Default behavior of the subscription and monitored
+                               item watchdog mechanism unless overridden in the
+                               published nodes configuration explicitly.
+                               Allowed values:
+                                   `Diagnostic`
+                                   `Reset`
+                                   `FailFast`
+                                   `ExitProcess`
+                               Default: `Diagnostic` (if enabled).
       --sf, --skipfirst, --DefaultSkipFirst[=VALUE]
                              The publisher is using this as default value for
                                the skip first setting of nodes configured
@@ -768,11 +785,16 @@ OPC UA Client configuration
       --mpr, --minpublishrequests, --MinPublishRequests=VALUE
                              Minimum number of publish requests to queue once
                                subscriptions are created in the session.
-                               Default: `3`.
+                               Default: `2`.
       --ppr, --percentpublishrequests, --PublishRequestsPerSubscriptionPercent=VALUE
                              Percentage ratio of publish requests per
-                               subscriptions in the session in percent.
+                               subscriptions in the session in percent up to
+                               the number configured using `--xpr`.
                                Default: `100`% (1 request per subscription).
+      --xpr, --maxpublishrequests, --MaxPublishRequests=VALUE
+                             Maximum number of publish requests to every queue
+                               once subscriptions are created in the session.
+                               Default: `10`.
       --smi, --subscriptionmanagementinterval, --SubscriptionManagementIntervalSeconds=VALUE
                              The interval in seconds after which the publisher
                                re-applies the desired state of the subscription

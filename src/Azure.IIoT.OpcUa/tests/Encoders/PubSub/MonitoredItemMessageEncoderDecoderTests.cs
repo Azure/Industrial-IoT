@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 SequenceNumber = (ushort)sequenceNumber,
                 UseCompatibilityMode = useCompatibilityMode,
                 Status = StatusCodes.Bad,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 Payload = CreateDataSet(dataSetFieldContentMask),
                 DataSetMessageContentMask = dataSetMessageContentMask
             };

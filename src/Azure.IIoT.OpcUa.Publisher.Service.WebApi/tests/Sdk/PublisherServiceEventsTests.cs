@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                         DisplayName = "holla",
                         NodeId = "nodeid",
                         SourceTimestamp = DateTime.UtcNow,
-                        Timestamp = DateTime.UtcNow,
+                        Timestamp = DateTimeOffset.UtcNow,
                         Value = value.Item1
                     };
 
@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 DisplayName = "holla",
                 NodeId = "nodeid",
                 SourceTimestamp = DateTime.UtcNow,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 Value = 234234
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);

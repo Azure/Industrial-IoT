@@ -27,12 +27,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="iothub"></param>
         /// <param name="logger"></param>
         /// <param name="events"></param>
-        public GatewayRegistry(IIoTHubTwinServices iothub,
-            ILogger<GatewayRegistry> logger, IGatewayRegistryListener? events = null)
+        /// <param name="timeProvider"></param>
+        public GatewayRegistry(IIoTHubTwinServices iothub, ILogger<GatewayRegistry> logger,
+            IGatewayRegistryListener? events = null, TimeProvider? timeProvider = null)
         {
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _iothub = iothub;
+            _logger = logger;
             _events = events;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -105,12 +107,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Update registration from update request
-                    var patched = registration.ToServiceModel();
-                    if (patched == null)
-                    {
-                        throw new ResourceInvalidStateException($"{gatewayId} is not a valid gateway.");
-                    }
-
+                    var patched = registration.ToServiceModel()
+                        ?? throw new ResourceInvalidStateException($"{gatewayId} is not a valid gateway.");
                     if (request.SiteId != null)
                     {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
@@ -118,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToGatewayRegistration()), false, ct).ConfigureAwait(false);
+                        patched.ToGatewayRegistration(), _timeProvider), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
                     if (_events != null)
@@ -196,5 +194,6 @@ $"AND (tags.{Constants.TwinPropertySiteKey} = '{query.SiteId}' OR deviceId = '{q
         private readonly IIoTHubTwinServices _iothub;
         private readonly IGatewayRegistryListener? _events;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
     }
 }

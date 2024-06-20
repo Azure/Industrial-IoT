@@ -52,29 +52,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="loggerFactory"></param>
         /// <param name="progress"></param>
         /// <param name="metrics"></param>
+        /// <param name="timeProvider"></param>
         public NetworkDiscovery(IEndpointDiscovery client, IEventClient events,
             IJsonSerializer serializer, IOptions<PublisherOptions> options,
             ILoggerFactory loggerFactory, IDiscoveryProgress? progress = null,
-            IMetricsContext? metrics = null)
+            IMetricsContext? metrics = null, TimeProvider? timeProvider = null)
         {
-            _loggerFactory = loggerFactory ??
-                throw new ArgumentNullException(nameof(loggerFactory));
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
-            _client = client ??
-                throw new ArgumentNullException(nameof(client));
-            _events = events ??
-                throw new ArgumentNullException(nameof(events));
-            _options = options ??
-                throw new ArgumentNullException(nameof(options));
+            _loggerFactory = loggerFactory;
+            _serializer = serializer;
+            _client = client;
+            _events = events;
+            _options = options;
+            _metrics = metrics ?? IMetricsContext.Empty;
+            _timeProvider = timeProvider ?? TimeProvider.System;
+            _request = new DiscoveryRequest(_timeProvider);
 
             _channel = Channel.CreateUnbounded<DiscoveryRequest>();
-            _metrics = metrics ?? IMetricsContext.Empty;
             _logger = loggerFactory.CreateLogger<NetworkDiscovery>();
             _topic = new TopicBuilder(options.Value).EventsTopic;
-            _progress = progress ?? new ProgressLogger(loggerFactory.CreateLogger<ProgressLogger>());
+            _progress = progress ?? new ProgressLogger(loggerFactory.CreateLogger<ProgressLogger>(),
+                _timeProvider);
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
-            _timer = new Timer(_ => OnScanScheduling(), null,
+            _timer = _timeProvider.CreateTimer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
         }
 
@@ -101,7 +100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             kDiscoverAsync.Add(1, _metrics.TagList);
             ArgumentNullException.ThrowIfNull(request);
-            var task = new DiscoveryRequest(request);
+            var task = new DiscoveryRequest(request, _timeProvider);
             var scheduled = _channel.Writer.TryWrite(task);
             if (!scheduled)
             {
@@ -306,7 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 //
                 // Upload results
                 //
-                await SendDiscoveryResultsAsync(request, discovered, DateTime.UtcNow,
+                await SendDiscoveryResultsAsync(request, discovered, _timeProvider.GetUtcNow(),
                     diagnostics, request.Token).ConfigureAwait(false);
 
                 _progress.OnDiscoveryFinished(request.Request);
@@ -375,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 request.Token))
             {
                 // Log progress
-                var progress = new Timer(_ => ProgressTimer(
+                var progress = _timeProvider.CreateTimer(_ => ProgressTimer(
                     () => _progress.OnNetScanProgress(request.Request, netscanner.ActiveProbes,
                         netscanner.ScanCount, request.TotalAddresses, addresses.Count)),
                     null, kProgressInterval, kProgressInterval);
@@ -415,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 request.Configuration.MinPortProbesPercent,
                 request.Configuration.PortProbeTimeout, request.Token))
             {
-                var progress = new Timer(_ => ProgressTimer(
+                var progress = _timeProvider.CreateTimer(_ => ProgressTimer(
                     () => _progress.OnPortScanProgress(request.Request, portscan.ActiveProbes,
                         portscan.ScanCount, totalPorts, ports.Count)),
                     null, kProgressInterval, kProgressInterval);
@@ -667,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
-            List<ApplicationRegistrationModel> discovered, DateTime timestamp,
+            List<ApplicationRegistrationModel> discovered, DateTimeOffset timestamp,
             object? diagnostics, CancellationToken ct)
         {
             _logger.LogInformation("Uploading {Count} results...", discovered.Count);
@@ -809,11 +808,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IMetricsContext _metrics;
         private readonly IEndpointDiscovery _client;
         private readonly Task _runner;
-        private readonly Timer _timer;
+        private readonly ITimer _timer;
+        private readonly TimeProvider _timeProvider;
         private readonly string _topic;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly List<DiscoveryRequest> _pending = new();
         private readonly CancellationTokenSource _cts = new();
-        private readonly DiscoveryRequest _request = new();
+        private readonly DiscoveryRequest _request;
     }
 }

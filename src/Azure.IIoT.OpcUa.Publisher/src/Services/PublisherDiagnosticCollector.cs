@@ -31,12 +31,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="resources"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public PublisherDiagnosticCollector(IResourceMonitor resources,
-            ILogger<PublisherDiagnosticCollector> logger)
+            ILogger<PublisherDiagnosticCollector> logger, TimeProvider? timeProvider = null)
         {
-            _resources = resources ?? throw new ArgumentNullException(nameof(resources));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
+            _resources = resources;
+            _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _meterListener = new MeterListener
             {
                 InstrumentPublished = OnInstrumentPublished
@@ -56,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var diag = new AggregateDiagnosticModel
             {
                 PublisherVersion = PublisherConfig.Version,
-                IngestionStart = DateTime.UtcNow
+                IngestionStart = _timeProvider.GetUtcNow()
             };
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
             _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
@@ -74,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // return the aggregate model
                 //
                 _meterListener.RecordObservableInstruments();
-                var duration = DateTime.UtcNow - value.AggregateModel.IngestionStart;
+                var duration = _timeProvider.GetUtcNow() - value.AggregateModel.IngestionStart;
                 var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
 
                 diagnostic = value.AggregateModel with
@@ -104,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public IEnumerable<(string, WriterGroupDiagnosticModel)> EnumerateDiagnostics()
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow();
             _meterListener.RecordObservableInstruments();
 
             foreach (var (writerGroupId, info) in _diagnostics
@@ -192,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     diag.WriterGroupName = writerGroupName;
                 }
-                binding(dataSetWriterId != null ? diag[dataSetWriterId] : diag, measurement!);
+                binding(dataSetWriterId != null ? diag.Get(dataSetWriterId, _timeProvider) : diag, measurement!);
             }
             static bool TryGetIds(ReadOnlySpan<KeyValuePair<string, object?>> tags,
                 [NotNullWhen(true)] out string? writerGroupId, out string? writerGroupName,
@@ -249,6 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             writers.Sum(w => w.MonitoredOpcNodesFailedCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
+                        MonitoredOpcNodesLateCount = MonitoredOpcNodesLateCount +
+                            writers.Sum(w => w.MonitoredOpcNodesLateCount),
                         OpcEndpointConnected = NumberOfConnectedEndpoints != 0,
                         PublishRequestsRatio = PublishRequestsRatio +
                             writers.Sum(w => w.PublishRequestsRatio),
@@ -266,13 +269,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Get the writer diagnostics
             /// </summary>
             /// <param name="dataSetWriterId"></param>
+            /// <param name="timeProvider"></param>
             /// <returns></returns>
-            public WriterGroupDiagnosticModel this[string dataSetWriterId] =>
-                _writers.GetOrAdd(dataSetWriterId, new WriterGroupDiagnosticModel
+            public WriterGroupDiagnosticModel Get(string dataSetWriterId, TimeProvider timeProvider)
+            {
+                return _writers.GetOrAdd(dataSetWriterId, new WriterGroupDiagnosticModel
                 {
                     PublisherVersion = PublisherConfig.Version,
-                    IngestionStart = DateTime.UtcNow
+                    IngestionStart = timeProvider.GetUtcNow()
                 });
+            }
 
             private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _writers = new();
         }
@@ -280,6 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly MeterListener _meterListener;
         private readonly IResourceMonitor _resources;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly ConcurrentDictionary<string, AggregateDiagnosticModel> _diagnostics = new();
 
         // TODO: Split this per measurement type to avoid boxing
@@ -290,6 +297,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.MonitoredOpcNodesSucceededCount = (long)i,
                 ["iiot_edge_publisher_bad_nodes"] =
                     (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
+                ["iiot_edge_publisher_late_nodes"] =
+                    (d, i) => d.MonitoredOpcNodesLateCount = (long)i,
                 ["iiot_edge_publisher_is_connection_ok"] =
                     (d, i) => d.NumberOfConnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_is_disconnected"] =

@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.ConstrainedExecution;
 
     /// <summary>
     /// Client configuration
@@ -59,9 +58,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="identity"></param>
         public OpcUaApplication(IOptions<OpcUaClientOptions> options,
-            ILogger<OpcUaApplication> logger, IProcessIdentity? identity = null)
+            ILogger<OpcUaApplication> logger, TimeProvider? timeProvider = null,
+            IProcessIdentity? identity = null)
         {
             if (options.Value.Security == null)
             {
@@ -119,6 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = logger;
             _options = options;
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _identity = identity?.Identity;
             _configuration = BuildAsync();
         }
@@ -573,7 +575,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    var now = DateTime.UtcNow;
+                    var now = _timeProvider.GetUtcNow();
                     if (options.ApplicationCertificate?.StorePath != null &&
                         options.ApplicationCertificate.StoreType != null)
                     {
@@ -882,13 +884,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 throw new ArgumentException("Bad thumbprint", nameof(thumbprint));
             }
-            return thumbprint.ReplaceLineEndings().Replace(Environment.NewLine, "");
+            return thumbprint.ReplaceLineEndings(string.Empty);
         }
 
         private const int kMaxThumbprintLength = 64;
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly ILogger<OpcUaApplication> _logger;
         private readonly IOptions<OpcUaClientOptions> _options;
+        private readonly TimeProvider _timeProvider;
         private readonly string? _identity;
         private bool _disposed;
     }

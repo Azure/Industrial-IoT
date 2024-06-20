@@ -160,5 +160,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Disable subscription transfer on reconnect.
         /// </summary>
         public bool? DisableSubscriptionTransfer { get; set; }
+
+        /// <summary>
+        /// The default watchdog behaviour of the subscription.
+        /// </summary>
+        public SubscriptionWatchdogBehavior? DefaultWatchdogBehavior { get; set; }
+
+        /// <summary>
+        /// Default monitored item watchdog timeout duration.
+        /// </summary>
+        public TimeSpan? DefaultMonitoredItemWatchdogTimeout { get; set; }
     }
 }

@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
+    using System;
 
     public class EndpointRegistryTests
     {
@@ -264,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 {
                     a.Registration.EndpointUrl = a.Registration.Endpoint.Url;
                     var r = a.ToEndpointRegistration();
-                    var t = r.ToDeviceTwin(_serializer);
+                    var t = r.ToDeviceTwin(_serializer, TimeProvider.System);
                     var reported = new Dictionary<string, VariantValue>
                     {
                         [Constants.TwinPropertyTypeKey] = "Twin"

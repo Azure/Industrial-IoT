@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
-    using global::Avro;
+    using Avro;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

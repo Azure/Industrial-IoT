@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Json.More;
     using System;
     using System.Linq;
-    using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;

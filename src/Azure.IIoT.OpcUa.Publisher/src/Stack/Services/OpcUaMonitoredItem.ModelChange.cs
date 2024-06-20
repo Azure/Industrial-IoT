@@ -40,8 +40,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="template"></param>
             /// <param name="client"></param>
             /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             public ModelChangeEventItem(MonitoredAddressSpaceModel template, IOpcUaClient client,
-                ILogger<ModelChangeEventItem> logger) : base(logger, template.StartNodeId)
+                ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
+                base(logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
                 _client = client;
@@ -248,11 +250,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
-                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+                DateTimeOffset publishTime, IEncodeable evt,
+                IList<MonitoredItemNotificationModel> notifications)
             {
                 if (evt is not EventFieldList eventFields ||
-                    !base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
+                    !base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
                 {
                     return false;
                 }
@@ -300,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, client);
+                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
@@ -369,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             value = new Variant(changeFeedNotification.Source);
                             break;
                         case 3:
-                            value = new Variant(changeFeedNotification.Timestamp);
+                            value = new Variant(changeFeedNotification.Timestamp.UtcDateTime);
                             break;
                         case 4:
                             value = changeFeedNotification.ChangedItem == null ?

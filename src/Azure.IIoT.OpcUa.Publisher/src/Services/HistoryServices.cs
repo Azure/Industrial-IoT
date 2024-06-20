@@ -29,9 +29,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create service
         /// </summary>
         /// <param name="services"></param>
-        public HistoryServices(INodeServicesInternal<T> services)
+        /// <param name="timeProvider"></param>
+        public HistoryServices(INodeServicesInternal<T> services,
+            TimeProvider? timeProvider = null)
         {
-            _services = services ?? throw new ArgumentNullException(nameof(services));
+            _services = services;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -519,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         throw new ArgumentException("Bad values", nameof(details));
                     }
                     var builtinType = await GetDataTypeAsync(session, request.Header,
-                        nodeId, details.Values, ct).ConfigureAwait(false);
+                        nodeId, details.Values, _timeProvider, ct).ConfigureAwait(false);
                     return new ExtensionObject(new UpdateDataDetails
                     {
                         NodeId = nodeId,
@@ -569,13 +572,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="requestHeader"></param>
         /// <param name="nodeId"></param>
         /// <param name="values"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         private static async Task<BuiltInType> GetDataTypeAsync(
             IOpcUaSession session, RequestHeaderModel? requestHeader,
             NodeId nodeId, IEnumerable<HistoricValueModel> values,
-            CancellationToken ct)
+            TimeProvider timeProvider, CancellationToken ct)
         {
             // Get data type
             var dataTypes = values
@@ -596,7 +600,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Read data type
                 (dataTypeId, _) = await session.ReadAttributeAsync<NodeId?>(
-                    requestHeader.ToRequestHeader(), nodeId,
+                    requestHeader.ToRequestHeader(timeProvider), nodeId,
                     Attributes.DataType, ct).ConfigureAwait(false);
                 if (NodeId.IsNull(dataTypeId))
                 {
@@ -674,5 +678,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly INodeServicesInternal<T> _services;
+        private readonly TimeProvider _timeProvider;
     }
 }

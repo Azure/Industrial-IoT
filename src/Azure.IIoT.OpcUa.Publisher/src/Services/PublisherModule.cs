@@ -39,11 +39,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="scope"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherModule(ILifetimeScope scope, ILogger<PublisherModule> logger)
+        public PublisherModule(ILifetimeScope scope, ILogger<PublisherModule> logger,
+            TimeProvider? timeProvider = null)
         {
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _exit = new TaskCompletionSource<bool>();
             AssemblyLoadContext.Default.Unloading += _ => _exit.TrySetResult(true);
         }
@@ -125,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                _ = new Timer(o => Process.GetCurrentProcess().Kill(),
+                _ = _timeProvider.CreateTimer(o => Process.GetCurrentProcess().Kill(),
                     null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
@@ -153,5 +156,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TaskCompletionSource<bool> _exit;
         private readonly ILifetimeScope _scope;
         private readonly ILogger<PublisherModule> _logger;
+        private readonly TimeProvider _timeProvider;
     }
 }

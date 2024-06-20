@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("OpcAuthenticationPassword", credential.Value.Password);
             Assert.Equal("OpcAuthenticationUsername", credential.Value.User);
 
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
             entry = Assert.Single(entries);
             Assert.Equal("OpcAuthenticationPassword", entry.OpcAuthenticationPassword);
             Assert.Equal("OpcAuthenticationUsername", entry.OpcAuthenticationUsername);
@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("DecryptedAuthPassword", credential.Value.Password);
             Assert.Equal("DecryptedAuthUsername", credential.Value.User);
 
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
             entry = Assert.Single(entries);
             var encryptedAuthUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthUsername"));
             var encryptedAuthPassword = Convert.ToBase64String(Encoding.UTF8.GetBytes("EncryptedAuthPassword"));
@@ -197,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(CredentialType.None, credential.Type);
             Assert.Null(credential.Value);
 
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
             entry = Assert.Single(entries);
             Assert.Null(entry.OpcAuthenticationPassword);
             Assert.Null(entry.OpcAuthenticationUsername);
@@ -247,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal(CredentialType.None, credential.Type);
             Assert.Null(credential.Value);
 
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
             entry = Assert.Single(entries);
             Assert.Null(entry.OpcAuthenticationPassword);
             Assert.Null(entry.OpcAuthenticationUsername);
@@ -301,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("DecryptedAuthUsername", credential.Value.User);
 
             // Now we should have converted back to plain text
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
             entry = Assert.Single(entries);
             Assert.Equal("DecryptedAuthPassword", entry.OpcAuthenticationPassword);
             Assert.Equal("DecryptedAuthUsername", entry.OpcAuthenticationUsername);
@@ -357,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Equal("DecryptedAuthUsername", credential.Value.User);
 
             // Now we should have converted back to encrypted
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups);
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
             entry = Assert.Single(entries);
             Assert.Null(entry.OpcAuthenticationPassword);
             Assert.Null(entry.OpcAuthenticationUsername);
@@ -420,7 +420,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             // Fake credential
             credential.Value = new UserIdentityModel { User = "user", Password = "password" };
             credential.Type = CredentialType.UserName;
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups).ToList();
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups).ToList();
             Assert.True(failFastCalled); // Process exited
             entry = Assert.Single(entries);
             Assert.Equal("password", entry.OpcAuthenticationPassword);
@@ -485,7 +485,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             // Fake credential
             credential.Value = new UserIdentityModel { User = "user", Password = "password" };
             credential.Type = CredentialType.UserName;
-            entries = converter.ToPublishedNodes(3, DateTime.UtcNow, writerGroups).ToList();
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups).ToList();
             Assert.True(failFastCalled); // Process exited
             entry = Assert.Single(entries);
             Assert.Equal("password", entry.OpcAuthenticationPassword);
@@ -2308,7 +2308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     {
         "EndpointUrl": "opc.tcp://localhost:50000",
         "OpcNodes": [
-            
+
 """);
 
             for (var i = 1; i < 10000; i++)
@@ -2363,7 +2363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     {
         "EndpointUrl": "opc.tcp://localhost:50000",
         "OpcNodes": [
-            
+
 """);
 
             for (var i = 1; i < 10000; i++)

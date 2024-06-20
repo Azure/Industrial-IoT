@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "TimestampUtc", Order = 2,
             EmitDefaultValue = true)]
-        public DateTime TimestampUtc { get; set; }
+        public DateTimeOffset TimestampUtc { get; set; }
 
         /// <summary>
         /// The Publisher version

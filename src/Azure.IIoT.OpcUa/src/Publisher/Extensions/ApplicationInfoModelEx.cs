@@ -116,9 +116,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Deep clone
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
-        public static ApplicationInfoModel? Clone(this ApplicationInfoModel? model)
+        public static ApplicationInfoModel? Clone(this ApplicationInfoModel? model,
+            TimeProvider timeProvider)
         {
             return model == null ? null : (model with
             {
@@ -130,8 +132,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     .ToHashSetSafe(),
                 DiscoveryUrls = model.DiscoveryUrls
                     .ToHashSetSafe(),
-                Created = model.Created.Clone(),
-                Updated = model.Updated.Clone()
+                Created = model.Created.Clone(timeProvider),
+                Updated = model.Updated.Clone(timeProvider)
             });
         }
 
@@ -166,12 +168,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="request"></param>
         /// <param name="context"></param>
-        /// <param name="disabled"></param>
         /// <returns></returns>
         public static ApplicationInfoModel ToApplicationInfo(
             this ApplicationRegistrationRequestModel request,
-            OperationContextModel context,
-            bool disabled = true)
+            OperationContextModel context)
         {
             return new ApplicationInfoModel
             {
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Capabilities = request.Capabilities,
                 GatewayServerUri = request.GatewayServerUri,
                 SiteId = request.SiteId,
-                NotSeenSince = disabled ? DateTime.UtcNow : null,
+                NotSeenSince = null,
                 Created = context,
                 Updated = null,
                 ApplicationId = null!,

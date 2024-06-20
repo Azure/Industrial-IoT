@@ -29,12 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="iothub"></param>
         /// <param name="logger"></param>
         /// <param name="broker"></param>
+        /// <param name="timeProvider"></param>
         public DiscovererRegistry(IIoTHubTwinServices iothub, ILogger<DiscovererRegistry> logger,
-            IDiscovererRegistryListener? broker = null)
+            IDiscovererRegistryListener? broker = null, TimeProvider? timeProvider = null)
         {
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _iothub = iothub;
+            _logger = logger;
             _events = broker;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -56,13 +58,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 throw new ResourceNotFoundException(
                     $"{discovererId} is not a discoverer registration.");
             }
-            var model = registration.ToDiscovererModel();
-            if (model is null)
-            {
-                throw new ResourceInvalidStateException(
+            return registration.ToDiscovererModel() ?? throw new ResourceInvalidStateException(
                     $"{discovererId} is not a valid discoverer registration.");
-            }
-            return model;
         }
 
         /// <inheritdoc/>
@@ -98,13 +95,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Update registration from update request
-                    var patched = registration.ToDiscovererModel();
-                    if (patched == null)
-                    {
-                        throw new ResourceInvalidStateException(
+                    var patched = registration.ToDiscovererModel() ?? throw new ResourceInvalidStateException(
                             $"{discovererId} is not a valid publisher registration.");
-                    }
-
                     if (request.Discovery != null && request.Discovery != DiscoveryMode.Off)
                     {
                         _logger.LogWarning("Discovery mode setting is no longer supported." +
@@ -124,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration()), false, ct).ConfigureAwait(false);
+                        patched.ToPublisherRegistration(), _timeProvider), false, ct).ConfigureAwait(false);
 
                     // Send update to through broker
                     if (_events != null)
@@ -215,5 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         private readonly IIoTHubTwinServices _iothub;
         private readonly IDiscovererRegistryListener? _events;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
     }
 }

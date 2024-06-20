@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "LastChangeDateTime", Order = 1,
             EmitDefaultValue = false)]
-        public DateTime? LastChangeDateTime { get; set; }
+        public DateTimeOffset? LastChangeDateTime { get; set; }
 
         /// <summary>
         /// Name of the data set writer.
@@ -340,6 +340,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "DisableSubscriptionTransfer", Order = 40,
             EmitDefaultValue = false)]
         public bool? DisableSubscriptionTransfer { get; set; }
+
+        /// <summary>
+        /// Republish after transferring the subscription during
+        /// reconnect handling unless subscription transfer was disabled.
+        /// </summary>
+        [DataMember(Name = "republishAfterTransfer", Order = 41,
+            EmitDefaultValue = false)]
+        public bool? RepublishAfterTransfer { get; set; }
+
+        /// <summary>
+        /// The timeout to use to monitor the monitored items in the
+        /// subscription are continously reporting fresh data.
+        /// </summary>
+        [DataMember(Name = "MonitoredItemWatchdogTimespan", Order = 42,
+            EmitDefaultValue = false)]
+        public TimeSpan? MonitoredItemWatchdogTimespan { get; set; }
+
+        /// <summary>
+        /// Subscription watchdog behavior
+        /// </summary>
+        [DataMember(Name = "WatchdogBehavior", Order = 43,
+            EmitDefaultValue = false)]
+        public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
 
         /// <summary>
         /// The node to monitor in "ns=" syntax.

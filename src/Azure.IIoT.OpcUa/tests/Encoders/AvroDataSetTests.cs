@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using global::Avro;
+    using Avro;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;

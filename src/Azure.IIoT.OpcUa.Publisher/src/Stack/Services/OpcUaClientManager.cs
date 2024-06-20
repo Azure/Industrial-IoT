@@ -43,13 +43,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="configuration"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
             IOptions<OpcUaClientOptions> options, IOpcUaConfiguration configuration,
-            IMetricsContext? metrics = null)
+            TimeProvider? timeProvider = null, IMetricsContext? metrics = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
+            _timeProvider = timeProvider ??
+                TimeProvider.System;
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _serializer = serializer ??
@@ -69,14 +72,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public void CreateSubscription(SubscriptionModel subscription,
-            ISubscriptionCallbacks callback, IMetricsContext metrics)
+            ISubscriptionCallbacks callback, IMetricsContext metrics,
+            TimeProvider? timeProvider)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             // Create subscription which will register with callback/client
 #pragma warning disable CA2000 // Dispose objects before losing scope
             _ = new OpcUaSubscription(this, callback, subscription,
                 _options, _loggerFactory, new OpcUaClientTagList(
-                    subscription.Id.Connection, metrics ?? _metrics));
+                    subscription.Id.Connection, metrics ?? _metrics), timeProvider);
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -527,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
-                    _loggerFactory, _meter, _metrics, OnConnectionStateChange,
+                    _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
                     _options.Value.MaxReconnectDelayDuration)
                 {
@@ -550,6 +554,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // ...
                     },
                     MinPublishRequests = _options.Value.MinPublishRequests,
+                    MaxPublishRequests = _options.Value.MaxPublishRequests,
                     PublishRequestsPerSubscriptionPercent =
                         _options.Value.PublishRequestsPerSubscriptionPercent
                 };
@@ -604,6 +609,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private bool _disposed;
         private readonly ILogger _logger;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly TimeProvider _timeProvider;
         private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly IJsonSerializer _serializer;

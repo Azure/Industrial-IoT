@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _sampledNodes = ImmutableHashSet<SampledNodeId>.Empty.Add(value);
 
-                _outer = outer;
+                _client = outer;
                 _cts = new CancellationTokenSource();
                 _samplingRate = samplingRate;
                 _subscription = subscription;
@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         sw.Restart();
                         // Grab the current session
-                        var session = _outer._session;
+                        var session = _client._session;
                         if (session == null)
                         {
                             NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected,
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var timeout = _samplingRate.TotalMilliseconds / 2;
                         var response = await session.ReadAsync(new RequestHeader
                         {
-                            Timestamp = DateTime.UtcNow,
+                            Timestamp = _client._timeProvider.GetUtcNow().UtcDateTime,
                             TimeoutHint = (uint)timeout,
                             ReturnDiagnostics = 0
                         }, 0.0, Opc.Ua.TimestampsToReturn.Both, nodesToRead, ct).ConfigureAwait(false);
@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void NotifyAll(uint seq, ServiceResponse<ReadValueId, DataValue> values,
                 TimeSpan elapsed)
             {
-                if (_outer._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
+                if (_client._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
                     is not OpcUaSubscription target)
                 {
                     return;
@@ -170,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 target.OnSubscriptionCylicReadNotification(target, values
                     .Select(i => new SampledDataValueModel(
                         SetOverflow(i.Result, missed > 0), ((SampledNodeId)i.Request.Handle).ClientHandle, missed))
-                    .ToList(), seq, DateTime.UtcNow);
+                    .ToList(), seq, _client._timeProvider.GetUtcNow().UtcDateTime);
 
                 static DataValue SetOverflow(DataValue result, bool overflowBit)
                 {
@@ -189,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
                 TimeSpan elapsed)
             {
-                if (_outer._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
+                if (_client._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
                     is not OpcUaSubscription target)
                 {
                     return;
@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 target.OnSubscriptionCylicReadNotification(target, nodesToRead
                     .Select(i => new SampledDataValueModel(
                         SetOverflow(statusCode, missed > 0), ((SampledNodeId)i.Handle).ClientHandle, missed))
-                    .ToList(), seq, DateTime.UtcNow);
+                    .ToList(), seq, _client._timeProvider.GetUtcNow().UtcDateTime);
 
                 static DataValue SetOverflow(uint statusCode, bool overflowBit)
                 {
@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private ImmutableHashSet<SampledNodeId> _sampledNodes;
             private readonly CancellationTokenSource _cts;
             private readonly Task _sampler;
-            private readonly OpcUaClient _outer;
+            private readonly OpcUaClient _client;
             private readonly TimeSpan _samplingRate;
             private readonly string _subscription;
             private readonly PeriodicTimer _timer;

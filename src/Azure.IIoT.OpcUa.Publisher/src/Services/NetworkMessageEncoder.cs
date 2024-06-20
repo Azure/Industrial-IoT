@@ -53,11 +53,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"> injected configuration. </param>
         /// <param name="metrics"> Metrics context </param>
         /// <param name="logger"> Logger to be used for reporting. </param>
+        /// <param name="timeProvider">time to use for timestamps</param>
         public NetworkMessageEncoder(IOptions<PublisherOptions> options,
-            IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger)
+            IMetricsContext metrics, ILogger<NetworkMessageEncoder> logger,
+            TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(metrics);
             _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _options = options;
             InitializeMetrics(metrics);
             _logNotifications = _options.Value.DebugLogEncodedNotifications == true;
@@ -116,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var chunkedMessage = factory()
                             .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                                 m.networkMessage.MessageSchema)
-                            .SetTimestamp(DateTime.UtcNow)
+                            .SetTimestamp(_timeProvider.GetUtcNow().UtcDateTime) // TODO: move to offsets
                             .SetContentEncoding(m.networkMessage.ContentEncoding)
                             .SetContentType(m.networkMessage.ContentType)
                             .SetTopic(m.topic)
@@ -436,7 +439,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             if (!PubSubMessage.TryCreateNetworkMessage(encoding, publisherId,
                                                 writerGroup.Name ?? Constants.DefaultWriterGroupName, networkMessageContentMask,
                                                 dataSetClassId, () => SequenceNumber.Increment16(ref _sequenceNumber),
-                                                namespaceFormat, standardsCompliant, isBatched, schema, out var message))
+                                                GetTimestamp(Notification) ?? _timeProvider.GetUtcNow(), namespaceFormat,
+                                                standardsCompliant, isBatched, schema, out var message))
                                             {
                                                 Drop(messages);
                                                 return;
@@ -518,12 +522,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 return dataSetWriterName;
                             }
 
-                            DateTime? GetTimestamp(IOpcUaSubscriptionNotification Notification)
+                            DateTimeOffset? GetTimestamp(IOpcUaSubscriptionNotification Notification)
                             {
                                 switch (_options.Value.MessageTimestamp)
                                 {
                                     case MessageTimestamp.EncodingTimeUtc:
-                                        return DateTime.UtcNow;
+                                        return _timeProvider.GetUtcNow();
                                     case MessageTimestamp.PublishTime:
                                         return Notification.PublishTimestamp;
                                     default:
@@ -671,6 +675,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private uint _sequenceNumber; // TODO: Use writer group context
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly bool _logNotifications;
     }

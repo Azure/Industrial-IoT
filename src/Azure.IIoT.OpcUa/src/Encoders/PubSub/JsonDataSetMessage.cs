@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 if ((DataSetMessageContentMask & DataSetMessageContentFlags.Timestamp) != 0)
                 {
-                    encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
+                    encoder.WriteDateTime(nameof(Timestamp), Timestamp?.UtcDateTime ?? default);
                 }
                 if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
                 {
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 DataSetWriterName = null;
                 SequenceNumber = 0;
                 MetaDataVersion = null;
-                Timestamp = DateTime.MinValue;
+                Timestamp = DateTimeOffset.MinValue;
 
                 var payload = property != null && jsonDecoder.HasField(property) ?
                     // Read payload off of the property name

@@ -43,10 +43,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public string? ApplicationUri { get; set; }
 
         /// <inheritdoc/>
-        public DateTime? PublishTimestamp { get; set; }
+        public DateTimeOffset? PublishTimestamp { get; set; }
 
         /// <inheritdoc/>
-        public DateTime CreatedTimestamp { get; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedTimestamp { get; }
 
         /// <inheritdoc/>
         public uint? PublishSequenceNumber { get; set; }
@@ -55,11 +55,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public object? Context { get; set; }
 
         /// <inheritdoc/>
-        public IServiceMessageContext ServiceMessageContext { get; set; } = null!;
+        public IServiceMessageContext ServiceMessageContext { get; set; }
 
         /// <inheritdoc/>
         public IList<MonitoredItemNotificationModel> Notifications { get; set; }
             = Array.Empty<MonitoredItemNotificationModel>();
+
+        /// <summary>
+        /// Create subscription notification
+        /// </summary>
+        /// <param name="createdTimestamp"></param>
+        /// <param name="serviceMessageContext"></param>
+        public SubscriptionNotificationModel(DateTimeOffset createdTimestamp,
+            IServiceMessageContext serviceMessageContext)
+        {
+            CreatedTimestamp = createdTimestamp;
+            ServiceMessageContext = serviceMessageContext;
+        }
 
         /// <inheritdoc/>
         public bool TryUpgradeToKeyFrame()

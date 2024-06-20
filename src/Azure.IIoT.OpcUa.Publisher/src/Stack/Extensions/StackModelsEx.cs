@@ -25,33 +25,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Convert diagnostics to request header
         /// </summary>
         /// <param name="header"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this RequestHeaderModel? header)
+        public static RequestHeader ToRequestHeader(this RequestHeaderModel? header,
+            TimeProvider? timeProvider = null)
         {
-            return (header?.Diagnostics?.Level).ToRequestHeader(header?.Diagnostics?.AuditId,
-                header?.Diagnostics?.TimeStamp, header?.OperationTimeout ?? 0);
-        }
-
-        /// <summary>
-        /// Convert diagnostics to request header
-        /// </summary>
-        /// <param name="level"></param>
-        /// <param name="auditId"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="timeoutHint"></param>
-        /// <returns></returns>
-        public static RequestHeader ToRequestHeader(this DiagnosticsLevel? level,
-            string? auditId = null, DateTime? timestamp = null, int timeoutHint = 0)
-        {
-            ArgumentOutOfRangeException.ThrowIfNegative(timeoutHint);
+            var timestamp = header?.Diagnostics?.TimeStamp
+                ?? (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime;
             return new RequestHeader
             {
-                AuditEntryId = auditId ?? Guid.NewGuid().ToString(),
+                AuditEntryId = header?.Diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                    (uint)(level ?? DiagnosticsLevel.Status)
-                     .ToStackType(),
-                Timestamp = timestamp ?? DateTime.UtcNow,
-                TimeoutHint = (uint)timeoutHint,
+                    (uint)(header?.Diagnostics?.Level ?? DiagnosticsLevel.Status)
+                    .ToStackType(),
+                Timestamp = timestamp,
+                TimeoutHint = (uint)(header?.OperationTimeout ?? 0),
                 AdditionalHeader = null // TODO
             };
         }

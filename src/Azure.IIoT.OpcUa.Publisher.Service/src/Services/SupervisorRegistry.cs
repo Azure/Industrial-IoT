@@ -28,12 +28,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="iothub"></param>
         /// <param name="logger"></param>
         /// <param name="events"></param>
+        /// <param name="timeProvider"></param>
         public SupervisorRegistry(IIoTHubTwinServices iothub, ILogger<SupervisorRegistry> logger,
-            ISupervisorRegistryListener? events = null)
+            ISupervisorRegistryListener? events = null, TimeProvider? timeProvider = null)
         {
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _iothub = iothub;
+            _logger = logger;
             _events = events;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -53,12 +55,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
             {
                 throw new ResourceNotFoundException($"{supervisorId} is not a supervisor registration.");
             }
-            var supervisor = registration.ToSupervisorModel();
-            if (supervisor == null)
-            {
-                throw new ResourceInvalidStateException($"{supervisorId} is not a valid supervisor.");
-            }
-            return supervisor;
+            return registration.ToSupervisorModel()
+                ?? throw new ResourceInvalidStateException($"{supervisorId} is not a valid supervisor.");
         }
 
         /// <inheritdoc/>
@@ -91,11 +89,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Update registration from update request
-                    var patched = registration.ToSupervisorModel();
-                    if (patched == null)
-                    {
-                        throw new ResourceInvalidStateException($"{supervisorId} is not a valid supervisor.");
-                    }
+                    var patched = registration.ToSupervisorModel()
+                        ?? throw new ResourceInvalidStateException($"{supervisorId} is not a valid supervisor.");
                     if (request.SiteId != null)
                     {
                         patched.SiteId = string.IsNullOrEmpty(request.SiteId) ?
@@ -103,7 +98,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     }
 
                     // Patch
-                    twin = await _iothub.PatchAsync(registration.Patch(patched.ToPublisherRegistration()), false, ct).ConfigureAwait(false);
+                    twin = await _iothub.PatchAsync(registration.Patch(patched.ToPublisherRegistration(), _timeProvider),
+                        false, ct).ConfigureAwait(false);
 
                     if (_events != null)
                     {
@@ -190,5 +186,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         private readonly IIoTHubTwinServices _iothub;
         private readonly ISupervisorRegistryListener? _events;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
     }
 }

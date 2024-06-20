@@ -33,14 +33,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "Timestamp", Order = 0,
             EmitDefaultValue = true)]
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
 
         /// <summary>
         /// Ingestion start
         /// </summary>
         [DataMember(Name = "IngestionStart", Order = 1,
             EmitDefaultValue = true)]
-        public DateTime IngestionStart { get; set; }
+        public DateTimeOffset IngestionStart { get; set; }
 
         /// <summary>
         /// Ingestion duration
@@ -448,5 +448,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MaximumMemoryInBytes", Order = 66,
             EmitDefaultValue = true)]
         public ulong MaximumMemoryInBytes { get; set; }
+
+        /// <summary>
+        /// Nodes that are late reporting if watchdog is enabled
+        /// </summary>
+        [DataMember(Name = "MonitoredOpcNodesLateCount", Order = 67,
+            EmitDefaultValue = true)]
+        public long MonitoredOpcNodesLateCount { get; set; }
     }
 }

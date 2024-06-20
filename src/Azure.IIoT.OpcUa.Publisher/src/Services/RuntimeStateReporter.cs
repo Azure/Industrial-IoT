@@ -52,13 +52,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="collector"></param>
         /// <param name="logger"></param>
         /// <param name="metrics"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="identity"></param>
         /// <param name="workload"></param>
         public RuntimeStateReporter(IEnumerable<IEventClient> events,
             IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
-            IIoTEdgeDeviceIdentity? identity = null, IIoTEdgeWorkloadApi? workload = null)
+            TimeProvider? timeProvider = null, IIoTEdgeDeviceIdentity? identity = null,
+            IIoTEdgeWorkloadApi ? workload = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
@@ -69,9 +71,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _collector = collector ??
                 throw new ArgumentNullException(nameof(collector));
             _metrics = metrics ?? IMetricsContext.Empty;
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _workload = workload;
             _identity = identity;
-            _renewalTimer = new Timer(OnRenewExpiredCertificateAsync);
+            _renewalTimer = _timeProvider.CreateTimer(OnRenewExpiredCertificateAsync,
+                null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             ArgumentNullException.ThrowIfNull(stores);
             ArgumentNullException.ThrowIfNull(events);
@@ -143,7 +147,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var body = new RuntimeStateEventModel
                 {
-                    TimestampUtc = DateTime.UtcNow,
+                    TimestampUtc = _timeProvider.GetUtcNow(),
                     MessageVersion = 1,
                     MessageType = RuntimeStateEventType.RestartAnnouncement,
                     PublisherId = _options.Value.PublisherId,
@@ -207,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Load certificate
                     Certificate?.Dispose();
                     Certificate = new X509Certificate2((byte[])cert!, ApiKey);
-                    var now = DateTime.UtcNow.AddDays(1);
+                    var now = _timeProvider.GetUtcNow().AddDays(1);
                     if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
                         Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
                             .Any(a => a.GetSingleElementValue() == dnsName))
@@ -231,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             // Create new certificate
-            var nowOffset = DateTimeOffset.UtcNow;
+            var nowOffset = _timeProvider.GetUtcNow();
             var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
 
             Certificate?.Dispose();
@@ -572,10 +576,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Append("  # Subscriptions count                : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.NumberOfSubscriptions)
                         .AppendLine()
-                    .Append("  # Good/Bad Monitored Items count     : ")
+                    .Append("  # Good/Bad Monitored Items (Late)    : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n0}", info.MonitoredOpcNodesSucceededCount).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MonitoredOpcNodesFailedCount)
-                        .AppendLine()
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MonitoredOpcNodesFailedCount).Append(" (")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MonitoredOpcNodesLateCount)
+                        .AppendLine(")")
                     .Append("  # Queued/Minimum request count       : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.PublishRequestsRatio).Append(" | ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.MinPublishRequestsRatio)
@@ -684,7 +689,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IIoTEdgeDeviceIdentity? _identity;
         private readonly IDiagnosticCollector _collector;
         private readonly IIoTEdgeWorkloadApi? _workload;
-        private readonly Timer _renewalTimer;
+        private readonly ITimer _renewalTimer;
+        private readonly TimeProvider _timeProvider;
         private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly List<IEventClient> _events;

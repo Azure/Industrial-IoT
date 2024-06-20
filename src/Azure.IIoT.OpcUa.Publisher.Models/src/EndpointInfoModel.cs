@@ -41,6 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "notSeenSince", Order = 5,
             EmitDefaultValue = false)]
-        public DateTime? NotSeenSince { get; set; }
+        public DateTimeOffset? NotSeenSince { get; set; }
     }
 }

@@ -98,5 +98,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "republishAfterTransfer", Order = 10,
             EmitDefaultValue = false)]
         public bool? RepublishAfterTransfer { get; set; }
+
+        /// <summary>
+        /// Subscription watchdog behavior
+        /// </summary>
+        [DataMember(Name = "watchdogBehavior", Order = 11,
+            EmitDefaultValue = false)]
+        public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
+
+        /// <summary>
+        /// Monitored item watchdog timeout
+        /// </summary>
+        [DataMember(Name = "monitoredItemWatchdogTimeout", Order = 13,
+            EmitDefaultValue = false)]
+        public TimeSpan? MonitoredItemWatchdogTimeout { get; set; }
     }
 }

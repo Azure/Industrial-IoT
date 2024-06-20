@@ -47,6 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
         public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
+        public const string DefaultWatchdogBehaviorKey = "DefaultWatchdogBehavior";
+        public const string DefaultMonitoredItemWatchdogSecondsKey = "DefaultMonitoredItemWatchdogSeconds";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -61,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const bool DefaultSkipFirstDefault = false;
         public const bool DefaultRepublishAfterTransferDefault = false;
+        public const bool EnableSequentialPublishingDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;
@@ -106,6 +109,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultPublishingIntervalKey,
                     DefaultPublishingIntervalDefaultMillis));
             }
+
+            if (options.DefaultMonitoredItemWatchdogTimeout == null)
+            {
+                var watchdogInterval = GetIntOrNull(DefaultMonitoredItemWatchdogSecondsKey);
+                if (watchdogInterval.HasValue)
+                {
+                    options.DefaultMonitoredItemWatchdogTimeout =
+                        TimeSpan.FromSeconds(watchdogInterval.Value);
+                }
+            }
+            if (options.DefaultWatchdogBehavior == null &&
+                Enum.TryParse<SubscriptionWatchdogBehavior>(GetStringOrDefault(DefaultWatchdogBehaviorKey),
+                    out var watchdogBehavior))
+            {
+                options.DefaultWatchdogBehavior = watchdogBehavior;
+            }
+
             options.DefaultKeepAliveCount ??= (uint)GetIntOrDefault(DefaultKeepAliveCountKey,
                     DefaultKeepAliveCountDefault);
             options.DefaultLifeTimeCount ??= (uint)GetIntOrDefault(DefaultLifetimeCountKey,
@@ -129,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
             }
             options.EnableImmediatePublishing ??= GetBoolOrNull(EnableImmediatePublishingKey);
-            options.EnableSequentialPublishing ??= GetBoolOrNull(EnableSequentialPublishingKey);
+            options.EnableSequentialPublishing ??= GetBoolOrDefault(EnableSequentialPublishingKey,
+                    EnableSequentialPublishingDefault);
             options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
                     DisableSessionPerWriterGroupDefault);
             options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);

@@ -86,8 +86,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             public Event(EventMonitoredItemModel template,
-                ILogger<Event> logger) : base(logger, template.StartNodeId)
+                ILogger<Event> logger, TimeProvider timeProvider) :
+                base(logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
             }
@@ -288,13 +290,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
-                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+                DateTimeOffset publishTime, IEncodeable evt,
+                IList<MonitoredItemNotificationModel> notifications)
             {
                 if (evt is EventFieldList eventFields &&
-                    base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
+                    base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
                 {
-                    return ProcessEventNotification(sequenceNumber, timestamp, eventFields, notifications);
+                    return ProcessEventNotification(sequenceNumber, publishTime, eventFields, notifications);
                 }
                 return false;
             }
@@ -305,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, client);
+                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
@@ -345,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="eventFields"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
-            protected virtual bool ProcessEventNotification(uint sequenceNumber, DateTime timestamp,
+            protected virtual bool ProcessEventNotification(uint sequenceNumber, DateTimeOffset timestamp,
                 EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
             {
                 // Send notifications as event

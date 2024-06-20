@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using global::Avro;
+    using Avro;
     using System;
     using System.Linq;
 
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DataSetWriterName = null;
             SequenceNumber = 0;
             MetaDataVersion = null;
-            Timestamp = DateTime.MinValue;
+            Timestamp = DateTimeOffset.MinValue;
             WithDataSetHeader = withDataSetHeader;
 
             //
@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             encoder.WriteUInt32(nameof(SequenceNumber), SequenceNumber);
             encoder.WriteEncodeable(nameof(MetaDataVersion), MetaDataVersion,
                 typeof(Opc.Ua.ConfigurationVersionDataType));
-            encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
+            encoder.WriteDateTime(nameof(Timestamp), Timestamp?.UtcDateTime ?? default);
 
             var status = Status ?? Payload.Values
                 .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(

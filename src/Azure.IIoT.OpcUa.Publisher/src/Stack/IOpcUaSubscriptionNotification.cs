@@ -60,12 +60,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Publishing time
         /// </summary>
-        DateTime? PublishTimestamp { get; }
+        DateTimeOffset? PublishTimestamp { get; }
 
         /// <summary>
         /// Notification created time
         /// </summary>
-        DateTime CreatedTimestamp { get; }
+        DateTimeOffset CreatedTimestamp { get; }
 
         /// <summary>
         /// Publishing sequence number

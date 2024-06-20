@@ -38,8 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             = ImmutableList<WriterGroupModel>.Empty;
 
         /// <inheritdoc/>
-        public DateTime LastChange { get; private set; }
-            = DateTime.UtcNow;
+        public DateTimeOffset LastChange { get; private set; }
 
         /// <inheritdoc/>
         public uint Version { get; private set; }
@@ -53,16 +52,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="factory"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public PublisherService(IWriterGroupScopeFactory factory,
-            IOptions<PublisherOptions> options, ILogger<PublisherService> logger)
+            IOptions<PublisherOptions> options, ILogger<PublisherService> logger,
+            TimeProvider? timeProvider = null)
         {
             PublisherId = options?.Value.PublisherId ??
                 throw new ArgumentNullException(nameof(options));
-            _factory = factory ??
-                throw new ArgumentNullException(nameof(factory));
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
+            _factory = factory;
+            _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
+            LastChange = _timeProvider.GetUtcNow();
 
             _currentJobs = new Dictionary<string, WriterGroupJob>();
 
@@ -253,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (exceptions.Count == 0)
             {
                 // Update writer groups
-                LastChange = DateTime.UtcNow;
+                LastChange = _timeProvider.GetUtcNow();
                 WriterGroups = _currentJobs.Values
                     .Select(j => j.WriterGroup)
                     .ToImmutableList();
@@ -396,6 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private bool _isDisposed;
         private readonly IWriterGroupScopeFactory _factory;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly Task _processor;
         private readonly Dictionary<string, WriterGroupJob> _currentJobs;
         private readonly TaskCompletionSource _completedTask;

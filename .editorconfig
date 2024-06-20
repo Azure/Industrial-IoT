@@ -419,18 +419,18 @@ dotnet_diagnostic.CA5384.severity=warning
 dotnet_diagnostic.CA5397.severity=warning
 dotnet_diagnostic.CA5394.severity=suggestion
 # IDE0066: Convert switch statement to expression
-dotnet_diagnostic.IDE0066.severity = silent
+dotnet_diagnostic.IDE0066.severity = suggestion
 dotnet_diagnostic.CA1200.severity = suggestion
 dotnet_diagnostic.CA1848.severity = suggestion
 dotnet_diagnostic.CA2011.severity = warning
 dotnet_diagnostic.CA2009.severity = warning
+dotnet_diagnostic.CA1001.severity = warning
+dotnet_diagnostic.CA1311.severity = suggestion
+
 # Default severity for analyzer diagnostics with category 'Style'
 dotnet_analyzer_diagnostic.category-Style.severity = silent
 dotnet_code_quality_unused_parameters = all:suggestion
 dotnet_diagnostic.RCS1090.severity = warning
-dotnet_diagnostic.xUnit2001.severity = suggestion
-dotnet_diagnostic.CA1001.severity = warning
-dotnet_diagnostic.CA1311.severity = suggestion
 dotnet_diagnostic.RCS1035.severity = suggestion
 dotnet_diagnostic.RCS1034.severity = suggestion
 dotnet_diagnostic.RCS1040.severity = suggestion
@@ -462,6 +462,8 @@ dotnet_diagnostic.RCS1244.severity = suggestion
 
 # xUnit1033: Test classes decorated with 'Xunit.IClassFixture<TFixture>' or 'Xunit.ICollectionFixture<TFixture>' should add a constructor argument of type TFixture
 dotnet_diagnostic.xUnit1033.severity = silent
+# xUnit1044: The type argument is not serializable, which will cause Test Explorer to not enumerate individual data rows. Consider using a type that is known to be serializable.
+dotnet_diagnostic.xUnit1044.severity = silent
 
 # CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1716.severity = none
@@ -481,6 +483,12 @@ dotnet_diagnostic.CA1003.severity = silent
 
 # CA1008: Enums should have zero value
 dotnet_diagnostic.CA1008.severity = silent
+csharp_style_prefer_readonly_struct = true:suggestion
+csharp_style_prefer_readonly_struct_member = true:suggestion
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = true:silent
+csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true:silent
+dotnet_diagnostic.RCS1055.severity = suggestion
+dotnet_diagnostic.RCS1039.severity = suggestion
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:silent
@@ -509,10 +517,33 @@ dotnet_diagnostic.CA5370.severity = suggestion
 dotnet_diagnostic.CA5372.severity = suggestion
 dotnet_diagnostic.CA5374.severity = warning
 dotnet_diagnostic.CA2251.severity = suggestion
-dotnet_style_prefer_collection_expression = true:suggestion
+dotnet_style_prefer_collection_expression = when_types_exactly_match:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 
 # IDE0270: Use coalesce expression
 dotnet_diagnostic.IDE0270.severity = silent
+dotnet_diagnostic.CA1031.severity = silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_explicit_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_compound_assignment = true:suggestion
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+dotnet_style_namespace_match_folder = true:suggestion
+dotnet_style_readonly_field = true:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
+dotnet_style_allow_multiple_blank_lines_experimental = true:silent
+dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
+dotnet_code_quality_unused_parameters = all:suggestion
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion

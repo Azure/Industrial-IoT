@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
@@ -78,13 +79,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Deep clone
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
-        public static ApplicationRegistrationModel? Clone(this ApplicationRegistrationModel? model)
+        public static ApplicationRegistrationModel? Clone(this ApplicationRegistrationModel? model,
+            TimeProvider timeProvider)
         {
             return model == null ? null : (model with
             {
-                Application = model.Application.Clone(),
+                Application = model.Application.Clone(timeProvider),
                 Endpoints = model.Endpoints?.Select(e => e.Clone()).ToList()
             });
         }
