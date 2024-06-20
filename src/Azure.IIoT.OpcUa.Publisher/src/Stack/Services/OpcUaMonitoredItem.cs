@@ -291,12 +291,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (disposing && Valid)
             {
-                if (AttachedToSubscription)
-                {
-                    // The item should have been removed from the subscription
-                    _logger.LogError("Unexpected state: Item {Item} must " +
-                        "already be removed from subscription, but wasn't.", this);
-                }
                 Valid = false;
             }
         }

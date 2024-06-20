@@ -383,6 +383,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             PublishStatusChanged -= OnPublishStatusChange;
                             StateChanged -= OnStateChange;
 
+                            // To be safe dispose all remaining monitored items
+                            var items = CurrentlyMonitored.ToList();
+                            if (items.Count > 0)
+                            {
+                                _logger.LogWarning(
+                                    "Still {Count} items in subscription {Subscription}...", 
+                                    items.Count, this);
+                            }
+                            items.ForEach(item => item.Dispose());
+                            RemoveItems(MonitoredItems);
+
                             if (_closed)
                             {
                                 _client?.Dispose();
@@ -516,6 +527,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
 
+                // Dispose all monitored items
+                var items = CurrentlyMonitored.ToList();
+
                 _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                 _currentSequenceNumber = 0;
                 _goodMonitoredItems = 0;
@@ -534,6 +548,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     () => DeleteItemsAsync(default)).ConfigureAwait(false);
                 await Try.Async(
                     () => ApplyChangesAsync()).ConfigureAwait(false);
+
+                items.ForEach(item => item.Dispose());
                 _logger.LogDebug("Deleted monitored items for '{Subscription}'.", this);
 
                 await Try.Async(
