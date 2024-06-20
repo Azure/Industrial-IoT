@@ -49,7 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _channel = Channel.CreateUnbounded<bool>();
 
                 // Order is important
-                _rebrowseTimer = new Timer(_ => _channel.Writer.TryWrite(true));
+                _rebrowseTimer = _client._timeProvider.CreateTimer(_ => _channel.Writer.TryWrite(true),
+                    null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 _browser = RunAsync(_cts.Token);
                 _channel.Writer.TryWrite(true);
             }
@@ -71,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _disposed = true;
                     try
                     {
-                        _rebrowseTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        _rebrowseTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                         _channel.Writer.TryComplete();
 
                         await _cts.CancelAsync().ConfigureAwait(false);
@@ -478,7 +479,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New) where T : class
             {
-                return new(source, path, existing, New, Interlocked.Increment(ref _sequenceNumber), DateTime.UtcNow);
+                return new(source, path, existing, New, Interlocked.Increment(ref _sequenceNumber),
+                    _client._timeProvider.GetUtcNow());
             }
 
             /// <summary>
@@ -548,7 +550,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly OpcUaClient _client;
             private readonly ILogger _logger;
             private readonly Channel<bool> _channel;
-            private readonly Timer _rebrowseTimer;
+            private readonly ITimer _rebrowseTimer;
             private readonly CancellationTokenSource _cts = new();
             private readonly TimeSpan _browseDelay;
         }

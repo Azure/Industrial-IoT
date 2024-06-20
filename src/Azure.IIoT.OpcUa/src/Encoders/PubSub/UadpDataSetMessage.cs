@@ -420,7 +420,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0)
             {
-                encoder.WriteDateTime(null, Timestamp ?? default);
+                encoder.WriteDateTime(null, Timestamp?.UtcDateTime ?? default);
             }
             if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0)
             {

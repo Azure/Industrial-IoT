@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <param name="items"></param>
         /// <param name="preferTimeSpan"></param>
         /// <returns></returns>
-        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(uint version, DateTime lastChanged,
+        public IEnumerable<PublishedNodesEntryModel> ToPublishedNodes(uint version, DateTimeOffset lastChanged,
             IEnumerable<WriterGroupModel> items, bool preferTimeSpan = true)
         {
             if (items == null)

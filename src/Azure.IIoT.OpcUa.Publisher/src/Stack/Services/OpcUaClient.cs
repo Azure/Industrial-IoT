@@ -165,6 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="connection"></param>
         /// <param name="serializer"></param>
         /// <param name="loggerFactory"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="meter"></param>
         /// <param name="metrics"></param>
         /// <param name="notifier"></param>
@@ -174,11 +175,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, IJsonSerializer serializer,
-            ILoggerFactory loggerFactory, Meter meter, IMetricsContext metrics,
+            ILoggerFactory loggerFactory, TimeProvider timeProvider,
+            Meter meter, IMetricsContext metrics,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
             TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
+            _timeProvider = timeProvider;
             if (connection?.Connection?.Endpoint?.Url == null)
             {
                 throw new ArgumentNullException(nameof(connection));
@@ -216,7 +219,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
-            _traceModeTimer = new Timer(_ => OnTraceModeExpired());
+            _traceModeTimer = _timeProvider.CreateTimer(_ => OnTraceModeExpired(),
+                null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
         }
 
@@ -244,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConfiguredEndpoint endpoint)
         {
             return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                (ITransportChannel)channel, configuration, endpoint);
+                _timeProvider, (ITransportChannel)channel, configuration, endpoint);
         }
 
         /// <inheritdoc/>
@@ -254,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             StringCollection? discoveryProfileUris)
         {
             return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                channel, configuration, endpoint,
+                _timeProvider, channel, configuration, endpoint,
                 clientCertificate, availableEndpoints, discoveryProfileUris);
         }
 
@@ -398,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 reset = _traceMode;
 
                 _traceMode = false;
-                _traceModeTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                _traceModeTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             }
             if (reset)
             {
@@ -737,7 +741,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var queuedSubscriptions = new HashSet<IOpcUaSubscription>();
 
             var reconnectPeriod = 0;
-            var reconnectTimer = new Timer(_ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry));
+            var reconnectTimer = _timeProvider.CreateTimer(
+                _ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry), null,
+                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             currentSubscriptions = Array.Empty<IOpcUaSubscription>();
             try
             {
@@ -770,7 +776,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     if (currentSessionState == SessionState.Disconnected)
                                     {
                                         // Start connecting
-                                        reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                                        reconnectTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                                         currentSessionState = SessionState.Connecting;
                                         reconnectPeriod = GetMinReconnectPeriod();
                                     }
@@ -787,10 +793,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             {
                                                 // Reschedule connecting
                                                 Debug.Assert(reconnectPeriod != 0, "Reconnect period should not be 0.");
-                                                var retryDelay = _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod);
+                                                var retryDelay = TimeSpan.FromMilliseconds(
+                                                    _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod));
                                                 _logger.LogInformation("{Client}: Retrying connecting session in {RetryDelay}...",
-                                                    this, TimeSpan.FromMilliseconds(retryDelay));
-                                                reconnectTimer.Change(retryDelay, Timeout.Infinite);
+                                                    this, retryDelay);
+                                                reconnectTimer.Change(retryDelay, Timeout.InfiniteTimeSpan);
                                                 reconnectPeriod = _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
                                                 break;
                                             }
@@ -962,7 +969,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                     // If currently reconnecting, dispose the reconnect handler and stop timer
                                     _reconnectHandler.CancelReconnect();
-                                    reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                                    reconnectTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                                     queuedSubscriptions.Clear();
                                     currentSubscriptions = Array.Empty<IOpcUaSubscription>();
@@ -1965,7 +1972,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly Timer _traceModeTimer;
+        private readonly ITimer _traceModeTimer;
+        private readonly TimeProvider _timeProvider;
         private readonly SessionReconnectHandler _reconnectHandler;
         private readonly CancellationTokenSource _cts;
 #pragma warning restore CA2213 // Disposable fields should be disposed

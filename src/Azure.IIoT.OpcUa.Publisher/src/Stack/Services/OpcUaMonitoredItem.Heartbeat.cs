@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Runtime.Serialization;
     using System.Threading;
-    using Timer = System.Timers.Timer;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -46,15 +45,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="dataTemplate"></param>
             /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             public Heartbeat(DataMonitoredItemModel dataTemplate,
-                ILogger<DataChange> logger) : base(dataTemplate, logger)
+                ILogger<DataChange> logger, TimeProvider timeProvider) :
+                base(dataTemplate, logger, timeProvider)
             {
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);
                 _timerInterval = Timeout.InfiniteTimeSpan;
                 _heartbeatBehavior = dataTemplate.HeartbeatBehavior
                     ?? HeartbeatBehavior.WatchdogLKV;
-                _heartbeatTimer = new Timer();
+                _heartbeatTimer = new TimerEx(timeProvider);
                 _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
                 _heartbeatTimer.AutoReset = true;
                 _heartbeatTimer.Enabled = true;
@@ -73,7 +74,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _heartbeatInterval = item._heartbeatInterval;
                 _timerInterval = item._timerInterval;
                 _heartbeatBehavior = item._heartbeatBehavior;
-                _lastValueReceived = item._lastValueReceived;
                 _callback = item._callback;
                 _heartbeatTimer = item.CloneTimer();
                 if (_heartbeatTimer != null)
@@ -127,16 +127,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             protected override bool ProcessMonitoredItemNotification(uint sequenceNumber,
-                DateTime timestamp, MonitoredItemNotification monitoredItemNotification,
+                DateTimeOffset publishTime, MonitoredItemNotification monitoredItemNotification,
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Assert(Valid);
-                var result = base.ProcessMonitoredItemNotification(sequenceNumber, timestamp,
+                var result = base.ProcessMonitoredItemNotification(sequenceNumber, publishTime,
                     monitoredItemNotification, notifications);
 
                 if (_heartbeatTimer != null && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
-                    _heartbeatTimer.Interval = _timerInterval.TotalMilliseconds;
+                    _heartbeatTimer.Interval = _timerInterval;
                     _heartbeatTimer.Enabled = true;
                 }
                 return result;
@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (_timerInterval != _heartbeatInterval)
                         {
                             // Start heartbeat after completion
-                            _heartbeatTimer.Interval = _heartbeatInterval.TotalMilliseconds;
+                            _heartbeatTimer.Interval = _heartbeatInterval;
                             _timerInterval = _heartbeatInterval;
                         }
                         _heartbeatTimer.Enabled = true;
@@ -213,15 +213,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset publishTime,
                 IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
-                _lastValueReceived = DateTime.UtcNow;
                 if (_heartbeatTimer != null && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
                     _heartbeatTimer.Enabled = false;
                 }
-                return base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications);
+                return base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications);
             }
 
             /// <inheritdoc/>
@@ -278,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="e"></param>
-            private void SendHeartbeatNotifications(object? sender, System.Timers.ElapsedEventArgs e)
+            private void SendHeartbeatNotifications(object? sender, ElapsedEventArgs e)
             {
                 var callback = _callback;
                 if (callback == null || !Valid)
@@ -313,8 +312,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     // Adjust to the diff between now and received if desired
                     // Should not be possible that last value received is null, nevertheless.
-                    var diffTime = _lastValueReceived.HasValue ?
-                        DateTime.UtcNow - _lastValueReceived.Value : TimeSpan.Zero;
+                    var diffTime = LastReceivedTime.HasValue ?
+                        TimeProvider.GetUtcNow() - LastReceivedTime.Value : TimeSpan.Zero;
 
                     lastValue = new DataValue(lastValue)
                     {
@@ -347,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Clone the timer
             /// </summary>
             /// <returns></returns>
-            private Timer? CloneTimer()
+            private TimerEx? CloneTimer()
             {
                 var timer = _heartbeatTimer;
                 _heartbeatTimer = null;
@@ -358,12 +357,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return timer;
             }
 
-            private Timer? _heartbeatTimer;
+            private TimerEx? _heartbeatTimer;
             private TimeSpan _timerInterval;
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
             private Callback? _callback;
-            private DateTime? _lastValueReceived;
             private StatusCode? _lastStatusCode;
         }
     }

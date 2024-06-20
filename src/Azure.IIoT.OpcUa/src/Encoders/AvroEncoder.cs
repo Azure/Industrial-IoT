@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
-    using global::Avro;
+    using Avro;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -852,7 +852,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteNull<T>(string? fieldName, T? value) where T : default
         {
             ValidatedWrite(fieldName, BuiltInType.Null, value,
-                base.WriteNull<T>, SchemaRank.Scalar);
+                base.WriteNull, SchemaRank.Scalar);
         }
 
         /// <inheritdoc/>

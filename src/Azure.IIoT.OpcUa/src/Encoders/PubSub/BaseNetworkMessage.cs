@@ -66,7 +66,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(DataSetClassId);
-            hash.Add(Messages);
+            foreach (var item in Messages)
+            {
+                hash.Add(item);
+            }
             return hash.ToHashCode();
         }
 

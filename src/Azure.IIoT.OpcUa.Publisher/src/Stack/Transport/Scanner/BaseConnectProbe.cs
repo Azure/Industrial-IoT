@@ -26,9 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         /// <param name="index"></param>
         /// <param name="probe"></param>
         /// <param name="logger"></param>
-        protected BaseConnectProbe(int index, IAsyncProbe probe, ILogger logger)
+        /// <param name="timeProvider"></param>
+        protected BaseConnectProbe(int index, IAsyncProbe probe, ILogger logger,
+            TimeProvider? timeProvider = null)
         {
             _probe = probe ?? throw new ArgumentNullException(nameof(probe));
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _index = index;
             _logger = logger;
             _lock = new SemaphoreSlim(1, 1);
@@ -291,7 +294,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
             public AsyncConnect(BaseConnectProbe outer)
             {
                 _outer = outer;
-                _timer = new Timer(OnTimerTimeout);
+                _timer = outer._timeProvider.CreateTimer(OnTimerTimeout,
+                    null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 _lock = new SemaphoreSlim(1, 1);
                 _arg = new SocketAsyncEventArgs();
                 _arg.Completed += OnComplete;
@@ -356,7 +360,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                     }
 
                     // Wait for completion or timeout after x seconds
-                    _timer.Change(timeout, Timeout.Infinite);
+                    _timer.Change(TimeSpan.FromMilliseconds(timeout),
+                        Timeout.InfiniteTimeSpan);
                     return false;
                 }
                 finally
@@ -380,7 +385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                         return; // assume next OnComplete will occur or timeout...
                     }
                     // Cancel timer and start next
-                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 }
                 catch (Exception ex)
                 {
@@ -477,7 +482,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                 else
                 {
                     // Wait for completion or timeout after x seconds
-                    _timer.Change(timeout, Timeout.Infinite);
+                    _timer.Change(TimeSpan.FromMilliseconds(timeout),
+                        Timeout.InfiniteTimeSpan);
                 }
                 return completed;
             }
@@ -543,7 +549,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                 }
             }
 
-            private readonly Timer _timer;
+            private readonly ITimer _timer;
             private readonly SocketAsyncEventArgs _arg;
             private readonly SemaphoreSlim _lock;
             private readonly BaseConnectProbe _outer;
@@ -556,6 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         private readonly int _index;
         private readonly IAsyncProbe _probe;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private AsyncConnect? _arg;
         private bool _disposedValue;
     }

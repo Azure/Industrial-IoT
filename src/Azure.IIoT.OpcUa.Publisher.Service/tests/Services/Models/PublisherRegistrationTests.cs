@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         public void TestEqualIsEqualWithDeviceModel()
         {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
+            var m = r1.ToDeviceTwin(TimeProvider.System);
             var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
@@ -92,9 +92,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
 
             var r1 = CreateRegistration();
             var r2 = r1.ToPublisherModel().ToPublisherRegistration(true);
-            var m1 = r1.Patch(r2);
+            var m1 = r1.Patch(r2, TimeProvider.System);
             var r3 = r2.ToPublisherModel().ToPublisherRegistration(false);
-            var m2 = r2.Patch(r3);
+            var m2 = r2.Patch(r3, TimeProvider.System);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
             Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);

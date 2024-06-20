@@ -21,9 +21,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// Create listener
         /// </summary>
         /// <param name="logger"></param>
-        internal ProgressLogger(ILogger logger)
+        /// <param name="timeProvider"></param>
+        internal ProgressLogger(ILogger logger, TimeProvider? timeProvider = null)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -53,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.Cancelled,
                 Request = request
             });
@@ -65,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.Error,
                 Request = request,
                 Result = ex.Message,
@@ -81,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.Finished,
                 Request = request
             });
@@ -93,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.NetworkScanStarted,
                 Workers = workers,
                 Progress = progress,
@@ -108,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.NetworkScanResult,
                 Workers = workers,
                 Progress = progress,
@@ -125,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.NetworkScanProgress,
                 Workers = workers,
                 Progress = progress,
@@ -141,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.NetworkScanFinished,
                 Workers = workers,
                 Progress = progress,
@@ -157,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.PortScanStarted,
                 Workers = workers,
                 Progress = progress,
@@ -172,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             Send(new DiscoveryProgressModel
             {
-                TimeStamp = DateTime.UtcNow,
+                TimeStamp = _timeProvider.GetUtcNow(),
                 EventType = DiscoveryProgressType.PortScanResult,
                 Workers = workers,
                 Progress = progress,
@@ -243,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 Progress = progress,
                 Total = total,
                 Discovered = discovered,
-                Request = request.Clone()
+                Request = request.Clone(_timeProvider)
             });
         }
 
@@ -290,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="progress"></param>
         protected virtual void Send(DiscoveryProgressModel progress)
         {
-            progress.TimeStamp = DateTime.UtcNow;
+            progress.TimeStamp = _timeProvider.GetUtcNow();
             switch (progress.EventType)
             {
                 case DiscoveryProgressType.Pending:
@@ -380,5 +382,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         }
 
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
     }
 }

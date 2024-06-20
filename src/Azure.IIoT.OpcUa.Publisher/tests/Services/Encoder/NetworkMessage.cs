@@ -156,14 +156,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var dataItem = new OpcUaMonitoredItem.DataChange(new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258"
-            }, Log.Console<OpcUaMonitoredItem.DataChange>());
+            }, Log.Console<OpcUaMonitoredItem.DataChange>(), TimeProvider.System);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var eventItem = new OpcUaMonitoredItem.Event(new EventMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel()
-            }, Log.Console<OpcUaMonitoredItem.Event>());
+            }, Log.Console<OpcUaMonitoredItem.Event>(), TimeProvider.System);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             eventItem.Fields.Add(("1", default));
             eventItem.Fields.Add(("2", default));
@@ -206,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         eventItem.StartNodeId = new NodeId(nodeId, 0);
                         eventItem.Handle = eventItem;
                         eventItem.Valid = true;
-                        eventItem.TryGetMonitoredItemNotifications(seq, DateTime.UtcNow, eventFieldList, notifications);
+                        eventItem.TryGetMonitoredItemNotifications(seq, DateTimeOffset.UtcNow, eventFieldList, notifications);
                     }
                     else
                     {
@@ -230,11 +230,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         dataItem.StartNodeId = new NodeId(nodeId, 0);
                         dataItem.Handle = dataItem;
                         dataItem.Valid = true;
-                        dataItem.TryGetMonitoredItemNotifications(seq, DateTime.UtcNow, monitoredItemNotification, notifications);
+                        dataItem.TryGetMonitoredItemNotifications(seq, DateTimeOffset.UtcNow, monitoredItemNotification, notifications);
                     }
                 }
 
-                var message = new SubscriptionNotificationModel
+                var message = new SubscriptionNotificationModel(DateTimeOffset.UtcNow, new ServiceMessageContext())
                 {
                     Context = new WriterGroupContext
                     {
@@ -246,10 +246,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Writer = writer,
                         WriterGroup = writerGroup
                     },
-                    PublishTimestamp = DateTime.UtcNow,
+                    PublishTimestamp = DateTimeOffset.UtcNow,
                     MetaData = null,
                     MessageType = eventList ? Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
-                    ServiceMessageContext = new ServiceMessageContext(),
                     Notifications = notifications,
                     SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,

@@ -5,7 +5,7 @@
 
 namespace Opc.Ua.Extensions
 {
-    using UaStructureType = Opc.Ua.StructureType;
+    using UaStructureType = StructureType;
     using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>

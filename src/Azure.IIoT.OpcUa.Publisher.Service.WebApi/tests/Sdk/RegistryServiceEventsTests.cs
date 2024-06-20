@@ -261,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
-                NotSeenSince = DateTime.UtcNow,
+                NotSeenSince = DateTimeOffset.UtcNow,
                 Capabilities = new HashSet<string> { "ag", "sadf", "" }
             };
             var result = new TaskCompletionSource<ApplicationEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -300,7 +300,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             {
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
-                NotSeenSince = DateTime.UtcNow,
+                NotSeenSince = DateTimeOffset.UtcNow,
                 Capabilities = new HashSet<string> { "ag", "sadf", "" }
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -336,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             var expected = new EndpointInfoModel
             {
                 ApplicationId = "TestSigfsdfg  ff",
-                NotSeenSince = DateTime.UtcNow,
+                NotSeenSince = DateTimeOffset.UtcNow,
                 Registration = new EndpointRegistrationModel
                 {
                     Id = "testid"
@@ -374,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             var expected = new EndpointInfoModel
             {
                 ApplicationId = "TestSigfsdfg  ff",
-                NotSeenSince = DateTime.UtcNow,
+                NotSeenSince = DateTimeOffset.UtcNow,
                 Registration = new EndpointRegistrationModel
                 {
                     Id = "testid"
@@ -483,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 Discovered = 55,
                 ResultDetails = new Dictionary<string, string> { ["test"] = "test" },
                 EventType = DiscoveryProgressType.NetworkScanFinished,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = DateTimeOffset.UtcNow
             };
             var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId, ev =>
@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 Discovered = 55,
                 ResultDetails = new Dictionary<string, string> { ["test"] = "test" },
                 EventType = DiscoveryProgressType.NetworkScanFinished,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = DateTimeOffset.UtcNow
             };
             var result = new TaskCompletionSource<DiscoveryProgressModel>(TaskCreationOptions.RunContinuationsAsynchronously);
             await using (await client.SubscribeDiscoveryProgressByRequestIdAsync(requestId, ev =>
@@ -569,7 +569,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
                 DiscovererId = discovererId,
                 Discovered = 55,
                 EventType = DiscoveryProgressType.NetworkScanFinished,
-                TimeStamp = DateTime.UtcNow
+                TimeStamp = DateTimeOffset.UtcNow
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var counter = 0;

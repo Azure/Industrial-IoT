@@ -130,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Timestamp))
             {
-                encoder.WriteDateTime(nameof(Timestamp), Timestamp ?? default);
+                encoder.WriteDateTime(nameof(Timestamp), Timestamp?.UtcDateTime ?? default);
             }
 
             var valuePayload = Value;
@@ -272,9 +272,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 dataSetFieldContentMask |= DataSetFieldContentFlags.ApplicationUri;
             }
-            Timestamp = decoder.ReadDateTime(nameof(Timestamp));
-            if (Timestamp != DateTime.MinValue)
+            var timestamp = decoder.ReadDateTime(nameof(Timestamp));
+            if (timestamp != DateTime.MinValue)
             {
+                Timestamp = timestamp;
                 DataSetMessageContentMask |= DataSetMessageContentFlags.Timestamp;
             }
             var status = decoder.ReadString(nameof(Status));

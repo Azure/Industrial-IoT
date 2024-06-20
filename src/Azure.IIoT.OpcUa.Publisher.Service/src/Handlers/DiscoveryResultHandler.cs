@@ -32,15 +32,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <param name="processor"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public DiscoveryResultHandler(IDiscoveryResultProcessor processor,
-            IJsonSerializer serializer, ILogger<DiscoveryResultHandler> logger)
+            IJsonSerializer serializer, ILogger<DiscoveryResultHandler> logger,
+            TimeProvider? timeProvider = null)
         {
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
-            _processor = processor ??
-                throw new ArgumentNullException(nameof(processor));
+            _serializer = serializer;
+            _logger = logger;
+            _processor = processor;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -77,9 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             try
             {
                 await _queueLock.WaitAsync(ct).ConfigureAwait(false);
-                var old = DateTime.UtcNow - TimeSpan.FromHours(1);
+                var old = _timeProvider.GetUtcNow() - TimeSpan.FromHours(1);
 
-                var removed = new List<KeyValuePair<DateTime, DiscovererDiscoveryResult>>();
+                var removed = new List<KeyValuePair<DateTimeOffset, DiscovererDiscoveryResult>>();
                 foreach (var backlog in _discovererQueues.ToList())
                 {
                     foreach (var queue in backlog.Value
@@ -138,12 +138,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
                 if (!_discovererQueues.TryGetValue(discovererId, out var backlog))
                 {
-                    backlog = new Dictionary<DateTime, DiscovererDiscoveryResult>();
+                    backlog = new Dictionary<DateTimeOffset, DiscovererDiscoveryResult>();
                     _discovererQueues.Add(discovererId, backlog);
                 }
                 if (!backlog.TryGetValue(model.TimeStamp, out var queue))
                 {
-                    queue = new DiscovererDiscoveryResult();
+                    queue = new DiscovererDiscoveryResult(_timeProvider.GetUtcNow());
                     backlog.Add(model.TimeStamp, queue);
                 }
                 queue.Enqueue(model);
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             /// <summary>
             /// When queue was created
             /// </summary>
-            public DateTime Created { get; } = DateTime.UtcNow;
+            public DateTimeOffset Created { get; }
 
             /// <summary>
             /// Whether the result is complete
@@ -223,8 +223,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             /// <summary>
             /// Create queue
             /// </summary>
-            public DiscovererDiscoveryResult()
+            /// <param name="created"></param>
+            public DiscovererDiscoveryResult(DateTimeOffset created)
             {
+                Created = created;
                 _endpoints = new List<DiscoveryEventModel>();
                 _maxIndex = 0;
             }
@@ -252,10 +254,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         }
 
         private readonly Dictionary<string,
-            Dictionary<DateTime, DiscovererDiscoveryResult>> _discovererQueues = new();
+            Dictionary<DateTimeOffset, DiscovererDiscoveryResult>> _discovererQueues = new();
         private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IDiscoveryResultProcessor _processor;
+        private readonly TimeProvider _timeProvider;
     }
 }

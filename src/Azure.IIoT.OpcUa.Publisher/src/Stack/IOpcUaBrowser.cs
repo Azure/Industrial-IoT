@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// <param name="Timestamp"></param>
     public record struct Change<T>(NodeId Source, RelativePath PathFromRoot,
         T? PreviousItem, T? ChangedItem, uint SequenceNumber,
-        DateTime Timestamp) where T : class;
+        DateTimeOffset Timestamp) where T : class;
 
     /// <summary>
     /// This is an abstraction over a continous monitored address space

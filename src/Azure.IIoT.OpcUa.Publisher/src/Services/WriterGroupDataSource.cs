@@ -23,8 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Timers;
-    using Timer = System.Timers.Timer;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -46,25 +44,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="subscriptionConfig"></param>
         /// <param name="metrics"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public WriterGroupDataSource(WriterGroupModel writerGroup,
             IOptions<PublisherOptions> options, IOpcUaSubscriptionManager subscriptionManager,
-            IOptions<OpcUaSubscriptionOptions> subscriptionConfig,
-            IMetricsContext? metrics, ILogger<WriterGroupDataSource> logger)
+            IOptions<OpcUaSubscriptionOptions> subscriptionConfig, IMetricsContext? metrics,
+            ILogger<WriterGroupDataSource> logger, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
 
-            _options = options ??
-                throw new ArgumentNullException(nameof(options));
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
-            _subscriptionManager = subscriptionManager ??
-                throw new ArgumentNullException(nameof(subscriptionManager));
-            _subscriptionConfig = subscriptionConfig ??
-                throw new ArgumentNullException(nameof(subscriptionConfig));
-            _metrics = metrics ??
-                IMetricsContext.Empty;
+            _options = options;
+            _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
+            _metrics = metrics ?? IMetricsContext.Empty;
+            _subscriptionManager = subscriptionManager;
+            _subscriptionConfig = subscriptionConfig;
+            _startTime = _timeProvider.GetUtcNow();
 
-            _subscriptions = new Dictionary<SubscriptionIdentifier, DataSetWriterSubscription>();
+            _valueChanges = new RollingAverage(_timeProvider);
+            _dataChanges = new RollingAverage(_timeProvider);
+            _sampledValues = new RollingAverage(_timeProvider);
+            _cyclicReads = new RollingAverage(_timeProvider);
+            _eventNotification = new RollingAverage(_timeProvider);
+            _events = new RollingAverage(_timeProvider);
+            _modelChanges = new RollingAverage(_timeProvider);
+            _heartbeats = new RollingAverage(_timeProvider);
+            _overflows = new RollingAverage(_timeProvider);
+
             _writerGroup = Copy(writerGroup);
             InitializeMetrics();
         }
@@ -289,11 +294,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #if DUMP_METADATA
 #pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
                             System.IO.File.WriteAllText(
-                 $"md_{DateTime.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
-                                JsonSerializer.Serialize(input, new JsonSerializerOptions
-                                {
-                                    WriteIndented = true
-                                }));
+           $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
+                                System.Text.Json.JsonSerializer.Serialize(input,
+                                    new System.Text.Json.JsonSerializerOptions
+                                    {
+                                        WriteIndented = true
+                                    }));
 #pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
 #endif
                             if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
@@ -435,7 +441,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // if none already exist and transfer the subscription into the session
                 // management realm
                 //
-                _outer._subscriptionManager.CreateSubscription(_subscriptionInfo, this, this);
+                _outer._subscriptionManager.CreateSubscription(_subscriptionInfo, this, this,
+                    _outer._timeProvider);
 
                 _frameCount = 0;
                 InitializeMetaDataTrigger();
@@ -699,15 +706,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private void InitializeMetaDataTrigger()
             {
                 var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime
-                    .GetValueOrDefault(TimeSpan.Zero)
-                    .TotalMilliseconds;
-
-                if (metaDataSendInterval > 0 &&
+                    .GetValueOrDefault(TimeSpan.Zero);
+                if (metaDataSendInterval > TimeSpan.Zero &&
                     _outer._subscriptionConfig.Value.DisableDataSetMetaData != true)
                 {
                     if (_metadataTimer == null)
                     {
-                        _metadataTimer = new Timer(metaDataSendInterval);
+                        _metadataTimer = new TimerEx(metaDataSendInterval, _outer._timeProvider);
                         _metadataTimer.Elapsed += MetadataTimerElapsed;
                     }
                     else
@@ -807,7 +812,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 if (sendMetadata)
                                 {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                                    var metadata = new MetadataNotificationModel(notification)
+                                    var metadata = new MetadataNotificationModel(notification, _outer._timeProvider)
                                     {
                                         Context = CreateMessageContext(_metadataTopic, _qos,
                                             () => Interlocked.Increment(ref _metadataSequenceNumber))
@@ -882,10 +887,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public string? ApplicationUri { get; }
 
                 /// <inheritdoc/>
-                public DateTime? PublishTimestamp { get; }
+                public DateTimeOffset? PublishTimestamp { get; }
 
                 /// <inheritdoc/>
-                public DateTime CreatedTimestamp { get; } = DateTime.UtcNow;
+                public DateTimeOffset CreatedTimestamp { get; }
 
                 /// <inheritdoc/>
                 public uint? PublishSequenceNumber => null;
@@ -900,12 +905,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public IList<MonitoredItemNotificationModel> Notifications { get; }
 
                 /// <inheritdoc/>
-                public MetadataNotificationModel(IOpcUaSubscriptionNotification notification)
+                public MetadataNotificationModel(IOpcUaSubscriptionNotification notification,
+                    TimeProvider timeProvider)
                 {
                     SequenceNumber = notification.SequenceNumber;
                     DataSetName = notification.DataSetName;
                     ServiceMessageContext = notification.ServiceMessageContext;
                     MetaData = notification.MetaData;
+                    CreatedTimestamp = timeProvider.GetUtcNow();
                     PublishTimestamp = notification.PublishTimestamp;
                     SubscriptionId = notification.SubscriptionId;
                     SubscriptionName = notification.SubscriptionName;
@@ -1049,7 +1056,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly WriterGroupDataSource _outer;
             private readonly Func<MonitoredItemNotificationModel, object?> _contextSelector;
             private readonly object _lock = new();
-            private Timer? _metadataTimer;
+            private TimerEx? _metadataTimer;
             private volatile uint _frameCount;
             private readonly string _topic;
             private readonly QoS? _qos;
@@ -1067,7 +1074,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Runtime duration
         /// </summary>
-        private double UpTime => (DateTime.UtcNow - _startTime).TotalSeconds;
+        private double UpTime => (_timeProvider.GetUtcNow() - _startTime).TotalSeconds;
 
         private IEnumerable<IOpcUaClientDiagnostics> UsedClients => _subscriptions.Values
             .Select(s => s.Subscription?.State!)
@@ -1197,28 +1204,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
+        private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILogger _logger;
-        private readonly Dictionary<SubscriptionIdentifier, DataSetWriterSubscription> _subscriptions;
+        private readonly TimeProvider _timeProvider;
+        private readonly DateTimeOffset _startTime;
         private readonly IOpcUaSubscriptionManager _subscriptionManager;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionConfig;
         private readonly IMetricsContext _metrics;
         private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private readonly RollingAverage _valueChanges = new();
-        private readonly RollingAverage _dataChanges = new();
-        private readonly RollingAverage _sampledValues = new();
-        private readonly RollingAverage _cyclicReads = new();
-        private readonly RollingAverage _eventNotification = new();
-        private readonly RollingAverage _events = new();
-        private readonly RollingAverage _modelChanges = new();
-        private readonly RollingAverage _heartbeats = new();
-        private readonly RollingAverage _overflows = new();
+        private readonly RollingAverage _valueChanges;
+        private readonly RollingAverage _dataChanges;
+        private readonly RollingAverage _sampledValues;
+        private readonly RollingAverage _cyclicReads;
+        private readonly RollingAverage _eventNotification;
+        private readonly RollingAverage _events;
+        private readonly RollingAverage _modelChanges;
+        private readonly RollingAverage _heartbeats;
+        private readonly RollingAverage _overflows;
         private WriterGroupModel _writerGroup;
         private long _keepAliveCount;
         private int _metadataChanges;
         private int _lastMetadataChange = -1;
         private IEventSchema? _schema;
-        private readonly DateTime _startTime = DateTime.UtcNow;
     }
 }

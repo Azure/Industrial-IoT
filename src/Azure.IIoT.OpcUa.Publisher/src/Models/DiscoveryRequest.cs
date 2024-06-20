@@ -31,6 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         public bool IsScan { get; }
 
+        private readonly TimeProvider _timeProvider;
+
         /// <summary>
         /// Original discovery request model
         /// </summary>
@@ -83,8 +85,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Create request wrapper
         /// </summary>
-        public DiscoveryRequest() :
-            this(null, null)
+        /// <param name="timeProvider"></param>
+        public DiscoveryRequest(TimeProvider timeProvider) :
+            this(null, null, timeProvider)
         {
         }
 
@@ -93,14 +96,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="configuration"></param>
-        public DiscoveryRequest(DiscoveryMode? mode, DiscoveryConfigModel? configuration) :
+        /// <param name="timeProvider"></param>
+        public DiscoveryRequest(DiscoveryMode? mode, DiscoveryConfigModel? configuration,
+            TimeProvider timeProvider) :
             this(new DiscoveryRequestModel
             {
                 Id = "",
                 Configuration = configuration.Clone(),
                 Context = null,
                 Discovery = mode
-            }, NetworkClass.Wired, true)
+            }, timeProvider, NetworkClass.Wired, true)
         {
         }
 
@@ -108,12 +113,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Create request wrapper
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="networkClass"></param>
         /// <param name="isScan"></param>
-        public DiscoveryRequest(DiscoveryRequestModel request,
+        public DiscoveryRequest(DiscoveryRequestModel request, TimeProvider timeProvider,
             NetworkClass networkClass = NetworkClass.Wired, bool isScan = false)
         {
-            Request = request?.Clone() ?? throw new ArgumentNullException(nameof(request));
+            _timeProvider = timeProvider;
+            Request = request?.Clone(_timeProvider) ?? throw new ArgumentNullException(nameof(request));
             _cts = new CancellationTokenSource();
             NetworkClass = networkClass;
             IsScan = isScan;
@@ -240,8 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Create request wrapper
         /// </summary>
         /// <param name="request"></param>
-        public DiscoveryRequest(DiscoveryRequest request) :
-            this(request.Request, request.NetworkClass, request.IsScan)
+        private DiscoveryRequest(DiscoveryRequest request) :
+            this(request.Request, request._timeProvider, request.NetworkClass, request.IsScan)
         {
         }
 

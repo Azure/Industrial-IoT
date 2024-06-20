@@ -92,8 +92,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             public DataChange(DataMonitoredItemModel template,
-                ILogger<DataChange> logger) : base(logger, template.StartNodeId)
+                ILogger<DataChange> logger, TimeProvider timeProvider) :
+                base(logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
 
@@ -257,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
-                DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+                DateTimeOffset publishTime, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
                 if (evt is not MonitoredItemNotification min)
                 {
@@ -265,11 +267,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, evt?.GetType().Name ?? "null");
                     return false;
                 }
-                if (!base.TryGetMonitoredItemNotifications(sequenceNumber, timestamp, evt, notifications))
+                if (!base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
                 {
                     return false;
                 }
-                return ProcessMonitoredItemNotification(sequenceNumber, timestamp, min, notifications);
+                return ProcessMonitoredItemNotification(sequenceNumber, publishTime, min, notifications);
             }
 
             /// <inheritdoc/>
@@ -364,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, client);
+                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
@@ -383,12 +385,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Process monitored item notification
             /// </summary>
             /// <param name="sequenceNumber"></param>
-            /// <param name="timestamp"></param>
+            /// <param name="publishTime"></param>
             /// <param name="monitoredItemNotification"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
             protected virtual bool ProcessMonitoredItemNotification(uint sequenceNumber,
-                DateTime timestamp, MonitoredItemNotification monitoredItemNotification,
+                DateTimeOffset publishTime, MonitoredItemNotification monitoredItemNotification,
                 IList<MonitoredItemNotificationModel> notifications)
             {
                 if (!SkipMonitoredItemNotification())

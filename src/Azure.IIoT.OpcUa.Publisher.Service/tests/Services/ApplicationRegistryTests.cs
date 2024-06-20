@@ -512,7 +512,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                  sitex, x.ApplicationUri, x.ApplicationType));
             devices = apps
                 .Select(a => a.ToApplicationRegistration())
-                .Select(a => a.ToDeviceTwin(_serializer))
+                .Select(a => a.ToDeviceTwin(_serializer, TimeProvider.System))
                 .ToList();
         }
 

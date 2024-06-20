@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
@@ -16,14 +17,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Clone
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
         [return: NotNullIfNotNull(nameof(model))]
-        public static DiscoveryRequestModel? Clone(this DiscoveryRequestModel? model)
+        public static DiscoveryRequestModel? Clone(this DiscoveryRequestModel? model,
+            TimeProvider timeProvider)
         {
             return model == null ? null : (model with
             {
                 Configuration = model.Configuration.Clone(),
-                Context = model.Context?.Clone()
+                Context = model.Context?.Clone(timeProvider)
             });
         }
     }

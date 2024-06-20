@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -56,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public void EmptyDataSetMessageModelTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = new[] { new SubscriptionNotificationModel() };
+            var messages = new[] { new SubscriptionNotificationModel(DateTimeOffset.UtcNow, new ServiceMessageContext()) };
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);

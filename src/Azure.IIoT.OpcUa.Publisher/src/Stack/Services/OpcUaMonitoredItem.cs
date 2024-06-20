@@ -121,6 +121,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         protected string NodeId { get; set; }
 
         /// <summary>
+        /// Time provider to use
+        /// </summary>
+        protected TimeProvider TimeProvider { get; }
+
+        /// <summary>
         /// Last saved value
         /// </summary>
         public IEncodeable? LastReceivedValue { get; private set; }
@@ -128,16 +133,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Last value received
         /// </summary>
-        public DateTime? LastReceivedTime { get; private set; }
+        public DateTimeOffset? LastReceivedTime { get; private set; }
 
         /// <summary>
         /// Create item
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="nodeId"></param>
-        protected OpcUaMonitoredItem(ILogger logger, string nodeId)
+        /// <param name="timeProvider"></param>
+        protected OpcUaMonitoredItem(ILogger logger, string nodeId,
+            TimeProvider timeProvider)
         {
             NodeId = nodeId;
+            TimeProvider = timeProvider;
             _logger = logger;
         }
 
@@ -152,6 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             : base(item, copyEventHandlers, copyClientHandle)
         {
             NodeId = item.NodeId;
+            TimeProvider = item.TimeProvider;
             _logger = item._logger;
 
             LastReceivedTime = item.LastReceivedTime;
@@ -174,11 +183,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="items"></param>
         /// <param name="factory"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="client"></param>
         /// <returns></returns>
         public static IEnumerable<OpcUaMonitoredItem> Create(
             IEnumerable<BaseMonitoredItemModel> items, ILoggerFactory factory,
-            IOpcUaClient? client = null)
+            TimeProvider timeProvider, IOpcUaClient? client = null)
         {
             foreach (var item in items)
             {
@@ -188,42 +198,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (dmi.SamplingUsingCyclicRead &&
                             client != null)
                         {
-                            yield return new CyclicRead(client,
-                                dmi, factory.CreateLogger<CyclicRead>());
+                            yield return new CyclicRead(client, dmi,
+                                factory.CreateLogger<CyclicRead>(), timeProvider);
                         }
                         else if (dmi.HeartbeatInterval != null)
                         {
                             yield return new Heartbeat(dmi,
-                                factory.CreateLogger<Heartbeat>());
+                                factory.CreateLogger<Heartbeat>(), timeProvider);
                         }
                         else
                         {
                             yield return new DataChange(dmi,
-                                factory.CreateLogger<DataChange>());
+                                factory.CreateLogger<DataChange>(), timeProvider);
                         }
                         break;
                     case EventMonitoredItemModel emi:
                         if (emi.ConditionHandling?.SnapshotInterval != null)
                         {
                             yield return new Condition(emi,
-                                factory.CreateLogger<Condition>());
+                                factory.CreateLogger<Condition>(), timeProvider);
                         }
                         else
                         {
                             yield return new Event(emi,
-                                factory.CreateLogger<Event>());
+                                factory.CreateLogger<Event>(), timeProvider);
                         }
                         break;
                     case MonitoredAddressSpaceModel mam:
                         if (client != null)
                         {
                             yield return new ModelChangeEventItem(mam, client,
-                                factory.CreateLogger<ModelChangeEventItem>());
+                                factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
                     case ExtensionFieldItemModel efm:
                         yield return new Field(efm,
-                            factory.CreateLogger<Field>());
+                            factory.CreateLogger<Field>(), timeProvider);
                         break;
                     default:
                         Debug.Fail($"Unexpected type of item {item}");
@@ -264,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        public virtual bool WasLastValueReceivedBefore(DateTime dateTime)
+        public virtual bool WasLastValueReceivedBefore(DateTimeOffset dateTime)
         {
             if (!Valid || !AttachedToSubscription)
             {
@@ -457,12 +467,13 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
         /// the subscription's monitored item event payload.
         /// </summary>
         /// <param name="sequenceNumber"></param>
-        /// <param name="timestamp"></param>
+        /// <param name="publishTime"></param>
         /// <param name="encodeablePayload"></param>
         /// <param name="notifications"></param>
         /// <returns></returns>
-        public virtual bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
-            IEncodeable encodeablePayload, IList<MonitoredItemNotificationModel> notifications)
+        public virtual bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+            DateTimeOffset publishTime, IEncodeable encodeablePayload,
+            IList<MonitoredItemNotificationModel> notifications)
         {
             if (!Valid)
             {
@@ -477,7 +488,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                 _logger.LogDebug(ex, "{Item}: Could not clone last value.", this);
                 LastReceivedValue = encodeablePayload;
             }
-            LastReceivedTime = DateTime.UtcNow;
+            LastReceivedTime = TimeProvider.GetUtcNow();
             return true;
         }
 
@@ -497,7 +508,7 @@ QueueSize {CurrentQueueSize}/{QueueSize}",
                     Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
                     notifications);
             }
-            return TryGetMonitoredItemNotifications(sequenceNumber, DateTime.UtcNow,
+            return TryGetMonitoredItemNotifications(sequenceNumber, TimeProvider.GetUtcNow(),
                 lastValue, notifications);
         }
 

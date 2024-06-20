@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Timestamp of the discovery sweep.
         /// </summary>
-        public DateTime TimeStamp { get; set; }
+        public DateTimeOffset TimeStamp { get; set; }
 
         /// <summary>
         /// Index in the batch with same timestamp.

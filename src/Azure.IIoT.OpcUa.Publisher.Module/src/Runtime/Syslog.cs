@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
             var messageBuilder = new StringBuilder(_initialLength)
                 .Append(_syslogMap[(int)logEntry.LogLevel])
-                .Append(DateTime.UtcNow.ToString(_timestampFormat, CultureInfo.InvariantCulture));
+                .Append(DateTimeOffset.UtcNow.ToString(_timestampFormat, CultureInfo.InvariantCulture));
             if (_includeScopes && scopeProvider != null && !string.IsNullOrEmpty(_serviceId))
             {
                 messageBuilder.Append('[').Append(_serviceId);

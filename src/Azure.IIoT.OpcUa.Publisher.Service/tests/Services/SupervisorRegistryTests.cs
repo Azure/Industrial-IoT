@@ -216,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
             modules = supervisors
                 .Select(a => a.ToPublisherRegistration())
-                .Select(a => a.ToDeviceTwin())
+                .Select(a => a.ToDeviceTwin(TimeProvider.System))
                 .Select(t =>
                 {
                     t.Reported = new Dictionary<string, VariantValue>

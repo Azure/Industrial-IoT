@@ -365,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 Messages = messages,
                 WriterGroupId = 4,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 PicoSeconds = 65,
                 SequenceNumber = () => _lastSequenceNumber++,
                 DataSetClassId = Guid.NewGuid(),
@@ -392,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = (ushort)sequenceNumber,
                 Status = StatusCodes.Bad,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 MessageType = type,
                 Picoseconds = 1,
                 Payload = CreateDataSet(type == MessageType.DeltaFrame, dataSetFieldContentMask),

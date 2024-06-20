@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "LastChangeDateTime", Order = 1,
             EmitDefaultValue = false)]
-        public DateTime? LastChangeDateTime { get; set; }
+        public DateTimeOffset? LastChangeDateTime { get; set; }
 
         /// <summary>
         /// Name of the data set writer.

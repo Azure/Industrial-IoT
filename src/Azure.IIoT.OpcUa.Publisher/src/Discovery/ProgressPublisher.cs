@@ -28,9 +28,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public ProgressPublisher(IEventClient events, IJsonSerializer serializer,
-            IOptions<PublisherOptions> options, ILogger<ProgressPublisher> logger)
-            : base(logger)
+            IOptions<PublisherOptions> options, ILogger<ProgressPublisher> logger,
+            TimeProvider? timeProvider = null)
+            : base(logger, timeProvider)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

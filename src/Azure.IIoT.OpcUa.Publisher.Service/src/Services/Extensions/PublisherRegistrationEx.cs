@@ -21,10 +21,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// Create device twin
         /// </summary>
         /// <param name="registration"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwin(this PublisherRegistration registration)
+        public static DeviceTwinModel ToDeviceTwin(this PublisherRegistration registration,
+            TimeProvider timeProvider)
         {
-            return Patch(null, registration);
+            return Patch(null, registration, timeProvider);
         }
 
         /// <summary>
@@ -32,9 +34,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
+        /// <param name="timeProvider"></param>
         ///
         public static DeviceTwinModel Patch(this PublisherRegistration? existing,
-            PublisherRegistration update)
+            PublisherRegistration update, TimeProvider timeProvider)
         {
             var tags = new Dictionary<string, VariantValue>();
             var desired = new Dictionary<string, VariantValue>();
@@ -46,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 tags.Add(nameof(PublisherRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
                 tags.Add(nameof(PublisherRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
-                    DateTime.UtcNow : (DateTime?)null);
+                    timeProvider.GetUtcNow().UtcDateTime : (DateTime?)null);
             }
 
             if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId)

@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Timer = System.Timers.Timer;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -37,16 +36,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             public Condition(EventMonitoredItemModel template,
-                ILogger<Event> logger) : base(template, logger)
+                ILogger<Event> logger, TimeProvider timeProvider) :
+                base(template, logger, timeProvider)
             {
                 _snapshotInterval = template.ConditionHandling?.SnapshotInterval
                     ?? throw new ArgumentException("Invalid snapshot interval");
                 _updateInterval = template.ConditionHandling?.UpdateInterval
                     ?? _snapshotInterval;
-
+                _lastSentPendingConditions = timeProvider.GetUtcNow();
                 _conditionHandlingState = new ConditionHandlingState();
-                _conditionTimer = new Timer();
+                _conditionTimer = new TimerEx(timeProvider);
                 _conditionTimer.Elapsed += OnConditionTimerElapsed;
                 _conditionTimer.AutoReset = false;
                 _conditionTimer.Enabled = true;
@@ -117,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override bool ProcessEventNotification(uint sequenceNumber, DateTime timestamp,
+            protected override bool ProcessEventNotification(uint sequenceNumber, DateTimeOffset publishTime,
                 EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Assert(Valid);
@@ -152,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     else if (eventType == ObjectTypeIds.RefreshEndEventType)
                     {
                         // restart the timers once condition refresh is done.
-                        _conditionTimer.Interval = 1000;
+                        _conditionTimer.Interval = TimeSpan.FromSeconds(1);
                         _conditionTimer.Enabled = true;
                         _logger.LogDebug("{Item}: Restarted pending alarm handling " +
                             "after condition refresh.", this);
@@ -216,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 n.Value ??= new DataValue(StatusCodes.GoodNoData);
                                 // Set SourceTimestamp to publish time
-                                n.Value.SourceTimestamp = timestamp;
+                                n.Value.SourceTimestamp = publishTime.UtcDateTime;
                             });
                             state.Active.AddOrUpdate(conditionId, monitoredItemNotifications);
                         }
@@ -277,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 else
                 {
                     _callback = cb;
-                    _conditionTimer.Interval = 1000;
+                    _conditionTimer.Interval = TimeSpan.FromSeconds(1);
                     _conditionTimer.Enabled = true;
                 }
                 return result;
@@ -303,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _conditionHandlingState = conditionHandlingState;
                 if (_conditionTimer != null)
                 {
-                    _conditionTimer.Interval = 1000;
+                    _conditionTimer.Interval = TimeSpan.FromSeconds(1);
                     _conditionTimer.Enabled = true;
                 }
 
@@ -366,10 +367,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="e"></param>
-            private void OnConditionTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+            private void OnConditionTimerElapsed(object? sender, ElapsedEventArgs e)
             {
                 Debug.Assert(Template != null);
-                var now = DateTime.UtcNow;
+                var now = TimeProvider.GetUtcNow();
                 var state = _conditionHandlingState;
                 try
                 {
@@ -400,7 +401,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (_conditionTimer != null)
                     {
-                        _conditionTimer.Interval = 1000;
+                        _conditionTimer.Interval = TimeSpan.FromSeconds(1);
                         _conditionTimer.Enabled = true;
                     }
                 }
@@ -437,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Clone the timer
             /// </summary>
             /// <returns></returns>
-            private Timer? CloneTimer()
+            private TimerEx? CloneTimer()
             {
                 var timer = _conditionTimer;
                 _conditionTimer = null;
@@ -474,10 +475,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private Callback? _callback;
             private ConditionHandlingState _conditionHandlingState;
-            private DateTime _lastSentPendingConditions = DateTime.UtcNow;
+            private DateTimeOffset _lastSentPendingConditions;
             private int _snapshotInterval;
             private int _updateInterval;
-            private Timer? _conditionTimer;
+            private TimerEx? _conditionTimer;
         }
     }
 }

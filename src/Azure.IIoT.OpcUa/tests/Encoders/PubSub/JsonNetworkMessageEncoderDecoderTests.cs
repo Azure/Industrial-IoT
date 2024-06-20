@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
                 SequenceNumber = (ushort)sequenceNumber,
                 Status = StatusCodes.Bad,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTimeOffset.UtcNow,
                 UseCompatibilityMode = useCompatibilityMode,
                 MessageType = MessageType.KeyFrame,
                 Picoseconds = 1,

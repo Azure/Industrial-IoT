@@ -36,25 +36,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             var Gateway = new GatewayModel
             {
                 Id = gateway
-            }.ToGatewayRegistration().ToDeviceTwin();
+            }.ToGatewayRegistration().ToDeviceTwin(TimeProvider.System);
             var module = fix.Create<string>();
             var discoverer = HubResource.Format(null, gateway, module);
             var Discoverer = new DiscovererModel
             {
                 Id = discoverer
-            }.ToPublisherRegistration().ToDeviceTwin();
+            }.ToPublisherRegistration().ToDeviceTwin(TimeProvider.System);
             module = fix.Create<string>();
             var supervisor = HubResource.Format(null, gateway, module);
             var Supervisor = new SupervisorModel
             {
                 Id = supervisor
-            }.ToPublisherRegistration().ToDeviceTwin();
+            }.ToPublisherRegistration().ToDeviceTwin(TimeProvider.System);
             module = fix.Create<string>();
             var publisher = HubResource.Format(null, gateway, module);
             var Publisher = new PublisherModel
             {
                 Id = publisher
-            }.ToPublisherRegistration().ToDeviceTwin();
+            }.ToPublisherRegistration().ToDeviceTwin(TimeProvider.System);
 
             using var registry = IoTHubMock.Create(Gateway.YieldReturn() // Single device
                 .Append(Discoverer)
@@ -478,28 +478,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             {
                 SiteId = site,
                 Id = gateway
-            }.ToGatewayRegistration().ToDeviceTwin();
+            }.ToGatewayRegistration().ToDeviceTwin(TimeProvider.System);
             var module = fixture.Create<string>();
             var discovererx = discoverer = HubResource.Format(null, gateway, module);
             var Discoverer = new DiscovererModel
             {
                 SiteId = site,
                 Id = discovererx
-            }.ToPublisherRegistration().ToDeviceTwin();
+            }.ToPublisherRegistration().ToDeviceTwin(TimeProvider.System);
             module = fixture.Create<string>();
             var supervisorx = supervisor = HubResource.Format(null, gateway, module);
             var Supervisor = new SupervisorModel
             {
                 SiteId = site,
                 Id = supervisorx
-            }.ToPublisherRegistration().ToDeviceTwin();
+            }.ToPublisherRegistration().ToDeviceTwin(TimeProvider.System);
             module = fixture.Create<string>();
             var publisherx = publisher = HubResource.Format(null, gateway, module);
             var Publisher = new PublisherModel
             {
                 SiteId = site,
                 Id = publisherx
-            }.ToPublisherRegistration().ToDeviceTwin();
+            }.ToPublisherRegistration().ToDeviceTwin(TimeProvider.System);
 
             var template = fixture
                 .Build<ApplicationRegistrationModel>()
@@ -525,7 +525,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
             );
 
             // Create discovery results from template
-            var i = 0; var now = DateTime.UtcNow;
+            var i = 0;
+            var now = DateTimeOffset.UtcNow;
             found = template
                  .SelectMany(a => a.Endpoints.Select(
                      e => new DiscoveryEventModel
@@ -539,13 +540,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
 
             // Clone and fixup existing applications as per test case
             existing = template
-                .Select(e => e.Clone())
+                .Select(e => e.Clone(TimeProvider.System))
                 .Select(fixup ?? (a => a))
                 .ToList();
             // and fill registry with them...
             var appdevices = existing
                 .Select(a => a.Application.ToApplicationRegistration(disable))
-                .Select(a => a.ToDeviceTwin(_serializer));
+                .Select(a => a.ToDeviceTwin(_serializer, TimeProvider.System));
             var epdevices = existing
                 .SelectMany(a => a.Endpoints
                     .Select(e =>
@@ -554,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                             ApplicationId = a.Application.ApplicationId,
                             Registration = e
                         }.ToEndpointRegistration(disable))
-                .Select(e => e.ToDeviceTwin(_serializer)));
+                .Select(e => e.ToDeviceTwin(_serializer, TimeProvider.System)));
             appdevices = appdevices.Concat(epdevices);
             if (countDevices != -1)
             {

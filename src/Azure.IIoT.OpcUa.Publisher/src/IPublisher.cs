@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Last change time
         /// </summary>
-        DateTime LastChange { get; }
+        DateTimeOffset LastChange { get; }
 
         /// <summary>
         /// Gets a snapshot of the list of writer groups in publisher.

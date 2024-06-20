@@ -46,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             // Create some random variant value
             fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
             // Ensure utc datetimes
+            fixture.Register(() => DateTimeOffset.UtcNow);
             fixture.Register(() => DateTime.UtcNow);
             var instance = new SpecimenContext(fixture).Resolve(new SeededRequest(type, null));
 
@@ -72,6 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             // Create some random variant value
             fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
             // Ensure utc datetimes
+            fixture.Register(() => DateTimeOffset.UtcNow);
             fixture.Register(() => DateTime.UtcNow);
             var builder = new SpecimenContext(fixture);
             var instance = ((IEnumerable)builder.Resolve(

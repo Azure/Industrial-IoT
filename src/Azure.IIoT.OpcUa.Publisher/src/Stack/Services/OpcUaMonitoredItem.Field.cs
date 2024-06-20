@@ -41,8 +41,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             public Field(ExtensionFieldItemModel template,
-                ILogger<Field> logger) : base(logger, template.StartNodeId)
+                ILogger<Field> logger, TimeProvider timeProvider) :
+                base(logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
             }
@@ -194,7 +196,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
-                DateTime timestamp, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+                DateTimeOffset publishTime, IEncodeable evt,
+                IList<MonitoredItemNotificationModel> notifications)
             {
                 Debug.Fail("Unexpected notification on extension field");
                 return false;

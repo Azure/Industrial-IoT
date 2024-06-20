@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         public void TestEqualIsNotEqualWithDeviceModel()
         {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin(_serializer);
+            var m = r1.ToDeviceTwin(_serializer, TimeProvider.System);
             m.Desired = new Dictionary<string, VariantValue>(m.Desired)
             {
                 ["SecurityPolicy"] = "babab"
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         public void TestEqualIsEqualWithDeviceModel()
         {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin(_serializer);
+            var m = r1.ToDeviceTwin(_serializer, TimeProvider.System);
             var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
@@ -120,9 +120,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
 
             var r1 = CreateRegistration();
             var r2 = r1.ToServiceModel().ToEndpointRegistration(true);
-            var m1 = r1.Patch(r2, _serializer);
+            var m1 = r1.Patch(r2, _serializer, TimeProvider.System);
             var r3 = r2.ToServiceModel().ToEndpointRegistration(false);
-            var m2 = r2.Patch(r3, _serializer);
+            var m2 = r2.Patch(r3, _serializer, TimeProvider.System);
 
             Assert.True((bool?)m1.Tags[nameof(EntityRegistration.IsDisabled)] ?? false);
             Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);

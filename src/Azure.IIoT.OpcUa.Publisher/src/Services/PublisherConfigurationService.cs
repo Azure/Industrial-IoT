@@ -43,23 +43,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="publishedNodesProvider"></param>
         /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
+        /// <param name="timeProvider"></param>
         public PublisherConfigurationService(PublishedNodesConverter publishedNodesJobConverter,
             IOptions<PublisherOptions> configuration, IPublisher publisherHost,
             ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
-            IJsonSerializer jsonSerializer, IDiagnosticCollector? diagnostics = null)
+            IJsonSerializer jsonSerializer, IDiagnosticCollector? diagnostics = null,
+            TimeProvider? timeProvider = null)
         {
-            _publishedNodesJobConverter = publishedNodesJobConverter ??
-                throw new ArgumentNullException(nameof(publishedNodesJobConverter));
-            _configuration = configuration ??
-                throw new ArgumentNullException(nameof(configuration));
-            _logger = logger ??
-                throw new ArgumentNullException(nameof(logger));
-            _publishedNodesProvider = publishedNodesProvider ??
-                throw new ArgumentNullException(nameof(publishedNodesProvider));
-            _jsonSerializer = jsonSerializer ??
-                throw new ArgumentNullException(nameof(jsonSerializer));
-            _publisherHost = publisherHost ??
-                throw new ArgumentNullException(nameof(publisherHost));
+            _publishedNodesJobConverter = publishedNodesJobConverter;
+            _configuration = configuration;
+            _logger = logger;
+            _publishedNodesProvider = publishedNodesProvider;
+            _jsonSerializer = jsonSerializer;
+            _publisherHost = publisherHost;
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _diagnostics = diagnostics; // Optional
             _started = new TaskCompletionSource();
             _fileChanges = Channel.CreateUnbounded<bool>(new UnboundedChannelOptions
@@ -694,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Endpoints = nodes.ToList(),
                         SentMessagesPerSec = model.SentMessagesPerSec,
-                        IngestionDuration = DateTime.UtcNow - model.IngestionStart,
+                        IngestionDuration = _timeProvider.GetUtcNow() - model.IngestionStart,
                         IngressDataChanges = model.IngressDataChanges,
                         IngressValueChanges = model.IngressValueChanges,
                         IngressBatchBlockBufferSize = model.IngressBatchBlockBufferSize,
@@ -1044,6 +1041,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             = "null or empty OpcNodes is provided in request";
 
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly IOptions<PublisherOptions> _configuration;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;

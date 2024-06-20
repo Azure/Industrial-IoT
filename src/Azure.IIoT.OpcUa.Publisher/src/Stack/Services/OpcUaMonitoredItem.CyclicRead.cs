@@ -35,13 +35,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="client"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
-            public CyclicRead(IOpcUaClient client,
-                DataMonitoredItemModel template, ILogger<CyclicRead> logger)
+            /// <param name="timeProvider"></param>
+            public CyclicRead(IOpcUaClient client, DataMonitoredItemModel template,
+                ILogger<CyclicRead> logger, TimeProvider timeProvider)
                 : base(template with
                 {
                     // Always ensure item is disabled
                     MonitoringMode = Publisher.Models.MonitoringMode.Disabled
-                }, logger)
+                }, logger, timeProvider)
             {
                 _client = client;
 
@@ -162,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTime timestamp,
+            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset timestamp,
                 IEncodeable encodeablePayload, IList<MonitoredItemNotificationModel> notifications)
             {
                 if (!Valid || encodeablePayload is not SampledDataValueModel cyclicReadNotification)
@@ -171,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 LastReceivedValue = cyclicReadNotification;
-                LastReceivedTime = DateTime.UtcNow;
+                LastReceivedTime = TimeProvider.GetUtcNow();
                 notifications.Add(ToMonitoredItemNotification(sequenceNumber,
                     cyclicReadNotification.Value, cyclicReadNotification.Overflow));
                 return true;

@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Subscriber
         /// </summary>
         [DataMember(Name = "timestamp", Order = 7,
             EmitDefaultValue = false)]
-        public DateTime? Timestamp { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
 
         /// <summary>
         /// Dataset's payload dictionary

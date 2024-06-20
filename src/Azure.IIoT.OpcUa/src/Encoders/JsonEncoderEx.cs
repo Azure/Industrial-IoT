@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Namespace format to use
         /// </summary>
-        public Publisher.Models.NamespaceFormat NamespaceFormat { get; set; }
+        public NamespaceFormat NamespaceFormat { get; set; }
             = Publisher.Models.NamespaceFormat.Uri; // backcompat
 
         /// <summary>

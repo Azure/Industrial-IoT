@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Get and Set Timestamp
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
 
         /// <summary>
         /// PicoSeconds
@@ -984,7 +984,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
             if ((NetworkMessageContentMask & NetworkMessageContentFlags.Timestamp) != 0)
             {
-                encoder.WriteDateTime(null, Timestamp);
+                encoder.WriteDateTime(null, Timestamp.UtcDateTime);
             }
             if ((NetworkMessageContentMask & NetworkMessageContentFlags.Picoseconds) != 0)
             {

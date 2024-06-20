@@ -28,12 +28,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         /// <param name="iothub"></param>
         /// <param name="logger"></param>
         /// <param name="events"></param>
+        /// <param name="timeProvider"></param>
         public PublisherRegistry(IIoTHubTwinServices iothub, ILogger<PublisherRegistry> logger,
-            IPublisherRegistryListener? events = null)
+            IPublisherRegistryListener? events = null, TimeProvider? timeProvider = null)
         {
-            _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _iothub = iothub;
+            _logger = logger;
             _events = events;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -103,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration()), false, ct).ConfigureAwait(false);
+                        patched.ToPublisherRegistration(), _timeProvider), false, ct).ConfigureAwait(false);
 
                     if (_events != null)
                     {
@@ -184,5 +186,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
         private readonly IIoTHubTwinServices _iothub;
         private readonly IPublisherRegistryListener? _events;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
     }
 }

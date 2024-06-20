@@ -26,6 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "Time", Order = 1,
             EmitDefaultValue = false)]
-        public DateTime Time { get; set; }
+        public DateTimeOffset Time { get; set; }
     }
 }

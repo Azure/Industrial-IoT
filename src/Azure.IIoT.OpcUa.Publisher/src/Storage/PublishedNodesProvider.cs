@@ -71,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             try
             {
                 var fileName = Path.GetFileName(_fileName);
-                return _provider.GetFileInfo(fileName).LastModified.DateTime;
+                return _provider.GetFileInfo(fileName).LastModified.UtcDateTime;
             }
             finally
             {

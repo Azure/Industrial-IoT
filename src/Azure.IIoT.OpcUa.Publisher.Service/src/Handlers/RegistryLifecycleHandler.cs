@@ -38,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         /// <param name="endpoints"></param>
         /// <param name="supervisors"></param>
         /// <param name="discoverers"></param>
+        /// <param name="timeProvider"></param>
         public RegistryLifecycleHandler(IJsonSerializer serializer,
             ILogger<RegistryLifecycleHandler> logger,
             IGatewayRegistryListener? gateways = null,
@@ -45,10 +46,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             IApplicationRegistryListener? applications = null,
             IEndpointRegistryListener? endpoints = null,
             ISupervisorRegistryListener? supervisors = null,
-            IDiscovererRegistryListener? discoverers = null)
+            IDiscovererRegistryListener? discoverers = null,
+            TimeProvider? timeProvider = null)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer;
+            _logger = logger;
+            _timeProvider = timeProvider ?? TimeProvider.System;
 
             _gateways = gateways;
             _publishers = publishers;
@@ -68,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 return;
             }
             _ = DateTime.TryParse(ts, out var timestamp);
-            if (timestamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow)
+            if (timestamp + TimeSpan.FromSeconds(10) < _timeProvider.GetUtcNow())
             {
                 // Drop twin events that are too far in our past.
                 _logger.LogDebug("Skipping {Event} from {DeviceId}({ModuleId}) from {Ts}.",
@@ -234,6 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private readonly IGatewayRegistryListener? _gateways;
         private readonly IPublisherRegistryListener? _publishers;
         private readonly IApplicationRegistryListener? _applications;

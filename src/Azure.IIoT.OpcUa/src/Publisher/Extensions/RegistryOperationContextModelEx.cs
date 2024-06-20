@@ -16,11 +16,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Clone
         /// </summary>
         /// <param name="model"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
         public static OperationContextModel? Clone(
-            this OperationContextModel? model)
+            this OperationContextModel? model, TimeProvider timeProvider)
         {
-            model = model.Validate();
+            model = model.Validate(timeProvider);
             return new OperationContextModel
             {
                 AuthorityId = model.AuthorityId,
@@ -32,16 +33,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Clone
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
         public static OperationContextModel Validate(
-            this OperationContextModel? context)
+            this OperationContextModel? context, TimeProvider timeProvider)
         {
             if (context == null)
             {
                 context = new OperationContextModel
                 {
                     AuthorityId = null, // Should throw if configured
-                    Time = DateTime.UtcNow
+                    Time = timeProvider.GetUtcNow()
                 };
             }
             return context;

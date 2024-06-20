@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Opc.Ua.Client;
     using System.Linq;
     using System.Threading.Tasks;
+    using System;
 
     public abstract class OpcUaMonitoredItemTestsBase
     {
@@ -56,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var session = SetupMockedSession(namespaceUris).Object;
             var monitoredItemWrapper = OpcUaMonitoredItem.Create(template.YieldReturn(),
-                Log.ConsoleFactory()).Single();
+                Log.ConsoleFactory(), TimeProvider.System).Single();
             using var subscription = new Subscription();
             monitoredItemWrapper.AddTo(subscription, session, out _);
             if (monitoredItemWrapper.FinalizeAddTo != null)

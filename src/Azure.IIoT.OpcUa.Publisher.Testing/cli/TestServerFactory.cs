@@ -332,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <param name="reason"></param>
             private void OnEvent(Session session, SessionEventReason reason)
             {
-                _lastEventTime = DateTime.UtcNow;
+                _lastEventTime = DateTimeOffset.UtcNow;
                 LogSessionStatus(session, reason.ToString());
             }
 
@@ -345,13 +345,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             {
                 while (!ct.IsCancellationRequested)
                 {
-                    if (DateTime.UtcNow - _lastEventTime > TimeSpan.FromMilliseconds(6000))
+                    if (DateTimeOffset.UtcNow - _lastEventTime > TimeSpan.FromMilliseconds(6000))
                     {
                         foreach (var session in CurrentInstance.SessionManager.GetSessions())
                         {
                             LogSessionStatus(session, "-Status-", true);
                         }
-                        _lastEventTime = DateTime.UtcNow;
+                        _lastEventTime = DateTimeOffset.UtcNow;
                     }
                     await Try.Async(() => Task.Delay(1000, ct)).ConfigureAwait(false);
                 }
@@ -625,7 +625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             private readonly bool _logStatus;
             private readonly IEnumerable<INodeManagerFactory> _nodes;
             private Task _statusLogger;
-            private DateTime _lastEventTime;
+            private DateTimeOffset _lastEventTime;
             private CancellationTokenSource _cts;
             private ICertificateValidator _certificateValidator;
 

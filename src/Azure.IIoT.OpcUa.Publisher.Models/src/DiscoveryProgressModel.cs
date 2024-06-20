@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Timestamp of the message
         /// </summary>
         [DataMember(Name = "timeStamp", Order = 4)]
-        public DateTime TimeStamp { get; set; }
+        public DateTimeOffset TimeStamp { get; set; }
 
         /// <summary>
         /// Number of workers running
