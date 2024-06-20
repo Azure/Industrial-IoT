@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _metrics = metrics ?? IMetricsContext.Empty;
             _subscriptionManager = subscriptionManager;
             _subscriptionConfig = subscriptionConfig;
-            _startTime = _timeProvider.GetUtcNow();
+            _startTime = _timeProvider.GetTimestamp();
 
             _valueChanges = new RollingAverage(_timeProvider);
             _dataChanges = new RollingAverage(_timeProvider);
@@ -1074,7 +1074,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Runtime duration
         /// </summary>
-        private double UpTime => (_timeProvider.GetUtcNow() - _startTime).TotalSeconds;
+        private double UpTime => _timeProvider.GetElapsedTime(_startTime).TotalSeconds;
 
         private IEnumerable<IOpcUaClientDiagnostics> UsedClients => _subscriptions.Values
             .Select(s => s.Subscription?.State!)
@@ -1208,7 +1208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
-        private readonly DateTimeOffset _startTime;
+        private readonly long _startTime;
         private readonly IOpcUaSubscriptionManager _subscriptionManager;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionConfig;
         private readonly IMetricsContext _metrics;

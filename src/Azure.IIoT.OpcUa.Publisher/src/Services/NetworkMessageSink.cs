@@ -91,17 +91,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             Source.OnMessage += OnMessageReceived;
             Source.OnCounterReset += OnReset;
-            _startTime = _timeProvider.GetUtcNow();
+            _startTime = _timeProvider.GetTimestamp();
             _transport.Log(writerGroup, _logger);
         }
 
         /// <inheritdoc/>
         private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
         {
-            if (_dataFlowStartTime == DateTimeOffset.MinValue)
+            if (_dataFlowStartTime == 0)
             {
                 _diagnostics?.ResetWriterGroupDiagnostics();
-                _dataFlowStartTime = _timeProvider.GetUtcNow();
+                _dataFlowStartTime = _timeProvider.GetTimestamp();
             }
 
             if (!_queue.TryPublish(args))
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         private void OnReset(object? sender, EventArgs e)
         {
-            _dataFlowStartTime = DateTime.MinValue;
+            _dataFlowStartTime = 0;
             _queue.Reset();
         }
 
@@ -855,8 +855,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
 
-        private double UpTime => (_timeProvider.GetUtcNow() - _startTime).TotalSeconds;
-        private DateTimeOffset _dataFlowStartTime = DateTimeOffset.MinValue;
+        private double UpTime => _timeProvider.GetElapsedTime(_startTime).TotalSeconds;
         private long _messagesSentCount;
         private long _errorCount;
         private long _sendBlockInputDroppedCount;
@@ -874,7 +873,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Regex? _logNotificationsFilter;
         private readonly Func<IList<MonitoredItemNotificationModel>,
             IEnumerable<MonitoredItemNotificationModel>> _filterNotifications;
-        private readonly DateTimeOffset _startTime;
+        private readonly long _startTime;
+        private long _dataFlowStartTime;
         private readonly CancellationTokenSource _cts = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

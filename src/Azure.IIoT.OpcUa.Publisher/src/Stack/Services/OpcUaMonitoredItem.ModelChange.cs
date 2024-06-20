@@ -372,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             value = new Variant(changeFeedNotification.Source);
                             break;
                         case 3:
-                            value = new Variant(changeFeedNotification.Timestamp);
+                            value = new Variant(changeFeedNotification.Timestamp.UtcDateTime);
                             break;
                         case 4:
                             value = changeFeedNotification.ChangedItem == null ?

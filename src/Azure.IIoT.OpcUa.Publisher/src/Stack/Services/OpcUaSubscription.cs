@@ -1990,13 +1990,13 @@ Actual (revised) state/desired state:
                         this);
                     return;
                 }
-                _logger.LogInformation("{Count} of the monitored items in {Subscription} " +
-                    "are now late - running {Action} behavior action.",
-                    _lateMonitoredItems - lastCount, this, action);
                 if (action == SubscriptionWatchdogBehavior.Diagnostic)
                 {
                     return;
                 }
+                _logger.LogInformation("{Count} of the monitored items in {Subscription} " +
+                    "are now late - running {Action} behavior action.",
+                    _lateMonitoredItems - lastCount, this, action);
             }
 
             var msg = $"Subscription {this} has {_lateMonitoredItems} late monitored items.";

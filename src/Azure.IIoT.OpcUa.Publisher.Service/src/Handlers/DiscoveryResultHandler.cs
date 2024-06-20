@@ -77,13 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             try
             {
                 await _queueLock.WaitAsync(ct).ConfigureAwait(false);
-                var old = _timeProvider.GetUtcNow() - TimeSpan.FromHours(1);
 
                 var removed = new List<KeyValuePair<DateTimeOffset, DiscovererDiscoveryResult>>();
                 foreach (var backlog in _discovererQueues.ToList())
                 {
                     foreach (var queue in backlog.Value
-                        .Where(kv => kv.Key < old).ToList())
+                        .Where(kv => _timeProvider.GetElapsedTime(kv.Value.Created) > kExpired).ToList())
                     {
                         backlog.Value.Remove(queue.Key);
                         removed.Add(queue);
@@ -143,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 }
                 if (!backlog.TryGetValue(model.TimeStamp, out var queue))
                 {
-                    queue = new DiscovererDiscoveryResult(_timeProvider.GetUtcNow());
+                    queue = new DiscovererDiscoveryResult(_timeProvider.GetTimestamp());
                     backlog.Add(model.TimeStamp, queue);
                 }
                 queue.Enqueue(model);
@@ -192,9 +191,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
         private class DiscovererDiscoveryResult
         {
             /// <summary>
-            /// When queue was created
+            /// Timestamp queue was created
             /// </summary>
-            public DateTimeOffset Created { get; }
+            public long Created { get; }
 
             /// <summary>
             /// Whether the result is complete
@@ -224,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             /// Create queue
             /// </summary>
             /// <param name="created"></param>
-            public DiscovererDiscoveryResult(DateTimeOffset created)
+            public DiscovererDiscoveryResult(long created)
             {
                 Created = created;
                 _endpoints = new List<DiscoveryEventModel>();
@@ -253,6 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             private int _maxIndex;
         }
 
+        private static readonly TimeSpan kExpired = TimeSpan.FromHours(1);
         private readonly Dictionary<string,
             Dictionary<DateTimeOffset, DiscovererDiscoveryResult>> _discovererQueues = new();
         private readonly SemaphoreSlim _queueLock = new(1, 1);

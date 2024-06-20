@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
             IOptions<OpcUaClientOptions> options, IOpcUaConfiguration configuration,
-            TimeProvider? timeProvider, IMetricsContext? metrics = null)
+            TimeProvider? timeProvider = null, IMetricsContext? metrics = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;

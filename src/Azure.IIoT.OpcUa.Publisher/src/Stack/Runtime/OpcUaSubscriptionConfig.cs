@@ -63,6 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const bool DefaultSkipFirstDefault = false;
         public const bool DefaultRepublishAfterTransferDefault = false;
+        public const bool EnableSequentialPublishingDefault = false;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;
@@ -148,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
             }
             options.EnableImmediatePublishing ??= GetBoolOrNull(EnableImmediatePublishingKey);
-            options.EnableSequentialPublishing ??= GetBoolOrNull(EnableSequentialPublishingKey);
+            options.EnableSequentialPublishing ??= GetBoolOrDefault(EnableSequentialPublishingKey,
+                    EnableSequentialPublishingDefault);
             options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
                     DisableSessionPerWriterGroupDefault);
             options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);

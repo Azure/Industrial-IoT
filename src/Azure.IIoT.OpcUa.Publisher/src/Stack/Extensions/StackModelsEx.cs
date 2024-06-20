@@ -36,8 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 AuditEntryId = header?.Diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                           (uint)(header?.Diagnostics?.Level ?? DiagnosticsLevel.Status)
-                            .ToStackType(),
+                    (uint)(header?.Diagnostics?.Level ?? DiagnosticsLevel.Status)
+                    .ToStackType(),
                 Timestamp = timestamp,
                 TimeoutHint = (uint)(header?.OperationTimeout ?? 0),
                 AdditionalHeader = null // TODO

@@ -235,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             // Create new certificate
-            var nowOffset = DateTimeOffset.UtcNow;
+            var nowOffset = _timeProvider.GetUtcNow();
             var expiration = nowOffset.AddDays(kCertificateLifetimeDays);
 
             Certificate?.Dispose();

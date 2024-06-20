@@ -342,17 +342,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? DisableSubscriptionTransfer { get; set; }
 
         /// <summary>
+        /// Republish after transferring the subscription during
+        /// reconnect handling unless subscription transfer was disabled.
+        /// </summary>
+        [DataMember(Name = "republishAfterTransfer", Order = 41,
+            EmitDefaultValue = false)]
+        public bool? RepublishAfterTransfer { get; set; }
+
+        /// <summary>
         /// The timeout to use to monitor the monitored items in the
         /// subscription are continously reporting fresh data.
         /// </summary>
-        [DataMember(Name = "MonitoredItemWatchdogTimespan", Order = 41,
+        [DataMember(Name = "MonitoredItemWatchdogTimespan", Order = 42,
             EmitDefaultValue = false)]
         public TimeSpan? MonitoredItemWatchdogTimespan { get; set; }
 
         /// <summary>
         /// Subscription watchdog behavior
         /// </summary>
-        [DataMember(Name = "WatchdogBehavior", Order = 42,
+        [DataMember(Name = "WatchdogBehavior", Order = 43,
             EmitDefaultValue = false)]
         public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
 
