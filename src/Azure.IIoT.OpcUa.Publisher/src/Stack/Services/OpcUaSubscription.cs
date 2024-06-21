@@ -663,6 +663,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var allGetPaths = add
                     .Select(a => a.GetPath)
                     .Where(a => a != null);
+                var pathsRetrieved = 0;
                 foreach (var getPathsBatch in allGetPaths.Batch(10000))
                 {
                     var getPath = getPathsBatch.ToList();
@@ -678,11 +679,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 "in {Subscription} due to '{ServiceResult}'",
                                 getPath[index]!.Value.NodeId, this, paths[index].ErrorInfo);
                         }
+                        else
+                        {
+                            pathsRetrieved++;
+                        }
                     }
                 }
-                _logger.LogInformation(
-                    "Retrieved paths of items to add to Subscription {Subscription} in session {Session}.",
-                    this, session);
+                if (pathsRetrieved > 0)
+                {
+                    _logger.LogInformation(
+                        "Retrieved {Count} paths for items in subscription {Subscription}.",
+                        pathsRetrieved, this);
+                }
             }
 
             //
@@ -2092,17 +2100,23 @@ Actual (revised) state/desired state:
 
             if (e.Status.HasFlag(PublishStateChangedMask.Stopped))
             {
-                _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
-                _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                ResetMonitoredItemWatchdogTimer(false);
-                _publishingStopped = true;
+                if (!_publishingStopped)
+                {
+                    _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
+                    _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    ResetMonitoredItemWatchdogTimer(false);
+                    _publishingStopped = true;
+                }
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Recovered))
             {
-                _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
-                ResetKeepAliveTimer();
-                ResetMonitoredItemWatchdogTimer(true);
-                _publishingStopped = false;
+                if (_publishingStopped)
+                {
+                    _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
+                    ResetKeepAliveTimer();
+                    ResetMonitoredItemWatchdogTimer(true);
+                    _publishingStopped = false;
+                }
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Transferred))
             {

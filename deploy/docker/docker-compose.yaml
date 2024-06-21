@@ -42,6 +42,8 @@ services:
       "--mr=5000",
       "--rs",
       "--dm=True",
+      "--sqp",
+      "--cfa",
       "--lfm=syslog",
       "--pki=/shared/pki",
       "--pf=/shared/pn.json",
