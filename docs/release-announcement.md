@@ -58,6 +58,7 @@ We are pleased to announce the release of version 2.9.9 of OPC Publisher and the
 ### Changes in 2.9.9
 
 - Update OPC UA .net stack to the latest 1.05 version and move forward other dependencies
+- Monitored item state is not properly cleaned up after a hard reconnect which leads to heartbeat timers still being alive.
 - Allow configuring a watchdog for monitored items and set behavior when watchdog expires (#2164)
 - Limit number of publish requests to 10, allow override using command line argument (#2215)
 - Fix issue where the 'v2/configuration/diagnostics' contains negative monitoredOpcNodesSucceededCount (#2202)
