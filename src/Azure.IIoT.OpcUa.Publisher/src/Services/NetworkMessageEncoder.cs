@@ -397,10 +397,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                     }
                                                     else if (_options.Value.RemoveDuplicatesFromBatch ?? false)
                                                     {
-                                                        notificationsInGroup = notificationsInGroup
+                                                        var pruned = notificationsInGroup
                                                             .OrderByDescending(k => k.Value?.SourceTimestamp) // Descend from latest
                                                             .DistinctBy(k => k.DataSetFieldName) // Only leave the latest values
                                                             .ToList();
+                                                        if (pruned.Count != notificationsInGroup.Count)
+                                                        {
+                                                            if (_logNotifications)
+                                                            {
+                                                                _logger.LogInformation("Removed {Count} duplicates from batch.",
+                                                                    notificationsInGroup.Count - pruned.Count);
+                                                            }
+                                                            notificationsInGroup = pruned;
+                                                        }
                                                     }
                                                 }
                                                 foreach (var notification in notificationsInGroup)

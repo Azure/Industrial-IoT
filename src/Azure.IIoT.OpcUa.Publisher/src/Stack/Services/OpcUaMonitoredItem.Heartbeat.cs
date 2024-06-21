@@ -178,11 +178,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Callback cb)
+                ref bool applyChanges, Callback cb)
             {
                 if (_heartbeatTimer == null)
                 {
+                    _logger.LogError("{Item}: Item was moved to another subscription " +
+                        "and the timer is handled by the new subscription now.", this);
                     return false;
                 }
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);

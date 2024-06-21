@@ -377,6 +377,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!Valid)
             {
+                _logger.LogError("{Item}: Item was disposed or moved to another subscription",
+                    this);
                 return false;
             }
 
@@ -391,7 +393,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
-                return false;
+                _logger.LogDebug("{Item}: Item is disabled while trying to complete.", this);
+                return true;
             }
 
             if (Status.Error == null || !StatusCode.IsNotGood(Status.Error.StatusCode))
