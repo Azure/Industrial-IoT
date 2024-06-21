@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Write json and binary messages as zip files
+    /// Write messages as zip files
     /// </summary>
     public sealed class ZipFileWriter : IFileWriter, IDisposable
     {

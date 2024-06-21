@@ -4,8 +4,8 @@
         "OpcNodes": [
             {
                 "Id": "ns=23;i=1259",
-                "OpcPublishingInterval": 60000,
-                "HeartbeatInterval": 60,
+                "OpcPublishingInterval": 20000,
+                "HeartbeatInterval": 20,
                 "DisplayName": "Output"
             }
         ]

@@ -547,7 +547,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "len|logencodednotifications:",
                     "Log encoded subscription and monitored item notifications at Informational level to aid debugging.\nDefault: `disabled`.\n",
                     (bool? b) => this[PublisherConfig.DebugLogEncodedNotificationsKey] = b?.ToString() ?? "True" },
-
+                { $"ecw|enableconsolewriter:|{Configuration.ConsoleWriter.EnableKey}:",
+                    "Enable writing encoded messages to standard error log through the filesystem transport (must enable via `-t FileSystem` and `-o` must be set to either `stderr` or `stdout`).\nDefault: `false`.\n",
+                    (bool? b) => this[Configuration.ConsoleWriter.EnableKey] = b?.ToString() ?? "True" },
                 { $"oc|otlpcollector=|{Configuration.Otlp.OtlpCollectorEndpointKey}=",
                     "Specifiy the OpenTelemetry collector grpc endpoint url to export diagnostics to.\nDefault: `disabled`.\n",
                     s => this[Configuration.Otlp.OtlpCollectorEndpointKey] = s },
