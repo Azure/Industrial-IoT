@@ -61,7 +61,7 @@ We are pleased to announce the release of version 2.9.9 of OPC Publisher and the
 - Monitored item state is not properly cleaned up after a hard reconnect which leads to heartbeat timers still being alive.
 - Allow configuring a watchdog for monitored items and set behavior when watchdog expires (#2164)
 - Limit number of publish requests to 10, allow override using command line argument (#2215)
-- Fix issue where the 'v2/configuration/diagnostics' contains negative monitoredOpcNodesSucceededCount (#2202)
+- Fix issue where count of bad and good monitored items is incorrect (#2202)
 - Return better error messages in responses (#2195)
 - Fix issue where publisher stops respecting reconnect period after initial successful connection (#2189)
 - Added sample to show using NodeRead to read attributes (#2226)
