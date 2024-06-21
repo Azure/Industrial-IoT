@@ -383,22 +383,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             PublishStatusChanged -= OnPublishStatusChange;
                             StateChanged -= OnStateChange;
 
-                            // To be safe dispose all remaining monitored items
+                            // When the entire session is disposed and recreated we must still dispose
+                            // all monitored items
                             var items = CurrentlyMonitored.ToList();
-                            if (items.Count > 0)
-                            {
-                                _logger.LogWarning(
-                                    "Still {Count} items in subscription {Subscription}...", 
-                                    items.Count, this);
-                            }
                             items.ForEach(item => item.Dispose());
                             RemoveItems(MonitoredItems);
+
+                            _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+                            Debug.Assert(!CurrentlyMonitored.Any());
 
                             if (_closed)
                             {
                                 _client?.Dispose();
                                 _client = null;
                             }
+
+                            _logger.LogInformation(
+                                "Disposed of subscription {Subscription} with all {Count} items in it...",
+                                this, items.Count);
                         }
                         finally
                         {
@@ -542,18 +544,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 ResetMonitoredItemWatchdogTimer(false);
 
-                await Try.Async(
-                    () => SetPublishingModeAsync(false)).ConfigureAwait(false);
-                await Try.Async(
-                    () => DeleteItemsAsync(default)).ConfigureAwait(false);
-                await Try.Async(
-                    () => ApplyChangesAsync()).ConfigureAwait(false);
+                await Try.Async(() => SetPublishingModeAsync(false)).ConfigureAwait(false);
+                await Try.Async(() => DeleteItemsAsync(default)).ConfigureAwait(false);
+                await Try.Async(() => ApplyChangesAsync()).ConfigureAwait(false);
 
                 items.ForEach(item => item.Dispose());
-                _logger.LogDebug("Deleted monitored items for '{Subscription}'.", this);
+                _logger.LogDebug("Deleted {Count} monitored items for '{Subscription}'.",
+                    items.Count, this);
 
-                await Try.Async(
-                    () => DeleteAsync(true)).ConfigureAwait(false);
+                await Try.Async(() => DeleteAsync(true)).ConfigureAwait(false);
 
                 if (Session != null)
                 {
@@ -561,6 +560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Debug.Assert(Session == null);
                 }
 
+                Debug.Assert(!CurrentlyMonitored.Any());
                 _logger.LogInformation("Subscription '{Subscription}' closed.", this);
             }
             catch (Exception e)

@@ -167,6 +167,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     .AsImplementedInterfaces();
                 builder.RegisterType<AvroWriter>()
                     .AsImplementedInterfaces();
+                builder.RegisterType<ConsoleWriter>()
+                    .AsImplementedInterfaces();
             }
         }
 
@@ -1030,6 +1032,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public AvroWriter(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Console file writer configuration
+        /// </summary>
+        internal sealed class ConsoleWriter : ConfigureOptionBase<ConsoleWriterOptions>
+        {
+            public const string EnableKey = "EnableConsoleWriter";
+
+            public override void Configure(string? name, ConsoleWriterOptions options)
+            {
+                options.Enabled = GetBoolOrDefault(EnableKey);
+            }
+
+            /// <summary>
+            /// Transport configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public ConsoleWriter(IConfiguration configuration)
                 : base(configuration)
             {
             }
