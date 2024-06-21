@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                  2.9.9 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.54)
+                                                  2.9.9 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.70)
 
 General
 -------
@@ -672,8 +672,8 @@ Subscription settings
                                Default: `12:00:00`.
       --sqp, --sequentialpublishing, --EnableSequentialPublishing[=VALUE]
                              (Experimental) Explicitly disable or enable
-                               sequential publishing.
-                               Default: `true` (enabled).
+                               sequential publishing in the protocol stack.
+                               Default: `False` (disabled).
       --urc, --usereverseconnect, --DefaultUseReverseConnect[=VALUE]
                              (Experimental) Use reverse connect for all
                                endpoints that are part of the subscription
@@ -1051,6 +1051,12 @@ Diagnostic options
                                notifications at Informational level to aid
                                debugging.
                                Default: `disabled`.
+      --ecw, --enableconsolewriter, --EnableConsoleWriter[=VALUE]
+                             Enable writing encoded messages to standard error
+                               log through the filesystem transport (must
+                               enable via `-t FileSystem` and `-o` must be set
+                               to either `stderr` or `stdout`).
+                               Default: `false`.
       --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.
