@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.9](#azure-industrial-iot-opc-publisher-299)
+  - [Changes in 2.9.9](#changes-in-299)
 - [Azure Industrial IoT OPC Publisher 2.9.8](#azure-industrial-iot-opc-publisher-298)
   - [Changes in 2.9.8](#changes-in-298)
 - [Azure Industrial IoT OPC Publisher 2.9.7](#azure-industrial-iot-opc-publisher-297)
@@ -48,6 +50,26 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.9
+
+We are pleased to announce the release of version 2.9.9 of OPC Publisher and the companion web api service. This release comes with several bug and security fixes and is the latest supported release. We recommend strongly to update from 2.9.8 due to several security fixes and overall instability in 2.9.8 and before in reconnect situations.
+
+### Changes in 2.9.9
+
+- Update OPC UA .net stack to the latest 1.05 version and move forward other dependencies
+- Allow configuring a watchdog for monitored items and set behavior when watchdog expires (#2164)
+- Limit number of publish requests to 10, allow override using command line argument (#2215)
+- Fix issue where the 'v2/configuration/diagnostics' contains negative monitoredOpcNodesSucceededCount (#2202)
+- Return better error messages in responses (#2195)
+- Fix issue where publisher stops respecting reconnect period after initial successful connection (#2189)
+- Added sample to show using NodeRead to read attributes (#2226)
+- New command line option to read configuration from first certificate found in own folder addresses several backward compatibility breaks when migrating between OPCPublisher versions (#2166)
+- Added call timeouts that can be overridden in request header and automatically cancel after timeout (#2203, #2219, #2213)
+- Fix an issue where linger does not work when reference continuation token between calls is the same (#2227)
+- Add a command line option to disable runtime metrics (#2200, #2197)
+- Added ability to write encoded messages to stdout/stderr for debugging (#2259)
+- Improve documentation.
 
 ## Azure Industrial IoT OPC Publisher 2.9.8
 
