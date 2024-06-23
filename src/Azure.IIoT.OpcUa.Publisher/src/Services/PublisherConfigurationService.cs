@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Autofac;
     using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
@@ -67,6 +67,230 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _fileChangeProcessor = Task.Factory.StartNew(ProcessFileChangesAsync,
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             _fileChanges.Writer.TryWrite(false); // Read from file
+        }
+
+        /// <inheritdoc/>
+        public async Task CreateOrUpdateDataSetWriterEntryAsync(
+            PublishedNodesEntryModel entry, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(entry.DataSetWriterGroup))
+            {
+                throw new BadRequestException("Missing DataSet Writer group.");
+            }
+            if (string.IsNullOrEmpty(entry.DataSetWriterId))
+            {
+                throw new BadRequestException("Missing DataSet Writer Id.");
+            }
+            EnsureUniqueDataSetFieldIds(entry);
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var newNodes = currentNodes
+                    .Where(e =>
+                        !(e.DataSetWriterGroup == entry.DataSetWriterGroup &&
+                          e.DataSetWriterId == entry.DataSetWriterId))
+                    .ToList();
+                if (newNodes.Count >= currentNodes.Count - 1)
+                {
+                    newNodes.Add(entry);
+                }
+                else
+                {
+                    throw new ResourceInvalidStateException("Trying to find entry " +
+                        "with provided writer id produced ambigious results.");
+                }
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
+            string writerGroupId, string dataSetWriterId, CancellationToken ct)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                return Find(writerGroupId, dataSetWriterId,
+                    GetCurrentPublishedNodes()) with
+                {
+                    OpcNodes = null
+                };
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task AddOrUpdateNodesAsync(string writerGroupId,
+            string dataSetWriterId, IReadOnlyList<OpcNodeModel> nodes,
+            string? insertAfterFieldId, CancellationToken ct)
+        {
+            var unique = nodes
+                .Select(n => n.DataSetFieldId)
+                .Distinct()
+                .Count();
+            if (unique != nodes.Count)
+            {
+                throw new BadRequestException(
+                    "Field ids must be present and unique.");
+            }
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                EnsureUniqueDataSetFieldIds(entry);
+                entry.OpcNodes ??= new List<OpcNodeModel>();
+
+                var insertAt = -1;
+                if (insertAfterFieldId != null)
+                {
+                    var offset = entry.OpcNodes
+                        .FirstOrDefault(n => n.DataSetFieldId == insertAfterFieldId);
+                    if (offset == null)
+                    {
+                        throw new ResourceNotFoundException(
+                            "Field to insert after not found.");
+                    }
+                    insertAt = entry.OpcNodes.IndexOf(offset);
+                    if (++insertAt == entry.OpcNodes.Count)
+                    {
+                        insertAt = -1;
+                    }
+                }
+
+                foreach (var node in nodes)
+                {
+                    var existing = entry.OpcNodes
+                        .FirstOrDefault(n => n.DataSetFieldId == node.DataSetFieldId);
+                    if (existing != null)
+                    {
+                        // Replace existing
+                        var index = entry.OpcNodes.IndexOf(existing);
+                        entry.OpcNodes[index] = node;
+                    }
+                    else if (insertAt != -1)
+                    {
+                        // Insert after
+                        entry.OpcNodes.Insert(insertAt++, node);
+                    }
+                    else
+                    {
+                        // at end
+                        entry.OpcNodes.Add(node);
+                    }
+                }
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveNodesAsync(string writerGroupId, string dataSetWriterId,
+            IReadOnlyList<string> dataSetFieldIds, CancellationToken ct)
+        {
+            var unique = dataSetFieldIds
+                .Distinct()
+                .Count();
+            if (unique != dataSetFieldIds.Count)
+            {
+                throw new BadRequestException("Field ids must be unique.");
+            }
+
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                if (entry.OpcNodes == null)
+                {
+                    return;
+                }
+                EnsureUniqueDataSetFieldIds(entry);
+                var set = dataSetFieldIds.ToHashSet();
+                var newNodes = entry.OpcNodes
+                    .Where(n => !set.Contains(n.DataSetFieldId ?? string.Empty))
+                    .ToList();
+                if (newNodes.Count == entry.OpcNodes.Count)
+                {
+                    return;
+                }
+                entry.OpcNodes = newNodes;
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(string writerGroupId,
+            string dataSetWriterId, string? dataSetFieldId, int? count,
+            CancellationToken ct)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                if (entry.OpcNodes == null)
+                {
+                    return Array.Empty<OpcNodeModel>();
+                }
+
+                IEnumerable<OpcNodeModel> result = entry.OpcNodes;
+                if (dataSetFieldId != null)
+                {
+                    result = result.SkipWhile(n => dataSetFieldId != n.DataSetFieldId);
+                }
+                if (count != null)
+                {
+                    result = result.Take(count.Value);
+                }
+                return result.ToList();
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveDataSetWriterEntryAsync(string writerGroupId,
+            string dataSetWriterId, CancellationToken ct)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var remove = Find(writerGroupId, dataSetWriterId, currentNodes);
+                currentNodes.Remove(remove);
+
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
         }
 
         /// <inheritdoc/>
@@ -949,6 +1173,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 _publishedNodesProvider.Changed -= OnChanged;
                 _started = null;
+            }
+        }
+
+        /// <summary>
+        /// Find writer entry
+        /// </summary>
+        /// <param name="writerGroupId"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="entries"></param>
+        /// <returns></returns>
+        /// <exception cref="ResourceNotFoundException"></exception>
+        /// <exception cref="ResourceInvalidStateException"></exception>
+        private static PublishedNodesEntryModel Find(string writerGroupId,
+            string dataSetWriterId, IEnumerable<PublishedNodesEntryModel> entries)
+        {
+            var found = entries
+                .Where(e =>
+                     (e.DataSetWriterGroup == writerGroupId &&
+                      e.DataSetWriterId == dataSetWriterId))
+                .ToList();
+            if (found.Count == 1)
+            {
+                return found[0];
+            }
+            else if (found.Count == 0)
+            {
+                throw new ResourceNotFoundException("Could not find enttry" +
+                    "with provided writer id and writer group");
+            }
+            else
+            {
+                throw new ResourceInvalidStateException("Trying to find entry " +
+                    "with provided writer id produced ambigious results.");
+            }
+        }
+
+        /// <summary>
+        /// Ensure that all field ids are unique in the entry.
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <exception cref="BadRequestException"></exception>
+        private static void EnsureUniqueDataSetFieldIds(PublishedNodesEntryModel entry)
+        {
+            if (entry.OpcNodes != null)
+            {
+                var unique = entry.OpcNodes
+                    .Select(n => n.DataSetFieldId)
+                    .Distinct()
+                    .Count();
+                if (unique != entry.OpcNodes.Count)
+                {
+                    throw new BadRequestException(
+                        "Field ids in writer entry must be present and unique.");
+                }
             }
         }
 

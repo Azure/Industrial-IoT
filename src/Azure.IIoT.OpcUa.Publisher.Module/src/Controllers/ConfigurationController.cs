@@ -51,6 +51,157 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// CreateOrUpdateDataSetWriterEntry
+        /// </summary>
+        /// <remarks>
+        /// Create a published nodes entry for a specific writer group
+        /// and dataset writer. The entry must specify a unique writer
+        /// group and dataset writer id. If the entry is found it is
+        /// updated, if it is not found, it is created. If more than
+        /// one entry is found an error is returned. The entry can
+        /// include nodes which will be the initial set. The entries
+        /// must all specify a unique dataSetFieldId.
+        /// </remarks>
+        /// <param name="entry">The entry to create for the writer</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPut("writer")]
+        public async Task CreateOrUpdateDataSetWriterEntryAsync(
+            [FromBody][Required] PublishedNodesEntryModel entry, 
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(entry);
+            await _configServices.CreateOrUpdateDataSetWriterEntryAsync(
+                entry, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// GetDataSetWriterEntry
+        /// </summary>
+        /// <remarks>
+        /// Get the published nodes entry for a specific writer group
+        /// and dataset writer. Dedicated errors are returned if no,
+        /// or no unique entry could be found. THe entry does not
+        /// contain the nodes
+        /// </remarks>
+        /// <param name="writerGroupId">The writer group</param>
+        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpGet("writer/{writerGroupId}/{dataSetWriterId}")]
+        public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
+            string writerGroupId, string dataSetWriterId, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            return await _configServices.GetDataSetWriterEntryAsync(
+                writerGroupId, dataSetWriterId, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// AddOrUpdateNodes
+        /// </summary>
+        /// <remarks>
+        /// Add Nodes to a dedicated data set writer in a writer group.
+        /// Each node must have a unique DataSetFieldId. If the field
+        /// already exists, the node is updated. If a node does not
+        /// have a dataset field id an error is returned.
+        /// </remarks>
+        /// <param name="writerGroupId">The writer group</param>
+        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="nodes">Nodes to add or update</param>
+        /// <param name="insertAfterFieldId">Field after which to
+        /// insert the nodes. If not specified, nodes are added at the
+        /// end of the entry</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPut("writer/{writerGroupId}/{dataSetWriterId}/nodes")]
+        public async Task AddOrUpdateNodesAsync(string writerGroupId, string dataSetWriterId,
+            [FromBody][Required] IReadOnlyList<OpcNodeModel> nodes,
+            [FromQuery] string? insertAfterFieldId = null, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            ArgumentNullException.ThrowIfNull(nodes);
+            await _configServices.AddOrUpdateNodesAsync(writerGroupId, dataSetWriterId,
+                nodes, insertAfterFieldId, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// RemoveNodes
+        /// </summary>
+        /// <remarks>
+        /// Remove Nodes with the data set field ids from a data set
+        /// writer in a writer group. If the field is not found, no
+        /// error is returned.
+        /// </remarks>
+        /// <param name="writerGroupId">The writer group</param>
+        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="dataSetFieldIds">Fields to add</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpDelete("writer/{writerGroupId}/{dataSetWriterId}/nodes")]
+        public async Task RemoveNodesAsync(string writerGroupId, string dataSetWriterId,
+            [FromBody][Required] IReadOnlyList<string> dataSetFieldIds,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            ArgumentNullException.ThrowIfNull(dataSetFieldIds);
+            await _configServices.RemoveNodesAsync(writerGroupId, dataSetWriterId,
+                dataSetFieldIds, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// GetNodes
+        /// </summary>
+        /// <remarks>
+        /// Remove Nodes with the data set field ids from a data set
+        /// writer in a writer group. If the field is not found, no
+        /// error is returned.
+        /// </remarks>
+        /// <param name="writerGroupId">The writer group</param>
+        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="dataSetFieldId">the field id from which to start.
+        /// If not specified, nodes from the beginning are returned.</param>
+        /// <param name="count">Number of nodes to return</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpGet("writer/{writerGroupId}/{dataSetWriterId}/nodes")]
+        public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(
+            string writerGroupId, string dataSetWriterId,
+            [FromQuery] string? dataSetFieldId = null,
+            [FromQuery] int? count = null, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            return await _configServices.GetNodesAsync(writerGroupId, dataSetWriterId,
+                dataSetFieldId, count, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// PublishStart
+        /// </summary>
+        /// <remarks>
+        /// Remove the published nodes entry for a specific data set
+        /// riter in a writer group. Dedicated errors are returned if no,
+        /// or no unique entry could be found.
+        /// </remarks>
+        /// <param name="writerGroupId">The writer group</param>
+        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpDelete("writer/{writerGroupId}/{dataSetWriterId}")]
+        public async Task RemoveDataSetWriterEntryAsync(
+            string writerGroupId, string dataSetWriterId, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            await _configServices.RemoveDataSetWriterEntryAsync(writerGroupId,
+                dataSetWriterId, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// PublishStart
         /// </summary>
         /// <remarks>
@@ -248,7 +399,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         [HttpGet]
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
-            [FromQuery] GetConfiguredEndpointsRequestModel? request = null, CancellationToken ct = default)
+            [FromQuery] GetConfiguredEndpointsRequestModel? request = null,
+            CancellationToken ct = default)
         {
             var response = await _configServices.GetConfiguredEndpointsAsync(
                 request?.IncludeNodes ?? false, ct).ConfigureAwait(false);
