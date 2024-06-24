@@ -2098,25 +2098,19 @@ Actual (revised) state/desired state:
                 return;
             }
 
-            if (e.Status.HasFlag(PublishStateChangedMask.Stopped))
+            if (e.Status.HasFlag(PublishStateChangedMask.Stopped) && !_publishingStopped)
             {
-                if (!_publishingStopped)
-                {
-                    _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
-                    _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                    ResetMonitoredItemWatchdogTimer(false);
-                    _publishingStopped = true;
-                }
+                _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
+                _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                ResetMonitoredItemWatchdogTimer(false);
+                _publishingStopped = true;
             }
-            if (e.Status.HasFlag(PublishStateChangedMask.Recovered))
+            if (e.Status.HasFlag(PublishStateChangedMask.Recovered) && _publishingStopped)
             {
-                if (_publishingStopped)
-                {
-                    _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
-                    ResetKeepAliveTimer();
-                    ResetMonitoredItemWatchdogTimer(true);
-                    _publishingStopped = false;
-                }
+                _logger.LogInformation("Subscription {Subscription} RECOVERED!", this);
+                ResetKeepAliveTimer();
+                ResetMonitoredItemWatchdogTimer(true);
+                _publishingStopped = false;
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Transferred))
             {
