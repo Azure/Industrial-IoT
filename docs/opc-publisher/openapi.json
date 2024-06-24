@@ -38,26 +38,12 @@
                         "name": "store",
                         "description": "The store to enumerate",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -86,21 +72,7 @@
                         "name": "store",
                         "description": "The store to add the certificate to",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     },
                     {
                         "in": "query",
@@ -121,7 +93,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -146,26 +118,12 @@
                         "name": "store",
                         "description": "The store to enumerate",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -195,21 +153,7 @@
                         "name": "store",
                         "description": "The store to add the certificate to",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     },
                     {
                         "in": "body",
@@ -224,7 +168,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             },
@@ -241,26 +185,12 @@
                         "name": "store",
                         "description": "The store to add the certificate to",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -293,7 +223,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -317,7 +247,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -350,7 +280,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -369,21 +299,7 @@
                         "name": "store",
                         "description": "The store to add the certificate to",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     },
                     {
                         "in": "path",
@@ -395,7 +311,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -414,26 +330,12 @@
                         "name": "store",
                         "description": "The store to add the certificate to",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Application",
-                            "Rejected",
-                            "Trusted",
-                            "Https",
-                            "User",
-                            "Issuer",
-                            "HttpsIssuer",
-                            "UserIssuer"
-                        ],
-                        "x-ms-enum": {
-                            "name": "CertificateStoreName",
-                            "modelAsString": false
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -444,7 +346,7 @@
                     "Configuration"
                 ],
                 "summary": "PublishStart",
-                "description": "Start publishing values from a node on a server. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.",
+                "description": "Start publishing values from a node on a server. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside OPC Publisher.",
                 "operationId": "PublishStart",
                 "consumes": [
                     "application/json",
@@ -471,7 +373,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishStartResponseModel"
                         }
@@ -512,7 +414,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishStopResponseModel"
                         }
@@ -526,7 +428,7 @@
                     "Configuration"
                 ],
                 "summary": "PublishBulk",
-                "description": "Configure node values to publish and unpublish in bulk. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.",
+                "description": "Configure node values to publish and unpublish in bulk. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside OPC Publisher.",
                 "operationId": "PublishBulk",
                 "consumes": [
                     "application/json",
@@ -553,7 +455,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishBulkResponseModel"
                         }
@@ -594,7 +496,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
@@ -635,7 +537,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -676,7 +578,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -717,7 +619,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -760,7 +662,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -790,7 +692,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/GetConfiguredEndpointsResponseModel"
                         }
@@ -823,7 +725,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -861,7 +763,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/GetConfiguredNodesOnEndpointResponseModel"
                         }
@@ -885,7 +787,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -906,7 +808,7 @@
                 "operationId": "ResetAllClients",
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -921,7 +823,7 @@
                 "operationId": "SetTraceMode",
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -959,7 +861,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationModel"
                         }
@@ -1000,7 +902,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "boolean"
                         }
@@ -1041,7 +943,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "boolean"
                         }
@@ -1082,7 +984,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "boolean"
                         }
@@ -1123,7 +1025,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ServerCapabilitiesModel"
                         }
@@ -1164,7 +1066,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
@@ -1205,7 +1107,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
@@ -1246,7 +1148,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseStreamChunkModelIAsyncEnumerable"
                         }
@@ -1287,7 +1189,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowsePathResponseModel"
                         }
@@ -1328,7 +1230,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
@@ -1369,7 +1271,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ValueWriteResponseModel"
                         }
@@ -1410,7 +1312,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataResponseModel"
                         }
@@ -1451,7 +1353,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/QueryCompilationResponseModel"
                         }
@@ -1492,7 +1394,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataResponseModel"
                         }
@@ -1533,7 +1435,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/MethodCallResponseModel"
                         }
@@ -1574,7 +1476,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ReadResponseModel"
                         }
@@ -1615,7 +1517,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/WriteResponseModel"
                         }
@@ -1656,7 +1558,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadResponseModel"
                         }
@@ -1697,7 +1599,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadNextResponseModel"
                         }
@@ -1738,7 +1640,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1779,7 +1681,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
                         }
@@ -1820,7 +1722,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryServerCapabilitiesModel"
                         }
@@ -1861,7 +1763,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationResponseModel"
                         }
@@ -1902,7 +1804,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
                         }
@@ -1943,7 +1845,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1984,7 +1886,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2025,7 +1927,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2066,7 +1968,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2107,7 +2009,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2148,7 +2050,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2189,7 +2091,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2230,7 +2132,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2271,7 +2173,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2312,7 +2214,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2353,7 +2255,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadResponseModel"
                         }
@@ -2394,7 +2296,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadNextResponseModel"
                         }
@@ -2435,7 +2337,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2476,7 +2378,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2517,7 +2419,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2558,7 +2460,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2599,7 +2501,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadNextResponseModel"
                         }
@@ -2640,7 +2542,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2681,7 +2583,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2722,7 +2624,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2763,7 +2665,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2804,11 +2706,269 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelIAsyncEnumerable"
                         }
                     }
+                }
+            }
+        },
+        "/v2/writer": {
+            "put": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "CreateOrUpdateDataSetWriterEntry",
+                "description": "Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is updated, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
+                "operationId": "CreateOrUpdateDataSetWriterEntry",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to create for the writer",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}": {
+            "get": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "GetDataSetWriterEntry",
+                "description": "Get the published nodes entry for a specific writer group and dataset writer. Dedicated errors are returned if no, or no unique entry could be found. The entry does not contain the nodes. Nodes can be retrieved using the GetNodes API.",
+                "operationId": "GetDataSetWriterEntry",
+                "produces": [
+                    "text/plain",
+                    "application/json",
+                    "text/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModel"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "RemoveDataSetWriterEntry",
+                "description": "Remove the published nodes entry for a specific data set writer in a writer group. Dedicated errors are returned if no, or no unique entry could be found.",
+                "operationId": "RemoveDataSetWriterEntry",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes": {
+            "put": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "AddOrUpdateNodes",
+                "description": "Add Nodes to a dedicated data set writer in a writer group. Each node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
+                "operationId": "AddOrUpdateNodes",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "insertAfterFieldId",
+                        "description": "Field after which to insert the nodes. If not specified, nodes are added at the end of the entry",
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Nodes to add or update",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/OpcNodeModel"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "RemoveNodes",
+                "description": "Remove Nodes with the data set field ids from a data set writer in a writer group. If the field is not found, no error is returned.",
+                "operationId": "RemoveNodes",
+                "consumes": [
+                    "application/json",
+                    "text/json",
+                    "application/*+json"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Fields to add",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "get": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "GetNodes",
+                "description": "Get Nodes from a data set writer in a writer group. The nodes can optionally be offset from a previous last node identified by the dataSetFieldId and pageanated by the pageSize. If the dataSetFieldId is not found, an empty list is returned. If the dataSetFieldId is not specified, the first page is returned.",
+                "operationId": "GetNodes",
+                "produces": [
+                    "text/plain",
+                    "application/json",
+                    "text/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "lastDataSetFieldId",
+                        "description": "the field id after which to start the page. If not specified, nodes from the beginning are returned.",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "pageSize",
+                        "description": "Number of nodes to return",
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/OpcNodeModel"
+                            }
+                        }
+                    }
+                },
+                "x-ms-pageable": {
+                    "nextLinkName": "lastDataSetFieldId"
                 }
             }
         }
@@ -2851,7 +3011,8 @@
                     "description": "Whether to use sloped extrapolation.",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationInfoModel": {
             "description": "Application info model",
@@ -2936,7 +3097,8 @@
                 "updated": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationRegistrationModel": {
             "description": "Application with optional list of endpoints",
@@ -2955,7 +3117,8 @@
                         "$ref": "#/definitions/EndpointRegistrationModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationType": {
             "format": "int32",
@@ -2988,7 +3151,8 @@
                 "attribute": {
                     "$ref": "#/definitions/NodeAttribute"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AttributeReadResponseModel": {
             "description": "Attribute value read",
@@ -3001,7 +3165,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AttributeWriteRequestModel": {
             "description": "Attribute and value to write to it",
@@ -3024,7 +3189,8 @@
                     "description": "Value to write (mandatory)",
                     "type": "object"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AttributeWriteResponseModel": {
             "description": "Attribute write result",
@@ -3033,7 +3199,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AuthenticationMethodModel": {
             "description": "Authentication Method model",
@@ -3058,7 +3225,8 @@
                     "description": "Method specific configuration",
                     "type": "object"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseDirection": {
             "format": "int32",
@@ -3137,7 +3305,8 @@
                     "description": "Whether to only return the raw node id\r\ninformation and not read the target node.\r\n(default is false)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseFirstRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3152,7 +3321,8 @@
                 "request": {
                     "$ref": "#/definitions/BrowseFirstRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseFirstResponseModel": {
             "description": "Browse response model",
@@ -3175,7 +3345,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseNextRequestModel": {
             "description": "Request node browsing continuation",
@@ -3208,7 +3379,8 @@
                     "description": "Whether to only return the raw node id\r\ninformation and not read the target node.\r\n(default is false)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseNextRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3223,7 +3395,8 @@
                 "request": {
                     "$ref": "#/definitions/BrowseNextRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseNextResponseModel": {
             "description": "Result of node browse continuation",
@@ -3243,7 +3416,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowsePathRequestModel": {
             "description": "Browse nodes by path",
@@ -3277,7 +3451,8 @@
                     "description": "Whether to only return the raw node id\r\ninformation and not read the target node.\r\n(default is false)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowsePathRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3292,7 +3467,8 @@
                 "request": {
                     "$ref": "#/definitions/BrowsePathRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowsePathResponseModel": {
             "description": "Result of node browse continuation",
@@ -3308,10 +3484,12 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseStreamChunkModelIAsyncEnumerable": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         },
         "BrowseStreamRequestModel": {
             "description": "Browse stream request model",
@@ -3370,7 +3548,8 @@
                         "modelAsString": false
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseStreamRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3385,7 +3564,8 @@
                 "request": {
                     "$ref": "#/definitions/BrowseStreamRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseViewModel": {
             "description": "View to browse",
@@ -3409,26 +3589,8 @@
                     "description": "Browses at or before this timestamp.",
                     "type": "string"
                 }
-            }
-        },
-        "CertificateStoreName": {
-            "format": "int32",
-            "description": "The types of certificate stores",
-            "enum": [
-                "Application",
-                "Rejected",
-                "Trusted",
-                "Https",
-                "User",
-                "Issuer",
-                "HttpsIssuer",
-                "UserIssuer"
-            ],
-            "type": "string",
-            "x-ms-enum": {
-                "name": "CertificateStoreName",
-                "modelAsString": false
-            }
+            },
+            "additionalProperties": false
         },
         "ConditionHandlingOptionsModel": {
             "description": "Condition handling options model",
@@ -3444,7 +3606,8 @@
                     "description": "Time interval for sending pending interval snapshot in seconds.",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ConnectionModel": {
             "description": "Connection model",
@@ -3463,10 +3626,18 @@
                     "description": "Connection group allows splitting connections\r\nper purpose.",
                     "type": "string"
                 },
+                "locales": {
+                    "description": "Optional list of preferred locales in preference order.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "options": {
                     "$ref": "#/definitions/ConnectionOptions"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ConnectionOptions": {
             "format": "int32",
@@ -3474,7 +3645,8 @@
             "enum": [
                 "None",
                 "UseReverseConnect",
-                "NoComplexTypeSystem"
+                "NoComplexTypeSystem",
+                "NoSubscriptionTransfer"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -3496,7 +3668,8 @@
                         "$ref": "#/definitions/FilterOperandModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ContentFilterModel": {
             "description": "Content filter",
@@ -3509,7 +3682,8 @@
                         "$ref": "#/definitions/ContentFilterElementModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "CredentialModel": {
             "description": "Credential model. For backwards compatibility\r\nthe actual credentials to pass to the server is set\r\nthrough the value property.",
@@ -3521,7 +3695,8 @@
                 "value": {
                     "$ref": "#/definitions/UserIdentityModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "CredentialType": {
             "format": "int32",
@@ -3588,7 +3763,8 @@
                     "description": "The data type for the instance declaration.",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeadbandType": {
             "format": "int32",
@@ -3618,7 +3794,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteEventsDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -3646,7 +3823,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3661,7 +3839,8 @@
                 "request": {
                     "$ref": "#/definitions/DeleteEventsDetailsModelHistoryUpdateRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesAtTimesDetailsModel": {
             "description": "Deletes data at times",
@@ -3678,7 +3857,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -3706,7 +3886,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3721,7 +3902,8 @@
                 "request": {
                     "$ref": "#/definitions/DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesDetailsModel": {
             "description": "Delete values",
@@ -3737,7 +3919,8 @@
                     "description": "End time to delete until",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -3765,7 +3948,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -3780,7 +3964,8 @@
                 "request": {
                     "$ref": "#/definitions/DeleteValuesDetailsModelHistoryUpdateRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiagnosticsLevel": {
             "format": "int32",
@@ -3814,7 +3999,8 @@
                     "description": "Timestamp of request.\r\n(default: client generated)",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscoveryCancelRequestModel": {
             "description": "Discovery cancel request",
@@ -3827,7 +4013,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscoveryConfigModel": {
             "description": "Discovery configuration api model",
@@ -3885,7 +4072,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscoveryMode": {
             "format": "int32",
@@ -3920,7 +4108,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointModel": {
             "description": "Endpoint model",
@@ -3948,7 +4137,8 @@
                     "description": "Endpoint certificate thumbprint",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointRegistrationModel": {
             "description": "Endpoint registration",
@@ -3989,7 +4179,8 @@
                         "$ref": "#/definitions/AuthenticationMethodModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EventFilterModel": {
             "description": "Event filter",
@@ -4013,7 +4204,8 @@
                     "description": "Simple event Type definition node id",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ExceptionDeviationType": {
             "format": "int32",
@@ -4069,7 +4261,8 @@
                     "description": "Data type if operand is a literal",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "FilterOperatorType": {
             "format": "int32",
@@ -4111,7 +4304,8 @@
                         "$ref": "#/definitions/PublishedNodesEntryModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "GetConfiguredNodesOnEndpointResponseModel": {
             "description": "Result of GetConfiguredNodesOnEndpoint method call",
@@ -4124,7 +4318,8 @@
                         "$ref": "#/definitions/OpcNodeModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HeartbeatBehavior": {
             "format": "int32",
@@ -4155,7 +4350,8 @@
                         "type": "object"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricEventModelArrayHistoryReadNextResponseModel": {
             "description": "History read continuation result",
@@ -4175,7 +4371,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricEventModelArrayHistoryReadResponseModel": {
             "description": "History read results",
@@ -4195,10 +4392,12 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricEventModelIAsyncEnumerable": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         },
         "HistoricValueModel": {
             "description": "Historic data",
@@ -4244,7 +4443,8 @@
                 "additionalData": {
                     "$ref": "#/definitions/AdditionalData"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricValueModelArrayHistoryReadNextResponseModel": {
             "description": "History read continuation result",
@@ -4264,7 +4464,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricValueModelArrayHistoryReadResponseModel": {
             "description": "History read results",
@@ -4284,10 +4485,12 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricValueModelIAsyncEnumerable": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         },
         "HistoryConfigurationModel": {
             "description": "History configuration",
@@ -4348,7 +4551,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryConfigurationRequestModel": {
             "description": "Request history configuration",
@@ -4365,7 +4569,8 @@
                     "minLength": 1,
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryConfigurationRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -4380,7 +4585,8 @@
                 "request": {
                     "$ref": "#/definitions/HistoryConfigurationRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryConfigurationResponseModel": {
             "description": "Response with history configuration",
@@ -4392,7 +4598,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryReadNextRequestModel": {
             "description": "Request node history read continuation",
@@ -4413,7 +4620,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryReadNextRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -4428,7 +4636,8 @@
                 "request": {
                     "$ref": "#/definitions/HistoryReadNextRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryServerCapabilitiesModel": {
             "description": "History Server capabilities",
@@ -4503,7 +4712,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryUpdateOperation": {
             "format": "int32",
@@ -4534,7 +4744,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "InstanceDeclarationModel": {
             "description": "Instance declaration meta data",
@@ -4591,20 +4802,23 @@
                     "description": "The modelling rule node id.",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MessageEncoding": {
             "format": "int32",
             "description": "Message encoding",
             "enum": [
-                "Binary",
+                "Uadp",
+                "Uadp",
                 "Json",
                 "Xml",
+                "Avro",
                 "IsReversible",
-                "Uadp",
                 "JsonReversible",
                 "IsGzipCompressed",
                 "JsonGzip",
+                "AvroGzip",
                 "JsonReversibleGzip"
             ],
             "type": "string",
@@ -4623,6 +4837,8 @@
                 "FullSamples",
                 "DataSetMessages",
                 "SingleDataSetMessage",
+                "DataSets",
+                "SingleDataSet",
                 "RawDataSets",
                 "SingleRawDataSet"
             ],
@@ -4644,7 +4860,8 @@
                     "description": "Data type Id of the value (from meta data)",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodCallRequestModel": {
             "description": "Call request model",
@@ -4682,7 +4899,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodCallRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -4697,7 +4915,8 @@
                 "request": {
                     "$ref": "#/definitions/MethodCallRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodCallResponseModel": {
             "description": "Method call response model",
@@ -4713,7 +4932,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataArgumentModel": {
             "description": "Method argument metadata model",
@@ -4749,7 +4969,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataModel": {
             "description": "Method metadata model",
@@ -4773,7 +4994,8 @@
                         "$ref": "#/definitions/MethodMetadataArgumentModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataRequestModel": {
             "description": "Method metadata request model",
@@ -4793,7 +5015,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -4808,7 +5031,8 @@
                 "request": {
                     "$ref": "#/definitions/MethodMetadataRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataResponseModel": {
             "description": "Result of method metadata query",
@@ -4835,7 +5059,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ModelChangeHandlingOptionsModel": {
             "description": "Describes how model changes are published",
@@ -4846,7 +5071,8 @@
                     "description": "Rebrowse period",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ModificationInfoModel": {
             "description": "Modification information",
@@ -4864,7 +5090,8 @@
                     "description": "User who made the change",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NamespaceFormat": {
             "format": "int32",
@@ -4995,7 +5222,8 @@
                     "description": "Identifier",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeMetadataRequestModel": {
             "description": "Node metadata request model",
@@ -5015,7 +5243,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeMetadataRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -5030,7 +5259,8 @@
                 "request": {
                     "$ref": "#/definitions/NodeMetadataRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeMetadataResponseModel": {
             "description": "Node metadata model",
@@ -5066,7 +5296,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeModel": {
             "description": "Node model",
@@ -5219,7 +5450,8 @@
                     "description": "Whether node has children which are defined as\r\nany forward hierarchical references.\r\n(default: unknown)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodePathTargetModel": {
             "description": "Node path target",
@@ -5240,7 +5472,8 @@
                     "description": "Remaining index in path",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeReferenceModel": {
             "description": "Reference model",
@@ -5262,7 +5495,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeType": {
             "format": "int32",
@@ -5446,7 +5680,8 @@
                     "description": "Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "OperationContextModel": {
             "description": "Operation log model",
@@ -5461,7 +5696,8 @@
                     "description": "Operation time",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "OperationLimitsModel": {
             "description": "Server limits",
@@ -5562,7 +5798,8 @@
                     "description": "Max monitored items that can be updated at once.",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishBulkRequestModel": {
             "description": "Publish in bulk request",
@@ -5585,7 +5822,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishBulkRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -5600,7 +5838,8 @@
                 "request": {
                     "$ref": "#/definitions/PublishBulkRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishBulkResponseModel": {
             "description": "Result of bulk request",
@@ -5620,14 +5859,19 @@
                         "$ref": "#/definitions/ServiceResultModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishDiagnosticInfoModel": {
             "description": "Model for a diagnostic info.",
             "type": "object",
             "properties": {
-                "endpoint": {
-                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                "endpoints": {
+                    "description": "Endpoints covered by the diagnostics model.\r\nThe endpoints are all part of the same writer\r\ngroup. Specify",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PublishedNodesEntryModel"
+                    }
                 },
                 "sentMessagesPerSec": {
                     "format": "double",
@@ -5768,7 +6012,8 @@
                     "description": "Number of cyclic reads of the total value changes",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStartRequestModel": {
             "description": "Publish request",
@@ -5783,7 +6028,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStartRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -5798,7 +6044,8 @@
                 "request": {
                     "$ref": "#/definitions/PublishStartRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStartResponseModel": {
             "description": "Result of publish request",
@@ -5807,7 +6054,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStopRequestModel": {
             "description": "Unpublish request",
@@ -5824,7 +6072,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStopRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -5839,7 +6088,8 @@
                 "request": {
                     "$ref": "#/definitions/PublishStopRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStopResponseModel": {
             "description": "Result of publish stop request",
@@ -5848,7 +6098,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemListRequestModel": {
             "description": "Request list of published items",
@@ -5861,7 +6112,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemListRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -5876,7 +6128,8 @@
                 "request": {
                     "$ref": "#/definitions/PublishedItemListRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemListResponseModel": {
             "description": "List of published nodes",
@@ -5893,7 +6146,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemModel": {
             "description": "A monitored and published item",
@@ -5926,7 +6180,8 @@
                     "description": "Heartbeat interval to use",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
@@ -5936,7 +6191,7 @@
             "type": "object",
             "properties": {
                 "Version": {
-                    "format": "int32",
+                    "format": "int64",
                     "description": "Version number of the entry",
                     "type": "integer"
                 },
@@ -6109,14 +6364,32 @@
                     "description": "Number of partitions to split the writer group into\r\nwhen publishing to target topics.",
                     "type": "integer"
                 },
+                "DisableSubscriptionTransfer": {
+                    "description": "Disable subscription transfer on reconnect",
+                    "type": "boolean"
+                },
+                "republishAfterTransfer": {
+                    "description": "Republish after transferring the subscription during\r\nreconnect handling unless subscription transfer was disabled.",
+                    "type": "boolean"
+                },
+                "MonitoredItemWatchdogTimespan": {
+                    "format": "date-span",
+                    "description": "The timeout to use to monitor the monitored items in the\r\nsubscription are continously reporting fresh data.",
+                    "type": "string"
+                },
+                "WatchdogBehavior": {
+                    "$ref": "#/definitions/SubscriptionWatchdogBehavior"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedNodesResponseModel": {
             "description": "PublishNodes direct method response",
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         },
         "QoS": {
             "format": "int32",
@@ -6150,7 +6423,8 @@
                 "queryType": {
                     "$ref": "#/definitions/QueryType"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "QueryCompilationRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6165,7 +6439,8 @@
                 "request": {
                     "$ref": "#/definitions/QueryCompilationRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "QueryCompilationResponseModel": {
             "description": "Query compiler response model",
@@ -6177,7 +6452,8 @@
                 "eventFilter": {
                     "$ref": "#/definitions/EventFilterModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "QueryType": {
             "format": "int32",
@@ -6214,7 +6490,8 @@
                 "filter": {
                     "$ref": "#/definitions/EventFilterModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadEventsDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -6249,7 +6526,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadEventsDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6264,7 +6542,8 @@
                 "request": {
                     "$ref": "#/definitions/ReadEventsDetailsModelHistoryReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadModifiedValuesDetailsModel": {
             "description": "Read modified data",
@@ -6285,7 +6564,8 @@
                     "description": "The number of values to read",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadModifiedValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -6320,7 +6600,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadModifiedValuesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6335,7 +6616,8 @@
                 "request": {
                     "$ref": "#/definitions/ReadModifiedValuesDetailsModelHistoryReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadProcessedValuesDetailsModel": {
             "description": "Read processed historic data",
@@ -6363,7 +6645,8 @@
                 "aggregateConfiguration": {
                     "$ref": "#/definitions/AggregateConfigurationModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadProcessedValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -6398,7 +6681,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadProcessedValuesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6413,7 +6697,8 @@
                 "request": {
                     "$ref": "#/definitions/ReadProcessedValuesDetailsModelHistoryReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadRequestModel": {
             "description": "Request node attribute read",
@@ -6432,7 +6717,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6447,7 +6733,8 @@
                 "request": {
                     "$ref": "#/definitions/ReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadResponseModel": {
             "description": "Result of attribute reads",
@@ -6463,7 +6750,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesAtTimesDetailsModel": {
             "description": "Read data at specified times",
@@ -6484,7 +6772,8 @@
                     "description": "Whether to use simple bounds",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesAtTimesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -6519,7 +6808,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesAtTimesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6534,7 +6824,8 @@
                 "request": {
                     "$ref": "#/definitions/ReadValuesAtTimesDetailsModelHistoryReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesDetailsModel": {
             "description": "Read historic values",
@@ -6559,7 +6850,8 @@
                     "description": "Whether to return the bounding values or not.",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -6594,7 +6886,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesDetailsModelHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6609,7 +6902,8 @@
                 "request": {
                     "$ref": "#/definitions/ReadValuesDetailsModelHistoryReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RequestHeaderModel": {
             "description": "Request header model",
@@ -6619,7 +6913,7 @@
                     "$ref": "#/definitions/CredentialModel"
                 },
                 "locales": {
-                    "description": "Optional list of locales in preference order.",
+                    "description": "Optional list of preferred locales in preference\r\norder to be used during connecting the session.\r\nWe suggest to use the connection object to set\r\nthe locales",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -6630,8 +6924,24 @@
                 },
                 "namespaceFormat": {
                     "$ref": "#/definitions/NamespaceFormat"
+                },
+                "operationTimeout": {
+                    "format": "int32",
+                    "description": "Operation timeout in ms. This applies to every\r\noperation that is invoked, not to the entire\r\ntransaction and overrides the configured operation\r\ntimeout.",
+                    "type": "integer"
+                },
+                "serviceCallTimeout": {
+                    "format": "int32",
+                    "description": "Service call timeout in ms. As opposed to the\r\noperation timeout this terminates the entire\r\ntransaction if it takes longer than the timeout to\r\ncomplete. Note that a connect and reconnect during\r\nthe service call is gated by the connect timeout\r\nsetting. If a connect timeout is not specified\r\nthis timeout is used also for connect timeout.",
+                    "type": "integer"
+                },
+                "connectTimeout": {
+                    "format": "int32",
+                    "description": "Connect timeout in ms. As opposed to the service call\r\ntimeout this terminates the entire transaction if\r\nit takes longer than the timeout to connect a session\r\nA connect and reconnect during the service call\r\nresets the timeout therefore the overall time for\r\nthe call to complete can be longer than specified.",
+                    "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RequestHeaderModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6646,7 +6956,8 @@
                 "request": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RolePermissionModel": {
             "description": "Role permission model",
@@ -6663,7 +6974,8 @@
                 "permissions": {
                     "$ref": "#/definitions/RolePermissions"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RolePermissions": {
             "format": "int32",
@@ -6701,7 +7013,8 @@
                 "Best",
                 "Sign",
                 "SignAndEncrypt",
-                "None"
+                "None",
+                "NotNone"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -6744,7 +7057,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ServerEndpointQueryModel": {
             "description": "Endpoint model",
@@ -6769,7 +7083,8 @@
                     "description": "Endpoint must match with this certificate thumbprint",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ServerRegistrationRequestModel": {
             "description": "Server registration request",
@@ -6790,7 +7105,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ServiceResultModel": {
             "description": "Service result",
@@ -6824,7 +7140,8 @@
                 "inner": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SetConfiguredEndpointsRequestModel": {
             "description": "Set configured endpoints request call",
@@ -6837,7 +7154,8 @@
                         "$ref": "#/definitions/PublishedNodesEntryModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SimpleAttributeOperandModel": {
             "description": "Simple attribute operand model",
@@ -6870,6 +7188,22 @@
                     "description": "Optional data set class field id (Publisher extension)",
                     "type": "string"
                 }
+            },
+            "additionalProperties": false
+        },
+        "SubscriptionWatchdogBehavior": {
+            "format": "int32",
+            "description": "Subscription watchdog behavior",
+            "enum": [
+                "Diagnostic",
+                "Reset",
+                "FailFast",
+                "ExitProcess"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "SubscriptionWatchdogBehavior",
+                "modelAsString": false
             }
         },
         "TestConnectionRequestModel": {
@@ -6879,7 +7213,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "TestConnectionRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -6894,7 +7229,8 @@
                 "request": {
                     "$ref": "#/definitions/TestConnectionRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "TestConnectionResponseModel": {
             "description": "Test connection response",
@@ -6903,7 +7239,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "TimestampsToReturn": {
             "format": "int32",
@@ -6961,7 +7298,8 @@
                         "$ref": "#/definitions/InstanceDeclarationModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateEventsDetailsModel": {
             "description": "Insert, upsert or replace historic events",
@@ -6980,7 +7318,8 @@
                         "$ref": "#/definitions/HistoricEventModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateEventsDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -7008,7 +7347,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateEventsDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7023,7 +7363,8 @@
                 "request": {
                     "$ref": "#/definitions/UpdateEventsDetailsModelHistoryUpdateRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateValuesDetailsModel": {
             "description": "Insert, upsert, or update historic values",
@@ -7039,7 +7380,8 @@
                         "$ref": "#/definitions/HistoricValueModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateValuesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -7067,7 +7409,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateValuesDetailsModelHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7082,25 +7425,27 @@
                 "request": {
                     "$ref": "#/definitions/UpdateValuesDetailsModelHistoryUpdateRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UserIdentityModel": {
             "description": "User identity model",
             "type": "object",
             "properties": {
                 "user": {
-                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the name of the user.\r\n            \r\n<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the subject name of the certificate that has been\r\n            configured.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "description": "\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the name of the user.\r\n            \r\n\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the subject name of the certificate that has been\r\n            configured.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n\r\n\r\n            Not used for the other authentication types.\r\n            ",
                     "type": "string"
                 },
                 "password": {
-                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the password of the user.\r\n            \r\n<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the passcode to export the configured certificate's\r\n            private key.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "description": "\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the password of the user.\r\n            \r\n\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the passcode to export the configured certificate's\r\n            private key.\r\n            \r\n\r\n\r\n            Not used for the other authentication types.\r\n            ",
                     "type": "string"
                 },
                 "thumbprint": {
-                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the thumbprint of the configured certificate to use.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "description": "\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the thumbprint of the configured certificate to use.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n\r\n\r\n            Not used for the other authentication types.\r\n            ",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueReadRequestModel": {
             "description": "Request node value read",
@@ -7132,7 +7477,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7147,7 +7493,8 @@
                 "request": {
                     "$ref": "#/definitions/ValueReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueReadResponseModel": {
             "description": "Value read response model",
@@ -7184,7 +7531,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueWriteRequestModel": {
             "description": "Value write request model",
@@ -7219,7 +7567,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueWriteRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7234,7 +7583,8 @@
                 "request": {
                     "$ref": "#/definitions/ValueWriteRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueWriteResponseModel": {
             "description": "Value write response model",
@@ -7243,7 +7593,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariableMetadataModel": {
             "description": "Variable metadata model",
@@ -7264,7 +7615,8 @@
                         "type": "integer"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadNextResponseModel": {
             "description": "History read continuation result",
@@ -7281,7 +7633,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -7317,7 +7670,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7332,7 +7686,8 @@
                 "request": {
                     "$ref": "#/definitions/VariantValueHistoryReadRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadResponseModel": {
             "description": "History read results",
@@ -7349,7 +7704,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -7378,7 +7734,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryUpdateRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7393,7 +7750,8 @@
                 "request": {
                     "$ref": "#/definitions/VariantValueHistoryUpdateRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriteRequestModel": {
             "description": "Request node attribute write",
@@ -7412,7 +7770,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriteRequestModelRequestEnvelope": {
             "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
@@ -7427,7 +7786,8 @@
                 "request": {
                     "$ref": "#/definitions/WriteRequestModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriteResponseModel": {
             "description": "Result of attribute write",
@@ -7443,7 +7803,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriterGroupTransport": {
             "format": "int32",
@@ -7451,6 +7812,7 @@
             "enum": [
                 "IoTHub",
                 "Mqtt",
+                "EventHub",
                 "Dapr",
                 "Http",
                 "FileSystem",
@@ -7510,7 +7872,8 @@
                         "modelAsString": false
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "X509CertificateModel": {
             "description": "Certificate model",
@@ -7554,7 +7917,8 @@
                     "description": "Contains private key",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "X509ChainStatus": {
             "format": "int32",
@@ -7595,27 +7959,31 @@
     "tags": [
         {
             "name": "Certificates",
-            "description": "<br>\r\n            This section lists the certificate APi provided by OPC Publisher providing\r\n            all public and private key infrastructure (PKI) related API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+            "description": "\r\n\r\n            This section lists the certificate APi provided by OPC Publisher providing\r\n            all public and private key infrastructure (PKI) related API methods.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "Configuration",
-            "description": "<br>\r\n            This section contains the API to configure OPC Publisher.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+            "description": "\r\n\r\n            This section contains the API to configure OPC Publisher.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "Diagnostics",
-            "description": "<br>\r\n            This section lists the diagnostics APi provided by OPC Publisher providing\r\n            connection related diagnostics API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+            "description": "\r\n\r\n            This section lists the diagnostics APi provided by OPC Publisher providing\r\n            connection related diagnostics API methods.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "Discovery",
-            "description": "<br>OPC UA and network discovery related API.\r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
+            "description": "\r\nOPC UA and network discovery related API.\r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
         },
         {
             "name": "General",
-            "description": "<br>\r\n            This section lists the general APi provided by OPC Publisher providing\r\n            all connection, endpoint and address space related API methods.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+            "description": "\r\n\r\n            This section lists the general APi provided by OPC Publisher providing\r\n            all connection, endpoint and address space related API methods.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "History",
-            "description": "<br>\r\n            This section lists all OPC UA HDA or Historian related API provided by\r\n            OPC Publisher.\r\n            \r\n<br>\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+            "description": "\r\n\r\n            This section lists all OPC UA HDA or Historian related API provided by\r\n            OPC Publisher.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
+        },
+        {
+            "name": "Writer",
+            "description": "\r\n\r\n            This section contains the API to configure data set writers and writer\r\n            groups inside OPC Publisher. It supersedes the configuration API.\r\n            Applications should use one or the other, but not both at the same\r\n            time.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         }
     ]
 }
