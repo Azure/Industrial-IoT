@@ -122,7 +122,73 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Invoking(async () => await configService.CreateOrUpdateDataSetWriterEntryAsync(writer))
                 .Should()
                 .ThrowAsync<BadRequestException>()
-                .WithMessage("Field ids in writer entry must be present and unique.");
+                .WithMessage("Field ids must be present and unique.");
+        }
+
+        [Fact]
+        public async Task TestCreateUpdateWithoutEndpointUrlThrows()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
+                })
+                .ToList();
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = opcNodes;
+            writer.EndpointUrl = null;
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await configService.CreateOrUpdateDataSetWriterEntryAsync(writer))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Missing endpoint url in entry");
+        }
+
+        [Fact]
+        public async Task TestCreateUpdateWithoutNodeIdThrows()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = opcNodes;
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await configService.CreateOrUpdateDataSetWriterEntryAsync(writer))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Node must contain a node ID");
+        }
+
+        [Fact]
+        public async Task TestCreateUpdateWithWithNodeIdAsDataSetField()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
+                })
+                .ToList();
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = opcNodes;
+
+            // The call should not throw an exception.
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
         }
 
         [Theory]
@@ -270,6 +336,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await FluentActions
                 .Invoking(async () => await configService
                     .CreateOrUpdateDataSetWriterEntryAsync(writer2))
+                .Should()
+                .ThrowAsync<ResourceInvalidStateException>()
+                .WithMessage("Trying to find entry with provided writer id produced ambigious results.");
+            await FluentActions
+                .Invoking(async () => await configService
+                    .GetDataSetWriterEntryAsync(writer2.DataSetWriterGroup!, writer2.DataSetWriterId!))
                 .Should()
                 .ThrowAsync<ResourceInvalidStateException>()
                 .WithMessage("Trying to find entry with provided writer id produced ambigious results.");
@@ -480,6 +552,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Should()
                 .ThrowAsync<BadRequestException>()
                 .WithMessage("Field ids must be present and unique.");
+        }
+
+        [Fact]
+        public async Task AddWithoutNodeIdResultsInError()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 10)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"i={i}",
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+
+            // Create writer
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+            opcNodes.ForEach(n => n.Id = null);
+
+            await FluentActions
+                .Invoking(async () => await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!,
+                    writer.DataSetWriterId!, opcNodes.Skip(1).ToList()))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Node must contain a node ID");
+        }
+
+        [Fact]
+        public async Task AddWithDistinctNodeIdButNoDataSetFieldIdSucceeds()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 10)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}"
+                })
+                .ToList();
+
+            // Create writer
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+
+            await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!,
+                    writer.DataSetWriterId!, opcNodes.Skip(1).ToList());
         }
 
         [Fact]

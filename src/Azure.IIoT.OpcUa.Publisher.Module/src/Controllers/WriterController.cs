@@ -202,14 +202,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
+            if (Request != null)
             {
-                lastDataSetFieldId = value.FirstOrDefault();
-            }
-            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
-            {
-                pageSize = int.Parse(value.FirstOrDefault()!,
-                    CultureInfo.InvariantCulture);
+                if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
+                {
+                    lastDataSetFieldId = value.FirstOrDefault();
+                }
+                if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
+                {
+                    pageSize = int.Parse(value.FirstOrDefault()!,
+                        CultureInfo.InvariantCulture);
+                }
             }
             return await _configServices.GetNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 lastDataSetFieldId, pageSize, ct).ConfigureAwait(false);

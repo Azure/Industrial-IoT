@@ -78,19 +78,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // We cannot yet create empty writers that can be filled.
                 throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
-
+            if (string.IsNullOrWhiteSpace(entry.EndpointUrl))
+            {
+                throw new BadRequestException(kNullOrEmptyEndpointUrl);
+            }
             entry.DataSetWriterGroup ??= string.Empty;
             entry.DataSetWriterId ??= string.Empty;
-
-            EnsureUniqueDataSetFieldIds(entry);
-            if (entry.OpcNodes.Any(n =>
-                n.OpcPublishingInterval != null ||
-                n.OpcPublishingIntervalTimespan != null))
-            {
-                throw new BadRequestException(
-                    "Publishing interval not allowed on node level. " +
-                    "Must be set at writer level.");
-            }
+            entry.OpcNodes = ValidateNodes(entry.OpcNodes, true);
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -107,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 else
                 {
                     throw new ResourceInvalidStateException(
-                        "Trying to find entry with provided writer id produced ambigious results.");
+                        kAmbiguousResultsMessage);
                 }
                 var jobs = _publishedNodesJobConverter.ToWriterGroups(newNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
@@ -142,29 +136,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string dataSetWriterId, IReadOnlyList<OpcNodeModel> nodes,
             string? insertAfterFieldId = null, CancellationToken ct = default)
         {
-            var unique = nodes
-                .Select(n => n.DataSetFieldId)
-                .Distinct()
-                .Count();
-            if (unique != nodes.Count)
-            {
-                throw new BadRequestException(
-                    "Field ids must be present and unique.");
-            }
-            if (nodes.Any(n =>
-                n.OpcPublishingInterval != null ||
-                n.OpcPublishingIntervalTimespan != null))
-            {
-                throw new BadRequestException(
-                    "Publishing interval not allowed on node level. " +
-                    "Must be set at writer level.");
-            }
+            var set = new HashSet<string>();
+            var opcNodes = ValidateNodes(nodes.ToList(), true);
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
-                EnsureUniqueDataSetFieldIds(entry);
                 entry.OpcNodes ??= new List<OpcNodeModel>();
 
                 var insertAt = -1;
@@ -184,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                foreach (var node in nodes)
+                foreach (var node in opcNodes)
                 {
                     var existing = entry.OpcNodes
                         .FirstOrDefault(n => n.DataSetFieldId == node.DataSetFieldId);
@@ -219,10 +197,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task RemoveNodesAsync(string writerGroupId, string dataSetWriterId,
             IReadOnlyList<string> dataSetFieldIds, CancellationToken ct = default)
         {
-            var unique = dataSetFieldIds
-                .Distinct()
-                .Count();
-            if (unique != dataSetFieldIds.Count)
+            var set = dataSetFieldIds.ToHashSet();
+            if (set.Count != dataSetFieldIds.Count)
             {
                 throw new BadRequestException("Field ids must be unique.");
             }
@@ -235,8 +211,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return; // Not possible yet because no empty writers can be created.
                 }
-                EnsureUniqueDataSetFieldIds(entry);
-                var set = dataSetFieldIds.ToHashSet();
                 var newNodes = entry.OpcNodes
                     .Where(n => !set.Contains(n.DataSetFieldId ?? string.Empty))
                     .ToList();
@@ -445,6 +419,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
+            if (string.IsNullOrWhiteSpace(request.EndpointUrl))
+            {
+                throw new BadRequestException(kNullOrEmptyEndpointUrl);
+            }
+            request.OpcNodes = ValidateNodes(request.OpcNodes, false);
             request.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -762,6 +741,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request, CancellationToken ct = default)
         {
+            if (string.IsNullOrWhiteSpace(request.EndpointUrl))
+            {
+                throw new BadRequestException(kNullOrEmptyEndpointUrl);
+            }
             request.PropagatePublishingIntervalToNodes();
             var response = new List<OpcNodeModel>();
             await _api.WaitAsync(ct).ConfigureAwait(false);
@@ -782,7 +765,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (!endpointFound)
                 {
-                    throw new ResourceNotFoundException($"Endpoint not found: {request.EndpointUrl}");
+                    throw new ResourceNotFoundException(
+                        $"Endpoint not found: {request.EndpointUrl}");
                 }
             }
             finally
@@ -1092,7 +1076,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 .ToList();
             if (found.Count == 1)
             {
-                return found[0];
+                return EnsureUniqueDataSetFieldIds(found[0]);
             }
             else if (found.Count == 0)
             {
@@ -1101,30 +1085,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             else
             {
-                throw new ResourceInvalidStateException("Trying to find entry " +
-                    "with provided writer id produced ambigious results.");
+                throw new ResourceInvalidStateException(kAmbiguousResultsMessage);
+            }
+            static PublishedNodesEntryModel EnsureUniqueDataSetFieldIds(
+                PublishedNodesEntryModel entry)
+            {
+                if (entry.OpcNodes != null)
+                {
+                    var unique = entry.OpcNodes
+                        .Select(n => n.DataSetFieldId)
+                        .Distinct()
+                        .Count();
+                    if (unique != entry.OpcNodes.Count)
+                    {
+                        throw new BadRequestException(
+                            "Field ids in writer entry must be present and unique.");
+                    }
+                }
+                return entry;
             }
         }
 
         /// <summary>
-        /// Ensure that all field ids are unique in the entry.
+        /// Validate nodes are valid
         /// </summary>
-        /// <param name="entry"></param>
+        /// <param name="opcNodes"></param>
+        /// <param name="dataSetWriterApiRequirements"></param>
+        /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        private static void EnsureUniqueDataSetFieldIds(PublishedNodesEntryModel entry)
+        private static IList<OpcNodeModel> ValidateNodes(IList<OpcNodeModel> opcNodes,
+            bool dataSetWriterApiRequirements = false)
         {
-            if (entry.OpcNodes != null)
+            var set = new HashSet<string>();
+            foreach (var node in opcNodes)
             {
-                var unique = entry.OpcNodes
-                    .Select(n => n.DataSetFieldId)
-                    .Distinct()
-                    .Count();
-                if (unique != entry.OpcNodes.Count)
+                if (string.IsNullOrWhiteSpace(node.Id))
                 {
-                    throw new BadRequestException(
-                        "Field ids in writer entry must be present and unique.");
+                    throw new BadRequestException("Node must contain a node ID");
+                }
+                if (dataSetWriterApiRequirements)
+                {
+                    node.DataSetFieldId ??= node.Id;
+                    set.Add(node.DataSetFieldId);
+                    if (node.OpcPublishingInterval != null ||
+                        node.OpcPublishingIntervalTimespan != null)
+                    {
+                        throw new BadRequestException(
+                            "Publishing interval not allowed on node level. " +
+                            "Must be set at writer level.");
+                    }
                 }
             }
+            if (dataSetWriterApiRequirements && set.Count != opcNodes.Count)
+            {
+                throw new BadRequestException("Field ids must be present and unique.");
+            }
+            return opcNodes;
         }
 
         /// <summary>
@@ -1210,7 +1226,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return BitConverter.ToString(checksum).Replace("-", string.Empty, StringComparison.Ordinal);
         }
 
-        private const string kNullOrEmptyOpcNodesMessage = "null or empty OpcNodes is provided in request";
+        private const string kNullOrEmptyEndpointUrl
+            = "Missing endpoint url in entry";
+        private const string kNullOrEmptyOpcNodesMessage
+            = "null or empty OpcNodes is provided in request";
+        private const string kAmbiguousResultsMessage
+            = "Trying to find entry with provided writer id produced ambigious results.";
+
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
         private readonly IOptions<PublisherOptions> _configuration;
