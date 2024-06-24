@@ -82,6 +82,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 .AsImplementedInterfaces();
             builder.RegisterType<ConfigurationController>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<WriterController>()
+                .AsImplementedInterfaces();
             builder.RegisterType<GeneralController>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HistoryController>()

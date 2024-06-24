@@ -14,9 +14,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using System;
 
     public abstract class OpcUaMonitoredItemTestsBase
     {

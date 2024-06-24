@@ -46,7 +46,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             },
@@ -83,7 +83,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationResponseModel"
                         }
@@ -108,7 +108,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             },
@@ -142,7 +142,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
@@ -172,7 +172,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -196,7 +196,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -229,7 +229,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -253,7 +253,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -282,7 +282,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationModel"
                         }
@@ -323,7 +323,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             },
@@ -345,7 +345,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -381,7 +381,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationSiteListModel"
                         }
@@ -433,7 +433,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
@@ -480,7 +480,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
@@ -513,7 +513,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DiscovererModel"
                         }
@@ -554,7 +554,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             },
@@ -609,7 +609,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -645,7 +645,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
@@ -697,7 +697,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
@@ -757,7 +757,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
@@ -798,7 +798,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -841,7 +841,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
@@ -883,7 +883,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoModel"
                         }
@@ -938,7 +938,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
@@ -980,7 +980,8 @@
                             "Best",
                             "Sign",
                             "SignAndEncrypt",
-                            "None"
+                            "None",
+                            "NotNone"
                         ],
                         "x-ms-enum": {
                             "name": "SecurityMode",
@@ -1054,7 +1055,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
@@ -1103,7 +1104,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
                         }
@@ -1136,7 +1137,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
                         }
@@ -1178,7 +1179,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -1217,7 +1218,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -1248,7 +1249,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -1279,7 +1280,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -1309,7 +1310,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/GatewayInfoModel"
                         }
@@ -1350,7 +1351,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -1386,7 +1387,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
@@ -1438,7 +1439,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
@@ -1481,7 +1482,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
@@ -1529,7 +1530,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryServerCapabilitiesModel"
                         }
@@ -1578,7 +1579,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadResponseModel"
                         }
@@ -1627,7 +1628,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadNextResponseModel"
                         }
@@ -1676,7 +1677,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1724,7 +1725,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationResponseModel"
                         }
@@ -1773,7 +1774,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadResponseModel"
                         }
@@ -1822,7 +1823,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadNextResponseModel"
                         }
@@ -1871,7 +1872,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -1920,7 +1921,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -1969,7 +1970,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2018,7 +2019,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2067,7 +2068,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadNextResponseModel"
                         }
@@ -2116,7 +2117,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2165,7 +2166,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2214,7 +2215,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2263,7 +2264,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2312,7 +2313,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2361,7 +2362,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2410,7 +2411,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2459,7 +2460,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2508,7 +2509,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2557,7 +2558,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2606,7 +2607,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishStartResponseModel"
                         }
@@ -2655,7 +2656,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishBulkResponseModel"
                         }
@@ -2704,7 +2705,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishStopResponseModel"
                         }
@@ -2753,7 +2754,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
@@ -2791,7 +2792,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
@@ -2833,7 +2834,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublisherModel"
                         }
@@ -2874,7 +2875,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -2916,7 +2917,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
@@ -2974,7 +2975,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
@@ -3023,7 +3024,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
@@ -3062,7 +3063,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModelIAsyncEnumerable"
                         }
@@ -3103,7 +3104,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -3139,7 +3140,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/SupervisorModel"
                         }
@@ -3180,7 +3181,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -3222,7 +3223,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
@@ -3280,7 +3281,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
@@ -3335,7 +3336,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
@@ -3377,7 +3378,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -3408,7 +3409,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success"
+                        "description": "OK"
                     }
                 }
             }
@@ -3453,7 +3454,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ServerCapabilitiesModel"
                         }
@@ -3502,7 +3503,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
@@ -3539,7 +3540,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
@@ -3588,7 +3589,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
@@ -3626,7 +3627,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
@@ -3678,7 +3679,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/BrowsePathResponseModel"
                         }
@@ -3727,7 +3728,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
@@ -3765,7 +3766,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
@@ -3814,7 +3815,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ReadResponseModel"
                         }
@@ -3863,7 +3864,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/ValueWriteResponseModel"
                         }
@@ -3912,7 +3913,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/WriteResponseModel"
                         }
@@ -3961,7 +3962,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataResponseModel"
                         }
@@ -4010,7 +4011,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataResponseModel"
                         }
@@ -4059,7 +4060,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/MethodCallResponseModel"
                         }
@@ -4105,7 +4106,8 @@
                     "description": "Whether to use sloped extrapolation.",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationInfoListModel": {
             "description": "List of registered applications",
@@ -4122,7 +4124,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationInfoModel": {
             "description": "Application info model",
@@ -4207,7 +4210,8 @@
                 "updated": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationRegistrationModel": {
             "description": "Application with optional list of endpoints",
@@ -4226,7 +4230,8 @@
                         "$ref": "#/definitions/EndpointRegistrationModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationRegistrationQueryModel": {
             "description": "Application information",
@@ -4275,7 +4280,8 @@
                     "description": "Discoverer id to filter with",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationRegistrationRequestModel": {
             "description": "Application information",
@@ -4341,7 +4347,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationRegistrationResponseModel": {
             "description": "Result of an application registration",
@@ -4351,7 +4358,8 @@
                     "description": "New id application was registered under",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationRegistrationUpdateModel": {
             "description": "Application registration update request",
@@ -4403,7 +4411,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationSiteListModel": {
             "description": "List of application sites",
@@ -4420,7 +4429,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ApplicationType": {
             "description": "Application type",
@@ -4452,7 +4462,8 @@
                 "attribute": {
                     "$ref": "#/definitions/NodeAttribute"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AttributeReadResponseModel": {
             "description": "Attribute value read",
@@ -4465,7 +4476,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AttributeWriteRequestModel": {
             "description": "Attribute and value to write to it",
@@ -4488,7 +4500,8 @@
                     "description": "Value to write (mandatory)",
                     "type": "object"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AttributeWriteResponseModel": {
             "description": "Attribute write result",
@@ -4497,7 +4510,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "AuthenticationMethodModel": {
             "description": "Authentication Method model",
@@ -4522,7 +4536,8 @@
                     "description": "Method specific configuration",
                     "type": "object"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseDirection": {
             "description": "Direction to browse",
@@ -4600,7 +4615,8 @@
                     "description": "Whether to only return the raw node id\r\ninformation and not read the target node.\r\n(default is false)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseFirstResponseModel": {
             "description": "Browse response model",
@@ -4623,7 +4639,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseNextRequestModel": {
             "description": "Request node browsing continuation",
@@ -4656,7 +4673,8 @@
                     "description": "Whether to only return the raw node id\r\ninformation and not read the target node.\r\n(default is false)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseNextResponseModel": {
             "description": "Result of node browse continuation",
@@ -4676,7 +4694,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowsePathRequestModel": {
             "description": "Browse nodes by path",
@@ -4710,7 +4729,8 @@
                     "description": "Whether to only return the raw node id\r\ninformation and not read the target node.\r\n(default is false)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowsePathResponseModel": {
             "description": "Result of node browse continuation",
@@ -4726,7 +4746,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "BrowseViewModel": {
             "description": "View to browse",
@@ -4750,7 +4771,8 @@
                     "description": "Browses at or before this timestamp.",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ConditionHandlingOptionsModel": {
             "description": "Condition handling options model",
@@ -4766,7 +4788,8 @@
                     "description": "Time interval for sending pending interval snapshot in seconds.",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ContentFilterElementModel": {
             "description": "An expression element in the filter ast",
@@ -4782,7 +4805,8 @@
                         "$ref": "#/definitions/FilterOperandModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ContentFilterModel": {
             "description": "Content filter",
@@ -4795,7 +4819,8 @@
                         "$ref": "#/definitions/ContentFilterElementModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "CredentialModel": {
             "description": "Credential model. For backwards compatibility\r\nthe actual credentials to pass to the server is set\r\nthrough the value property.",
@@ -4807,7 +4832,8 @@
                 "value": {
                     "$ref": "#/definitions/UserIdentityModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "CredentialType": {
             "description": "Type of credentials to use for authentication",
@@ -4870,7 +4896,8 @@
                     "description": "The data type for the instance declaration.",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeadbandType": {
             "description": "Deadband type",
@@ -4899,7 +4926,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteEventsDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -4927,7 +4955,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesAtTimesDetailsModel": {
             "description": "Deletes data at times",
@@ -4944,7 +4973,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -4972,7 +5002,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesDetailsModel": {
             "description": "Delete values",
@@ -4988,7 +5019,8 @@
                     "description": "End time to delete until",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DeleteValuesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -5016,7 +5048,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiagnosticsLevel": {
             "description": "Level of diagnostics requested in responses",
@@ -5049,7 +5082,8 @@
                     "description": "Timestamp of request.\r\n(default: client generated)",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscovererListModel": {
             "description": "Discoverer registration list",
@@ -5066,7 +5100,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscovererModel": {
             "description": "Discoverer registration",
@@ -5112,7 +5147,8 @@
                     "description": "Current api key",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscovererQueryModel": {
             "description": "Discoverer registration query",
@@ -5129,7 +5165,8 @@
                     "description": "Included connected or disconnected",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscovererUpdateModel": {
             "description": "Discoverer update request",
@@ -5145,7 +5182,8 @@
                 "discoveryConfig": {
                     "$ref": "#/definitions/DiscoveryConfigModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscoveryConfigModel": {
             "description": "Discovery configuration api model",
@@ -5203,7 +5241,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "DiscoveryMode": {
             "description": "Discovery mode to use",
@@ -5237,7 +5276,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointConnectivityState": {
             "description": "State of the endpoint after activation",
@@ -5273,7 +5313,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointInfoModel": {
             "description": "Endpoint info",
@@ -5299,7 +5340,8 @@
                     "description": "Last time endpoint was seen",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointModel": {
             "description": "Endpoint model",
@@ -5327,7 +5369,8 @@
                     "description": "Endpoint certificate thumbprint",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointRegistrationModel": {
             "description": "Endpoint registration",
@@ -5368,7 +5411,8 @@
                         "$ref": "#/definitions/AuthenticationMethodModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EndpointRegistrationQueryModel": {
             "description": "Endpoint query",
@@ -5408,7 +5452,8 @@
                     "description": "Site or gateway id to filter with",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "EventFilterModel": {
             "description": "Event filter",
@@ -5432,7 +5477,8 @@
                     "description": "Simple event Type definition node id",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ExceptionDeviationType": {
             "description": "Exception deviation type",
@@ -5487,7 +5533,8 @@
                     "description": "Data type if operand is a literal",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "FilterOperatorType": {
             "description": "Filter operator type",
@@ -5530,7 +5577,8 @@
                 "modules": {
                     "$ref": "#/definitions/GatewayModulesModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "GatewayListModel": {
             "description": "Gateway registration list",
@@ -5547,7 +5595,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "GatewayModel": {
             "description": "Gateway registration model",
@@ -5569,7 +5618,8 @@
                     "description": "Whether gateway is connected",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "GatewayModulesModel": {
             "description": "Gateway modules",
@@ -5584,7 +5634,8 @@
                 "discoverer": {
                     "$ref": "#/definitions/DiscovererModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "GatewayQueryModel": {
             "description": "Gateway registration query",
@@ -5598,7 +5649,8 @@
                     "description": "Included connected or disconnected",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "GatewayUpdateModel": {
             "description": "Gateway registration update request",
@@ -5608,7 +5660,8 @@
                     "description": "Site of the Gateway",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HeartbeatBehavior": {
             "description": "Heartbeat behavior",
@@ -5638,7 +5691,8 @@
                         "type": "object"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricEventModelArrayHistoryReadNextResponseModel": {
             "description": "History read continuation result",
@@ -5658,7 +5712,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricEventModelArrayHistoryReadResponseModel": {
             "description": "History read results",
@@ -5678,7 +5733,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricValueModel": {
             "description": "Historic data",
@@ -5724,7 +5780,8 @@
                 "additionalData": {
                     "$ref": "#/definitions/AdditionalData"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricValueModelArrayHistoryReadNextResponseModel": {
             "description": "History read continuation result",
@@ -5744,7 +5801,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoricValueModelArrayHistoryReadResponseModel": {
             "description": "History read results",
@@ -5764,7 +5822,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryConfigurationModel": {
             "description": "History configuration",
@@ -5825,7 +5884,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryConfigurationRequestModel": {
             "description": "Request history configuration",
@@ -5842,7 +5902,8 @@
                     "minLength": 1,
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryConfigurationResponseModel": {
             "description": "Response with history configuration",
@@ -5854,7 +5915,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryReadNextRequestModel": {
             "description": "Request node history read continuation",
@@ -5875,7 +5937,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryServerCapabilitiesModel": {
             "description": "History Server capabilities",
@@ -5950,7 +6013,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "HistoryUpdateOperation": {
             "description": "History update type",
@@ -5980,7 +6044,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "InstanceDeclarationModel": {
             "description": "Instance declaration meta data",
@@ -6037,19 +6102,21 @@
                     "description": "The modelling rule node id.",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MessageEncoding": {
             "description": "Message encoding",
             "enum": [
-                "Binary",
+                "Uadp",
                 "Json",
                 "Xml",
+                "Avro",
                 "IsReversible",
-                "Uadp",
                 "JsonReversible",
                 "IsGzipCompressed",
                 "JsonGzip",
+                "AvroGzip",
                 "JsonReversibleGzip"
             ],
             "type": "string",
@@ -6067,6 +6134,8 @@
                 "FullSamples",
                 "DataSetMessages",
                 "SingleDataSetMessage",
+                "DataSets",
+                "SingleDataSet",
                 "RawDataSets",
                 "SingleRawDataSet"
             ],
@@ -6088,7 +6157,8 @@
                     "description": "Data type Id of the value (from meta data)",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodCallRequestModel": {
             "description": "Call request model",
@@ -6126,7 +6196,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodCallResponseModel": {
             "description": "Method call response model",
@@ -6142,7 +6213,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataArgumentModel": {
             "description": "Method argument metadata model",
@@ -6178,7 +6250,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataModel": {
             "description": "Method metadata model",
@@ -6202,7 +6275,8 @@
                         "$ref": "#/definitions/MethodMetadataArgumentModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataRequestModel": {
             "description": "Method metadata request model",
@@ -6222,7 +6296,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "MethodMetadataResponseModel": {
             "description": "Result of method metadata query",
@@ -6249,7 +6324,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ModelChangeHandlingOptionsModel": {
             "description": "Describes how model changes are published",
@@ -6260,7 +6336,8 @@
                     "description": "Rebrowse period",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ModificationInfoModel": {
             "description": "Modification information",
@@ -6278,7 +6355,8 @@
                     "description": "User who made the change",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NamespaceFormat": {
             "description": "Namespace serialization format for node ids\r\nand qualified names.",
@@ -6403,7 +6481,8 @@
                     "description": "Identifier",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeMetadataRequestModel": {
             "description": "Node metadata request model",
@@ -6423,7 +6502,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeMetadataResponseModel": {
             "description": "Node metadata model",
@@ -6459,7 +6539,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeModel": {
             "description": "Node model",
@@ -6612,7 +6693,8 @@
                     "description": "Whether node has children which are defined as\r\nany forward hierarchical references.\r\n(default: unknown)",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodePathTargetModel": {
             "description": "Node path target",
@@ -6633,7 +6715,8 @@
                     "description": "Remaining index in path",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeReferenceModel": {
             "description": "Reference model",
@@ -6655,7 +6738,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NodeType": {
             "description": "The node type",
@@ -6836,7 +6920,8 @@
                     "description": "Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "OperationContextModel": {
             "description": "Operation log model",
@@ -6851,7 +6936,8 @@
                     "description": "Operation time",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "OperationLimitsModel": {
             "description": "Server limits",
@@ -6952,7 +7038,8 @@
                     "description": "Max monitored items that can be updated at once.",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishBulkRequestModel": {
             "description": "Publish in bulk request",
@@ -6975,7 +7062,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishBulkResponseModel": {
             "description": "Result of bulk request",
@@ -6995,7 +7083,8 @@
                         "$ref": "#/definitions/ServiceResultModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStartRequestModel": {
             "description": "Publish request",
@@ -7010,7 +7099,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStartResponseModel": {
             "description": "Result of publish request",
@@ -7019,7 +7109,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStopRequestModel": {
             "description": "Unpublish request",
@@ -7036,7 +7127,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishStopResponseModel": {
             "description": "Result of publish stop request",
@@ -7045,7 +7137,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemListRequestModel": {
             "description": "Request list of published items",
@@ -7058,7 +7151,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemListResponseModel": {
             "description": "List of published nodes",
@@ -7075,7 +7169,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedItemModel": {
             "description": "A monitored and published item",
@@ -7108,7 +7203,8 @@
                     "description": "Heartbeat interval to use",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
@@ -7118,7 +7214,7 @@
             "type": "object",
             "properties": {
                 "Version": {
-                    "format": "int32",
+                    "format": "int64",
                     "description": "Version number of the entry",
                     "type": "integer"
                 },
@@ -7291,13 +7387,31 @@
                     "description": "Number of partitions to split the writer group into\r\nwhen publishing to target topics.",
                     "type": "integer"
                 },
+                "DisableSubscriptionTransfer": {
+                    "description": "Disable subscription transfer on reconnect",
+                    "type": "boolean"
+                },
+                "republishAfterTransfer": {
+                    "description": "Republish after transferring the subscription during\r\nreconnect handling unless subscription transfer was disabled.",
+                    "type": "boolean"
+                },
+                "MonitoredItemWatchdogTimespan": {
+                    "format": "date-span",
+                    "description": "The timeout to use to monitor the monitored items in the\r\nsubscription are continously reporting fresh data.",
+                    "type": "string"
+                },
+                "WatchdogBehavior": {
+                    "$ref": "#/definitions/SubscriptionWatchdogBehavior"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublishedNodesEntryModelIAsyncEnumerable": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         },
         "PublisherListModel": {
             "description": "Publisher list",
@@ -7314,7 +7428,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublisherModel": {
             "description": "Publisher registration",
@@ -7348,7 +7463,8 @@
                     "description": "Current api key",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublisherQueryModel": {
             "description": "Publisher registration query request",
@@ -7362,7 +7478,8 @@
                     "description": "Included connected or disconnected",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "PublisherUpdateModel": {
             "description": "Publisher registration update request",
@@ -7376,7 +7493,8 @@
                     "description": "New api key",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "QoS": {
             "enum": [
@@ -7412,7 +7530,8 @@
                 "filter": {
                     "$ref": "#/definitions/EventFilterModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadEventsDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -7447,7 +7566,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadModifiedValuesDetailsModel": {
             "description": "Read modified data",
@@ -7468,7 +7588,8 @@
                     "description": "The number of values to read",
                     "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadModifiedValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -7503,7 +7624,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadProcessedValuesDetailsModel": {
             "description": "Read processed historic data",
@@ -7531,7 +7653,8 @@
                 "aggregateConfiguration": {
                     "$ref": "#/definitions/AggregateConfigurationModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadProcessedValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -7566,7 +7689,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadRequestModel": {
             "description": "Request node attribute read",
@@ -7585,7 +7709,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadResponseModel": {
             "description": "Result of attribute reads",
@@ -7601,7 +7726,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesAtTimesDetailsModel": {
             "description": "Read data at specified times",
@@ -7622,7 +7748,8 @@
                     "description": "Whether to use simple bounds",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesAtTimesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -7657,7 +7784,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesDetailsModel": {
             "description": "Read historic values",
@@ -7682,7 +7810,8 @@
                     "description": "Whether to return the bounding values or not.",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ReadValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -7717,7 +7846,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RequestHeaderModel": {
             "description": "Request header model",
@@ -7727,7 +7857,7 @@
                     "$ref": "#/definitions/CredentialModel"
                 },
                 "locales": {
-                    "description": "Optional list of locales in preference order.",
+                    "description": "Optional list of preferred locales in preference\r\norder to be used during connecting the session.\r\nWe suggest to use the connection object to set\r\nthe locales",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -7738,8 +7868,24 @@
                 },
                 "namespaceFormat": {
                     "$ref": "#/definitions/NamespaceFormat"
+                },
+                "operationTimeout": {
+                    "format": "int32",
+                    "description": "Operation timeout in ms. This applies to every\r\noperation that is invoked, not to the entire\r\ntransaction and overrides the configured operation\r\ntimeout.",
+                    "type": "integer"
+                },
+                "serviceCallTimeout": {
+                    "format": "int32",
+                    "description": "Service call timeout in ms. As opposed to the\r\noperation timeout this terminates the entire\r\ntransaction if it takes longer than the timeout to\r\ncomplete. Note that a connect and reconnect during\r\nthe service call is gated by the connect timeout\r\nsetting. If a connect timeout is not specified\r\nthis timeout is used also for connect timeout.",
+                    "type": "integer"
+                },
+                "connectTimeout": {
+                    "format": "int32",
+                    "description": "Connect timeout in ms. As opposed to the service call\r\ntimeout this terminates the entire transaction if\r\nit takes longer than the timeout to connect a session\r\nA connect and reconnect during the service call\r\nresets the timeout therefore the overall time for\r\nthe call to complete can be longer than specified.",
+                    "type": "integer"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RolePermissionModel": {
             "description": "Role permission model",
@@ -7756,7 +7902,8 @@
                 "permissions": {
                     "$ref": "#/definitions/RolePermissions"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "RolePermissions": {
             "description": "Individual permissions assigned to a role",
@@ -7792,7 +7939,8 @@
                 "Best",
                 "Sign",
                 "SignAndEncrypt",
-                "None"
+                "None",
+                "NotNone"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -7835,7 +7983,8 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ServerEndpointQueryModel": {
             "description": "Endpoint model",
@@ -7860,7 +8009,8 @@
                     "description": "Endpoint must match with this certificate thumbprint",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ServerRegistrationRequestModel": {
             "description": "Server registration request",
@@ -7881,7 +8031,8 @@
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ServiceResultModel": {
             "description": "Service result",
@@ -7915,7 +8066,8 @@
                 "inner": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SetConfiguredEndpointsRequestModel": {
             "description": "Set configured endpoints request call",
@@ -7928,7 +8080,8 @@
                         "$ref": "#/definitions/PublishedNodesEntryModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SimpleAttributeOperandModel": {
             "description": "Simple attribute operand model",
@@ -7961,6 +8114,21 @@
                     "description": "Optional data set class field id (Publisher extension)",
                     "type": "string"
                 }
+            },
+            "additionalProperties": false
+        },
+        "SubscriptionWatchdogBehavior": {
+            "description": "Subscription watchdog behavior",
+            "enum": [
+                "Diagnostic",
+                "Reset",
+                "FailFast",
+                "ExitProcess"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "SubscriptionWatchdogBehavior",
+                "modelAsString": false
             }
         },
         "SupervisorListModel": {
@@ -7978,7 +8146,8 @@
                     "description": "Continuation or null if final",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SupervisorModel": {
             "description": "Supervisor registration",
@@ -8012,7 +8181,8 @@
                     "description": "Api key of the module",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SupervisorQueryModel": {
             "description": "Supervisor registration query",
@@ -8030,7 +8200,8 @@
                     "description": "Included connected or disconnected",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "SupervisorUpdateModel": {
             "description": "Supervisor update request",
@@ -8040,7 +8211,8 @@
                     "description": "Site the supervisor is part of",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "TestConnectionRequestModel": {
             "description": "Test connection request",
@@ -8049,7 +8221,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "TestConnectionResponseModel": {
             "description": "Test connection response",
@@ -8058,7 +8231,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "TimestampsToReturn": {
             "description": "Timestamps",
@@ -8115,7 +8289,8 @@
                         "$ref": "#/definitions/InstanceDeclarationModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateEventsDetailsModel": {
             "description": "Insert, upsert or replace historic events",
@@ -8134,7 +8309,8 @@
                         "$ref": "#/definitions/HistoricEventModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateEventsDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -8162,7 +8338,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateValuesDetailsModel": {
             "description": "Insert, upsert, or update historic values",
@@ -8178,7 +8355,8 @@
                         "$ref": "#/definitions/HistoricValueModel"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UpdateValuesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -8206,25 +8384,27 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "UserIdentityModel": {
             "description": "User identity model",
             "type": "object",
             "properties": {
                 "user": {
-                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the name of the user.\r\n            \r\n<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the subject name of the certificate that has been\r\n            configured.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "description": "\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the name of the user.\r\n            \r\n\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the subject name of the certificate that has been\r\n            configured.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n\r\n\r\n            Not used for the other authentication types.\r\n            ",
                     "type": "string"
                 },
                 "password": {
-                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the password of the user.\r\n            \r\n<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the passcode to export the configured certificate's\r\n            private key.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "description": "\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication\r\n            this is the password of the user.\r\n            \r\n\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the passcode to export the configured certificate's\r\n            private key.\r\n            \r\n\r\n\r\n            Not used for the other authentication types.\r\n            ",
                     "type": "string"
                 },
                 "thumbprint": {
-                    "description": "<br>\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the thumbprint of the configured certificate to use.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n<br>\r\n            Not used for the other authentication types.\r\n            ",
+                    "description": "\r\n\r\n            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication\r\n            this is the thumbprint of the configured certificate to use.\r\n            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be\r\n            used to select the certificate in the user certificate store.\r\n            \r\n\r\n\r\n            Not used for the other authentication types.\r\n            ",
                     "type": "string"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueReadRequestModel": {
             "description": "Request node value read",
@@ -8256,7 +8436,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueReadResponseModel": {
             "description": "Value read response model",
@@ -8293,7 +8474,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueWriteRequestModel": {
             "description": "Value write request model",
@@ -8328,7 +8510,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "ValueWriteResponseModel": {
             "description": "Value write response model",
@@ -8337,7 +8520,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariableMetadataModel": {
             "description": "Variable metadata model",
@@ -8358,7 +8542,8 @@
                         "type": "integer"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadNextResponseModel": {
             "description": "History read continuation result",
@@ -8375,7 +8560,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadRequestModel": {
             "description": "Request node history read",
@@ -8411,7 +8597,8 @@
                 "timestampsToReturn": {
                     "$ref": "#/definitions/TimestampsToReturn"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryReadResponseModel": {
             "description": "History read results",
@@ -8428,7 +8615,8 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "VariantValueHistoryUpdateRequestModel": {
             "description": "Request node history update",
@@ -8457,7 +8645,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriteRequestModel": {
             "description": "Request node attribute write",
@@ -8476,7 +8665,8 @@
                 "header": {
                     "$ref": "#/definitions/RequestHeaderModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriteResponseModel": {
             "description": "Result of attribute write",
@@ -8492,13 +8682,15 @@
                 "errorInfo": {
                     "$ref": "#/definitions/ServiceResultModel"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "WriterGroupTransport": {
             "description": "Desired writer group transport",
             "enum": [
                 "IoTHub",
                 "Mqtt",
+                "EventHub",
                 "Dapr",
                 "Http",
                 "FileSystem",
@@ -8558,7 +8750,8 @@
                         "modelAsString": false
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "X509CertificateModel": {
             "description": "Certificate model",
@@ -8602,7 +8795,8 @@
                     "description": "Contains private key",
                     "type": "boolean"
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "X509ChainStatus": {
             "description": "Status of x509 chain",

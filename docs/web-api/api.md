@@ -29,7 +29,7 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -64,7 +64,7 @@ Get all registered applications in paged form. The returned model can contain a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Produces
@@ -97,7 +97,7 @@ The application is registered using the provided information, but it is not asso
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
+|**200**|OK|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
 
 
 ##### Consumes
@@ -139,7 +139,7 @@ Purges all applications that have not been seen for a specified amount of time.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="discoverserver"></a>
@@ -164,7 +164,7 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -198,7 +198,7 @@ Cancels a discovery request using the request identifier.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="queryapplications"></a>
@@ -224,7 +224,7 @@ List applications that match a query model. The returned model can contain a con
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Consumes
@@ -267,7 +267,7 @@ Get a list of applications filtered using the specified query parameters. The re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Consumes
@@ -310,7 +310,7 @@ List all sites applications are registered in.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
+|**200**|OK|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
 
 
 ##### Produces
@@ -339,7 +339,7 @@ GET /registry/v2/applications/{applicationId}
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**200**|OK|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
 
 
 ##### Produces
@@ -372,7 +372,7 @@ Unregisters and deletes application and all its associated endpoints.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="updateapplicationregistration"></a>
@@ -398,7 +398,7 @@ The application information is updated with new properties. Note that this infor
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -432,7 +432,7 @@ A manager can disable an application.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="enableapplication"></a>
@@ -457,7 +457,7 @@ A manager can enable an application.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="discovery_resource"></a>
@@ -488,7 +488,7 @@ Get all registered discoverers and therefore twin modules in paged form. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**200**|OK|[DiscovererListModel](definitions.md#discovererlistmodel)|
 
 
 ##### Produces
@@ -522,7 +522,7 @@ Get all discoverers that match a specified query. The returned model can contain
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**200**|OK|[DiscovererListModel](definitions.md#discovererlistmodel)|
 
 
 ##### Consumes
@@ -567,7 +567,7 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**200**|OK|[DiscovererListModel](definitions.md#discovererlistmodel)|
 
 
 ##### Produces
@@ -602,7 +602,7 @@ Allows a caller to configure recurring discovery runs on the discovery module id
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -636,7 +636,7 @@ Returns a discoverer's registration and connectivity information. A discoverer i
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[DiscovererModel](definitions.md#discoverermodel)|
+|**200**|OK|[DiscovererModel](definitions.md#discoverermodel)|
 
 
 ##### Produces
@@ -670,7 +670,7 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -711,7 +711,7 @@ Get all registered endpoints in paged form. The returned model can contain a con
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**200**|OK|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
 
 
 ##### Produces
@@ -744,7 +744,7 @@ Adds an endpoint. This will onboard the endpoint and the associated application 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|string|
+|**200**|OK|string|
 
 
 ##### Consumes
@@ -788,7 +788,7 @@ Return endpoints that match the specified query. The returned model can contain 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**200**|OK|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
 
 
 ##### Consumes
@@ -830,7 +830,7 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 |**Query**|**includeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted|boolean|
 |**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
-|**Query**|**securityMode**  <br>*optional*|Security mode to use for communication - null = Best|enum (Best, Sign, SignAndEncrypt, None)|
+|**Query**|**securityMode**  <br>*optional*|Security mode to use for communication - null = Best|enum (Best, Sign, SignAndEncrypt, None, NotNone)|
 |**Query**|**securityPolicy**  <br>*optional*|Endpoint security policy to use - null = Best.|string|
 |**Query**|**siteOrGatewayId**  <br>*optional*|Site or gateway id to filter with|string|
 |**Query**|**url**  <br>*optional*|Endoint url for direct server access|string|
@@ -840,7 +840,7 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**200**|OK|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
 
 
 ##### Produces
@@ -874,7 +874,7 @@ Gets information about an endpoint.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[EndpointInfoModel](definitions.md#endpointinfomodel)|
+|**200**|OK|[EndpointInfoModel](definitions.md#endpointinfomodel)|
 
 
 ##### Produces
@@ -907,7 +907,7 @@ Gets current certificate of the endpoint.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**200**|OK|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
 
 
 ##### Produces
@@ -941,7 +941,7 @@ Test an endpoint can be connected to. Returns error information if connecting fa
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**200**|OK|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
 
 
 ##### Consumes
@@ -989,7 +989,7 @@ Register a client to receive discovery progress events through SignalR for a par
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -1024,7 +1024,7 @@ Unregister a client and stop it from receiving discovery events for a particular
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="subscribebydiscovererid"></a>
@@ -1050,7 +1050,7 @@ Register a client to receive discovery progress events through SignalR from a pa
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -1085,7 +1085,7 @@ Unregister a client and stop it from receiving discovery events.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="gateways_resource"></a>
@@ -1116,7 +1116,7 @@ Get all registered Gateways and therefore twin modules in paged form. The return
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**200**|OK|[GatewayListModel](definitions.md#gatewaylistmodel)|
 
 
 ##### Produces
@@ -1150,7 +1150,7 @@ Get all Gateways that match a specified query. The returned model can contain a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**200**|OK|[GatewayListModel](definitions.md#gatewaylistmodel)|
 
 
 ##### Consumes
@@ -1194,7 +1194,7 @@ Get a list of Gateways filtered using the specified query parameters. The return
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**200**|OK|[GatewayListModel](definitions.md#gatewaylistmodel)|
 
 
 ##### Produces
@@ -1227,7 +1227,7 @@ Returns a Gateway's registration and connectivity information. A Gateway id corr
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[GatewayInfoModel](definitions.md#gatewayinfomodel)|
+|**200**|OK|[GatewayInfoModel](definitions.md#gatewayinfomodel)|
 
 
 ##### Produces
@@ -1261,7 +1261,7 @@ Allows a caller to configure operations on the Gateway module identified by the 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -1301,7 +1301,7 @@ Gets the capabilities of the connected historian server. The endpoint must be in
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**200**|OK|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
 
 
 ##### Produces
@@ -1335,7 +1335,7 @@ Delete historic events using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1378,7 +1378,7 @@ Delete historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1421,7 +1421,7 @@ Delete historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1464,7 +1464,7 @@ Delete value history using historic access. The endpoint must be in the registry
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1507,7 +1507,7 @@ Read node history if available using historic access. The endpoint must be in th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**200**|OK|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -1550,7 +1550,7 @@ Read next batch of node history values using historic access. The endpoint must 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**200**|OK|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -1593,7 +1593,7 @@ Update node history using historic access. The endpoint must be in the registry 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1636,7 +1636,7 @@ Insert historic events using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1679,7 +1679,7 @@ Insert historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1722,7 +1722,7 @@ Read history node configuration if available. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**200**|OK|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
 
 
 ##### Consumes
@@ -1765,7 +1765,7 @@ Read historic events of a node if available using historic access. The endpoint 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -1808,7 +1808,7 @@ Read next batch of historic events of a node using historic access. The endpoint
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**200**|OK|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -1851,7 +1851,7 @@ Read processed history values of a node if available using historic access. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -1894,7 +1894,7 @@ Read processed history values of a node if available using historic access. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -1937,7 +1937,7 @@ Read next batch of historic values of a node using historic access. The endpoint
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -1980,7 +1980,7 @@ Read historic values of a node if available using historic access. The endpoint 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2023,7 +2023,7 @@ Read processed history values of a node if available using historic access. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2066,7 +2066,7 @@ Replace historic events using historic access. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2109,7 +2109,7 @@ Replace historic values using historic access. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2152,7 +2152,7 @@ Upsert historic events using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2195,7 +2195,7 @@ Upsert historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2243,7 +2243,7 @@ Returns currently published node ids for an endpoint. The endpoint must be in th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**200**|OK|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
 
 
 ##### Consumes
@@ -2286,7 +2286,7 @@ Returns next set of currently published node ids for an endpoint. The endpoint m
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**200**|OK|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
 
 
 ##### Produces
@@ -2320,7 +2320,7 @@ Adds or removes in bulk values that should be published from a particular endpoi
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
+|**200**|OK|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
 
 
 ##### Consumes
@@ -2363,7 +2363,7 @@ Start publishing variable node values to IoT Hub. The endpoint must be in the re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
+|**200**|OK|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
 
 
 ##### Consumes
@@ -2406,7 +2406,7 @@ Stop publishing variable node values to IoT Hub. The endpoint must be in the reg
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
+|**200**|OK|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
 
 
 ##### Consumes
@@ -2455,7 +2455,7 @@ Get all registered publishers and therefore twin modules in paged form. The retu
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**200**|OK|[PublisherListModel](definitions.md#publisherlistmodel)|
 
 
 ##### Produces
@@ -2490,7 +2490,7 @@ Get all publishers that match a specified query. The returned model can contain 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**200**|OK|[PublisherListModel](definitions.md#publisherlistmodel)|
 
 
 ##### Consumes
@@ -2535,7 +2535,7 @@ Get a list of publishers filtered using the specified query parameters. The retu
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**200**|OK|[PublisherListModel](definitions.md#publisherlistmodel)|
 
 
 ##### Produces
@@ -2569,7 +2569,7 @@ Returns a publisher's registration and connectivity information. A publisher id 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublisherModel](definitions.md#publishermodel)|
+|**200**|OK|[PublisherModel](definitions.md#publishermodel)|
 
 
 ##### Produces
@@ -2603,7 +2603,7 @@ Allows a caller to configure operations on the publisher module identified by th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -2638,7 +2638,7 @@ Get all configured endpoints on the publisher. These are the ones configured in 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedNodesEntryModelIAsyncEnumerable](definitions.md#publishednodesentrymodeliasyncenumerable)|
+|**200**|OK|[PublishedNodesEntryModelIAsyncEnumerable](definitions.md#publishednodesentrymodeliasyncenumerable)|
 
 
 ##### Produces
@@ -2672,7 +2672,7 @@ Set all configured endpoints on the publisher. These are the ones that will be w
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -2713,7 +2713,7 @@ Get all registered supervisors and therefore twin modules in paged form. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**200**|OK|[SupervisorListModel](definitions.md#supervisorlistmodel)|
 
 
 ##### Produces
@@ -2748,7 +2748,7 @@ Get all supervisors that match a specified query. The returned model can contain
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**200**|OK|[SupervisorListModel](definitions.md#supervisorlistmodel)|
 
 
 ##### Consumes
@@ -2794,7 +2794,7 @@ Get a list of supervisors filtered using the specified query parameters. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**200**|OK|[SupervisorListModel](definitions.md#supervisorlistmodel)|
 
 
 ##### Produces
@@ -2828,7 +2828,7 @@ Returns a supervisor's registration and connectivity information. A supervisor i
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[SupervisorModel](definitions.md#supervisormodel)|
+|**200**|OK|[SupervisorModel](definitions.md#supervisormodel)|
 
 
 ##### Produces
@@ -2862,7 +2862,7 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -2902,7 +2902,7 @@ Register a client to receive publisher samples through SignalR.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -2937,7 +2937,7 @@ Unregister a client and stop it from receiving samples.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="twin_resource"></a>
@@ -2968,7 +2968,7 @@ Browse a node on the specified endpoint. The endpoint must be in the registry an
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|OK|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
 
 
 ##### Consumes
@@ -3011,7 +3011,7 @@ Browse the set of unique hierarchically referenced target nodes on the endpoint.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|OK|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
 
 
 ##### Produces
@@ -3045,7 +3045,7 @@ Browse next set of references on the endpoint. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|OK|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
 
 
 ##### Consumes
@@ -3088,7 +3088,7 @@ Browse the next set of unique hierarchically referenced target nodes on the endp
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|OK|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
 
 
 ##### Produces
@@ -3122,7 +3122,7 @@ Browse using a path from the specified node id. This call uses TranslateBrowsePa
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**200**|OK|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
 
 
 ##### Consumes
@@ -3165,7 +3165,7 @@ Invoke method node with specified input arguments. The endpoint must be in the r
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**200**|OK|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
 
 
 ##### Consumes
@@ -3208,7 +3208,7 @@ POST /twin/v2/call/{endpointId}/metadata
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**200**|OK|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
 
 
 ##### Consumes
@@ -3251,7 +3251,7 @@ Gets the capabilities of the connected server. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**200**|OK|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
 
 
 ##### Produces
@@ -3285,7 +3285,7 @@ Get the node metadata which includes the fields and meta data of the type and ca
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**200**|OK|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
 
 
 ##### Consumes
@@ -3328,7 +3328,7 @@ Read a variable node's value. The endpoint must be in the registry and the serve
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|OK|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
 
 
 ##### Consumes
@@ -3371,7 +3371,7 @@ Get a variable node's value using its node id. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|OK|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
 
 
 ##### Produces
@@ -3405,7 +3405,7 @@ Read attributes of a node. The endpoint must be in the registry and the server a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**200**|OK|[ReadResponseModel](definitions.md#readresponsemodel)|
 
 
 ##### Consumes
@@ -3448,7 +3448,7 @@ Write variable node's value. The endpoint must be in the registry and the server
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**200**|OK|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
 
 
 ##### Consumes
@@ -3491,7 +3491,7 @@ Write any attribute of a node. The endpoint must be in the registry and the serv
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**200**|OK|[WriteResponseModel](definitions.md#writeresponsemodel)|
 
 
 ##### Consumes

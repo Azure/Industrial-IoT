@@ -70,18 +70,228 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public async Task CreateOrUpdateDataSetWriterEntryAsync(
+            PublishedNodesEntryModel entry, CancellationToken ct = default)
+        {
+            if (entry.OpcNodes is null || entry.OpcNodes.Count == 0)
+            {
+                // We cannot yet create empty writers that can be filled.
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
+            }
+            if (string.IsNullOrWhiteSpace(entry.EndpointUrl))
+            {
+                throw new BadRequestException(kNullOrEmptyEndpointUrl);
+            }
+            entry.DataSetWriterGroup ??= string.Empty;
+            entry.DataSetWriterId ??= string.Empty;
+            entry.OpcNodes = ValidateNodes(entry.OpcNodes, true);
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var newNodes = currentNodes
+                    .Where(e =>
+                        !((e.DataSetWriterGroup ?? string.Empty) == entry.DataSetWriterGroup &&
+                          (e.DataSetWriterId ?? string.Empty) == entry.DataSetWriterId))
+                    .ToList();
+                if (newNodes.Count >= currentNodes.Count - 1)
+                {
+                    newNodes.Add(entry);
+                }
+                else
+                {
+                    throw new ResourceInvalidStateException(
+                        kAmbiguousResultsMessage);
+                }
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(newNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
+            string writerGroupId, string dataSetWriterId, CancellationToken ct = default)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                return Find(writerGroupId, dataSetWriterId, GetCurrentPublishedNodes()) with
+                {
+                    OpcNodes = null
+                };
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task AddOrUpdateNodesAsync(string writerGroupId,
+            string dataSetWriterId, IReadOnlyList<OpcNodeModel> nodes,
+            string? insertAfterFieldId = null, CancellationToken ct = default)
+        {
+            var set = new HashSet<string>();
+            var opcNodes = ValidateNodes(nodes.ToList(), true);
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                entry.OpcNodes ??= new List<OpcNodeModel>();
+
+                var insertAt = -1;
+                if (insertAfterFieldId != null)
+                {
+                    var offset = entry.OpcNodes
+                        .FirstOrDefault(n => n.DataSetFieldId == insertAfterFieldId);
+                    if (offset == null)
+                    {
+                        throw new ResourceNotFoundException(
+                            "Field to insert after not found.");
+                    }
+                    insertAt = entry.OpcNodes.IndexOf(offset);
+                    if (++insertAt == entry.OpcNodes.Count)
+                    {
+                        insertAt = -1;
+                    }
+                }
+
+                foreach (var node in opcNodes)
+                {
+                    var existing = entry.OpcNodes
+                        .FirstOrDefault(n => n.DataSetFieldId == node.DataSetFieldId);
+                    if (existing != null)
+                    {
+                        // Replace existing
+                        var index = entry.OpcNodes.IndexOf(existing);
+                        entry.OpcNodes[index] = node;
+                    }
+                    else if (insertAt != -1)
+                    {
+                        // Insert after
+                        entry.OpcNodes.Insert(insertAt++, node);
+                    }
+                    else
+                    {
+                        // at end
+                        entry.OpcNodes.Add(node);
+                    }
+                }
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveNodesAsync(string writerGroupId, string dataSetWriterId,
+            IReadOnlyList<string> dataSetFieldIds, CancellationToken ct = default)
+        {
+            var set = dataSetFieldIds.ToHashSet();
+            if (set.Count != dataSetFieldIds.Count)
+            {
+                throw new BadRequestException("Field ids must be unique.");
+            }
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                if (entry.OpcNodes == null)
+                {
+                    return; // Not possible yet because no empty writers can be created.
+                }
+                var newNodes = entry.OpcNodes
+                    .Where(n => !set.Contains(n.DataSetFieldId ?? string.Empty))
+                    .ToList();
+                if (newNodes.Count == entry.OpcNodes.Count)
+                {
+                    return; // Nothing was found
+                }
+                entry.OpcNodes = newNodes;
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(string writerGroupId,
+            string dataSetWriterId, string? dataSetFieldId = null, int? count = null,
+            CancellationToken ct = default)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                if (entry.OpcNodes == null)
+                {
+                    // Not possible yet because no empty writers can be created.
+                    return Array.Empty<OpcNodeModel>();
+                }
+
+                IEnumerable<OpcNodeModel> result = entry.OpcNodes;
+                if (dataSetFieldId != null)
+                {
+                    result = result
+                        .SkipWhile(n => dataSetFieldId != n.DataSetFieldId)
+                        .Skip(1); // Skip the found one and get the one after
+                }
+                if (count != null)
+                {
+                    result = result.Take(count.Value);
+                }
+                return result.ToList();
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveDataSetWriterEntryAsync(string writerGroupId,
+            string dataSetWriterId, CancellationToken ct = default)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var remove = Find(writerGroupId, dataSetWriterId, currentNodes);
+                currentNodes.Remove(remove);
+
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
+                await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
+                await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel endpoint,
             PublishStartRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...", nameof(PublishStartAsync));
-            var sw = Stopwatch.StartNew();
-            if (request?.Item is null)
+            if (request.Item is null)
             {
-                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishStartAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(message);
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -97,9 +307,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishStartAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -107,15 +314,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel endpoint,
             PublishStopRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...", nameof(PublishStopAsync));
-            var sw = Stopwatch.StartNew();
-            if (request?.NodeId is null)
+            if (request.NodeId is null)
             {
-                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishStopAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(message);
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -134,9 +335,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishStopAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -144,15 +342,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel endpoint,
             PublishBulkRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...", nameof(PublishBulkAsync));
-            var sw = Stopwatch.StartNew();
-            if (request?.NodesToAdd is null && request?.NodesToRemove is null)
+            if (request.NodesToAdd is null && request.NodesToRemove is null)
             {
-                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishBulkAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(message);
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -184,9 +376,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishBulkAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -194,15 +383,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel endpoint,
             PublishedItemListRequestModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...", nameof(PublishListAsync));
-            var sw = Stopwatch.StartNew();
-            if (request is null)
-            {
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishListAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(kNullRequestMessage);
-            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -228,9 +408,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishListAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -238,16 +415,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task PublishNodesAsync(PublishedNodesEntryModel request,
             CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ...", nameof(PublishNodesAsync));
-            var sw = Stopwatch.StartNew();
-            if (request is null || request.OpcNodes is null || request.OpcNodes.Count == 0)
+            if (request.OpcNodes is null || request.OpcNodes.Count == 0)
             {
-                var message = request is null ? kNullRequestMessage : kNullOrEmptyOpcNodesMessage;
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishNodesAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(message);
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
+            if (string.IsNullOrWhiteSpace(request.EndpointUrl))
+            {
+                throw new BadRequestException(kNullOrEmptyEndpointUrl);
+            }
+            request.OpcNodes = ValidateNodes(request.OpcNodes, false);
             request.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -297,9 +473,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(PublishNodesAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -307,16 +480,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task UnpublishNodesAsync(PublishedNodesEntryModel request,
             CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered ...", nameof(UnpublishNodesAsync));
-            var sw = Stopwatch.StartNew();
-            if (request is null)
-            {
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(UnpublishNodesAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(kNullRequestMessage);
-            }
-
             //
             // When no node is specified then remove the whole data set.
             // This behavior ensures backwards compatibility with UnpublishNodes
@@ -417,17 +580,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(UnpublishNodesAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
         /// <inheritdoc/>
         public async Task UnpublishAllNodesAsync(PublishedNodesEntryModel request,
-            CancellationToken ct)
+            CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...", nameof(UnpublishAllNodesAsync));
             //
             // when no endpoint is specified remove all the configuration
             // purge content feature is implemented to ensure the backwards compatibility
@@ -435,7 +594,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             //
             var purge = request.EndpointUrl == null;
             request.PropagatePublishingIntervalToNodes();
-            var sw = Stopwatch.StartNew();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -477,9 +635,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(UnpublishAllNodesAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -487,17 +642,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task SetConfiguredEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {
-            const string methodName = nameof(SetConfiguredEndpointsAsync);
-            _logger.LogInformation("{Method} method triggered...", methodName);
-            var sw = Stopwatch.StartNew();
-
-            if (request is null)
-            {
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    methodName, sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(kNullRequestMessage);
-            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -508,9 +652,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    methodName, sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -518,18 +659,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task AddOrUpdateEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {
-            const string methodName = nameof(AddOrUpdateEndpointsAsync);
-            _logger.LogInformation("{Method} method triggered...", methodName);
-            var sw = Stopwatch.StartNew();
-
-            if (request is null)
-            {
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    methodName, sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(kNullRequestMessage);
-            }
-
             // First, let's check that there are no 2 entries for the same endpoint in the request.
             if (request.Count > 0)
             {
@@ -585,9 +714,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    methodName, sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -595,9 +721,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
             bool includeNodes = false, CancellationToken ct = default)
         {
-            const string methodName = nameof(GetConfiguredEndpointsAsync);
-            _logger.LogInformation("{Method} method triggered...", methodName);
-            var sw = Stopwatch.StartNew();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -611,9 +734,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    methodName, sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -621,18 +741,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<List<OpcNodeModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request, CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...",
-                nameof(GetConfiguredNodesOnEndpointAsync));
-            var sw = Stopwatch.StartNew();
-
-            if (request is null)
+            if (string.IsNullOrWhiteSpace(request.EndpointUrl))
             {
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
-                sw.Stop();
-                throw new BadRequestException(kNullRequestMessage);
+                throw new BadRequestException(kNullOrEmptyEndpointUrl);
             }
-
             request.PropagatePublishingIntervalToNodes();
             var response = new List<OpcNodeModel>();
             await _api.WaitAsync(ct).ConfigureAwait(false);
@@ -653,15 +765,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (!endpointFound)
                 {
-                    throw new ResourceNotFoundException($"Endpoint not found: {request.EndpointUrl}");
+                    throw new ResourceNotFoundException(
+                        $"Endpoint not found: {request.EndpointUrl}");
                 }
             }
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
-                sw.Stop();
             }
             return response;
         }
@@ -670,8 +780,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default)
         {
-            _logger.LogInformation("{Method} method triggered...", nameof(GetDiagnosticInfoAsync));
-            var sw = Stopwatch.StartNew();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -725,9 +833,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             finally
             {
                 _api.Release();
-                _logger.LogInformation("{Method} method finished in {Elapsed}.",
-                    nameof(GetDiagnosticInfoAsync), sw.Elapsed);
-                sw.Stop();
             }
         }
 
@@ -953,6 +1058,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Find writer entry
+        /// </summary>
+        /// <param name="writerGroupId"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="entries"></param>
+        /// <returns></returns>
+        /// <exception cref="ResourceNotFoundException"></exception>
+        /// <exception cref="ResourceInvalidStateException"></exception>
+        private static PublishedNodesEntryModel Find(string writerGroupId,
+            string dataSetWriterId, IEnumerable<PublishedNodesEntryModel> entries)
+        {
+            var found = entries
+                .Where(e =>
+                     (e.DataSetWriterGroup ?? string.Empty) == writerGroupId &&
+                     (e.DataSetWriterId ?? string.Empty) == dataSetWriterId)
+                .ToList();
+            if (found.Count == 1)
+            {
+                return EnsureUniqueDataSetFieldIds(found[0]);
+            }
+            else if (found.Count == 0)
+            {
+                throw new ResourceNotFoundException("Could not find entry " +
+                    "with provided writer id and writer group.");
+            }
+            else
+            {
+                throw new ResourceInvalidStateException(kAmbiguousResultsMessage);
+            }
+            static PublishedNodesEntryModel EnsureUniqueDataSetFieldIds(
+                PublishedNodesEntryModel entry)
+            {
+                if (entry.OpcNodes != null)
+                {
+                    var unique = entry.OpcNodes
+                        .Select(n => n.DataSetFieldId)
+                        .Distinct()
+                        .Count();
+                    if (unique != entry.OpcNodes.Count)
+                    {
+                        throw new BadRequestException(
+                            "Field ids in writer entry must be present and unique.");
+                    }
+                }
+                return entry;
+            }
+        }
+
+        /// <summary>
+        /// Validate nodes are valid
+        /// </summary>
+        /// <param name="opcNodes"></param>
+        /// <param name="dataSetWriterApiRequirements"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
+        private static IList<OpcNodeModel> ValidateNodes(IList<OpcNodeModel> opcNodes,
+            bool dataSetWriterApiRequirements = false)
+        {
+            var set = new HashSet<string>();
+            foreach (var node in opcNodes)
+            {
+                if (string.IsNullOrWhiteSpace(node.Id))
+                {
+                    throw new BadRequestException("Node must contain a node ID");
+                }
+                if (dataSetWriterApiRequirements)
+                {
+                    node.DataSetFieldId ??= node.Id;
+                    set.Add(node.DataSetFieldId);
+                    if (node.OpcPublishingInterval != null ||
+                        node.OpcPublishingIntervalTimespan != null)
+                    {
+                        throw new BadRequestException(
+                            "Publishing interval not allowed on node level. " +
+                            "Must be set at writer level.");
+                    }
+                }
+            }
+            if (dataSetWriterApiRequirements && set.Count != opcNodes.Count)
+            {
+                throw new BadRequestException("Field ids must be present and unique.");
+            }
+            return opcNodes;
+        }
+
+        /// <summary>
         /// Add item to nodes
         /// </summary>
         /// <param name="currentNodes"></param>
@@ -1035,10 +1226,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return BitConverter.ToString(checksum).Replace("-", string.Empty, StringComparison.Ordinal);
         }
 
-        private const string kNullRequestMessage
-            = "null request is provided";
+        private const string kNullOrEmptyEndpointUrl
+            = "Missing endpoint url in entry";
         private const string kNullOrEmptyOpcNodesMessage
             = "null or empty OpcNodes is provided in request";
+        private const string kAmbiguousResultsMessage
+            = "Trying to find entry with provided writer id produced ambigious results.";
 
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;

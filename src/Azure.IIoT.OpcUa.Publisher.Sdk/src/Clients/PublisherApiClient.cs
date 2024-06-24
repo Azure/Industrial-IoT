@@ -59,8 +59,100 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
+        public async Task CreateOrUpdateDataSetWriterEntryAsync(PublishedNodesEntryModel entry,
+            CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(entry);
+            await _methodClient.CallMethodAsync(_target,
+                "CreateOrUpdateDataSetWriterEntry", _serializer.SerializeToMemory(entry),
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(string dataSetWriterGroup,
+            string dataSetWriterId, CancellationToken ct)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterGroup);
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetDataSetWriterEntry", _serializer.SerializeToMemory(new
+                {
+                    dataSetWriterGroup,
+                    dataSetWriterId
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<PublishedNodesEntryModel>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task AddOrUpdateNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
+            IReadOnlyList<OpcNodeModel> opcNodes, string? insertAfterFieldId, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            await _methodClient.CallMethodAsync(_target,
+                "GetDataSetWriterEntry", _serializer.SerializeToMemory(new
+                {
+                    dataSetWriterGroup,
+                    dataSetWriterId,
+                    opcNodes,
+                    insertAfterFieldId
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
+            IReadOnlyList<string> dataSetFieldIds, CancellationToken ct)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterGroup);
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
+            ArgumentNullException.ThrowIfNull(dataSetFieldIds);
+            if (dataSetFieldIds.Count == 0)
+            {
+                throw new ArgumentException("No fields to remove.", nameof(dataSetFieldIds));
+            }
+            await _methodClient.CallMethodAsync(_target,
+                "RemoveNodes", _serializer.SerializeToMemory(new
+                {
+                    dataSetWriterGroup,
+                    dataSetWriterId,
+                    dataSetFieldIds
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(string dataSetWriterGroup,
+            string dataSetWriterId, string? lastDataSetFieldId, int? pageSize, CancellationToken ct)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterGroup);
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetNodes", _serializer.SerializeToMemory(new
+                {
+                    dataSetWriterGroup,
+                    dataSetWriterId,
+                    lastDataSetFieldId,
+                    pageSize
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<List<OpcNodeModel>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task RemoveDataSetWriterEntryAsync(string dataSetWriterGroup,
+            string dataSetWriterId, CancellationToken ct)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterGroup);
+            ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
+            await _methodClient.CallMethodAsync(_target,
+                "RemoveDataSetWriterEntry", _serializer.SerializeToMemory(new
+                {
+                    dataSetWriterGroup,
+                    dataSetWriterId
+                }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel connection,
-            PublishStartRequestModel request, CancellationToken ct = default)
+            PublishStartRequestModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
@@ -79,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishStopResponseModel> PublishStopAsync(ConnectionModel connection,
-            PublishStopRequestModel request, CancellationToken ct = default)
+            PublishStopRequestModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
@@ -98,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishBulkResponseModel> PublishBulkAsync(ConnectionModel connection,
-            PublishBulkRequestModel request, CancellationToken ct = default)
+            PublishBulkRequestModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
@@ -117,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResponseModel> PublishListAsync(ConnectionModel connection,
-            PublishedItemListRequestModel request, CancellationToken ct = default)
+            PublishedItemListRequestModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(connection);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))

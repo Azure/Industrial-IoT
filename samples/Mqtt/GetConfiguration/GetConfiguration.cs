@@ -9,6 +9,7 @@ using MQTTnet.Formatter;
 using MQTTnet;
 using MQTTnet.Extensions.Rpc;
 using System.Text.Json;
+using System.Text;
 
 // Connect to mqtt broker
 var mqttFactory = new MqttFactory();
@@ -23,16 +24,24 @@ using var mqttRpcClient = mqttFactory.CreateMqttRpcClient(mqttClient,
 
 var response = await mqttRpcClient.ExecuteAsync(TimeSpan.FromSeconds(60), "GetConfiguredEndpoints",
     default, MqttQualityOfServiceLevel.AtMostOnce).ConfigureAwait(false);
-var endpoints = JsonSerializer.Deserialize<JsonElement>(response).GetProperty("endpoints").EnumerateArray();
-var indented = new JsonSerializerOptions { WriteIndented = true };
-foreach (var endpoint in endpoints)
+try
 {
-    var endpointJson = JsonSerializer.Serialize(endpoint, indented);
-    Console.WriteLine(endpointJson);
-    response = await mqttRpcClient.ExecuteAsync(TimeSpan.FromSeconds(60), "GetConfiguredNodesOnEndpoint",
-        endpointJson, MqttQualityOfServiceLevel.AtMostOnce).ConfigureAwait(false);
-    var nodesJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(response), indented);
-    Console.WriteLine(nodesJson);
+    var endpoints = JsonSerializer.Deserialize<JsonElement>(response).GetProperty("endpoints").EnumerateArray();
+    var indented = new JsonSerializerOptions { WriteIndented = true };
+    foreach (var endpoint in endpoints)
+    {
+        var endpointJson = JsonSerializer.Serialize(endpoint, indented);
+        Console.WriteLine(endpointJson);
+        response = await mqttRpcClient.ExecuteAsync(TimeSpan.FromSeconds(60), "GetConfiguredNodesOnEndpoint",
+            endpointJson, MqttQualityOfServiceLevel.AtMostOnce).ConfigureAwait(false);
+        var nodesJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(response), indented);
+        Console.WriteLine(nodesJson);
+    }
+}
+catch
+{
+    var error = Encoding.UTF8.GetString(response);
+    Console.WriteLine(error);
 }
 
 public sealed class PublisherTopicGenerationStrategy : IMqttRpcClientTopicGenerationStrategy

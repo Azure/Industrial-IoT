@@ -35,15 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     /// </summary>
     public sealed class DmApiPublisherControllerTests : TempFileProviderBase
     {
-        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly PublishedNodesConverter _publishedNodesJobConverter;
-        private readonly IOptions<PublisherOptions> _options;
-        private readonly PublishedNodesProvider _publishedNodesProvider;
-        private readonly Mock<IMessageSource> _triggerMock;
-        private readonly IPublisher _publisher;
-        private readonly Mock<IDiagnosticCollector> _diagnostic;
-
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
@@ -111,16 +102,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             return configService;
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadCollection.json")]
-        public async Task DmApiPublishUnpublishNodesTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiPublishUnpublishNodesTestAsync()
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             await using var configService = InitPublisherConfigService();
 
             var methodsController = new ConfigurationController(configService);
 
-            using var publishPayloads = new StreamReader(publishedNodesFile);
+            using var publishPayloads = new StreamReader("Resources/DmApiPayloadCollection.json");
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync());
 
@@ -171,15 +161,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             Assert.Equal(15u, _publisher.Version);
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadCollection.json")]
-        public async Task DmApiPublishUnpublishAllNodesTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiPublishUnpublishAllNodesTestAsync()
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             await using var configService = InitPublisherConfigService();
             var methodsController = new ConfigurationController(configService);
 
-            using var publishPayloads = new StreamReader(publishedNodesFile);
+            using var publishPayloads = new StreamReader("Resources/DmApiPayloadCollection.json");
             var publishNodesRequest = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(
                 await publishPayloads.ReadToEndAsync());
 
@@ -229,16 +218,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             Assert.Empty(_publisher.WriterGroups);
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadCollection.json")]
-        public async Task DmApiPublishNodesToJobTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiPublishNodesToJobTestAsync()
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             await using var configService = InitPublisherConfigService();
 
             var methodsController = new ConfigurationController(configService);
 
-            using var publishPayloads = new StreamReader(publishedNodesFile);
+            using var publishPayloads = new StreamReader("Resources/DmApiPayloadCollection.json");
             var publishNodesRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>
                 (await publishPayloads.ReadToEndAsync());
 
@@ -269,9 +257,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 writerGroup.DataSetWriters.Sum(w => w.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncTestAsync()
         {
             const string endpointUrl = "opc.tcp://opcplc:50010";
 
@@ -280,7 +267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 EndpointUrl = endpointUrl
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile);
+            var (d, methodsController) = await PublishNodeAsync("Resources/DmApiPayloadTwoEndpoints.json");
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
@@ -299,9 +286,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .Be("ns=2;s=FastUInt2");
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterGroupTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncDataSetWriterGroupTestAsync()
         {
             const string endpointUrl = "opc.tcp://opcplc:50000";
             const string dataSetWriterGroup = "Leaf0";
@@ -322,7 +308,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationPassword = password
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf0");
+            var (d, methodsController) = await PublishNodeAsync("Resources/DmApiPayloadTwoEndpoints.json",
+                a => a.DataSetWriterGroup == "Leaf0");
             var response = await FluentActions
                     .Invoking(async () => await methodsController
                     .GetConfiguredNodesOnEndpointAsync(endpointRequest))
@@ -387,9 +374,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             await d.DisposeAsync();
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncUseSecurityTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncUseSecurityTestAsync()
         {
             const string endpointUrl = "opc.tcp://opcplc:50000";
             const bool useSecurity = false;
@@ -400,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 UseSecurity = useSecurity
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile);
+            var (d, methodsController) = await PublishNodeAsync("Resources/DmApiPayloadTwoEndpoints.json");
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -417,9 +403,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .Be("ns=2;s=SlowUInt3");
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncOpcAuthenticationModeTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncOpcAuthenticationModeTestAsync()
         {
             const string endpointUrl = "opc.tcp://opcplc:50000";
             const string dataSetWriterGroup = "Leaf1";
@@ -438,7 +423,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationMode = authenticationMode
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile, a => a.DataSetWriterGroup == "Leaf1");
+            var (d, methodsController) = await PublishNodeAsync("Resources/DmApiPayloadTwoEndpoints.json",
+                a => a.DataSetWriterGroup == "Leaf1");
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -455,9 +441,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .Be("ns=2;s=SlowUInt2");
         }
 
-        [Theory]
-        [InlineData("Resources/DmApiPayloadTwoEndpoints.json")]
-        public async Task DmApiGetConfiguredNodesOnEndpointAsyncUsernamePasswordTestAsync(string publishedNodesFile)
+        [Fact]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncUsernamePasswordTestAsync()
         {
             const string endpointUrl = "opc.tcp://opcplc:50000";
             const OpcAuthenticationMode authenticationMode = OpcAuthenticationMode.UsernamePassword;
@@ -472,7 +457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 OpcAuthenticationPassword = password
             };
 
-            var (d, methodsController) = await PublishNodeAsync(publishedNodesFile);
+            var (d, methodsController) = await PublishNodeAsync("Resources/DmApiPayloadTwoEndpoints.json");
 
             var response = await FluentActions
                     .Invoking(async () => await methodsController
@@ -581,8 +566,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetDiagnosticInfoAsync())
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
 
             response.Subject
                 .Should()
@@ -611,5 +595,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 return payloadReader.ReadToEnd();
             }
         }
+
+        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly PublishedNodesConverter _publishedNodesJobConverter;
+        private readonly IOptions<PublisherOptions> _options;
+        private readonly PublishedNodesProvider _publishedNodesProvider;
+        private readonly Mock<IMessageSource> _triggerMock;
+        private readonly IPublisher _publisher;
+        private readonly Mock<IDiagnosticCollector> _diagnostic;
     }
 }

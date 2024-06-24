@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
             TimeProvider? timeProvider = null, IIoTEdgeDeviceIdentity? identity = null,
-            IIoTEdgeWorkloadApi ? workload = null)
+            IIoTEdgeWorkloadApi? workload = null)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));

@@ -526,7 +526,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         [HttpPost("history/capabilities")]
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
-            [FromBody][Required] RequestEnvelope<RequestHeaderModel?> request, CancellationToken ct = default)
+            [FromBody][Required] RequestEnvelope<RequestHeaderModel?> request,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);

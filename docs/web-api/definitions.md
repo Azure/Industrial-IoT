@@ -988,14 +988,14 @@ Instance declaration meta data
 ### MessageEncoding
 Message encoding
 
-*Type* : enum (Binary, Json, Xml, IsReversible, Uadp, JsonReversible, IsGzipCompressed, JsonGzip, JsonReversibleGzip)
+*Type* : enum (Uadp, Json, Xml, Avro, IsReversible, JsonReversible, IsGzipCompressed, JsonGzip, AvroGzip, JsonReversibleGzip)
 
 
 <a name="messagingmode"></a>
 ### MessagingMode
 Message modes
 
-*Type* : enum (PubSub, Samples, FullNetworkMessages, FullSamples, DataSetMessages, SingleDataSetMessage, RawDataSets, SingleRawDataSet)
+*Type* : enum (PubSub, Samples, FullNetworkMessages, FullSamples, DataSetMessages, SingleDataSetMessage, DataSets, SingleDataSet, RawDataSets, SingleRawDataSet)
 
 
 <a name="methodcallargumentmodel"></a>
@@ -1481,6 +1481,7 @@ Contains the nodes which should be published
 |**DataSetRouting**  <br>*optional*||[DataSetRoutingMode](definitions.md#datasetroutingmode)|
 |**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
+|**DisableSubscriptionTransfer**  <br>*optional*|Disable subscription transfer on reconnect|boolean|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
 |**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
@@ -1493,6 +1494,7 @@ Contains the nodes which should be published
 |**MetaDataQueueName**  <br>*optional*|Meta data queue name to use for the writer. Overrides<br>the default metadata topic template.|string|
 |**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
 |**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
+|**MonitoredItemWatchdogTimespan**  <br>*optional*|The timeout to use to monitor the monitored items in the<br>subscription are continously reporting fresh data.|string (date-span)|
 |**NodeId**  <br>*optional*||[NodeIdModel](definitions.md#nodeidmodel)|
 |**OpcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
 |**OpcAuthenticationPassword**  <br>*optional*|plain password|string|
@@ -1504,11 +1506,13 @@ Contains the nodes which should be published
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
-|**Version**  <br>*optional*|Version number of the entry|integer (int32)|
+|**Version**  <br>*optional*|Version number of the entry|integer (int64)|
+|**WatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
 |**WriterGroupPartitions**  <br>*optional*|Number of partitions to split the writer group into<br>when publishing to target topics.|integer (int32)|
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
+|**republishAfterTransfer**  <br>*optional*|Republish after transferring the subscription during<br>reconnect handling unless subscription transfer was disabled.|boolean|
 
 
 <a name="publishednodesentrymodeliasyncenumerable"></a>
@@ -1736,10 +1740,13 @@ Request header model
 
 |Name|Description|Schema|
 |---|---|---|
+|**connectTimeout**  <br>*optional*|Connect timeout in ms. As opposed to the service call<br>timeout this terminates the entire transaction if<br>it takes longer than the timeout to connect a session<br>A connect and reconnect during the service call<br>resets the timeout therefore the overall time for<br>the call to complete can be longer than specified.|integer (int32)|
 |**diagnostics**  <br>*optional*||[DiagnosticsModel](definitions.md#diagnosticsmodel)|
 |**elevation**  <br>*optional*||[CredentialModel](definitions.md#credentialmodel)|
-|**locales**  <br>*optional*|Optional list of locales in preference order.|< string > array|
+|**locales**  <br>*optional*|Optional list of preferred locales in preference<br>order to be used during connecting the session.<br>We suggest to use the connection object to set<br>the locales|< string > array|
 |**namespaceFormat**  <br>*optional*||[NamespaceFormat](definitions.md#namespaceformat)|
+|**operationTimeout**  <br>*optional*|Operation timeout in ms. This applies to every<br>operation that is invoked, not to the entire<br>transaction and overrides the configured operation<br>timeout.|integer (int32)|
+|**serviceCallTimeout**  <br>*optional*|Service call timeout in ms. As opposed to the<br>operation timeout this terminates the entire<br>transaction if it takes longer than the timeout to<br>complete. Note that a connect and reconnect during<br>the service call is gated by the connect timeout<br>setting. If a connect timeout is not specified<br>this timeout is used also for connect timeout.|integer (int32)|
 
 
 <a name="rolepermissionmodel"></a>
@@ -1764,7 +1771,7 @@ Individual permissions assigned to a role
 ### SecurityMode
 Security mode of endpoint
 
-*Type* : enum (Best, Sign, SignAndEncrypt, None)
+*Type* : enum (Best, Sign, SignAndEncrypt, None, NotNone)
 
 
 <a name="servercapabilitiesmodel"></a>
@@ -1846,6 +1853,13 @@ Simple attribute operand model
 |**displayName**  <br>*optional*|Optional display name|string|
 |**indexRange**  <br>*optional*|Index range of attribute operand|string|
 |**typeDefinitionId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
+
+
+<a name="subscriptionwatchdogbehavior"></a>
+### SubscriptionWatchdogBehavior
+Subscription watchdog behavior
+
+*Type* : enum (Diagnostic, Reset, FailFast, ExitProcess)
 
 
 <a name="supervisorlistmodel"></a>
@@ -1993,9 +2007,9 @@ User identity model
 
 |Name|Description|Schema|
 |---|---|---|
-|**password**  <br>*optional*|<br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the password of the user.<br>            <br><br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the passcode to export the configured certificate's<br>            private key.<br>            <br><br><br>            Not used for the other authentication types.|string|
-|**thumbprint**  <br>*optional*|<br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the thumbprint of the configured certificate to use.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br>            <br><br><br>            Not used for the other authentication types.|string|
-|**user**  <br>*optional*|<br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the name of the user.<br>            <br><br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the subject name of the certificate that has been<br>            configured.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br>            <br><br><br>            Not used for the other authentication types.|string|
+|**password**  <br>*optional*|For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the password of the user.<br>            <br><br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the passcode to export the configured certificate's<br>            private key.<br>            <br><br><br>            Not used for the other authentication types.|string|
+|**thumbprint**  <br>*optional*|For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the thumbprint of the configured certificate to use.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br>            <br><br><br>            Not used for the other authentication types.|string|
+|**user**  <br>*optional*|For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the name of the user.<br>            <br><br><br>            For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the subject name of the certificate that has been<br>            configured.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br>            <br><br><br>            Not used for the other authentication types.|string|
 
 
 <a name="valuereadrequestmodel"></a>
@@ -2144,7 +2158,7 @@ Result of attribute write
 ### WriterGroupTransport
 Desired writer group transport
 
-*Type* : enum (IoTHub, Mqtt, Dapr, Http, FileSystem, Null)
+*Type* : enum (IoTHub, Mqtt, EventHub, Dapr, Http, FileSystem, Null)
 
 
 <a name="x509certificatechainmodel"></a>

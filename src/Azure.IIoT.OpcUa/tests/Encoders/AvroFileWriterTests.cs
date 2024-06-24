@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Avro;
     using Furly;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
-    using Avro;
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;

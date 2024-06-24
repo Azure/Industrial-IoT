@@ -16,31 +16,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum MessageEncoding
     {
         /// <summary>
-        /// The encoding is binary.
-        /// </summary>
-        [EnumMember(Value = "Binary")]
-        Binary = 0x1,
-
-        /// <summary>
-        /// Uadp
+        /// The encoding is Binary
         /// </summary>
         [EnumMember(Value = "Uadp")]
-        Uadp = Binary,
+        Uadp = 0x1,
 
         /// <summary>
-        /// The encoding is based on Json
+        /// The encoding is Json
         /// </summary>
         [EnumMember(Value = "Json")]
         Json = 0x2,
 
         /// <summary>
-        /// The encoding is based on Xml
+        /// The encoding is Xml
         /// </summary>
         [EnumMember(Value = "Xml")]
         Xml = 0x4,
 
         /// <summary>
-        /// Avro
+        /// The encoding is Avro
         /// </summary>
         [EnumMember(Value = "Avro")]
         Avro = 0x8,

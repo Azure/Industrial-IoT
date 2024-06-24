@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     DataSetWriterGroup = writerGroupName
                 };
             }
-            else if (encoding.HasFlag(MessageEncoding.Binary))
+            else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
                 message = new UadpMetaDataMessage
                 {
@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     Payload = payload
                 };
             }
-            else if (encoding.HasFlag(MessageEncoding.Binary))
+            else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
                 message = new UadpDataSetMessage
                 {
@@ -356,7 +356,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     DataSetWriterGroup = writerGroupName
                 };
             }
-            else if (encoding.HasFlag(MessageEncoding.Binary))
+            else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
                 message = new UadpNetworkMessage
                 {
@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 schema = new Schemas.Avro.AvroNetworkMessage(networkMessage, options);
             }
-            else if (encoding.HasFlag(MessageEncoding.Binary))
+            else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
                 schema = new Schemas.Uadp.UadpNetworkMessage(networkMessage);
             }

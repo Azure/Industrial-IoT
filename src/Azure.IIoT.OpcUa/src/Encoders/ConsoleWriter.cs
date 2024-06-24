@@ -10,13 +10,10 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Furly.Extensions.Storage;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
-    using System.Reflection.Metadata.Ecma335;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;

@@ -152,9 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
-                    CultureInfo.InvariantCulture);
+                pageSize = int.Parse(value.FirstOrDefault()!, CultureInfo.InvariantCulture);
             }
             return await _endpoints.QueryEndpointsAsync(query,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
@@ -187,9 +185,7 @@ value.FirstOrDefault()!,
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
-                    CultureInfo.InvariantCulture);
+                pageSize = int.Parse(value.FirstOrDefault()!, CultureInfo.InvariantCulture);
             }
             return await _endpoints.QueryEndpointsAsync(query,
                 onlyServerState ?? false, pageSize, ct).ConfigureAwait(false);
