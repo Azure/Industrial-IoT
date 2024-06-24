@@ -17,6 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Http;
+    using System.Globalization;
+    using Furly.Extensions.AspNetCore.OpenApi;
 
     /// <summary>
     /// <para>
@@ -54,101 +57,110 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// CreateOrUpdateDataSetWriterEntry
         /// </summary>
         /// <remarks>
-        /// Create a published nodes entry for a specific writer group
-        /// and dataset writer. The entry must specify a unique writer
-        /// group and dataset writer id. If the entry is found it is
-        /// updated, if it is not found, it is created. If more than
-        /// one entry is found an error is returned. The entry can
-        /// include nodes which will be the initial set. The entries
-        /// must all specify a unique dataSetFieldId.
+        /// Create a published nodes entry for a specific writer group and dataset writer.
+        /// The entry must specify a unique writer group and dataset writer id. If the
+        /// entry is found it is updated, if it is not found, it is created. If more than
+        /// one entry is found an error is returned. The entry can include nodes which
+        /// will be the initial set. The entries must all specify a unique dataSetFieldId.
         /// </remarks>
-        /// <param name="entry">The entry to create for the writer</param>
+        /// <param name="dataSetWriterEntry">The entry to create for the writer</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterEntry"/>
+        /// is <c>null</c>.</exception>
         [HttpPut("writer")]
         public async Task CreateOrUpdateDataSetWriterEntryAsync(
-            [FromBody][Required] PublishedNodesEntryModel entry, 
+            [FromBody][Required] PublishedNodesEntryModel dataSetWriterEntry,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(entry);
+            ArgumentNullException.ThrowIfNull(dataSetWriterEntry);
             await _configServices.CreateOrUpdateDataSetWriterEntryAsync(
-                entry, ct).ConfigureAwait(false);
+                dataSetWriterEntry, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// GetDataSetWriterEntry
         /// </summary>
         /// <remarks>
-        /// Get the published nodes entry for a specific writer group
-        /// and dataset writer. Dedicated errors are returned if no,
-        /// or no unique entry could be found. THe entry does not
-        /// contain the nodes
+        /// Get the published nodes entry for a specific writer group and dataset writer.
+        /// Dedicated errors are returned if no, or no unique entry could be found. The
+        /// entry does not contain the nodes
         /// </remarks>
-        /// <param name="writerGroupId">The writer group</param>
-        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpGet("writer/{writerGroupId}/{dataSetWriterId}")]
+        /// <returns>The entry selected without nodes</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        [HttpGet("writer/{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
-            string writerGroupId, string dataSetWriterId, CancellationToken ct = default)
+            string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             return await _configServices.GetDataSetWriterEntryAsync(
-                writerGroupId, dataSetWriterId, ct).ConfigureAwait(false);
+                dataSetWriterGroup, dataSetWriterId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// AddOrUpdateNodes
         /// </summary>
         /// <remarks>
-        /// Add Nodes to a dedicated data set writer in a writer group.
-        /// Each node must have a unique DataSetFieldId. If the field
-        /// already exists, the node is updated. If a node does not
-        /// have a dataset field id an error is returned.
+        /// Add Nodes to a dedicated data set writer in a writer group. Each node must have
+        /// a unique DataSetFieldId. If the field already exists, the node is updated.
+        /// If a node does not have a dataset field id an error is returned.
         /// </remarks>
-        /// <param name="writerGroupId">The writer group</param>
-        /// <param name="dataSetWriterId">The data set writer</param>
-        /// <param name="nodes">Nodes to add or update</param>
-        /// <param name="insertAfterFieldId">Field after which to
-        /// insert the nodes. If not specified, nodes are added at the
-        /// end of the entry</param>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
+        /// <param name="opcNodes">Nodes to add or update</param>
+        /// <param name="insertAfterFieldId">Field after which to insert the nodes. If
+        /// not specified, nodes are added at the end of the entry</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpPut("writer/{writerGroupId}/{dataSetWriterId}/nodes")]
-        public async Task AddOrUpdateNodesAsync(string writerGroupId, string dataSetWriterId,
-            [FromBody][Required] IReadOnlyList<OpcNodeModel> nodes,
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="opcNodes"/>
+        /// is <c>null</c>.</exception>
+        [HttpPut("writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
+        public async Task AddOrUpdateNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
+            [FromBody][Required] IReadOnlyList<OpcNodeModel> opcNodes,
             [FromQuery] string? insertAfterFieldId = null, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            ArgumentNullException.ThrowIfNull(nodes);
-            await _configServices.AddOrUpdateNodesAsync(writerGroupId, dataSetWriterId,
-                nodes, insertAfterFieldId, ct).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(opcNodes);
+            await _configServices.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
+                opcNodes, insertAfterFieldId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// RemoveNodes
         /// </summary>
         /// <remarks>
-        /// Remove Nodes with the data set field ids from a data set
-        /// writer in a writer group. If the field is not found, no
-        /// error is returned.
+        /// Remove Nodes with the data set field ids from a data set writer in a writer group.
+        /// If the field is not found, no error is returned.
         /// </remarks>
-        /// <param name="writerGroupId">The writer group</param>
-        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
         /// <param name="dataSetFieldIds">Fields to add</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpDelete("writer/{writerGroupId}/{dataSetWriterId}/nodes")]
-        public async Task RemoveNodesAsync(string writerGroupId, string dataSetWriterId,
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetFieldIds"/>
+        /// is <c>null</c>.</exception>
+        [HttpDelete("writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
+        public async Task RemoveNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
             [FromBody][Required] IReadOnlyList<string> dataSetFieldIds,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldIds);
-            await _configServices.RemoveNodesAsync(writerGroupId, dataSetWriterId,
+            await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 dataSetFieldIds, ct).ConfigureAwait(false);
         }
 
@@ -156,48 +168,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// GetNodes
         /// </summary>
         /// <remarks>
-        /// Remove Nodes with the data set field ids from a data set
-        /// writer in a writer group. If the field is not found, no
-        /// error is returned.
+        /// Remove Nodes with the data set field ids from a data set writer in a writer group.
+        /// If the field is not found, no error is returned.
         /// </remarks>
-        /// <param name="writerGroupId">The writer group</param>
-        /// <param name="dataSetWriterId">The data set writer</param>
-        /// <param name="dataSetFieldId">the field id from which to start.
-        /// If not specified, nodes from the beginning are returned.</param>
-        /// <param name="count">Number of nodes to return</param>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
+        /// <param name="dataSetFieldId">the field id from which to start. If not specified,
+        /// nodes from the beginning are returned.</param>
+        /// <param name="pageSize">Number of nodes to return</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpGet("writer/{writerGroupId}/{dataSetWriterId}/nodes")]
+        /// <returns>List of nodes or none if none were found</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        [HttpGet("writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
+        [AutoRestExtension(NextPageLinkName = "dataSetFieldId")]
         public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(
-            string writerGroupId, string dataSetWriterId,
+            string dataSetWriterGroup, string dataSetWriterId,
             [FromQuery] string? dataSetFieldId = null,
-            [FromQuery] int? count = null, CancellationToken ct = default)
+            [FromQuery] int? pageSize = null, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            return await _configServices.GetNodesAsync(writerGroupId, dataSetWriterId,
-                dataSetFieldId, count, ct).ConfigureAwait(false);
+            if (Request.Headers.TryGetValue(HttpHeader.ContinuationToken, out var value))
+            {
+                dataSetFieldId = value.FirstOrDefault();
+            }
+            if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out value))
+            {
+                pageSize = int.Parse(value.FirstOrDefault()!,
+                    CultureInfo.InvariantCulture);
+            }
+            return await _configServices.GetNodesAsync(dataSetWriterGroup, dataSetWriterId,
+                dataSetFieldId, pageSize, ct).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// PublishStart
+        /// RemoveDataSetWriterEntry
         /// </summary>
         /// <remarks>
-        /// Remove the published nodes entry for a specific data set
-        /// riter in a writer group. Dedicated errors are returned if no,
-        /// or no unique entry could be found.
+        /// Remove the published nodes entry for a specific data set writer in a writer
+        /// group. Dedicated errors are returned if no, or no unique entry could be found.
         /// </remarks>
-        /// <param name="writerGroupId">The writer group</param>
-        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
         /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpDelete("writer/{writerGroupId}/{dataSetWriterId}")]
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        [HttpDelete("writer/{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task RemoveDataSetWriterEntryAsync(
-            string writerGroupId, string dataSetWriterId, CancellationToken ct = default)
+            string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(writerGroupId);
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            await _configServices.RemoveDataSetWriterEntryAsync(writerGroupId,
+            await _configServices.RemoveDataSetWriterEntryAsync(dataSetWriterGroup,
                 dataSetWriterId, ct).ConfigureAwait(false);
         }
 
@@ -205,10 +232,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// PublishStart
         /// </summary>
         /// <remarks>
-        /// Start publishing values from a node on a server. The group field
-        /// in the Connection Model can be used to specify a writer group
-        /// identifier that will be used in the configuration entry that is
-        /// created from it inside the OPC Publisher.
+        /// Start publishing values from a node on a server. The group field in the
+        /// Connection Model can be used to specify a writer group identifier that will
+        /// be used in the configuration entry that is created from it inside OPC Publisher.
         /// </remarks>
         /// <param name="request">The server and node to publish.</param>
         /// <returns>The results of the operation.</returns>
@@ -229,9 +255,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// PublishStop
         /// </summary>
         /// <remarks>
-        /// Stop publishing values from a node on the specified server.
-        /// The group field that was used in the Connection Model to start
-        /// publishing must also be specified in this connection model.
+        /// Stop publishing values from a node on the specified server. The group field
+        /// that was used in the Connection Model to start publishing must also be
+        /// specified in this connection model.
         /// </remarks>
         /// <param name="request">The node to stop publishing</param>
         /// <returns>The result of the stop operation.</returns>
@@ -252,10 +278,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// PublishBulk
         /// </summary>
         /// <remarks>
-        /// Configure node values to publish and unpublish in bulk. The group
-        /// field in the Connection Model can be used to specify a writer group
-        /// identifier that will be used in the configuration entry that is
-        /// created from it inside the OPC Publisher.
+        /// Configure node values to publish and unpublish in bulk. The group field in
+        /// the Connection Model can be used to specify a writer group identifier that
+        /// will be used in the configuration entry that is created from it inside OPC
+        /// Publisher.
         /// </remarks>
         /// <param name="request">The nodes to publish or unpublish.</param>
         /// <returns>The result for each operation.</returns>

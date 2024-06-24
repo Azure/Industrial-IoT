@@ -35,14 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     /// </summary>
     public class PublisherConfigServicesTests : TempFileProviderBase
     {
-        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly PublishedNodesConverter _publishedNodesJobConverter;
-        private readonly IOptions<PublisherOptions> _options;
-        private readonly PublishedNodesProvider _publishedNodesProvider;
-        private readonly Mock<IMessageSource> _triggerMock;
-        private readonly IPublisher _publisher;
-
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
@@ -110,6 +102,349 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
+        public async Task TestCreateUpdateWithAmbigousNodesArguments()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = opcNodes;
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await configService.CreateOrUpdateDataSetWriterEntryAsync(writer))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Field ids in writer entry must be present and unique.");
+        }
+
+        [Fact]
+        public async Task TestCreateUpdateRemoveWriterEntries()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            await FluentActions
+                .Invoking(async () => await configService
+                    .GetDataSetWriterEntryAsync("test12", "test2"))
+                .Should()
+                .ThrowAsync<ResourceNotFoundException>()
+                .WithMessage("Could not find entry with provided writer id and writer group.");
+
+            const int numberOfNodes = 3;
+            var opcNodes = Enumerable.Range(0, numberOfNodes)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+
+            var writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
+
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = null;
+            await FluentActions
+                .Invoking(async () => await configService
+                    .CreateOrUpdateDataSetWriterEntryAsync(writer))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("null or empty OpcNodes is provided in request");
+            writer.OpcNodes = Array.Empty<OpcNodeModel>();
+            await FluentActions
+                .Invoking(async () => await configService
+                    .CreateOrUpdateDataSetWriterEntryAsync(writer))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("null or empty OpcNodes is provided in request");
+
+            // Create
+            writer.OpcNodes = opcNodes;
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Count.Should().Be(1);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            writerResult.DisableSubscriptionTransfer.Should().BeNull();
+            writerResult.OpcNodes.Should().BeNull();
+
+            // Update
+            var updatedWriter = writer with { DisableSubscriptionTransfer = true };
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(updatedWriter);
+            writerResult = await configService.GetDataSetWriterEntryAsync(
+                updatedWriter.DataSetWriterGroup!, updatedWriter.DataSetWriterId!);
+            writerResult.DisableSubscriptionTransfer.Should().BeTrue();
+            writerResult.OpcNodes.Should().BeNull();
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Count.Should().Be(1);
+            var nodes = await configService.GetNodesAsync(updatedWriter.DataSetWriterGroup!,
+                updatedWriter.DataSetWriterId!);
+            nodes.Count.Should().Be(numberOfNodes);
+
+            // Add
+            var writer2 = GenerateEndpoint(1, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer2);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Count.Should().Be(2);
+
+            // Create ambigous entry
+            updatedWriter = writer2 with { DisableSubscriptionTransfer = true };
+            await configService.AddOrUpdateEndpointsAsync(updatedWriter.YieldReturn().ToList());
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Count.Should().Be(3);
+
+            await FluentActions
+                .Invoking(async () => await configService
+                    .CreateOrUpdateDataSetWriterEntryAsync(writer2))
+                .Should()
+                .ThrowAsync<ResourceInvalidStateException>()
+                .WithMessage("Trying to find entry with provided writer id produced ambigious results.");
+
+            // Remove
+            await configService.RemoveDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Count.Should().Be(2);
+
+            await FluentActions
+                .Invoking(async () => await configService
+                    .GetDataSetWriterEntryAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!))
+                .Should()
+                .ThrowAsync<ResourceNotFoundException>()
+                .WithMessage("Could not find entry with provided writer id and writer group.");
+        }
+
+        [Fact]
+        public async Task TestAddQueryAndRemoveNodes()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfNodes = 3;
+            var opcNodes = Enumerable.Range(0, numberOfNodes)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+
+            // Create writer
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+
+            // Add
+            await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, opcNodes.Skip(1).ToList());
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(numberOfNodes);
+
+            // Update
+            opcNodes.ForEach(node => node.OpcSamplingIntervalTimespan = TimeSpan.FromSeconds(3));
+            await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, opcNodes);
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(numberOfNodes);
+            nodes.Should().AllSatisfy(nodes => nodes.OpcSamplingIntervalTimespan.Should().Be(TimeSpan.FromSeconds(3)));
+
+            // Remove
+            await configService.RemoveNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!,
+                "1".YieldReturn().ToList());
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(numberOfNodes - 1);
+            nodes.Should().NotContain(node => node.DataSetFieldId == "1");
+
+            // Add a lot of nodes
+            opcNodes = Enumerable.Range(0, 10000)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+
+            await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, opcNodes);
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(10000);
+
+            // Query tests
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, "99", 100);
+            nodes.Count.Should().Be(100);
+            nodes[0].Should().NotBeNull().And.Match<OpcNodeModel>(node => node.DataSetFieldId == "100");
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, nodes[^1].DataSetFieldId, 10000);
+            nodes[0].Should().NotBeNull().And.Match<OpcNodeModel>(node => node.DataSetFieldId == "200");
+            nodes.Count.Should().Be(9800);
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, null, 5000);
+            nodes.Count.Should().Be(5000);
+            nodes[0].Should().NotBeNull().And.Match<OpcNodeModel>(node => node.DataSetFieldId == "0");
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, nodes[^1].DataSetFieldId);
+            nodes[0].Should().NotBeNull().And.Match<OpcNodeModel>(node => node.DataSetFieldId == "5000");
+            nodes.Count.Should().Be(5000);
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, nodes[^1].DataSetFieldId);
+            nodes.Count.Should().Be(0);
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, "testtesttest");
+            nodes.Count.Should().Be(0);
+
+            // Remove 200 items
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, "99", 200);
+            await configService.RemoveNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!,
+                nodes.Select(node => node.DataSetFieldId).ToList());
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, null, 20000);
+            nodes.Count.Should().Be(9800);
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!, "99", 100);
+            nodes.Count.Should().Be(100);
+            nodes[0].Should().NotBeNull().And.Match<OpcNodeModel>(node => node.DataSetFieldId == "300");
+
+            // Remove every other
+            await configService.RemoveNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!,
+                Enumerable.Range(0, 10000).Where(i => i % 2 == 0).Select(i => $"{i}").ToList());
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(4900);
+
+            // Remove something not there
+            await configService.RemoveNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!,
+                Enumerable.Range(0, 10000).Where(i => i % 2 == 0).Select(i => $"{i}").ToList());
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(4900);
+
+            // Remove all but original
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+
+            writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            writerResult.DisableSubscriptionTransfer.Should().BeNull();
+            writerResult.OpcNodes.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task TestInsertNodes()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfNodes = 3;
+            var opcNodes = Enumerable.Range(0, numberOfNodes)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+
+            // Create writer
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!,
+                writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+
+            var i = 1;
+            while (i < 1000)
+            {
+                var batchSize = (Random.Shared.Next() % 3) + 1;
+                var offset = (Random.Shared.Next() % i);
+                opcNodes = Enumerable.Range(i, batchSize)
+                    .Select(i => new OpcNodeModel
+                    {
+                        Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                        DataSetFieldId = $"{i}"
+                    })
+                    .ToList();
+                i += batchSize;
+                await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!,
+                    writer.DataSetWriterId!, opcNodes, $"{offset}");
+            }
+
+            nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(i);
+
+            await FluentActions
+                .Invoking(async () => await configService
+                    .AddOrUpdateNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!,
+                        opcNodes, $"{i + 1}"))
+                .Should()
+                .ThrowAsync<ResourceNotFoundException>()
+                .WithMessage("Field to insert after not found.");
+        }
+
+        [Fact]
+        public async Task AddWithoutDistinctIdsResultsInError()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 10)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+
+            // Create writer
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+
+            await FluentActions
+                .Invoking(async () => await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!,
+                    writer.DataSetWriterId!, opcNodes.Skip(1).ToList()))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Field ids must be present and unique.");
+        }
+
+        [Fact]
+        public async Task RemoveWithoutDistinctIdsResultsInError()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 10)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+
+            // Create writer
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Count.Should().Be(1);
+
+            await FluentActions
+                .Invoking(async () => await configService.RemoveNodesAsync(writer.DataSetWriterGroup!,
+                    writer.DataSetWriterId!, new[] { "1", "1", "2" }))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Field ids must be unique.");
+        }
+
+        [Fact]
         public async Task Legacy25PublishedNodesFile()
         {
             Utils.CopyContent("Publisher/pn_2.5_legacy.json", _tempFile);
@@ -173,6 +508,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
+        public async Task UpdateConfiguredEndpoints()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 101)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+            var items = Enumerable.Range(1, 100).Select(i => GenerateEndpoint(i, opcNodes, false)).ToList();
+            await configService.SetConfiguredEndpointsAsync(items);
+
+            var results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(100);
+
+            await configService.UnpublishAllNodesAsync(results[50]);
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(99);
+
+            // purge
+            await configService.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Should().BeEmpty();
+        }
+
+        [Fact]
         public async Task Legacy25PublishedNodesFileError()
         {
             Utils.CopyContent("Publisher/pn_2.5_legacy_error.json", _tempFile);
@@ -200,15 +562,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             await using var configService = InitPublisherConfigService();
 
-            var exceptionResponse = "null request is provided";
-
-            // Check null request.
-            await FluentActions
-                .Invoking(async () => await configService.PublishNodesAsync(null))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage(exceptionResponse);
-
             const int numberOfEndpoints = 1;
             var opcNodes = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
@@ -224,7 +577,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await configService.PublishNodesAsync(endpoints[0]);
 
             const string details = "{\"DataSetWriterId\":\"DataSetWriterId0\",\"DataSetWriterGroup\":\"DataSetWriterGroup\",\"OpcNodes\":[{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}],\"EndpointUrl\":\"opc.tcp://opcplc:50000\",\"UseSecurity\":null,\"OpcAuthenticationMode\":\"anonymous\"}";
-            exceptionResponse = "Nodes not found: \n" + details;
+            var exceptionResponse = "Nodes not found: \n" + details;
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {
@@ -244,17 +597,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task TestPublishNodesNullOrEmpty()
+        public async Task TestPublishNodesEmpty()
         {
             await using var configService = InitPublisherConfigService();
-
-            // Check null request.
-            await FluentActions
-                .Invoking(async () => await configService
-                    .PublishNodesAsync(null))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage("null request is provided");
 
             var request = new PublishedNodesEntryModel
             {
@@ -280,26 +625,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .WithMessage("null or empty OpcNodes is provided in request");
         }
 
-        [Fact]
-        public async Task TestUnpublishNodesNullRequest()
-        {
-            await using var configService = InitPublisherConfigService();
-
-            // Check null request.
-            await FluentActions
-                .Invoking(async () => await configService
-                    .UnpublishNodesAsync(null))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage("null request is provided");
-        }
-
         [Theory]
         [InlineData(false, false)]
         [InlineData(false, true)]
         [InlineData(true, false)]
         [InlineData(true, true)]
-        public async Task TestUnpublishNodesNullOrEmptyOpcNodes(
+        public async Task TestUnpublishNodesEmptyOpcNodes(
             bool useEmptyOpcNodes,
             bool customEndpoint)
         {
@@ -340,34 +671,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             Assert.True(endpoints[0].HasSameDataSet(configuredEndpoints[0]));
             Assert.True(endpoints[2].HasSameDataSet(configuredEndpoints[1]));
-        }
-
-        [Fact]
-        public async Task TestGetConfiguredNodesOnEndpointNullRequest()
-        {
-            await using var configService = InitPublisherConfigService();
-
-            // Check call with null.
-            await FluentActions
-                .Invoking(async () => await configService
-                    .GetConfiguredNodesOnEndpointAsync(null))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage("null request is provided");
-        }
-
-        [Fact]
-        public async Task TestAddOrUpdateEndpointsNullRequest()
-        {
-            await using var configService = InitPublisherConfigService();
-
-            // Check call with null.
-            await FluentActions
-                .Invoking(async () => await configService
-                    .AddOrUpdateEndpointsAsync(null))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage("null request is provided");
         }
 
         [Fact]
@@ -991,5 +1294,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             endpoint.PropagatePublishingIntervalToNodes();
             Assert.True(endpoint.OpcNodes.SetEqualsSafe(nodes, (a, b) => a.IsSame(b)));
         }
+
+        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly PublishedNodesConverter _publishedNodesJobConverter;
+        private readonly IOptions<PublisherOptions> _options;
+        private readonly PublishedNodesProvider _publishedNodesProvider;
+        private readonly Mock<IMessageSource> _triggerMock;
+        private readonly IPublisher _publisher;
     }
 }

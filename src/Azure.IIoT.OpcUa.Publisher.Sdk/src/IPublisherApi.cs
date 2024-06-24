@@ -16,6 +16,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
     public interface IPublisherApi
     {
         /// <summary>
+        /// Create a published nodes entry for a specific writer group and
+        /// dataset writer.
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task CreateOrUpdateDataSetWriterEntryAsync(
+            PublishedNodesEntryModel entry, CancellationToken ct = default);
+
+        /// <summary>
+        /// Get the published nodes entry for a specific writer group and dataset
+        /// writer.
+        /// </summary>
+        /// <param name="dataSetWriterGroup"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
+            string dataSetWriterGroup, string dataSetWriterId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Add Nodes to a dedicated data set writer in a writer group.
+        /// </summary>
+        /// <param name="dataSetWriterGroup"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="opcNodes"></param>
+        /// <param name="insertAfterFieldId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task AddOrUpdateNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
+            IReadOnlyList<OpcNodeModel> opcNodes, string? insertAfterFieldId = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Remove Nodes with the data set field ids from a data set writer in
+        /// a writer group.
+        /// </summary>
+        /// <param name="dataSetWriterGroup"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="dataSetFieldIds"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task RemoveNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
+            IReadOnlyList<string> dataSetFieldIds, CancellationToken ct = default);
+
+        /// <summary>
+        /// Remove Nodes with the data set field ids from a data set writer in
+        /// a writer group.
+        /// </summary>
+        /// <param name="dataSetWriterGroup"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="dataSetFieldId"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(string dataSetWriterGroup,
+            string dataSetWriterId, string? dataSetFieldId = null,
+            int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Remove the published nodes entry for a specific data set
+        /// writer in a writer group.
+        /// </summary>
+        /// <param name="dataSetWriterGroup"></param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task RemoveDataSetWriterEntryAsync(string dataSetWriterGroup, string dataSetWriterId,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Get configured endpoints
         /// </summary>
         /// <param name="request"></param>
