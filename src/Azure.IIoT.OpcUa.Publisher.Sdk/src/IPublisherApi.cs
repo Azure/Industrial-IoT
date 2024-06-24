@@ -63,17 +63,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
             IReadOnlyList<string> dataSetFieldIds, CancellationToken ct = default);
 
         /// <summary>
-        /// Remove Nodes with the data set field ids from a data set writer in
-        /// a writer group.
+        /// Get Nodes from a data set writer in a writer group.
         /// </summary>
         /// <param name="dataSetWriterGroup"></param>
         /// <param name="dataSetWriterId"></param>
-        /// <param name="dataSetFieldId"></param>
+        /// <param name="lastDataSetFieldId"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(string dataSetWriterGroup,
-            string dataSetWriterId, string? dataSetFieldId = null,
+            string dataSetWriterId, string? lastDataSetFieldId = null,
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>

@@ -125,6 +125,70 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .WithMessage("Field ids in writer entry must be present and unique.");
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestCreateUpdateWithNodesWithPublishingIntervalSetArguments(bool timespan)
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"test{i}",
+                    OpcPublishingIntervalTimespan = timespan ?TimeSpan.FromSeconds(1) : null,
+                    OpcPublishingInterval = timespan ? null : 1
+                })
+                .ToList();
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = opcNodes;
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await configService.CreateOrUpdateDataSetWriterEntryAsync(writer))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Publishing interval not allowed on node level. Must be set at writer level.");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestAddNodesWithPublishingIntervalSetArguments(bool timespan)
+        {
+            await using var configService = InitPublisherConfigService();
+
+            const int numberOfEndpoints = 3;
+            var opcNodes = Enumerable.Range(0, numberOfEndpoints)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"test{i}"
+                })
+                .ToList();
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+
+            if (timespan)
+            {
+                opcNodes.ForEach(n => n.OpcPublishingIntervalTimespan = TimeSpan.FromSeconds(1));
+            }
+            else
+            {
+                opcNodes.ForEach(n => n.OpcPublishingInterval = 1);
+            }
+
+            // The call should throw an exception.
+            await FluentActions
+                .Invoking(async () => await configService.AddOrUpdateNodesAsync(writer.DataSetWriterGroup!,
+                    writer.DataSetWriterId!, opcNodes.Skip(1).ToList()))
+                .Should()
+                .ThrowAsync<BadRequestException>()
+                .WithMessage("Publishing interval not allowed on node level. Must be set at writer level.");
+        }
+
         [Fact]
         public async Task TestCreateUpdateRemoveWriterEntries()
         {
@@ -189,17 +253,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             nodes.Count.Should().Be(numberOfNodes);
 
             // Add
+            opcNodes.ForEach(o => o.OpcPublishingIntervalTimespan = null); // Reset in memory changes
             var writer2 = GenerateEndpoint(1, opcNodes, false);
             await configService.CreateOrUpdateDataSetWriterEntryAsync(writer2);
             writers = await configService.GetConfiguredEndpointsAsync();
             writers.Count.Should().Be(2);
 
             // Create ambigous entry
+            opcNodes.ForEach(o => o.OpcPublishingIntervalTimespan = null); // Reset in memory changes
             updatedWriter = writer2 with { DisableSubscriptionTransfer = true };
             await configService.AddOrUpdateEndpointsAsync(updatedWriter.YieldReturn().ToList());
             writers = await configService.GetConfiguredEndpointsAsync();
             writers.Count.Should().Be(3);
 
+            opcNodes.ForEach(o => o.OpcPublishingIntervalTimespan = null); // Reset in memory changes
             await FluentActions
                 .Invoking(async () => await configService
                     .CreateOrUpdateDataSetWriterEntryAsync(writer2))

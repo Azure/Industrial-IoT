@@ -76,13 +76,11 @@ namespace Azure.IIoT.OpcUa.Publisher
             IReadOnlyList<string> dataSetFieldIds, CancellationToken ct = default);
 
         /// <summary>
-        /// Remove Nodes with the data set field ids from a data set
-        /// writer in a writer group. If the field is not found, no
-        /// error is returned.
+        /// Get Nodes from a data set writer in a writer group.
         /// </summary>
         /// <param name="writerGroupId">The writer group</param>
         /// <param name="dataSetWriterId">The data set writer</param>
-        /// <param name="dataSetFieldId">the field id from which to start.
+        /// <param name="dataSetFieldId">the field id after which to start.
         /// If not specified, nodes from the beginning are returned.</param>
         /// <param name="count">Number of nodes to return</param>
         /// <param name="ct"></param>

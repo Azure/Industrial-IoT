@@ -84,14 +84,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             entry.DataSetWriterId ??= string.Empty;
 
             EnsureUniqueDataSetFieldIds(entry);
+            if (entry.OpcNodes.Any(n =>
+                n.OpcPublishingInterval != null ||
+                n.OpcPublishingIntervalTimespan != null))
+            {
+                throw new BadRequestException(
+                    "Publishing interval not allowed on node level. " +
+                    "Must be set at writer level.");
+            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 var newNodes = currentNodes
                     .Where(e =>
-                        !(e.DataSetWriterGroup == entry.DataSetWriterGroup &&
-                          e.DataSetWriterId == entry.DataSetWriterId))
+                        !((e.DataSetWriterGroup ?? string.Empty) == entry.DataSetWriterGroup &&
+                          (e.DataSetWriterId ?? string.Empty) == entry.DataSetWriterId))
                     .ToList();
                 if (newNodes.Count >= currentNodes.Count - 1)
                 {
@@ -143,6 +151,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 throw new BadRequestException(
                     "Field ids must be present and unique.");
+            }
+            if (nodes.Any(n =>
+                n.OpcPublishingInterval != null ||
+                n.OpcPublishingIntervalTimespan != null))
+            {
+                throw new BadRequestException(
+                    "Publishing interval not allowed on node level. " +
+                    "Must be set at writer level.");
             }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -211,7 +227,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 throw new BadRequestException("Field ids must be unique.");
             }
-
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -1073,8 +1088,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var found = entries
                 .Where(e =>
-                     e.DataSetWriterGroup == writerGroupId &&
-                     e.DataSetWriterId == dataSetWriterId)
+                     (e.DataSetWriterGroup ?? string.Empty) == writerGroupId &&
+                     (e.DataSetWriterId ?? string.Empty) == dataSetWriterId)
                 .ToList();
             if (found.Count == 1)
             {

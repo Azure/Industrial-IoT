@@ -566,8 +566,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     .Invoking(async () => await methodsController
                     .GetDiagnosticInfoAsync())
                     .Should()
-                    .NotThrowAsync()
-;
+                    .NotThrowAsync();
 
             response.Subject
                 .Should()

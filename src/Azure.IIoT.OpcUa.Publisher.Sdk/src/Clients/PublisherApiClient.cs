@@ -63,8 +63,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(entry);
-            ArgumentException.ThrowIfNullOrEmpty(entry.DataSetWriterGroup, nameof(entry.DataSetWriterGroup));
-            ArgumentException.ThrowIfNullOrEmpty(entry.DataSetWriterId, nameof(entry.DataSetWriterId));
             await _methodClient.CallMethodAsync(_target,
                 "CreateOrUpdateDataSetWriterEntry", _serializer.SerializeToMemory(entry),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
@@ -123,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(string dataSetWriterGroup,
-            string dataSetWriterId, string? dataSetFieldId, int? pageSize, CancellationToken ct)
+            string dataSetWriterId, string? lastDataSetFieldId, int? pageSize, CancellationToken ct)
         {
             ArgumentException.ThrowIfNullOrEmpty(dataSetWriterGroup);
             ArgumentException.ThrowIfNullOrEmpty(dataSetWriterId);
@@ -132,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                 {
                     dataSetWriterGroup,
                     dataSetWriterId,
-                    dataSetFieldId,
+                    lastDataSetFieldId,
                     pageSize
                 }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
             return _serializer.DeserializeResponse<List<OpcNodeModel>>(response);
