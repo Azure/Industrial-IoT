@@ -1,6 +1,6 @@
 # Microsoft OPC Publisher and Azure Industrial IoT Platform
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status%2FOneBranch%2FIndustrial-IoT%2FIndustrial-IoT-Official?repoName=Industrial-IoT&branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=364945&repoName=Industrial-IoT&branchName=main)
 
 ## Discover, register and manage your OPC UA enabled Assets with Azure
 
@@ -37,7 +37,7 @@ Our releases are tagged following semantic versioning (“semver”) conventions
 |--------------------|--------------------|----------------|-----------------------|---------------------|
 | Industrial IoT 2.8 | [2.8.6](https://github.com/Azure/Industrial-IoT/tree/release/2.8.6) | 7/15/2023  | OPC Publisher 2.9 | [Migration Path](docs/opc-publisher/migrationpath.md) |
 | OPC Publisher 2.8  | [2.8.7](https://github.com/Azure/Industrial-IoT/tree/release/2.8.7) | 12/15/2023 | OPC Publisher 2.9 | N/A |
-| OPC Publisher 2.9  | [2.9.8](https://github.com/Azure/Industrial-IoT/tree/release/2.9.8) | 11/10/2026 | TBA               | [Migration Path](docs/opc-publisher/migrationpath.md) |
+| OPC Publisher 2.9  | [2.9.9](https://github.com/Azure/Industrial-IoT/tree/release/2.9.9) | 11/10/2026 | TBA               | [Migration Path](docs/opc-publisher/migrationpath.md) |
 
 We only support the latest patch version of a release which per semantic versioning convention is identified by the 3rd part of the version string. Preview releases, preview and experimental features are only supported through GitHub issues.
 
