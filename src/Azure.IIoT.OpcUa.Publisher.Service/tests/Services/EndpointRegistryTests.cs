@@ -18,11 +18,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using System;
 
     public class EndpointRegistryTests
     {

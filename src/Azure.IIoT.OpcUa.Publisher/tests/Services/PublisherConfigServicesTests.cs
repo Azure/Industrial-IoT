@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
                     DataSetFieldId = $"test{i}",
-                    OpcPublishingIntervalTimespan = timespan ?TimeSpan.FromSeconds(1) : null,
+                    OpcPublishingIntervalTimespan = timespan ? TimeSpan.FromSeconds(1) : null,
                     OpcPublishingInterval = timespan ? null : 1
                 })
                 .ToList();

@@ -8,18 +8,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Furly.Extensions.AspNetCore.OpenApi;
+    using Furly.Extensions.Http;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Http;
-    using System.Globalization;
-    using Furly.Extensions.AspNetCore.OpenApi;
 
     /// <summary>
     /// <para>

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Avro;
     using Avro.File;
     using Avro.IO;
-    using Avro;
     using System;
     using System.Collections.Generic;
     using System.IO;

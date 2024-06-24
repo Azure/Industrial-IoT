@@ -5,8 +5,8 @@
 
 namespace Opc.Ua.Extensions
 {
-    using UaStructureType = StructureType;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using UaStructureType = StructureType;
 
     /// <summary>
     /// Pub sub related opc ua extensions
