@@ -1313,6 +1313,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             switch (e.Status.Code)
             {
                 case StatusCodes.BadTooManyPublishRequests:
+                    if (!session.Connected)
+                    {
+                        return;
+                    }
                     var limit = GoodPublishRequestCount - 1;
                     var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
                     if (minPublishRequests <= 0)
@@ -1328,8 +1332,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "{Client}: Too many publish request error: Limiting number of requests to {Limit}...",
                         this, limit);
                     return;
-                default:
-                    _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
+                 default:
+                    if (session.Connected)
+                    {
+                        _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
+                            this, e.Status, ActivePublishErrorHandling);
+                        break;
+                    }
+                    _logger.LogDebug(
+                        "{Client}: Disconnected - publish error: {Error} (Actively handled: {Active})...",
                         this, e.Status, ActivePublishErrorHandling);
                     break;
             }
