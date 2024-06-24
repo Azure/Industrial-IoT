@@ -988,7 +988,7 @@ Instance declaration meta data
 ### MessageEncoding
 Message encoding
 
-*Type* : enum (Uadp, Uadp, Json, Xml, Avro, IsReversible, JsonReversible, IsGzipCompressed, JsonGzip, AvroGzip, JsonReversibleGzip)
+*Type* : enum (Uadp, Json, Xml, Avro, IsReversible, JsonReversible, IsGzipCompressed, JsonGzip, AvroGzip, JsonReversibleGzip)
 
 
 <a name="messagingmode"></a>

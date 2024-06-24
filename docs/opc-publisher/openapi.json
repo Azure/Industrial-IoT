@@ -4810,7 +4810,6 @@
             "description": "Message encoding",
             "enum": [
                 "Uadp",
-                "Uadp",
                 "Json",
                 "Xml",
                 "Avro",
