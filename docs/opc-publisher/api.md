@@ -4,11 +4,11 @@
 
 <a name="certificates_resource"></a>
 ### Certificates
-<br>
-            This section lists the certificate APi provided by OPC Publisher providing
+This section lists the certificate APi provided by OPC Publisher providing
             all public and private key infrastructure (PKI) related API methods.
             
-<br>
+
+
             The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
@@ -37,7 +37,7 @@ Add a certificate chain to the trusted https store. The certificate is provided 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -70,7 +70,7 @@ Move a rejected certificate from the rejected folder to the trusted folder on th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="addcertificatechain"></a>
@@ -95,7 +95,7 @@ Add a certificate chain to the specified store. The certificate is provided as a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -121,14 +121,14 @@ Remove all certificates and revocation lists from the specified store.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="listcertificates"></a>
@@ -146,14 +146,14 @@ Get the certificates in the specified certificate store
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to enumerate|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to enumerate|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
+|**200**|OK|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
 
 
 ##### Produces
@@ -179,7 +179,7 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|string|
 |**Query**|**password**  <br>*optional*|The optional password of the pfx|string|
 |**Body**|**body**  <br>*required*|The pfx encoded certificate.|string (byte)|
 
@@ -188,7 +188,7 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -214,7 +214,7 @@ Remove a certificate with the provided thumbprint from the specified store.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|string|
 |**Path**|**thumbprint**  <br>*required*|The thumbprint of the certificate to delete.|string|
 
 
@@ -222,7 +222,7 @@ Remove a certificate with the provided thumbprint from the specified store.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="listcertificaterevocationlists"></a>
@@ -240,14 +240,14 @@ Get the certificates in the specified certificated store
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to enumerate|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to enumerate|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|< string (byte) > array|
+|**200**|OK|< string (byte) > array|
 
 
 ##### Produces
@@ -273,14 +273,14 @@ Remove a certificate revocation list from the specified store.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|string|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="addcertificaterevocationlist"></a>
@@ -298,7 +298,7 @@ Add a certificate revocation list to the specified store. The certificate revoca
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**store**  <br>*required*|The store to add the certificate to|enum (Application, Rejected, Trusted, Https, User, Issuer, HttpsIssuer, UserIssuer)|
+|**Path**|**store**  <br>*required*|The store to add the certificate to|string|
 |**Body**|**body**  <br>*required*|The pfx encoded certificate.|string (byte)|
 
 
@@ -306,7 +306,7 @@ Add a certificate revocation list to the specified store. The certificate revoca
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -319,10 +319,10 @@ Add a certificate revocation list to the specified store. The certificate revoca
 
 <a name="configuration_resource"></a>
 ### Configuration
-<br>
-            This section contains the API to configure OPC Publisher.
+This section contains the API to configure OPC Publisher.
             
-<br>
+
+
             The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
@@ -351,7 +351,7 @@ Get a list of nodes under a configured endpoint in the configuration. Further in
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
+|**200**|OK|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
 
 
 ##### Produces
@@ -384,7 +384,7 @@ Enables clients to update the entire published nodes configuration in one call. 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 ##### Consumes
@@ -417,7 +417,7 @@ Add or update endpoint configuration and nodes on a server. Further information 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -443,7 +443,7 @@ POST /v2/configuration/bulk
 
 
 ##### Description
-Configure node values to publish and unpublish in bulk. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.
+Configure node values to publish and unpublish in bulk. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside OPC Publisher.
 
 
 ##### Parameters
@@ -457,7 +457,7 @@ Configure node values to publish and unpublish in bulk. The group field in the C
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
+|**200**|OK|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
 
 
 ##### Consumes
@@ -491,7 +491,7 @@ Get the list of diagnostics info for all dataset writers in the OPC Publisher at
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
+|**200**|OK|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
 
 
 ##### Produces
@@ -524,7 +524,7 @@ Get the nodes of a published nodes entry object returned earlier from a call to 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
+|**200**|OK|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
 
 
 ##### Consumes
@@ -565,7 +565,7 @@ Get all published nodes for a server endpoint. The group field that was used in 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**200**|OK|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
 
 
 ##### Consumes
@@ -606,7 +606,7 @@ PublishNodes enables a client to add a set of nodes to be published. Further inf
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -647,7 +647,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -688,7 +688,7 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -715,7 +715,7 @@ POST /v2/configuration/start
 
 
 ##### Description
-Start publishing values from a node on a server. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside the OPC Publisher.
+Start publishing values from a node on a server. The group field in the Connection Model can be used to specify a writer group identifier that will be used in the configuration entry that is created from it inside OPC Publisher.
 
 
 ##### Parameters
@@ -729,7 +729,7 @@ Start publishing values from a node on a server. The group field in the Connecti
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
+|**200**|OK|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
 
 
 ##### Consumes
@@ -770,7 +770,7 @@ Stop publishing values from a node on the specified server. The group field that
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
+|**200**|OK|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
 
 
 ##### Consumes
@@ -791,11 +791,11 @@ Stop publishing values from a node on the specified server. The group field that
 
 <a name="diagnostics_resource"></a>
 ### Diagnostics
-<br>
-            This section lists the diagnostics APi provided by OPC Publisher providing
+This section lists the diagnostics APi provided by OPC Publisher providing
             connection related diagnostics API methods.
             
-<br>
+
+
             The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
@@ -817,7 +817,7 @@ Can be used to reset all established connections causing a full reconnect and re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="settracemode"></a>
@@ -835,13 +835,14 @@ Can be used to set trace mode for all established connections. Call within a min
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|OK|No Content|
 
 
 <a name="discovery_resource"></a>
 ### Discovery
-<br>OPC UA and network discovery related API.
-<br>
+OPC UA and network discovery related API.
+
+
             The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
@@ -869,7 +870,7 @@ Start network discovery using the provided discovery request configuration. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|boolean|
+|**200**|OK|boolean|
 
 
 ##### Consumes
@@ -910,7 +911,7 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|boolean|
+|**200**|OK|boolean|
 
 
 ##### Consumes
@@ -951,7 +952,7 @@ Find servers matching the specified endpoint query spec.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**200**|OK|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
 
 
 ##### Consumes
@@ -992,7 +993,7 @@ Start server registration. The results of the registration are published as even
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|boolean|
+|**200**|OK|boolean|
 
 
 ##### Consumes
@@ -1013,11 +1014,11 @@ Start server registration. The results of the registration are published as even
 
 <a name="general_resource"></a>
 ### General
-<br>
-            This section lists the general APi provided by OPC Publisher providing
+This section lists the general APi provided by OPC Publisher providing
             all connection, endpoint and address space related API methods.
             
-<br>
+
+
             The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
@@ -1046,7 +1047,7 @@ Recursively browse a node to discover its references and nodes. The results are 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
+|**200**|OK|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -1087,7 +1088,7 @@ Browse a a node to discover its references. For more information consult <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|OK|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
 
 
 ##### Consumes
@@ -1128,7 +1129,7 @@ Browse next
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|OK|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
 
 
 ##### Consumes
@@ -1169,7 +1170,7 @@ Translate a start node and browse path into 0 or more target nodes. Allows progr
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**200**|OK|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
 
 
 ##### Consumes
@@ -1210,7 +1211,7 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**200**|OK|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
 
 
 ##### Consumes
@@ -1251,7 +1252,7 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**200**|OK|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
 
 
 ##### Consumes
@@ -1292,7 +1293,7 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**200**|OK|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
 
 
 ##### Consumes
@@ -1333,7 +1334,7 @@ Get a server endpoint's certificate and certificate chain if available.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**200**|OK|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
 
 
 ##### Consumes
@@ -1374,7 +1375,7 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**200**|OK|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
 
 
 ##### Consumes
@@ -1415,7 +1416,7 @@ Get the historian configuration of a historizing node in the OPC UA server
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**200**|OK|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
 
 
 ##### Consumes
@@ -1456,7 +1457,7 @@ Read the history using the respective OPC UA service call. See <a href="https://
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**200**|OK|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -1497,7 +1498,7 @@ Read next history using the respective OPC UA service call. See <a href="https:/
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**200**|OK|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -1538,7 +1539,7 @@ Update history using the respective OPC UA service call. Consult the <a href="ht
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1579,7 +1580,7 @@ Get the type metadata for a any node. For data type nodes the response contains 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**200**|OK|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
 
 
 ##### Consumes
@@ -1620,7 +1621,7 @@ Compile a query string into a query spec that can be used when setting up event 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
+|**200**|OK|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
 
 
 ##### Consumes
@@ -1661,7 +1662,7 @@ Read the value of a variable node. This uses the service detailed in the <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|OK|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
 
 
 ##### Consumes
@@ -1702,7 +1703,7 @@ Read any writeable attribute of a specified node on the server. See <a href="htt
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**200**|OK|[ReadResponseModel](definitions.md#readresponsemodel)|
 
 
 ##### Consumes
@@ -1743,7 +1744,7 @@ Test connection to an opc ua server. The call will not establish any persistent 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**200**|OK|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
 
 
 ##### Consumes
@@ -1784,7 +1785,7 @@ Write the value of a variable node. This uses the service detailed in <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**200**|OK|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
 
 
 ##### Consumes
@@ -1825,7 +1826,7 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**200**|OK|[WriteResponseModel](definitions.md#writeresponsemodel)|
 
 
 ##### Consumes
@@ -1846,11 +1847,11 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 
 <a name="history_resource"></a>
 ### History
-<br>
-            This section lists all OPC UA HDA or Historian related API provided by
+This section lists all OPC UA HDA or Historian related API provided by
             OPC Publisher.
             
-<br>
+
+
             The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
@@ -1879,7 +1880,7 @@ Delete event entries in a timeseries of the server historian. See <a href="https
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1920,7 +1921,7 @@ Insert event entries into a specified timeseries of the historian. See <a href="
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1961,7 +1962,7 @@ Read an entire event timeseries from an OPC UA server historian as stream. See <
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
+|**200**|OK|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2002,7 +2003,7 @@ Read an event timeseries inside the OPC UA server historian. See <a href="https:
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2043,7 +2044,7 @@ Continue reading an event timeseries inside the OPC UA server historian. See <a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**200**|OK|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -2084,7 +2085,7 @@ Replace events in a timeseries in the historian of the OPC UA server. See <a hre
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2125,7 +2126,7 @@ Upsert events into a time series of the opc server historian. See <a href="https
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2166,7 +2167,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2207,7 +2208,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2248,7 +2249,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2289,7 +2290,7 @@ Insert value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2330,7 +2331,7 @@ Read an entire timeseries from an OPC UA server historian as stream. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2371,7 +2372,7 @@ Read specific timeseries data from an OPC UA server historian as stream. See <a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2412,7 +2413,7 @@ Read a data change timeseries inside the OPC UA server historian. See <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2453,7 +2454,7 @@ Read parts of a timeseries inside the OPC UA server historian. See <a href="http
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2494,7 +2495,7 @@ Read modified changes in a timeseries inside the OPC UA server historian. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2535,7 +2536,7 @@ Read processed timeseries data inside the OPC UA server historian. See <a href="
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2576,7 +2577,7 @@ Read an entire modified series from an OPC UA server historian as stream. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2617,7 +2618,7 @@ Continue reading a timeseries inside the OPC UA server historian. See <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**200**|OK|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -2658,7 +2659,7 @@ Read processed timeseries data from an OPC UA server historian as stream. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2699,7 +2700,7 @@ Replace value change entries in a timeseries of the server historian. See <a hre
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2740,7 +2741,7 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2757,6 +2758,219 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+<a name="writer_resource"></a>
+### Writer
+This section contains the API to configure data set writers and writer
+            groups inside OPC Publisher. It supersedes the configuration API.
+            Applications should use one or the other, but not both at the same
+            time.
+            
+
+
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
+
+
+<a name="createorupdatedatasetwriterentry"></a>
+#### CreateOrUpdateDataSetWriterEntry
+```
+PUT /v2/writer
+```
+
+
+##### Description
+Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is updated, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to create for the writer|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|OK|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+<a name="getdatasetwriterentry"></a>
+#### GetDataSetWriterEntry
+```
+GET /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}
+```
+
+
+##### Description
+Get the published nodes entry for a specific writer group and dataset writer. Dedicated errors are returned if no, or no unique entry could be found. The entry does not contain the nodes. Nodes can be retrieved using the GetNodes API.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|OK|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="removedatasetwriterentry"></a>
+#### RemoveDataSetWriterEntry
+```
+DELETE /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}
+```
+
+
+##### Description
+Remove the published nodes entry for a specific data set writer in a writer group. Dedicated errors are returned if no, or no unique entry could be found.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|OK|No Content|
+
+
+<a name="getnodes"></a>
+#### GetNodes
+```
+GET /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes
+```
+
+
+##### Description
+Get Nodes from a data set writer in a writer group. The nodes can optionally be offset from a previous last node identified by the dataSetFieldId and pageanated by the pageSize. If the dataSetFieldId is not found, an empty list is returned. If the dataSetFieldId is not specified, the first page is returned.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+|**Query**|**lastDataSetFieldId**  <br>*optional*|the field id after which to start the page. If not specified, nodes from the beginning are returned.|string|
+|**Query**|**pageSize**  <br>*optional*|Number of nodes to return|integer (int32)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|OK|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="addorupdatenodes"></a>
+#### AddOrUpdateNodes
+```
+PUT /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes
+```
+
+
+##### Description
+Add Nodes to a dedicated data set writer in a writer group. Each node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+|**Query**|**insertAfterFieldId**  <br>*optional*|Field after which to insert the nodes. If not specified, nodes are added at the end of the entry|string|
+|**Body**|**body**  <br>*required*|Nodes to add or update|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|OK|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+<a name="removenodes"></a>
+#### RemoveNodes
+```
+DELETE /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes
+```
+
+
+##### Description
+Remove Nodes with the data set field ids from a data set writer in a writer group. If the field is not found, no error is returned.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+|**Body**|**body**  <br>*required*|Fields to add|< string > array|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|OK|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
 
 
 
