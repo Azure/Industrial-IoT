@@ -87,29 +87,21 @@ steps:
     command: build
     projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
     arguments: '--configuration Release'
-
-  # Run unit tests under azure cli which is logged into the subscription
-  # using any configured credential
-- task: AzureCLI@2
+- task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
-  name: runtests
-  timeoutInMinutes: 120
+  timeoutInMinutes: 180
+  retryCountOnTaskFailure: 1
   inputs:
-    azureSubscription: '$(AzureSubscription)'
-    scriptType: 'bash'
-    scriptLocation: 'InlineScript'
-    workingDirectory: '$(BasePath)\e2e-tests'
-    addSpnToEnvironment: true
-    inlineScript: |
-      [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
-      dotnet test IIoTPlatform-E2E-Tests.sln \
-        --configuration Release \
-        --verbosity=normal --logger "console;verbosity=detailed" \
-        --logger trx \
-        --results-directory TestResults \
-        --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }}
+    command: test
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
+    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     ApplicationName: '$(ApplicationName)'
+    AzureSubscription: '$(AzureSubscription)'
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    AZURE_CLIENT_ID: "$(ServicePrincipalId)"
+    AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
+    AZURE_TENANT_ID: "$(pcs-auth-tenant)"
     PCS_IMAGES_TAG: '$(ImageTag)'
     PCS_DOCKER_SERVER: "$(ContainerRegistryServer)"
     PCS_DOCKER_USER: "$(ContainerRegistryUsername)"

@@ -36,6 +36,7 @@ namespace OpcPublisherAEE2ETests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.Extensions.Options;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -472,37 +473,15 @@ namespace OpcPublisherAEE2ETests
                 return context.ResourceGroup;
             }
 
-            SubscriptionResource subscription;
-            ArmClient armClient;
-            try
-            {
-                context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
-                context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
-                context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
-                var options = new DefaultAzureCredentialOptions
-                {
-                    TenantId = context.OpcPlcConfig.TenantId
-                };
-                //options.AdditionallyAllowedTenants.Add("*");
-                armClient = new ArmClient(new DefaultAzureCredential(options));
-                subscription = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
-            }
-            catch
-            {
-                context.OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId} using Azure CLI");
-                armClient = new ArmClient(new AzureCliCredential());
-                subscription = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
-            }
+            var armClient = await GetArmClientAsync(context, cancellationToken);
 
+            SubscriptionResource subscription = null;
             if (!string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId))
             {
-                var selectedSubscription = await armClient.GetSubscriptions()
+                subscription = await armClient.GetSubscriptions()
                     .FirstOrDefaultAsync(s => s.Data.SubscriptionId == context.OpcPlcConfig.SubscriptionId, cancellationToken);
-                if (selectedSubscription != null)
-                {
-                    subscription = selectedSubscription;
-                }
             }
+            subscription ??= await armClient.GetDefaultSubscriptionAsync(cancellationToken);
 
             var response = await subscription.GetResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, cancellationToken);
             var rg = Validate(context, response);
@@ -538,6 +517,67 @@ namespace OpcPublisherAEE2ETests
             context.PLCImage = containerGroup.Data.Containers[0].Image;
             context.ResourceGroup = rg;
             return rg;
+        }
+
+        /// <summary>
+        /// Get an arm client
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private static async Task<ArmClient> GetArmClientAsync(IIoTPlatformTestContext context,
+            CancellationToken cancellationToken)
+        {
+            context.OutputHelper.WriteLine($"Accessing resource manager in tenant {context.OpcPlcConfig.TenantId}...");
+            try
+            {
+                var systemAccessToken = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+                var serviceConnection = Environment.GetEnvironmentVariable("AzureSubscription");
+                var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+                if (!string.IsNullOrEmpty(systemAccessToken) &&
+                    !string.IsNullOrEmpty(serviceConnection))
+                {
+                    context.OutputHelper.WriteLine(
+                        $"Using service connection {serviceConnection} with client {clientId}...");
+                    var armClient = new ArmClient(new AzurePipelinesCredential(
+                        context.OpcPlcConfig.TenantId, clientId, serviceConnection, systemAccessToken));
+                    await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                    return armClient;
+                }
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using pipeline service connection: {ex.Message}");
+            }
+            try
+            {
+                context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
+                context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
+                context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
+                var options = new DefaultAzureCredentialOptions
+                {
+                    TenantId = context.OpcPlcConfig.TenantId
+                };
+                //options.AdditionallyAllowedTenants.Add("*");
+                var armClient = new ArmClient(new DefaultAzureCredential(options));
+                await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                return armClient;
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using default credentials: {ex.Message}");
+            }
+            try
+            {
+                var armClient = new ArmClient(new AzureCliCredential());
+                var subscription = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                return armClient;
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using azure cli: {ex.Message}");
+                throw;
+            }
         }
 
         private static T Validate<T>(IIoTPlatformTestContext context, Response<T> response)
