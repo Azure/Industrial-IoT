@@ -76,6 +76,7 @@ namespace IIoTPlatformE2ETests
         /// <param name="clientId">User name for HTTP basic authentication</param>
         /// <param name="clientSecret">Password for HTTP basic authentication</param>
         /// <param name="serviceId">service id of deployed Industrial IoT</param>
+        /// <param name="outputHelper"></param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Return content of request token or empty string</returns>
         public static async Task<(DateTime Expiration, string Token)> GetTokenAsync(

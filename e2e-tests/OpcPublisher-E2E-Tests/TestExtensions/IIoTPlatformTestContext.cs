@@ -9,10 +9,10 @@ namespace OpcPublisherAEE2ETests.TestExtensions
     using Microsoft.Extensions.Configuration;
     using System;
     using Xunit.Abstractions;
-    using Microsoft.Azure.Management.Fluent;
     using System.Collections.Generic;
     using Microsoft.Extensions.Logging;
     using Neovolve.Logging.Xunit;
+    using Azure.ResourceManager.Resources;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -121,7 +121,7 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         /// <summary>
         /// Azure Context for managament api
         /// </summary>
-        public IAzure AzureContext { get; set; }
+        public ResourceGroupResource AzureContext { get; set; }
 
         /// <summary>
         /// Urls for the dynamic ACI containers
