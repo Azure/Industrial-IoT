@@ -331,36 +331,37 @@ namespace OpcPublisherAEE2ETests
         public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context,
             List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1)
         {
-            var azure = await GetAzureContextAsync(context, cancellationToken).ConfigureAwait(false);
+            var resourceGroup = await GetResourceGroupAsync(context, cancellationToken).ConfigureAwait(false);
 
             if (fileToUpload != null)
             {
-                await UploadFileToStorageAccountAsync(context.AzureStorageName, context.AzureStorageKey, fileToUpload).ConfigureAwait(false);
+                await UploadFileToStorageAccountAsync(context, fileToUpload, cancellationToken).ConfigureAwait(false);
             }
 
             context.PlcAciDynamicUrls = await Task.WhenAll(
                 Enumerable.Range(0, numInstances)
                     .Select(i =>
-                        CreateContainerGroupAsync(azure,
+                        CreatePlcContainerGroupAsync(resourceGroup,
                             $"e2etesting-simulation-aci-{i}-{context.TestingSuffix}-dynamic",
-                            context.PLCImage,
+                            context,
                             commandLine[0],
                             commandLine.GetRange(1, commandLine.Count - 1).ToArray(),
                             TestConstants.OpcSimulation.FileShareName,
-                            context.AzureStorageName,
-                            context.AzureStorageKey))).ConfigureAwait(false);
+                            cancellationToken))).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Upload a file to a storage account
         /// </summary>
-        /// <param name="storageAccountName">Name of storage account</param>
-        /// <param name="storageAccountKey">Key for storage account</param>
+        /// <param name="context"></param>
         /// <param name="fileName">File name</param>
-        private async static Task UploadFileToStorageAccountAsync(string storageAccountName, string storageAccountKey, string fileName)
+        /// <param name="ct"></param>
+        private async static Task UploadFileToStorageAccountAsync(IIoTPlatformTestContext context,
+            string fileName, CancellationToken ct = default)
         {
-            var share = new ShareClient(new Uri($"https://{storageAccountName}.file.core.windows.net/{TestConstants.OpcSimulation.FileShareName}"),
-                new StorageSharedKeyCredential(storageAccountName, storageAccountKey));
+            var share = new ShareClient(
+                new Uri($"https://{context.AzureStorageName}.file.core.windows.net/{TestConstants.OpcSimulation.FileShareName}"),
+                new StorageSharedKeyCredential(context.AzureStorageName, context.AzureStorageKey));
             var directory = share.GetRootDirectoryClient();
 
             Assert.False(fileName.Contains('\\', StringComparison.Ordinal), "\\ can't be used for file path");
@@ -377,8 +378,18 @@ namespace OpcPublisherAEE2ETests
             }
 
             var cf = directory.GetFileClient(onlyFileName);
-            await using var stream = new FileStream(fileName, FileMode.Open);
-            await cf.UploadAsync(stream).ConfigureAwait(false);
+            try
+            {
+                await cf.DeleteIfExistsAsync(cancellationToken: ct).ConfigureAwait(false);
+                await using var stream = new FileStream(fileName, FileMode.Open);
+                await cf.UploadAsync(stream, cancellationToken: ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to upload file {fileName} to storage " +
+                    $"account {context.AzureStorageName} as {onlyFileName} ({ex.Message})");
+                throw;
+            }
         }
 
         /// <summary>
@@ -386,18 +397,15 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="resGroup">Resource group</param>
         /// <param name="containerGroupName">Container group name</param>
-        /// <param name="containerImage">Container image</param>
+        /// <param name="context"></param>
         /// <param name="executable">Starting command line</param>
         /// <param name="commandLine">Additional command line options</param>
         /// <param name="fileShareName">File share name</param>
-        /// <param name="storageAccountName">Storage account name</param>
-        /// <param name="storageAccountKey">Storage account key</param>
-        private static async Task<string> CreateContainerGroupAsync(ResourceGroupResource resGroup,
-            string containerGroupName, string containerImage, string executable,
-            string[] commandLine, string fileShareName, string storageAccountName,
-            string storageAccountKey)
+        private static async Task<string> CreatePlcContainerGroupAsync(ResourceGroupResource resGroup,
+            string containerGroupName, IIoTPlatformTestContext context, string executable,
+            string[] commandLine, string fileShareName, CancellationToken cancellationToken)
         {
-            var container = new ContainerInstanceContainer(containerGroupName, containerImage,
+            var container = new ContainerInstanceContainer(containerGroupName, context.PLCImage,
                 new ContainerResourceRequirements(new ContainerResourceRequestsContent(0.5, 0.5)));
             container.Command.Add(executable);
             container.Command.AddRange(commandLine);
@@ -415,62 +423,37 @@ namespace OpcPublisherAEE2ETests
             };
             containerGroup.Volumes.Add(new ContainerVolume("share")
             {
-                AzureFile = new ContainerInstanceAzureFileVolume(fileShareName, storageAccountName)
+                AzureFile = new ContainerInstanceAzureFileVolume(fileShareName, context.AzureStorageName)
                 {
-                    StorageAccountKey = storageAccountKey,
+                    StorageAccountKey = context.AzureStorageKey,
                     IsReadOnly = false
                 }
             });
 
-            var result = await resGroup.GetContainerGroups().CreateOrUpdateAsync(WaitUntil.Completed,
-                containerGroupName, containerGroup);
-
-            //var containerGroup = await resGroup..ContainerGroups.Define(containerGroupName)
-            //    .WithRegion(azureRegion)
-            //    .WithExistingResourceGroup(resourceGroupName)
-            //    .WithLinux()
-            //    .WithPublicImageRegistryOnly()
-            //    .DefineVolume("share")
-            //        .WithExistingReadWriteAzureFileShare(fileShareName)
-            //        .WithStorageAccountName(storageAccountName)
-            //        .WithStorageAccountKey(storageAccountKey)
-            //        .Attach()
-            //    .DefineContainerInstance(containerGroupName)
-            //        .WithImage(containerImage)
-            //        .WithExternalTcpPort(50000)
-            //        .WithCpuCoreCount(0.5)
-            //        .WithMemorySizeInGB(0.5)
-            //        .WithVolumeMountSetting("share", "/app/files")
-            //        .WithStartingCommandLine(executable, commandLine)
-            //        .Attach()
-            //    .WithDnsPrefix(containerGroupName)
-            //    .CreateAsync().ConfigureAwait(false);
-
-            return result.Value.Data.IPAddress.Fqdn;
+            var operation = await resGroup.GetContainerGroups().CreateOrUpdateAsync(WaitUntil.Completed,
+                containerGroupName, containerGroup, cancellationToken);
+            return Validate(context, operation).Data.IPAddress.Fqdn;
         }
 
         /// <summary>
         /// Delete an ACI
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void DeleteSimulationContainer(IIoTPlatformTestContext context)
-        {
-            DeleteSimulationContainerAsync(context).GetAwaiter().GetResult();
-        }
-
-        /// <summary>
-        /// Delete an ACI
-        /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context)
+        public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context, CancellationToken ct)
         {
             if (context.PlcAciDynamicUrls == null || context.PlcAciDynamicUrls.Count == 0)
             {
                 return;
             }
+            var resourceGroup = await GetResourceGroupAsync(context, ct);
             await Task.WhenAll(context.PlcAciDynamicUrls
                 .Select(url => url.Split(".")[0])
-                .Select(async n => await (await context.ResourceGroup.GetContainerGroupAsync(n)).Value.DeleteAsync(WaitUntil.Completed))
+                .Select(async n =>
+                {
+                    var response = await resourceGroup.GetContainerGroupAsync(n);
+                    var group = Validate(context, response);
+                    return await group.DeleteAsync(WaitUntil.Completed);
+                })
             ).ConfigureAwait(false);
         }
 
@@ -480,7 +463,8 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <exception cref="InvalidOperationException"></exception>
-        internal async static Task<ResourceGroupResource> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        internal async static Task<ResourceGroupResource> GetResourceGroupAsync(IIoTPlatformTestContext context,
+            CancellationToken cancellationToken)
         {
             if (context.ResourceGroup != null)
             {
@@ -556,6 +540,16 @@ namespace OpcPublisherAEE2ETests
         }
 
         private static T Validate<T>(IIoTPlatformTestContext context, Response<T> response)
+        {
+            if (!response.HasValue)
+            {
+                context.OutputHelper.WriteLine($"Get tags from {response}");
+                throw new InvalidOperationException(response.ToString());
+            }
+            return response.Value;
+        }
+
+        private static T Validate<T>(IIoTPlatformTestContext context, Operation<T> response)
         {
             if (!response.HasValue)
             {

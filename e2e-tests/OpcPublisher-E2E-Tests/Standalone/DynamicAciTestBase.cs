@@ -94,9 +94,9 @@ namespace OpcPublisherAEE2ETests.Standalone
         }
 
         [Fact, PriorityOrder(999)]
-        public void TestDeleteAci()
+        public async Task TestDeleteAci()
         {
-            TestHelper.DeleteSimulationContainer(_context);
+            await TestHelper.DeleteSimulationContainerAsync(_context, _timeoutToken);
         }
 
         /// <summary>
