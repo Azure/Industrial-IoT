@@ -397,17 +397,22 @@ namespace OpcPublisherAEE2ETests
             string[] commandLine, string fileShareName, string storageAccountName,
             string storageAccountKey)
         {
-            var azureRegion = (await resGroup.GetAvailableLocationsAsync(default)).Value.First();
-
             var container = new ContainerInstanceContainer(containerGroupName, containerImage,
-                new ContainerResourceRequirements(new ContainerResourceRequestsContent(1.5, 1.0)));
+                new ContainerResourceRequirements(new ContainerResourceRequestsContent(0.5, 0.5)));
             container.Command.Add(executable);
             container.Command.AddRange(commandLine);
             container.Ports.Add(new ContainerPort(50000));
             container.VolumeMounts.Add(new ContainerVolumeMount("share", "/app/files"));
 
-            var containerGroup = new ContainerGroupData(azureRegion, container.YieldReturn(),
-                ContainerInstanceOperatingSystemType.Linux);
+            var containerGroup = new ContainerGroupData(resGroup.Data.Location, container.YieldReturn(),
+                ContainerInstanceOperatingSystemType.Linux)
+            {
+                IPAddress = new ContainerGroupIPAddress(new ContainerGroupPort(50000).YieldReturn(),
+                    ContainerGroupIPAddressType.Public)
+                {
+                    DnsNameLabel = containerGroupName
+                }
+            };
             containerGroup.Volumes.Add(new ContainerVolume("share")
             {
                 AzureFile = new ContainerInstanceAzureFileVolume(fileShareName, storageAccountName)
@@ -465,7 +470,7 @@ namespace OpcPublisherAEE2ETests
             }
             await Task.WhenAll(context.PlcAciDynamicUrls
                 .Select(url => url.Split(".")[0])
-                .Select(async n => await (await context.AzureContext.GetContainerGroupAsync(n)).Value.DeleteAsync(WaitUntil.Completed))
+                .Select(async n => await (await context.ResourceGroup.GetContainerGroupAsync(n)).Value.DeleteAsync(WaitUntil.Completed))
             ).ConfigureAwait(false);
         }
 
@@ -477,9 +482,9 @@ namespace OpcPublisherAEE2ETests
         /// <exception cref="InvalidOperationException"></exception>
         internal async static Task<ResourceGroupResource> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
         {
-            if (context.AzureContext != null)
+            if (context.ResourceGroup != null)
             {
-                return context.AzureContext;
+                return context.ResourceGroup;
             }
 
             SubscriptionResource subscription;
@@ -535,7 +540,7 @@ namespace OpcPublisherAEE2ETests
             var firstAciIpAddress = context.OpcPlcConfig.Ips.Split(";")[0];
             var containerGroups = await rg.GetContainerGroups().ToListAsync(cancellationToken);
             context.OutputHelper.WriteLine($"Get container from groups {containerGroups}");
-            var containerGroup = containerGroups.Find(g => g.Data.IPAddress.IP.ToString() == firstAciIpAddress);
+            var containerGroup = containerGroups.Find(g => g.Data?.IPAddress?.IP?.ToString() == firstAciIpAddress);
             if (containerGroup == null)
             {
                 throw new InvalidOperationException($"Container group with IP address {firstAciIpAddress} not found");
@@ -546,7 +551,7 @@ namespace OpcPublisherAEE2ETests
                 throw new InvalidOperationException($"Container group with IP address {firstAciIpAddress} is empty");
             }
             context.PLCImage = containerGroup.Data.Containers[0].Image;
-            context.AzureContext = rg;
+            context.ResourceGroup = rg;
             return rg;
         }
 

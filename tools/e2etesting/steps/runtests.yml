@@ -102,7 +102,6 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       [[ -z "${PCS_AUTH_TENANT}" ]] || export PCS_AUTH_TENANT=${tenantId}
-      export ACCESS_TOKEN=$(az account get-access-token --query accessToken -o tsv)
       dotnet test IIoTPlatform-E2E-Tests.sln \
         --configuration Release \
         --verbosity=normal --logger "console;verbosity=detailed" \

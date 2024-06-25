@@ -119,9 +119,9 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public RegistryHelper RegistryHelper { get; }
 
         /// <summary>
-        /// Azure Context for managament api
+        /// Resource group object
         /// </summary>
-        public ResourceGroupResource AzureContext { get; set; }
+        public ResourceGroupResource ResourceGroup { get; set; }
 
         /// <summary>
         /// Urls for the dynamic ACI containers
