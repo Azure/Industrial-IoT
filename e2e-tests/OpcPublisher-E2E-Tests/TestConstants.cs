@@ -83,11 +83,6 @@ namespace OpcPublisherAEE2ETests
             public const string FileShareName = "acishare";
 
             /// <summary>
-            /// Where to mount the file share in ACI
-            /// </summary>
-            public const string AciMountPath = "/app/files";
-
-            /// <summary>
             /// This is the first part of the Azure Storage name that is created in pipeline
             /// </summary>
             public const string AzureStorageNameWithoutSuffix = "e2etestingstorage";
@@ -167,11 +162,6 @@ namespace OpcPublisherAEE2ETests
             /// The connection string of the event-hub compatible endpoint of IoT Hub.
             /// </summary>
             public const string IOTHUB_EVENTHUB_CONNECTIONSTRING = "IOTHUB_EVENTHUB_CONNECTIONSTRING";
-
-            /// <summary>
-            /// The connection string of the storage account that will be used for checkpointing (when monitoring IoT Hub)
-            /// </summary>
-            public const string STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING = "STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING";
 
             /// <summary>
             /// Container Registry server

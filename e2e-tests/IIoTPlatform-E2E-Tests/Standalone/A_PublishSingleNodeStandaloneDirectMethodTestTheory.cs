@@ -6,17 +6,17 @@
 namespace IIoTPlatformE2ETests.Standalone
 {
     using IIoTPlatformE2ETests.Deploy;
-    using System.Net;
+    using IIoTPlatformE2ETests.TestEventProcessor;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
-    using Furly.Extensions.Serializers;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using IIoTPlatformE2ETests.TestEventProcessor;
-    using System.Linq;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node

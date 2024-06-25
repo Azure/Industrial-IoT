@@ -5,8 +5,8 @@
 
 namespace OpcPublisherAEE2ETests.TestModels
 {
-    using System;
     using Newtonsoft.Json;
+    using System;
 
     /// <summary>Payload for conditions and alarms.</summary>
     public class ConditionTypePayload : BaseEventTypePayload

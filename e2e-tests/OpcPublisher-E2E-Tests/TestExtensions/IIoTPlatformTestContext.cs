@@ -5,14 +5,14 @@
 
 namespace OpcPublisherAEE2ETests.TestExtensions
 {
+    using Azure.ResourceManager.Resources;
     using Config;
     using Microsoft.Extensions.Configuration;
-    using System;
-    using Xunit.Abstractions;
-    using System.Collections.Generic;
     using Microsoft.Extensions.Logging;
     using Neovolve.Logging.Xunit;
-    using Azure.ResourceManager.Resources;
+    using System;
+    using System.Collections.Generic;
+    using Xunit.Abstractions;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -279,7 +279,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             Log("IOT_EDGE_VM_USERNAME");
             Log("PCS_IOTHUB_CONNSTRING");
             Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
-            Log("STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING");
             void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
         }
         private bool _logged;

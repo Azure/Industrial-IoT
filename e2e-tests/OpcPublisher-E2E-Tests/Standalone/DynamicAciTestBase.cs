@@ -6,21 +6,21 @@
 namespace OpcPublisherAEE2ETests.Standalone
 {
     using OpcPublisherAEE2ETests.TestExtensions;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.Messaging.EventHubs.Consumer;
+    using FluentAssertions;
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.Devices;
+    using Newtonsoft.Json.Linq;
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using Newtonsoft.Json.Linq;
-    using FluentAssertions;
-    using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
 
     /// <summary>
     /// Base class for standalone tests using dynamic ACI

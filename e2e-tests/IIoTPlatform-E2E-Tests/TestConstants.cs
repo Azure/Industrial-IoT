@@ -260,21 +260,6 @@ namespace IIoTPlatformE2ETests
             public const string STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING = "STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING";
 
             /// <summary>
-            /// The service base url of the TestEventProcessor
-            /// </summary>
-            public const string TESTEVENTPROCESSOR_BASEURL = "TESTEVENTPROCESSOR_BASEURL";
-
-            /// <summary>
-            /// The username to authenticate against the TestEventProcessor (Basic Auth)
-            /// </summary>
-            public const string TESTEVENTPROCESSOR_USERNAME = "TESTEVENTPROCESSOR_USERNAME";
-
-            /// <summary>
-            /// The password to authenticate against the TestEventProcessor (Basic Auth)
-            /// </summary>
-            public const string TESTEVENTPROCESSOR_PASSWORD = "TESTEVENTPROCESSOR_PASSWORD";
-
-            /// <summary>
             /// Container Registry server
             /// </summary>
             public const string PCS_DOCKER_SERVER = "PCS_DOCKER_SERVER";

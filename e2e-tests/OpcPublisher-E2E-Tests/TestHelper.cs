@@ -5,6 +5,7 @@
 
 namespace OpcPublisherAEE2ETests
 {
+    using OpcPublisherAEE2ETests.Config;
     using Azure;
     using Azure.Core;
     using Azure.Identity;
@@ -20,7 +21,6 @@ namespace OpcPublisherAEE2ETests
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using OpcPublisherAEE2ETests.Config;
     using Renci.SshNet;
     using System;
     using System.Collections.Generic;

@@ -7,12 +7,12 @@ namespace OpcPublisherAEE2ETests.Standalone
 {
     using OpcPublisherAEE2ETests.TestExtensions;
     using Newtonsoft.Json.Linq;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node

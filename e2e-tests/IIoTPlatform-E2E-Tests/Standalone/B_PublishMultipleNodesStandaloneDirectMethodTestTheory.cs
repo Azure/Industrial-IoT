@@ -5,16 +5,16 @@
 
 namespace IIoTPlatformE2ETests.Standalone
 {
+    using IIoTPlatformE2ETests.Deploy;
+    using IIoTPlatformE2ETests.TestEventProcessor;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
-    using IIoTPlatformE2ETests.Deploy;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using IIoTPlatformE2ETests.TestEventProcessor;
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;

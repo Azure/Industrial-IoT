@@ -8,9 +8,10 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
     using IIoTPlatformE2ETests.TestEventProcessor.Checkers;
     using IIoTPlatformE2ETests;
     using IIoTPlatformE2ETests.TestExtensions;
+    using Azure.Messaging.EventHubs.Consumer;
+    using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json.Linq;
-    using Azure.Messaging.EventHubs.Consumer;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -19,7 +20,6 @@ namespace IIoTPlatformE2ETests.TestEventProcessor
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices;
 
     public sealed class TelemetryValidator : IDisposable
     {
