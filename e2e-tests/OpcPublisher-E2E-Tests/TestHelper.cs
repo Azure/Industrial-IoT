@@ -506,7 +506,12 @@ namespace OpcPublisherAEE2ETests
 
             if (!string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId))
             {
-                subscription = armClient.GetSubscriptionResource(new ResourceIdentifier(context.OpcPlcConfig.SubscriptionId));
+                var selectedSubscription = await armClient.GetSubscriptions()
+                    .FirstOrDefaultAsync(s => s.Data.SubscriptionId == context.OpcPlcConfig.SubscriptionId, cancellationToken);
+                if (selectedSubscription != null)
+                {
+                    subscription = selectedSubscription;
+                }
             }
 
             var response = await subscription.GetResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, cancellationToken);
