@@ -32,8 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="resources"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
-        public PublisherDiagnosticCollector(IResourceMonitor resources,
-            ILogger<PublisherDiagnosticCollector> logger, TimeProvider? timeProvider = null)
+        public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
+            IResourceMonitor? resources = null, TimeProvider? timeProvider = null)
         {
             _resources = resources;
             _logger = logger;
@@ -76,26 +76,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 //
                 _meterListener.RecordObservableInstruments();
                 var duration = _timeProvider.GetUtcNow() - value.AggregateModel.IngestionStart;
-                var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
 
-                diagnostic = value.AggregateModel with
+                if (_resources != null)
                 {
-                    IngestionDuration = duration,
-                    MemoryUsedPercentage =
-                        resources.MemoryUsedPercentage,
-                    MemoryUsedInBytes =
-                        resources.MemoryUsedInBytes,
-                    CpuUsedPercentage =
-                        resources.CpuUsedPercentage,
-                    GuaranteedCpuUnits =
-                        resources.SystemResources.GuaranteedCpuUnits,
-                    MaximumCpuUnits =
-                        resources.SystemResources.MaximumCpuUnits,
-                    GuaranteedMemoryInBytes =
-                        resources.SystemResources.GuaranteedMemoryInBytes,
-                    MaximumMemoryInBytes =
-                        resources.SystemResources.MaximumMemoryInBytes
-                };
+                    var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
+
+                    diagnostic = value.AggregateModel with
+                    {
+                        IngestionDuration = duration,
+                        MemoryUsedPercentage =
+                            resources.MemoryUsedPercentage,
+                        MemoryUsedInBytes =
+                            resources.MemoryUsedInBytes,
+                        CpuUsedPercentage =
+                            resources.CpuUsedPercentage,
+                        GuaranteedCpuUnits =
+                            resources.SystemResources.GuaranteedCpuUnits,
+                        MaximumCpuUnits =
+                            resources.SystemResources.MaximumCpuUnits,
+                        GuaranteedMemoryInBytes =
+                            resources.SystemResources.GuaranteedMemoryInBytes,
+                        MaximumMemoryInBytes =
+                            resources.SystemResources.MaximumMemoryInBytes
+                    };
+                }
+                else
+                {
+                    diagnostic = value.AggregateModel with
+                    {
+                        IngestionDuration = duration
+                    };
+                }
                 return true;
             }
             diagnostic = default;
@@ -112,28 +123,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                  .Select(kv => (kv.Key, kv.Value.AggregateModel)))
             {
                 var duration = now - info.IngestionStart;
-                var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
 
-                yield return (writerGroupId, info with
+                if (_resources == null)
                 {
-                    Timestamp = now,
-                    IngestionDuration = duration,
+                    yield return (writerGroupId, info with
+                    {
+                        Timestamp = now,
+                        IngestionDuration = duration
+                    });
+                }
+                else
+                {
+                    var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
+                    yield return (writerGroupId, info with
+                    {
+                        Timestamp = now,
+                        IngestionDuration = duration,
 
-                    MemoryUsedPercentage =
-                        resources.MemoryUsedPercentage,
-                    MemoryUsedInBytes =
-                        resources.MemoryUsedInBytes,
-                    CpuUsedPercentage =
-                        resources.CpuUsedPercentage,
-                    GuaranteedCpuUnits =
-                        resources.SystemResources.GuaranteedCpuUnits,
-                    MaximumCpuUnits =
-                        resources.SystemResources.MaximumCpuUnits,
-                    GuaranteedMemoryInBytes =
-                        resources.SystemResources.GuaranteedMemoryInBytes,
-                    MaximumMemoryInBytes =
-                        resources.SystemResources.MaximumMemoryInBytes
-                });
+                        MemoryUsedPercentage =
+                            resources.MemoryUsedPercentage,
+                        MemoryUsedInBytes =
+                            resources.MemoryUsedInBytes,
+                        CpuUsedPercentage =
+                            resources.CpuUsedPercentage,
+                        GuaranteedCpuUnits =
+                            resources.SystemResources.GuaranteedCpuUnits,
+                        MaximumCpuUnits =
+                            resources.SystemResources.MaximumCpuUnits,
+                        GuaranteedMemoryInBytes =
+                            resources.SystemResources.GuaranteedMemoryInBytes,
+                        MaximumMemoryInBytes =
+                            resources.SystemResources.MaximumMemoryInBytes
+                    });
+                }
             }
         }
 
@@ -284,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly MeterListener _meterListener;
-        private readonly IResourceMonitor _resources;
+        private readonly IResourceMonitor? _resources;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
         private readonly ConcurrentDictionary<string, AggregateDiagnosticModel> _diagnostics = new();

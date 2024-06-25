@@ -75,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string PublishMessageSchemaKey = "PublishMessageSchema";
         public const string PreferAvroOverJsonSchemaKey = "PreferAvroOverJsonSchema";
         public const string SchemaNamespaceKey = "SchemaNamespace";
+        public const string DisableResourceMonitoringKey = "DisableResourceMonitoring";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -129,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <inheritdoc/>
         public override void PostConfigure(string? name, PublisherOptions options)
         {
+            options.DisableResourceMonitoring ??= GetBoolOrNull(DisableResourceMonitoringKey);
             options.PublisherId ??= GetStringOrDefault(PublisherIdKey,
                     _identity?.Identity ?? Dns.GetHostName());
 
