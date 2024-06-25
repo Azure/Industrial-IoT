@@ -935,7 +935,5 @@ namespace IIoTPlatformE2ETests
                 }
             }
         }
-
-        private static readonly JsonSerializer kSerializer = new();
     }
 }
