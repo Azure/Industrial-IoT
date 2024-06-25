@@ -121,6 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             base.Dispose(disposing);
             if (disposing && !_disposed)
             {
+                var sessionName = SessionName;
+
                 PublishError -=
                     _client.Session_HandlePublishError;
                 PublishSequenceNumbersToAcknowledge -=
@@ -136,7 +138,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogInformation("{Session}: Session disposed.", this);
+                    _logger.LogInformation("{Session}: Session disposed.",
+                        sessionName);
                 }
                 finally
                 {

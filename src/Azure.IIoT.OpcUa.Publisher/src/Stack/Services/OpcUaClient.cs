@@ -1043,7 +1043,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     // Reload namespace tables should they have changed...
+                    var oldTable = session.NamespaceUris.ToArray();
                     await session.FetchNamespaceTablesAsync(ct).ConfigureAwait(false);
+                    var newTable = session.NamespaceUris.ToArray();
+                    LogNamespaceTableChanges(oldTable, newTable);
                 }
                 catch (ServiceResultException sre)
                 {
@@ -1090,6 +1093,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     reconnectPeriod = _maxReconnectPeriod;
                 }
                 return (int)reconnectPeriod.TotalMilliseconds;
+            }
+        }
+
+        /// <summary>
+        /// Log namespace table changes
+        /// </summary>
+        /// <param name="oldTable"></param>
+        /// <param name="newTable"></param>
+        private void LogNamespaceTableChanges(string[] oldTable, string[] newTable)
+        {
+            var tableChanged = false;
+            for (var i = 0; i < Math.Max(oldTable.Length, newTable.Length); i++)
+            {
+                if (i < oldTable.Length && i < newTable.Length)
+                {
+                    if (oldTable[i] == newTable[i])
+                    {
+                        continue;
+                    }
+                    tableChanged = true;
+                    _logger.LogWarning(
+                        "{Client}: Namespace index #{Index} changed from {Old} to {New}",
+                        this, i, oldTable[i], newTable[i]);
+                }
+                else if (i < oldTable.Length)
+                {
+                    tableChanged = true;
+                    _logger.LogWarning(
+                        "{Client}: Namespace index #{Index} removed {Old}",
+                        this, i, oldTable[i]);
+                }
+                else
+                {
+                    tableChanged = true;
+                    _logger.LogWarning(
+                        "{Client}: Namespace index #{Index} added {New}",
+                        this, i, newTable[i]);
+                }
+            }
+            if (tableChanged)
+            {
+                Interlocked.Increment(ref _namespaceTableChanges);
             }
         }
 
@@ -1508,20 +1553,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _reconnectingSession = null;
             }
 
-            Debug.Assert(_reconnectingSession == null);
-            if (ReferenceEquals(_session, session))
+            var oldTable = _session?.NamespaceUris.ToArray();
+            try
             {
-                // Not a new session
+                Debug.Assert(_reconnectingSession == null);
+                if (ReferenceEquals(_session, session))
+                {
+                    // Not a new session
+                    NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+                    return false;
+                }
+
+                await CloseSessionAsync().ConfigureAwait(false);
+                _session = (OpcUaSession)session;
+
                 NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-                return false;
+                kSessions.Add(1, _metrics.TagList);
+                return true;
             }
-
-            await CloseSessionAsync().ConfigureAwait(false);
-            _session = (OpcUaSession)session;
-
-            NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-            kSessions.Add(1, _metrics.TagList);
-            return true;
+            finally
+            {
+                if (oldTable != null && _session != null)
+                {
+                    var newTable = _session.NamespaceUris.ToArray();
+                    LogNamespaceTableChanges(oldTable, newTable);
+                }
+            }
         }
 
         /// <summary>
@@ -1923,6 +1980,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_client_keep_alive_counter",
                 () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
                 description: "Number of successful keep alives since last keep alive error.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_namespace_change_count",
+                () => new Measurement<int>(_namespaceTableChanges, _metrics.TagList),
+                description: "Number of namespace table changes detected by the client.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
                 description: "Number of client managed subscriptions.");
@@ -1971,6 +2031,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int? _maxPublishRequests;
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
+        private int _namespaceTableChanges;
         private bool _traceMode;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
