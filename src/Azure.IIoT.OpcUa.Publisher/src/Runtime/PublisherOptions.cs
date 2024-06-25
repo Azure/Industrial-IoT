@@ -219,5 +219,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// enabled.
         /// </summary>
         public SchemaOptions? SchemaOptions { get; set; }
+
+        /// <summary>
+        /// Disable resource monitoring
+        /// </summary>
+        public bool? DisableResourceMonitoring { get; set; }
     }
 }

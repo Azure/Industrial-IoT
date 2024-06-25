@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // TODO: case PublisherDiagnosticTargetType.PubSub:
                         // TODO:     break;
                         default:
-                            WriteDiagnosticsToConsole(diagnostics);
+                            WriteDiagnosticsToConsole(diagnostics, _options.Value.DisableResourceMonitoring != true);
                             break;
                     }
                 }
@@ -475,12 +475,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Format diagnostics to console
         /// </summary>
         /// <param name="diagnostics"></param>
-        private static void WriteDiagnosticsToConsole(IEnumerable<(string, WriterGroupDiagnosticModel)> diagnostics)
+        /// <param name="includeResourceInfo"></param>
+        private static void WriteDiagnosticsToConsole(
+            IEnumerable<(string, WriterGroupDiagnosticModel)> diagnostics, bool includeResourceInfo)
         {
             var builder = new StringBuilder();
             foreach (var (writerGroupId, info) in diagnostics)
             {
-                builder = Append(builder, writerGroupId, info);
+                builder = Append(builder, writerGroupId, info, includeResourceInfo);
             }
 
             if (builder.Length > 0)
@@ -489,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             static StringBuilder Append(StringBuilder builder, string writerGroupId,
-                WriterGroupDiagnosticModel info)
+                WriterGroupDiagnosticModel info, bool includeResourceInfo)
             {
                 var s = info.IngestionDuration.TotalSeconds == 0 ? 1 : info.IngestionDuration.TotalSeconds;
                 var min = info.IngestionDuration.TotalMinutes == 0 ? 1 : info.IngestionDuration.TotalMinutes;
@@ -536,7 +538,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0 ?
                     "(Partially Connected)" : "(Connected)") : "(Disconnected)";
 
-                return builder.AppendLine()
+                var sb = builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
                         .Append(info.WriterGroupName ?? Constants.DefaultWriterGroupName)
                         .Append(" (")
@@ -544,6 +546,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendLine(")")
                     .Append("  # OPC Publisher Version (Runtime)    : ")
                         .AppendLine(info.PublisherVersion)
+                        ;
+                if (includeResourceInfo)
+                {
+                    sb = sb
                     .Append("  # Cpu/Memory max                     : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.MaximumCpuUnits)
                         .Append(" | ")
@@ -561,6 +567,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Append(" (")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MemoryUsedInBytes / 1000d)
                         .AppendLine(" kb)")
+                        ;
+                }
+                return sb
                     .Append("  # Ingest duration (dd:hh:mm:ss)/Time : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:dd\\:hh\\:mm\\:ss}", info.IngestionDuration)
                         .Append(" | ")
