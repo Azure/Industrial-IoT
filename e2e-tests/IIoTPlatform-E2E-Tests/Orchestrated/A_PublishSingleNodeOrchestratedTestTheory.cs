@@ -5,18 +5,18 @@
 
 namespace IIoTPlatformE2ETests.Orchestrated
 {
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Xunit;
+    using IIoTPlatformE2ETests.TestEventProcessor;
     using Newtonsoft.Json;
     using RestSharp;
-    using TestExtensions;
-    using Xunit.Abstractions;
-    using System.Threading;
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
-    using IIoTPlatformE2ETests.TestEventProcessor;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using TestExtensions;
+    using Xunit;
+    using Xunit.Abstractions;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node

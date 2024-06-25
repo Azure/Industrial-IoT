@@ -5,11 +5,13 @@
 
 namespace IIoTPlatformE2ETests
 {
-    using Azure.Messaging.EventHubs.Consumer;
-    using Microsoft.Azure.Devices.Common.Exceptions;
-    using Microsoft.Azure.Devices;
-    using Newtonsoft.Json;
     using IIoTPlatformE2ETests.Config;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.Messaging.EventHubs.Consumer;
+    using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices.Common.Exceptions;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
@@ -28,8 +30,6 @@ namespace IIoTPlatformE2ETests
     using TestExtensions;
     using Xunit;
     using Xunit.Abstractions;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Newtonsoft.Json.Converters;
     using Xunit.Sdk;
 
     public record class MethodResultModel(string JsonPayload, int Status);
@@ -76,6 +76,7 @@ namespace IIoTPlatformE2ETests
         /// <param name="clientId">User name for HTTP basic authentication</param>
         /// <param name="clientSecret">Password for HTTP basic authentication</param>
         /// <param name="serviceId">service id of deployed Industrial IoT</param>
+        /// <param name="outputHelper"></param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Return content of request token or empty string</returns>
         public static async Task<(DateTime Expiration, string Token)> GetTokenAsync(
@@ -551,20 +552,6 @@ namespace IIoTPlatformE2ETests
         }
 
         /// <summary>
-        /// Deserializes the JSON structure contained by the specified <see cref="PartitionEvent"/>
-        /// into an instance of the specified type.
-        /// </summary>
-        /// <param name="partitionEvent">The <see cref="PartitionEvent"/> containing the object.</param>
-        /// <typeparam name="T">The type of the object to deserialize.</typeparam>
-        /// <returns>The instance of <typeparamref name="T"/> being deserialized.</returns>
-        public static T DeserializeJson<T>(this PartitionEvent partitionEvent)
-        {
-            using var sr = new StreamReader(partitionEvent.Data.BodyAsStream);
-            using var reader = new JsonTextReader(sr);
-            return kSerializer.Deserialize<T>(reader);
-        }
-
-        /// <summary>
         /// Get an Event Hub consumer
         /// </summary>
         /// <param name="config">Configuration for IoT Hub</param>
@@ -948,7 +935,5 @@ namespace IIoTPlatformE2ETests
                 }
             }
         }
-
-        private static readonly JsonSerializer kSerializer = new();
     }
 }

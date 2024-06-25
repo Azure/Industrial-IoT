@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: registry-auth-config
-  namespace: e2etesting
-data:
-  registry.password: ci:$2y$05$rv0S1DAX148pRFuwXWfnZ.3mUsaCiwWHL1zhgm5N.DHWmmsToiViS
-  

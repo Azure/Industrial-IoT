@@ -5,16 +5,16 @@
 
 namespace OpcPublisherAEE2ETests.Standalone
 {
+    using FluentAssertions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using FluentAssertions;
+    using static System.TimeSpan;
     using TestExtensions;
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
-    using static System.TimeSpan;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node

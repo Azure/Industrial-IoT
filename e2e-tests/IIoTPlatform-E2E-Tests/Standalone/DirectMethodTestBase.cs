@@ -5,9 +5,9 @@
 
 namespace IIoTPlatformE2ETests.Standalone
 {
+    using IIoTPlatformE2ETests.TestExtensions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using IIoTPlatformE2ETests.TestExtensions;
     using Microsoft.Azure.Devices;
     using System;
     using System.Collections.Generic;

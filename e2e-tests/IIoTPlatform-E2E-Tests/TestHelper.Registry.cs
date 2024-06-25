@@ -5,8 +5,8 @@
 
 namespace IIoTPlatformE2ETests
 {
-    using Furly.Exceptions;
     using IIoTPlatformE2ETests.TestExtensions;
+    using Furly.Exceptions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using RestSharp;

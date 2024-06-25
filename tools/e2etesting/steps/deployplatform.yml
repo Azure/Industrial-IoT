@@ -40,6 +40,7 @@ steps:
 
 - task: AzurePowerShell@5
   displayName: "Run deployment script"
+  retryCountOnTaskFailure: 2
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'

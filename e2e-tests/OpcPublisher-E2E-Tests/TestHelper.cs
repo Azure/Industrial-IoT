@@ -5,22 +5,22 @@
 
 namespace OpcPublisherAEE2ETests
 {
+    using OpcPublisherAEE2ETests.Config;
+    using Azure;
     using Azure.Core;
     using Azure.Identity;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.Messaging.EventHubs.Consumer;
+    using Azure.ResourceManager;
+    using Azure.ResourceManager.ContainerInstance;
+    using Azure.ResourceManager.ContainerInstance.Models;
+    using Azure.ResourceManager.Resources;
+    using Azure.ResourceManager.Storage;
+    using Azure.Storage;
+    using Azure.Storage.Files.Shares;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
-    using Microsoft.Azure.Management.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-    using Microsoft.Rest;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Auth;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using OpcPublisherAEE2ETests.Config;
     using Renci.SshNet;
     using System;
     using System.Collections.Generic;
@@ -36,6 +36,7 @@ namespace OpcPublisherAEE2ETests
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.Extensions.Options;
 
     public record class MethodResultModel(string JsonPayload, int Status);
     public record class MethodParameterModel
@@ -328,41 +329,41 @@ namespace OpcPublisherAEE2ETests
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="fileToUpload">File to upload to the container</param>
         /// <param name="numInstances">Number of instances</param>
-        public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context, List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1)
+        public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context,
+            List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1)
         {
-            var azure = await GetAzureContextAsync(context, cancellationToken).ConfigureAwait(false);
+            var resourceGroup = await GetResourceGroupAsync(context, cancellationToken).ConfigureAwait(false);
 
             if (fileToUpload != null)
             {
-                await UploadFileToStorageAccountAsync(context.AzureStorageName, context.AzureStorageKey, fileToUpload).ConfigureAwait(false);
+                await UploadFileToStorageAccountAsync(context, fileToUpload, cancellationToken).ConfigureAwait(false);
             }
 
             context.PlcAciDynamicUrls = await Task.WhenAll(
                 Enumerable.Range(0, numInstances)
                     .Select(i =>
-                        CreateContainerGroupAsync(azure,
-                            context.OpcPlcConfig.ResourceGroupName,
+                        CreatePlcContainerGroupAsync(resourceGroup,
                             $"e2etesting-simulation-aci-{i}-{context.TestingSuffix}-dynamic",
-                            context.PLCImage,
+                            context,
                             commandLine[0],
                             commandLine.GetRange(1, commandLine.Count - 1).ToArray(),
                             TestConstants.OpcSimulation.FileShareName,
-                            context.AzureStorageName,
-                            context.AzureStorageKey))).ConfigureAwait(false);
+                            cancellationToken))).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Upload a file to a storage account
         /// </summary>
-        /// <param name="storageAccountName">Name of storage account</param>
-        /// <param name="storageAccountKey">Key for storage account</param>
+        /// <param name="context"></param>
         /// <param name="fileName">File name</param>
-        private async static Task UploadFileToStorageAccountAsync(string storageAccountName, string storageAccountKey, string fileName)
+        /// <param name="ct"></param>
+        private async static Task UploadFileToStorageAccountAsync(IIoTPlatformTestContext context,
+            string fileName, CancellationToken ct = default)
         {
-            var cloudStorageAccount = new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
-            var cloudFileClient = cloudStorageAccount.CreateCloudFileClient();
-            var share = cloudFileClient.GetShareReference(TestConstants.OpcSimulation.FileShareName);
-            var directory = share.GetRootDirectoryReference();
+            var share = new ShareClient(
+                new Uri($"https://{context.AzureStorageName}.file.core.windows.net/{TestConstants.OpcSimulation.FileShareName}"),
+                new StorageSharedKeyCredential(context.AzureStorageName, context.AzureStorageKey));
+            var directory = share.GetRootDirectoryClient();
 
             Assert.False(fileName.Contains('\\', StringComparison.Ordinal), "\\ can't be used for file path");
 
@@ -377,81 +378,84 @@ namespace OpcPublisherAEE2ETests
                 onlyFileName = fileName;
             }
 
-            var cf = directory.GetFileReference(onlyFileName);
-            await cf.UploadFromFileAsync(fileName).ConfigureAwait(false);
+            var cf = directory.GetFileClient(onlyFileName);
+            try
+            {
+                await cf.DeleteIfExistsAsync(cancellationToken: ct);
+                await using var stream = new FileStream(fileName, FileMode.Open);
+                await cf.CreateAsync(stream.Length, cancellationToken: ct);
+                await cf.UploadAsync(stream, cancellationToken: ct);
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to upload file {fileName} to storage " +
+                    $"account {context.AzureStorageName} as {onlyFileName} ({ex.Message})");
+                throw;
+            }
         }
 
         /// <summary>
         /// Create a container group
         /// </summary>
-        /// <param name="azure">Azure context</param>
-        /// <param name="resourceGroupName">Resource group name</param>
+        /// <param name="resGroup">Resource group</param>
         /// <param name="containerGroupName">Container group name</param>
-        /// <param name="containerImage">Container image</param>
+        /// <param name="context"></param>
         /// <param name="executable">Starting command line</param>
         /// <param name="commandLine">Additional command line options</param>
         /// <param name="fileShareName">File share name</param>
-        /// <param name="storageAccountName">Storage account name</param>
-        /// <param name="storageAccountKey">Storage account key</param>
-        private static async Task<string> CreateContainerGroupAsync(IAzure azure,
-                                      string resourceGroupName,
-                                      string containerGroupName,
-                                      string containerImage,
-                                      string executable,
-                                      string[] commandLine,
-                                      string fileShareName,
-                                      string storageAccountName,
-                                      string storageAccountKey)
+        private static async Task<string> CreatePlcContainerGroupAsync(ResourceGroupResource resGroup,
+            string containerGroupName, IIoTPlatformTestContext context, string executable,
+            string[] commandLine, string fileShareName, CancellationToken cancellationToken)
         {
-            var resGroup = await azure.ResourceGroups.GetByNameAsync(resourceGroupName).ConfigureAwait(false);
-            var azureRegion = resGroup.Region;
+            var container = new ContainerInstanceContainer(containerGroupName, context.PLCImage,
+                new ContainerResourceRequirements(new ContainerResourceRequestsContent(0.5, 0.5)));
+            container.Command.Add(executable);
+            container.Command.AddRange(commandLine);
+            container.Ports.Add(new ContainerPort(50000));
+            container.VolumeMounts.Add(new ContainerVolumeMount("share", "/app/files"));
 
-            var containerGroup = await azure.ContainerGroups.Define(containerGroupName)
-                .WithRegion(azureRegion)
-                .WithExistingResourceGroup(resourceGroupName)
-                .WithLinux()
-                .WithPublicImageRegistryOnly()
-                .DefineVolume("share")
-                    .WithExistingReadWriteAzureFileShare(fileShareName)
-                    .WithStorageAccountName(storageAccountName)
-                    .WithStorageAccountKey(storageAccountKey)
-                    .Attach()
-                .DefineContainerInstance(containerGroupName)
-                    .WithImage(containerImage)
-                    .WithExternalTcpPort(50000)
-                    .WithCpuCoreCount(0.5)
-                    .WithMemorySizeInGB(0.5)
-                    .WithVolumeMountSetting("share", "/app/files")
-                    .WithStartingCommandLine(executable, commandLine)
-                    .Attach()
-                .WithDnsPrefix(containerGroupName)
-                .CreateAsync().ConfigureAwait(false);
+            var containerGroup = new ContainerGroupData(resGroup.Data.Location, container.YieldReturn(),
+                ContainerInstanceOperatingSystemType.Linux)
+            {
+                IPAddress = new ContainerGroupIPAddress(new ContainerGroupPort(50000).YieldReturn(),
+                    ContainerGroupIPAddressType.Public)
+                {
+                    DnsNameLabel = containerGroupName
+                }
+            };
+            containerGroup.Volumes.Add(new ContainerVolume("share")
+            {
+                AzureFile = new ContainerInstanceAzureFileVolume(fileShareName, context.AzureStorageName)
+                {
+                    StorageAccountKey = context.AzureStorageKey,
+                    IsReadOnly = false
+                }
+            });
 
-            return containerGroup.Fqdn;
+            var operation = await resGroup.GetContainerGroups().CreateOrUpdateAsync(WaitUntil.Completed,
+                containerGroupName, containerGroup, cancellationToken);
+            return Validate(context, operation).Data.IPAddress.Fqdn;
         }
 
         /// <summary>
         /// Delete an ACI
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void DeleteSimulationContainer(IIoTPlatformTestContext context)
-        {
-            DeleteSimulationContainerAsync(context).GetAwaiter().GetResult();
-        }
-
-        /// <summary>
-        /// Delete an ACI
-        /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context)
+        public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context, CancellationToken ct)
         {
             if (context.PlcAciDynamicUrls == null || context.PlcAciDynamicUrls.Count == 0)
             {
                 return;
             }
+            var resourceGroup = await GetResourceGroupAsync(context, ct);
             await Task.WhenAll(context.PlcAciDynamicUrls
                 .Select(url => url.Split(".")[0])
-                .Select(n => context.AzureContext.ContainerGroups.DeleteByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, n))
+                .Select(async n =>
+                {
+                    var response = await resourceGroup.GetContainerGroupAsync(n);
+                    var group = Validate(context, response);
+                    return await group.DeleteAsync(WaitUntil.Completed);
+                })
             ).ConfigureAwait(false);
         }
 
@@ -460,95 +464,140 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        internal async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        /// <exception cref="InvalidOperationException"></exception>
+        internal async static Task<ResourceGroupResource> GetResourceGroupAsync(IIoTPlatformTestContext context,
+            CancellationToken cancellationToken)
         {
-            if (context.AzureContext != null)
+            if (context.ResourceGroup != null)
             {
-                return context.AzureContext;
+                return context.ResourceGroup;
             }
 
-            context.OutputHelper.WriteLine($"Obtaining access token from tenant {context.OpcPlcConfig.TenantId}");
-            var token = Environment.GetEnvironmentVariable("ACCESS_TOKEN");
-            if (string.IsNullOrWhiteSpace(token))
+            var armClient = await GetArmClientAsync(context, cancellationToken);
+
+            SubscriptionResource subscription = null;
+            if (!string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId))
             {
-                try
-                {
-                    context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
-                    context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
-                    context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
-                    var options = new DefaultAzureCredentialOptions
-                    {
-                        TenantId = context.OpcPlcConfig.TenantId
-                    };
-                    //options.AdditionallyAllowedTenants.Add("*");
-                    var defaultAzureCredential = new DefaultAzureCredential(options);
-                    var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
-                        new[] { "https://management.azure.com//.default" },
-                        tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
-
-                    context.
-                    OutputHelper.WriteLine("Obtained Access Token from Tenant using default credentials.");
-                    token = accessToken.Token;
-                }
-                catch (Exception ex)
-                {
-                    context.OutputHelper.WriteLine($"Failed to obtain default credential with error {ex.Message}, trying Azure CLI..");
-                    var defaultAzureCredential = new AzureCliCredential();
-                    var accessToken = await defaultAzureCredential.GetTokenAsync(new TokenRequestContext(
-                        new[] { "https://management.azure.com//.default" },
-                        tenantId: context.OpcPlcConfig.TenantId), cancellationToken).ConfigureAwait(false);
-                    context.OutputHelper.WriteLine("Obtained Access Token from Azure CLI.");
-                    token = accessToken.Token;
-                }
+                subscription = await armClient.GetSubscriptions()
+                    .FirstOrDefaultAsync(s => s.Data.SubscriptionId == context.OpcPlcConfig.SubscriptionId, cancellationToken);
             }
-            else
-            {
-                context.OutputHelper.WriteLine("Using access token from environment variable.");
-            }
+            subscription ??= await armClient.GetDefaultSubscriptionAsync(cancellationToken);
 
-            var tokenCredentials = new TokenCredentials(token);
-            var azureCredentials = new AzureCredentials(tokenCredentials, tokenCredentials, context.OpcPlcConfig.TenantId,
-                AzureEnvironment.AzureGlobalCloud);
-
-            IAzure azure;
-
-            if (string.IsNullOrEmpty(context.OpcPlcConfig.SubscriptionId))
-            {
-                azure = await Azure
-                    .Configure()
-                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(azureCredentials)
-                    .WithDefaultSubscriptionAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                azure = Azure
-                    .Configure()
-                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(azureCredentials)
-                    .WithSubscription(context.OpcPlcConfig.SubscriptionId);
-            }
-
-            context.AzureContext = azure;
-
-            var testingSuffix = (await azure.ResourceGroups.GetByNameAsync(context.OpcPlcConfig.ResourceGroupName,
-                cancellationToken).ConfigureAwait(false)).Tags[TestConstants.OpcSimulation.TestingResourcesSuffixName];
+            var response = await subscription.GetResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName, cancellationToken);
+            var rg = Validate(context, response);
+            var tags = await rg.GetTagResource().GetAsync(cancellationToken);
+            context.OutputHelper.WriteLine($"Get tag from tags {tags}");
+            var testingSuffix = Validate(context, tags).Data.TagValues[TestConstants.OpcSimulation.TestingResourcesSuffixName];
             context.TestingSuffix = testingSuffix;
             context.AzureStorageName = TestConstants.OpcSimulation.AzureStorageNameWithoutSuffix + testingSuffix;
 
-            var storageAccount = await azure.StorageAccounts.GetByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
-                context.AzureStorageName, cancellationToken).ConfigureAwait(false);
-            context.AzureStorageKey = (await storageAccount.GetKeysAsync(cancellationToken).ConfigureAwait(false))[0].Value;
+            context.OutputHelper.WriteLine($"Get storage keys from {rg}");
+            var storageAccount = await rg.GetStorageAccountAsync(context.AzureStorageName, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var keys = await Validate(context, storageAccount).GetKeysAsync(cancellationToken: cancellationToken).ToListAsync(cancellationToken);
+            if (keys.Count == 0)
+            {
+                throw new InvalidOperationException($"No keys found for storage account {context.AzureStorageName}");
+            }
+            context.AzureStorageKey = keys[0].Value;
 
+            context.OutputHelper.WriteLine($"Get container groups from {rg}");
             var firstAciIpAddress = context.OpcPlcConfig.Ips.Split(";")[0];
-            var containerGroups = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
-                cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
-            var containerGroup = (await azure.ContainerGroups.ListByResourceGroupAsync(context.OpcPlcConfig.ResourceGroupName,
-                cancellationToken: cancellationToken).ConfigureAwait(false))
-                .First(g => g.IPAddress == firstAciIpAddress);
-            context.PLCImage = containerGroup.Containers.First().Value.Image;
+            var containerGroups = await rg.GetContainerGroups().ToListAsync(cancellationToken);
+            context.OutputHelper.WriteLine($"Get container from groups {containerGroups}");
+            var containerGroup = containerGroups.Find(g => g.Data?.IPAddress?.IP?.ToString() == firstAciIpAddress);
+            if (containerGroup == null)
+            {
+                throw new InvalidOperationException($"Container group with IP address {firstAciIpAddress} not found");
+            }
+            context.OutputHelper.WriteLine($"Get image from group {containerGroup}");
+            if (containerGroup.Data.Containers.Count == 0)
+            {
+                throw new InvalidOperationException($"Container group with IP address {firstAciIpAddress} is empty");
+            }
+            context.PLCImage = containerGroup.Data.Containers[0].Image;
+            context.ResourceGroup = rg;
+            return rg;
+        }
 
-            return azure;
+        /// <summary>
+        /// Get an arm client
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private static async Task<ArmClient> GetArmClientAsync(IIoTPlatformTestContext context,
+            CancellationToken cancellationToken)
+        {
+            context.OutputHelper.WriteLine($"Accessing resource manager in tenant {context.OpcPlcConfig.TenantId}...");
+            try
+            {
+                var systemAccessToken = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+                var serviceConnection = Environment.GetEnvironmentVariable("AzureSubscription");
+                var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+                if (!string.IsNullOrEmpty(systemAccessToken) &&
+                    !string.IsNullOrEmpty(serviceConnection))
+                {
+                    context.OutputHelper.WriteLine(
+                        $"Using service connection {serviceConnection} with client {clientId}...");
+                    var armClient = new ArmClient(new AzurePipelinesCredential(
+                        context.OpcPlcConfig.TenantId, clientId, serviceConnection, systemAccessToken));
+                    await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                    return armClient;
+                }
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using pipeline service connection: {ex.Message}");
+            }
+            try
+            {
+                context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
+                context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
+                context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
+                var options = new DefaultAzureCredentialOptions
+                {
+                    TenantId = context.OpcPlcConfig.TenantId
+                };
+                //options.AdditionallyAllowedTenants.Add("*");
+                var armClient = new ArmClient(new DefaultAzureCredential(options));
+                await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                return armClient;
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using default credentials: {ex.Message}");
+            }
+            try
+            {
+                var armClient = new ArmClient(new AzureCliCredential());
+                var subscription = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                return armClient;
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using azure cli: {ex.Message}");
+                throw;
+            }
+        }
+
+        private static T Validate<T>(IIoTPlatformTestContext context, Response<T> response)
+        {
+            if (!response.HasValue)
+            {
+                context.OutputHelper.WriteLine($"Get tags from {response}");
+                throw new InvalidOperationException(response.ToString());
+            }
+            return response.Value;
+        }
+
+        private static T Validate<T>(IIoTPlatformTestContext context, Operation<T> response)
+        {
+            if (!response.HasValue)
+            {
+                context.OutputHelper.WriteLine($"Get tags from {response}");
+                throw new InvalidOperationException(response.ToString());
+            }
+            return response.Value;
         }
 
         /// <summary>

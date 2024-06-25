@@ -5,9 +5,9 @@
 
 namespace IIoTPlatformE2ETests
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using IIoTPlatformE2ETests.Deploy;
     using IIoTPlatformE2ETests.TestExtensions;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using System;

@@ -5,9 +5,9 @@
 
 namespace OpcPublisherAEE2ETests
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using OpcPublisherAEE2ETests.Deploy;
     using OpcPublisherAEE2ETests.TestExtensions;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using System;

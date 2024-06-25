@@ -5,13 +5,13 @@
 
 namespace IIoTPlatformE2ETests.Deploy
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Newtonsoft.Json;
     using TestExtensions;
 
     public sealed class IoTHubPublisherDeployment : ModuleDeploymentConfiguration
