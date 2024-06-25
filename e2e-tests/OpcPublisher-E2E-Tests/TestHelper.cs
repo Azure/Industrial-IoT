@@ -380,9 +380,10 @@ namespace OpcPublisherAEE2ETests
             var cf = directory.GetFileClient(onlyFileName);
             try
             {
-                await cf.DeleteIfExistsAsync(cancellationToken: ct).ConfigureAwait(false);
+                await cf.DeleteIfExistsAsync(cancellationToken: ct);
                 await using var stream = new FileStream(fileName, FileMode.Open);
-                await cf.UploadAsync(stream, cancellationToken: ct).ConfigureAwait(false);
+                await cf.CreateAsync(stream.Length, cancellationToken: ct);
+                await cf.UploadAsync(stream, cancellationToken: ct);
             }
             catch (Exception ex)
             {
