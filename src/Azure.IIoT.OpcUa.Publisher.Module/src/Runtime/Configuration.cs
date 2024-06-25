@@ -95,6 +95,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add resource monitoring
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void AddResourceMonitoring(this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            var publisherOptions = new PublisherConfig(configuration).ToOptions();
+            if (publisherOptions.Value.DisableResourceMonitoring != true)
+            {
+                services.AddResourceMonitoring();
+            }
+        }
+
+        /// <summary>
         /// Add mqtt client
         /// </summary>
         /// <param name="builder"></param>
