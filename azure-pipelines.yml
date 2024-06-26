@@ -26,7 +26,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        WriteHost "Build $(Build.SourceBranch)($(Build.SourceBranchName)) $(Build.Reason): $(message)"
+        Write-Host "Build $(Build.SourceBranch)($(Build.SourceBranchName)) $(Build.Reason): $(message)"
         if ('$(Build.Reason)' -eq 'PullRequest') {
           $pipelineDefinition = 'Industrial-IoT-PullRequest'
           $templateParameters = 'ref: $(Build.SourceBranch), buildInfo: $(message)'
