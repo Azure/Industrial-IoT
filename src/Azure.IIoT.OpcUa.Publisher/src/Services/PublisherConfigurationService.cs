@@ -37,7 +37,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create publisher configuration services
         /// </summary>
         /// <param name="publishedNodesJobConverter"></param>
-        /// <param name="configuration"></param>
         /// <param name="publisherHost"></param>
         /// <param name="logger"></param>
         /// <param name="publishedNodesProvider"></param>
@@ -45,13 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="diagnostics"></param>
         /// <param name="timeProvider"></param>
         public PublisherConfigurationService(PublishedNodesConverter publishedNodesJobConverter,
-            IOptions<PublisherOptions> configuration, IPublisher publisherHost,
-            ILogger<PublisherConfigurationService> logger, IStorageProvider publishedNodesProvider,
-            IJsonSerializer jsonSerializer, IDiagnosticCollector? diagnostics = null,
-            TimeProvider? timeProvider = null)
+            IPublisher publisherHost, ILogger<PublisherConfigurationService> logger,
+            IStorageProvider publishedNodesProvider, IJsonSerializer jsonSerializer,
+            IDiagnosticCollector? diagnostics = null, TimeProvider? timeProvider = null)
         {
             _publishedNodesJobConverter = publishedNodesJobConverter;
-            _configuration = configuration;
             _logger = logger;
             _publishedNodesProvider = publishedNodesProvider;
             _jsonSerializer = jsonSerializer;
@@ -136,7 +133,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string dataSetWriterId, IReadOnlyList<OpcNodeModel> nodes,
             string? insertAfterFieldId = null, CancellationToken ct = default)
         {
-            var set = new HashSet<string>();
             var opcNodes = ValidateNodes(nodes.ToList(), true);
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -1236,7 +1232,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
-        private readonly IOptions<PublisherOptions> _configuration;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;

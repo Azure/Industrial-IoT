@@ -30,8 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create collector
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="timeProvider"></param>
         /// <param name="resources"></param>
+        /// <param name="timeProvider"></param>
         public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
             IResourceMonitor? resources = null, TimeProvider? timeProvider = null)
         {
