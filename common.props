@@ -8,6 +8,7 @@
     <Company>Microsoft</Company>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
     <PackageReleaseNotes>$(RepositoryUrl)/releases</PackageReleaseNotes>
     <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -23,6 +24,7 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)/docs/media/icon.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)/readme.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
   <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
