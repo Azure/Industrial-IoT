@@ -13,7 +13,7 @@ trigger:
 parameters:
 - name: onebranch
   type: string
-  default: main
+  default: official
 jobs:
 - job: OneBranchTrigger
   pool:
@@ -42,7 +42,7 @@ jobs:
           $templateParameters = 'branch: $(branchName), buildInfo: $(message)'
           Write-Host "Triggering buddy build for branch $(branchName) ..."
         }
-        Write-Host "$(Build.Reason): Trigger $(pipelineDefinition) with '$(templateParameters)'..."
+        Write-Host "$(Build.Reason): Trigger $pipelineDefinition with '$templateParameters'..."
         Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
         Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
   - task: TriggerBuild@4
