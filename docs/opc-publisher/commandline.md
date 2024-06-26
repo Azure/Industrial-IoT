@@ -132,7 +132,6 @@ Messaging configuration
       --me, --messageencoding, --MessageEncoding=VALUE
                              The message encoding for messages
                                Allowed values:
-                                   `Binary`
                                    `Uadp`
                                    `Json`
                                    `Xml`
@@ -1026,10 +1025,10 @@ Diagnostic options
                                    `Logger`
                                    `Events`
                                Default: `Logger`.
-      --sl, --opcstacklogging, --EnableOpcUaStackLogging[=VALUE]
-                             Enable opc ua stack logging beyond logging at
-                               error level.
-                               Default: `disabled`.
+      --dr, --disableresourcemonitoring, --DisableResourceMonitoring[=VALUE]
+                             Disable resource monitoring as part of the
+                               diagnostics output and metrics.
+                               Default: `false` (enabled).
       --ln, --lognotifications[=VALUE]
                              Log ingress subscription notifications at
                                Informational level to aid debugging.
@@ -1050,6 +1049,10 @@ Diagnostic options
                              Log encoded subscription and monitored item
                                notifications at Informational level to aid
                                debugging.
+                               Default: `disabled`.
+      --sl, --opcstacklogging, --EnableOpcUaStackLogging[=VALUE]
+                             Enable opc ua stack logging beyond logging at
+                               error level.
                                Default: `disabled`.
       --ecw, --enableconsolewriter, --EnableConsoleWriter[=VALUE]
                              Enable writing encoded messages to standard error
@@ -1082,6 +1085,15 @@ Diagnostic options
                              Add total suffix to all counter instrument names
                                when exporting metrics via prometheus exporter.
                                Default: `False`.
+      --cap, --capturedevice, --CaptureDevice=VALUE
+                             The capture device to use to capture network
+                               traffic.
+                               Default: `null` (disabled).
+      --cpf, --capturefile, --CaptureFileName=VALUE
+                             The file name to capture traffic to.
+                               A device must be selected using `--cap` if
+                               capture capability is supported on this system.
+                               Default: `opcua.pcap`.
 ```
 
 Currently supported combinations of `--mm` snd `--me` can be found [here](./messageformats.md).

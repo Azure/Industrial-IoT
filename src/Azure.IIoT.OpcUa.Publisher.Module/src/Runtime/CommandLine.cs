@@ -576,7 +576,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The capture device to use to capture network traffic.\n{SupportsCapture(OpcUaClientCapture.AvailableDevices)}\n",
                     (string s) => this[OpcUaClientConfig.CaptureDeviceKey] = s },
                 { $"cpf|capturefile=|{OpcUaClientConfig.CaptureFileNameKey}=",
-                    $"The file name to capture traffic to.\nA device must be selected using `--cd` if capture capability is supported on this system.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
+                    $"The file name to capture traffic to.\nA device must be selected using `--cap` if capture capability is supported on this system.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
                     (string s) => this[OpcUaClientConfig.CaptureFileNameKey] = s },
 
                 // testing purposes
