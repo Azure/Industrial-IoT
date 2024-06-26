@@ -21,13 +21,13 @@ jobs:
   displayName: Trigger Governed Pipeline
   variables:
     message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
+    branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
   steps:
   - task: PowerShell@2
     displayName: 'Determine pipeline and parameters'
     inputs:
       targetType: 'inline'
       script: |
-        Write-Host "Build $(Build.SourceBranch)($(Build.SourceBranchName)) $(Build.Reason): $(message)"
         if ('$(Build.Reason)' -eq 'PullRequest') {
           $pipelineDefinition = 'Industrial-IoT-PullRequest'
           $templateParameters = 'ref: $(Build.SourceBranch), buildInfo: $(message)'
@@ -35,14 +35,14 @@ jobs:
         }
         elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*') {
           $pipelineDefinition = 'Industrial-IoT-Official'
-          $templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
-          Write-Host "Triggering official build for branch $(Build.SourceBranchName)..."
+          $templateParameters = 'branch: $(branchName), buildInfo: $(message)'
+          Write-Host "Triggering official build for branch $(branchName)..."
         } else {
           $pipelineDefinition = 'Industrial-IoT-Buddy'
-          $templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
-          Write-Host "Triggering buddy build for branch $(Build.SourceBranchName) ..."
+          $templateParameters = 'branch: $(branchName), buildInfo: $(message)'
+          Write-Host "Triggering buddy build for branch $(branchName) ..."
         }
-        Write-Host "Trigger $(pipelineDefinition) with parameters '$(templateParameters)'..."
+        Write-Host "$(Build.Reason): Trigger $(pipelineDefinition) with '$(templateParameters)'..."
         Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
         Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
   - task: TriggerBuild@4
