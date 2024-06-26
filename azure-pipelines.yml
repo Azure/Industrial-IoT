@@ -12,39 +12,48 @@ trigger:
     - release/*
 parameters:
 - name: onebranch
+  displayName: 'One Branch to use'
   type: string
-  default: official
+  default: 'main'
+  values:
+    - 'main'
+    - 'official'
+    - 'test'
 jobs:
 - job: OneBranchTrigger
   pool:
     vmImage: 'ubuntu-latest'
   displayName: Trigger Governed Pipeline
-  variables:
-    message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
-    branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
   steps:
   - task: PowerShell@2
     displayName: 'Determine pipeline and parameters'
     inputs:
       targetType: 'inline'
       script: |
-        $message = '$(message)'
-        if ($message -eq '') {
+        $message = '$(Build.SourceVersionMessage)'
+        if ([string]::IsNullOrWhiteSpace($message)) {
           $message = 'No message'
         }
-        if ('$(Build.Reason)' -eq 'PullRequest') {
+        $message = $message -replace ",", ""
+        $branchName = '$(Build.SourceBranch)'
+        $branchName = $branchName -replace "refs/heads/", ""
+        if ('$(Build.Reason)' -eq 'PullRequest')
+        {
           $pipelineDefinition = 'Industrial-IoT-PullRequest'
-          $templateParameters = "ref: $(Build.SourceBranch), buildInfo: '$(message)'"
+          $templateParameters = "ref: $(Build.SourceBranch), buildInfo: '$message'"
           Write-Host "Triggering Pull Request build for $(Build.SourceBranch)..."
         }
-        elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*') {
+        elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*')
+        {
           $pipelineDefinition = 'Industrial-IoT-Official'
-          $templateParameters = "branch: $(branchName), buildInfo: '$(message)'"
-          Write-Host "Triggering official build for branch $(branchName)..."
-        } else {
+          $templateParameters = "branch: $branchName, buildInfo: '$message'"
+          Write-Host "Triggering official build for branch $branchName..."
+        }
+        else
+        {
           $pipelineDefinition = 'Industrial-IoT-Buddy'
-          $templateParameters = "branch: $(branchName), buildInfo: '$(message)'"
-          Write-Host "Triggering buddy build for branch $(branchName) ..."
+          $templateParameters = "branch: $branchName, buildInfo: '$message'"
+          Write-Host "Triggering buddy build for branch $branchName ..."
         }
         Write-Host "$(Build.Reason): Trigger $pipelineDefinition with '$templateParameters'..."
         Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
