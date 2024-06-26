@@ -18,12 +18,12 @@ jobs:
 - job: OneBranchTrigger
   pool:
     vmImage: 'ubuntu-latest'
-  displayName: Trigger Build on Governed Pipeline
+  displayName: Trigger Governed Pipeline
   variables:
     message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
   steps:
   - task: PowerShell@2
-    displayName: 'Determine pipeline definition and parameters'
+    displayName: 'Determine pipeline and parameters'
     inputs:
       targetType: 'inline'
       script: |
@@ -35,19 +35,18 @@ jobs:
         }
         elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*') {
           $pipelineDefinition = 'Industrial-IoT-Official'
-          #$templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
-          $templateParameters = 'branch: $(Build.SourceBranchName)'
+          $templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
           Write-Host "Triggering official build for branch $(Build.SourceBranchName)..."
         } else {
           $pipelineDefinition = 'Industrial-IoT-Buddy'
-          #$templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
-          $templateParameters = 'branch: $(Build.SourceBranchName)'
+          $templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
           Write-Host "Triggering buddy build for branch $(Build.SourceBranchName) ..."
         }
+        Write-Host "Trigger $(pipelineDefinition) with parameters '$(templateParameters)'..."
         Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
         Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
   - task: TriggerBuild@4
-    displayName: 'Trigger $(pipelineDefinition)'
+    displayName: 'Trigger Build'
     inputs:
       definitionIsInCurrentTeamProject: true
       buildDefinition: $(pipelineDefinition)
@@ -78,7 +77,7 @@ jobs:
         Write-Host "##vso[task.logissue type=warning]$buildUrl"
         Write-Host "##vso[build.updatebuildnumber]$buildId"
   - task: WaitForBuildToFinish@3
-    displayName: 'Wait for $(pipelineDefinition) to finish'
+    displayName: 'Wait for build to finish'
     inputs:
       definitionIsInCurrentTeamProject: true
       ignoreSslCertificateErrors: false
