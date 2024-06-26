@@ -166,5 +166,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// related to session connectivity.
         /// </summary>
         public bool? ActivePublishErrorHandling { get; set; }
+
+        /// <summary>
+        /// Use the specific device to capture traffice.
+        /// </summary>
+        public string? CaptureDevice { get; set; }
+
+        /// <summary>
+        /// Use the specified capture file
+        /// </summary>
+        public string? CaptureFileName { get; set; }
     }
 }

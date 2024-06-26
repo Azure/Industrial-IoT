@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
@@ -571,10 +572,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ats|addtotalsuffix:|{Configuration.Otlp.OtlpTotalNameSuffixForCountersKey}:",
                     $"Add total suffix to all counter instrument names when exporting metrics via prometheus exporter.\nDefault: `{Configuration.Otlp.OtlpTotalNameSuffixForCountersDefault}`.\n",
                     (bool? b) => this[Configuration.Otlp.OtlpTotalNameSuffixForCountersKey] = b?.ToString() ?? "True" },
+                { $"cap|capturedevice=|{OpcUaClientConfig.CaptureDeviceKey}=",
+                    $"The capture device to use to capture network traffic.\n{SupportsCapture(OpcUaClientCapture.AvailableDevices)}\n",
+                    (string s) => this[OpcUaClientConfig.CaptureDeviceKey] = s },
+                { $"cpf|capturefile=|{OpcUaClientConfig.CaptureFileNameKey}=",
+                    $"The file name to capture traffic to.\nA device must be selected using `--cd` if capture capability is supported on this system.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
+                    (string s) => this[OpcUaClientConfig.CaptureFileNameKey] = s },
 
                 // testing purposes
 
-                { "stc|scaletestcount=",
+                { "sc|scaletestcount=",
                     "The number of monitored item clones in scale tests.\n",
                     (string i) => this[PublisherConfig.ScaleTestCountKey] = i, true },
 
@@ -607,6 +614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "dt|devicecertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("dt|devicecertstoretype"), true },
                 { "dp|devicecertstorepath=", "Legacy - do not use.", _ => legacyOptions.Add("dp|devicecertstorepath"), true },
                 { "i|install", "Legacy - do not use.", _ => legacyOptions.Add("i|install"), true },
+                { "st|opcstacktracemask=", "Legacy - do not use.", _ => legacyOptions.Add("st|opcstacktracemask"), true },
                 { "sd|shopfloordomain=", "Legacy - do not use.", _ => legacyOptions.Add("sd|shopfloordomain"), true },
                 { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },
@@ -693,6 +701,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 throw new OptionException("Bad store type", optionName);
             }
+        }
+
+        private static string SupportsCapture(IReadOnlyList<string> devices)
+        {
+            if (devices.Count == 0)
+            {
+                return "Network capture is not supported on this system.";
+            }
+            return $"Available devices on your system:\n    `{string.Join("`\n    `", devices)}`\nDefault: `null` (disabled).";
         }
 
         private readonly CommandLineLogger _logger;

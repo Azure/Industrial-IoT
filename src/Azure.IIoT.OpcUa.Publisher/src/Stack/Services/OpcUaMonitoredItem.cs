@@ -397,36 +397,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return true;
             }
 
-            if (Status.Error == null || !StatusCode.IsNotGood(Status.Error.StatusCode))
+            if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
             {
-                if (SamplingInterval != Status.SamplingInterval ||
-                    QueueSize != Status.QueueSize)
-                {
-                    _logger.LogInformation(
-                        @"Server has revised {Item} ('{Name}') in subscription #{SubscriptionId}
-The item's actual/desired states:
-SamplingInterval {CurrentSamplingInterval}/{SamplingInterval},
-QueueSize {CurrentQueueSize}/{QueueSize}",
-                        StartNodeId, DisplayName, subscription.Id,
-                        Status.SamplingInterval, SamplingInterval,
-                        Status.QueueSize, QueueSize);
-                }
-                else
-                {
-                    _logger.LogDebug(
-                        "Item {Item} added to subscription #{SubscriptionId} successfully.",
-                        this, subscription.Id);
-                }
-                return true;
+                _logger.LogWarning("Error adding monitored item {Item} " +
+                    "to subscription #{SubscriptionId} due to {Status}.",
+                    this, subscription.Id, Status.Error);
+
+                // Not needed, mode changes applied after
+                // applyChanges = true;
+                return false;
             }
 
-            _logger.LogWarning(
-                "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.",
-                this, subscription.Id, Status.Error);
-
-            // Not needed, mode changes applied after
-            // applyChanges = true;
-            return false;
+            if (SamplingInterval != Status.SamplingInterval &&
+                QueueSize != Status.QueueSize)
+            {
+                _logger.LogInformation("#{SubscriptionId}|{Item}('{Name}') - Server revised " +
+                    "SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
+                    "QueueSize from {QueueSize} to {CurrentQueueSize}.",
+                    subscription.Id, StartNodeId, DisplayName,
+                    SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize);
+            }
+            else if (SamplingInterval != Status.SamplingInterval)
+            {
+                _logger.LogInformation("#{SubscriptionId}|{Item}('{Name}') - Server revised " +
+                    "SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval}.",
+                    subscription.Id, StartNodeId, DisplayName,
+                    SamplingInterval, Status.SamplingInterval);
+            }
+            else if (QueueSize != Status.QueueSize)
+            {
+                _logger.LogInformation("#{SubscriptionId}|{Item}('{Name}') - Server revised " +
+                    "QueueSize from {QueueSize} to {CurrentQueueSize}.",
+                    subscription.Id, StartNodeId, DisplayName,
+                    QueueSize, Status.QueueSize);
+            }
+            else
+            {
+                _logger.LogDebug("#{SubscriptionId}|{Item}('{Name}') - Server accepted " +
+                    "configuration unchanged.",
+                    subscription.Id, StartNodeId, DisplayName);
+            }
+            return true;
         }
 
         /// <summary>

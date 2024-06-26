@@ -79,6 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxPublishRequestsKey = "MaxPublishRequests";
         public const string MaxNodesPerBrowseOverrideKey = "MaxNodesPerBrowseOverride";
         public const string MaxNodesPerReadOverrideKey = "MaxNodesPerReadOverride";
+        public const string CaptureDeviceKey = "CaptureDevice";
+        public const string CaptureFileNameKey = "CaptureFileName";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -117,6 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int MinPublishRequestsDefault = 2;
         public const int MaxPublishRequestsDefault = 10;
         public const int PublishRequestsPerSubscriptionPercentDefault = 100;
+        public const string CaptureFileNameDefault = "opcua.pcap";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -279,6 +282,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             options.MaxNodesPerReadOverride ??= GetIntOrNull(MaxNodesPerReadOverrideKey);
             options.MaxNodesPerBrowseOverride ??= GetIntOrNull(MaxNodesPerBrowseOverrideKey);
+
+            if (string.IsNullOrEmpty(options.CaptureDevice))
+            {
+                options.CaptureDevice = GetStringOrDefault(CaptureDeviceKey);
+            }
+
+            if (string.IsNullOrEmpty(options.CaptureFileName))
+            {
+                options.CaptureFileName = GetStringOrDefault(CaptureFileNameKey,
+                    CaptureFileNameDefault);
+            }
 
             if (options.Security.MinimumCertificateKeySize == 0)
             {
