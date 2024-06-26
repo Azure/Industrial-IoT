@@ -4,53 +4,85 @@ pr:
   branches:
     include:
     - '*'
+trigger:
+  batch: 'true'
+  branches:
+    include:
+    - main
+    - release/*
+parameters:
+- name: onebranch
+  type: string
+  default: main
 jobs:
 - job: OneBranchTrigger
   pool:
     vmImage: 'ubuntu-latest'
-  displayName: Trigger Pull Request Build on Governed Pipeline
+  displayName: Trigger Build on Governed Pipeline
   variables:
     message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
-  steps:
-  - task: TriggerBuild@4
-    inputs:
-      definitionIsInCurrentTeamProject: true
-      buildDefinition: 'Industrial-IoT-PullRequest'
-      queueBuildForUserThatTriggeredBuild: false
-      ignoreSslCertificateErrors: false
-      useSameSourceVersion: false
-      useCustomSourceVersion: false
-      useSameBranch: false
-      branchToUse: 'main'
-      storeInEnvironmentVariable: true
-      authenticationMethod: 'OAuth Token'
-      password: $(System.AccessToken)
-      enableBuildInQueueCondition: true
-      dependentOnSuccessfulBuildCondition: false
-      dependentOnFailedBuildCondition: false
-      checkbuildsoncurrentbranch: false
-      failTaskIfConditionsAreNotFulfilled: false
-      buildParameters: 'buildInfo: $(message)'
-      templateParameters: 'ref: $(Build.SourceBranch)'
-  - task: PowerShell@2
-    inputs:
-      targetType: 'inline'
-      script: |
-        $buildId = $(TriggeredBuildIds)
-        $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"
-        Write-Host "Triggered build $buildUrl ..."
-        Write-Host "##vso[build.addbuildtag]Industrial-IoT-PullRequest build $buildId"
-        Write-Host "##vso[task.logissue type=warning]$buildUrl"
-        Write-Host "##vso[build.updatebuildnumber]$buildId"
-  - task: WaitForBuildToFinish@3
-    inputs:
-      definitionIsInCurrentTeamProject: true
-      ignoreSslCertificateErrors: false
-      waitForQueuedBuildsToFinishRefreshTime: '60'
-      failTaskIfBuildsNotSuccessful: true
-      cancelBuildsIfAnyFails: false
-      treatPartiallySucceededBuildAsSuccessful: false
-      downloadBuildArtifacts: true
-      clearVariable: true
-      authenticationMethod: 'OAuth Token'
-      password: $(System.AccessToken)
+    steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          WriteHost "Build $(Build.SourceBranch)($(Build.SourceBranchName)) $(Build.Reason): $(message)"
+          if ('$(Build.Reason)' -eq 'PullRequest') {
+            $pipelineDefinition = 'Industrial-IoT-PullRequest'
+            $templateParameters = 'ref: $(Build.SourceBranch), buildInfo: $(message)'
+            Write-Host "Triggering Pull Request build for $(Build.SourceBranch)..."
+          }
+          elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*') {
+            $pipelineDefinition = 'Industrial-IoT-Official'
+            #$templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
+            $templateParameters = 'branch: $(Build.SourceBranchName)'
+            Write-Host "Triggering official build for branch $(Build.SourceBranchName)..."
+          } else {
+            $pipelineDefinition = 'Industrial-IoT-Buddy'
+            #$templateParameters = 'branch: $(Build.SourceBranchName), buildInfo: $(message)'
+            $templateParameters = 'branch: $(Build.SourceBranchName)'
+            Write-Host "Triggering buddy build for branch $(Build.SourceBranchName) ..."
+          }
+          Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
+          Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
+    - task: TriggerBuild@4
+      inputs:
+        definitionIsInCurrentTeamProject: true
+        buildDefinition: $(pipelineDefinition)
+        queueBuildForUserThatTriggeredBuild: false
+        ignoreSslCertificateErrors: false
+        useSameSourceVersion: false
+        useCustomSourceVersion: false
+        useSameBranch: false
+        branchToUse: '${{ parameters.onebranch }}'
+        storeInEnvironmentVariable: true
+        authenticationMethod: 'OAuth Token'
+        password: $(System.AccessToken)
+        enableBuildInQueueCondition: true
+        dependentOnSuccessfulBuildCondition: false
+        dependentOnFailedBuildCondition: false
+        checkbuildsoncurrentbranch: false
+        failTaskIfConditionsAreNotFulfilled: false
+        templateParameters: '$(templateParameters)'
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $buildId = $(TriggeredBuildIds)
+          $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"
+          Write-Host "Triggered build $buildUrl ..."
+          Write-Host "##vso[build.addbuildtag]$(pipelineDefinition) build $buildId"
+          Write-Host "##vso[task.logissue type=warning]$buildUrl"
+          Write-Host "##vso[build.updatebuildnumber]$buildId"
+    - task: WaitForBuildToFinish@3
+      inputs:
+        definitionIsInCurrentTeamProject: true
+        ignoreSslCertificateErrors: false
+        waitForQueuedBuildsToFinishRefreshTime: '60'
+        failTaskIfBuildsNotSuccessful: true
+        cancelBuildsIfAnyFails: false
+        treatPartiallySucceededBuildAsSuccessful: false
+        downloadBuildArtifacts: true
+        clearVariable: true
+        authenticationMethod: 'OAuth Token'
+        password: $(System.AccessToken)
