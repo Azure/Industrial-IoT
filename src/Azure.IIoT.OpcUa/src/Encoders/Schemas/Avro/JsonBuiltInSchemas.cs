@@ -573,6 +573,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 
         private readonly Dictionary<BuiltInType, Schema> _builtIn = new();
         private readonly bool _reversibleEncoding;
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly bool _useUriEncoding;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }

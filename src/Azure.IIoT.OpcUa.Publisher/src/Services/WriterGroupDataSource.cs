@@ -705,8 +705,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             private void InitializeMetaDataTrigger()
             {
-                var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime
-                    .GetValueOrDefault(TimeSpan.Zero);
+                var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime ?? TimeSpan.Zero;
                 if (metaDataSendInterval > TimeSpan.Zero &&
                     _outer._subscriptionConfig.Value.DisableDataSetMetaData != true)
                 {

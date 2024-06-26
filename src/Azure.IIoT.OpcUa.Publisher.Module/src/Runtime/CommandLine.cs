@@ -534,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Configures how to emit diagnostics information at the `--di` configured interval.\nUse this to for example emit diagnostics as events to the event topic template instead of the console.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(PublisherDiagnosticTargetType)))}`\nDefault: `{PublisherDiagnosticTargetType.Logger}`.\n",
                     (PublisherDiagnosticTargetType d) => this[PublisherConfig.DiagnosticsTargetKey] = d.ToString() },
                 { $"dr|disableresourcemonitoring:|{PublisherConfig.DisableResourceMonitoringKey}:",
-                    $"Disable resource monitoring as part of the diagnostics output and metrics.\nDefault: `false` (enabled).\n",
+                    "Disable resource monitoring as part of the diagnostics output and metrics.\nDefault: `false` (enabled).\n",
                     (bool? b) => this[PublisherConfig.DisableResourceMonitoringKey] = b?.ToString() ?? "True" },
                 { "ln|lognotifications:",
                     "Log ingress subscription notifications at Informational level to aid debugging.\nDefault: `disabled`.\n",
@@ -572,12 +572,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ats|addtotalsuffix:|{Configuration.Otlp.OtlpTotalNameSuffixForCountersKey}:",
                     $"Add total suffix to all counter instrument names when exporting metrics via prometheus exporter.\nDefault: `{Configuration.Otlp.OtlpTotalNameSuffixForCountersDefault}`.\n",
                     (bool? b) => this[Configuration.Otlp.OtlpTotalNameSuffixForCountersKey] = b?.ToString() ?? "True" },
-                { $"cap|capturedevice=|{OpcUaClientConfig.CaptureDeviceKey}=",
-                    $"The capture device to use to capture network traffic.\n{SupportsCapture(OpcUaClientCapture.AvailableDevices)}\n",
-                    (string s) => this[OpcUaClientConfig.CaptureDeviceKey] = s },
-                { $"cpf|capturefile=|{OpcUaClientConfig.CaptureFileNameKey}=",
-                    $"The file name to capture traffic to.\nA device must be selected using `--cap` if capture capability is supported on this system.\nDefault: `{OpcUaClientConfig.CaptureFileNameDefault}`.\n",
-                    (string s) => this[OpcUaClientConfig.CaptureFileNameKey] = s },
 
                 // testing purposes
 
@@ -701,15 +695,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 throw new OptionException("Bad store type", optionName);
             }
-        }
-
-        private static string SupportsCapture(IReadOnlyList<string> devices)
-        {
-            if (devices.Count == 0)
-            {
-                return "Network capture is not supported on this system.";
-            }
-            return $"Available devices on your system:\n    `{string.Join("`\n    `", devices)}`\nDefault: `null` (disabled).";
         }
 
         private readonly CommandLineLogger _logger;

@@ -31,8 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OpcUaClientManager>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OpcUaClientCapture>()
-                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<OpcUaClientConfig>()
                 .AsImplementedInterfaces();

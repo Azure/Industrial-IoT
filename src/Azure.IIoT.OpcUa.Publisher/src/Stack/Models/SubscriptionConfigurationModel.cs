@@ -97,5 +97,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Monitored item watchdog timeout
         /// </summary>
         public TimeSpan? MonitoredItemWatchdogTimeout { get; set; }
+
+        /// <summary>
+        /// The number of items in a subscription for which
+        /// </summary>
+        public bool? WatchdogActionWhenAnyItemsAreLate { get; set; }
     }
 }

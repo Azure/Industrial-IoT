@@ -33,12 +33,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Create writer
         /// </summary>
         /// <param name="options"></param>
-        /// <param name="logger"></param>
-        public ConsoleWriter(IOptions<ConsoleWriterOptions> options,
-            ILogger<ConsoleWriter> logger)
+        public ConsoleWriter(IOptions<ConsoleWriterOptions> options)
         {
             _options = options;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -100,7 +97,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             WriteIndented = true
         };
         private readonly IOptions<ConsoleWriterOptions> _options;
-        private readonly ILogger _logger;
         private Stream? _stdout;
         private Stream? _stderr;
     }

@@ -38,6 +38,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// exit code -10
         /// </summary>
         [EnumMember(Value = "ExitProcess")]
-        ExitProcess,
+        ExitProcess
     }
 }
