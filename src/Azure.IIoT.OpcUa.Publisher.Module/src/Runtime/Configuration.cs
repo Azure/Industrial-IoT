@@ -740,6 +740,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string GrpcPortKey = "GrpcPort";
             public const string SchemeKey = "Scheme";
             public const string HostKey = "Host";
+            public const string CheckSideCarHealthKey = "CheckSideCarHealth";
             public const string DaprConnectionStringKey = "DaprConnectionString";
 
             /// <inheritdoc/>
@@ -774,8 +775,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         host = "localhost";
                     }
 
+                    // Check whether to check side car health
+                    if (properties.TryGetValue(CheckSideCarHealthKey, out var value) &&
+                        bool.TryParse(value, out var check))
+                    {
+                        options.CheckSideCarHealthBeforeAccess = check;
+                    }
+
                     // Permit the port to be set if provided, otherwise use defaults.
-                    if (properties.TryGetValue(GrpcPortKey, out var value) &&
+                    if (properties.TryGetValue(GrpcPortKey, out value) &&
                         int.TryParse(value, CultureInfo.InvariantCulture, out var port))
                     {
                         options.GrpcEndpoint = scheme + "://" + host + ":" + port;
