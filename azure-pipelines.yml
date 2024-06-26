@@ -23,6 +23,7 @@ jobs:
     message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
   steps:
   - task: PowerShell@2
+    displayName: 'Determine pipeline definition and parameters'
     inputs:
       targetType: 'inline'
       script: |
@@ -46,6 +47,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
         Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
   - task: TriggerBuild@4
+    displayName: 'Trigger $(pipelineDefinition)'
     inputs:
       definitionIsInCurrentTeamProject: true
       buildDefinition: $(pipelineDefinition)
@@ -65,6 +67,7 @@ jobs:
       failTaskIfConditionsAreNotFulfilled: false
       templateParameters: '$(templateParameters)'
   - task: PowerShell@2
+    displayName: 'Update build number and tags'
     inputs:
       targetType: 'inline'
       script: |
@@ -75,6 +78,7 @@ jobs:
         Write-Host "##vso[task.logissue type=warning]$buildUrl"
         Write-Host "##vso[build.updatebuildnumber]$buildId"
   - task: WaitForBuildToFinish@3
+    displayName: 'Wait for $(pipelineDefinition) to finish'
     inputs:
       definitionIsInCurrentTeamProject: true
       ignoreSslCertificateErrors: false
