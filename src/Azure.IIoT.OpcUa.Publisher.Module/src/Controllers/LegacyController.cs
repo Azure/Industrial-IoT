@@ -23,40 +23,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for GetInfo direct method
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
-        public async Task GetInfoAsync()
+        public Task GetInfoAsync()
         {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new NotSupportedException("GetInfo not supported");
+            return Task.FromException(new NotSupportedException(
+                "GetInfo not supported"));
         }
 
         /// <summary>
         /// Handler for GetDiagnosticLog direct method - not supported
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
-        public async Task GetDiagnosticLogAsync()
+        public Task GetDiagnosticLogAsync()
         {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new NotSupportedException("GetDiagnosticLog not supported");
+            return Task.FromException(new NotSupportedException(
+                "GetDiagnosticLog not supported"));
         }
 
         /// <summary>
         /// Handler for GetDiagnosticStartupLog direct method - not supported
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
-        public async Task GetDiagnosticStartupLogAsync()
+        public Task GetDiagnosticStartupLogAsync()
         {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new NotSupportedException("GetDiagnosticStartupLog not supported");
-        }
-
-        /// <summary>
-        /// Handler for ExitApplication direct method - not supported
-        /// </summary>
-        /// <exception cref="NotSupportedException"></exception>
-        public async Task ExitApplicationAsync()
-        {
-            await Task.Delay(0).ConfigureAwait(false);
-            throw new NotSupportedException("Exit not supported");
+            return Task.FromException(new NotSupportedException(
+                "GetDiagnosticStartupLog not supported"));
         }
     }
 }

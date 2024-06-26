@@ -70,7 +70,8 @@ We are pleased to announce the release of version 2.9.9 of OPC Publisher and the
 - Fix an issue where linger does not work when reference continuation token between calls is the same (#2227)
 - Add a command line option to disable runtime metrics (#2200, #2197)
 - Added ability to write encoded messages to stdout/stderr for debugging (#2259)
-- Improve documentation.
+- Add ability to disable resource monitoring via command line option to work around any incompatibility with host systems (related to #2261)
+- Improved documentation.
 
 ## Azure Industrial IoT OPC Publisher 2.9.8
 

@@ -66,6 +66,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             }
         }
 
+        /// <summary>
+        /// Legacy shutdown
+        /// </summary>
+        /// <returns></returns>
+        public Task ExitApplicationAsync()
+        {
+            return ShutdownAsync();
+        }
+
         private readonly IApiKeyProvider _apikey;
         private readonly ISslCertProvider _certificate;
         private readonly IProcessControl _process;

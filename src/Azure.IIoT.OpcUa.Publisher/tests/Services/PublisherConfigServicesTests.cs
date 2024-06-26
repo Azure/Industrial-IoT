@@ -770,7 +770,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await configService.PublishNodesAsync(endpoints[0]);
 
             const string details = "{\"DataSetWriterId\":\"DataSetWriterId0\",\"DataSetWriterGroup\":\"DataSetWriterGroup\",\"OpcNodes\":[{\"Id\":\"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt0\",\"OpcPublishingIntervalTimespan\":\"00:00:01\"}],\"EndpointUrl\":\"opc.tcp://opcplc:50000\",\"UseSecurity\":null,\"OpcAuthenticationMode\":\"anonymous\"}";
-            var exceptionResponse = "Nodes not found: \n" + details;
+            const string exceptionResponse = "Nodes not found: \n" + details;
             var opcNodes1 = Enumerable.Range(0, numberOfEndpoints)
                 .Select(i => new OpcNodeModel
                 {

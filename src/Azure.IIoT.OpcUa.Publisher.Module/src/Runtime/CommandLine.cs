@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
@@ -533,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Configures how to emit diagnostics information at the `--di` configured interval.\nUse this to for example emit diagnostics as events to the event topic template instead of the console.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(PublisherDiagnosticTargetType)))}`\nDefault: `{PublisherDiagnosticTargetType.Logger}`.\n",
                     (PublisherDiagnosticTargetType d) => this[PublisherConfig.DiagnosticsTargetKey] = d.ToString() },
                 { $"dr|disableresourcemonitoring:|{PublisherConfig.DisableResourceMonitoringKey}:",
-                    $"Disable resource monitoring as part of the diagnostics output and metrics.\nDefault: `false` (enabled).\n",
+                    "Disable resource monitoring as part of the diagnostics output and metrics.\nDefault: `false` (enabled).\n",
                     (bool? b) => this[PublisherConfig.DisableResourceMonitoringKey] = b?.ToString() ?? "True" },
                 { "ln|lognotifications:",
                     "Log ingress subscription notifications at Informational level to aid debugging.\nDefault: `disabled`.\n",
@@ -574,7 +575,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 
                 // testing purposes
 
-                { "stc|scaletestcount=",
+                { "sc|scaletestcount=",
                     "The number of monitored item clones in scale tests.\n",
                     (string i) => this[PublisherConfig.ScaleTestCountKey] = i, true },
 
@@ -607,6 +608,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { "dt|devicecertstoretype=", "Legacy - do not use.", _ => legacyOptions.Add("dt|devicecertstoretype"), true },
                 { "dp|devicecertstorepath=", "Legacy - do not use.", _ => legacyOptions.Add("dp|devicecertstorepath"), true },
                 { "i|install", "Legacy - do not use.", _ => legacyOptions.Add("i|install"), true },
+                { "st|opcstacktracemask=", "Legacy - do not use.", _ => legacyOptions.Add("st|opcstacktracemask"), true },
                 { "sd|shopfloordomain=", "Legacy - do not use.", _ => legacyOptions.Add("sd|shopfloordomain"), true },
                 { "vc|verboseconsole=", "Legacy - do not use.", _ => legacyOptions.Add("vc|verboseconsole"), true },
                 { "as|autotrustservercerts=", "Legacy - do not use.", _ => legacyOptions.Add("as|autotrustservercerts"), true },

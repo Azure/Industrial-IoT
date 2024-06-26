@@ -1995,8 +1995,10 @@ Actual (revised) state/desired state:
                 }
 
                 var lastCount = _lateMonitoredItems;
+                var itemsChecked = 0;
                 foreach (var item in CurrentlyMonitored)
                 {
+                    itemsChecked++;
                     if (item.WasLastValueReceivedBefore(_lastMonitoredItemCheck.Value))
                     {
 #if DEBUG
@@ -2008,7 +2010,8 @@ Actual (revised) state/desired state:
                     }
                 }
                 _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
-                if (lastCount == _lateMonitoredItems)
+                var missing = _lateMonitoredItems - lastCount;
+                if (missing == 0)
                 {
                     _logger.LogDebug("All monitored items in {Subscription} are reporting.",
                         this);
@@ -2018,9 +2021,16 @@ Actual (revised) state/desired state:
                 {
                     return;
                 }
-                _logger.LogInformation("{Count} of the monitored items in {Subscription} " +
+                if (itemsChecked != missing &&
+                    _template.Configuration?.WatchdogActionWhenAnyItemsAreLate != true)
+                {
+                    _logger.LogDebug("Some monitored items in {Subscription} are late.",
+                        this);
+                    return;
+                }
+                _logger.LogInformation("{Count} of the {Total} monitored items in {Subscription} " +
                     "are now late - running {Action} behavior action.",
-                    _lateMonitoredItems - lastCount, this, action);
+                    missing, itemsChecked, this, action);
             }
 
             var msg = $"Subscription {this} has {_lateMonitoredItems} late monitored items.";

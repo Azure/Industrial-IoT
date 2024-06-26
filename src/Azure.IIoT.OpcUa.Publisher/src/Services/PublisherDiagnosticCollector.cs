@@ -29,9 +29,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create collector
         /// </summary>
-        /// <param name="resources"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
+        /// <param name="resources"></param>
         public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
             IResourceMonitor? resources = null, TimeProvider? timeProvider = null)
         {

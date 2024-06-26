@@ -1170,8 +1170,8 @@ You can use `openssl` to create your own self-signed certificate, e.g., with a 2
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -sha256 -days 730 -nodes \
 -subj "/CN=<application-name>/O=<your-company-name>/DC=localhost" \
 -addext "subjectAltName=URI:urn:localhost:<application-name>:microsoft:,DNS:<iot-edge-host-name>" \
--addext "keyUsage=critical, nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyCertSign" \
--addext "extendedKeyUsage=critical, serverAuth, clientAuth"
+-addext "keyUsage=nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyCertSign" \
+-addext "extendedKeyUsage=clientAuth"
 
 # Transform cert.pem to cert.der
 openssl x509 -outform der -in cert.pem -out cert.der

@@ -1066,6 +1066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         /// <exception cref="ResourceNotFoundException"></exception>
         /// <exception cref="ResourceInvalidStateException"></exception>
+        /// <exception cref="BadRequestException"></exception>
         private static PublishedNodesEntryModel Find(string writerGroupId,
             string dataSetWriterId, IEnumerable<PublishedNodesEntryModel> entries)
         {

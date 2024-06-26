@@ -4,24 +4,58 @@ pr:
   branches:
     include:
     - '*'
+trigger:
+  batch: 'true'
+  branches:
+    include:
+    - main
+    - release/*
+parameters:
+- name: onebranch
+  type: string
+  default: main
 jobs:
 - job: OneBranchTrigger
   pool:
     vmImage: 'ubuntu-latest'
-  displayName: Trigger Pull Request Build on Governed Pipeline
+  displayName: Trigger Governed Pipeline
   variables:
     message: $[ replace(variables['Build.SourceVersionMessage'], ',', '') ]
+    branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
   steps:
+  - task: PowerShell@2
+    displayName: 'Determine pipeline and parameters'
+    inputs:
+      targetType: 'inline'
+      script: |
+        if ('$(Build.Reason)' -eq 'PullRequest') {
+          $pipelineDefinition = 'Industrial-IoT-PullRequest'
+          $templateParameters = 'ref: $(Build.SourceBranch), buildInfo: $(message)'
+          Write-Host "Triggering Pull Request build for $(Build.SourceBranch)..."
+        }
+        elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*') {
+          $pipelineDefinition = 'Industrial-IoT-Official'
+          $templateParameters = 'branch: $(branchName), buildInfo: $(message)'
+          Write-Host "Triggering official build for branch $(branchName)..."
+        } else {
+          $pipelineDefinition = 'Industrial-IoT-Buddy'
+          $templateParameters = 'branch: $(branchName), buildInfo: $(message)'
+          Write-Host "Triggering buddy build for branch $(branchName) ..."
+        }
+        Write-Host "$(Build.Reason): Trigger $(pipelineDefinition) with '$(templateParameters)'..."
+        Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
+        Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
   - task: TriggerBuild@4
+    displayName: 'Trigger Build'
     inputs:
       definitionIsInCurrentTeamProject: true
-      buildDefinition: 'Industrial-IoT-PullRequest'
+      buildDefinition: $(pipelineDefinition)
       queueBuildForUserThatTriggeredBuild: false
       ignoreSslCertificateErrors: false
       useSameSourceVersion: false
       useCustomSourceVersion: false
       useSameBranch: false
-      branchToUse: 'main'
+      branchToUse: '${{ parameters.onebranch }}'
       storeInEnvironmentVariable: true
       authenticationMethod: 'OAuth Token'
       password: $(System.AccessToken)
@@ -30,19 +64,20 @@ jobs:
       dependentOnFailedBuildCondition: false
       checkbuildsoncurrentbranch: false
       failTaskIfConditionsAreNotFulfilled: false
-      buildParameters: 'buildInfo: $(message)'
-      templateParameters: 'ref: $(Build.SourceBranch)'
+      templateParameters: '$(templateParameters)'
   - task: PowerShell@2
+    displayName: 'Update build number and tags'
     inputs:
       targetType: 'inline'
       script: |
         $buildId = $(TriggeredBuildIds)
         $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"
         Write-Host "Triggered build $buildUrl ..."
-        Write-Host "##vso[build.addbuildtag]Industrial-IoT-PullRequest build $buildId"
+        Write-Host "##vso[build.addbuildtag]$(pipelineDefinition) build $buildId"
         Write-Host "##vso[task.logissue type=warning]$buildUrl"
         Write-Host "##vso[build.updatebuildnumber]$buildId"
   - task: WaitForBuildToFinish@3
+    displayName: 'Wait for build to finish'
     inputs:
       definitionIsInCurrentTeamProject: true
       ignoreSslCertificateErrors: false
