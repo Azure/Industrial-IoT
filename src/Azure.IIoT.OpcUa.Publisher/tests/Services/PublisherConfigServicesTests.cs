@@ -91,7 +91,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             var configService = new PublisherConfigurationService(
                 _publishedNodesJobConverter,
-                _options,
                 _publisher,
                 _loggerFactory.CreateLogger<PublisherConfigurationService>(),
                 _publishedNodesProvider,
@@ -499,8 +498,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var i = 1;
             while (i < 1000)
             {
+#pragma warning disable CA5394 // Do not use insecure randomness
                 var batchSize = (Random.Shared.Next() % 3) + 1;
                 var offset = (Random.Shared.Next() % i);
+#pragma warning restore CA5394 // Do not use insecure randomness
                 opcNodes = Enumerable.Range(i, batchSize)
                     .Select(i => new OpcNodeModel
                     {

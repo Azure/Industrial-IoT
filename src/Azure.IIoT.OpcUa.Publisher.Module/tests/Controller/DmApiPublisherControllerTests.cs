@@ -91,7 +91,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             var configService = new PublisherConfigurationService(
                 _publishedNodesJobConverter,
-                _options,
                 _publisher,
                 _loggerFactory.CreateLogger<PublisherConfigurationService>(),
                 _publishedNodesProvider,

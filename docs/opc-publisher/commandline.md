@@ -349,7 +349,7 @@ Transport settings
                                Use the format 'PubSubComponent=<PubSubComponent>
                                [;GrpcPort=<GrpcPort>;HttpPort=<HttpPort>[;
                                Scheme=<'https'|'http'>][;Host=<IPorDnsName>]][;
-                               ApiKey=<ApiKey>]'.
+                               CheckSideCarHealth=<'true'|'false'>]'.
                                To publish through dapr by default specify `-t=
                                Dapr`.
                                Default: `not set`.
