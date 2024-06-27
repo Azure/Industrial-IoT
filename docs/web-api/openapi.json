@@ -6358,6 +6358,18 @@
             },
             "additionalProperties": false
         },
+        "MonitoredItemWatchdogCondition": {
+            "description": "Monitored item watchdog condition",
+            "enum": [
+                "WhenAllAreLate",
+                "WhenAnyIsLate"
+            ],
+            "type": "string",
+            "x-ms-enum": {
+                "name": "MonitoredItemWatchdogCondition",
+                "modelAsString": false
+            }
+        },
         "NamespaceFormat": {
             "description": "Namespace serialization format for node ids\r\nand qualified names.",
             "enum": [
@@ -7395,13 +7407,30 @@
                     "description": "Republish after transferring the subscription during\r\nreconnect handling unless subscription transfer was disabled.",
                     "type": "boolean"
                 },
-                "MonitoredItemWatchdogTimespan": {
+                "OpcNodeWatchdogTimespan": {
                     "format": "date-span",
                     "description": "The timeout to use to monitor the monitored items in the\r\nsubscription are continously reporting fresh data.",
                     "type": "string"
                 },
-                "WatchdogBehavior": {
+                "DataSetWriterWatchdogBehavior": {
                     "$ref": "#/definitions/SubscriptionWatchdogBehavior"
+                },
+                "OpcNodeWatchdogCondition": {
+                    "$ref": "#/definitions/MonitoredItemWatchdogCondition"
+                },
+                "DataSetSamplingInterval": {
+                    "format": "int32",
+                    "description": "The default sampling interval for all items in a dataset writer\r\nin miliseconds if the nodes do not specify a sampling rate.",
+                    "type": "integer"
+                },
+                "DataSetSamplingIntervalTimespan": {
+                    "format": "date-span",
+                    "description": "The Sampling interval for the nodes in the dataset writer\r\nin timespan format. Takes precedence over\r\nAzure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetSamplingInterval if defined.",
+                    "type": "string"
+                },
+                "DataSetFetchDisplayNames": {
+                    "description": "Whether to fetch the display name and use it as\r\ndata set id for all opc node items in the data set",
+                    "type": "boolean"
                 },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"

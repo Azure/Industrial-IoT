@@ -70,18 +70,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task CreateOrUpdateDataSetWriterEntryAsync(
             PublishedNodesEntryModel entry, CancellationToken ct = default)
         {
-            if (entry.OpcNodes is null || entry.OpcNodes.Count == 0)
-            {
-                // We cannot yet create empty writers that can be filled.
-                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
-            }
             if (string.IsNullOrWhiteSpace(entry.EndpointUrl))
             {
                 throw new BadRequestException(kNullOrEmptyEndpointUrl);
             }
             entry.DataSetWriterGroup ??= string.Empty;
             entry.DataSetWriterId ??= string.Empty;
-            entry.OpcNodes = ValidateNodes(entry.OpcNodes, true);
+            if (entry.OpcNodes != null)
+            {
+                entry.OpcNodes = ValidateNodes(entry.OpcNodes, true);
+            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -534,42 +532,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 // Perform second pass and remove entries this time.
-                var existingGroups = new List<PublishedNodesEntryModel>();
+                var remainingEntries = new List<PublishedNodesEntryModel>();
                 foreach (var entry in currentNodes)
                 {
                     // We may have several entries with the same DataSetGroup definition,
                     // so we will remove nodes only if the whole DataSet definition matches.
                     if (entry.HasSameDataSet(request))
                     {
-                        if (!purgeDataSet)
+                        if (purgeDataSet)
                         {
-                            var updatedNodes = new List<OpcNodeModel>();
+                            continue;
+                        }
+                        var updatedNodes = new List<OpcNodeModel>();
 
-                            if (entry.OpcNodes != null)
+                        if (entry.OpcNodes != null)
+                        {
+                            foreach (var node in entry.OpcNodes)
                             {
-                                foreach (var node in entry.OpcNodes)
+                                if (!nodesToRemoveSet.Remove(node))
                                 {
-                                    if (!nodesToRemoveSet.Remove(node))
-                                    {
-                                        updatedNodes.Add(node);
-                                    }
+                                    updatedNodes.Add(node);
                                 }
                             }
+                        }
 
-                            entry.OpcNodes = updatedNodes;
-                        }
-                        else
+                        if (updatedNodes.Count == 0)
                         {
-                            entry.OpcNodes?.Clear();
+                            continue;
                         }
+
+                        // Fall through to add to remaining entries
+                        entry.OpcNodes = updatedNodes;
                     }
 
                     // Even if DataSets did not match, we need to add this entry to existingGroups
                     // so that generated job definition is complete.
-                    existingGroups.Add(entry);
+                    remainingEntries.Add(entry);
                 }
 
-                var jobs = _publishedNodesJobConverter.ToWriterGroups(existingGroups);
+                var jobs = _publishedNodesJobConverter.ToWriterGroups(remainingEntries);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -597,7 +598,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var found = false;
                     // Perform pass to determine existing groups
-                    var matchingGroups = new List<PublishedNodesEntryModel>();
+                    var remainingEntries = new List<PublishedNodesEntryModel>();
                     foreach (var entry in GetCurrentPublishedNodes())
                     {
                         if (entry.HasSameWriterGroup(request))
@@ -606,10 +607,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // so we will remove nodes only if the whole DataSet definition matches.
                             if (entry.HasSameDataSet(request))
                             {
-                                entry.OpcNodes?.Clear();
                                 found = true;
+                                continue;
                             }
-                            matchingGroups.Add(entry);
+                            remainingEntries.Add(entry);
                         }
                     }
 
@@ -619,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         throw new ResourceNotFoundException($"Endpoint or node not found: {request.EndpointUrl}");
                     }
 
-                    var jobs = _publishedNodesJobConverter.ToWriterGroups(matchingGroups);
+                    var jobs = _publishedNodesJobConverter.ToWriterGroups(remainingEntries);
                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 }
                 else

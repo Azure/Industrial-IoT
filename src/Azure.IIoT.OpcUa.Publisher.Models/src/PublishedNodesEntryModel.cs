@@ -353,16 +353,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The timeout to use to monitor the monitored items in the
         /// subscription are continously reporting fresh data.
         /// </summary>
-        [DataMember(Name = "MonitoredItemWatchdogTimespan", Order = 42,
+        [DataMember(Name = "OpcNodeWatchdogTimespan", Order = 42,
             EmitDefaultValue = false)]
-        public TimeSpan? MonitoredItemWatchdogTimespan { get; set; }
+        public TimeSpan? OpcNodeWatchdogTimespan { get; set; }
 
         /// <summary>
-        /// Subscription watchdog behavior
+        /// Subscription watchdog behavior. This is the behavior of
+        /// the watchdog on the subscription that is executed when
+        /// any watchdog triggers and the conditions are met.
         /// </summary>
-        [DataMember(Name = "WatchdogBehavior", Order = 43,
+        [DataMember(Name = "DataSetWriterWatchdogBehavior", Order = 43,
             EmitDefaultValue = false)]
-        public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
+        public SubscriptionWatchdogBehavior? DataSetWriterWatchdogBehavior { get; set; }
+
+        /// <summary>
+        /// The watchdog condition that determines whether the watchdog
+        /// behavior is executed, e.g. when all items are late or
+        /// any item is late (default)
+        /// </summary>
+        [DataMember(Name = "OpcNodeWatchdogCondition", Order = 44,
+            EmitDefaultValue = false)]
+        public MonitoredItemWatchdogCondition? OpcNodeWatchdogCondition { get; set; }
+
+        /// <summary>
+        /// The default sampling interval for all items in a dataset writer
+        /// in miliseconds if the nodes do not specify a sampling rate.
+        /// </summary>
+        [DataMember(Name = "DataSetSamplingInterval", Order = 45,
+            EmitDefaultValue = false)]
+        public int? DataSetSamplingInterval { get; set; }
+
+        /// <summary>
+        /// The Sampling interval for the nodes in the dataset writer
+        /// in timespan format. Takes precedence over
+        /// <see cref="DataSetSamplingInterval"/> if defined.
+        /// </summary>
+        [DataMember(Name = "DataSetSamplingIntervalTimespan", Order = 46,
+            EmitDefaultValue = false)]
+        public TimeSpan? DataSetSamplingIntervalTimespan { get; set; }
+
+        /// <summary>
+        /// Whether to fetch the display name and use it as
+        /// data set id for all opc node items in the data set
+        /// </summary>
+        [DataMember(Name = "DataSetFetchDisplayNames", Order = 47,
+            EmitDefaultValue = false)]
+        public bool? DataSetFetchDisplayNames { get; set; }
 
         /// <summary>
         /// The node to monitor in "ns=" syntax.

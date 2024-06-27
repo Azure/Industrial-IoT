@@ -39,12 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public uint? MaxNotificationsPerPublish { get; set; }
 
         /// <summary>
-        /// Resolves the display names for the monitored items
-        /// in the subscription.
-        /// </summary>
-        public bool? ResolveDisplayName { get; set; }
-
-        /// <summary>
         /// Retrieve paths from root for all monitored items
         /// in the subscription.
         /// </summary>
@@ -99,8 +93,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public TimeSpan? MonitoredItemWatchdogTimeout { get; set; }
 
         /// <summary>
-        /// The number of items in a subscription for which
+        /// Whether to run the watchdog action when any item
+        /// is late or all items are late.
         /// </summary>
-        public bool? WatchdogActionWhenAnyItemsAreLate { get; set; }
+        public MonitoredItemWatchdogCondition? WatchdogCondition { get; set; }
     }
 }

@@ -81,14 +81,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 Debug.Assert(_subscriptions.Count == 0);
-
-                foreach (var writer in _writerGroup.DataSetWriters ?? Enumerable.Empty<DataSetWriterModel>())
+                if (_writerGroup.DataSetWriters != null)
                 {
-                    // Create writer subscriptions
+                    foreach (var writer in _writerGroup.DataSetWriters)
+                    {
+                        // Create writer subscriptions
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                    var writerSubscription = new DataSetWriterSubscription(this, writer);
+                        var writerSubscription = new DataSetWriterSubscription(this, writer);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                    _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
+                        _subscriptions.AddOrUpdate(writerSubscription.Id, writerSubscription);
+                    }
                 }
             }
             finally
@@ -209,8 +211,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var writerGroup = model with
             {
                 DataSetWriters = model.DataSetWriters == null ?
-                    new List<DataSetWriterModel>() :
-                    model.DataSetWriters.Select(f => f.Clone()).ToList(),
+                    Array.Empty<DataSetWriterModel>() :
+                    model.DataSetWriters
+                        .Where(w => w.HasDataToPublish())
+                        .Select(f => f.Clone())
+                        .ToList(),
                 LocaleIds = model.LocaleIds?.ToList(),
                 MessageSettings = model.MessageSettings == null ? null :
                     model.MessageSettings with { },

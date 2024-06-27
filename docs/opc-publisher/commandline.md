@@ -605,6 +605,15 @@ Subscription settings
                                overridden in the published nodes configuration
                                explicitly.
                                Default: `not set` (watchdog disabled).
+      --mwc, --monitoreditemwatchdogcondition, --DefaultMonitoredItemWatchdogCondition=VALUE
+                             The default condition when to run the action
+                               configured as the watchdog behavior. The
+                               condition can be overridden in the published
+                               nodes configuration.
+                               Allowed values:
+                                   `WhenAllAreLate`
+                                   `WhenAnyIsLate`
+                               Default: `WhenAllAreLate` (if enabled).
       --dwb, --watchdogbehavior, --DefaultWatchdogBehavior=VALUE
                              Default behavior of the subscription and monitored
                                item watchdog mechanism unless overridden in the

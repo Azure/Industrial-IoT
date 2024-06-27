@@ -474,7 +474,9 @@ Options:
                 foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
                 {
                     var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
-                    if (profile == null && publishProfileName.StartsWith("Unified", StringComparison.OrdinalIgnoreCase))
+                    if (profile == null &&
+                        publishProfileName.StartsWith("Unified", StringComparison.OrdinalIgnoreCase) ||
+                        publishProfileName.StartsWith("Empty", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }

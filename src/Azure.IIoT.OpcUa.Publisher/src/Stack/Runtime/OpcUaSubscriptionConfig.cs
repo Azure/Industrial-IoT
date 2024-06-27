@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
         public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
         public const string DefaultWatchdogBehaviorKey = "DefaultWatchdogBehavior";
+        public const string DefaultMonitoredItemWatchdogConditionKey = "DefaultMonitoredItemWatchdogCondition";
         public const string DefaultMonitoredItemWatchdogSecondsKey = "DefaultMonitoredItemWatchdogSeconds";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -119,8 +120,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                         TimeSpan.FromSeconds(watchdogInterval.Value);
                 }
             }
+            if (options.DefaultMonitoredItemWatchdogCondition == null &&
+                Enum.TryParse<MonitoredItemWatchdogCondition>(
+                    GetStringOrDefault(DefaultMonitoredItemWatchdogConditionKey),
+                    out var watchdogCondition))
+            {
+                options.DefaultMonitoredItemWatchdogCondition = watchdogCondition;
+            }
             if (options.DefaultWatchdogBehavior == null &&
-                Enum.TryParse<SubscriptionWatchdogBehavior>(GetStringOrDefault(DefaultWatchdogBehaviorKey),
+                Enum.TryParse<SubscriptionWatchdogBehavior>(
+                    GetStringOrDefault(DefaultWatchdogBehaviorKey),
                     out var watchdogBehavior))
             {
                 options.DefaultWatchdogBehavior = watchdogBehavior;
