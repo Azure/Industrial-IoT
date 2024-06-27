@@ -129,11 +129,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
                             RepublishAfterTransfer =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
-                            MonitoredItemWatchdogTimespan =
+                            OpcNodeWatchdogTimespan =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogTimeout,
-                            MonitoredItemWatchdogCondition =
+                            OpcNodeWatchdogCondition =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogCondition,
-                            WatchdogBehavior =
+                            DataSetWriterWatchdogBehavior =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.WatchdogBehavior,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
@@ -439,9 +439,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
                                                 RepublishAfterTransfer = b.Header.RepublishAfterTransfer,
-                                                MonitoredItemWatchdogTimeout = b.Header.MonitoredItemWatchdogTimespan,
-                                                MonitoredItemWatchdogCondition = b.Header.MonitoredItemWatchdogCondition,
-                                                WatchdogBehavior = b.Header.WatchdogBehavior,
+                                                MonitoredItemWatchdogTimeout = b.Header.OpcNodeWatchdogTimespan,
+                                                MonitoredItemWatchdogCondition = b.Header.OpcNodeWatchdogCondition,
+                                                WatchdogBehavior = b.Header.DataSetWriterWatchdogBehavior,
                                                 Priority = b.Header.Priority,
                                                 ResolveDisplayName = null,
                                                 MaxNotificationsPerPublish = null,

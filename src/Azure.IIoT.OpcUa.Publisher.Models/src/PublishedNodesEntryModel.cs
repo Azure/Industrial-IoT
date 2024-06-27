@@ -353,27 +353,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The timeout to use to monitor the monitored items in the
         /// subscription are continously reporting fresh data.
         /// </summary>
-        [DataMember(Name = "MonitoredItemWatchdogTimespan", Order = 42,
+        [DataMember(Name = "OpcNodeWatchdogTimespan", Order = 42,
             EmitDefaultValue = false)]
-        public TimeSpan? MonitoredItemWatchdogTimespan { get; set; }
+        public TimeSpan? OpcNodeWatchdogTimespan { get; set; }
 
         /// <summary>
-        /// Subscription watchdog behavior
+        /// Subscription watchdog behavior. This is the behavior of
+        /// the watchdog on the subscription that is executed when
+        /// any watchdog triggers and the conditions are met.
         /// </summary>
-        [DataMember(Name = "WatchdogBehavior", Order = 43,
+        [DataMember(Name = "DataSetWriterWatchdogBehavior", Order = 43,
             EmitDefaultValue = false)]
-        public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
+        public SubscriptionWatchdogBehavior? DataSetWriterWatchdogBehavior { get; set; }
 
         /// <summary>
-        /// Monitored item watchdog condition
+        /// The watchdog condition that determines whether the watchdog
+        /// behavior is executed, e.g. when all items are late or
+        /// any item is late (default)
         /// </summary>
-        [DataMember(Name = "MonitoredItemWatchdogCondition", Order = 44,
+        [DataMember(Name = "OpcNodeWatchdogCondition", Order = 44,
             EmitDefaultValue = false)]
-        public MonitoredItemWatchdogCondition? MonitoredItemWatchdogCondition { get; set; }
+        public MonitoredItemWatchdogCondition? OpcNodeWatchdogCondition { get; set; }
 
         /// <summary>
         /// The default sampling interval for all items in a dataset writer
-        /// in miliseconds.
+        /// in miliseconds if the nodes do not specify a sampling rate.
         /// </summary>
         [DataMember(Name = "DataSetSamplingInterval", Order = 45,
             EmitDefaultValue = false)]

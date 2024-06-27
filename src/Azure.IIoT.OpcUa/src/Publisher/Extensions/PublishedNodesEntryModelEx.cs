@@ -317,17 +317,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.RepublishAfterTransfer.Value);
             }
-            if (model.MonitoredItemWatchdogTimespan != null)
+            if (model.OpcNodeWatchdogTimespan != null)
             {
-                id.Append(model.MonitoredItemWatchdogTimespan.Value);
+                id.Append(model.OpcNodeWatchdogTimespan.Value);
             }
-            if (model.WatchdogBehavior != null)
+            if (model.DataSetWriterWatchdogBehavior != null)
             {
-                id.Append(model.WatchdogBehavior.Value);
+                id.Append(model.DataSetWriterWatchdogBehavior.Value);
             }
-            if (model.MonitoredItemWatchdogCondition != null)
+            if (model.OpcNodeWatchdogCondition != null)
             {
-                id.Append(model.MonitoredItemWatchdogCondition.Value);
+                id.Append(model.OpcNodeWatchdogCondition.Value);
             }
             Debug.Assert(id.Length != 0); // Should always have an endpoint mixed in
             return id.ToString().ToSha1Hash();
@@ -465,15 +465,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (model.MonitoredItemWatchdogTimespan != that.MonitoredItemWatchdogTimespan)
+            if (model.OpcNodeWatchdogTimespan != that.OpcNodeWatchdogTimespan)
             {
                 return false;
             }
-            if (model.WatchdogBehavior != that.WatchdogBehavior)
+            if (model.DataSetWriterWatchdogBehavior != that.DataSetWriterWatchdogBehavior)
             {
                 return false;
             }
-            if (model.MonitoredItemWatchdogCondition != that.MonitoredItemWatchdogCondition)
+            if (model.OpcNodeWatchdogCondition != that.OpcNodeWatchdogCondition)
             {
                 return false;
             }

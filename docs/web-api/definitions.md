@@ -1110,6 +1110,13 @@ Modification information
 |**userName**  <br>*optional*|User who made the change|string|
 
 
+<a name="monitoreditemwatchdogcondition"></a>
+### MonitoredItemWatchdogCondition
+Monitored item watchdog condition
+
+*Type* : enum (WhenAllAreLate, WhenAnyIsLate)
+
+
 <a name="namespaceformat"></a>
 ### NamespaceFormat
 Namespace serialization format for node ids
@@ -1479,8 +1486,11 @@ Contains the nodes which should be published
 |**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
 |**DataSetPublishingIntervalTimespan**  <br>*optional*|The Publishing interval for a dataset writer<br>in timespan format. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetPublishingInterval if defined.|string (date-span)|
 |**DataSetRouting**  <br>*optional*||[DataSetRoutingMode](definitions.md#datasetroutingmode)|
+|**DataSetSamplingInterval**  <br>*optional*|The default sampling interval for all items in a dataset writer<br>in miliseconds if the nodes do not specify a sampling rate.|integer (int32)|
+|**DataSetSamplingIntervalTimespan**  <br>*optional*|The Sampling interval for the nodes in the dataset writer<br>in timespan format. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetSamplingInterval if defined.|string (date-span)|
 |**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
+|**DataSetWriterWatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
 |**DisableSubscriptionTransfer**  <br>*optional*|Disable subscription transfer on reconnect|boolean|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
@@ -1494,11 +1504,12 @@ Contains the nodes which should be published
 |**MetaDataQueueName**  <br>*optional*|Meta data queue name to use for the writer. Overrides<br>the default metadata topic template.|string|
 |**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
 |**MetaDataUpdateTimeTimespan**  <br>*optional*|Send metadata at the configured interval even when not<br>changing expressed as duration. Takes precedence over<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.MetaDataUpdateTimeif defined.|string (date-span)|
-|**MonitoredItemWatchdogTimespan**  <br>*optional*|The timeout to use to monitor the monitored items in the<br>subscription are continously reporting fresh data.|string (date-span)|
 |**NodeId**  <br>*optional*||[NodeIdModel](definitions.md#nodeidmodel)|
 |**OpcAuthenticationMode**  <br>*optional*||[OpcAuthenticationMode](definitions.md#opcauthenticationmode)|
 |**OpcAuthenticationPassword**  <br>*optional*|plain password|string|
 |**OpcAuthenticationUsername**  <br>*optional*|plain username|string|
+|**OpcNodeWatchdogCondition**  <br>*optional*||[MonitoredItemWatchdogCondition](definitions.md#monitoreditemwatchdogcondition)|
+|**OpcNodeWatchdogTimespan**  <br>*optional*|The timeout to use to monitor the monitored items in the<br>subscription are continously reporting fresh data.|string (date-span)|
 |**OpcNodes**  <br>*optional*|Nodes defined in the collection.|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
 |**QualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
@@ -1507,7 +1518,6 @@ Contains the nodes which should be published
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int64)|
-|**WatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
 |**WriterGroupPartitions**  <br>*optional*|Number of partitions to split the writer group into<br>when publishing to target topics.|integer (int32)|
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|

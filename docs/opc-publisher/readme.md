@@ -371,13 +371,15 @@ Example configuration files are [`publishednodes_2.5.json`](publishednodes_2.5.j
 
 ### Configuration Schema
 
-The configuration schema is used with the file based configuration, but also with the [Api based configuration](./directmethods.md). The following items are part of a configuration file's JSON array (or the API payload).
+The configuration schema is used with the file based configuration, but also with the [Api based configuration](./directmethods.md).
+The configuration consists a JSON array of [entries](./definitions.md#publishednodesentrymodel) containing arrays of [nodes](./definitions.md#opcnodemodel):
 
 ```json
 {
   "EndpointUrl": "string",
   "UseSecurity": "bool",
   "DataSetWriterGroup": "string",
+  "DataSetWriterId": "string",
   "WriterGroupTransport": "string",
   "WriterGroupQualityOfService": "string",
   "WriterGroupPartitions": "integer",
@@ -386,17 +388,21 @@ The configuration schema is used with the file based configuration, but also wit
   "OpcAuthenticationMode": "string",
   "OpcAuthenticationUsername": "string",
   "OpcAuthenticationPassword": "string",
-  "DisableSubscriptionTransfer": "bool",
-  "UseReverseConnect": "bool",
-  "DataSetWriterId": "string",
   "DataSetClassId": "guid",
   "DataSetName": "string",
   "DataSetDescription": "string",
   "DataSetPublishingInterval": "integer",
   "DataSetPublishingIntervalTimespan": "string",
+  "DataSetSamplingInterval": "integer",
+  "DataSetSamplingIntervalTimespan": "string",
   "DataSetKeyFrameCount": "integer",
   "DataSetExtensionFields": "object",
-  "QueueName": "string",
+  "DataSetWriterWatchdogBehavior": "string",
+  "OpcNodeWatchdogTimespan": "string",
+  "OpcNodeWatchdogCondition": "string",
+  "UseReverseConnect": "bool",
+  "DisableSubscriptionTransfer": "bool",
+  "RepublishAfterTransfer": "bool",
   "QualityOfService": "string",
   "MetaDataQueueName": "string",
   "MetaDataUpdateTime": "integer",
@@ -472,8 +478,10 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `DataSetDescription` | No | String | `null` | The optional description for the data set as it will appear in the dataset metadata. |
 | `DataSetClassId` | No | Guid | `Guid.Empty` | The optional dataset class id as it shall appear in dataset messages and dataset metadata. |
 | `DataSetExtensionFields` | No | Object | `null` | An optional JSON object with key value pairs where the value is a Variant in JSON encoding. This can be used to [contextualize data set messages](#key-frames-delta-frames-and-extension-fields) produced by the writer.<br>Each item is added to key frame and meta data messages in the same data set, or in the extension section of samples messages (in samples messages the value is stringified). |
-| `DataSetPublishingInterval` | No | Integer | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
-| `DataSetPublishingIntervalTimespan` | No | String | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval for the specified node. |
+| `DataSetPublishingInterval` | No | Integer | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed in milliseconds. <br>Ignored when `DataSetPublishingIntervalTimespan` is present. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval and potentially split the data set writer into more than one subscription. |
+| `DataSetPublishingIntervalTimespan` | No | String | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval and potentially split the data set writer into more than one subscription. |
+| `DataSetSamplingInterval` | No | Integer | `null` | A default sampling interval for all monitored items that are sampled in the data set. <br>Value expressed in milliseconds. <br>This value will be overwritten if a sampling interval is defined for a node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `DataSetSamplingIntervalTimespan` is present.<br>Defaults to the value configured via `--oi` command line option. |
+| `DataSetSamplingIntervalTimespan` | No | String | `null` | The default sampling interval for all monitored items that are sampled in the data set. <br>Value expressed as Timespan string ({d.hh:mm:dd.fff}). <br>This value is used if the sampling interval is not configured on an individual node. <br>The value is used as defined in the OPC UA specification. |
 | `DataSetKeyFrameCount` | No | Integer | `null` | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames |
 | `MetaDataUpdateTime` | No | Integer | `null` | The optional interval at which meta data messages should be sent even if the meta data has not changed.<br>Only valid if messaging mode supports metadata or metadata is explicitly enabled. |
 | `MetaDataUpdateTimeTimespan` | No | String | `null` | Same as `MetaDataUpdateTime` but expressed as duration string.<br>Takes precedence over the Integer value. |
@@ -487,12 +495,16 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `BatchTriggerInterval` | No | Integer | `null` | The network message publishing interval. Network and meta data messages are published cyclically from the notification queue when the specified duration has passed (or when the batch size configuration triggered a network message).<br>For historic reasons the default value is 10 seconds unless otherwise configured via  the `--bi` command line option. |
 | `BatchTriggerIntervalTimespan` | No | String | `null` | Same as `BatchTriggerInterval` but expressed as duration string.<br>Takes precedence over the Integer value. |
 | `DisableSubscriptionTransfer` | No | Boolean | `false` | Disable subscription transfer on reconnect to override the default behavior per endpoint. |
+| `RepublishAfterTransfer` | No | Boolean | `true` | Republishes any missing values after a subscription is transferred on reconnect. |
 | `QueueName` | No | String | `null` |  Writer queue overrides the writer group queue name.<br>Network messages are then split across queues with Qos also accounted for. |
 | `QualityOfService` | No | String | `null` | Quality of service to use for the writer.<br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Overrides the Writer group quality of service and together with queue name causes network messages to be split.. |
 | `MetaDataQueueName` | No | String | `null` | Meta data queue name to use for the writer. <br>Overrides the default metadata topic template. |
-| `OpcNodes` | No | `List<OpcNode>` | empty | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
+| `DataSetWriterWatchdogBehavior` | No | String | `null` | Determines what to do when the data set writer watchdog triggers. <br>One of `Diagnostic`, `Reset`, `FailFast`, or `ExitProcess`.<br>Defaults to the value configured via `--dwb` command line option. |
+| `OpcNodeWatchdogTimespan` | No | String | `null` | Determines the timeout of the monitored item watchdog that triggers the `DataSetWriterWatchdogBehavior`. <br>Value is expressed as Timespan string ({d.hh:mm:dd.fff}).<br>Defaults to the value configured via `--mwt` command line option. |
+| `OpcNodeWatchdogCondition` | No | String | `null` | Run the watchdog behavior for the writer subscription `WhenAllAreLate` or `WhenAllAreLate`.<br>Defaults to the value configured via `--mwc` command line option. |
+| `OpcNodes` | No (see notes) | `List<OpcNode>` | empty | The DataSet collection grouping the nodes to be published for <br>the specific DataSetWriter defined above. |
 
-*Note*: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. And `OpcNodes` field shouldn't be specified for the rest of the direct methods.
+*Note*: `OpcNodes` field is mandatory for `PublishNodes_V1`. It is optional for `CreateOrUpdateDataSetWriterEntry_V2`, `UnpublishNodes_V1` and `AddOrUpdateEndpoints_V1`. The `OpcNodes` field shouldn't be specified for the rest of the direct methods taking an entry object.
 
 Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
 
@@ -505,12 +517,12 @@ Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
 | `OpcSamplingInterval` | No | Integer | `1000` | The sampling interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcSamplingIntervalTimespan` is present. |
 | `OpcSamplingIntervalTimespan` | No | String | `null`    | The sampling interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>The value is used as defined in the OPC UA specification. |
 | `OpcPublishingInterval` | No | Integer | `null` | The publishing interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcPublishingIntervalTimespan` is present. |
-| `OpcPublishingIntervalTimespan` | No | String | `null` | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. |
+| `OpcPublishingIntervalTimespan` | No | String | `null` | The publishing interval for the monitored item to be published. <br>Value expressed in Timespan string ({d.hh:mm:dd.fff}). <br>This value will overwrite the publishing interval defined in the DataSetWriter for the specified node. <br>The value is used as defined in the OPC UA specification. |
 | `DataSetFieldId` | No | String | `null` | A user defined tag used to identify the field in the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode. |
 | `DataSetClassFieldId` | No | Guid | `Guid.Empty`  | A user defined Guid that identifies the field in the data set class of the <br>DataSet telemetry message when publisher runs in <br>PubSub message mode.<br>This value is ignored when subscribing to events, in which case a `DataSetClassFieldId` can be applied to each select clause that select the content of the event dataset. |
 | `DisplayName` | No | String | `null` | A user defined tag to be added to the telemetry message <br>when publisher runs in Samples message mode. |
 | `HeartbeatInterval` | No | Integer | `0` | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in seconds. <br>0 means the heartbeat mechanism is disabled. <br>This value is ignored when `HeartbeatIntervalTimespan` is present. |
-| `HeartbeatIntervalTimespan` | No | String | `null` | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string({d.hh:mm:dd.fff}). |
+| `HeartbeatIntervalTimespan` | No | String | `null` | The interval used for the node to publish a value (a publisher <br>cached one) even if the value hasn't been changed at the source. <br>Value expressed in Timespan string ({d.hh:mm:dd.fff}). |
 | `SkipFirst` | No | Boolean | `false` | Whether the first received data change for the monitored item should not be sent. This can avoid large initial messages since all values are sent by a server as the first notification.<br>If an `EventFilter` is specified, this value is ignored |
 | `QueueSize` | No | Integer | `1` | The desired QueueSize for the monitored item to be published. |
 | `FetchDisplayName` | No | Boolean | `false` | Whether the server shall fetch display names of monitored variable nodes and use those inside messages as field names. Default is to use the `DisplayName` value if provided even if this option is set to `true`, if not provided or `false`, and no `DisplayName` specified, the node id is used. |
@@ -518,8 +530,8 @@ Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
 | `UseCyclicRead` | No | Boolean | `false` | Read the value periodically at the sampling rate instead of subscribing through subscriptions.<br>Ignored when subscribing to events. |
 | `RegisterNode` | No | Boolean | `false` | Register the node to sample using the Register service call before accessing. Some servers then support faster reads, but this is not guaranteed.<br>The service is defined in the OPC UA specification. <br>Ignored when subscribing to events. |
 | `DataChangeTrigger` | No | String | `null` | The data change trigger to use. <br>The default is `"StatusValue"` causing telemetry to be sent when value or statusCode of the DataValue change. <br>`"Status"` causes messages to be sent only when the status code changes and <br>`"StatusValueTimestamp"` causes a message to be sent when value, statusCode, or the source timestamp of the value change. A publisher wide default value can be set using the [command line](./commandline.md). This value is ignored if an EventFilter is configured. |
-| `DeadbandType` | No | String | `1` | The type of deadband filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
-| `DeadbandValue` | No | Decimal | `1` | The deaadband value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
+| `DeadbandType` | No | String | `1` | The type of dead band filter to apply. <br>`"Percent"` means that the `DeadbandValue` specified is a percentage of the EURange of the value. The value then is clamped to a value between 0.0 and 100.0 <br>`"Absolute"` means the value is an absolute deadband range. Negative values are interpreted as 0.0. This value is ignored if an `EventFilter` is present. |
+| `DeadbandValue` | No | Decimal | `1` | The deaad band value to use. If the `DeadbandType` is not specified or an `EventFilter` is specified, this value is ignored. |
 | `EventFilter` | No | [EventFilter](./definitions.md#eventfiltermodel) | `null` | An [event filter](./readme.md#configuring-event-subscriptions) configuration to use when subscribing to events instead of data changes. |
 | `ConditionHandling` | No | [ConditionHandlingOptions](./definitions.md#conditionhandlingoptionsmodel) | `null` | Configures the special [condition handling logic](./readme.md#condition-handling-options) when subscribing to events. |
 | `ModelChangeHandling` | No | [ModelChangeHandlingOptions](./definitions.md#modelchangehandlingoptionsmodel) | `null` | Configures model change tracking through this node (Experimental). |
