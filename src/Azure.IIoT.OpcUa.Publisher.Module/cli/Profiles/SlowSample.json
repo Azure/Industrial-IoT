@@ -2,6 +2,7 @@
     {
         "EndpointUrl": "{{EndpointUrl}}",
         "UseSecurity": true,
+        "DataSetFetchDisplayNames": true,
         "DataSetSamplingInterval": 60000,
         "OpcNodes": [
             { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1" },

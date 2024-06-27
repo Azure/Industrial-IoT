@@ -286,6 +286,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.Priority.Value);
             }
+            if (model.MaxKeepAliveCount != null)
+            {
+                id.Append(model.MaxKeepAliveCount.Value);
+            }
             var metadataUpdateTime = model.GetNormalizedMetaDataUpdateTime();
             if (metadataUpdateTime != null)
             {
@@ -328,6 +332,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             if (model.OpcNodeWatchdogCondition != null)
             {
                 id.Append(model.OpcNodeWatchdogCondition.Value);
+            }
+            if (model.DataSetFetchDisplayNames != null)
+            {
+                id.Append(model.DataSetFetchDisplayNames.Value);
             }
             Debug.Assert(id.Length != 0); // Should always have an endpoint mixed in
             return id.ToString().ToSha1Hash();
@@ -400,7 +408,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-
+            if (model.MaxKeepAliveCount != that.MaxKeepAliveCount)
+            {
+                return false;
+            }
             if (!string.Equals(model.DataSetWriterId ?? string.Empty,
                 that.DataSetWriterId ?? string.Empty, StringComparison.Ordinal))
             {
@@ -474,6 +485,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.OpcNodeWatchdogCondition != that.OpcNodeWatchdogCondition)
+            {
+                return false;
+            }
+            if (model.DataSetFetchDisplayNames != that.DataSetFetchDisplayNames)
             {
                 return false;
             }

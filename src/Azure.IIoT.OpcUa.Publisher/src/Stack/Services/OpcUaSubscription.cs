@@ -127,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _loggerFactory = subscription._loggerFactory;
             _timeProvider = subscription._timeProvider;
             _metrics = subscription._metrics;
+            _firstDataChangeReceived = subscription._firstDataChangeReceived;
             _template = ValidateSubscriptionInfo(subscription._template);
             _callbacks = subscription._callbacks;
 
@@ -1286,6 +1287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Id != 0);
                 Debug.Assert(Created);
 
+                _firstDataChangeReceived = false;
                 _useDeferredAcknoledge = _template.Configuration?.UseDeferredAcknoledgements
                     ?? false;
             }
@@ -1736,6 +1738,8 @@ Actual (revised) state/desired state:
             Debug.Assert(ReferenceEquals(subscription, this));
             Debug.Assert(!_disposed);
 
+            var firstDataChangeReceived = _firstDataChangeReceived;
+            _firstDataChangeReceived = true;
             var session = Session;
             if (session is not IOpcUaSession sessionContext)
             {
@@ -1763,7 +1767,8 @@ Actual (revised) state/desired state:
                     SubscriptionId = LocalIndex,
                     PublishTimestamp = publishTime,
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                    MessageType = MessageType.DeltaFrame
+                    MessageType =
+                        firstDataChangeReceived ? MessageType.DeltaFrame : MessageType.KeyFrame
                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -2631,6 +2636,7 @@ Actual (revised) state/desired state:
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
         private bool _useDeferredAcknoledge;
+        private bool _firstDataChangeReceived;
         private bool _closed;
         private bool _forceRecreate;
         private readonly ISubscriptionCallbacks _callbacks;

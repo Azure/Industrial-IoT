@@ -39,12 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public uint? MaxNotificationsPerPublish { get; set; }
 
         /// <summary>
-        /// Resolves the display names for the monitored items
-        /// in the subscription.
-        /// </summary>
-        public bool? ResolveDisplayName { get; set; }
-
-        /// <summary>
         /// Retrieve paths from root for all monitored items
         /// in the subscription.
         /// </summary>

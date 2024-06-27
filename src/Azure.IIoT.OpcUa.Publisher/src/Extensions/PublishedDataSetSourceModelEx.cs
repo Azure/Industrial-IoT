@@ -39,8 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? options.DefaultKeepAliveCount,
                 PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval
                     ?? options.DefaultPublishingInterval,
-                ResolveDisplayName = dataSetSource.SubscriptionSettings?.ResolveDisplayName
-                    ?? options.ResolveDisplayName,
                 UseDeferredAcknoledgements = dataSetSource.SubscriptionSettings?.UseDeferredAcknoledgements
                     ?? options.UseDeferredAcknoledgements,
                 AsyncMetaDataLoadThreshold = dataSetSource.SubscriptionSettings?.AsyncMetaDataLoadThreshold
@@ -206,6 +204,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     // as revisedQueueSize for event monitored items.
                     //
                     QueueSize = options.DefaultQueueSize ?? 0,
+                    FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
+                        ?? settings?.ResolveDisplayName
+                        ?? options.ResolveDisplayName,
                     RebrowsePeriod = publishedEvent.ModelChangeHandling.RebrowseIntervalTimespan
                         ?? options.DefaultRebrowsePeriod ?? TimeSpan.FromHours(12),
                     TriggeredItems = includeTriggering ? null : ToMonitoredItems(
@@ -246,6 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 StartNodeId = eventNotifier,
                 RelativePath = publishedEvent.BrowsePath,
                 FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
+                    ?? settings?.ResolveDisplayName
                     ?? options.ResolveDisplayName,
                 TriggeredItems = includeTriggering ? null : ToMonitoredItems(
                     publishedEvent.Triggering, settings, options, configure),
@@ -327,6 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     publishedVariable.Triggering, settings, options, configure),
                 Context = configure(publishedVariable.Publishing),
                 FetchDataSetFieldName = publishedVariable.ReadDisplayNameFromNode
+                    ?? settings?.ResolveDisplayName
                     ?? options.ResolveDisplayName,
                 SamplingInterval = publishedVariable.SamplingIntervalHint
                     ?? settings?.DefaultSamplingInterval

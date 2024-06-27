@@ -125,8 +125,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
                             BatchTriggerInterval = null,
-                            Priority = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
-                            MaxKeepAliveCount = item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
+                            DataSetSamplingInterval = null,
+                            DataSetSamplingIntervalTimespan =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultSamplingInterval,
+                            Priority =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
+                            MaxKeepAliveCount =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
+                            DataSetFetchDisplayNames =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.ResolveDisplayName,
                             RepublishAfterTransfer =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
                             OpcNodeWatchdogTimespan =
@@ -141,9 +148,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 item.WriterGroup.Name == Constants.DefaultWriterGroupName ? null : item.WriterGroup.Name,
                             DataSetWriterId = item.Writer.DataSetWriterName,
                             DataSetRouting = item.Writer.DataSet?.Routing,
-                            DataSetSamplingInterval = null,
-                            DataSetSamplingIntervalTimespan =
-                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultSamplingInterval,
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
@@ -443,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 MonitoredItemWatchdogCondition = b.Header.OpcNodeWatchdogCondition,
                                                 WatchdogBehavior = b.Header.DataSetWriterWatchdogBehavior,
                                                 Priority = b.Header.Priority,
-                                                ResolveDisplayName = null,
+                                                ResolveDisplayName = b.Header.DataSetFetchDisplayNames,
                                                 MaxNotificationsPerPublish = null,
                                                 EnableImmediatePublishing = null,
                                                 AsyncMetaDataLoadThreshold = null,

@@ -6405,6 +6405,10 @@
                     "description": "The Sampling interval for the nodes in the dataset writer\r\nin timespan format. Takes precedence over\r\nAzure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DataSetSamplingInterval if defined.",
                     "type": "string"
                 },
+                "DataSetFetchDisplayNames": {
+                    "description": "Whether to fetch the display name and use it as\r\ndata set id for all opc node items in the data set",
+                    "type": "boolean"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }

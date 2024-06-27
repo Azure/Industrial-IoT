@@ -377,7 +377,7 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
 ```json
 {
   "EndpointUrl": "string",
-  "UseSecurity": "bool",
+  "UseSecurity": "boolean",
   "DataSetWriterGroup": "string",
   "DataSetWriterId": "string",
   "WriterGroupTransport": "string",
@@ -397,12 +397,13 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
   "DataSetSamplingIntervalTimespan": "string",
   "DataSetKeyFrameCount": "integer",
   "DataSetExtensionFields": "object",
+  "DataSetFetchDisplayNames": "boolean",
   "DataSetWriterWatchdogBehavior": "string",
   "OpcNodeWatchdogTimespan": "string",
   "OpcNodeWatchdogCondition": "string",
-  "UseReverseConnect": "bool",
-  "DisableSubscriptionTransfer": "bool",
-  "RepublishAfterTransfer": "bool",
+  "UseReverseConnect": "boolean",
+  "DisableSubscriptionTransfer": "boolean",
+  "RepublishAfterTransfer": "boolean",
   "QualityOfService": "string",
   "MetaDataQueueName": "string",
   "MetaDataUpdateTime": "integer",
@@ -482,7 +483,8 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `DataSetPublishingIntervalTimespan` | No | String | `null` | The publishing interval used for a grouped set of nodes under a certain DataSetWriter. <br>Value expressed as a Timespan string ({d.hh:mm:dd.fff}). <br>When both Intervals are specified, the Timespan will win and be used for the configuration. <br> *Note*: When a specific node underneath DataSetWriter defines `OpcPublishingInterval` (or Timespan), <br>its value will overwrite publishing interval and potentially split the data set writer into more than one subscription. |
 | `DataSetSamplingInterval` | No | Integer | `null` | A default sampling interval for all monitored items that are sampled in the data set. <br>Value expressed in milliseconds. <br>This value will be overwritten if a sampling interval is defined for a node. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `DataSetSamplingIntervalTimespan` is present.<br>Defaults to the value configured via `--oi` command line option. |
 | `DataSetSamplingIntervalTimespan` | No | String | `null` | The default sampling interval for all monitored items that are sampled in the data set. <br>Value expressed as Timespan string ({d.hh:mm:dd.fff}). <br>This value is used if the sampling interval is not configured on an individual node. <br>The value is used as defined in the OPC UA specification. |
-| `DataSetKeyFrameCount` | No | Integer | `null` | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames |
+| `DataSetKeyFrameCount` | No | Integer | `null` | The optional number of messages until a key frame is inserted. <br>Only valid if messaging mode supports key frames. |
+| `DataSetFetchDisplayNames` | No | Boolean | `null` | Whether to fetch the display name and use it as<br>data set id for all opc node items in the data set.<br>Defaults to the value configured via `--fd` command line option. |
 | `MetaDataUpdateTime` | No | Integer | `null` | The optional interval at which meta data messages should be sent even if the meta data has not changed.<br>Only valid if messaging mode supports metadata or metadata is explicitly enabled. |
 | `MetaDataUpdateTimeTimespan` | No | String | `null` | Same as `MetaDataUpdateTime` but expressed as duration string.<br>Takes precedence over the Integer value. |
 | `SendKeepAliveDataSetMessages` | No | Boolean | `false` | Whether to send keep alive data set messages for this data set when a subscription keep alive notification is received.<br>Only valid if messaging mode supports keep alive messages. |

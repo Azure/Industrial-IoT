@@ -393,6 +393,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? DataSetSamplingIntervalTimespan { get; set; }
 
         /// <summary>
+        /// Whether to fetch the display name and use it as
+        /// data set id for all opc node items in the data set
+        /// </summary>
+        [DataMember(Name = "DataSetFetchDisplayNames", Order = 47,
+            EmitDefaultValue = false)]
+        public bool? DataSetFetchDisplayNames { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 50,
