@@ -14,7 +14,7 @@ parameters:
 - name: onebranch
   displayName: 'One Branch to use'
   type: string
-  default: 'main'
+  default: 'test'
   values:
     - 'main'
     - 'test'
