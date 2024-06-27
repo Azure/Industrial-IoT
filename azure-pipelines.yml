@@ -33,7 +33,9 @@ jobs:
         if ([string]::IsNullOrWhiteSpace($message)) {
           $message = 'No message'
         }
-        $message = $message -replace ",", ""
+        $message = $message -replace "[^a-zA-Z0-9\s]", ""
+        $message = $message.Trim()
+        $message = $message.substring(0, [System.Math]::Min(100, $message.Length))
         $branchName = '$(Build.SourceBranch)'
         $branchName = $branchName -replace "refs/heads/", ""
         if ('$(Build.Reason)' -eq 'PullRequest')
