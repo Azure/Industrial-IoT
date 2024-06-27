@@ -216,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     throw new ResourceNotFoundException(
                         $"Specified {(dataSetFieldIds.Count == 1 ? "node" : "nodes")} " +
-                        $"not found in dataset");
+                        "not found in dataset");
                 }
                 entry.OpcNodes = newNodes;
                 var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);

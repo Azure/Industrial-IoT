@@ -37,7 +37,7 @@ Add a certificate chain to the trusted https store. The certificate is provided 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -70,7 +70,7 @@ Move a rejected certificate from the rejected folder to the trusted folder on th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="addcertificatechain"></a>
@@ -95,7 +95,7 @@ Add a certificate chain to the specified store. The certificate is provided as a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -128,7 +128,7 @@ Remove all certificates and revocation lists from the specified store.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="listcertificates"></a>
@@ -153,14 +153,12 @@ Get the certificates in the specified certificate store
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
+|**200**|The operation was successful.|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -188,7 +186,7 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -222,7 +220,7 @@ Remove a certificate with the provided thumbprint from the specified store.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="listcertificaterevocationlists"></a>
@@ -247,14 +245,12 @@ Get the certificates in the specified certificated store
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|< string (byte) > array|
+|**200**|The operation was successful.|< string (byte) > array|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -280,7 +276,7 @@ Remove a certificate revocation list from the specified store.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="addcertificaterevocationlist"></a>
@@ -306,7 +302,7 @@ Add a certificate revocation list to the specified store. The certificate revoca
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -351,14 +347,12 @@ Get a list of nodes under a configured endpoint in the configuration. Further in
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
+|**200**|The data was retrieved.|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -384,7 +378,7 @@ Enables clients to update the entire published nodes configuration in one call. 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -417,7 +411,7 @@ Add or update endpoint configuration and nodes on a server. Further information 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -429,9 +423,7 @@ Add or update endpoint configuration and nodes on a server. Further information 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -457,7 +449,7 @@ Configure node values to publish and unpublish in bulk. The group field in the C
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
+|**200**|The operation was successful.|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
 
 
 ##### Consumes
@@ -470,9 +462,7 @@ Configure node values to publish and unpublish in bulk. The group field in the C
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -491,14 +481,12 @@ Get the list of diagnostics info for all dataset writers in the OPC Publisher at
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
+|**200**|The operation was successful.|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -524,7 +512,7 @@ Get the nodes of a published nodes entry object returned earlier from a call to 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
+|**200**|The information was returned.|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
 
 
 ##### Consumes
@@ -537,9 +525,7 @@ Get the nodes of a published nodes entry object returned earlier from a call to 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -565,7 +551,7 @@ Get all published nodes for a server endpoint. The group field that was used in 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**200**|The items were found and returned.|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
 
 
 ##### Consumes
@@ -578,9 +564,7 @@ Get all published nodes for a server endpoint. The group field that was used in 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -606,7 +590,7 @@ PublishNodes enables a client to add a set of nodes to be published. Further inf
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -619,9 +603,7 @@ PublishNodes enables a client to add a set of nodes to be published. Further inf
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -647,7 +629,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -660,9 +642,7 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -688,7 +668,7 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
 
 
 ##### Consumes
@@ -701,9 +681,7 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -729,7 +707,7 @@ Start publishing values from a node on a server. The group field in the Connecti
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
+|**200**|The operation was successful.|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
 
 
 ##### Consumes
@@ -742,9 +720,7 @@ Start publishing values from a node on a server. The group field in the Connecti
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -770,7 +746,7 @@ Stop publishing values from a node on the specified server. The group field that
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
+|**200**|The operation was successful.|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
 
 
 ##### Consumes
@@ -783,9 +759,7 @@ Stop publishing values from a node on the specified server. The group field that
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -817,7 +791,7 @@ Can be used to reset all established connections causing a full reconnect and re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="settracemode"></a>
@@ -835,7 +809,7 @@ Can be used to set trace mode for all established connections. Call within a min
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="discovery_resource"></a>
@@ -870,7 +844,7 @@ Start network discovery using the provided discovery request configuration. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|boolean|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|boolean|
 
 
 ##### Consumes
@@ -883,9 +857,7 @@ Start network discovery using the provided discovery request configuration. The 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -911,7 +883,7 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|boolean|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|boolean|
 
 
 ##### Consumes
@@ -924,9 +896,7 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -952,7 +922,7 @@ Find servers matching the specified endpoint query spec.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
 
 
 ##### Consumes
@@ -965,9 +935,7 @@ Find servers matching the specified endpoint query spec.
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -993,7 +961,7 @@ Start server registration. The results of the registration are published as even
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|boolean|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|boolean|
 
 
 ##### Consumes
@@ -1006,9 +974,7 @@ Start server registration. The results of the registration are published as even
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1047,7 +1013,7 @@ Recursively browse a node to discover its references and nodes. The results are 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -1060,9 +1026,7 @@ Recursively browse a node to discover its references and nodes. The results are 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1088,7 +1052,7 @@ Browse a a node to discover its references. For more information consult <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
 
 
 ##### Consumes
@@ -1101,9 +1065,7 @@ Browse a a node to discover its references. For more information consult <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1129,7 +1091,7 @@ Browse next
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
 
 
 ##### Consumes
@@ -1142,9 +1104,7 @@ Browse next
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1170,7 +1130,7 @@ Translate a start node and browse path into 0 or more target nodes. Allows progr
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
 
 
 ##### Consumes
@@ -1183,9 +1143,7 @@ Translate a start node and browse path into 0 or more target nodes. Allows progr
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1211,7 +1169,7 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
 
 
 ##### Consumes
@@ -1224,9 +1182,7 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1252,7 +1208,7 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
 
 
 ##### Consumes
@@ -1265,9 +1221,7 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1293,7 +1247,7 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
 
 
 ##### Consumes
@@ -1306,9 +1260,7 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1334,7 +1286,7 @@ Get a server endpoint's certificate and certificate chain if available.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
 
 
 ##### Consumes
@@ -1347,9 +1299,7 @@ Get a server endpoint's certificate and certificate chain if available.
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1375,7 +1325,7 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
 
 
 ##### Consumes
@@ -1388,9 +1338,7 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1416,7 +1364,7 @@ Get the historian configuration of a historizing node in the OPC UA server
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
 
 
 ##### Consumes
@@ -1429,9 +1377,7 @@ Get the historian configuration of a historizing node in the OPC UA server
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1457,7 +1403,7 @@ Read the history using the respective OPC UA service call. See <a href="https://
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -1470,9 +1416,7 @@ Read the history using the respective OPC UA service call. See <a href="https://
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1498,7 +1442,7 @@ Read next history using the respective OPC UA service call. See <a href="https:/
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -1511,9 +1455,7 @@ Read next history using the respective OPC UA service call. See <a href="https:/
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1539,7 +1481,7 @@ Update history using the respective OPC UA service call. Consult the <a href="ht
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1552,9 +1494,7 @@ Update history using the respective OPC UA service call. Consult the <a href="ht
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1580,7 +1520,7 @@ Get the type metadata for a any node. For data type nodes the response contains 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
 
 
 ##### Consumes
@@ -1593,9 +1533,7 @@ Get the type metadata for a any node. For data type nodes the response contains 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1621,7 +1559,7 @@ Compile a query string into a query spec that can be used when setting up event 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
 
 
 ##### Consumes
@@ -1634,9 +1572,7 @@ Compile a query string into a query spec that can be used when setting up event 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1662,7 +1598,7 @@ Read the value of a variable node. This uses the service detailed in the <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
 
 
 ##### Consumes
@@ -1675,9 +1611,7 @@ Read the value of a variable node. This uses the service detailed in the <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1703,7 +1637,7 @@ Read any writeable attribute of a specified node on the server. See <a href="htt
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ReadResponseModel](definitions.md#readresponsemodel)|
 
 
 ##### Consumes
@@ -1716,9 +1650,7 @@ Read any writeable attribute of a specified node on the server. See <a href="htt
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1744,7 +1676,7 @@ Test connection to an opc ua server. The call will not establish any persistent 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
 
 
 ##### Consumes
@@ -1757,9 +1689,7 @@ Test connection to an opc ua server. The call will not establish any persistent 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1785,7 +1715,7 @@ Write the value of a variable node. This uses the service detailed in <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
 
 
 ##### Consumes
@@ -1798,9 +1728,7 @@ Write the value of a variable node. This uses the service detailed in <a href="h
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1826,7 +1754,7 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[WriteResponseModel](definitions.md#writeresponsemodel)|
 
 
 ##### Consumes
@@ -1839,9 +1767,7 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1880,7 +1806,7 @@ Delete event entries in a timeseries of the server historian. See <a href="https
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1893,9 +1819,7 @@ Delete event entries in a timeseries of the server historian. See <a href="https
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1921,7 +1845,7 @@ Insert event entries into a specified timeseries of the historian. See <a href="
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -1934,9 +1858,7 @@ Insert event entries into a specified timeseries of the historian. See <a href="
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1962,7 +1884,7 @@ Read an entire event timeseries from an OPC UA server historian as stream. See <
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -1975,9 +1897,7 @@ Read an entire event timeseries from an OPC UA server historian as stream. See <
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2003,7 +1923,7 @@ Read an event timeseries inside the OPC UA server historian. See <a href="https:
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2016,9 +1936,7 @@ Read an event timeseries inside the OPC UA server historian. See <a href="https:
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2044,7 +1962,7 @@ Continue reading an event timeseries inside the OPC UA server historian. See <a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -2057,9 +1975,7 @@ Continue reading an event timeseries inside the OPC UA server historian. See <a 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2085,7 +2001,7 @@ Replace events in a timeseries in the historian of the OPC UA server. See <a hre
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2098,9 +2014,7 @@ Replace events in a timeseries in the historian of the OPC UA server. See <a hre
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2126,7 +2040,7 @@ Upsert events into a time series of the opc server historian. See <a href="https
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2139,9 +2053,7 @@ Upsert events into a time series of the opc server historian. See <a href="https
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2167,7 +2079,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2180,9 +2092,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2208,7 +2118,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2221,9 +2131,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2249,7 +2157,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2262,9 +2170,7 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2290,7 +2196,7 @@ Insert value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2303,9 +2209,7 @@ Insert value change entries in a timeseries of the server historian. See <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2331,7 +2235,7 @@ Read an entire timeseries from an OPC UA server historian as stream. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2344,9 +2248,7 @@ Read an entire timeseries from an OPC UA server historian as stream. See <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2372,7 +2274,7 @@ Read specific timeseries data from an OPC UA server historian as stream. See <a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2385,9 +2287,7 @@ Read specific timeseries data from an OPC UA server historian as stream. See <a 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2413,7 +2313,7 @@ Read a data change timeseries inside the OPC UA server historian. See <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2426,9 +2326,7 @@ Read a data change timeseries inside the OPC UA server historian. See <a href="h
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2454,7 +2352,7 @@ Read parts of a timeseries inside the OPC UA server historian. See <a href="http
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2467,9 +2365,7 @@ Read parts of a timeseries inside the OPC UA server historian. See <a href="http
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2495,7 +2391,7 @@ Read modified changes in a timeseries inside the OPC UA server historian. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2508,9 +2404,7 @@ Read modified changes in a timeseries inside the OPC UA server historian. See <a
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2536,7 +2430,7 @@ Read processed timeseries data inside the OPC UA server historian. See <a href="
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
@@ -2549,9 +2443,7 @@ Read processed timeseries data inside the OPC UA server historian. See <a href="
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2577,7 +2469,7 @@ Read an entire modified series from an OPC UA server historian as stream. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2590,9 +2482,7 @@ Read an entire modified series from an OPC UA server historian as stream. See <a
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2618,7 +2508,7 @@ Continue reading a timeseries inside the OPC UA server historian. See <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
@@ -2631,9 +2521,7 @@ Continue reading a timeseries inside the OPC UA server historian. See <a href="h
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2659,7 +2547,7 @@ Read processed timeseries data from an OPC UA server historian as stream. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
 
 
 ##### Consumes
@@ -2672,9 +2560,7 @@ Read processed timeseries data from an OPC UA server historian as stream. See <a
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2700,7 +2586,7 @@ Replace value change entries in a timeseries of the server historian. See <a hre
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2713,9 +2599,7 @@ Replace value change entries in a timeseries of the server historian. See <a hre
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2741,7 +2625,7 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
@@ -2754,9 +2638,7 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2797,7 +2679,7 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The item was created|No Content|
 
 
 ##### Consumes
@@ -2831,14 +2713,48 @@ Get the published nodes entry for a specific writer group and dataset writer. De
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**200**|The item was found|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Produces
 
-* `text/plain`
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="addorupdatenode"></a>
+#### AddOrUpdateNode
+```
+PUT /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}
+```
+
+
+##### Description
+Add a node to a dedicated data set writer in a writer group. A node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+|**Query**|**insertAfterFieldId**  <br>*optional*|Field after which to insert the nodes. If not specified, nodes are added at the end of the entry|string|
+|**Body**|**body**  <br>*required*|Node to add or update|[OpcNodeModel](definitions.md#opcnodemodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was added|No Content|
+
+
+##### Consumes
+
 * `application/json`
 * `text/json`
+* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2865,7 +2781,42 @@ Remove the published nodes entry for a specific data set writer in a writer grou
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The entry was removed|No Content|
+
+
+<a name="addorupdatenodes"></a>
+#### AddOrUpdateNodes
+```
+POST /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/add
+```
+
+
+##### Description
+Add Nodes to a dedicated data set writer in a writer group. Each node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+|**Query**|**insertAfterFieldId**  <br>*optional*|Field after which to insert the nodes. If not specified, nodes are added at the end of the entry|string|
+|**Body**|**body**  <br>*required*|Nodes to add or update|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The items were added|No Content|
+
+
+##### Consumes
+
+* `application/json`
+* `text/json`
+* `application/*+json`
 
 
 <a name="getnodes"></a>
@@ -2893,61 +2844,24 @@ Get Nodes from a data set writer in a writer group. The nodes can optionally be 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+|**200**|The items were found|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
-
-
-<a name="addorupdatenodes"></a>
-#### AddOrUpdateNodes
-```
-PUT /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes
-```
-
-
-##### Description
-Add Nodes to a dedicated data set writer in a writer group. Each node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
-|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
-|**Query**|**insertAfterFieldId**  <br>*optional*|Field after which to insert the nodes. If not specified, nodes are added at the end of the entry|string|
-|**Body**|**body**  <br>*required*|Nodes to add or update|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|OK|No Content|
-
-
-##### Consumes
-
-* `application/json`
-* `text/json`
-* `application/*+json`
 
 
 <a name="removenodes"></a>
 #### RemoveNodes
 ```
-DELETE /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes
+POST /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/remove
 ```
 
 
 ##### Description
-Remove Nodes with the data set field ids from a data set writer in a writer group. If the field is not found, no error is returned.
+Remove Nodes that match the provided data set field ids from a data set writer in a writer group. If one of the fields is not found, no error is returned, however, if all fields are not found an error is returned.
 
 
 ##### Parameters
@@ -2956,14 +2870,14 @@ Remove Nodes with the data set field ids from a data set writer in a writer grou
 |---|---|---|---|
 |**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
 |**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
-|**Body**|**body**  <br>*required*|Fields to add|< string > array|
+|**Body**|**body**  <br>*required*|The identifiers of the fields to remove|< string > array|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|Some or all items were removed|No Content|
 
 
 ##### Consumes
@@ -2971,6 +2885,66 @@ Remove Nodes with the data set field ids from a data set writer in a writer grou
 * `application/json`
 * `text/json`
 * `application/*+json`
+
+
+<a name="getnode"></a>
+#### GetNode
+```
+GET /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}
+```
+
+
+##### Description
+Get a node from a dataset in a writer group. Dedicated errors are returned if no, or no unique entry could be found, or the node does not exist.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetFieldId**  <br>*required*|The data set field id of the node to return|string|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was retrieved|[OpcNodeModel](definitions.md#opcnodemodel)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="removenode"></a>
+#### RemoveNode
+```
+DELETE /v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}
+```
+
+
+##### Description
+Remove a node with the specified data set field id from a data set writer in a writer group. If the field is not found, an error is returned.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**dataSetFieldId**  <br>*required*|Identifier of the field to remove|string|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was removed|No Content|
 
 
 

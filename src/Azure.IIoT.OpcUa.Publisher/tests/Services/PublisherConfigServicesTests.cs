@@ -409,7 +409,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .WithMessage("Field ids must be specified.");
         }
 
-
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
