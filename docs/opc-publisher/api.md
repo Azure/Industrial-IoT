@@ -43,8 +43,6 @@ Add a certificate chain to the trusted https store. The certificate is provided 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -101,8 +99,6 @@ Add a certificate chain to the specified store. The certificate is provided as a
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -192,8 +188,6 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -308,8 +302,6 @@ Add a certificate revocation list to the specified store. The certificate revoca
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -384,8 +376,6 @@ Enables clients to update the entire published nodes configuration in one call. 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -417,8 +407,7 @@ Add or update endpoint configuration and nodes on a server. Further information 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
@@ -455,8 +444,6 @@ Configure node values to publish and unpublish in bulk. The group field in the C
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -518,8 +505,6 @@ Get the nodes of a published nodes entry object returned earlier from a call to 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -557,8 +542,6 @@ Get all published nodes for a server endpoint. The group field that was used in 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -596,8 +579,6 @@ PublishNodes enables a client to add a set of nodes to be published. Further inf
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -635,8 +616,6 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -674,8 +653,6 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -713,8 +690,6 @@ Start publishing values from a node on a server. The group field in the Connecti
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -752,8 +727,6 @@ Stop publishing values from a node on the specified server. The group field that
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -850,8 +823,6 @@ Start network discovery using the provided discovery request configuration. The 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -889,8 +860,6 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -928,8 +897,6 @@ Find servers matching the specified endpoint query spec.
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -967,8 +934,6 @@ Start server registration. The results of the registration are published as even
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1019,8 +984,6 @@ Recursively browse a node to discover its references and nodes. The results are 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1058,8 +1021,6 @@ Browse a a node to discover its references. For more information consult <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1097,8 +1058,6 @@ Browse next
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1136,8 +1095,6 @@ Translate a start node and browse path into 0 or more target nodes. Allows progr
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1175,8 +1132,6 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1214,8 +1169,6 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1253,8 +1206,6 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1292,8 +1243,6 @@ Get a server endpoint's certificate and certificate chain if available.
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1331,8 +1280,6 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1370,8 +1317,6 @@ Get the historian configuration of a historizing node in the OPC UA server
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1409,8 +1354,6 @@ Read the history using the respective OPC UA service call. See <a href="https://
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1448,8 +1391,6 @@ Read next history using the respective OPC UA service call. See <a href="https:/
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1487,8 +1428,6 @@ Update history using the respective OPC UA service call. Consult the <a href="ht
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1526,8 +1465,6 @@ Get the type metadata for a any node. For data type nodes the response contains 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1565,8 +1502,6 @@ Compile a query string into a query spec that can be used when setting up event 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1604,8 +1539,6 @@ Read the value of a variable node. This uses the service detailed in the <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1643,8 +1576,6 @@ Read any writeable attribute of a specified node on the server. See <a href="htt
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1682,8 +1613,6 @@ Test connection to an opc ua server. The call will not establish any persistent 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1721,8 +1650,6 @@ Write the value of a variable node. This uses the service detailed in <a href="h
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1760,8 +1687,6 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1812,8 +1737,6 @@ Delete event entries in a timeseries of the server historian. See <a href="https
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1851,8 +1774,6 @@ Insert event entries into a specified timeseries of the historian. See <a href="
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1890,8 +1811,6 @@ Read an entire event timeseries from an OPC UA server historian as stream. See <
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1929,8 +1848,6 @@ Read an event timeseries inside the OPC UA server historian. See <a href="https:
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1968,8 +1885,6 @@ Continue reading an event timeseries inside the OPC UA server historian. See <a 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2007,8 +1922,6 @@ Replace events in a timeseries in the historian of the OPC UA server. See <a hre
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2046,8 +1959,6 @@ Upsert events into a time series of the opc server historian. See <a href="https
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2085,8 +1996,6 @@ Delete value change entries in a timeseries of the server historian. See <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2124,8 +2033,6 @@ Delete value change entries in a timeseries of the server historian. See <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2163,8 +2070,6 @@ Delete value change entries in a timeseries of the server historian. See <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2202,8 +2107,6 @@ Insert value change entries in a timeseries of the server historian. See <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2241,8 +2144,6 @@ Read an entire timeseries from an OPC UA server historian as stream. See <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2280,8 +2181,6 @@ Read specific timeseries data from an OPC UA server historian as stream. See <a 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2319,8 +2218,6 @@ Read a data change timeseries inside the OPC UA server historian. See <a href="h
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2358,8 +2255,6 @@ Read parts of a timeseries inside the OPC UA server historian. See <a href="http
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2397,8 +2292,6 @@ Read modified changes in a timeseries inside the OPC UA server historian. See <a
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2436,8 +2329,6 @@ Read processed timeseries data inside the OPC UA server historian. See <a href="
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2475,8 +2366,6 @@ Read an entire modified series from an OPC UA server historian as stream. See <a
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2514,8 +2403,6 @@ Continue reading a timeseries inside the OPC UA server historian. See <a href="h
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2553,8 +2440,6 @@ Read processed timeseries data from an OPC UA server historian as stream. See <a
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2592,8 +2477,6 @@ Replace value change entries in a timeseries of the server historian. See <a hre
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2631,8 +2514,6 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2685,8 +2566,6 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2753,8 +2632,6 @@ Add a node to a dedicated data set writer in a writer group. A node must have a 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2815,8 +2692,7 @@ Add Nodes to a dedicated data set writer in a writer group. Each node must have 
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="getnodes"></a>
@@ -2883,8 +2759,7 @@ Remove Nodes that match the provided data set field ids from a data set writer i
 ##### Consumes
 
 * `application/json`
-* `text/json`
-* `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="getnode"></a>

@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Node access read services
@@ -26,6 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class TwinController : ControllerBase
     {
         /// <summary>
@@ -50,6 +54,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <returns>Server capabilities</returns>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("capabilities/{endpointId}")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             string endpointId, [FromQuery] NamespaceFormat? namespaceFormat, CancellationToken ct)
@@ -75,6 +85,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The browse response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/{endpointId}")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(string endpointId,
             [FromBody][Required] BrowseFirstRequestModel request, CancellationToken ct)
@@ -97,6 +113,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
         /// <exception cref="ArgumentException"></exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/{endpointId}/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
             string endpointId, [FromBody][Required] BrowseNextRequestModel request,
@@ -124,6 +146,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The browse path response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/{endpointId}/path")]
         public async Task<BrowsePathResponseModel> BrowseUsingPathAsync(string endpointId,
             [FromBody][Required] BrowsePathRequestModel request, CancellationToken ct)
@@ -149,6 +177,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </param>
         /// <param name="ct"></param>
         /// <returns>The browse response</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("browse/{endpointId}")]
         public async Task<BrowseFirstResponseModel> GetSetOfUniqueNodesAsync(
             string endpointId, [FromQuery] string? nodeId, CancellationToken ct)
@@ -182,6 +216,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// </param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("browse/{endpointId}/next")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<BrowseNextResponseModel> GetNextSetOfUniqueNodesAsync(
@@ -218,6 +258,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The read value response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}")]
         public async Task<ValueReadResponseModel> ReadValueAsync(string endpointId,
             [FromBody][Required] ValueReadRequestModel request, CancellationToken ct)
@@ -239,6 +285,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The read response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/attributes")]
         public async Task<ReadResponseModel> ReadAttributesAsync(string endpointId,
             [FromBody][Required] ReadRequestModel request, CancellationToken ct)
@@ -259,6 +311,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <returns>The read value response</returns>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("read/{endpointId}")]
         public async Task<ValueReadResponseModel> GetValueAsync(string endpointId,
             [FromQuery][Required] string nodeId, CancellationToken ct)
@@ -284,6 +342,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The write value response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("write/{endpointId}")]
         public async Task<ValueWriteResponseModel> WriteValueAsync(string endpointId,
             [FromBody][Required] ValueWriteRequestModel request, CancellationToken ct)
@@ -305,6 +369,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The batch write response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("write/{endpointId}/attributes")]
         public async Task<WriteResponseModel> WriteAttributesAsync(string endpointId,
             [FromBody][Required] WriteRequestModel request, CancellationToken ct)
@@ -329,6 +399,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The metadata response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("metadata/{endpointId}/node")]
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
             string endpointId, [FromBody][Required] NodeMetadataRequestModel request,
@@ -353,6 +429,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The method metadata response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("call/{endpointId}/metadata")]
         public async Task<MethodMetadataResponseModel> GetCallMetadataAsync(
             string endpointId, [FromBody][Required] MethodMetadataRequestModel request,
@@ -375,6 +457,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The method call response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("call/{endpointId}")]
         public async Task<MethodCallResponseModel> CallMethodAsync(string endpointId,
             [FromBody][Required] MethodCallRequestModel request, CancellationToken ct)

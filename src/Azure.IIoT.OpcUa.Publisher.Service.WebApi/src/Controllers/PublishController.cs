@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Value and Event publishing services
@@ -26,6 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class PublishController : ControllerBase
     {
         /// <summary>
@@ -51,6 +55,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The publish response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("{endpointId}/start")]
         public async Task<PublishStartResponseModel> StartPublishingValuesAsync(
             string endpointId, [FromBody][Required] PublishStartRequestModel request,
@@ -73,6 +83,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The bulk publish response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("{endpointId}/bulk")]
         public async Task<PublishBulkResponseModel> BulkPublishValuesAsync(
             string endpointId, [FromBody][Required] PublishBulkRequestModel request,
@@ -96,6 +112,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The unpublish response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseModel> StopPublishingValuesAsync(
             string endpointId, [FromBody][Required] PublishStopRequestModel request,
@@ -119,6 +141,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The list of published nodes</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("{endpointId}")]
         public async Task<PublishedItemListResponseModel> GetFirstListOfPublishedNodesAsync(
             string endpointId, [FromBody][Required] PublishedItemListRequestModel request,
@@ -140,6 +168,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="continuationToken">The continuation token to continue with</param>
         /// <param name="ct"></param>
         /// <returns>The list of published nodes</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{endpointId}")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublishedItemListResponseModel> GetNextListOfPublishedNodesAsync(

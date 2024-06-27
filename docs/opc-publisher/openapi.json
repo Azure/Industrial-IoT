@@ -60,8 +60,6 @@
                 "operationId": "AddCertificate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -139,8 +137,6 @@
                 "operationId": "AddCertificateRevocationList",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -201,8 +197,6 @@
                 "operationId": "AddCertificateChain",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -258,8 +252,6 @@
                 "operationId": "AddTrustedHttpsCertificate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -346,8 +338,6 @@
                 "operationId": "PublishStart",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -385,8 +375,6 @@
                 "operationId": "PublishStop",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -424,8 +412,6 @@
                 "operationId": "PublishBulk",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -463,8 +449,6 @@
                 "operationId": "PublishList",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -502,8 +486,6 @@
                 "operationId": "PublishNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -541,8 +523,6 @@
                 "operationId": "UnpublishNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -580,8 +560,6 @@
                 "operationId": "UnpublishAllNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -619,8 +597,7 @@
                 "operationId": "AddOrUpdateEndpoints",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json"
+                    "application/x-msgpack"
                 ],
                 "produces": [
                     "application/json",
@@ -686,8 +663,6 @@
                 "operationId": "SetConfiguredEndpoints",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -718,8 +693,6 @@
                 "operationId": "GetConfiguredNodesOnEndpoint",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -812,8 +785,6 @@
                 "operationId": "FindServer",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -851,8 +822,6 @@
                 "operationId": "Register",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -890,8 +859,6 @@
                 "operationId": "Discover",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -929,8 +896,6 @@
                 "operationId": "Cancel",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -968,8 +933,6 @@
                 "operationId": "GetServerCapabilities",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1007,8 +970,6 @@
                 "operationId": "Browse",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1046,8 +1007,6 @@
                 "operationId": "BrowseNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1085,8 +1044,6 @@
                 "operationId": "BrowseStream",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1124,8 +1081,6 @@
                 "operationId": "BrowsePath",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1163,8 +1118,6 @@
                 "operationId": "ValueRead",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1202,8 +1155,6 @@
                 "operationId": "ValueWrite",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1241,8 +1192,6 @@
                 "operationId": "GetMetadata",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1280,8 +1229,6 @@
                 "operationId": "CompileQuery",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1319,8 +1266,6 @@
                 "operationId": "MethodMetadata",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1358,8 +1303,6 @@
                 "operationId": "MethodCall",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1397,8 +1340,6 @@
                 "operationId": "NodeRead",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1436,8 +1377,6 @@
                 "operationId": "NodeWrite",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1475,8 +1414,6 @@
                 "operationId": "HistoryRead",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1514,8 +1451,6 @@
                 "operationId": "HistoryReadNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1553,8 +1488,6 @@
                 "operationId": "HistoryUpdate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1592,8 +1525,6 @@
                 "operationId": "GetEndpointCertificate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1631,8 +1562,6 @@
                 "operationId": "HistoryGetServerCapabilities",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1670,8 +1599,6 @@
                 "operationId": "HistoryGetConfiguration",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1709,8 +1636,6 @@
                 "operationId": "TestConnection",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1748,8 +1673,6 @@
                 "operationId": "HistoryReplaceEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1787,8 +1710,6 @@
                 "operationId": "HistoryInsertEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1826,8 +1747,6 @@
                 "operationId": "HistoryUpsertEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1865,8 +1784,6 @@
                 "operationId": "HistoryDeleteEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1904,8 +1821,6 @@
                 "operationId": "HistoryDeleteValuesAtTimes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1943,8 +1858,6 @@
                 "operationId": "HistoryDeleteModifiedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -1982,8 +1895,6 @@
                 "operationId": "HistoryDeleteValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2021,8 +1932,6 @@
                 "operationId": "HistoryReplaceValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2060,8 +1969,6 @@
                 "operationId": "HistoryInsertValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2099,8 +2006,6 @@
                 "operationId": "HistoryUpsertValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2138,8 +2043,6 @@
                 "operationId": "HistoryReadEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2177,8 +2080,6 @@
                 "operationId": "HistoryReadEventsNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2216,8 +2117,6 @@
                 "operationId": "HistoryReadValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2255,8 +2154,6 @@
                 "operationId": "HistoryReadValuesAtTimes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2294,8 +2191,6 @@
                 "operationId": "HistoryReadProcessedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2333,8 +2228,6 @@
                 "operationId": "HistoryReadModifiedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2372,8 +2265,6 @@
                 "operationId": "HistoryReadValuesNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2411,8 +2302,6 @@
                 "operationId": "HistoryStreamValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2450,8 +2339,6 @@
                 "operationId": "HistoryStreamModifiedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2489,8 +2376,6 @@
                 "operationId": "HistoryStreamValuesAtTimes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2528,8 +2413,6 @@
                 "operationId": "HistoryStreamProcessedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2567,8 +2450,6 @@
                 "operationId": "HistoryStreamEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
@@ -2606,8 +2487,6 @@
                 "operationId": "CreateOrUpdateDataSetWriterEntry",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2674,8 +2553,6 @@
                 "operationId": "AddOrUpdateNode",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2755,8 +2632,7 @@
                 "operationId": "AddOrUpdateNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json"
+                    "application/x-msgpack"
                 ],
                 "parameters": [
                     {
@@ -2809,8 +2685,7 @@
                 "operationId": "RemoveNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json"
+                    "application/x-msgpack"
                 ],
                 "parameters": [
                     {

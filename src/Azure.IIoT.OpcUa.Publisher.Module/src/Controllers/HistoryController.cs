@@ -41,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [ApiController]
     [Authorize]
     [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class HistoryController : ControllerBase, IMethodController
     {
         /// <summary>

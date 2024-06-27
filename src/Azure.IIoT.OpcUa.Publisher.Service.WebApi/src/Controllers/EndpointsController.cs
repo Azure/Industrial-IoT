@@ -18,6 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
@@ -27,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class EndpointsController : ControllerBase
     {
         /// <summary>
@@ -61,6 +65,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// not the call will fail.</param>
         /// <param name="ct"></param>
         /// <returns>Endpoint identifier</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut]
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
             CancellationToken ct)
@@ -80,6 +90,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// available</param>
         /// <param name="ct"></param>
         /// <returns>Endpoint registration</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{endpointId}")]
         public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
             [FromQuery] bool? onlyServerState, CancellationToken ct)
@@ -103,6 +119,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="pageSize">Optional number of results to return</param>
         /// <param name="ct"></param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<EndpointInfoListModel> GetListOfEndpointsAsync(
@@ -143,6 +165,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("query")]
         public async Task<EndpointInfoListModel> QueryEndpointsAsync(
             [FromBody][Required] EndpointRegistrationQueryModel query,
@@ -176,6 +204,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <returns>List of endpoints and continuation token to use for next request</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/> is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("query")]
         public async Task<EndpointInfoListModel> GetFilteredListOfEndpointsAsync(
             [FromQuery][Required] EndpointRegistrationQueryModel query,
@@ -201,6 +235,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="endpointId">endpoint identifier</param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("{endpointId}/test")]
         public async Task<TestConnectionResponseModel> TestConnectionAsync(
             string endpointId, [FromBody][Required] TestConnectionRequestModel request,
@@ -219,6 +259,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="endpointId">endpoint identifier</param>
         /// <param name="ct"></param>
         /// <returns>Endpoint registration</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{endpointId}/certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             string endpointId, CancellationToken ct)

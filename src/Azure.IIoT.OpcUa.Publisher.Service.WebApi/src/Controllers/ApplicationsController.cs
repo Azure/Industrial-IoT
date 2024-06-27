@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly;
 
     /// <summary>
     /// CRUD and Query application resources
@@ -27,6 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class ApplicationsController : ControllerBase
     {
         /// <summary>
