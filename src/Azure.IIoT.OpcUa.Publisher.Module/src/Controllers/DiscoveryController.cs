@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// <para>OPC UA and network discovery related API.</para>
@@ -63,6 +64,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("findserver")]
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             [FromBody][Required] ServerEndpointQueryModel endpoint, CancellationToken ct = default)
@@ -85,6 +95,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// processed.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("register")]
         public async Task<bool> RegisterAsync(
             [FromBody][Required] ServerRegistrationRequestModel request,
@@ -110,6 +129,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<bool> DiscoverAsync(
             [FromBody][Required] DiscoveryRequestModel request,
@@ -134,6 +162,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("cancel")]
         public async Task<bool> CancelAsync(
             [FromBody][Required] DiscoveryCancelRequestModel request,

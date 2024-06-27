@@ -191,6 +191,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task RemoveNodesAsync(string writerGroupId, string dataSetWriterId,
             IReadOnlyList<string> dataSetFieldIds, CancellationToken ct = default)
         {
+            if (dataSetFieldIds.Count == 0)
+            {
+                throw new BadRequestException("Field ids must be specified.");
+            }
             var set = dataSetFieldIds.ToHashSet();
             if (set.Count != dataSetFieldIds.Count)
             {
@@ -201,21 +205,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
-                if (entry.OpcNodes == null)
+                if (entry.OpcNodes == null || entry.OpcNodes.Count == 0)
                 {
-                    return; // Not possible yet because no empty writers can be created.
+                    throw new ResourceNotFoundException("No nodes in dataset.");
                 }
                 var newNodes = entry.OpcNodes
                     .Where(n => !set.Contains(n.DataSetFieldId ?? string.Empty))
                     .ToList();
                 if (newNodes.Count == entry.OpcNodes.Count)
                 {
-                    return; // Nothing was found
+                    throw new ResourceNotFoundException(
+                        $"Specified {(dataSetFieldIds.Count == 1 ? "node" : "nodes")} " +
+                        $"not found in dataset");
                 }
                 entry.OpcNodes = newNodes;
                 var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _api.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<OpcNodeModel> GetNodeAsync(string writerGroupId,
+            string dataSetWriterId, string dataSetFieldId, CancellationToken ct = default)
+        {
+            await _api.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var currentNodes = GetCurrentPublishedNodes().ToList();
+                var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
+                var node = entry.OpcNodes?.FirstOrDefault(n => n.DataSetFieldId == dataSetFieldId);
+                if (node == null)
+                {
+                    throw new ResourceNotFoundException(
+                        $"Node with id {dataSetFieldId.ReplaceLineEndings()} not found.");
+                }
+                return node;
             }
             finally
             {
@@ -235,7 +264,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
                 if (entry.OpcNodes == null)
                 {
-                    // Not possible yet because no empty writers can be created.
                     return Array.Empty<OpcNodeModel>();
                 }
 

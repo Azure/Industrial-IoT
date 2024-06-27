@@ -90,6 +90,19 @@ namespace Azure.IIoT.OpcUa.Publisher
             int? count = null, CancellationToken ct = default);
 
         /// <summary>
+        /// Get a node from a data set writer in a writer group.
+        /// </summary>
+        /// <param name="writerGroupId">The writer group</param>
+        /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="dataSetFieldId">the field id after which to start.
+        /// If not specified, nodes from the beginning are returned.</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<OpcNodeModel> GetNodeAsync(string writerGroupId,
+            string dataSetWriterId, string dataSetFieldId,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Remove the published nodes entry for a specific data set
         /// writer in a writer group. Dedicated errors are returned if no,
         /// or no unique entry could be found.

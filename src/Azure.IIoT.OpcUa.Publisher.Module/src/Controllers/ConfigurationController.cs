@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// <para>
@@ -61,6 +62,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The results of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("start")]
         public async Task<PublishStartResponseModel> PublishStartAsync(
             [FromBody][Required] RequestEnvelope<PublishStartRequestModel> request)
@@ -84,6 +91,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the stop operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The item could not be unpublished</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("stop")]
         public async Task<PublishStopResponseModel> PublishStopAsync(
             [FromBody][Required] RequestEnvelope<PublishStopRequestModel> request)
@@ -108,6 +123,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result for each operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The item could not be unpublished</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("bulk")]
         public async Task<PublishBulkResponseModel> PublishBulkAsync(
             [FromBody][Required] RequestEnvelope<PublishBulkRequestModel> request)
@@ -131,6 +154,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The list of published nodes.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The items were found and returned.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("list")]
         public async Task<PublishedItemListResponseModel> PublishListAsync(
             [FromBody][Required] RequestEnvelope<PublishedItemListRequestModel> request)
@@ -154,6 +183,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("nodes")]
         public async Task<PublishedNodesResponseModel> PublishNodesAsync(
             [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
@@ -177,6 +212,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The nodes could not be unpublished</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("nodes/unpublish")]
         public async Task<PublishedNodesResponseModel> UnpublishNodesAsync(
             [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
@@ -200,6 +243,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The nodes could not be unpublished</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("nodes/unpublish/all")]
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
@@ -222,6 +273,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The endpoint was not found to add to</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch]
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
             [FromBody][Required] IReadOnlyList<PublishedNodesEntryModel> request,
@@ -244,6 +303,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// the nodes in the response.</param>
         /// <param name="ct"></param>
         /// <returns>The result of the operation.</returns>
+        /// <response code="200">The data was retrieved.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<GetConfiguredEndpointsResponseModel> GetConfiguredEndpointsAsync(
             [FromQuery] GetConfiguredEndpointsRequestModel? request = null,
@@ -271,6 +338,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut]
         public async Task SetConfiguredEndpointsAsync(
             [FromBody][Required] SetConfiguredEndpointsRequestModel request,
@@ -296,6 +371,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the operation.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The information was returned.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="404">The entry was not found.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("endpoints/list/nodes")]
         public async Task<GetConfiguredNodesOnEndpointResponseModel> GetConfiguredNodesOnEndpointAsync(
             [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
@@ -319,6 +404,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </remarks>
         /// <param name="ct"></param>
         /// <returns>The list of diagnostic infos for currently active writers.</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="405">Call not supported or functionality disabled.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("diagnostics")]
         public async Task<List<PublishDiagnosticInfoModel>> GetDiagnosticInfoAsync(
             CancellationToken ct = default)

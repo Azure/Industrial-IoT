@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// <para>
@@ -55,6 +56,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// reconnect and recreate of all subscriptions.
         /// </remarks>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("reset")]
         public async Task ResetAllClientsAsync(CancellationToken ct = default)
         {
@@ -71,6 +78,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// tracemode will cause a reconnect of the client.
         /// </remarks>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("tracemode")]
         public async Task SetTraceModeAsync(CancellationToken ct = default)
         {

@@ -66,8 +66,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     status = (int)HttpStatusCode.BadRequest;
                     break;
                 case NotImplementedException:
-                case NotSupportedException:
                     status = (int)HttpStatusCode.NotImplemented;
+                    break;
+                case NotSupportedException:
+                    status = (int)HttpStatusCode.MethodNotAllowed;
                     break;
                 case TimeoutException:
                     status = (int)HttpStatusCode.RequestTimeout;

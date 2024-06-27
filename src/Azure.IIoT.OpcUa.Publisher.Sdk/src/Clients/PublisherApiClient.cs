@@ -90,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             await _methodClient.CallMethodAsync(_target,
-                "GetDataSetWriterEntry", _serializer.SerializeToMemory(new
+                "AddOrUpdateNodes", _serializer.SerializeToMemory(new
                 {
                     dataSetWriterGroup,
                     dataSetWriterId,
