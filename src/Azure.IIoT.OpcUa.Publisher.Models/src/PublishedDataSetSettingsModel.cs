@@ -112,5 +112,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "monitoredItemWatchdogTimeout", Order = 13,
             EmitDefaultValue = false)]
         public TimeSpan? MonitoredItemWatchdogTimeout { get; set; }
+
+        /// <summary>
+        /// Monitored item watchdog timeout
+        /// </summary>
+        [DataMember(Name = "monitoredItemWatchdogCondition", Order = 14,
+            EmitDefaultValue = false)]
+        public MonitoredItemWatchdogCondition? MonitoredItemWatchdogCondition { get; set; }
+
+        /// <summary>
+        /// Default sampling interval
+        /// </summary>
+        [DataMember(Name = "defaultSamplingInterval", Order = 15,
+            EmitDefaultValue = false)]
+        public TimeSpan? DefaultSamplingInterval { get; set; }
     }
 }

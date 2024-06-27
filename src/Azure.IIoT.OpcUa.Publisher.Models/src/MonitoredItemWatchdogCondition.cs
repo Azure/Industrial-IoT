@@ -6,19 +6,27 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
-    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Published items
+    /// Monitored item watchdog condition
     /// </summary>
     [DataContract]
-    public sealed record class PublishedDataItemsModel
+    [Flags]
+    public enum MonitoredItemWatchdogCondition
     {
         /// <summary>
-        /// Published data variables
+        /// Perform subscription action when all
+        /// monitored items are late
         /// </summary>
-        [DataMember(Name = "publishedData", Order = 0)]
-        public IReadOnlyList<PublishedDataSetVariableModel>? PublishedData { get; set; }
+        [EnumMember(Value = "WhenAllAreLate")]
+        WhenAllAreLate,
+
+        /// <summary>
+        /// Perform subscription action when any
+        /// monitored item is late
+        /// </summary>
+        [EnumMember(Value = "WhenAnyIsLate")]
+        WhenAnyIsLate
     }
 }

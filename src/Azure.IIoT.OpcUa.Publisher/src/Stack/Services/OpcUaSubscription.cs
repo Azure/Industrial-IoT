@@ -2001,11 +2001,9 @@ Actual (revised) state/desired state:
                     itemsChecked++;
                     if (item.WasLastValueReceivedBefore(_lastMonitoredItemCheck.Value))
                     {
-#if DEBUG
                         _logger.LogDebug(
                             "Monitored item {Item} in subscription {Subscription} is late.",
                             item, this);
-#endif
                         _lateMonitoredItems++;
                     }
                 }
@@ -2021,19 +2019,20 @@ Actual (revised) state/desired state:
                 {
                     return;
                 }
-                if (itemsChecked != missing &&
-                    _template.Configuration?.WatchdogActionWhenAnyItemsAreLate != true)
+                if (itemsChecked != missing && _template.Configuration?.WatchdogCondition
+                    != MonitoredItemWatchdogCondition.WhenAllAreLate)
                 {
                     _logger.LogDebug("Some monitored items in {Subscription} are late.",
                         this);
                     return;
                 }
-                _logger.LogInformation("{Count} of the {Total} monitored items in {Subscription} " +
-                    "are now late - running {Action} behavior action.",
+                _logger.LogInformation("{Count} of the {Total} monitored items in " +
+                    "{Subscription} are now late - running {Action} behavior action.",
                     missing, itemsChecked, this, action);
             }
 
-            var msg = $"Subscription {this} has {_lateMonitoredItems} late monitored items.";
+            var msg = $"Performed watchdog action {action} for subscription {this} " +
+                $"because it has {_lateMonitoredItems} late monitored items.";
             switch (action)
             {
                 case SubscriptionWatchdogBehavior.Reset:

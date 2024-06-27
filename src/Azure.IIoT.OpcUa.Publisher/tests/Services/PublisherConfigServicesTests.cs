@@ -255,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task TestCreateUpdateRemoveWriterEntries()
+        public async Task TestCreateUpdateRemoveWriterEntries1()
         {
             await using var configService = InitPublisherConfigService();
 
@@ -279,20 +279,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             writers.Should().BeEmpty();
 
             var writer = GenerateEndpoint(0, opcNodes, false);
-            writer.OpcNodes = null;
-            await FluentActions
-                .Invoking(async () => await configService
-                    .CreateOrUpdateDataSetWriterEntryAsync(writer))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage("null or empty OpcNodes is provided in request");
-            writer.OpcNodes = Array.Empty<OpcNodeModel>();
-            await FluentActions
-                .Invoking(async () => await configService
-                    .CreateOrUpdateDataSetWriterEntryAsync(writer))
-                .Should()
-                .ThrowAsync<BadRequestException>()
-                .WithMessage("null or empty OpcNodes is provided in request");
 
             // Create
             writer.OpcNodes = opcNodes;
@@ -350,6 +336,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 writer.DataSetWriterGroup!, writer.DataSetWriterId!);
             writers = await configService.GetConfiguredEndpointsAsync();
             writers.Count.Should().Be(2);
+
+            await FluentActions
+                .Invoking(async () => await configService
+                    .GetDataSetWriterEntryAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!))
+                .Should()
+                .ThrowAsync<ResourceNotFoundException>()
+                .WithMessage("Could not find entry with provided writer id and writer group.");
+        }
+
+        [Fact]
+        public async Task TestCreateUpdateRemoveWriterEntries2()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            await FluentActions
+                .Invoking(async () => await configService
+                    .GetDataSetWriterEntryAsync("test12", "test2"))
+                .Should()
+                .ThrowAsync<ResourceNotFoundException>()
+                .WithMessage("Could not find entry with provided writer id and writer group.");
+
+            const int numberOfNodes = 3;
+            var opcNodes = Enumerable.Range(0, numberOfNodes)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = $"{i}"
+                })
+                .ToList();
+
+            var writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
+
+            var writer = GenerateEndpoint(0, opcNodes, false);
+            writer.OpcNodes = null;
+            await configService.CreateOrUpdateDataSetWriterEntryAsync(writer);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Count.Should().Be(1);
+            var nodes = await configService.GetNodesAsync(writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            nodes.Should().BeEmpty();
+
+            var writerResult = await configService.GetDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            writerResult.DisableSubscriptionTransfer.Should().BeNull();
+            writerResult.OpcNodes.Should().BeNull();
+
+            // Remove
+            await configService.RemoveDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
 
             await FluentActions
                 .Invoking(async () => await configService
@@ -1162,20 +1199,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         [Theory]
         [InlineData("Publisher/pn_opc_nodes_empty.json")]
         [InlineData("Publisher/pn_opc_nodes_null.json")]
-        [InlineData("Publisher/pn_opc_nodes_empty_and_null.json")]
-        public async Task TestInitStandaloneJobOrchestratorFromEmptyOpcNodes(string publishedNodesFile)
+        public async Task TestInitStandaloneJobOrchestratorFromEmptyOpcNodes1(string publishedNodesFile)
         {
             Utils.CopyContent(publishedNodesFile, _tempFile);
             await using var configService = InitPublisherConfigService();
 
-            // Engine/empty_opc_nodes.json contains entries with null or empty OpcNodes.
-            // Those entries should not result in any endpoint entries in publisherConfigurationService.
-            var configuredEndpoints = await configService
-                .GetConfiguredEndpointsAsync();
-            Assert.Empty(configuredEndpoints);
+            // Behavior change in 2.9.10 we now allow empty entries
+            var configuredEndpoints = await configService.GetConfiguredEndpointsAsync();
+            Assert.Single(configuredEndpoints);
 
             // There should also not be any job entries.
-            Assert.Empty(_publisher.WriterGroups);
+            var group = Assert.Single(_publisher.WriterGroups);
+            var writer = Assert.Single(group.DataSetWriters);
+            Assert.Empty(writer.DataSet.DataSetSource.PublishedVariables.PublishedData);
+        }
+
+        [Fact]
+        public async Task TestInitStandaloneJobOrchestratorFromEmptyOpcNodes2()
+        {
+            Utils.CopyContent("Publisher/pn_opc_nodes_empty_and_null.json", _tempFile);
+            await using var configService = InitPublisherConfigService();
+
+            // Behavior change in 2.9.10 we now allow empty entries
+            var configuredEndpoints = await configService.GetConfiguredEndpointsAsync();
+            Assert.Equal(2, configuredEndpoints.Count);
+
+            // There should also not be any job entries.
+            Assert.Equal(2, _publisher.WriterGroups.Count);
+            Assert.All(_publisher.WriterGroups
+                .Select(d => d.DataSetWriters), writers =>
+                {
+                    var writer = Assert.Single(writers);
+                    Assert.Empty(writer.DataSet.DataSetSource.PublishedVariables.PublishedData);
+                });
         }
 
         [Theory]

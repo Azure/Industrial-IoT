@@ -131,15 +131,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
                             MonitoredItemWatchdogTimespan =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogTimeout,
+                            MonitoredItemWatchdogCondition =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogCondition,
                             WatchdogBehavior =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.WatchdogBehavior,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetWriterGroup =
-                                item.WriterGroup.Name == Constants.DefaultWriterGroupName ?
-                                    null : item.WriterGroup.Name,
+                                item.WriterGroup.Name == Constants.DefaultWriterGroupName ? null : item.WriterGroup.Name,
                             DataSetWriterId = item.Writer.DataSetWriterName,
                             DataSetRouting = item.Writer.DataSet?.Routing,
+                            DataSetSamplingInterval = null,
+                            DataSetSamplingIntervalTimespan =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultSamplingInterval,
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
@@ -303,10 +307,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 return entries
                     //
-                    // Split all entries by the publishing interval int the nodes using the entry publising
-                    // interval as default
+                    // Split all entries by the publishing interval in the nodes using the entry publishing
+                    // interval as default. To prevent entries with no nodes to be removed here a dummy
+                    // entry is added to the list of nodes and removed again from the group entries selected.
                     //
                     .SelectMany(entry => GetNodeModels(entry, _scaleTestCount)
+                        .DefaultIfEmpty(kDummyEntry)
                         .GroupBy(n => n.GetNormalizedPublishingInterval(
                                       entry.GetNormalizedDataSetPublishingInterval()))
                         .Select(g => entry with
@@ -315,6 +321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetPublishingIntervalTimespan = g.Key,
                             DataSetPublishingInterval = null,
                             OpcNodes = g
+                                .Where(n => n != kDummyEntry)
                                 .Select(n => n with
                                 {
                                     // Unset all node specific settings.
@@ -373,9 +380,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     .SelectMany(w => w.OpcNodes!)
                                     .Distinct(OpcNodeModelEx.Comparer)
                                     .Batch(_maxNodesPerDataSet)
-                            // Future: batch in service so it is centralized
+                                // Future: batch in service so it is centralized
                             ))
                             .SelectMany(b => b.WriterBatches // Do we need to materialize here?
+                                .DefaultIfEmpty(kDummyEntry.YieldReturn())
                                 .Select(n => n.ToList())
                                 .Select((nodes, index) => new DataSetWriterModel
                                 {
@@ -432,13 +440,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
                                                 RepublishAfterTransfer = b.Header.RepublishAfterTransfer,
                                                 MonitoredItemWatchdogTimeout = b.Header.MonitoredItemWatchdogTimespan,
+                                                MonitoredItemWatchdogCondition = b.Header.MonitoredItemWatchdogCondition,
                                                 WatchdogBehavior = b.Header.WatchdogBehavior,
                                                 Priority = b.Header.Priority,
+                                                ResolveDisplayName = null,
+                                                MaxNotificationsPerPublish = null,
+                                                EnableImmediatePublishing = null,
+                                                AsyncMetaDataLoadThreshold = null,
+                                                EnableSequentialPublishing = null,
+                                                LifeTimeCount = null,
+                                                UseDeferredAcknoledgements = null,
+                                                DefaultSamplingInterval = b.Header.GetNormalizedDataSetSamplingInterval(),
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
                                                 // ...
                                             },
-                                            PublishedVariables = ToPublishedDataItems(nodes, false),
-                                            PublishedEvents = ToPublishedEventItems(nodes, false)
+                                            PublishedVariables = ToPublishedDataItems(nodes.Where(n => n != kDummyEntry), false),
+                                            PublishedEvents = ToPublishedEventItems(nodes.Where(n => n != kDummyEntry), false)
                                         }
                                     },
                                     MessageSettings = null,
@@ -489,8 +506,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 // The publishing interval item wins over dataset over global default
                                 OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
                                     ?? item.GetNormalizedDataSetPublishingInterval(),
-                                OpcSamplingIntervalTimespan = node
-                                    .GetNormalizedSamplingInterval(),
+                                OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval()
+                                    ?? item.GetNormalizedDataSetSamplingInterval(),
                                 QueueSize = node.QueueSize,
                                 DiscardNew = node.DiscardNew,
                                 BrowsePath = node.BrowsePath,
@@ -529,8 +546,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     // The publishing interval item wins over dataset over global default
                                     OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
                                         ?? item.GetNormalizedDataSetPublishingInterval(),
-                                    OpcSamplingIntervalTimespan = node
-                                        .GetNormalizedSamplingInterval(),
+                                    OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval()
+                                        ?? item.GetNormalizedDataSetSamplingInterval(),
                                     QueueSize = node.QueueSize,
                                     SkipFirst = node.SkipFirst,
                                     DataChangeTrigger = node.DataChangeTrigger,
@@ -842,6 +859,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             };
         }
 
+        private static readonly OpcNodeModel kDummyEntry = new OpcNodeModel();
         private readonly bool _forceCredentialEncryption;
         private readonly int _scaleTestCount;
         private readonly int _maxNodesPerDataSet;

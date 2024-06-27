@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 ct.ThrowIfCancellationRequested();
                 var jobId = writerGroup.Id;
-                if (writerGroup.DataSetWriters?.Count > 0)
+                if (writerGroup.DataSetWriters?.Any(w => w.HasDataToPublish()) ?? false)
                 {
                     try
                     {

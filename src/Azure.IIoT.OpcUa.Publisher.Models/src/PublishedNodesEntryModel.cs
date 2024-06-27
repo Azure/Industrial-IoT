@@ -365,6 +365,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public SubscriptionWatchdogBehavior? WatchdogBehavior { get; set; }
 
         /// <summary>
+        /// Monitored item watchdog condition
+        /// </summary>
+        [DataMember(Name = "MonitoredItemWatchdogCondition", Order = 44,
+            EmitDefaultValue = false)]
+        public MonitoredItemWatchdogCondition? MonitoredItemWatchdogCondition { get; set; }
+
+        /// <summary>
+        /// The default sampling interval for all items in a dataset writer
+        /// in miliseconds.
+        /// </summary>
+        [DataMember(Name = "DataSetSamplingInterval", Order = 45,
+            EmitDefaultValue = false)]
+        public int? DataSetSamplingInterval { get; set; }
+
+        /// <summary>
+        /// The Sampling interval for the nodes in the dataset writer
+        /// in timespan format. Takes precedence over
+        /// <see cref="DataSetSamplingInterval"/> if defined.
+        /// </summary>
+        [DataMember(Name = "DataSetSamplingIntervalTimespan", Order = 46,
+            EmitDefaultValue = false)]
+        public TimeSpan? DataSetSamplingIntervalTimespan { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 50,

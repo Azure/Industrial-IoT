@@ -46,6 +46,95 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Empty(writerGroups);
         }
 
+        [Fact]
+        public void PnPlcNullNodesTest()
+        {
+            const string pn = """
+
+[
+    {
+        "DataSetWriterId": "testid",
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcAuthenticationMode": "usernamePassword",
+        "OpcAuthenticationUsername": "OpcAuthenticationUsername",
+        "OpcAuthenticationPassword": "OpcAuthenticationPassword"
+    }
+]
+
+""";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Equal("OpcAuthenticationPassword", entry.OpcAuthenticationPassword);
+            Assert.Equal("OpcAuthenticationUsername", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+            Assert.Null(entry.OpcNodes);
+
+            var writerGroups = converter.ToWriterGroups(entries);
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var writer = Assert.Single(group.DataSetWriters);
+            Assert.NotNull(writer.DataSet?.DataSetSource);
+            Assert.NotNull(writer.DataSet.DataSetSource.PublishedVariables?.PublishedData);
+            Assert.Empty(writer.DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.NotNull(writer.DataSet.DataSetSource.PublishedEvents?.PublishedData);
+            Assert.Empty(writer.DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            var credential = writer.DataSet.DataSetSource.Connection?.User;
+            Assert.NotNull(credential);
+            Assert.Equal(CredentialType.UserName, credential.Type);
+            Assert.Equal("OpcAuthenticationPassword", credential.Value.Password);
+            Assert.Equal("OpcAuthenticationUsername", credential.Value.User);
+
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Equal("OpcAuthenticationPassword", entry.OpcAuthenticationPassword);
+            Assert.Equal("OpcAuthenticationUsername", entry.OpcAuthenticationUsername);
+            Assert.Null(entry.EncryptedAuthUsername);
+            Assert.Null(entry.EncryptedAuthPassword);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword, entry.OpcAuthenticationMode);
+            Assert.Empty(entry.OpcNodes);
+        }
+
+        [Fact]
+        public void PnPlcNoNodesTest()
+        {
+            const string pn = """
+
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": []
+    }
+]
+
+""";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, _serializer, GetOptions(), null);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Empty(entry.OpcNodes);
+
+            var writerGroups = converter.ToWriterGroups(entries);
+            Assert.NotEmpty(writerGroups);
+            var group = Assert.Single(writerGroups);
+            var writer = Assert.Single(group.DataSetWriters);
+            Assert.NotNull(writer.DataSet?.DataSetSource);
+            Assert.NotNull(writer.DataSet.DataSetSource.PublishedVariables?.PublishedData);
+            Assert.Empty(writer.DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.NotNull(writer.DataSet.DataSetSource.PublishedEvents?.PublishedData);
+            Assert.Empty(writer.DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Empty(entry.OpcNodes);
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(true, false)]

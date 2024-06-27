@@ -170,5 +170,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Default monitored item watchdog timeout duration.
         /// </summary>
         public TimeSpan? DefaultMonitoredItemWatchdogTimeout { get; set; }
+
+        /// <summary>
+        /// The condition when to run the watchdog action in case
+        /// of late monitored items.
+        /// </summary>
+        public MonitoredItemWatchdogCondition? DefaultMonitoredItemWatchdogCondition { get; set; }
     }
 }

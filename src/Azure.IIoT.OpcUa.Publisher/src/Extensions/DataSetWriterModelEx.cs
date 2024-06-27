@@ -53,6 +53,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <summary>
+        /// Check whether there is anything the writer can publish
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <returns></returns>
+        public static bool HasDataToPublish(this DataSetWriterModel? writer)
+        {
+            var source = writer?.DataSet?.DataSetSource;
+            if (source != null)
+            {
+                if (source.PublishedEvents?.PublishedData?.Count > 0 ||
+                    source.PublishedVariables?.PublishedData?.Count > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Create subscription id.
         /// </summary>
         /// <param name="dataSetWriter"></param>

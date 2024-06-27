@@ -23,4 +23,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Profiles\Empty.json" />
+    <None Remove="Profiles\SlowSample.json" />
+  </ItemGroup>
 </Project>

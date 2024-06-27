@@ -58,6 +58,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(batchTriggerInterval.Value.TotalMilliseconds);
             }
+            if (model.WriterGroupPartitions != null)
+            {
+                id.Append(model.WriterGroupPartitions.Value);
+            }
             return id.ToString().ToSha1Hash();
         }
 
@@ -105,6 +109,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (model.GetNormalizedBatchTriggerInterval() !=
                 that.GetNormalizedBatchTriggerInterval())
+            {
+                return false;
+            }
+            if (model.WriterGroupPartitions != that.WriterGroupPartitions)
             {
                 return false;
             }
@@ -283,6 +291,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(metadataUpdateTime.Value.TotalMilliseconds);
             }
+            var samplingInterval = model.GetNormalizedDataSetSamplingInterval();
+            if (samplingInterval != null)
+            {
+                id.Append(samplingInterval.Value.TotalMilliseconds);
+            }
             if (model.QualityOfService != null)
             {
                 id.Append(model.QualityOfService.Value);
@@ -299,6 +312,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 != DataSetRoutingMode.None)
             {
                 id.Append(model.DataSetRouting.ToString());
+            }
+            if (model.RepublishAfterTransfer != null)
+            {
+                id.Append(model.RepublishAfterTransfer.Value);
+            }
+            if (model.MonitoredItemWatchdogTimespan != null)
+            {
+                id.Append(model.MonitoredItemWatchdogTimespan.Value);
+            }
+            if (model.WatchdogBehavior != null)
+            {
+                id.Append(model.WatchdogBehavior.Value);
+            }
+            if (model.MonitoredItemWatchdogCondition != null)
+            {
+                id.Append(model.MonitoredItemWatchdogCondition.Value);
             }
             Debug.Assert(id.Length != 0); // Should always have an endpoint mixed in
             return id.ToString().ToSha1Hash();
@@ -407,6 +436,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+            if (model.GetNormalizedDataSetSamplingInterval() !=
+                that.GetNormalizedDataSetSamplingInterval())
+            {
+                return false;
+            }
             if (model.QualityOfService != that.QualityOfService)
             {
                 return false;
@@ -424,6 +458,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 
             if ((model.DataSetRouting ?? DataSetRoutingMode.None) !=
                 (that.DataSetRouting ?? DataSetRoutingMode.None))
+            {
+                return false;
+            }
+            if (model.RepublishAfterTransfer != that.RepublishAfterTransfer)
+            {
+                return false;
+            }
+            if (model.MonitoredItemWatchdogTimespan != that.MonitoredItemWatchdogTimespan)
+            {
+                return false;
+            }
+            if (model.WatchdogBehavior != that.WatchdogBehavior)
+            {
+                return false;
+            }
+            if (model.MonitoredItemWatchdogCondition != that.MonitoredItemWatchdogCondition)
             {
                 return false;
             }
@@ -450,6 +500,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         {
             return model.BatchTriggerIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.BatchTriggerInterval);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a PublishedNodesEntryModel's SamplingInterval
+        /// </summary>
+        /// <param name="model"></param>
+        public static TimeSpan? GetNormalizedDataSetSamplingInterval(
+            this PublishedNodesEntryModel model)
+        {
+            return model.DataSetSamplingIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.DataSetSamplingInterval);
         }
 
         /// <summary>
