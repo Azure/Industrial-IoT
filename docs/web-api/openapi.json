@@ -27,10 +27,7 @@
                 "description": "Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.",
                 "operationId": "RegisterServer",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -58,16 +55,11 @@
                 "description": "The application is registered using the provided information, but it is not associated with a publisher. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a publisher module.",
                 "operationId": "CreateApplication",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -120,9 +112,7 @@
                 "description": "Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
                 "operationId": "GetListOfApplications",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -210,10 +200,7 @@
                 "description": "Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.",
                 "operationId": "DiscoverServer",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -266,9 +253,7 @@
                 "summary": "Get application registration",
                 "operationId": "GetApplicationRegistration",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -297,10 +282,7 @@
                 "description": "The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).",
                 "operationId": "UpdateApplicationRegistration",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -359,9 +341,7 @@
                 "description": "List all sites applications are registered in.",
                 "operationId": "GetListOfSites",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -401,16 +381,11 @@
                 "description": "List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.",
                 "operationId": "QueryApplications",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -448,16 +423,11 @@
                 "description": "Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.",
                 "operationId": "GetFilteredListOfApplications",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -497,9 +467,7 @@
                 "description": "Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.",
                 "operationId": "GetDiscoverer",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -513,7 +481,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/DiscovererModel"
                         }
@@ -528,10 +496,7 @@
                 "description": "Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.",
                 "operationId": "UpdateDiscoverer",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -554,7 +519,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             },
@@ -566,10 +531,7 @@
                 "description": "Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.",
                 "operationId": "SetDiscoveryMode",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -609,7 +571,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -623,9 +585,7 @@
                 "description": "Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
                 "operationId": "GetListOfDiscoverers",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -645,7 +605,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
@@ -665,16 +625,11 @@
                 "description": "Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.",
                 "operationId": "QueryDiscoverers",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -697,7 +652,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
@@ -712,9 +667,7 @@
                 "description": "Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.",
                 "operationId": "GetFilteredListOfDiscoverers",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -757,7 +710,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
@@ -774,16 +727,11 @@
                 "description": "Adds an endpoint. This will onboard the endpoint and the associated application but no other endpoints. This call is synchronous and will return successful if endpoint is found. Otherwise the call will fail with error not found.",
                 "operationId": "RegisterEndpoint",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -798,7 +746,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "type": "string"
                         }
@@ -813,9 +761,7 @@
                 "description": "Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
                 "operationId": "GetListOfEndpoints",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -841,7 +787,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
@@ -861,9 +807,7 @@
                 "description": "Gets information about an endpoint.",
                 "operationId": "GetEndpoint",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -883,7 +827,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoModel"
                         }
@@ -900,16 +844,11 @@
                 "description": "Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.",
                 "operationId": "QueryEndpoints",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -938,7 +877,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
@@ -953,9 +892,7 @@
                 "description": "Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.",
                 "operationId": "GetFilteredListOfEndpoints",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1055,7 +992,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
@@ -1072,16 +1009,11 @@
                 "description": "Test an endpoint can be connected to. Returns error information if connecting fails.",
                 "operationId": "TestConnection",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1104,7 +1036,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
                         }
@@ -1121,9 +1053,7 @@
                 "description": "Gets current certificate of the endpoint.",
                 "operationId": "GetEndpointCertificate",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1137,7 +1067,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
                         }
@@ -1154,10 +1084,7 @@
                 "description": "Register a client to receive discovery progress events through SignalR from a particular discoverer.",
                 "operationId": "SubscribeByDiscovererId",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1179,7 +1106,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -1193,10 +1120,7 @@
                 "description": "Register a client to receive discovery progress events through SignalR for a particular request.",
                 "operationId": "SubscribeByRequestId",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1218,7 +1142,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -1249,7 +1173,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -1280,7 +1204,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -1294,9 +1218,7 @@
                 "description": "Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.",
                 "operationId": "GetGateway",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1310,7 +1232,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/GatewayInfoModel"
                         }
@@ -1325,10 +1247,7 @@
                 "description": "Allows a caller to configure operations on the Gateway module identified by the Gateway id.",
                 "operationId": "UpdateGateway",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1351,7 +1270,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -1365,9 +1284,7 @@
                 "description": "Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
                 "operationId": "GetListOfGateway",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1387,7 +1304,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
@@ -1407,16 +1324,11 @@
                 "description": "Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.",
                 "operationId": "QueryGateway",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1439,7 +1351,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
@@ -1454,9 +1366,7 @@
                 "description": "Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.",
                 "operationId": "GetFilteredListOfGateway",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1482,7 +1392,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
@@ -1499,9 +1409,7 @@
                 "description": "Gets the capabilities of the connected historian server. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "GetHistoryServerCapabilities",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1530,7 +1438,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryServerCapabilitiesModel"
                         }
@@ -1547,16 +1455,11 @@
                 "description": "Read node history if available using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadRaw",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1579,7 +1482,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadResponseModel"
                         }
@@ -1596,16 +1499,11 @@
                 "description": "Read next batch of node history values using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadRawNext",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1628,7 +1526,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadNextResponseModel"
                         }
@@ -1645,16 +1543,11 @@
                 "description": "Update node history using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryUpdateRaw",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1677,7 +1570,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1694,16 +1587,11 @@
                 "description": "Read history node configuration if available. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryGetConfiguration",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1725,7 +1613,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationResponseModel"
                         }
@@ -1742,16 +1630,11 @@
                 "description": "Read historic events of a node if available using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadEvents",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1774,7 +1657,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadResponseModel"
                         }
@@ -1791,16 +1674,11 @@
                 "description": "Read next batch of historic events of a node using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadEventsNext",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1823,7 +1701,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadNextResponseModel"
                         }
@@ -1840,16 +1718,11 @@
                 "description": "Read processed history values of a node if available using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1872,7 +1745,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -1889,16 +1762,11 @@
                 "description": "Read historic values of a node if available using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadValuesAtTimes",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1921,7 +1789,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -1938,16 +1806,11 @@
                 "description": "Read processed history values of a node if available using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadProcessedValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1970,7 +1833,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -1987,16 +1850,11 @@
                 "description": "Read processed history values of a node if available using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadModifiedValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2019,7 +1877,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2036,16 +1894,11 @@
                 "description": "Read next batch of historic values of a node using historic access. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "HistoryReadValueNext",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2068,7 +1921,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadNextResponseModel"
                         }
@@ -2085,16 +1938,11 @@
                 "description": "Replace historic values using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryReplaceValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2117,7 +1965,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2134,16 +1982,11 @@
                 "description": "Replace historic events using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryReplaceEvents",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2166,7 +2009,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2183,16 +2026,11 @@
                 "description": "Insert historic values using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryInsertValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2215,7 +2053,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2232,16 +2070,11 @@
                 "description": "Insert historic events using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryInsertEvents",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2264,7 +2097,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2281,16 +2114,11 @@
                 "description": "Upsert historic values using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryUpsertValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2313,7 +2141,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2330,16 +2158,11 @@
                 "description": "Upsert historic events using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryUpsertEvents",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2362,7 +2185,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2379,16 +2202,11 @@
                 "description": "Delete value history using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryDeleteValuesAtTimes",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2411,7 +2229,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2428,16 +2246,11 @@
                 "description": "Delete historic values using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryDeleteValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2460,7 +2273,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2477,16 +2290,11 @@
                 "description": "Delete historic values using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryDeleteModifiedValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2509,7 +2317,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2526,16 +2334,11 @@
                 "description": "Delete historic events using historic access. The endpoint must be in the registry and the server accessible.",
                 "operationId": "HistoryDeleteEvents",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2558,7 +2361,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2575,16 +2378,11 @@
                 "description": "Start publishing variable node values to IoT Hub. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "StartPublishingValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2607,7 +2405,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStartResponseModel"
                         }
@@ -2624,16 +2422,11 @@
                 "description": "Adds or removes in bulk values that should be published from a particular endpoint.",
                 "operationId": "BulkPublishValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2656,7 +2449,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishBulkResponseModel"
                         }
@@ -2673,16 +2466,11 @@
                 "description": "Stop publishing variable node values to IoT Hub. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "StopPublishingValues",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2705,7 +2493,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStopResponseModel"
                         }
@@ -2722,16 +2510,11 @@
                 "description": "Returns currently published node ids for an endpoint. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "GetFirstListOfPublishedNodes",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2754,7 +2537,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
@@ -2769,9 +2552,7 @@
                 "description": "Returns next set of currently published node ids for an endpoint. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "GetNextListOfPublishedNodes",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2792,7 +2573,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
@@ -2812,9 +2593,7 @@
                 "description": "Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.",
                 "operationId": "GetPublisher",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2834,7 +2613,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublisherModel"
                         }
@@ -2849,10 +2628,7 @@
                 "description": "Allows a caller to configure operations on the publisher module identified by the publisher id.",
                 "operationId": "UpdatePublisher",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2875,7 +2651,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -2889,9 +2665,7 @@
                 "description": "Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
                 "operationId": "GetListOfPublisher",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2917,7 +2691,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
@@ -2937,16 +2711,11 @@
                 "description": "Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.",
                 "operationId": "QueryPublisher",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2975,7 +2744,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
@@ -2990,9 +2759,7 @@
                 "description": "Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.",
                 "operationId": "GetFilteredListOfPublisher",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3024,7 +2791,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
@@ -3041,9 +2808,7 @@
                 "description": "Get all configured endpoints on the publisher. These are the ones configured in the local storage of the publisher.",
                 "operationId": "GetConfiguredEndpoints",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3063,7 +2828,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModelIAsyncEnumerable"
                         }
@@ -3078,10 +2843,7 @@
                 "description": "Set all configured endpoints on the publisher. These are the ones that will be written to local storage of the publisher.",
                 "operationId": "SetConfiguredEndpoints",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3104,7 +2866,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -3118,9 +2880,7 @@
                 "description": "Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.",
                 "operationId": "GetSupervisor",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3140,7 +2900,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/SupervisorModel"
                         }
@@ -3155,10 +2915,7 @@
                 "description": "Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.",
                 "operationId": "UpdateSupervisor",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3181,7 +2938,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -3195,9 +2952,7 @@
                 "description": "Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.",
                 "operationId": "GetListOfSupervisors",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3223,7 +2978,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
@@ -3243,16 +2998,11 @@
                 "description": "Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.",
                 "operationId": "QuerySupervisors",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3281,7 +3031,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
@@ -3296,9 +3046,7 @@
                 "description": "Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.",
                 "operationId": "GetFilteredListOfSupervisors",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3336,7 +3084,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
@@ -3353,10 +3101,7 @@
                 "description": "Register a client to receive publisher samples through SignalR.",
                 "operationId": "Subscribe",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3378,7 +3123,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -3409,7 +3154,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -3423,9 +3168,7 @@
                 "description": "Gets the capabilities of the connected server. The endpoint must be in the registry and the module client and server must trust each other.",
                 "operationId": "GetServerCapabilities",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3454,7 +3197,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ServerCapabilitiesModel"
                         }
@@ -3471,16 +3214,11 @@
                 "description": "Browse a node on the specified endpoint. The endpoint must be in the registry and the server accessible.",
                 "operationId": "Browse",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3503,7 +3241,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
@@ -3518,9 +3256,7 @@
                 "description": "Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be in the registry and the server accessible. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.",
                 "operationId": "GetSetOfUniqueNodes",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3540,7 +3276,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
@@ -3557,16 +3293,11 @@
                 "description": "Browse next set of references on the endpoint. The endpoint must be in the registry and the server accessible.",
                 "operationId": "BrowseNext",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3589,7 +3320,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
@@ -3604,9 +3335,7 @@
                 "description": "Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be in the registry and the server accessible. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.",
                 "operationId": "GetNextSetOfUniqueNodes",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3627,7 +3356,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
@@ -3647,16 +3376,11 @@
                 "description": "Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be in the registry and the server accessible.",
                 "operationId": "BrowseUsingPath",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3679,7 +3403,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowsePathResponseModel"
                         }
@@ -3696,16 +3420,11 @@
                 "description": "Read a variable node's value. The endpoint must be in the registry and the server accessible.",
                 "operationId": "ReadValue",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3728,7 +3447,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
@@ -3743,9 +3462,7 @@
                 "description": "Get a variable node's value using its node id. The endpoint must be in the registry and the server accessible.",
                 "operationId": "GetValue",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3766,7 +3483,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
@@ -3783,16 +3500,11 @@
                 "description": "Read attributes of a node. The endpoint must be in the registry and the server accessible.",
                 "operationId": "ReadAttributes",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3815,7 +3527,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ReadResponseModel"
                         }
@@ -3832,16 +3544,11 @@
                 "description": "Write variable node's value. The endpoint must be in the registry and the server accessible.",
                 "operationId": "WriteValue",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3864,7 +3571,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ValueWriteResponseModel"
                         }
@@ -3881,16 +3588,11 @@
                 "description": "Write any attribute of a node. The endpoint must be in the registry and the server accessible.",
                 "operationId": "WriteAttributes",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3913,7 +3615,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/WriteResponseModel"
                         }
@@ -3930,16 +3632,11 @@
                 "description": "Get the node metadata which includes the fields and meta data of the type and can be used when constructing event filters or calling methods to pass the correct arguments. The endpoint must be in the registry and the server accessible.",
                 "operationId": "GetMetadata",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -3962,7 +3659,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataResponseModel"
                         }
@@ -3979,16 +3676,11 @@
                 "description": "(Obsolete - use GetMetadata API) Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be in the registry and the server accessible.",
                 "operationId": "GetCallMetadata",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -4011,7 +3703,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataResponseModel"
                         }
@@ -4028,16 +3720,11 @@
                 "description": "Invoke method node with specified input arguments. The endpoint must be in the registry and the server accessible.",
                 "operationId": "CallMethod",
                 "consumes": [
-                    "application/json-patch+json",
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -4060,7 +3747,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/MethodCallResponseModel"
                         }
@@ -7049,6 +6736,32 @@
                     "format": "int64",
                     "description": "Max monitored items that can be updated at once.",
                     "type": "integer"
+                }
+            },
+            "additionalProperties": false
+        },
+        "ProblemDetails": {
+            "type": "object",
+            "properties": {
+                "Type": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                },
+                "Status": {
+                    "format": "int32",
+                    "type": "integer"
+                },
+                "Detail": {
+                    "type": "string"
+                },
+                "Instance": {
+                    "type": "string"
+                },
+                "Extensions": {
+                    "type": "object",
+                    "additionalProperties": {}
                 }
             },
             "additionalProperties": false
