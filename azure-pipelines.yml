@@ -17,7 +17,6 @@ parameters:
   default: 'main'
   values:
     - 'main'
-    - 'official'
     - 'test'
 jobs:
 - job: OneBranchTrigger
