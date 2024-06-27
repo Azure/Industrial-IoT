@@ -788,6 +788,7 @@ Can be used to set trace mode for all established connections. Call within a min
 <a name="discovery_resource"></a>
 ### Discovery
 OPC UA and network discovery related API.
+            
 
 
             The method name for all transports other than HTTP (which uses the shown

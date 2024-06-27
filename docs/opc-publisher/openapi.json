@@ -7875,7 +7875,7 @@
         },
         {
             "name": "Discovery",
-            "description": "\r\nOPC UA and network discovery related API.\r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
+            "description": "\r\n\r\n            OPC UA and network discovery related API.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
         },
         {
             "name": "General",

@@ -19,7 +19,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading.Tasks;
 
     /// <summary>
-    /// <para>OPC UA and network discovery related API.</para>
+    /// <para>
+    /// OPC UA and network discovery related API.
+    /// </para>
     /// <para>
     /// The method name for all transports other than HTTP (which uses the shown
     /// HTTP methods and resource uris) is the name of the subsection header.
