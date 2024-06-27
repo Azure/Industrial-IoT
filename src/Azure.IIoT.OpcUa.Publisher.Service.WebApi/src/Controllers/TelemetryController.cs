@@ -8,12 +8,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR;
     using Asp.Versioning;
+    using Furly;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly;
-    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Value and Event monitoring services
