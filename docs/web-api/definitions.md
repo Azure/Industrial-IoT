@@ -1481,6 +1481,7 @@ Contains the nodes which should be published
 |**DataSetClassId**  <br>*optional*|A dataset class id.|string (uuid)|
 |**DataSetDescription**  <br>*optional*|The optional description of the dataset.|string|
 |**DataSetExtensionFields**  <br>*optional*|Optional field and value pairs to insert into the<br>data sets emitted by data set writer.|< string, object > map|
+|**DataSetFetchDisplayNames**  <br>*optional*|Whether to fetch the display name and use it as<br>data set id for all opc node items in the data set|boolean|
 |**DataSetKeyFrameCount**  <br>*optional*|Insert a key frame every x messages|integer (int64)|
 |**DataSetName**  <br>*optional*|The optional short name of the dataset.|string|
 |**DataSetPublishingInterval**  <br>*optional*|The Publishing interval for a dataset writer<br>in miliseconds.|integer (int32)|
