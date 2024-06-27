@@ -43,7 +43,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             },
@@ -75,7 +75,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationResponseModel"
                         }
@@ -100,7 +100,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             },
@@ -132,7 +132,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
@@ -162,7 +162,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -186,7 +186,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -216,7 +216,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -240,7 +240,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -267,7 +267,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationModel"
                         }
@@ -305,7 +305,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             },
@@ -327,7 +327,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -361,7 +361,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationSiteListModel"
                         }
@@ -408,7 +408,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
@@ -450,7 +450,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
@@ -6736,32 +6736,6 @@
                     "format": "int64",
                     "description": "Max monitored items that can be updated at once.",
                     "type": "integer"
-                }
-            },
-            "additionalProperties": false
-        },
-        "ProblemDetails": {
-            "type": "object",
-            "properties": {
-                "Type": {
-                    "type": "string"
-                },
-                "Title": {
-                    "type": "string"
-                },
-                "Status": {
-                    "format": "int32",
-                    "type": "integer"
-                },
-                "Detail": {
-                    "type": "string"
-                },
-                "Instance": {
-                    "type": "string"
-                },
-                "Extensions": {
-                    "type": "object",
-                    "additionalProperties": {}
                 }
             },
             "additionalProperties": false

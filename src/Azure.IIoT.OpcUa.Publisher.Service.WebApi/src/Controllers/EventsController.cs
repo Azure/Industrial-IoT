@@ -52,8 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPut("discovery/{discovererId}/events")]
         public async Task SubscribeByDiscovererIdAsync(string discovererId,
             [FromBody] string connectionId, CancellationToken ct)
@@ -78,8 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPut("discovery/requests/{requestId}/events")]
         public async Task SubscribeByRequestIdAsync(string requestId,
             [FromBody] string connectionId, CancellationToken ct)
@@ -105,8 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("discovery/requests/{requestId}/events/{connectionId}")]
         public async Task UnsubscribeByRequestIdAsync(string requestId,
             string connectionId, CancellationToken ct)
@@ -131,8 +131,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("discovery/{discovererId}/events/{connectionId}")]
         public async Task UnsubscribeByDiscovererIdAsync(string discovererId,
             string connectionId, CancellationToken ct)

@@ -73,9 +73,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("findserver")]
         public async Task<ApplicationRegistrationModel> FindServerAsync(
             [FromBody][Required] ServerEndpointQueryModel endpoint, CancellationToken ct = default)
@@ -104,9 +104,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("register")]
         public async Task<bool> RegisterAsync(
             [FromBody][Required] ServerRegistrationRequestModel request,
@@ -138,9 +138,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<bool> DiscoverAsync(
             [FromBody][Required] DiscoveryRequestModel request,
@@ -171,9 +171,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("cancel")]
         public async Task<bool> CancelAsync(
             [FromBody][Required] DiscoveryCancelRequestModel request,

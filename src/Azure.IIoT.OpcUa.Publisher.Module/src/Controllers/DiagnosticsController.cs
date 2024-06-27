@@ -63,8 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("reset")]
         public async Task ResetAllClientsAsync(CancellationToken ct = default)
         {
@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("tracemode")]
         public async Task SetTraceModeAsync(CancellationToken ct = default)
         {

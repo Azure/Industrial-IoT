@@ -1348,18 +1348,6 @@ Server limits
 |**minSupportedSampleRate**  <br>*optional*|Min supported sampling rate|number (double)|
 
 
-<a name="problemdetails"></a>
-### ProblemDetails
-
-|Name|Schema|
-|---|---|
-|**detail**  <br>*optional*|string|
-|**instance**  <br>*optional*|string|
-|**status**  <br>*optional*|integer (int32)|
-|**title**  <br>*optional*|string|
-|**type**  <br>*optional*|string|
-
-
 <a name="publishbulkrequestmodel"></a>
 ### PublishBulkRequestModel
 Publish in bulk request

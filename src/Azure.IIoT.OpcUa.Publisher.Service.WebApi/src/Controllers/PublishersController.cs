@@ -63,8 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{publisherId}")]
         public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             [FromQuery] bool? onlyServerState, CancellationToken ct)
@@ -89,8 +89,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPatch("{publisherId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdatePublisherAsync(string publisherId,
@@ -123,8 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<PublisherListModel> GetListOfPublisherAsync(
@@ -168,8 +168,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("query")]
         public async Task<PublisherListModel> QueryPublisherAsync(
             [FromBody][Required] PublisherQueryModel query,
@@ -212,8 +212,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("query")]
         public async Task<PublisherListModel> GetFilteredListOfPublisherAsync(
             [FromQuery][Required] PublisherQueryModel query,
@@ -250,8 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{publisherId}/endpoints")]
         public IAsyncEnumerable<PublishedNodesEntryModel> GetConfiguredEndpointsAsync(
             string publisherId, [FromQuery] GetConfiguredEndpointsRequestModel request,
@@ -278,8 +278,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPut("{publisherId}/endpoints")]
         public Task SetConfiguredEndpointsAsync(string publisherId,
             [FromBody][Required] SetConfiguredEndpointsRequestModel request,

@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using Furly;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// CRUD and Query application resources
@@ -57,6 +58,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
@@ -76,6 +83,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="applicationId">The application id</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("{applicationId}/disable")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DisableApplicationAsync(string applicationId,
@@ -94,6 +107,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="applicationId">The application id</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("{applicationId}/enable")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task EnableApplicationAsync(string applicationId,
@@ -115,6 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync(
@@ -135,6 +160,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("discover/{requestId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task CancelAsync(string requestId,
@@ -165,6 +196,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>Application registration response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPut]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<ApplicationRegistrationResponseModel> CreateApplicationAsync(
@@ -184,6 +221,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="applicationId">Application id for the server</param>
         /// <param name="ct"></param>
         /// <returns>Application registration</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{applicationId}")]
         public async Task<ApplicationRegistrationModel> GetApplicationRegistrationAsync(
             string applicationId, CancellationToken ct)
@@ -205,6 +248,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPatch("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateApplicationRegistrationAsync(string applicationId,
@@ -227,6 +276,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="applicationId">The identifier of the application</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("{applicationId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DeleteApplicationAsync(string applicationId, CancellationToken ct)
@@ -243,6 +298,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="notSeenFor">A duration in milliseconds</param>
         /// <param name="ct"></param>
         /// <returns></returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DeleteAllDisabledApplicationsAsync(
@@ -264,6 +325,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// return</param>
         /// <param name="ct"></param>
         /// <returns>Sites</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("sites")]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationSiteListModel> GetListOfSitesAsync(
@@ -301,6 +368,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// List of servers and continuation token to use for next request
         /// in x-ms-continuation header.
         /// </returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<ApplicationInfoListModel> GetListOfApplicationsAsync(
@@ -337,6 +410,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>Applications</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("query")]
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
@@ -345,8 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.QueryApplicationsAsync(query,
@@ -369,6 +447,12 @@ value.FirstOrDefault()!,
         /// <returns>Applications</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("query")]
         public async Task<ApplicationInfoListModel> GetFilteredListOfApplicationsAsync(
             [FromBody][Required] ApplicationRegistrationQueryModel query,
@@ -377,8 +461,7 @@ value.FirstOrDefault()!,
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _applications.QueryApplicationsAsync(query,

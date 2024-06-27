@@ -29,7 +29,7 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -61,7 +61,7 @@ Get all registered applications in paged form. The returned model can contain a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Produces
@@ -92,7 +92,7 @@ The application is registered using the provided information, but it is not asso
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
+|**200**|The operation was successful.|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
 
 
 ##### Consumes
@@ -129,7 +129,7 @@ Purges all applications that have not been seen for a specified amount of time.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="discoverserver"></a>
@@ -154,7 +154,7 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -185,7 +185,7 @@ Cancels a discovery request using the request identifier.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="queryapplications"></a>
@@ -211,7 +211,7 @@ List applications that match a query model. The returned model can contain a con
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Consumes
@@ -249,7 +249,7 @@ Get a list of applications filtered using the specified query parameters. The re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Consumes
@@ -287,7 +287,7 @@ List all sites applications are registered in.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
+|**200**|The operation was successful.|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
 
 
 ##### Produces
@@ -314,7 +314,7 @@ GET /registry/v2/applications/{applicationId}
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**200**|The operation was successful.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
 
 
 ##### Produces
@@ -345,7 +345,7 @@ Unregisters and deletes application and all its associated endpoints.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="updateapplicationregistration"></a>
@@ -371,7 +371,7 @@ The application information is updated with new properties. Note that this infor
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
@@ -402,7 +402,7 @@ A manager can disable an application.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="enableapplication"></a>
@@ -427,7 +427,7 @@ A manager can enable an application.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="discovery_resource"></a>

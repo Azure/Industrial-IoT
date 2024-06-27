@@ -81,8 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="403">A unique item could not be found to update.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [HttpPut]
         public async Task CreateOrUpdateDataSetWriterEntryAsync(
             [FromBody][Required] PublishedNodesEntryModel dataSetWriterEntry,
@@ -115,9 +115,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">There is no unique item present.</response>
         /// <response code="404">The item was not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
             string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
@@ -155,9 +155,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique entry could not be found to add to.</response>
         /// <response code="404">The entry was not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpPost("{dataSetWriterGroup}/{dataSetWriterId}/add")]
         public async Task AddOrUpdateNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
             [FromBody][Required] IReadOnlyList<OpcNodeModel> opcNodes,
@@ -197,9 +197,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to update.</response>
         /// <response code="404">An entry was not found to add the node to</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpPut("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task AddOrUpdateNodeAsync(string dataSetWriterGroup, string dataSetWriterId,
             [FromBody][Required] OpcNodeModel opcNode,
@@ -235,9 +235,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to remove from.</response>
         /// <response code="404">The entry or all items to remove were not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpPost("{dataSetWriterGroup}/{dataSetWriterId}/remove")]
         public async Task RemoveNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
             [FromBody][Required] IReadOnlyList<string> dataSetFieldIds,
@@ -272,9 +272,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to remove from.</response>
         /// <response code="404">The entry or item to remove was not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}")]
         public async Task RemoveNodeAsync(string dataSetWriterGroup, string dataSetWriterId,
             string dataSetFieldId, CancellationToken ct = default)
@@ -310,9 +310,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to get a node from.</response>
         /// <response code="404">The entry or item was not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}")]
         public async Task<OpcNodeModel> GetNodeAsync(
             string dataSetWriterGroup, string dataSetWriterId, string dataSetFieldId,
@@ -350,9 +350,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to get nodes from.</response>
         /// <response code="404">The entry was not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
         [AutoRestExtension(NextPageLinkName = "lastDataSetFieldId")]
         public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(
@@ -397,9 +397,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="403">A unique item could not be found to remove.</response>
         /// <response code="404">The entry to remove was not found</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task RemoveDataSetWriterEntryAsync(
             string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
