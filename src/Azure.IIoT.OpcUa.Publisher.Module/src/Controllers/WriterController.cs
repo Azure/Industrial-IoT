@@ -8,10 +8,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Furly;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Http;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
@@ -44,6 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Route("v{version:apiVersion}/writer")]
     [ApiController]
     [Authorize]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class WriterController : ControllerBase, IMethodController
     {
         /// <summary>
@@ -73,6 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterEntry"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The item was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to update.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [HttpPut]
         public async Task CreateOrUpdateDataSetWriterEntryAsync(
             [FromBody][Required] PublishedNodesEntryModel dataSetWriterEntry,
@@ -100,6 +110,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The item was found</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">There is no unique item present.</response>
+        /// <response code="404">The item was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task<PublishedNodesEntryModel> GetDataSetWriterEntryAsync(
             string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
@@ -132,7 +150,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="opcNodes"/>
         /// is <c>null</c>.</exception>
-        [HttpPut("{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
+        /// <response code="200">The items were added</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique entry could not be found to add to.</response>
+        /// <response code="404">The entry was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [HttpPost("{dataSetWriterGroup}/{dataSetWriterId}/add")]
         public async Task AddOrUpdateNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
             [FromBody][Required] IReadOnlyList<OpcNodeModel> opcNodes,
             [FromQuery] string? insertAfterFieldId = null, CancellationToken ct = default)
@@ -145,15 +171,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// RemoveNodes
+        /// AddOrUpdateNode
         /// </summary>
         /// <remarks>
-        /// Remove Nodes with the data set field ids from a data set writer in a writer group.
-        /// If the field is not found, no error is returned.
+        /// Add a node to a dedicated data set writer in a writer group. A node must have
+        /// a unique DataSetFieldId. If the field already exists, the node is updated.
+        /// If a node does not have a dataset field id an error is returned. Publishing
+        /// intervals at node level are also not supported and generate an error. Publishing
+        /// intervals must be configured at the data set writer level.
         /// </remarks>
         /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
         /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
-        /// <param name="dataSetFieldIds">Fields to add</param>
+        /// <param name="opcNode">Node to add or update</param>
+        /// <param name="insertAfterFieldId">Field after which to insert the nodes. If
+        /// not specified, nodes are added at the end of the entry</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="opcNode"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was added</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to update.</response>
+        /// <response code="404">An entry was not found to add the node to</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [HttpPut("{dataSetWriterGroup}/{dataSetWriterId}")]
+        public async Task AddOrUpdateNodeAsync(string dataSetWriterGroup, string dataSetWriterId,
+            [FromBody][Required] OpcNodeModel opcNode,
+            [FromQuery] string? insertAfterFieldId = null, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            ArgumentNullException.ThrowIfNull(opcNode);
+            await _configServices.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
+                new[] { opcNode }, insertAfterFieldId, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// RemoveNodes
+        /// </summary>
+        /// <remarks>
+        /// Remove Nodes that match the provided data set field ids from a data set writer
+        /// in a writer group. If one of the fields is not found, no error is returned,
+        /// however, if all fields are not found an error is returned.
+        /// </remarks>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
+        /// <param name="dataSetFieldIds">The identifiers of the fields to remove</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
         /// is <c>null</c>.</exception>
@@ -161,7 +230,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetFieldIds"/>
         /// is <c>null</c>.</exception>
-        [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
+        /// <response code="200">Some or all items were removed</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to remove from.</response>
+        /// <response code="404">The entry or all items to remove were not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [HttpPost("{dataSetWriterGroup}/{dataSetWriterId}/remove")]
         public async Task RemoveNodesAsync(string dataSetWriterGroup, string dataSetWriterId,
             [FromBody][Required] IReadOnlyList<string> dataSetFieldIds,
             CancellationToken ct = default)
@@ -171,6 +248,81 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetFieldIds);
             await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 dataSetFieldIds, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// RemoveNode
+        /// </summary>
+        /// <remarks>
+        /// Remove a node with the specified data set field id from a data set writer
+        /// in a writer group. If the field is not found, an error is returned.
+        /// </remarks>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
+        /// <param name="dataSetFieldId">Identifier of the field to remove</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetFieldId"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was removed</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to remove from.</response>
+        /// <response code="404">The entry or item to remove was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}")]
+        public async Task RemoveNodeAsync(string dataSetWriterGroup, string dataSetWriterId,
+            string dataSetFieldId, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            ArgumentNullException.ThrowIfNull(dataSetFieldId);
+            await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
+                new[] { dataSetFieldId }, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// GetNode
+        /// </summary>
+        /// <remarks>
+        /// Get a node from a dataset in a writer group.
+        /// Dedicated errors are returned if no, or no unique entry could be found, or
+        /// the node does not exist.
+        /// </remarks>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
+        /// <param name="dataSetFieldId">The data set field id of the node to return</param>
+        /// <param name="ct"></param>
+        /// <returns>The node inside the dataset</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetFieldId"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was retrieved</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to get a node from.</response>
+        /// <response code="404">The entry or item was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}")]
+        public async Task<OpcNodeModel> GetNodeAsync(
+            string dataSetWriterGroup, string dataSetWriterId, string dataSetFieldId,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            ArgumentNullException.ThrowIfNull(dataSetFieldId);
+            return await _configServices.GetNodeAsync(
+                dataSetWriterGroup, dataSetWriterId, dataSetFieldId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -193,6 +345,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The items were found</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to get nodes from.</response>
+        /// <response code="404">The entry was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpGet("{dataSetWriterGroup}/{dataSetWriterId}/nodes")]
         [AutoRestExtension(NextPageLinkName = "lastDataSetFieldId")]
         public async Task<IReadOnlyList<OpcNodeModel>> GetNodesAsync(
@@ -232,6 +392,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterId"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The entry was removed</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to remove.</response>
+        /// <response code="404">The entry to remove was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}")]
         public async Task RemoveDataSetWriterEntryAsync(
             string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)

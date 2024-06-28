@@ -8,9 +8,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Furly;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Http;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -27,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class GatewaysController : ControllerBase
     {
         /// <summary>
@@ -48,6 +52,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="GatewayId">Gateway identifier</param>
         /// <param name="ct"></param>
         /// <returns>Gateway registration</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{GatewayId}")]
         public async Task<GatewayInfoModel> GetGatewayAsync(string GatewayId,
             CancellationToken ct)
@@ -67,6 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPatch("{GatewayId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateGatewayAsync(string GatewayId,
@@ -92,6 +108,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// List of Gateways and continuation token to use for next request
         /// in x-ms-continuation header.
         /// </returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<GatewayListModel> GetListOfGatewayAsync(
@@ -127,6 +149,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>Gateway</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("query")]
         public async Task<GatewayListModel> QueryGatewayAsync(
             [FromBody][Required] GatewayQueryModel query,
@@ -135,8 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _gateways.QueryGatewaysAsync(query, pageSize,
@@ -159,6 +186,12 @@ value.FirstOrDefault()!,
         /// <returns>Gateway</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("query")]
         public async Task<GatewayListModel> GetFilteredListOfGatewayAsync(
             [FromQuery][Required] GatewayQueryModel query,
@@ -167,8 +200,7 @@ value.FirstOrDefault()!,
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _gateways.QueryGatewaysAsync(query, pageSize,

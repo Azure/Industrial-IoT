@@ -8,9 +8,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Furly;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Http;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -27,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class DiscoveryController : ControllerBase
     {
         /// <summary>
@@ -48,6 +52,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="discovererId">Discoverer identifier</param>
         /// <param name="ct"></param>
         /// <returns>Discoverer registration</returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{discovererId}")]
         public async Task<DiscovererModel> GetDiscovererAsync(string discovererId,
             CancellationToken ct)
@@ -68,6 +78,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPatch("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task UpdateDiscovererAsync(string discovererId,
@@ -94,6 +110,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// List of discoverers and continuation token to use for next request
         /// in x-ms-continuation header.
         /// </returns>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<DiscovererListModel> GetListOfDiscoverersAsync(
@@ -129,6 +151,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>Discoverers</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("query")]
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
             [FromBody][Required] DiscovererQueryModel query,
@@ -137,8 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _discoverers.QueryDiscoverersAsync(query,
@@ -161,6 +188,12 @@ value.FirstOrDefault()!,
         /// <returns>Discoverers</returns>
         /// <exception cref="ArgumentNullException"><paramref name="query"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("query")]
         public async Task<DiscovererListModel> GetFilteredListOfDiscoverersAsync(
             [FromQuery][Required] DiscovererQueryModel query,
@@ -169,8 +202,7 @@ value.FirstOrDefault()!,
             ArgumentNullException.ThrowIfNull(query);
             if (Request.Headers.TryGetValue(HttpHeader.MaxItemCount, out var value))
             {
-                pageSize = int.Parse(
-value.FirstOrDefault()!,
+                pageSize = int.Parse(value.FirstOrDefault()!,
                     CultureInfo.InvariantCulture);
             }
             return await _discoverers.QueryDiscoverersAsync(query,
@@ -188,6 +220,12 @@ value.FirstOrDefault()!,
         /// <param name="mode">Discovery mode</param>
         /// <param name="config">Discovery configuration</param>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("{discovererId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task SetDiscoveryModeAsync(string discovererId,

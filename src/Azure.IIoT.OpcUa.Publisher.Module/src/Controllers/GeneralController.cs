@@ -8,9 +8,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
@@ -39,6 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Route("v{version:apiVersion}")]
     [ApiController]
     [Authorize]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class GeneralController : ControllerBase, IMethodController
     {
         /// <summary>
@@ -73,6 +77,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The server capabilities.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("capabilities")]
         public async Task<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             [FromBody][Required] RequestEnvelope<RequestHeaderModel?> request,
@@ -101,6 +114,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The references and optional continuation token</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/first")]
         public async Task<BrowseFirstResponseModel> BrowseAsync(
             [FromBody][Required] RequestEnvelope<BrowseFirstRequestModel> request,
@@ -125,6 +147,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The references and optional continuation token</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/next")]
         public async Task<BrowseNextResponseModel> BrowseNextAsync(
             [FromBody][Required] RequestEnvelope<BrowseNextRequestModel> request,
@@ -153,6 +184,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The nodes and references as stream.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("browse")]
         public IAsyncEnumerable<BrowseStreamChunkModel> BrowseStreamAsync(
             [FromBody][Required] RequestEnvelope<BrowseStreamRequestModel> request,
@@ -179,6 +219,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The target nodes found.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/path")]
         public async Task<BrowsePathResponseModel> BrowsePathAsync(
             [FromBody][Required] RequestEnvelope<BrowsePathRequestModel> request,
@@ -205,6 +254,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The value read from the node variable or error information.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read")]
         public async Task<ValueReadResponseModel> ValueReadAsync(
             [FromBody][Required] RequestEnvelope<ValueReadRequestModel> request,
@@ -231,6 +289,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The result of the write operation or error information.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("write")]
         public async Task<ValueWriteResponseModel> ValueWriteAsync(
             [FromBody][Required] RequestEnvelope<ValueWriteRequestModel> request,
@@ -259,6 +326,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("metadata")]
         public async Task<NodeMetadataResponseModel> GetMetadataAsync(
             [FromBody][Required] RequestEnvelope<NodeMetadataRequestModel> request,
@@ -282,6 +358,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// information.</param>
         /// <param name="ct"></param>
         /// <returns>The compilation response.</returns>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("query/compile")]
         public async Task<QueryCompilationResponseModel> CompileQueryAsync(
             [FromBody][Required] RequestEnvelope<QueryCompilationRequestModel> request,
@@ -308,6 +393,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("call/$metadata")]
         public async Task<MethodMetadataResponseModel> MethodMetadataAsync(
             [FromBody][Required] RequestEnvelope<MethodMetadataRequestModel> request,
@@ -337,6 +431,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// error information in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("call")]
         public async Task<MethodCallResponseModel> MethodCallAsync(
             [FromBody][Required] RequestEnvelope<MethodCallRequestModel> request,
@@ -366,6 +469,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// error information in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/attributes")]
         public async Task<ReadResponseModel> NodeReadAsync(
             [FromBody][Required] RequestEnvelope<ReadRequestModel> request,
@@ -395,6 +507,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// error information in case of failure.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("write/attributes")]
         public async Task<WriteResponseModel> NodeWriteAsync(
             [FromBody][Required] RequestEnvelope<WriteRequestModel> request,
@@ -423,6 +544,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("historyread/first")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
             [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<VariantValue>> request,
@@ -450,6 +580,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The history read results.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("historyread/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
             [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request,
@@ -477,6 +616,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The update result.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("historyupdate")]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
             [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<VariantValue>> request,
@@ -502,6 +650,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The certificate of the server endpoint</returns>
         /// <exception cref="ArgumentNullException"><paramref name="endpoint"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("certificate")]
         public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             [FromBody][Required] EndpointModel endpoint, CancellationToken ct = default)
@@ -524,6 +681,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The historian capabilities of the server.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("history/capabilities")]
         public async Task<HistoryServerCapabilitiesModel> HistoryGetServerCapabilitiesAsync(
             [FromBody][Required] RequestEnvelope<RequestHeaderModel?> request,
@@ -547,6 +713,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The node historian configuration.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("history/configuration")]
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             [FromBody][Required] RequestEnvelope<HistoryConfigurationRequestModel> request,
@@ -573,6 +748,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The test results.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("test")]
         public async Task<TestConnectionResponseModel> TestConnectionAsync(
             [FromBody][Required] RequestEnvelope<TestConnectionRequestModel> request,

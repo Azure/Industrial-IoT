@@ -27,9 +27,7 @@
                 "description": "Get the certificates in the specified certificate store",
                 "operationId": "ListCertificates",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -43,7 +41,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -62,8 +60,6 @@
                 "operationId": "AddCertificate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -93,7 +89,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -107,9 +103,7 @@
                 "description": "Get the certificates in the specified certificated store",
                 "operationId": "ListCertificateRevocationLists",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -123,7 +117,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -143,8 +137,6 @@
                 "operationId": "AddCertificateRevocationList",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -168,7 +160,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             },
@@ -190,7 +182,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -205,8 +197,6 @@
                 "operationId": "AddCertificateChain",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -223,7 +213,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -247,7 +237,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -262,8 +252,6 @@
                 "operationId": "AddTrustedHttpsCertificate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -280,7 +268,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -311,7 +299,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -335,7 +323,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -350,14 +338,10 @@
                 "operationId": "PublishStart",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -373,7 +357,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStartResponseModel"
                         }
@@ -391,14 +375,10 @@
                 "operationId": "PublishStop",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -414,7 +394,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStopResponseModel"
                         }
@@ -432,14 +412,10 @@
                 "operationId": "PublishBulk",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -455,7 +431,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishBulkResponseModel"
                         }
@@ -473,14 +449,10 @@
                 "operationId": "PublishList",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -496,7 +468,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The items were found and returned.",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
@@ -514,14 +486,10 @@
                 "operationId": "PublishNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -537,7 +505,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -555,14 +523,10 @@
                 "operationId": "UnpublishNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -578,7 +542,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -596,14 +560,10 @@
                 "operationId": "UnpublishAllNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -619,7 +579,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -637,13 +597,10 @@
                 "operationId": "AddOrUpdateEndpoints",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json"
+                    "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -662,7 +619,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
@@ -677,9 +634,7 @@
                 "description": "Get a list of nodes under a configured endpoint in the configuration. Further information is provided in the OPC Publisher documentation. configuration.",
                 "operationId": "GetConfiguredEndpoints",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -692,7 +647,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The data was retrieved.",
                         "schema": {
                             "$ref": "#/definitions/GetConfiguredEndpointsResponseModel"
                         }
@@ -708,8 +663,6 @@
                 "operationId": "SetConfiguredEndpoints",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -725,7 +678,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -740,14 +693,10 @@
                 "operationId": "GetConfiguredNodesOnEndpoint",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -763,7 +712,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The information was returned.",
                         "schema": {
                             "$ref": "#/definitions/GetConfiguredNodesOnEndpointResponseModel"
                         }
@@ -780,14 +729,12 @@
                 "description": "Get the list of diagnostics info for all dataset writers in the OPC Publisher at the point the call is received. Further information is provided in the OPC Publisher documentation.",
                 "operationId": "GetDiagnosticInfo",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful.",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -808,7 +755,7 @@
                 "operationId": "ResetAllClients",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -823,7 +770,7 @@
                 "operationId": "SetTraceMode",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The operation was successful."
                     }
                 }
             }
@@ -838,14 +785,10 @@
                 "operationId": "FindServer",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -861,7 +804,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationModel"
                         }
@@ -879,14 +822,10 @@
                 "operationId": "Register",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -902,7 +841,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "type": "boolean"
                         }
@@ -920,14 +859,10 @@
                 "operationId": "Discover",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -943,7 +878,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "type": "boolean"
                         }
@@ -961,14 +896,10 @@
                 "operationId": "Cancel",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -984,7 +915,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "type": "boolean"
                         }
@@ -1002,14 +933,10 @@
                 "operationId": "GetServerCapabilities",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1025,7 +952,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ServerCapabilitiesModel"
                         }
@@ -1043,14 +970,10 @@
                 "operationId": "Browse",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1066,7 +989,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
@@ -1084,14 +1007,10 @@
                 "operationId": "BrowseNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1107,7 +1026,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
@@ -1125,14 +1044,10 @@
                 "operationId": "BrowseStream",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1148,7 +1063,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowseStreamChunkModelIAsyncEnumerable"
                         }
@@ -1166,14 +1081,10 @@
                 "operationId": "BrowsePath",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1189,7 +1100,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowsePathResponseModel"
                         }
@@ -1207,14 +1118,10 @@
                 "operationId": "ValueRead",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1230,7 +1137,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
@@ -1248,14 +1155,10 @@
                 "operationId": "ValueWrite",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1271,7 +1174,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ValueWriteResponseModel"
                         }
@@ -1289,14 +1192,10 @@
                 "operationId": "GetMetadata",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1312,7 +1211,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataResponseModel"
                         }
@@ -1330,14 +1229,10 @@
                 "operationId": "CompileQuery",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1353,7 +1248,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/QueryCompilationResponseModel"
                         }
@@ -1371,14 +1266,10 @@
                 "operationId": "MethodMetadata",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1394,7 +1285,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataResponseModel"
                         }
@@ -1412,14 +1303,10 @@
                 "operationId": "MethodCall",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1435,7 +1322,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/MethodCallResponseModel"
                         }
@@ -1453,14 +1340,10 @@
                 "operationId": "NodeRead",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1476,7 +1359,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ReadResponseModel"
                         }
@@ -1494,14 +1377,10 @@
                 "operationId": "NodeWrite",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1517,7 +1396,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/WriteResponseModel"
                         }
@@ -1535,14 +1414,10 @@
                 "operationId": "HistoryRead",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1558,7 +1433,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadResponseModel"
                         }
@@ -1576,14 +1451,10 @@
                 "operationId": "HistoryReadNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1599,7 +1470,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadNextResponseModel"
                         }
@@ -1617,14 +1488,10 @@
                 "operationId": "HistoryUpdate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1640,7 +1507,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1658,14 +1525,10 @@
                 "operationId": "GetEndpointCertificate",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1681,7 +1544,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
                         }
@@ -1699,14 +1562,10 @@
                 "operationId": "HistoryGetServerCapabilities",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1722,7 +1581,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryServerCapabilitiesModel"
                         }
@@ -1740,14 +1599,10 @@
                 "operationId": "HistoryGetConfiguration",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1763,7 +1618,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationResponseModel"
                         }
@@ -1781,14 +1636,10 @@
                 "operationId": "TestConnection",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1804,7 +1655,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
                         }
@@ -1822,14 +1673,10 @@
                 "operationId": "HistoryReplaceEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1845,7 +1692,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1863,14 +1710,10 @@
                 "operationId": "HistoryInsertEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1886,7 +1729,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1904,14 +1747,10 @@
                 "operationId": "HistoryUpsertEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1927,7 +1766,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1945,14 +1784,10 @@
                 "operationId": "HistoryDeleteEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -1968,7 +1803,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -1986,14 +1821,10 @@
                 "operationId": "HistoryDeleteValuesAtTimes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2009,7 +1840,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2027,14 +1858,10 @@
                 "operationId": "HistoryDeleteModifiedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2050,7 +1877,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2068,14 +1895,10 @@
                 "operationId": "HistoryDeleteValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2091,7 +1914,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2109,14 +1932,10 @@
                 "operationId": "HistoryReplaceValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2132,7 +1951,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2150,14 +1969,10 @@
                 "operationId": "HistoryInsertValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2173,7 +1988,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2191,14 +2006,10 @@
                 "operationId": "HistoryUpsertValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2214,7 +2025,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
@@ -2232,14 +2043,10 @@
                 "operationId": "HistoryReadEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2255,7 +2062,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadResponseModel"
                         }
@@ -2273,14 +2080,10 @@
                 "operationId": "HistoryReadEventsNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2296,7 +2099,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadNextResponseModel"
                         }
@@ -2314,14 +2117,10 @@
                 "operationId": "HistoryReadValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2337,7 +2136,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2355,14 +2154,10 @@
                 "operationId": "HistoryReadValuesAtTimes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2378,7 +2173,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2396,14 +2191,10 @@
                 "operationId": "HistoryReadProcessedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2419,7 +2210,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2437,14 +2228,10 @@
                 "operationId": "HistoryReadModifiedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2460,7 +2247,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
@@ -2478,14 +2265,10 @@
                 "operationId": "HistoryReadValuesNext",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2501,7 +2284,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadNextResponseModel"
                         }
@@ -2519,14 +2302,10 @@
                 "operationId": "HistoryStreamValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2542,7 +2321,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2560,14 +2339,10 @@
                 "operationId": "HistoryStreamModifiedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2583,7 +2358,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2601,14 +2376,10 @@
                 "operationId": "HistoryStreamValuesAtTimes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2624,7 +2395,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2642,14 +2413,10 @@
                 "operationId": "HistoryStreamProcessedValues",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2665,7 +2432,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
                         }
@@ -2683,14 +2450,10 @@
                 "operationId": "HistoryStreamEvents",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2706,7 +2469,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelIAsyncEnumerable"
                         }
@@ -2724,8 +2487,6 @@
                 "operationId": "CreateOrUpdateDataSetWriterEntry",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2741,7 +2502,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The item was created"
                     }
                 }
             }
@@ -2755,9 +2516,7 @@
                 "description": "Get the published nodes entry for a specific writer group and dataset writer. Dedicated errors are returned if no, or no unique entry could be found. The entry does not contain the nodes. Nodes can be retrieved using the GetNodes API.",
                 "operationId": "GetDataSetWriterEntry",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2778,10 +2537,58 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The item was found",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModel"
                         }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "AddOrUpdateNode",
+                "description": "Add a node to a dedicated data set writer in a writer group. A node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
+                "operationId": "AddOrUpdateNode",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "insertAfterFieldId",
+                        "description": "Field after which to insert the nodes. If not specified, nodes are added at the end of the entry",
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Node to add or update",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/OpcNodeModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was added"
                     }
                 }
             },
@@ -2810,13 +2617,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The entry was removed"
                     }
                 }
             }
         },
-        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes": {
-            "put": {
+        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/add": {
+            "post": {
                 "tags": [
                     "Writer"
                 ],
@@ -2825,8 +2632,7 @@
                 "operationId": "AddOrUpdateNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json"
+                    "application/x-msgpack"
                 ],
                 "parameters": [
                     {
@@ -2864,21 +2670,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "The items were added"
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/remove": {
+            "post": {
                 "tags": [
                     "Writer"
                 ],
                 "summary": "RemoveNodes",
-                "description": "Remove Nodes with the data set field ids from a data set writer in a writer group. If the field is not found, no error is returned.",
+                "description": "Remove Nodes that match the provided data set field ids from a data set writer in a writer group. If one of the fields is not found, no error is returned, however, if all fields are not found an error is returned.",
                 "operationId": "RemoveNodes",
                 "consumes": [
                     "application/json",
-                    "text/json",
-                    "application/*+json"
+                    "application/x-msgpack"
                 ],
                 "parameters": [
                     {
@@ -2898,7 +2705,7 @@
                     {
                         "in": "body",
                         "name": "body",
-                        "description": "Fields to add",
+                        "description": "The identifiers of the fields to remove",
                         "required": true,
                         "schema": {
                             "type": "array",
@@ -2910,10 +2717,93 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "Some or all items were removed"
+                    }
+                }
+            }
+        },
+        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}": {
+            "delete": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "RemoveNode",
+                "description": "Remove a node with the specified data set field id from a data set writer in a writer group. If the field is not found, an error is returned.",
+                "operationId": "RemoveNode",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetFieldId",
+                        "description": "Identifier of the field to remove",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was removed"
                     }
                 }
             },
+            "get": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "GetNode",
+                "description": "Get a node from a dataset in a writer group. Dedicated errors are returned if no, or no unique entry could be found, or the node does not exist.",
+                "operationId": "GetNode",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterGroup",
+                        "description": "The writer group name of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetWriterId",
+                        "description": "The data set writer identifer of the entry",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "path",
+                        "name": "dataSetFieldId",
+                        "description": "The data set field id of the node to return",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/OpcNodeModel"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes": {
             "get": {
                 "tags": [
                     "Writer"
@@ -2922,9 +2812,7 @@
                 "description": "Get Nodes from a data set writer in a writer group. The nodes can optionally be offset from a previous last node identified by the dataSetFieldId and pageanated by the pageSize. If the dataSetFieldId is not found, an empty list is returned. If the dataSetFieldId is not specified, the first page is returned.",
                 "operationId": "GetNodes",
                 "produces": [
-                    "text/plain",
                     "application/json",
-                    "text/json",
                     "application/x-msgpack"
                 ],
                 "parameters": [
@@ -2958,7 +2846,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "The items were found",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -2975,7 +2863,6 @@
     },
     "definitions": {
         "AdditionalData": {
-            "format": "int32",
             "description": "Flags that are set by the historian when\r\nreturning archived values.",
             "enum": [
                 "None",
@@ -3121,7 +3008,6 @@
             "additionalProperties": false
         },
         "ApplicationType": {
-            "format": "int32",
             "description": "Application type",
             "enum": [
                 "Server",
@@ -3229,7 +3115,6 @@
             "additionalProperties": false
         },
         "BrowseDirection": {
-            "format": "int32",
             "description": "Direction to browse",
             "enum": [
                 "Forward",
@@ -3640,7 +3525,6 @@
             "additionalProperties": false
         },
         "ConnectionOptions": {
-            "format": "int32",
             "description": "Options that can be applied to a connection",
             "enum": [
                 "None",
@@ -3699,7 +3583,6 @@
             "additionalProperties": false
         },
         "CredentialType": {
-            "format": "int32",
             "description": "Type of credentials to use for authentication",
             "enum": [
                 "None",
@@ -3714,7 +3597,6 @@
             }
         },
         "DataChangeTriggerType": {
-            "format": "int32",
             "description": "Data change trigger",
             "enum": [
                 "Status",
@@ -3728,7 +3610,6 @@
             }
         },
         "DataLocation": {
-            "format": "int32",
             "description": "Indicate the data location",
             "enum": [
                 "Raw",
@@ -3742,7 +3623,6 @@
             }
         },
         "DataSetRoutingMode": {
-            "format": "int32",
             "description": "Data set routing",
             "enum": [
                 "None",
@@ -3767,7 +3647,6 @@
             "additionalProperties": false
         },
         "DeadbandType": {
-            "format": "int32",
             "description": "Deadband type",
             "enum": [
                 "Absolute",
@@ -3968,7 +3847,6 @@
             "additionalProperties": false
         },
         "DiagnosticsLevel": {
-            "format": "int32",
             "description": "Level of diagnostics requested in responses",
             "enum": [
                 "None",
@@ -4076,7 +3954,6 @@
             "additionalProperties": false
         },
         "DiscoveryMode": {
-            "format": "int32",
             "description": "Discovery mode to use",
             "enum": [
                 "Off",
@@ -4208,7 +4085,6 @@
             "additionalProperties": false
         },
         "ExceptionDeviationType": {
-            "format": "int32",
             "description": "Exception deviation type",
             "enum": [
                 "AbsoluteValue",
@@ -4265,7 +4141,6 @@
             "additionalProperties": false
         },
         "FilterOperatorType": {
-            "format": "int32",
             "description": "Filter operator type",
             "enum": [
                 "Equals",
@@ -4322,7 +4197,6 @@
             "additionalProperties": false
         },
         "HeartbeatBehavior": {
-            "format": "int32",
             "description": "Heartbeat behavior",
             "enum": [
                 "WatchdogLKV",
@@ -4716,7 +4590,6 @@
             "additionalProperties": false
         },
         "HistoryUpdateOperation": {
-            "format": "int32",
             "description": "History update type",
             "enum": [
                 "Insert",
@@ -4806,7 +4679,6 @@
             "additionalProperties": false
         },
         "MessageEncoding": {
-            "format": "int32",
             "description": "Message encoding",
             "enum": [
                 "Uadp",
@@ -4827,7 +4699,6 @@
             }
         },
         "MessagingMode": {
-            "format": "int32",
             "description": "Message modes",
             "enum": [
                 "PubSub",
@@ -5093,7 +4964,6 @@
             "additionalProperties": false
         },
         "MonitoredItemWatchdogCondition": {
-            "format": "int32",
             "description": "Monitored item watchdog condition",
             "enum": [
                 "WhenAllAreLate",
@@ -5106,7 +4976,6 @@
             }
         },
         "NamespaceFormat": {
-            "format": "int32",
             "description": "Namespace serialization format for node ids\r\nand qualified names.",
             "enum": [
                 "Uri",
@@ -5120,7 +4989,6 @@
             }
         },
         "NodeAccessLevel": {
-            "format": "int32",
             "description": "Flags that can be set for the AccessLevel attribute.",
             "enum": [
                 "None",
@@ -5142,7 +5010,6 @@
             }
         },
         "NodeAccessRestrictions": {
-            "format": "int32",
             "description": "Flags that can be read or written in the\r\nAccessRestrictions attribute.",
             "enum": [
                 "None",
@@ -5157,7 +5024,6 @@
             }
         },
         "NodeAttribute": {
-            "format": "int32",
             "description": "Node attribute identifiers",
             "enum": [
                 "NodeId",
@@ -5194,7 +5060,6 @@
             }
         },
         "NodeClass": {
-            "format": "int32",
             "description": "Node class",
             "enum": [
                 "Object",
@@ -5213,7 +5078,6 @@
             }
         },
         "NodeEventNotifier": {
-            "format": "int32",
             "description": "Flags that can be set for the EventNotifier attribute.",
             "enum": [
                 "SubscribeToEvents",
@@ -5511,7 +5375,6 @@
             "additionalProperties": false
         },
         "NodeType": {
-            "format": "int32",
             "description": "The node type",
             "enum": [
                 "Unknown",
@@ -5531,7 +5394,6 @@
             }
         },
         "NodeValueRank": {
-            "format": "int32",
             "description": "Constants defined for the ValueRank attribute.",
             "enum": [
                 "OneOrMoreDimensions",
@@ -5548,7 +5410,6 @@
             }
         },
         "OpcAuthenticationMode": {
-            "format": "int32",
             "description": "Enum that defines the authentication method",
             "enum": [
                 "Anonymous",
@@ -5812,6 +5673,28 @@
                 }
             },
             "additionalProperties": false
+        },
+        "ProblemDetails": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "status": {
+                    "format": "int32",
+                    "type": "integer"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "instance": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": {}
         },
         "PublishBulkRequestModel": {
             "description": "Publish in bulk request",
@@ -6421,7 +6304,6 @@
             "additionalProperties": false
         },
         "QoS": {
-            "format": "int32",
             "enum": [
                 "AtMostOnce",
                 "AtLeastOnce",
@@ -6485,7 +6367,6 @@
             "additionalProperties": false
         },
         "QueryType": {
-            "format": "int32",
             "description": "Query type",
             "enum": [
                 "Event",
@@ -7007,7 +6888,6 @@
             "additionalProperties": false
         },
         "RolePermissions": {
-            "format": "int32",
             "description": "Individual permissions assigned to a role",
             "enum": [
                 "None",
@@ -7036,7 +6916,6 @@
             }
         },
         "SecurityMode": {
-            "format": "int32",
             "description": "Security mode of endpoint",
             "enum": [
                 "Best",
@@ -7221,7 +7100,6 @@
             "additionalProperties": false
         },
         "SubscriptionWatchdogBehavior": {
-            "format": "int32",
             "description": "Subscription watchdog behavior",
             "enum": [
                 "Diagnostic",
@@ -7272,7 +7150,6 @@
             "additionalProperties": false
         },
         "TimestampsToReturn": {
-            "format": "int32",
             "description": "Timestamps",
             "enum": [
                 "Both",
@@ -7836,7 +7713,6 @@
             "additionalProperties": false
         },
         "WriterGroupTransport": {
-            "format": "int32",
             "description": "Desired writer group transport",
             "enum": [
                 "IoTHub",
@@ -7950,7 +7826,6 @@
             "additionalProperties": false
         },
         "X509ChainStatus": {
-            "format": "int32",
             "description": "Status of x509 chain",
             "enum": [
                 "NotTimeValid",
@@ -8000,7 +7875,7 @@
         },
         {
             "name": "Discovery",
-            "description": "\r\nOPC UA and network discovery related API.\r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
+            "description": "\r\n\r\n            OPC UA and network discovery related API.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
         },
         {
             "name": "General",

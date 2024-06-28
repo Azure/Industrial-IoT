@@ -7,8 +7,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Asp.Versioning;
+    using Furly;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Threading;
@@ -35,6 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Route("v{version:apiVersion}")]
     [ApiController]
     [Authorize]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class DiagnosticsController : ControllerBase, IMethodController
     {
         /// <summary>
@@ -55,6 +59,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// reconnect and recreate of all subscriptions.
         /// </remarks>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("reset")]
         public async Task ResetAllClientsAsync(CancellationToken ct = default)
         {
@@ -71,6 +81,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// tracemode will cause a reconnect of the client.
         /// </remarks>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("tracemode")]
         public async Task SetTraceModeAsync(CancellationToken ct = default)
         {

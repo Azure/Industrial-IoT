@@ -9,8 +9,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Asp.Versioning;
+    using Furly;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
@@ -39,6 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Route("v{version:apiVersion}/pki")]
     [ApiController]
     [Authorize]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class CertificatesController : ControllerBase, IMethodController
     {
         /// <summary>
@@ -61,6 +65,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <returns>The list of certificates currently in the store.</returns>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information such as store name
+        /// is invalid</response>
+        /// <response code="404">Nothing could be found.</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{store}/certs")]
         public async Task<IReadOnlyList<X509CertificateModel>> ListCertificatesAsync(
             string store, CancellationToken ct = default)
@@ -84,6 +97,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <returns>The list of certificates revocation lists currently
         /// in the store.</returns>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information such as store name
+        /// is invalid</response>
+        /// <response code="404">Nothing could be found.</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("{store}/crls")]
         public async Task<IReadOnlyList<byte[]>> ListCertificateRevocationListsAsync(
             string store, CancellationToken ct = default)
@@ -110,6 +132,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="pfxBlob"/>
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information such as store name
+        /// is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPatch("{store}/certs")]
         public async Task AddCertificateAsync(string store,
             [FromBody][Required] byte[] pfxBlob, [FromQuery] string? password,
@@ -137,6 +166,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <exception cref="ArgumentNullException"><paramref name="crl"/>
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPatch("{store}/crls")]
         public async Task AddCertificateRevocationListAsync(string store,
             [FromBody][Required] byte[] crl, CancellationToken ct = default)
@@ -162,6 +197,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("trusted/certs")]
         public async Task AddCertificateChainAsync([FromBody][Required] byte[] certificateChain,
             CancellationToken ct = default)
@@ -180,6 +221,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </remarks>
         /// <param name="thumbprint">The thumbprint of the certificate to trust.</param>
         /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("rejected/certs/{thumbprint}/approve")]
         public async Task ApproveRejectedCertificateAsync(string thumbprint,
             CancellationToken ct = default)
@@ -200,6 +247,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="certificateChain"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("https/certs")]
         public async Task AddTrustedHttpsCertificateAsync([FromBody][Required] byte[] certificateChain,
             CancellationToken ct = default)
@@ -220,6 +273,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="thumbprint">The thumbprint of the certificate to delete.</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information such store name is invalid</response>
+        /// <response code="404">Nothing could be found.</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("{store}/certs/{thumbprint}")]
         public async Task RemoveCertificateAsync(string store,
             string thumbprint, CancellationToken ct = default)
@@ -242,6 +303,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="crl">The crl to delete.</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information such store name is invalid</response>
+        /// <response code="404">Nothing could be found.</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("{store}/crls")]
         public async Task RemoveCertificateRevocationListAsync(string store,
             byte[] crl, CancellationToken ct = default)
@@ -264,6 +333,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="store">The store to add the certificate to</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentException">if store name is invalid.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information such store name is invalid</response>
+        /// <response code="404">Nothing could be found.</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("{store}")]
         public async Task RemoveAllAsync(string store, CancellationToken ct = default)
         {

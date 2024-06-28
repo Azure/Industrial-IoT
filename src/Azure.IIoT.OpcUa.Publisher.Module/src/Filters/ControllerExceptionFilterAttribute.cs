@@ -79,6 +79,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                         context.Exception);
                     break;
                 case NotSupportedException ns:
+                    context.Result = GetResponse(HttpStatusCode.MethodNotAllowed,
+                        context.Exception);
+                    break;
                 case NotImplementedException ne:
                     context.Result = GetResponse(HttpStatusCode.NotImplemented,
                         context.Exception);

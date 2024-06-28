@@ -8,8 +8,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     using Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Furly;
     using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -24,6 +26,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
     [ExceptionsFilter]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
+    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
     public class HistoryController : ControllerBase
     {
         /// <summary>
@@ -51,6 +55,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="ct"></param>
         /// <returns>Server capabilities</returns>
         /// <exception cref="ArgumentNullException"></exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("capabilities/{endpointId}")]
         public async Task<HistoryServerCapabilitiesModel> GetHistoryServerCapabilitiesAsync(
             string endpointId, [FromQuery] NamespaceFormat? namespaceFormat, CancellationToken ct)
@@ -77,6 +87,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history read response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("history/read/{endpointId}")]
         public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadRawAsync(
             string endpointId, [FromBody][Required] HistoryReadRequestModel<VariantValue> request,
@@ -101,6 +117,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history read response</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("history/read/{endpointId}/next")]
         public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadRawNextAsync(
             string endpointId, [FromBody][Required] HistoryReadNextRequestModel request,
@@ -125,6 +147,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history update result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("history/update/{endpointId}")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateRawAsync(string endpointId,
@@ -150,6 +178,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history node configuration</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
         /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/configuration")]
         public async Task<HistoryConfigurationResponseModel> HistoryGetConfigurationAsync(
             string endpointId, HistoryConfigurationRequestModel request,
@@ -174,6 +208,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic events</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/events")]
         public async Task<HistoryReadResponseModel<HistoricEventModel[]>> HistoryReadEventsAsync(
             string endpointId,
@@ -199,6 +239,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic events</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/events/next")]
         public async Task<HistoryReadNextResponseModel<HistoricEventModel[]>> HistoryReadEventsNextAsync(
             string endpointId,
@@ -224,6 +270,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic values</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/values")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAsync(
             string endpointId,
@@ -249,6 +301,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic values</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/values/pick")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadValuesAtTimesAsync(
             string endpointId,
@@ -274,6 +332,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic values</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/values/processed")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadProcessedValuesAsync(
             string endpointId,
@@ -299,6 +363,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic values</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/values/modified")]
         public async Task<HistoryReadResponseModel<HistoricValueModel[]>> HistoryReadModifiedValuesAsync(
             string endpointId,
@@ -324,6 +394,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The historic values</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("read/{endpointId}/values/next")]
         public async Task<HistoryReadNextResponseModel<HistoricValueModel[]>> HistoryReadValueNextAsync(
             string endpointId, [FromBody][Required] HistoryReadNextRequestModel request,
@@ -347,6 +423,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history replace result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("replace/{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceValuesAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
@@ -370,6 +452,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history replace result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("replace/{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryReplaceEventsAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
@@ -393,6 +481,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history insert result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("insert/{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertValuesAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
@@ -416,6 +510,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history insert result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("insert/{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryInsertEventsAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
@@ -439,6 +539,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history upsert result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("upsert/{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertValuesAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<UpdateValuesDetailsModel> request,
@@ -462,6 +568,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history upsert result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("upsert/{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryUpsertEventsAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<UpdateEventsDetailsModel> request,
@@ -485,6 +597,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history delete result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("delete/{endpointId}/values/pick")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAtTimesAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesAtTimesDetailsModel> request,
@@ -508,6 +626,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history delete result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("delete/{endpointId}/values")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteValuesAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
@@ -531,6 +655,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history delete result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("delete/{endpointId}/values/modified")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteModifiedValuesAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<DeleteValuesDetailsModel> request,
@@ -554,6 +684,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>The history delete result</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is
         /// <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="500">An internal error ocurred.</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("delete/{endpointId}/events")]
         public async Task<HistoryUpdateResponseModel> HistoryDeleteEventsAsync(string endpointId,
             [FromBody][Required] HistoryUpdateRequestModel<DeleteEventsDetailsModel> request,

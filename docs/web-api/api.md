@@ -29,15 +29,12 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -64,14 +61,12 @@ Get all registered applications in paged form. The returned model can contain a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -97,23 +92,18 @@ The application is registered using the provided information, but it is not asso
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
+|**200**|The operation was successful.|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -139,7 +129,7 @@ Purges all applications that have not been seen for a specified amount of time.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="discoverserver"></a>
@@ -164,15 +154,12 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -198,7 +185,7 @@ Cancels a discovery request using the request identifier.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="queryapplications"></a>
@@ -224,23 +211,18 @@ List applications that match a query model. The returned model can contain a con
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -267,23 +249,18 @@ Get a list of applications filtered using the specified query parameters. The re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -310,14 +287,12 @@ List all sites applications are registered in.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
+|**200**|The operation was successful.|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -339,14 +314,12 @@ GET /registry/v2/applications/{applicationId}
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**200**|The operation was successful.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -372,7 +345,7 @@ Unregisters and deletes application and all its associated endpoints.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="updateapplicationregistration"></a>
@@ -398,15 +371,12 @@ The application information is updated with new properties. Note that this infor
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -432,7 +402,7 @@ A manager can disable an application.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="enableapplication"></a>
@@ -457,7 +427,7 @@ A manager can enable an application.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="discovery_resource"></a>
@@ -488,14 +458,12 @@ Get all registered discoverers and therefore twin modules in paged form. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**200**|The operation was successful.|[DiscovererListModel](definitions.md#discovererlistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -522,23 +490,18 @@ Get all discoverers that match a specified query. The returned model can contain
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**200**|The operation was successful.|[DiscovererListModel](definitions.md#discovererlistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -567,14 +530,12 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**200**|The operation was successful.|[DiscovererListModel](definitions.md#discovererlistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -602,15 +563,12 @@ Allows a caller to configure recurring discovery runs on the discovery module id
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -636,14 +594,12 @@ Returns a discoverer's registration and connectivity information. A discoverer i
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[DiscovererModel](definitions.md#discoverermodel)|
+|**200**|The operation was successful.|[DiscovererModel](definitions.md#discoverermodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -670,15 +626,12 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -711,14 +664,12 @@ Get all registered endpoints in paged form. The returned model can contain a con
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**200**|The operation was successful.|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -744,23 +695,18 @@ Adds an endpoint. This will onboard the endpoint and the associated application 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|string|
+|**200**|The operation was successful.|string|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -788,23 +734,18 @@ Return endpoints that match the specified query. The returned model can contain 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**200**|The operation was successful.|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -840,14 +781,12 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**200**|The operation was successful.|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -874,14 +813,12 @@ Gets information about an endpoint.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[EndpointInfoModel](definitions.md#endpointinfomodel)|
+|**200**|The operation was successful.|[EndpointInfoModel](definitions.md#endpointinfomodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -907,14 +844,12 @@ Gets current certificate of the endpoint.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**200**|The operation was successful.|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -941,23 +876,18 @@ Test an endpoint can be connected to. Returns error information if connecting fa
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**200**|The operation was successful.|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -989,15 +919,12 @@ Register a client to receive discovery progress events through SignalR for a par
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1024,7 +951,7 @@ Unregister a client and stop it from receiving discovery events for a particular
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="subscribebydiscovererid"></a>
@@ -1050,15 +977,12 @@ Register a client to receive discovery progress events through SignalR from a pa
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1085,7 +1009,7 @@ Unregister a client and stop it from receiving discovery events.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="gateways_resource"></a>
@@ -1116,14 +1040,12 @@ Get all registered Gateways and therefore twin modules in paged form. The return
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**200**|The operation was successful.|[GatewayListModel](definitions.md#gatewaylistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1150,23 +1072,18 @@ Get all Gateways that match a specified query. The returned model can contain a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**200**|The operation was successful.|[GatewayListModel](definitions.md#gatewaylistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1194,14 +1111,12 @@ Get a list of Gateways filtered using the specified query parameters. The return
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**200**|The operation was successful.|[GatewayListModel](definitions.md#gatewaylistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1227,14 +1142,12 @@ Returns a Gateway's registration and connectivity information. A Gateway id corr
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[GatewayInfoModel](definitions.md#gatewayinfomodel)|
+|**200**|The operation was successful.|[GatewayInfoModel](definitions.md#gatewayinfomodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1261,15 +1174,12 @@ Allows a caller to configure operations on the Gateway module identified by the 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -1301,14 +1211,12 @@ Gets the capabilities of the connected historian server. The endpoint must be in
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**200**|The operation was successful.|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1335,23 +1243,18 @@ Delete historic events using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1378,23 +1281,18 @@ Delete historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1421,23 +1319,18 @@ Delete historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1464,23 +1357,18 @@ Delete value history using historic access. The endpoint must be in the registry
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1507,23 +1395,18 @@ Read node history if available using historic access. The endpoint must be in th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**200**|The operation was successful.|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1550,23 +1433,18 @@ Read next batch of node history values using historic access. The endpoint must 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**200**|The operation was successful.|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1593,23 +1471,18 @@ Update node history using historic access. The endpoint must be in the registry 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1636,23 +1509,18 @@ Insert historic events using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1679,23 +1547,18 @@ Insert historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1722,23 +1585,18 @@ Read history node configuration if available. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**200**|The operation was successful.|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1765,23 +1623,18 @@ Read historic events of a node if available using historic access. The endpoint 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful.|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1808,23 +1661,18 @@ Read next batch of historic events of a node using historic access. The endpoint
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**200**|The operation was successful.|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1851,23 +1699,18 @@ Read processed history values of a node if available using historic access. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1894,23 +1737,18 @@ Read processed history values of a node if available using historic access. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1937,23 +1775,18 @@ Read next batch of historic values of a node using historic access. The endpoint
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -1980,23 +1813,18 @@ Read historic values of a node if available using historic access. The endpoint 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2023,23 +1851,18 @@ Read processed history values of a node if available using historic access. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2066,23 +1889,18 @@ Replace historic events using historic access. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2109,23 +1927,18 @@ Replace historic values using historic access. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2152,23 +1965,18 @@ Upsert historic events using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2195,23 +2003,18 @@ Upsert historic values using historic access. The endpoint must be in the regist
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2243,23 +2046,18 @@ Returns currently published node ids for an endpoint. The endpoint must be in th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**200**|The operation was successful.|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2286,14 +2084,12 @@ Returns next set of currently published node ids for an endpoint. The endpoint m
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**200**|The operation was successful.|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2320,23 +2116,18 @@ Adds or removes in bulk values that should be published from a particular endpoi
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
+|**200**|The operation was successful.|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2363,23 +2154,18 @@ Start publishing variable node values to IoT Hub. The endpoint must be in the re
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
+|**200**|The operation was successful.|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2406,23 +2192,18 @@ Stop publishing variable node values to IoT Hub. The endpoint must be in the reg
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
+|**200**|The operation was successful.|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2455,14 +2236,12 @@ Get all registered publishers and therefore twin modules in paged form. The retu
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**200**|The operation was successful.|[PublisherListModel](definitions.md#publisherlistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2490,23 +2269,18 @@ Get all publishers that match a specified query. The returned model can contain 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**200**|The operation was successful.|[PublisherListModel](definitions.md#publisherlistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2535,14 +2309,12 @@ Get a list of publishers filtered using the specified query parameters. The retu
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**200**|The operation was successful.|[PublisherListModel](definitions.md#publisherlistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2569,14 +2341,12 @@ Returns a publisher's registration and connectivity information. A publisher id 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublisherModel](definitions.md#publishermodel)|
+|**200**|The operation was successful.|[PublisherModel](definitions.md#publishermodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2603,15 +2373,12 @@ Allows a caller to configure operations on the publisher module identified by th
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2638,14 +2405,12 @@ Get all configured endpoints on the publisher. These are the ones configured in 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[PublishedNodesEntryModelIAsyncEnumerable](definitions.md#publishednodesentrymodeliasyncenumerable)|
+|**200**|The operation was successful.|[PublishedNodesEntryModelIAsyncEnumerable](definitions.md#publishednodesentrymodeliasyncenumerable)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2672,15 +2437,12 @@ Set all configured endpoints on the publisher. These are the ones that will be w
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2713,14 +2475,12 @@ Get all registered supervisors and therefore twin modules in paged form. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**200**|The operation was successful.|[SupervisorListModel](definitions.md#supervisorlistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2748,23 +2508,18 @@ Get all supervisors that match a specified query. The returned model can contain
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**200**|The operation was successful.|[SupervisorListModel](definitions.md#supervisorlistmodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2794,14 +2549,12 @@ Get a list of supervisors filtered using the specified query parameters. The ret
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**200**|The operation was successful.|[SupervisorListModel](definitions.md#supervisorlistmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2828,14 +2581,12 @@ Returns a supervisor's registration and connectivity information. A supervisor i
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[SupervisorModel](definitions.md#supervisormodel)|
+|**200**|The operation was successful.|[SupervisorModel](definitions.md#supervisormodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -2862,15 +2613,12 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2902,15 +2650,12 @@ Register a client to receive publisher samples through SignalR.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
@@ -2937,7 +2682,7 @@ Unregister a client and stop it from receiving samples.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|No Content|
+|**200**|The operation was successful.|No Content|
 
 
 <a name="twin_resource"></a>
@@ -2968,23 +2713,18 @@ Browse a node on the specified endpoint. The endpoint must be in the registry an
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|The operation was successful.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3011,14 +2751,12 @@ Browse the set of unique hierarchically referenced target nodes on the endpoint.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|The operation was successful.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3045,23 +2783,18 @@ Browse next set of references on the endpoint. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|The operation was successful.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3088,14 +2821,12 @@ Browse the next set of unique hierarchically referenced target nodes on the endp
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|The operation was successful.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3122,23 +2853,18 @@ Browse using a path from the specified node id. This call uses TranslateBrowsePa
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**200**|The operation was successful.|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3165,23 +2891,18 @@ Invoke method node with specified input arguments. The endpoint must be in the r
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**200**|The operation was successful.|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3208,23 +2929,18 @@ POST /twin/v2/call/{endpointId}/metadata
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**200**|The operation was successful.|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3251,14 +2967,12 @@ Gets the capabilities of the connected server. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**200**|The operation was successful.|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3285,23 +2999,18 @@ Get the node metadata which includes the fields and meta data of the type and ca
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**200**|The operation was successful.|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3328,23 +3037,18 @@ Read a variable node's value. The endpoint must be in the registry and the serve
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|The operation was successful.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3371,14 +3075,12 @@ Get a variable node's value using its node id. The endpoint must be in the regis
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|The operation was successful.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3405,23 +3107,18 @@ Read attributes of a node. The endpoint must be in the registry and the server a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**200**|The operation was successful.|[ReadResponseModel](definitions.md#readresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3448,23 +3145,18 @@ Write variable node's value. The endpoint must be in the registry and the server
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**200**|The operation was successful.|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
@@ -3491,23 +3183,18 @@ Write any attribute of a node. The endpoint must be in the registry and the serv
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|OK|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**200**|The operation was successful.|[WriteResponseModel](definitions.md#writeresponsemodel)|
 
 
 ##### Consumes
 
-* `application/json-patch+json`
 * `application/json`
-* `text/json`
-* `application/*+json`
 * `application/x-msgpack`
 
 
 ##### Produces
 
-* `text/plain`
 * `application/json`
-* `text/json`
 * `application/x-msgpack`
 
 
