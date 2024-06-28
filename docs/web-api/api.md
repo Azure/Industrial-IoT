@@ -30,9 +30,17 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -62,6 +70,8 @@ Get all registered applications in paged form. The returned model can contain a 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -93,6 +103,8 @@ The application is registered using the provided information, but it is not asso
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ApplicationRegistrationResponseModel](definitions.md#applicationregistrationresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -130,6 +142,14 @@ Purges all applications that have not been seen for a specified amount of time.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="discoverserver"></a>
@@ -155,9 +175,17 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -186,6 +214,14 @@ Cancels a discovery request using the request identifier.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="queryapplications"></a>
@@ -212,6 +248,8 @@ List applications that match a query model. The returned model can contain a con
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -250,6 +288,8 @@ Get a list of applications filtered using the specified query parameters. The re
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ApplicationInfoListModel](definitions.md#applicationinfolistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -288,6 +328,8 @@ List all sites applications are registered in.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ApplicationSiteListModel](definitions.md#applicationsitelistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -315,6 +357,8 @@ GET /registry/v2/applications/{applicationId}
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -346,6 +390,14 @@ Unregisters and deletes application and all its associated endpoints.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="updateapplicationregistration"></a>
@@ -372,9 +424,17 @@ The application information is updated with new properties. Note that this infor
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -403,6 +463,14 @@ A manager can disable an application.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="enableapplication"></a>
@@ -428,6 +496,14 @@ A manager can enable an application.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="discovery_resource"></a>
@@ -459,6 +535,8 @@ Get all registered discoverers and therefore twin modules in paged form. The ret
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -491,6 +569,8 @@ Get all discoverers that match a specified query. The returned model can contain
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -531,6 +611,8 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[DiscovererListModel](definitions.md#discovererlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -564,9 +646,17 @@ Allows a caller to configure recurring discovery runs on the discovery module id
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -595,6 +685,8 @@ Returns a discoverer's registration and connectivity information. A discoverer i
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[DiscovererModel](definitions.md#discoverermodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -627,9 +719,17 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -665,6 +765,8 @@ Get all registered endpoints in paged form. The returned model can contain a con
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -696,6 +798,8 @@ Adds an endpoint. This will onboard the endpoint and the associated application 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|string|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -735,6 +839,8 @@ Return endpoints that match the specified query. The returned model can contain 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -782,6 +888,8 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[EndpointInfoListModel](definitions.md#endpointinfolistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -814,6 +922,8 @@ Gets information about an endpoint.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[EndpointInfoModel](definitions.md#endpointinfomodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -845,6 +955,8 @@ Gets current certificate of the endpoint.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -877,6 +989,8 @@ Test an endpoint can be connected to. Returns error information if connecting fa
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -920,9 +1034,17 @@ Register a client to receive discovery progress events through SignalR for a par
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -952,6 +1074,14 @@ Unregister a client and stop it from receiving discovery events for a particular
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="subscribebydiscovererid"></a>
@@ -978,9 +1108,17 @@ Register a client to receive discovery progress events through SignalR from a pa
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -1010,6 +1148,14 @@ Unregister a client and stop it from receiving discovery events.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="gateways_resource"></a>
@@ -1041,6 +1187,8 @@ Get all registered Gateways and therefore twin modules in paged form. The return
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -1073,6 +1221,8 @@ Get all Gateways that match a specified query. The returned model can contain a 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1112,6 +1262,8 @@ Get a list of Gateways filtered using the specified query parameters. The return
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[GatewayListModel](definitions.md#gatewaylistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -1143,6 +1295,8 @@ Returns a Gateway's registration and connectivity information. A Gateway id corr
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[GatewayInfoModel](definitions.md#gatewayinfomodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -1175,9 +1329,17 @@ Allows a caller to configure operations on the Gateway module identified by the 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -1212,6 +1374,8 @@ Gets the capabilities of the connected historian server. The endpoint must be in
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -1244,6 +1408,8 @@ Delete historic events using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1282,6 +1448,8 @@ Delete historic values using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1320,6 +1488,8 @@ Delete historic values using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1358,6 +1528,8 @@ Delete value history using historic access. The endpoint must be in the registry
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1396,6 +1568,8 @@ Read node history if available using historic access. The endpoint must be in th
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1434,6 +1608,8 @@ Read next batch of node history values using historic access. The endpoint must 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1472,6 +1648,8 @@ Update node history using historic access. The endpoint must be in the registry 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1510,6 +1688,8 @@ Insert historic events using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1548,6 +1728,8 @@ Insert historic values using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1586,6 +1768,8 @@ Read history node configuration if available. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1624,6 +1808,8 @@ Read historic events of a node if available using historic access. The endpoint 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1662,6 +1848,8 @@ Read next batch of historic events of a node using historic access. The endpoint
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1700,6 +1888,8 @@ Read processed history values of a node if available using historic access. The 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1738,6 +1928,8 @@ Read processed history values of a node if available using historic access. The 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1776,6 +1968,8 @@ Read next batch of historic values of a node using historic access. The endpoint
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1814,6 +2008,8 @@ Read historic values of a node if available using historic access. The endpoint 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1852,6 +2048,8 @@ Read processed history values of a node if available using historic access. The 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1890,6 +2088,8 @@ Replace historic events using historic access. The endpoint must be in the regis
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1928,6 +2128,8 @@ Replace historic values using historic access. The endpoint must be in the regis
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1966,6 +2168,8 @@ Upsert historic events using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2004,6 +2208,8 @@ Upsert historic values using historic access. The endpoint must be in the regist
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2047,6 +2253,8 @@ Returns currently published node ids for an endpoint. The endpoint must be in th
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2085,6 +2293,8 @@ Returns next set of currently published node ids for an endpoint. The endpoint m
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2117,6 +2327,8 @@ Adds or removes in bulk values that should be published from a particular endpoi
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2155,6 +2367,8 @@ Start publishing variable node values to IoT Hub. The endpoint must be in the re
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2193,6 +2407,8 @@ Stop publishing variable node values to IoT Hub. The endpoint must be in the reg
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2237,6 +2453,8 @@ Get all registered publishers and therefore twin modules in paged form. The retu
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2270,6 +2488,8 @@ Get all publishers that match a specified query. The returned model can contain 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2310,6 +2530,8 @@ Get a list of publishers filtered using the specified query parameters. The retu
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublisherListModel](definitions.md#publisherlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2342,6 +2564,8 @@ Returns a publisher's registration and connectivity information. A publisher id 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublisherModel](definitions.md#publishermodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2374,9 +2598,17 @@ Allows a caller to configure operations on the publisher module identified by th
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2406,6 +2638,8 @@ Get all configured endpoints on the publisher. These are the ones configured in 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedNodesEntryModelIAsyncEnumerable](definitions.md#publishednodesentrymodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2438,9 +2672,17 @@ Set all configured endpoints on the publisher. These are the ones that will be w
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2476,6 +2718,8 @@ Get all registered supervisors and therefore twin modules in paged form. The ret
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2509,6 +2753,8 @@ Get all supervisors that match a specified query. The returned model can contain
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2550,6 +2796,8 @@ Get a list of supervisors filtered using the specified query parameters. The ret
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[SupervisorListModel](definitions.md#supervisorlistmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2582,6 +2830,8 @@ Returns a supervisor's registration and connectivity information. A supervisor i
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[SupervisorModel](definitions.md#supervisormodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2614,9 +2864,17 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2651,9 +2909,17 @@ Register a client to receive publisher samples through SignalR.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2683,6 +2949,14 @@ Unregister a client and stop it from receiving samples.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="twin_resource"></a>
@@ -2714,6 +2988,8 @@ Browse a node on the specified endpoint. The endpoint must be in the registry an
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2752,6 +3028,8 @@ Browse the set of unique hierarchically referenced target nodes on the endpoint.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2784,6 +3062,8 @@ Browse next set of references on the endpoint. The endpoint must be in the regis
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2822,6 +3102,8 @@ Browse the next set of unique hierarchically referenced target nodes on the endp
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2854,6 +3136,8 @@ Browse using a path from the specified node id. This call uses TranslateBrowsePa
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2892,6 +3176,8 @@ Invoke method node with specified input arguments. The endpoint must be in the r
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2930,6 +3216,8 @@ POST /twin/v2/call/{endpointId}/metadata
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2968,6 +3256,8 @@ Gets the capabilities of the connected server. The endpoint must be in the regis
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -3000,6 +3290,8 @@ Get the node metadata which includes the fields and meta data of the type and ca
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -3038,6 +3330,8 @@ Read a variable node's value. The endpoint must be in the registry and the serve
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -3076,6 +3370,8 @@ Get a variable node's value using its node id. The endpoint must be in the regis
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -3108,6 +3404,8 @@ Read attributes of a node. The endpoint must be in the registry and the server a
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -3146,6 +3444,8 @@ Write variable node's value. The endpoint must be in the registry and the server
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -3184,6 +3484,8 @@ Write any attribute of a node. The endpoint must be in the registry and the serv
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes

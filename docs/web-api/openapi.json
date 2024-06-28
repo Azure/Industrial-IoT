@@ -30,6 +30,10 @@
                     "application/json",
                     "application/x-msgpack"
                 ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "body",
@@ -44,6 +48,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -79,6 +95,18 @@
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -89,6 +117,10 @@
                 "summary": "Purge applications",
                 "description": "Purges all applications that have not been seen for a specified amount of time.",
                 "operationId": "DeleteAllDisabledApplications",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "query",
@@ -101,6 +133,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -136,6 +180,18 @@
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 },
                 "x-ms-pageable": {
@@ -151,6 +207,10 @@
                 "summary": "Disable an enabled application.",
                 "description": "A manager can disable an application.",
                 "operationId": "DisableApplication",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -163,6 +223,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -175,6 +247,10 @@
                 "summary": "Re-enable a disabled application.",
                 "description": "A manager can enable an application.",
                 "operationId": "EnableApplication",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -187,6 +263,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -200,6 +288,10 @@
                 "description": "Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.",
                 "operationId": "DiscoverServer",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -217,6 +309,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -229,6 +333,10 @@
                 "summary": "Cancel discovery",
                 "description": "Cancels a discovery request using the request identifier.",
                 "operationId": "Cancel",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -241,6 +349,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -271,6 +391,18 @@
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -282,6 +414,10 @@
                 "description": "The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).",
                 "operationId": "UpdateApplicationRegistration",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -306,6 +442,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -316,6 +464,10 @@
                 "summary": "Unregister application",
                 "description": "Unregisters and deletes application and all its associated endpoints.",
                 "operationId": "DeleteApplication",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -328,6 +480,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -364,6 +528,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationSiteListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -412,6 +588,18 @@
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -454,6 +642,18 @@
                         "schema": {
                             "$ref": "#/definitions/ApplicationInfoListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -485,6 +685,18 @@
                         "schema": {
                             "$ref": "#/definitions/DiscovererModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -496,6 +708,10 @@
                 "description": "Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.",
                 "operationId": "UpdateDiscoverer",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -520,6 +736,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -531,6 +759,10 @@
                 "description": "Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.",
                 "operationId": "SetDiscoveryMode",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -572,6 +804,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -608,6 +852,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -655,6 +911,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -714,6 +982,18 @@
                         "schema": {
                             "$ref": "#/definitions/DiscovererListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -749,6 +1029,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -791,6 +1083,18 @@
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 },
                 "x-ms-pageable": {
@@ -830,6 +1134,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -880,6 +1196,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -996,6 +1324,18 @@
                         "schema": {
                             "$ref": "#/definitions/EndpointInfoListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1040,6 +1380,18 @@
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1071,6 +1423,18 @@
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1084,6 +1448,10 @@
                 "description": "Register a client to receive discovery progress events through SignalR from a particular discoverer.",
                 "operationId": "SubscribeByDiscovererId",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -1107,6 +1475,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1120,6 +1500,10 @@
                 "description": "Register a client to receive discovery progress events through SignalR for a particular request.",
                 "operationId": "SubscribeByRequestId",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -1143,6 +1527,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1155,6 +1551,10 @@
                 "summary": "Unsubscribe from discovery progress for a request.",
                 "description": "Unregister a client and stop it from receiving discovery events for a particular request.",
                 "operationId": "UnsubscribeByRequestId",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -1174,6 +1574,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1186,6 +1598,10 @@
                 "summary": "Unsubscribe from discovery progress from discoverer.",
                 "description": "Unregister a client and stop it from receiving discovery events.",
                 "operationId": "UnsubscribeByDiscovererId",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -1205,6 +1621,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1236,6 +1664,18 @@
                         "schema": {
                             "$ref": "#/definitions/GatewayInfoModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -1247,6 +1687,10 @@
                 "description": "Allows a caller to configure operations on the Gateway module identified by the Gateway id.",
                 "operationId": "UpdateGateway",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -1271,6 +1715,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1307,6 +1763,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -1355,6 +1823,18 @@
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -1395,6 +1875,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/GatewayListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1442,6 +1934,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryServerCapabilitiesModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1485,6 +1989,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1530,6 +2046,18 @@
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadNextResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1574,6 +2102,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1616,6 +2156,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1661,6 +2213,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1704,6 +2268,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadNextResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1749,6 +2325,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1792,6 +2380,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1837,6 +2437,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1880,6 +2492,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1925,6 +2549,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadNextResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -1968,6 +2604,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2013,6 +2661,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2056,6 +2716,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2101,6 +2773,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2144,6 +2828,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2189,6 +2885,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2232,6 +2940,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2277,6 +2997,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2320,6 +3052,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2365,6 +3109,18 @@
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2408,6 +3164,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStartResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2453,6 +3221,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublishBulkResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2496,6 +3276,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStopResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2541,6 +3333,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2576,6 +3380,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -2617,6 +3433,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublisherModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2628,6 +3456,10 @@
                 "description": "Allows a caller to configure operations on the publisher module identified by the publisher id.",
                 "operationId": "UpdatePublisher",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -2652,6 +3484,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2694,6 +3538,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -2748,6 +3604,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2795,6 +3663,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublisherListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2832,6 +3712,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModelIAsyncEnumerable"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2843,6 +3735,10 @@
                 "description": "Set all configured endpoints on the publisher. These are the ones that will be written to local storage of the publisher.",
                 "operationId": "SetConfiguredEndpoints",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -2867,6 +3763,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2904,6 +3812,18 @@
                         "schema": {
                             "$ref": "#/definitions/SupervisorModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2915,6 +3835,10 @@
                 "description": "Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.",
                 "operationId": "UpdateSupervisor",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -2939,6 +3863,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2981,6 +3917,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -3035,6 +3983,18 @@
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -3088,6 +4048,18 @@
                         "schema": {
                             "$ref": "#/definitions/SupervisorListModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3101,6 +4073,10 @@
                 "description": "Register a client to receive publisher samples through SignalR.",
                 "operationId": "Subscribe",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -3124,6 +4100,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3136,6 +4124,10 @@
                 "summary": "Unsubscribe from receiving samples.",
                 "description": "Unregister a client and stop it from receiving samples.",
                 "operationId": "Unsubscribe",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -3155,6 +4147,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3201,6 +4205,18 @@
                         "schema": {
                             "$ref": "#/definitions/ServerCapabilitiesModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3245,6 +4261,18 @@
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -3279,6 +4307,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -3324,6 +4364,18 @@
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -3359,6 +4411,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },
@@ -3407,6 +4471,18 @@
                         "schema": {
                             "$ref": "#/definitions/BrowsePathResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3451,6 +4527,18 @@
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -3486,6 +4574,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -3531,6 +4631,18 @@
                         "schema": {
                             "$ref": "#/definitions/ReadResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3574,6 +4686,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/ValueWriteResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -3619,6 +4743,18 @@
                         "schema": {
                             "$ref": "#/definitions/WriteResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3662,6 +4798,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -3707,6 +4855,18 @@
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -3750,6 +4910,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/MethodCallResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -6736,6 +7908,32 @@
                     "format": "int64",
                     "description": "Max monitored items that can be updated at once.",
                     "type": "integer"
+                }
+            },
+            "additionalProperties": false
+        },
+        "ProblemDetails": {
+            "type": "object",
+            "properties": {
+                "Type": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                },
+                "Status": {
+                    "format": "int32",
+                    "type": "integer"
+                },
+                "Detail": {
+                    "type": "string"
+                },
+                "Instance": {
+                    "type": "string"
+                },
+                "Extensions": {
+                    "type": "object",
+                    "additionalProperties": {}
                 }
             },
             "additionalProperties": false

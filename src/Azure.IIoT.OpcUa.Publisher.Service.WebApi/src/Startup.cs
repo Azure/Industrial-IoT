@@ -83,6 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             services.AddMemoryCache();
             // services.AddDistributedMemoryCache();
             services.AddHttpClient();
+            services.AddExceptionSummarization();
 
             services.AddMicrosoftIdentityWebApiAuthentication();
             services.AddAuthorization();

@@ -38,9 +38,17 @@ Add a certificate chain to the trusted https store. The certificate is provided 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -69,6 +77,14 @@ Move a rejected certificate from the rejected folder to the trusted folder on th
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="addcertificatechain"></a>
@@ -94,9 +110,17 @@ Add a certificate chain to the specified store. The certificate is provided as a
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -125,6 +149,15 @@ Remove all certificates and revocation lists from the specified store.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information such store name is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|Nothing could be found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="listcertificates"></a>
@@ -150,6 +183,9 @@ Get the certificates in the specified certificate store
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|< [X509CertificateModel](definitions.md#x509certificatemodel) > array|
+|**400**|The passed in information such as store name is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|Nothing could be found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -183,9 +219,17 @@ Add a certificate to the specified store. The certificate is provided as a pfx/p
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information such as store name is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -215,6 +259,15 @@ Remove a certificate with the provided thumbprint from the specified store.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information such store name is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|Nothing could be found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="listcertificaterevocationlists"></a>
@@ -240,6 +293,9 @@ Get the certificates in the specified certificated store
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|< string (byte) > array|
+|**400**|The passed in information such as store name is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|Nothing could be found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -271,6 +327,15 @@ Remove a certificate revocation list from the specified store.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information such store name is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|Nothing could be found.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="addcertificaterevocationlist"></a>
@@ -297,9 +362,17 @@ Add a certificate revocation list to the specified store. The certificate revoca
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -340,6 +413,9 @@ Get a list of nodes under a configured endpoint in the configuration. Further in
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The data was retrieved.|[GetConfiguredEndpointsResponseModel](definitions.md#getconfiguredendpointsresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -371,9 +447,18 @@ Enables clients to update the entire published nodes configuration in one call. 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -402,6 +487,9 @@ Add or update endpoint configuration and nodes on a server. Further information 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**404**|The endpoint was not found to add to|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -439,6 +527,9 @@ Configure node values to publish and unpublish in bulk. The group field in the C
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishBulkResponseModel](definitions.md#publishbulkresponsemodel)|
+|**404**|The item could not be unpublished|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -469,6 +560,9 @@ Get the list of diagnostics info for all dataset writers in the OPC Publisher at
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|< [PublishDiagnosticInfoModel](definitions.md#publishdiagnosticinfomodel) > array|
+|**405**|Call not supported or functionality disabled.|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -500,6 +594,10 @@ Get the nodes of a published nodes entry object returned earlier from a call to 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The information was returned.|[GetConfiguredNodesOnEndpointResponseModel](definitions.md#getconfigurednodesonendpointresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry was not found.|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -537,6 +635,8 @@ Get all published nodes for a server endpoint. The group field that was used in 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The items were found and returned.|[PublishedItemListResponseModel](definitions.md#publisheditemlistresponsemodel)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -574,6 +674,8 @@ PublishNodes enables a client to add a set of nodes to be published. Further inf
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -611,6 +713,9 @@ UnpublishNodes method enables a client to remove nodes from a previously configu
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**404**|The nodes could not be unpublished|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -648,6 +753,9 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishedNodesResponseModel](definitions.md#publishednodesresponsemodel)|
+|**404**|The nodes could not be unpublished|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -685,6 +793,8 @@ Start publishing values from a node on a server. The group field in the Connecti
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishStartResponseModel](definitions.md#publishstartresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -722,6 +832,9 @@ Stop publishing values from a node on the specified server. The group field that
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|[PublishStopResponseModel](definitions.md#publishstopresponsemodel)|
+|**404**|The item could not be unpublished|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -765,6 +878,14 @@ Can be used to reset all established connections causing a full reconnect and re
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="settracemode"></a>
@@ -783,6 +904,13 @@ Can be used to set trace mode for all established connections. Call within a min
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The operation was successful.|No Content|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="discovery_resource"></a>
@@ -818,7 +946,10 @@ Start network discovery using the provided discovery request configuration. The 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|boolean|
+|**200**|The operation was successful or the response payload contains relevant error information.|boolean|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -855,7 +986,10 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|boolean|
+|**200**|The operation was successful or the response payload contains relevant error information.|boolean|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -892,7 +1026,10 @@ Find servers matching the specified endpoint query spec.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -929,7 +1066,10 @@ Start server registration. The results of the registration are published as even
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|boolean|
+|**200**|The operation was successful or the response payload contains relevant error information.|boolean|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -979,7 +1119,10 @@ Recursively browse a node to discover its references and nodes. The results are 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[BrowseStreamChunkModelIAsyncEnumerable](definitions.md#browsestreamchunkmodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1016,7 +1159,10 @@ Browse a a node to discover its references. For more information consult <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[BrowseFirstResponseModel](definitions.md#browsefirstresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1053,7 +1199,10 @@ Browse next
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[BrowseNextResponseModel](definitions.md#browsenextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1090,7 +1239,10 @@ Translate a start node and browse path into 0 or more target nodes. Allows progr
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[BrowsePathResponseModel](definitions.md#browsepathresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1127,7 +1279,10 @@ Call a method on the OPC UA server endpoint with the specified input arguments a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[MethodCallResponseModel](definitions.md#methodcallresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1164,7 +1319,10 @@ Get the metadata for calling the method. This API is obsolete. Use the more powe
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[MethodMetadataResponseModel](definitions.md#methodmetadataresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1201,7 +1359,10 @@ Get the capabilities of the server. The server capabilities are exposed as a pro
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ServerCapabilitiesModel](definitions.md#servercapabilitiesmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1238,7 +1399,10 @@ Get a server endpoint's certificate and certificate chain if available.
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[X509CertificateChainModel](definitions.md#x509certificatechainmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1275,7 +1439,10 @@ Get the historian capabilities exposed as part of the OPC UA server server objec
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryServerCapabilitiesModel](definitions.md#historyservercapabilitiesmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1312,7 +1479,10 @@ Get the historian configuration of a historizing node in the OPC UA server
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryConfigurationResponseModel](definitions.md#historyconfigurationresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1349,7 +1519,10 @@ Read the history using the respective OPC UA service call. See <a href="https://
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[VariantValueHistoryReadResponseModel](definitions.md#variantvaluehistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1386,7 +1559,10 @@ Read next history using the respective OPC UA service call. See <a href="https:/
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[VariantValueHistoryReadNextResponseModel](definitions.md#variantvaluehistoryreadnextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1423,7 +1599,10 @@ Update history using the respective OPC UA service call. Consult the <a href="ht
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1460,7 +1639,10 @@ Get the type metadata for a any node. For data type nodes the response contains 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[NodeMetadataResponseModel](definitions.md#nodemetadataresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1497,7 +1679,10 @@ Compile a query string into a query spec that can be used when setting up event 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[QueryCompilationResponseModel](definitions.md#querycompilationresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1534,7 +1719,10 @@ Read the value of a variable node. This uses the service detailed in the <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ValueReadResponseModel](definitions.md#valuereadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1571,7 +1759,10 @@ Read any writeable attribute of a specified node on the server. See <a href="htt
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ReadResponseModel](definitions.md#readresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1608,7 +1799,10 @@ Test connection to an opc ua server. The call will not establish any persistent 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[TestConnectionResponseModel](definitions.md#testconnectionresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1645,7 +1839,10 @@ Write the value of a variable node. This uses the service detailed in <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ValueWriteResponseModel](definitions.md#valuewriteresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1682,7 +1879,10 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[WriteResponseModel](definitions.md#writeresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1732,7 +1932,10 @@ Delete event entries in a timeseries of the server historian. See <a href="https
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1769,7 +1972,10 @@ Insert event entries into a specified timeseries of the historian. See <a href="
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1806,7 +2012,10 @@ Read an entire event timeseries from an OPC UA server historian as stream. See <
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricEventModelIAsyncEnumerable](definitions.md#historiceventmodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1843,7 +2052,10 @@ Read an event timeseries inside the OPC UA server historian. See <a href="https:
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricEventModelArrayHistoryReadResponseModel](definitions.md#historiceventmodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1880,7 +2092,10 @@ Continue reading an event timeseries inside the OPC UA server historian. See <a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricEventModelArrayHistoryReadNextResponseModel](definitions.md#historiceventmodelarrayhistoryreadnextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1917,7 +2132,10 @@ Replace events in a timeseries in the historian of the OPC UA server. See <a hre
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1954,7 +2172,10 @@ Upsert events into a time series of the opc server historian. See <a href="https
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -1991,7 +2212,10 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2028,7 +2252,10 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2065,7 +2292,10 @@ Delete value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2102,7 +2332,10 @@ Insert value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2139,7 +2372,10 @@ Read an entire timeseries from an OPC UA server historian as stream. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2176,7 +2412,10 @@ Read specific timeseries data from an OPC UA server historian as stream. See <a 
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2213,7 +2452,10 @@ Read a data change timeseries inside the OPC UA server historian. See <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2250,7 +2492,10 @@ Read parts of a timeseries inside the OPC UA server historian. See <a href="http
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2287,7 +2532,10 @@ Read modified changes in a timeseries inside the OPC UA server historian. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2324,7 +2572,10 @@ Read processed timeseries data inside the OPC UA server historian. See <a href="
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelArrayHistoryReadResponseModel](definitions.md#historicvaluemodelarrayhistoryreadresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2361,7 +2612,10 @@ Read an entire modified series from an OPC UA server historian as stream. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2398,7 +2652,10 @@ Continue reading a timeseries inside the OPC UA server historian. See <a href="h
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelArrayHistoryReadNextResponseModel](definitions.md#historicvaluemodelarrayhistoryreadnextresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2435,7 +2692,10 @@ Read processed timeseries data from an OPC UA server historian as stream. See <a
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoricValueModelIAsyncEnumerable](definitions.md#historicvaluemodeliasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2472,7 +2732,10 @@ Replace value change entries in a timeseries of the server historian. See <a hre
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2509,7 +2772,10 @@ Upsert value change entries in a timeseries of the server historian. See <a href
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful or the response payload<br>            contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**200**|The operation was successful or the response payload contains relevant error information.|[HistoryUpdateResponseModel](definitions.md#historyupdateresponsemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
@@ -2562,9 +2828,17 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The item was created|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2594,6 +2868,9 @@ Get the published nodes entry for a specific writer group and dataset writer. De
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The item was found|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|There is no unique item present.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The item was not found|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2628,9 +2905,18 @@ Add a node to a dedicated data set writer in a writer group. A node must have a 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The item was added|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|An entry was not found to add the node to|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2660,6 +2946,15 @@ Remove the published nodes entry for a specific data set writer in a writer grou
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The entry was removed|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to remove.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry to remove was not found|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 <a name="addorupdatenodes"></a>
@@ -2688,9 +2983,18 @@ Add Nodes to a dedicated data set writer in a writer group. Each node must have 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The items were added|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique entry could not be found to add to.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry was not found|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2722,6 +3026,9 @@ Get Nodes from a data set writer in a writer group. The nodes can optionally be 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The items were found|< [OpcNodeModel](definitions.md#opcnodemodel) > array|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to get nodes from.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry was not found|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2755,9 +3062,18 @@ Remove Nodes that match the provided data set field ids from a data set writer i
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Some or all items were removed|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to remove from.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry or all items to remove were not found|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
 
 * `application/json`
 * `application/x-msgpack`
@@ -2788,6 +3104,9 @@ Get a node from a dataset in a writer group. Dedicated errors are returned if no
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The item was retrieved|[OpcNodeModel](definitions.md#opcnodemodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to get a node from.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry or item was not found|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2821,6 +3140,15 @@ Remove a node with the specified data set field id from a data set writer in a w
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|The item was removed|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to remove from.|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The entry or item to remove was not found|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
 
 
 

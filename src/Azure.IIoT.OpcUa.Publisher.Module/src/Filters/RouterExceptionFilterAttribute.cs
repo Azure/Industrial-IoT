@@ -57,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     status = (int)HttpStatusCode.Unauthorized;
                     break;
                 case MethodCallStatusException mcse:
-                    status = mcse.Result;
+                    status = mcse.Details.Status
+                        ?? (int)HttpStatusCode.InternalServerError;
                     break;
                 case SerializerException:
                 case MethodCallException:
