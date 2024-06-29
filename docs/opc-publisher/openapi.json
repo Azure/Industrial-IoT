@@ -48,6 +48,24 @@
                                 "$ref": "#/definitions/X509CertificateModel"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information such as store name is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Nothing could be found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -59,6 +77,10 @@
                 "description": "Add a certificate to the specified store. The certificate is provided as a pfx/pkcs12 optionally password protected blob.",
                 "operationId": "AddCertificate",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -90,6 +112,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information such as store name is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -125,6 +159,24 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information such as store name is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Nothing could be found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -136,6 +188,10 @@
                 "description": "Add a certificate revocation list to the specified store. The certificate revocation list is provided as a der encoded blob.",
                 "operationId": "AddCertificateRevocationList",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -161,6 +217,18 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -171,6 +239,10 @@
                 "summary": "RemoveCertificateRevocationList",
                 "description": "Remove a certificate revocation list from the specified store.",
                 "operationId": "RemoveCertificateRevocationList",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -183,6 +255,24 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information such store name is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Nothing could be found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -199,58 +289,7 @@
                     "application/json",
                     "application/x-msgpack"
                 ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "The certificate chain.",
-                        "required": true,
-                        "schema": {
-                            "format": "byte",
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "The operation was successful."
-                    }
-                }
-            }
-        },
-        "/v2/pki/rejected/certs/{thumbprint}/approve": {
-            "post": {
-                "tags": [
-                    "Certificates"
-                ],
-                "summary": "ApproveRejectedCertificate",
-                "description": "Move a rejected certificate from the rejected folder to the trusted folder on the publisher.",
-                "operationId": "ApproveRejectedCertificate",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "thumbprint",
-                        "description": "The thumbprint of the certificate to trust.",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "The operation was successful."
-                    }
-                }
-            }
-        },
-        "/v2/pki/https/certs": {
-            "post": {
-                "tags": [
-                    "Certificates"
-                ],
-                "summary": "AddTrustedHttpsCertificateAsync",
-                "description": "Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.",
-                "operationId": "AddTrustedHttpsCertificate",
-                "consumes": [
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -269,6 +308,105 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/pki/rejected/certs/{thumbprint}/approve": {
+            "post": {
+                "tags": [
+                    "Certificates"
+                ],
+                "summary": "ApproveRejectedCertificate",
+                "description": "Move a rejected certificate from the rejected folder to the trusted folder on the publisher.",
+                "operationId": "ApproveRejectedCertificate",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "thumbprint",
+                        "description": "The thumbprint of the certificate to trust.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/pki/https/certs": {
+            "post": {
+                "tags": [
+                    "Certificates"
+                ],
+                "summary": "AddTrustedHttpsCertificateAsync",
+                "description": "Add a certificate chain to the trusted https store. The certificate is provided as a concatenated set of certificates with the first the one to add, and the remainder the issuer chain.",
+                "operationId": "AddTrustedHttpsCertificate",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The certificate chain.",
+                        "required": true,
+                        "schema": {
+                            "format": "byte",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -281,6 +419,10 @@
                 "summary": "RemoveCertificate",
                 "description": "Remove a certificate with the provided thumbprint from the specified store.",
                 "operationId": "RemoveCertificate",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -300,6 +442,24 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information such store name is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Nothing could be found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -312,6 +472,10 @@
                 "summary": "RemoveAll",
                 "description": "Remove all certificates and revocation lists from the specified store.",
                 "operationId": "RemoveAll",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -324,6 +488,24 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information such store name is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Nothing could be found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An internal error ocurred.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -360,6 +542,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishStartResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -398,6 +592,24 @@
                         "schema": {
                             "$ref": "#/definitions/PublishStopResponseModel"
                         }
+                    },
+                    "404": {
+                        "description": "The item could not be unpublished",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -434,6 +646,24 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishBulkResponseModel"
+                        }
+                    },
+                    "404": {
+                        "description": "The item could not be unpublished",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -472,6 +702,18 @@
                         "schema": {
                             "$ref": "#/definitions/PublishedItemListResponseModel"
                         }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -508,6 +750,18 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -546,6 +800,24 @@
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
+                    },
+                    "404": {
+                        "description": "The nodes could not be unpublished",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -582,6 +854,24 @@
                         "description": "The operation was successful.",
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
+                        }
+                    },
+                    "404": {
+                        "description": "The nodes could not be unpublished",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -623,6 +913,24 @@
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesResponseModel"
                         }
+                    },
+                    "404": {
+                        "description": "The endpoint was not found to add to",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -651,6 +959,24 @@
                         "schema": {
                             "$ref": "#/definitions/GetConfiguredEndpointsResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -662,6 +988,10 @@
                 "description": "Enables clients to update the entire published nodes configuration in one call. This includes clearing the existing configuration. Further information is provided in the OPC Publisher documentation. configuration.",
                 "operationId": "SetConfiguredEndpoints",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -679,6 +1009,24 @@
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -716,6 +1064,30 @@
                         "schema": {
                             "$ref": "#/definitions/GetConfiguredNodesOnEndpointResponseModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry was not found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -741,6 +1113,24 @@
                                 "$ref": "#/definitions/PublishDiagnosticInfoModel"
                             }
                         }
+                    },
+                    "405": {
+                        "description": "Call not supported or functionality disabled.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -753,9 +1143,25 @@
                 "summary": "ResetAllClients",
                 "description": "Can be used to reset all established connections causing a full reconnect and recreate of all subscriptions.",
                 "operationId": "ResetAllClients",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -768,9 +1174,19 @@
                 "summary": "SetTraceMode",
                 "description": "Can be used to set trace mode for all established connections. Call within a minute to keep trace mode up or else trace mode will be disabled again after 1 minute. Enabling and resetting tracemode will cause a reconnect of the client.",
                 "operationId": "SetTraceMode",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "responses": {
                     "200": {
                         "description": "The operation was successful."
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -804,9 +1220,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ApplicationRegistrationModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -841,9 +1275,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -878,9 +1330,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -915,9 +1385,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -952,9 +1440,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ServerCapabilitiesModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -989,9 +1495,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowseFirstResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1026,9 +1550,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowseNextResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1063,9 +1605,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowseStreamChunkModelIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1100,9 +1660,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/BrowsePathResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1137,9 +1715,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ValueReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1174,9 +1770,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ValueWriteResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1211,9 +1825,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/NodeMetadataResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1248,9 +1880,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/QueryCompilationResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1285,9 +1935,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/MethodMetadataResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1322,9 +1990,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/MethodCallResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1359,9 +2045,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/ReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1396,9 +2100,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/WriteResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1433,9 +2155,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1470,9 +2210,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/VariantValueHistoryReadNextResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1507,9 +2265,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1544,9 +2320,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/X509CertificateChainModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1581,9 +2375,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryServerCapabilitiesModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1618,9 +2430,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryConfigurationResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1655,9 +2485,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/TestConnectionResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1692,9 +2540,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1729,9 +2595,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1766,9 +2650,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1803,9 +2705,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1840,9 +2760,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1877,9 +2815,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1914,9 +2870,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1951,9 +2925,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -1988,9 +2980,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2025,9 +3035,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoryUpdateResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2062,9 +3090,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2099,9 +3145,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelArrayHistoryReadNextResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2136,9 +3200,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2173,9 +3255,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2210,9 +3310,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2247,9 +3365,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2284,9 +3420,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelArrayHistoryReadNextResponseModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2321,9 +3475,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2358,9 +3530,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2395,9 +3585,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2432,9 +3640,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricValueModelIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2469,9 +3695,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful or the response payload\r\n            contains relevant error information.",
+                        "description": "The operation was successful or the response payload contains relevant error information.",
                         "schema": {
                             "$ref": "#/definitions/HistoricEventModelIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2489,6 +3733,10 @@
                     "application/json",
                     "application/x-msgpack"
                 ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "body",
@@ -2503,6 +3751,18 @@
                 "responses": {
                     "200": {
                         "description": "The item was created"
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2541,6 +3801,24 @@
                         "schema": {
                             "$ref": "#/definitions/PublishedNodesEntryModel"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "There is no unique item present.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The item was not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2552,6 +3830,10 @@
                 "description": "Add a node to a dedicated data set writer in a writer group. A node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
                 "operationId": "AddOrUpdateNode",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -2589,6 +3871,24 @@
                 "responses": {
                     "200": {
                         "description": "The item was added"
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "An entry was not found to add the node to",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2599,6 +3899,10 @@
                 "summary": "RemoveDataSetWriterEntry",
                 "description": "Remove the published nodes entry for a specific data set writer in a writer group. Dedicated errors are returned if no, or no unique entry could be found.",
                 "operationId": "RemoveDataSetWriterEntry",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -2618,6 +3922,24 @@
                 "responses": {
                     "200": {
                         "description": "The entry was removed"
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to remove.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry to remove was not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2631,6 +3953,10 @@
                 "description": "Add Nodes to a dedicated data set writer in a writer group. Each node must have a unique DataSetFieldId. If the field already exists, the node is updated. If a node does not have a dataset field id an error is returned. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
                 "operationId": "AddOrUpdateNodes",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -2671,6 +3997,24 @@
                 "responses": {
                     "200": {
                         "description": "The items were added"
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique entry could not be found to add to.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry was not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2684,6 +4028,10 @@
                 "description": "Remove Nodes that match the provided data set field ids from a data set writer in a writer group. If one of the fields is not found, no error is returned, however, if all fields are not found an error is returned.",
                 "operationId": "RemoveNodes",
                 "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
@@ -2718,6 +4066,24 @@
                 "responses": {
                     "200": {
                         "description": "Some or all items were removed"
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to remove from.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry or all items to remove were not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             }
@@ -2730,6 +4096,10 @@
                 "summary": "RemoveNode",
                 "description": "Remove a node with the specified data set field id from a data set writer in a writer group. If the field is not found, an error is returned.",
                 "operationId": "RemoveNode",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
                 "parameters": [
                     {
                         "in": "path",
@@ -2756,6 +4126,24 @@
                 "responses": {
                     "200": {
                         "description": "The item was removed"
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to remove from.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry or item to remove was not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
                     }
                 }
             },
@@ -2798,6 +4186,24 @@
                         "description": "The item was retrieved",
                         "schema": {
                             "$ref": "#/definitions/OpcNodeModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to get a node from.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry or item was not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 }
@@ -2852,6 +4258,24 @@
                             "items": {
                                 "$ref": "#/definitions/OpcNodeModel"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to get nodes from.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The entry was not found",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
                         }
                     }
                 },

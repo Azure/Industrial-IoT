@@ -76,6 +76,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             services.AddHttpClient();
             services.AddResourceMonitoring(Configuration);
+            services.AddExceptionSummarizer(builder =>
+            {
+                builder.AddDefaultProviders();
+                // TODO: Add opc ua exceptions
+            });
 
             services.AddRouting();
             services.AddHealthChecks();

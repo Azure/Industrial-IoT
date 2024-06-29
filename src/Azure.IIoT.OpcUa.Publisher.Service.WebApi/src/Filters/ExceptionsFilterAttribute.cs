@@ -7,8 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Exceptions;
+    using Furly.Tunnel.Exceptions;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using System;
     using System.IO;
     using System.Net;
@@ -48,49 +52,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
                     context.Exception = root;
                 }
             }
+            var summarizer = context.HttpContext?.RequestServices?
+                .GetService<IExceptionSummarizer>();
             switch (context.Exception)
             {
                 case ResourceNotFoundException re:
                     context.Result = GetResponse(HttpStatusCode.NotFound,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case ResourceInvalidStateException ri:
                     context.Result = GetResponse(HttpStatusCode.Forbidden,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case ResourceConflictException ce:
                     context.Result = GetResponse(HttpStatusCode.Conflict,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case UnauthorizedAccessException ue:
                 case SecurityException se:
                     context.Result = GetResponse(HttpStatusCode.Unauthorized,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case MethodCallStatusException mcs:
-                    context.Result = GetResponse((HttpStatusCode)mcs.Result,
-                        context.Exception);
+                    context.Result = new ObjectResult(mcs.Details.ToProblemDetails());
                     break;
                 case SerializerException sre:
                 case MethodCallException mce:
                 case BadRequestException br:
                 case ArgumentException are:
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case NotImplementedException ne:
                 case NotSupportedException ns:
                     context.Result = GetResponse(HttpStatusCode.NotImplemented,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case TimeoutException te:
                     context.Result = GetResponse(HttpStatusCode.RequestTimeout,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case SocketException sex:
                 case IOException ce:
                     context.Result = GetResponse(HttpStatusCode.BadGateway,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
 
                 //
@@ -113,19 +118,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
 
                 case ServerBusyException se:
                     context.Result = GetResponse(HttpStatusCode.TooManyRequests,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case ResourceOutOfDateException re:
                     context.Result = GetResponse(HttpStatusCode.PreconditionFailed,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 case ExternalDependencyException ex:
                     context.Result = GetResponse(HttpStatusCode.ServiceUnavailable,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
                 default:
                     context.Result = GetResponse(HttpStatusCode.InternalServerError,
-                        context.Exception);
+                        context.Exception, summarizer);
                     break;
             }
         }
@@ -143,15 +148,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
                 return base.OnExceptionAsync(context);
             }
         }
-
         /// <summary>
         /// Create result
         /// </summary>
         /// <param name="code"></param>
         /// <param name="exception"></param>
+        /// <param name="summarizer"></param>
         /// <returns></returns>
-        private static ObjectResult GetResponse(HttpStatusCode code, Exception exception)
+        private static ObjectResult GetResponse(HttpStatusCode code, Exception exception,
+            IExceptionSummarizer? summarizer)
         {
+            if (summarizer != null)
+            {
+                var ex = exception.AsMethodCallStatusException((int)code, summarizer);
+                return new ObjectResult(ex.Details.ToProblemDetails())
+                {
+                    StatusCode = (int)code
+                };
+            }
+
             return new ObjectResult(exception.Message)
             {
                 StatusCode = (int)code

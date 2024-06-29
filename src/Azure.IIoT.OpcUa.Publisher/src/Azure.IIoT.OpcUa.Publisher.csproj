@@ -9,7 +9,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.ResourceMonitoring" Version="8.6.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-    <PackageReference Include="Furly.Azure.IoT.Edge" Version="1.0.54" />
+    <PackageReference Include="Furly.Azure.IoT.Edge" Version="1.0.56" />
     <PackageReference Include="Irony" Version="1.5.1" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.5.374.70" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.374.70" />
