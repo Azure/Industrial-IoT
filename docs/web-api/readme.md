@@ -271,14 +271,14 @@ Values in the model that are set to *null* are not updated.  However, missing va
 
 ### Discovery
 
-The discovery component provides access to the OPC Publisher discovery API. The discovery API enables active scanning of networks for OPC UA servers as well as calling the local discovery services of OPC UA. Results of discovery process are sent to IoT Hub and processed by the Web service. The Web service creates a IoT Hub Device Twins for each server and server endpoint using the IoT Hub Device Twin Registry.  
+The discovery component provides access to the OPC Publisher discovery API. The discovery API enables active scanning of networks for OPC UA servers as well as calling the local discovery services of OPC UA. Results of discovery process are sent to IoT Hub and processed by the Web service. The Web service creates a IoT Hub Device Twins for each server and server endpoint using the IoT Hub Device Twin Registry.
 
 This involves the following tasks:
 
 - Add new applications and their endpoints to the registry if they do not yet exist
 - Update existing applications and endpoints to reflect what the server reported and re-enable them if they are disabled.
-- Add the "Supervisor ID" to any endpoint to claim the endpoint for the supervisor that found it (unless it is already activated).
-- Mark any applications and endpoints found or registered through the supervisor at an earlier point in time and that were not found this time around.  
+- Add the "Publisher ID" to any endpoint to claim the endpoint for the publisher that found it.
+- Mark any applications and endpoints found or registered through the publisher at an earlier point in time and that were not found this time around.
 
 Applications and their endpoints that have not been found for a while can be purged using the [REST API](./api.md).
 

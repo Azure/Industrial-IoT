@@ -97,11 +97,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                     // Update registration from update request
                     var patched = registration.ToDiscovererModel() ?? throw new ResourceInvalidStateException(
                             $"{discovererId} is not a valid publisher registration.");
-                    if (request.Discovery != null && request.Discovery != DiscoveryMode.Off)
-                    {
-                        _logger.LogWarning("Discovery mode setting is no longer supported." +
-                            " Changes will not take effect.");
-                    }
 
                     if (request.SiteId != null)
                     {
@@ -109,11 +104,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                             null : request.SiteId;
                     }
 
-                    if (request.DiscoveryConfig != null)
-                    {
-                        _logger.LogWarning("Discovery configuration is no longer supported." +
-                            " Changes will not take effect.");
-                    }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
                         patched.ToPublisherRegistration(), _timeProvider), false, ct).ConfigureAwait(false);

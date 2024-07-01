@@ -233,9 +233,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                                 case "update":
                                     await UpdateDiscovererAsync(options).ConfigureAwait(false);
                                     break;
-                                case "scan":
-                                    await DiscovererScanAsync(options).ConfigureAwait(false);
-                                    break;
                                 case "monitor":
                                     await MonitorDiscoverersAsync(options).ConfigureAwait(false);
                                     break;
@@ -1463,47 +1460,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             await _client.Registry.UpdateDiscovererAsync(GetDiscovererId(options),
                 new DiscovererUpdateModel
                 {
-                    SiteId = options.GetValueOrNull<string>("-s", "--siteId"),
-                    Discovery = options.GetValueOrDefault(
-                        config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast,
-                        "-d", "--discovery"),
-                    DiscoveryConfig = config
+                    SiteId = options.GetValueOrNull<string>("-s", "--siteId")
                 }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Start and monitor discovery
-        /// </summary>
-        /// <param name="options"></param>
-        /// <exception cref="ArgumentException"></exception>
-        private async Task DiscovererScanAsync(CliOptions options)
-        {
-            var discovererId = GetDiscovererId(options);
-            Console.WriteLine("Press any key to stop.");
-            var discovery = await _client.Events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, PrintProgressAsync).ConfigureAwait(false);
-            try
-            {
-                var config = BuildDiscoveryConfig(options);
-                var mode = options.GetValueOrDefault(
-                    config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan, "-d", "--discovery");
-                if (config == null)
-                {
-                    config = new DiscoveryConfigModel();
-                }
-                if (mode == DiscoveryMode.Off)
-                {
-                    throw new ArgumentException("-d/--discovery Off is not supported");
-                }
-                await _client.Registry.SetDiscoveryModeAsync(discovererId, mode, config).ConfigureAwait(false);
-                Console.ReadKey();
-                await _client.Registry.SetDiscoveryModeAsync(discovererId, DiscoveryMode.Off,
-                    new DiscoveryConfigModel()).ConfigureAwait(false);
-            }
-            catch
-            {
-                await discovery.DisposeAsync().ConfigureAwait(false);
-            }
         }
 
         private string _applicationId;
@@ -2461,10 +2419,23 @@ Commands and Options
         -u, --url       Url of the discovery endpoint (mandatory)
         -m, --monitor   Monitor the discovery process to completion.
 
-     discover    Discover applications and endpoints through config.
+     discover    Discover applications and endpoints.
         with ...
         -i, --id        Request id for the discovery request.
         -d, --discovery Set discovery mode to use
+        -I, --idle-time Idle time between scans in seconds
+        -p, --port-ranges
+                        Port ranges to scan.
+        -r, --address-ranges
+                        Address range to scan.
+        -P, --max-port-probes
+                        Max port probes to use.
+        -R, --max-address-probes
+                        Max networking probes to use.
+        -T, --address-probe-timeout
+                        Network probe timeout in milliseconds
+        -t, --port-probe-timeout
+                        Port probe timeout in milliseconds
         -m, --monitor   Monitor the discovery process to completion.
 
      cancel      Cancel application discovery.
@@ -2938,33 +2909,6 @@ Commands and Options
         with ...
         -i, --id        Id of discoverer to update (mandatory)
         -s, --siteId    Updated site of the discoverer.
-        -d, --discovery Set discoverer discovery mode
-        -p, --port-ranges
-                        Port ranges to scan.
-        -r, --address-ranges
-                        Address range to scan.
-        -P, --port-probes
-                        Max port probes to use.
-        -R, --address-probes
-                        Max networking probes to use.
-
-     scan        Run a scan
-        with ...
-        -i, --id        Id of discoverer to run scanning on (mandatory)
-        -d, --discovery Set discoverer discovery mode
-        -I, --idle-time Idle time between scans in seconds
-        -p, --port-ranges
-                        Port ranges to scan.
-        -r, --address-ranges
-                        Address range to scan.
-        -P, --max-port-probes
-                        Max port probes to use.
-        -R, --max-address-probes
-                        Max networking probes to use.
-        -T, --address-probe-timeout
-                        Network probe timeout in milliseconds
-        -t, --port-probe-timeout
-                        Port probe timeout in milliseconds
 
      help, -h, -? --help
                  Prints out this help.

@@ -332,18 +332,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
-        /// Enable or disable discovery with optional configuration
-        /// </summary>
-        /// <param name="discovererId"></param>
-        /// <param name="mode"></param>
-        /// <param name="config"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task SetDiscoveryModeAsync(string discovererId,
-            DiscoveryMode mode, DiscoveryConfigModel? config = null,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Get gateway
         /// </summary>
         /// <param name="publisherId"></param>

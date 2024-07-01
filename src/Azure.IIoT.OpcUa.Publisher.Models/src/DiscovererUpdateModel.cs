@@ -19,19 +19,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
         public string? SiteId { get; set; }
-
-        /// <summary>
-        /// Discovery mode of discoverer
-        /// </summary>
-        [DataMember(Name = "discovery", Order = 1,
-            EmitDefaultValue = false)]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Discoverer discovery config
-        /// </summary>
-        [DataMember(Name = "discoveryConfig", Order = 2,
-            EmitDefaultValue = false)]
-        public DiscoveryConfigModel? DiscoveryConfig { get; set; }
     }
 }

@@ -750,74 +750,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "tags": [
-                    "Discovery"
-                ],
-                "summary": "Enable server discovery",
-                "description": "Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.",
-                "operationId": "SetDiscoveryMode",
-                "consumes": [
-                    "application/json",
-                    "application/x-msgpack"
-                ],
-                "produces": [
-                    "application/json",
-                    "application/x-msgpack"
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "discovererId",
-                        "description": "discoverer identifier",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "in": "query",
-                        "name": "mode",
-                        "description": "Discovery mode",
-                        "required": true,
-                        "type": "string",
-                        "enum": [
-                            "Off",
-                            "Local",
-                            "Network",
-                            "Fast",
-                            "Scan"
-                        ],
-                        "x-ms-enum": {
-                            "name": "DiscoveryMode",
-                            "modelAsString": false
-                        }
-                    },
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "Discovery configuration",
-                        "schema": {
-                            "$ref": "#/definitions/DiscoveryConfigModel"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "The operation was successful."
-                    },
-                    "400": {
-                        "description": "The passed in information is invalid",
-                        "schema": {
-                            "$ref": "#/definitions/ProblemDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "An internal error ocurred.",
-                        "schema": {
-                            "$ref": "#/definitions/ProblemDetails"
-                        }
-                    }
-                }
             }
         },
         "/registry/v2/discovery": {
@@ -6034,12 +5966,6 @@
                 "siteId": {
                     "description": "Site the discoverer is part of",
                     "type": "string"
-                },
-                "discovery": {
-                    "$ref": "#/definitions/DiscoveryMode"
-                },
-                "discoveryConfig": {
-                    "$ref": "#/definitions/DiscoveryConfigModel"
                 }
             },
             "additionalProperties": false
