@@ -152,22 +152,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task SetDiscoveryModeAsync(string discovererId,
-            DiscoveryMode mode, DiscoveryConfigModel? config, CancellationToken ct)
-        {
-            if (string.IsNullOrEmpty(discovererId))
-            {
-                throw new ArgumentNullException(nameof(discovererId));
-            }
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{Uri.EscapeDataString(discovererId)}")
-            {
-                Query = $"mode={mode}"
-            };
-            await _httpClient.PostAsync(uri.Uri, config ?? new DiscoveryConfigModel(),
-                _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
         public async Task UpdateSupervisorAsync(string supervisorId,
             SupervisorUpdateModel request, CancellationToken ct)
         {

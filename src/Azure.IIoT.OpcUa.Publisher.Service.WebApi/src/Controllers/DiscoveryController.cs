@@ -209,38 +209,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                 pageSize, ct).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Enable server discovery
-        /// </summary>
-        /// <remarks>
-        /// Allows a caller to configure recurring discovery runs on the
-        /// discovery module identified by the module id.
-        /// </remarks>
-        /// <param name="discovererId">discoverer identifier</param>
-        /// <param name="mode">Discovery mode</param>
-        /// <param name="config">Discovery configuration</param>
-        /// <param name="ct"></param>
-        /// <response code="200">The operation was successful.</response>
-        /// <response code="400">The passed in information is invalid</response>
-        /// <response code="500">An internal error ocurred.</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("{discovererId}")]
-        [Authorize(Policy = Policies.CanWrite)]
-        public async Task SetDiscoveryModeAsync(string discovererId,
-            [FromQuery][Required] DiscoveryMode mode,
-            [FromBody] DiscoveryConfigModel config, CancellationToken ct)
-        {
-            var request = new DiscovererUpdateModel
-            {
-                Discovery = mode,
-                DiscoveryConfig = config
-            };
-            await _discoverers.UpdateDiscovererAsync(discovererId,
-                request, ct).ConfigureAwait(false);
-        }
-
         private readonly IDiscovererRegistry _discoverers;
     }
 }

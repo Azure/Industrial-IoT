@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             TimeProvider timeProvider) :
             this(new DiscoveryRequestModel
             {
-                Id = "",
+                Id = string.Empty,
                 Configuration = configuration.Clone(),
                 Context = null,
                 Discovery = mode
