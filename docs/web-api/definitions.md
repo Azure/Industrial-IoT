@@ -547,8 +547,6 @@ Discoverer update request
 
 |Name|Description|Schema|
 |---|---|---|
-|**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
-|**discoveryConfig**  <br>*optional*||[DiscoveryConfigModel](definitions.md#discoveryconfigmodel)|
 |**siteId**  <br>*optional*|Site the discoverer is part of|string|
 
 

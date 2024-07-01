@@ -621,47 +621,6 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 * `application/x-msgpack`
 
 
-<a name="setdiscoverymode"></a>
-#### Enable server discovery
-```
-POST /registry/v2/discovery/{discovererId}
-```
-
-
-##### Description
-Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**discovererId**  <br>*required*|discoverer identifier|string|
-|**Query**|**mode**  <br>*required*|Discovery mode|enum (Off, Local, Network, Fast, Scan)|
-|**Body**|**body**  <br>*optional*|Discovery configuration|[DiscoveryConfigModel](definitions.md#discoveryconfigmodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|The operation was successful.|No Content|
-|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
-|**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
-
-
-##### Consumes
-
-* `application/json`
-* `application/x-msgpack`
-
-
-##### Produces
-
-* `application/json`
-* `application/x-msgpack`
-
-
 <a name="getdiscoverer"></a>
 #### Get discoverer registration information
 ```
