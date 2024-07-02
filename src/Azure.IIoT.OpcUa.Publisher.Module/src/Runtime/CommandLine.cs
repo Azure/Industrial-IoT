@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
 
@@ -554,6 +555,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"sl|opcstacklogging:|{OpcUaClientConfig.EnableOpcUaStackLoggingKey}:",
                     "Enable opc ua stack logging beyond logging at error level.\nDefault: `disabled`.\n",
                     (bool? b) => this[OpcUaClientConfig.EnableOpcUaStackLoggingKey] = b?.ToString() ?? "True" },
+                { $"ksf|keysetlogfolder:|{OpcUaClientConfig.OpcUaKeySetLogFolderNameKey}:",
+                    "Writes negotiated symmetric keys for all running client connection to this file.\nThe file can be loaded by Wireshark 4.3 and used to decrypt encrypted channels when analyzing network traffic captures.\nNote that enabling this feature presents a security risk!\nDefault: `disabled`.\n",
+                    (string? f) => this[OpcUaClientConfig.OpcUaKeySetLogFolderNameKey] = f ?? Directory.GetCurrentDirectory() },
                 { $"ecw|enableconsolewriter:|{Configuration.ConsoleWriter.EnableKey}:",
                     "Enable writing encoded messages to standard error log through the filesystem transport (must enable via `-t FileSystem` and `-o` must be set to either `stderr` or `stdout`).\nDefault: `false`.\n",
                     (bool? b) => this[Configuration.ConsoleWriter.EnableKey] = b?.ToString() ?? "True" },

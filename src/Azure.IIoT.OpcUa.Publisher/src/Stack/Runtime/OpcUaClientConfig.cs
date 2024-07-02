@@ -54,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string RejectUnknownRevocationStatusKey = "RejectUnknownRevocationStatus";
         public const string SecurityTokenLifetimeKey = "SecurityTokenLifetime";
         public const string EnableOpcUaStackLoggingKey = "EnableOpcUaStackLogging";
+        public const string OpcUaKeySetLogFolderNameKey = "OpcUaKeySetLogFolderName";
         public const string ChannelLifetimeKey = "ChannelLifetime";
         public const string MaxBufferSizeKey = "MaxBufferSize";
         public const string MaxMessageSizeKey = "MaxMessageSize";
@@ -420,6 +421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     SecurityTokenLifetimeDefault);
             }
 
+            options.OpcUaKeySetLogFolderName ??= GetStringOrDefault(OpcUaKeySetLogFolderNameKey);
             options.EnableOpcUaStackLogging ??= GetBoolOrNull(EnableOpcUaStackLoggingKey);
 
             if (options.Security.TrustedUserCertificates == null)

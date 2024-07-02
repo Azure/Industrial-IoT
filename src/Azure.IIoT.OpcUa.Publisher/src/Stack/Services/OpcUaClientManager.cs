@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Nito.AsyncEx;
 
     /// <summary>
     /// Client manager
@@ -141,15 +142,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public Task ResetAllClients(CancellationToken ct)
+        public Task ResetAllClientsAsync(CancellationToken ct)
         {
             return Task.WhenAll(_clients.Values.Select(c => c.ResetAsync(ct)).ToArray());
         }
 
         /// <inheritdoc/>
-        public Task SetTraceModeAsync(CancellationToken ct)
+        public async IAsyncEnumerable<ConnectionDiagnosticModel> GetConnectionDiagnosticAsync(
+            [EnumeratorCancellation] CancellationToken ct)
         {
-            return Task.WhenAll(_clients.Values.Select(c => c.SetTraceModeAsync(ct)).ToArray());
+            var queue = new AsyncProducerConsumerQueue<ConnectionDiagnosticModel>();
+            _listeners.TryAdd(queue, true);
+            try
+            {
+                // Get all items from buffer
+                var set = new HashSet<ConnectionDiagnosticModel>(
+                    _clients.Values.Select(c => c.LastDiagnostics));
+                foreach (var item in set)
+                {
+                    yield return item;
+                }
+
+                // Dequeue items we have not yet sent from current state from queue
+                // until cancelled
+                while (!ct.IsCancellationRequested)
+                {
+                    // Get updates - handle fact that we have already sent the reference
+                    var item = await queue.DequeueAsync(ct).ConfigureAwait(false);
+                    if (!set.Contains(item))
+                    {
+                        yield return item;
+                    }
+                }
+            }
+            finally
+            {
+                _listeners.TryRemove(queue, out _);
+            }
         }
 
         /// <inheritdoc/>
@@ -532,7 +561,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
                     _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
-                    reverseConnect ? _reverseConnectManager : null,
+                    reverseConnect ? _reverseConnectManager : null, OnClientConnectionDiagnosticChange,
                     _options.Value.MaxReconnectDelayDuration)
                 {
                     OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
@@ -596,6 +625,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Called by clients when their connection information changed
+        /// </summary>
+        /// <param name="model"></param>
+        private void OnClientConnectionDiagnosticChange(ConnectionDiagnosticModel model)
+        {
+            foreach (var listener in _listeners.Keys)
+            {
+                listener.Enqueue(model);
+            }
+        }
+
+        /// <summary>
         /// Create metrics
         /// </summary>
         private void InitializeMetrics()
@@ -615,6 +656,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IJsonSerializer _serializer;
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
+        private readonly ConcurrentDictionary<
+            AsyncProducerConsumerQueue<ConnectionDiagnosticModel>, bool> _listeners = new();
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

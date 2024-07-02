@@ -27,6 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 
             builder.RegisterType<OpcUaStack>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
+            builder.RegisterType<OpcUaStackKeySetLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<OpcUaApplication>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OpcUaClientManager>()

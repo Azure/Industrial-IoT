@@ -1166,21 +1166,24 @@
                 }
             }
         },
-        "/v2/tracemode": {
+        "/v2/diagnostics/connections": {
             "get": {
                 "tags": [
                     "Diagnostics"
                 ],
-                "summary": "SetTraceMode",
-                "description": "Can be used to set trace mode for all established connections. Call within a minute to keep trace mode up or else trace mode will be disabled again after 1 minute. Enabling and resetting tracemode will cause a reconnect of the client.",
-                "operationId": "SetTraceMode",
+                "summary": "GetConnectionDiagnostic",
+                "description": "Get connection diagnostic information for all connections. The first set of diagnostics are the diagnostics active for all connections, continue reading to get updates.",
+                "operationId": "GetConnectionDiagnostic",
                 "produces": [
                     "application/json",
                     "application/x-msgpack"
                 ],
                 "responses": {
                     "200": {
-                        "description": "The operation was successful."
+                        "description": "The operation was successful.",
+                        "schema": {
+                            "$ref": "#/definitions/ConnectionDiagnosticModelIAsyncEnumerable"
+                        }
                     },
                     "500": {
                         "description": "An unexpected error occurred",
@@ -4916,6 +4919,10 @@
                     "type": "integer"
                 }
             },
+            "additionalProperties": false
+        },
+        "ConnectionDiagnosticModelIAsyncEnumerable": {
+            "type": "object",
             "additionalProperties": false
         },
         "ConnectionModel": {
