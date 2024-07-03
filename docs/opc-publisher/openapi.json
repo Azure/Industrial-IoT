@@ -7723,6 +7723,24 @@
                     "description": "Whether to fetch the display name and use it as\r\ndata set id for all opc node items in the data set",
                     "type": "boolean"
                 },
+                "WriterGroupMessageTtlTimepan": {
+                    "format": "date-span",
+                    "description": "Default time to live for messages sent through\r\nthe writer group if the transport supports it.",
+                    "type": "string"
+                },
+                "WriterGroupMessageRetention": {
+                    "description": "Default message retention setting for messages sent\r\nthrough the writer group if the transport supports it.",
+                    "type": "boolean"
+                },
+                "MessageTtlTimespan": {
+                    "format": "date-span",
+                    "description": "Message time to live for messages sent by the\r\nwriter if the transport supports it.",
+                    "type": "string"
+                },
+                "MessageRetention": {
+                    "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
+                    "type": "boolean"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }
