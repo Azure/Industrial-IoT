@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ValueTask WriteAsync(string fileName, DateTime timestamp,
+        public ValueTask WriteAsync(string fileName, DateTimeOffset timestamp,
             IEnumerable<ReadOnlySequence<byte>> buffers,
             IReadOnlyDictionary<string, string?>? metadata, IEventSchema? schema,
             string contentType, CancellationToken ct = default)

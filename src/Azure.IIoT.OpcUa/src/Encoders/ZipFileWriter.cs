@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public ValueTask WriteAsync(string fileName, DateTime timestamp,
+        public ValueTask WriteAsync(string fileName, DateTimeOffset timestamp,
             IEnumerable<ReadOnlySequence<byte>> buffers,
             IReadOnlyDictionary<string, string?> metadata, IEventSchema? schema,
             string contentType, CancellationToken ct = default)
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             /// <param name="timestamp"></param>
             /// <param name="buffers"></param>
             /// <returns></returns>
-            public void Write(DateTime timestamp, IEnumerable<ReadOnlySequence<byte>> buffers)
+            public void Write(DateTimeOffset timestamp, IEnumerable<ReadOnlySequence<byte>> buffers)
             {
                 foreach (var buffer in buffers)
                 {
