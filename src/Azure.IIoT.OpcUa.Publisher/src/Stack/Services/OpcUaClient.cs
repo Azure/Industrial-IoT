@@ -1024,6 +1024,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(sre, "{Client}: Failed to fetch namespace table...", this);
                 }
 
+                if (!DisableComplexTypeLoading && !session.IsTypeSystemLoaded)
+                {
+                    // Ensure type system is loaded
+                    await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                }
+
                 await Task.WhenAll(subscriptions.Concat(extra).Select(async subscription =>
                 {
                     try
