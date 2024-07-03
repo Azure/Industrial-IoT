@@ -19,9 +19,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
     public sealed class NetworkMessage : IEvent
     {
-        public DateTime Timestamp { get; private set; }
+        public DateTimeOffset Timestamp { get; private set; }
 
-        public IEvent SetTimestamp(DateTime value)
+        public IEvent SetTimestamp(DateTimeOffset value)
         {
             Timestamp = value;
             return this;

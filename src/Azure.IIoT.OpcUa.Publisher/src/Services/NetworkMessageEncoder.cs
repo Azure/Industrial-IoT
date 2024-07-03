@@ -119,10 +119,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var chunkedMessage = factory()
                             .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                                 m.networkMessage.MessageSchema)
-                            .SetTimestamp(_timeProvider.GetUtcNow().UtcDateTime) // TODO: move to offsets
+                            .SetTimestamp(_timeProvider.GetUtcNow())
                             .SetContentEncoding(m.networkMessage.ContentEncoding)
                             .SetContentType(m.networkMessage.ContentType)
-                            .SetTopic(m.queue.QueueName!)
+                            .SetTopic(m.queue.QueueName)
                             .SetRetain(m.queue.Retain ?? false)
                             .SetQoS(m.queue.RequestedDeliveryGuarantee ?? QoS.AtLeastOnce)
                             .AddBuffers(chunks)
