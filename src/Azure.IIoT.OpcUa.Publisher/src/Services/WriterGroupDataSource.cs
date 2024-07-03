@@ -419,8 +419,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }, _variables);
 
                 _topic = builder.TelemetryTopic;
+
                 _qos = _dataSetWriter.Publishing?.RequestedDeliveryGuarantee
-                    ?? _outer._writerGroup.Publishing?.RequestedDeliveryGuarantee;
+                    ?? _outer._writerGroup.Publishing?.RequestedDeliveryGuarantee
+                    ?? _outer._options.Value.DefaultQualityOfService;
+                _ttl = _dataSetWriter.Publishing?.Ttl
+                    ?? _outer._writerGroup.Publishing?.Ttl
+                    ?? _outer._options.Value.DefaultMessageTimeToLive;
+                _retain = _dataSetWriter.Publishing?.Retain
+                    ?? _outer._writerGroup.Publishing?.Retain
+                    ?? _outer._options.Value.DefaultMessageRetention;
 
                 _metadataTopic = builder.DataSetMetaDataTopic;
                 if (string.IsNullOrWhiteSpace(_metadataTopic))
@@ -431,7 +439,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _contextSelector = _routing == DataSetRoutingMode.None
                     ? n => n.Context
                     : n => n.PathFromRoot == null || n.Context != null ? n.Context : new TopicContext(
-                        _topic, n.PathFromRoot, _qos, _routing != DataSetRoutingMode.UseBrowseNames);
+                        _topic, n.PathFromRoot, _qos, _retain, _ttl,
+                        _routing != DataSetRoutingMode.UseBrowseNames);
 
                 TagList = new TagList(outer._metrics.TagList.ToArray().AsSpan())
                 {
@@ -818,7 +827,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
                                     var metadata = new MetadataNotificationModel(notification, _outer._timeProvider)
                                     {
-                                        Context = CreateMessageContext(_metadataTopic, _qos,
+                                        Context = CreateMessageContext(_metadataTopic, QoS.AtLeastOnce, true,
+                                            _metadataTimer?.Interval ?? _dataSetWriter.MetaDataUpdateTime,
                                             () => Interlocked.Increment(ref _metadataSequenceNumber))
                                     };
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -830,7 +840,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (!metaDataTimer)
                             {
                                 Debug.Assert(notification.Notifications != null);
-                                notification.Context = CreateMessageContext(_topic, _qos,
+                                notification.Context = CreateMessageContext(_topic, _qos, _retain, _ttl,
                                     () => Interlocked.Increment(ref _dataSetSequenceNumber), itemContext);
                                 _outer._logger.LogTrace("Enqueuing notification: {Notification}",
                                     notification.ToString());
@@ -844,8 +854,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._logger.LogWarning(ex, "Failed to produce message.");
                 }
 
-                WriterGroupContext CreateMessageContext(string topic, QoS? qos, Func<uint> sequenceNumber,
-                    MonitoredItemContext? item = null)
+                WriterGroupContext CreateMessageContext(string topic, QoS? qos, bool? retain, TimeSpan? ttl,
+                    Func<uint> sequenceNumber, MonitoredItemContext? item = null)
                 {
                     _outer.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     return new WriterGroupContext
@@ -855,6 +865,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = writerGroup,
                         Schema = networkMessageSchema,
+                        Retain = item?.Retain ?? retain,
+                        Ttl = item?.Ttl ?? ttl,
                         Topic = item?.Topic ?? topic,
                         Qos = item?.Qos ?? qos
                     };
@@ -960,6 +972,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// Topic for the message if not metadata message
                 /// </summary>
                 public abstract QoS? Qos { get; }
+
+                /// <summary>
+                /// Time to live
+                /// </summary>
+                public abstract TimeSpan? Ttl { get; }
+
+                /// <summary>
+                /// Retain
+                /// </summary>
+                public abstract bool? Retain { get; }
             }
 
             /// <summary>
@@ -971,6 +993,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public override string Topic { get; }
                 /// <inheritdoc/>
                 public override QoS? Qos { get; }
+                /// <inheritdoc/>
+                public override TimeSpan? Ttl { get; }
+                /// <inheritdoc/>
+                public override bool? Retain { get; }
 
                 /// <summary>
                 /// Create
@@ -978,9 +1004,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <param name="root"></param>
                 /// <param name="subpath"></param>
                 /// <param name="qos"></param>
+                /// <param name="retain"></param>
+                /// <param name="ttl"></param>
                 /// <param name="includeNamespaceIndex"></param>
                 public TopicContext(string root, RelativePath subpath, QoS? qos,
-                    bool includeNamespaceIndex)
+                    bool? retain, TimeSpan? ttl, bool includeNamespaceIndex)
                 {
                     var sb = new StringBuilder().Append(root);
                     foreach (var path in subpath.Elements)
@@ -993,6 +1021,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         sb.Append(TopicFilter.Escape(path.TargetName.Name));
                     }
                     Topic = sb.ToString();
+                    Ttl = ttl;
+                    Retain = retain;
                     Qos = qos;
                 }
 
@@ -1019,6 +1049,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public override string Topic => _topic.Value;
                 /// <inheritdoc/>
                 public override QoS? Qos => _settings.RequestedDeliveryGuarantee;
+                /// <inheritdoc/>
+                public override TimeSpan? Ttl => _settings.Ttl;
+                /// <inheritdoc/>
+                public override bool? Retain => _settings.Retain;
 
                 /// <summary>
                 /// Create context
@@ -1064,6 +1098,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private volatile uint _frameCount;
             private readonly string _topic;
             private readonly QoS? _qos;
+            private readonly TimeSpan? _ttl;
+            private readonly bool? _retain;
             private readonly string _metadataTopic;
             private readonly Dictionary<string, string> _variables;
             private readonly DataSetRoutingMode _routing;

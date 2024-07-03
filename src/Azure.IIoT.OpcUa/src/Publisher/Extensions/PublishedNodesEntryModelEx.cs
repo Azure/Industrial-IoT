@@ -62,6 +62,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.WriterGroupPartitions.Value);
             }
+            if (model.WriterGroupMessageTtlTimepan != null)
+            {
+                id.Append(model.WriterGroupMessageTtlTimepan.Value);
+            }
+            if (model.WriterGroupMessageRetention == true)
+            {
+                id.AppendLine();
+            }
             return id.ToString().ToSha1Hash();
         }
 
@@ -113,6 +121,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.WriterGroupPartitions != that.WriterGroupPartitions)
+            {
+                return false;
+            }
+            if (model.WriterGroupMessageRetention != that.WriterGroupMessageRetention)
+            {
+                return false;
+            }
+            if (model.WriterGroupMessageTtlTimepan != that.WriterGroupMessageTtlTimepan)
             {
                 return false;
             }
@@ -337,6 +353,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetFetchDisplayNames.Value);
             }
+            if (model.MessageTtlTimespan != null)
+            {
+                id.Append(model.MessageTtlTimespan.Value);
+            }
+            if (model.MessageRetention == true)
+            {
+                id.AppendLine();
+            }
             Debug.Assert(id.Length != 0); // Should always have an endpoint mixed in
             return id.ToString().ToSha1Hash();
         }
@@ -489,6 +513,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.DataSetFetchDisplayNames != that.DataSetFetchDisplayNames)
+            {
+                return false;
+            }
+            if (model.MessageRetention != that.MessageRetention)
+            {
+                return false;
+            }
+            if (model.MessageTtlTimespan != that.MessageTtlTimespan)
             {
                 return false;
             }

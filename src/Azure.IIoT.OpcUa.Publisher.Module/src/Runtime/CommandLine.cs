@@ -140,6 +140,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"qos|{PublisherConfig.DefaultQualityOfServiceKey}=",
                     $"The default quality of service to use for data set messages.\nThis does not apply to metadata messages which are always sent with `AtLeastOnce` semantics.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(QoS)))}`\nDefault: `{nameof(QoS.AtLeastOnce)}`.\n",
                     (QoS q) => this[PublisherConfig.DefaultQualityOfServiceKey] = q.ToString() },
+                { $"ttl|{PublisherConfig.DefaultMessageTimeToLiveKey}=",
+                    "The default time to live for all network message published in milliseconds if the transport supports it.\nThis does not apply to metadata messages which are always sent with a ttl of the metadata update interval or infinite ttl.\nDefault: `not set` (infinite).\n",
+                    (uint k) => this[PublisherConfig.DefaultMessageTimeToLiveKey] = TimeSpan.FromMilliseconds(k).ToString() },
+                { $"retain:|{PublisherConfig.DefaultMessageRetentionKey}:",
+                    "Whether by default to send messages with retain flag to a broker if the transport supports it.\nThis does not apply to metadata messages which are always sent as retained messages.\nDefault: `false'.\n",
+                    (bool? b) => this[PublisherConfig.DefaultMessageRetentionKey] = b?.ToString() ?? "True" },
 
                 // TODO: Add ConfiguredMessageSize
 

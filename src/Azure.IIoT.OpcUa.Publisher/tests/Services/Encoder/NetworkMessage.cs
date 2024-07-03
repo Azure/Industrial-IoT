@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentFlags extraNetworkMessageMask = 0,
-            bool isSampleMode = false)
+            bool isSampleMode = false, bool randomTopic = false)
         {
             var messages = new List<SubscriptionNotificationModel>();
             const string publisherId = "Publisher";
@@ -234,13 +234,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     }
                 }
 
+#pragma warning disable CA5394 // Do not use insecure randomness
                 var message = new SubscriptionNotificationModel(DateTimeOffset.UtcNow, new ServiceMessageContext())
                 {
                     Context = new WriterGroupContext
                     {
                         NextWriterSequenceNumber = () => i,
                         Qos = null,
-                        Topic = string.Empty,
+                        Topic = randomTopic ? Guid.NewGuid().ToString() : string.Empty,
+                        Retain = false,
+                        Ttl = randomTopic ? TimeSpan.FromSeconds(Random.Shared.Next(60)) : null,
                         PublisherId = publisherId,
                         Schema = null,
                         Writer = writer,
@@ -254,6 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     EndpointUrl = "EndpointUrl" + suffix,
                     ApplicationUri = "ApplicationUri" + suffix
                 };
+#pragma warning restore CA5394 // Do not use insecure randomness
 
                 messages.Add(message);
             }

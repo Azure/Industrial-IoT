@@ -111,6 +111,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public void EncodeJsonWithRandomTopicTest(bool encodeBatchFlag)
+        {
+            const int maxMessageSize = 256 * 1024;
+            var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json, randomTopic: true);
+
+            using var encoder = GetEncoder();
+            var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
+
+            // Batch or no batch, each notification has its own topic, so every single one generates a message
+
+            Assert.Equal(20, networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count));
+            Assert.Equal(20, encoder.NotificationsProcessedCount);
+            Assert.Equal(0, encoder.NotificationsDroppedCount);
+            Assert.Equal(20, encoder.MessagesProcessedCount);
+            Assert.Equal(1, encoder.AvgNotificationsPerMessage);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public void EncodeChunkTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 8 * 1024;
@@ -129,12 +149,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal(1, Math.Round(encoder.AvgNotificationsPerMessage));
         }
 
-        [Fact]
-        public void EncodeJsonSingleMessageTest()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void EncodeJsonSingleMessageTest(bool randomTopic)
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Json,
-                NetworkMessageContentFlags.SingleDataSetMessage);
+                NetworkMessageContentFlags.SingleDataSetMessage, randomTopic: randomTopic);
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, false);

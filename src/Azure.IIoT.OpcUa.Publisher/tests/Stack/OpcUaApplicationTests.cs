@@ -408,6 +408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var containerBuilder = new ContainerBuilder();
             containerBuilder.AddLogging();
             containerBuilder.AddOpcUaStack();
+            containerBuilder.AddNewtonsoftJsonSerializer();
             return containerBuilder.Build();
         }
     }

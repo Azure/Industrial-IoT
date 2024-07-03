@@ -70,6 +70,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
         public const string DefaultQualityOfServiceKey = "DefaultQualityOfService";
+        public const string DefaultMessageTimeToLiveKey = "DefaultMessageTimeToLive";
+        public const string DefaultMessageRetentionKey = "DefaultMessageRetention";
         public const string DefaultDataSetRoutingKey = "DefaultDataSetRouting";
         public const string ApiKeyOverrideKey = "ApiKey";
         public const string PublishMessageSchemaKey = "PublishMessageSchema";
@@ -337,6 +339,15 @@ namespace Azure.IIoT.OpcUa.Publisher
                 }
                 options.DefaultQualityOfService = qos;
             }
+
+            if (options.DefaultMessageTimeToLive == null)
+            {
+                var ttl = GetIntOrNull(DefaultMessageTimeToLiveKey);
+                options.DefaultMessageTimeToLive = ttl.HasValue ?
+                    TimeSpan.FromMilliseconds(ttl.Value) : GetDurationOrNull(
+                        DefaultMessageTimeToLiveKey);
+            }
+            options.DefaultMessageRetention = GetBoolOrNull(DefaultMessageRetentionKey);
 
             if (options.MessageTimestamp == null)
             {

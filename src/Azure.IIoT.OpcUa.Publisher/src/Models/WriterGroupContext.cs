@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public record class WriterGroupContext
     {
         /// <summary>
-        /// Topic for the message if not metadata message
+        /// Topic for the message
         /// </summary>
         public required string Topic { get; init; }
 
@@ -22,6 +22,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Requested qos
         /// </summary>
         public required QoS? Qos { get; init; }
+
+        /// <summary>
+        /// Requested Retain
+        /// </summary>
+        public bool? Retain { get; init; }
+
+        /// <summary>
+        /// Requested Time to live
+        /// </summary>
+        public TimeSpan? Ttl { get; init; }
 
         /// <summary>
         /// Publisher id
