@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Furly;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;

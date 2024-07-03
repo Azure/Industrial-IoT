@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
@@ -139,6 +138,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"qos|{PublisherConfig.DefaultQualityOfServiceKey}=",
                     $"The default quality of service to use for data set messages.\nThis does not apply to metadata messages which are always sent with `AtLeastOnce` semantics.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(QoS)))}`\nDefault: `{nameof(QoS.AtLeastOnce)}`.\n",
                     (QoS q) => this[PublisherConfig.DefaultQualityOfServiceKey] = q.ToString() },
+                { $"ttl|{PublisherConfig.DefaultMessageTimeToLiveKey}=",
+                    "The default time to live for all network message published in milliseconds if the transport supports it.\nThis does not apply to metadata messages which are always sent with a ttl of the metadata update interval or infinite ttl.\nDefault: `not set` (infinite).\n",
+                    (uint k) => this[PublisherConfig.DefaultMessageTimeToLiveKey] = TimeSpan.FromMilliseconds(k).ToString() },
+                { $"retain:|{PublisherConfig.DefaultMessageRetentionKey}:",
+                    "Whether by default to send messages with retain flag to a broker if the transport supports it.\nThis does not apply to metadata messages which are always sent as retained messages.\nDefault: `false'.\n",
+                    (bool? b) => this[PublisherConfig.DefaultMessageRetentionKey] = b?.ToString() ?? "True" },
 
                 // TODO: Add ConfiguredMessageSize
 
@@ -554,6 +559,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"sl|opcstacklogging:|{OpcUaClientConfig.EnableOpcUaStackLoggingKey}:",
                     "Enable opc ua stack logging beyond logging at error level.\nDefault: `disabled`.\n",
                     (bool? b) => this[OpcUaClientConfig.EnableOpcUaStackLoggingKey] = b?.ToString() ?? "True" },
+                { $"ksf|keysetlogfolder:|{OpcUaClientConfig.OpcUaKeySetLogFolderNameKey}:",
+                    "Writes negotiated symmetric keys for all running client connection to this file.\nThe file can be loaded by Wireshark 4.3 and used to decrypt encrypted channels when analyzing network traffic captures.\nNote that enabling this feature presents a security risk!\nDefault: `disabled`.\n",
+                    (string? f) => this[OpcUaClientConfig.OpcUaKeySetLogFolderNameKey] = f ?? Directory.GetCurrentDirectory() },
                 { $"ecw|enableconsolewriter:|{Configuration.ConsoleWriter.EnableKey}:",
                     "Enable writing encoded messages to standard error log through the filesystem transport (must enable via `-t FileSystem` and `-o` must be set to either `stderr` or `stdout`).\nDefault: `false`.\n",
                     (bool? b) => this[Configuration.ConsoleWriter.EnableKey] = b?.ToString() ?? "True" },

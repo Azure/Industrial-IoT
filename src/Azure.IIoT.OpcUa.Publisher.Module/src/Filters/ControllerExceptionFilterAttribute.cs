@@ -41,7 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 return;
             }
 
-
             if (context.Exception is AggregateException ae)
             {
                 var root = ae.GetBaseException();

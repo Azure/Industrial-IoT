@@ -114,6 +114,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
                             WriterGroupQualityOfService = item.WriterGroup.Publishing?.RequestedDeliveryGuarantee,
+                            WriterGroupMessageTtlTimepan = item.WriterGroup.Publishing?.Ttl,
+                            WriterGroupMessageRetention = item.WriterGroup.Publishing?.Retain,
                             WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
@@ -121,6 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             QueueName = item.Writer.Publishing?.QueueName,
                             QualityOfService = item.Writer.Publishing?.RequestedDeliveryGuarantee,
+                            MessageTtlTimespan = item.Writer.Publishing?.Ttl,
+                            MessageRetention = item.Writer.Publishing?.Retain,
                             MetaDataQueueName = item.Writer.MetaData?.QueueName,
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
@@ -369,7 +373,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         Publishing = new PublishingQueueSettingsModel
                         {
                             RequestedDeliveryGuarantee = group.Header.WriterGroupQualityOfService,
-                            QueueName = group.Header.WriterGroupQueueName
+                            QueueName = group.Header.WriterGroupQueueName,
+                            Retain = group.Header.WriterGroupMessageRetention,
+                            Ttl = group.Header.WriterGroupMessageTtlTimepan
                         },
                         HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
                         Name = group.Header.DataSetWriterGroup,
@@ -384,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     .SelectMany(w => w.OpcNodes!)
                                     .Distinct(OpcNodeModelEx.Comparer)
                                     .Batch(_maxNodesPerDataSet)
-                                // Future: batch in service so it is centralized
+                            // Future: batch in service so it is centralized
                             ))
                             .SelectMany(b => b.WriterBatches // Do we need to materialize here?
                                 .DefaultIfEmpty(kDummyEntry.YieldReturn())
@@ -398,12 +404,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     Publishing = new PublishingQueueSettingsModel
                                     {
                                         QueueName = b.Header.QueueName,
-                                        RequestedDeliveryGuarantee = b.Header.QualityOfService
+                                        RequestedDeliveryGuarantee = b.Header.QualityOfService,
+                                        Retain = b.Header.MessageRetention,
+                                        Ttl = b.Header.MessageTtlTimespan
                                     },
                                     MetaData = new PublishingQueueSettingsModel
                                     {
                                         QueueName = b.Header.MetaDataQueueName,
-                                        RequestedDeliveryGuarantee = null
+                                        RequestedDeliveryGuarantee = null,
+                                        Retain = true,
+                                        Ttl = null
                                     },
                                     DataSet = new PublishedDataSetModel
                                     {
@@ -622,7 +632,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             ? null : new PublishingQueueSettingsModel
                             {
                                 QueueName = node.Topic,
-                                RequestedDeliveryGuarantee = node.QualityOfService
+                                RequestedDeliveryGuarantee = node.QualityOfService,
+                                Retain = null,
+                                Ttl = null
                             },
                         Triggering = skipTriggering || node.TriggeredNodes == null
                             ? null : new PublishedDataSetTriggerModel
@@ -659,7 +671,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             ? null : new PublishingQueueSettingsModel
                             {
                                 QueueName = node.Topic,
-                                RequestedDeliveryGuarantee = node.QualityOfService
+                                RequestedDeliveryGuarantee = node.QualityOfService,
+                                Retain = null,
+                                Ttl = null
                             },
                         Triggering = skipTriggering || node.TriggeredNodes == null
                             ? null : new PublishedDataSetTriggerModel

@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -19,13 +21,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ResetAllClients(CancellationToken ct = default);
+        Task ResetAllClientsAsync(CancellationToken ct = default);
 
         /// <summary>
-        /// Set all connections into trace mode for a minute.
+        /// Watch diagnostic information of all connections.
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task SetTraceModeAsync(CancellationToken ct = default);
+        IAsyncEnumerable<ConnectionDiagnosticModel> GetConnectionDiagnosticAsync(
+            CancellationToken ct = default);
     }
 }

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using Opc.Ua;
+    using Opc.Ua.Bindings;
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
+    using System.Net;
     using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
@@ -108,6 +110,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OperationLimits? LimitOverrides { get; set; }
 
         /// <summary>
+        /// Last diagnostic information on this client
+        /// </summary>
+        internal ConnectionDiagnosticModel LastDiagnostics => _lastDiagnostics;
+
+        /// <summary>
         /// No complex type loading ever
         /// </summary>
         public bool DisableComplexTypeLoading
@@ -170,6 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         /// <param name="notifier"></param>
         /// <param name="reverseConnectManager"></param>
+        /// <param name="diagnosticsCallback"></param>
         /// <param name="maxReconnectPeriod"></param>
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -179,6 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Meter meter, IMetricsContext metrics,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
+            Action<ConnectionDiagnosticModel> diagnosticsCallback,
             TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
             _timeProvider = timeProvider;
@@ -188,6 +197,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _connection = connection.Connection;
+            _diagnosticsCb = diagnosticsCallback;
+            _lastDiagnostics = new ConnectionDiagnosticModel
+            {
+                Connection = _connection,
+                TimeStamp = _timeProvider.GetUtcNow()
+            };
             Debug.Assert(_connection.GetEndpointUrls().Any());
             _reverseConnectManager = reverseConnectManager;
 
@@ -219,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
-            _traceModeTimer = _timeProvider.CreateTimer(_ => OnTraceModeExpired(),
+            _channelMonitor = _timeProvider.CreateTimer(_ => OnUpdateConnectionDiagnostics(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
         }
@@ -369,48 +384,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Enable trace mode
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        internal async Task SetTraceModeAsync(CancellationToken ct)
-        {
-            bool reset;
-            lock (_lock)
-            {
-                reset = !_traceMode;
-                _traceMode = true;
-
-                _traceModeTimer.Change(TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
-            }
-
-            if (reset)
-            {
-                // Reset the client into trace mode
-                await ResetAsync(ct).ConfigureAwait(false);
-            }
-        }
-
-        /// <summary>
-        /// Disable trace mode if necessary when watchdog expires
-        /// </summary>
-        private void OnTraceModeExpired()
-        {
-            bool reset;
-            lock (_lock)
-            {
-                reset = _traceMode;
-
-                _traceMode = false;
-                _traceModeTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            }
-            if (reset)
-            {
-                TriggerConnectionEvent(ConnectionEvent.Reset);
-            }
-        }
-
-        /// <summary>
         /// Close client
         /// </summary>
         /// <returns></returns>
@@ -454,8 +427,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             finally
             {
                 _cts.Dispose();
-
-                await _traceModeTimer.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -1053,6 +1024,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(sre, "{Client}: Failed to fetch namespace table...", this);
                 }
 
+                if (!DisableComplexTypeLoading && !session.IsTypeSystemLoaded)
+                {
+                    // Ensure type system is loaded
+                    await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                }
+
                 await Task.WhenAll(subscriptions.Concat(extra).Select(async subscription =>
                 {
                     try
@@ -1246,11 +1223,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     //
                     var securityMode = _connection.Endpoint.SecurityMode ?? SecurityMode.NotNone;
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
-                    if (_traceMode)
-                    {
-                        securityMode = SecurityMode.None;
-                        securityProfile = null;
-                    }
 
                     var endpointDescription = await SelectEndpointAsync(endpointUrl,
                         connection, securityMode, securityProfile).ConfigureAwait(false);
@@ -1377,7 +1349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "{Client}: Too many publish request error: Limiting number of requests to {Limit}...",
                         this, limit);
                     return;
-                 default:
+                default:
                     if (session.Connected)
                     {
                         _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
@@ -1554,30 +1526,140 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var oldTable = _session?.NamespaceUris.ToArray();
-            try
+            Debug.Assert(_reconnectingSession == null);
+            if (ReferenceEquals(_session, session))
             {
-                Debug.Assert(_reconnectingSession == null);
-                if (ReferenceEquals(_session, session))
-                {
-                    // Not a new session
-                    NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-                    return false;
-                }
-
-                await CloseSessionAsync().ConfigureAwait(false);
-                _session = (OpcUaSession)session;
-
+                // Not a new session
                 NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-                kSessions.Add(1, _metrics.TagList);
-                return true;
+                UpdateNamespaceTableAndSessionDiagnostics(session, oldTable);
+                return false;
             }
-            finally
+
+            await CloseSessionAsync().ConfigureAwait(false);
+            _session = (OpcUaSession)session;
+
+            NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+            UpdateNamespaceTableAndSessionDiagnostics(_session, oldTable);
+            kSessions.Add(1, _metrics.TagList);
+            return true;
+
+            void UpdateNamespaceTableAndSessionDiagnostics(ISession session,
+                string[]? oldTable)
             {
-                if (oldTable != null && _session != null)
+                if (oldTable != null)
                 {
-                    var newTable = _session.NamespaceUris.ToArray();
+                    var newTable = session.NamespaceUris.ToArray();
                     LogNamespaceTableChanges(oldTable, newTable);
                 }
+
+                lock (_channelLock)
+                {
+                    UpdateConnectionDiagnosticsFromSession(session);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update diagnostic if the channel has changed
+        /// </summary>
+        private void OnUpdateConnectionDiagnostics()
+        {
+            if (_session != null)
+            {
+                lock (_channelLock)
+                {
+                    UpdateConnectionDiagnosticsFromSession(_session);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update session diagnostics
+        /// </summary>
+        /// <param name="session"></param>
+        private void UpdateConnectionDiagnosticsFromSession(ISession session)
+        {
+            var channel = session.TransportChannel;
+            var token = channel?.CurrentToken;
+
+            // Get effective ip address and port
+            var socket = (channel as UaSCUaBinaryTransportChannel)?.Socket;
+            var remoteIpAddress = socket?.RemoteEndpoint?.GetIPAddress();
+            var remotePort = socket?.RemoteEndpoint?.GetPort();
+            var localIpAddress = socket?.LocalEndpoint?.GetIPAddress();
+            var localPort = socket?.LocalEndpoint?.GetPort();
+            var now = _timeProvider.GetUtcNow();
+
+            var elapsed = now - _lastDiagnostics.TimeStamp;
+            var lastChannel = _lastDiagnostics.ChannelDiagnostics;
+            if (lastChannel != null &&
+                lastChannel.ChannelId == token?.ChannelId &&
+                lastChannel.TokenId == token?.TokenId &&
+                lastChannel.CreatedAt == token?.CreatedAt)
+            {
+                //
+                // Token has not yet been updated, let's retry later
+                // It is also assumed that the port/ip are still the same
+                //
+                var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
+                if (lifetime > elapsed)
+                {
+                    _channelMonitor.Change(lifetime - elapsed,
+                        Timeout.InfiniteTimeSpan);
+                }
+                else
+                {
+                    _channelMonitor.Change(TimeSpan.FromSeconds(1),
+                        Timeout.InfiniteTimeSpan);
+                }
+                return;
+            }
+
+            _lastDiagnostics = new ConnectionDiagnosticModel
+            {
+                Connection = _connection,
+                TimeStamp = now,
+                RemoteIpAddress = remoteIpAddress?.ToString(),
+                RemotePort = remotePort == -1 ? null : remotePort,
+                LocalIpAddress = localIpAddress?.ToString(),
+                LocalPort = localPort == -1 ? null : localPort,
+
+                ChannelDiagnostics = token != null ? new ChannelDiagnosticModel
+                {
+                    ChannelId = token.ChannelId,
+                    TokenId = token.TokenId,
+                    CreatedAt = token.CreatedAt,
+                    Lifetime = TimeSpan.FromMilliseconds(token.Lifetime),
+                    Client = ToChannelKey(token.ClientInitializationVector,
+                        token.ClientEncryptingKey, token.ClientSigningKey),
+                    Server = ToChannelKey(token.ServerInitializationVector,
+                        token.ServerEncryptingKey, token.ServerSigningKey)
+                } : null
+            };
+
+            _diagnosticsCb(_lastDiagnostics);
+            _logger.LogDebug("{Client}: Diagnostics information updated.", this);
+
+            if (token != null)
+            {
+                // Monitor channel's token lifetime and update diagnostics
+                var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
+                _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
+            }
+
+            static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? signingKey)
+            {
+                if (iv == null || key == null || signingKey == null ||
+                    iv.Length == 0 || key.Length == 0 || signingKey.Length == 0)
+                {
+                    return null;
+                }
+                return new ChannelKeyModel
+                {
+                    Iv = iv,
+                    Key = key,
+                    SigLen = signingKey.Length
+                };
             }
         }
 
@@ -2032,7 +2114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
         private int _namespaceTableChanges;
-        private bool _traceMode;
+        private ConnectionDiagnosticModel _lastDiagnostics;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
@@ -2043,14 +2125,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConnectionModel _connection;
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
-#pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly ITimer _traceModeTimer;
         private readonly TimeProvider _timeProvider;
+        private readonly object _channelLock = new();
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private readonly ITimer _channelMonitor;
         private readonly SessionReconnectHandler _reconnectHandler;
         private readonly CancellationTokenSource _cts;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
+        private readonly Action<ConnectionDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<(string, TimeSpan), Sampler> _samplers = new();
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();

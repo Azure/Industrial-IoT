@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

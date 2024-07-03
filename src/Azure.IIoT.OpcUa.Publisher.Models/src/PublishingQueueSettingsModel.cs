@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Messaging;
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -24,10 +25,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
         /// <summary>
         /// Desired Quality of service to use in case of broker
-        /// transport.
+        /// transport that supports configuring delivery guarantees.
         /// </summary>
         [DataMember(Name = "requestedDeliveryGuarantee", Order = 2,
             EmitDefaultValue = false)]
         public QoS? RequestedDeliveryGuarantee { get; set; }
+
+        /// <summary>
+        /// Desired Time to live to use in case of using a broker
+        /// transport that supports ttl.
+        /// </summary>
+        [DataMember(Name = "ttl", Order = 3,
+            EmitDefaultValue = false)]
+        public TimeSpan? Ttl { get; set; }
+
+        /// <summary>
+        /// If the broker transport supports message retention this
+        /// setting determines if the messages should be retained
+        /// in the queue.
+        /// </summary>
+        [DataMember(Name = "retain", Order = 4,
+            EmitDefaultValue = false)]
+        public bool? Retain { get; set; }
     }
 }

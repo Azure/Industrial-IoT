@@ -314,6 +314,11 @@ Condition handling options model
 |**updateInterval**  <br>*optional*|Time interval for sending pending interval updates in seconds.|integer (int32)|
 
 
+<a name="connectiondiagnosticmodeliasyncenumerable"></a>
+### ConnectionDiagnosticModelIAsyncEnumerable
+*Type* : object
+
+
 <a name="connectionmodel"></a>
 ### ConnectionModel
 Connection model

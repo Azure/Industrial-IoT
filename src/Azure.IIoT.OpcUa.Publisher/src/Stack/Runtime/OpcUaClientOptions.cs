@@ -132,6 +132,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? EnableOpcUaStackLogging { get; set; }
 
         /// <summary>
+        /// Folder to write keysets to for later decryption
+        /// of wireshark traces.
+        /// </summary>
+        public string? OpcUaKeySetLogFolderName { get; set; }
+
+        /// <summary>
         /// Minimum number of publish requests to queue
         /// at all times. Default is 2.
         /// </summary>

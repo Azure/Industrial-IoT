@@ -862,6 +862,31 @@ This section lists the diagnostics APi provided by OPC Publisher providing
             name.
 
 
+<a name="getconnectiondiagnostic"></a>
+#### GetConnectionDiagnostic
+```
+GET /v2/diagnostics/connections
+```
+
+
+##### Description
+Get connection diagnostic information for all connections. The first set of diagnostics are the diagnostics active for all connections, continue reading to get updates.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|[ConnectionDiagnosticModelIAsyncEnumerable](definitions.md#connectiondiagnosticmodeliasyncenumerable)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
 <a name="resetallclients"></a>
 #### ResetAllClients
 ```
@@ -879,31 +904,6 @@ Can be used to reset all established connections causing a full reconnect and re
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
-|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
-
-
-##### Produces
-
-* `application/json`
-* `application/x-msgpack`
-
-
-<a name="settracemode"></a>
-#### SetTraceMode
-```
-GET /v2/tracemode
-```
-
-
-##### Description
-Can be used to set trace mode for all established connections. Call within a minute to keep trace mode up or else trace mode will be disabled again after 1 minute. Enabling and resetting tracemode will cause a reconnect of the client.
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|The operation was successful.|No Content|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 

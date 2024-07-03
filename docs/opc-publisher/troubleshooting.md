@@ -16,6 +16,7 @@ In this document you find information about
     - [IoT Hub Metrics](#iot-hub-metrics)
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
 - [Restart the module](#restart-the-module)
+- [Analyzing network capture files](#analyzing-network-capture-files)
 - [Limits and contributing factors](#limits-and-contributing-factors)
 - [Debugging Discovery](#debugging-discovery)
 
@@ -165,6 +166,26 @@ iotedge list
 ​​```
 
 You can also troubleshoot the OPC Publisher module remotely through the Azure Portal. Select the module inside the respective IoT Edge device in the IoT Edge blade and click on the Troubleshooting button to see logs and restart the module remotely.
+
+## Analyzing network capture files
+
+The issue might be between the OPC Publisher OPC UA client and the OPC UA server you are using. A network capture provides the definitive answer as to where the issue lies. To capture network traffic you can use [Wireshark](https://www.wireshark.org/) or [tshark](https://tshark.dev/setup/install/) (aka. command line wireshark) and capture a .pcap file for analysis.  An example of how to capture network traces in a docker environment can be found [here](../../deploy/docker/with-pcap-capture.yaml). To analyze OPC UA traffic, you must load the .pcap or .pcapng file you captured with Wireshark.
+
+Follow [these instructions](https://opcconnect.opcfoundation.org/2017/02/analyzing-opc-ua-communications-with-wireshark/#:~:text=Wireshark%20has%20a%20built-in%20filter%20for%20OPC%20UA%2C,fairly%20easy%20to%20capture%20and%20analyze%20the%20conversation.) to visualize the OPC UA traffic between OPC Publisher and your OPC UA server.
+
+If your connection to the OPC UA server is encrypted (using security) you must use Wireshark 4.3 (not the stable version!). You will also need to capture the client and server keys. You can start OPC Publisher with the `-ksf` [command line argument](./commandline.md), providing an optional folder path that can be accessed after running OPC Publisher (volume mount). The folder is structured like this:
+
+![Key Set Log Folder](./media/keyset.png)
+
+The folder path starts with the port number, because the port number needs to be configured in the OPC UA protocol page in Wireshark.
+
+![Wireshark configuration](./media/keyset2.png)
+
+Find the connection you want to trace. You can open the `opcua_debug.log` file in one of the sub folders to identify the connection. The log file shows the remote and local endpoints as well as a summary of the connection configuration that was used to connect OPC Publisher. Once you have found the right folder, load the `opcua_debug.txt` file using the protocol page, then save and Wireshark will be able to decrypt traffic.
+
+![Wireshark Analysis](./media/keyset3.png)
+
+> IMPORTANT: While the keys that are logged are scoped to the connection and cannot be re-used, it still presents a security risk, therefore, ensure to clean up the logs when you are done, and do not use the feature in production.
 
 ## Limits and contributing factors
 

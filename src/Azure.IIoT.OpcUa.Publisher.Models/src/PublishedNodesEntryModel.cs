@@ -401,9 +401,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? DataSetFetchDisplayNames { get; set; }
 
         /// <summary>
+        /// Default time to live for messages sent through
+        /// the writer group if the transport supports it.
+        /// </summary>
+        [DataMember(Name = "WriterGroupMessageTtlTimepan", Order = 49,
+            EmitDefaultValue = false)]
+        public TimeSpan? WriterGroupMessageTtlTimepan { get; set; }
+
+        /// <summary>
+        /// Default message retention setting for messages sent
+        /// through the writer group if the transport supports it.
+        /// </summary>
+        [DataMember(Name = "WriterGroupMessageRetention", Order = 50,
+            EmitDefaultValue = false)]
+        public bool? WriterGroupMessageRetention { get; set; }
+
+        /// <summary>
+        /// Message time to live for messages sent by the
+        /// writer if the transport supports it.
+        /// </summary>
+        [DataMember(Name = "MessageTtlTimespan", Order = 52,
+            EmitDefaultValue = false)]
+        public TimeSpan? MessageTtlTimespan { get; set; }
+
+        /// <summary>
+        /// Message retention setting for messages sent by
+        /// the writer if the transport supports it.
+        /// </summary>
+        [DataMember(Name = "MessageRetention", Order = 53,
+            EmitDefaultValue = false)]
+        public bool? MessageRetention { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
-        [DataMember(Name = "NodeId", Order = 50,
+        [DataMember(Name = "NodeId", Order = 99,
             EmitDefaultValue = false)]
         public NodeIdModel? NodeId { get; set; }
     }

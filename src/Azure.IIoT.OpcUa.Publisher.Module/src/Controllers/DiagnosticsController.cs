@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
     using Furly;
     using Furly.Tunnel.Router;
@@ -13,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -68,27 +70,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpGet("reset")]
         public async Task ResetAllClientsAsync(CancellationToken ct = default)
         {
-            await _diagnostics.ResetAllClients(ct).ConfigureAwait(false);
+            await _diagnostics.ResetAllClientsAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// SetTraceMode
+        /// GetConnectionDiagnostic
         /// </summary>
         /// <remarks>
-        /// Can be used to set trace mode for all established connections.
-        /// Call within a minute to keep trace mode up or else trace mode
-        /// will be disabled again after 1 minute. Enabling and resetting
-        /// tracemode will cause a reconnect of the client.
+        /// Get connection diagnostic information for all connections.
+        /// The first set of diagnostics are the diagnostics active for
+        /// all connections, continue reading to get updates.
         /// </remarks>
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("tracemode")]
-        public async Task SetTraceModeAsync(CancellationToken ct = default)
+        [HttpGet("diagnostics/connections")]
+        public IAsyncEnumerable<ConnectionDiagnosticModel> GetConnectionDiagnosticAsync(
+            CancellationToken ct = default)
         {
-            await _diagnostics.SetTraceModeAsync(ct).ConfigureAwait(false);
+            return _diagnostics.GetConnectionDiagnosticAsync(ct);
         }
 
         private readonly IClientDiagnostics _diagnostics;

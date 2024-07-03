@@ -158,6 +158,16 @@ namespace Azure.IIoT.OpcUa.Publisher
         public QoS? DefaultQualityOfService { get; set; }
 
         /// <summary>
+        /// Default message time to live
+        /// </summary>
+        public TimeSpan? DefaultMessageTimeToLive { get; set; }
+
+        /// <summary>
+        /// Default whether to set message retain flag
+        /// </summary>
+        public bool? DefaultMessageRetention { get; set; }
+
+        /// <summary>
         /// Default Max data set messages per published network
         /// message.
         /// </summary>
