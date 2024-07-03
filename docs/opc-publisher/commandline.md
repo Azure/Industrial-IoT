@@ -186,6 +186,20 @@ Messaging configuration
                                    `AtLeastOnce`
                                    `ExactlyOnce`
                                Default: `AtLeastOnce`.
+      --ttl, --DefaultMessageTimeToLive=VALUE
+                             The default time to live for all network message
+                               published in milliseconds if the transport
+                               supports it.
+                               This does not apply to metadata messages which
+                               are always sent with a ttl of the metadata
+                               update interval or infinite ttl.
+                               Default: `not set` (infinite).
+      --retain, --DefaultMessageRetention[=VALUE]
+                             Whether by default to send messages with retain
+                               flag to a broker if the transport supports it.
+                               This does not apply to metadata messages which
+                               are always sent as retained messages.
+                               Default: `false'.
       --mts, --messagetimestamp, --MessageTimestamp=VALUE
                              The value to set as as the timestamp property of
                                messages during encoding (if the encoding
@@ -1062,6 +1076,15 @@ Diagnostic options
       --sl, --opcstacklogging, --EnableOpcUaStackLogging[=VALUE]
                              Enable opc ua stack logging beyond logging at
                                error level.
+                               Default: `disabled`.
+      --ksf, --keysetlogfolder, --OpcUaKeySetLogFolderName[=VALUE]
+                             Writes negotiated symmetric keys for all running
+                               client connection to this file.
+                               The file can be loaded by Wireshark 4.3 and used
+                               to decrypt encrypted channels when analyzing
+                               network traffic captures.
+                               Note that enabling this feature presents a
+                               security risk!
                                Default: `disabled`.
       --ecw, --enableconsolewriter, --EnableConsoleWriter[=VALUE]
                              Enable writing encoded messages to standard error
