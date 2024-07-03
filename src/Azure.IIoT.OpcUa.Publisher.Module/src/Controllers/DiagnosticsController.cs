@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
     using Furly;
     using Furly.Tunnel.Router;
@@ -13,10 +14,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using System.Collections.Generic;
 
     /// <summary>
     /// <para>

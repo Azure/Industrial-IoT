@@ -13,20 +13,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using Opc.Ua;
-    using Opc.Ua.Client;
     using Opc.Ua.Bindings;
+    using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
+    using System.Net;
     using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using System.Net;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.

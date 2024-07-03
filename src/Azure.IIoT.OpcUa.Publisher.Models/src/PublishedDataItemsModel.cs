@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 

@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     .SelectMany(w => w.OpcNodes!)
                                     .Distinct(OpcNodeModelEx.Comparer)
                                     .Batch(_maxNodesPerDataSet)
-                                // Future: batch in service so it is centralized
+                            // Future: batch in service so it is centralized
                             ))
                             .SelectMany(b => b.WriterBatches // Do we need to materialize here?
                                 .DefaultIfEmpty(kDummyEntry.YieldReturn())

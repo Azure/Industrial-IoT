@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Configuration;
@@ -16,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
 

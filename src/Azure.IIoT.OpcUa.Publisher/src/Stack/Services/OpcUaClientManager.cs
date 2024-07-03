@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -24,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Nito.AsyncEx;
 
     /// <summary>
     /// Client manager

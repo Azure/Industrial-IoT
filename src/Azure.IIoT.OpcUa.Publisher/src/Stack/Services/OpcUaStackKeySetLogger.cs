@@ -5,15 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Threading.Tasks;
-    using System.Threading;
-    using System.Linq;
     using System.Globalization;
     using System.IO;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// <para>
