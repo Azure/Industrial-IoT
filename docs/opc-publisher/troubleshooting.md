@@ -177,15 +177,19 @@ If your connection to the OPC UA server is encrypted (using security) you must u
 
 ![Key Set Log Folder](./media/keyset.png)
 
-The folder path starts with the port number, because the port number needs to be configured in the OPC UA protocol page in Wireshark.
+You can open the `log.md` markdown file in the `opcua_debug` folder and find the connection and session you want to decrypt.
+
+![Key Set Log File](./media/keyset1.png)
+
+The log file shows the remote and local endpoints as well as a summary of the connection configuration that was used to connect OPC Publisher. Each keyset log can be found in a subfolder that starts with the port number, because the port number needs to be configured in the OPC UA protocol page in Wireshark.
 
 ![Wireshark configuration](./media/keyset2.png)
 
-Find the connection you want to trace. You can open the `opcua_debug.log` file in one of the sub folders to identify the connection. The log file shows the remote and local endpoints as well as a summary of the connection configuration that was used to connect OPC Publisher. Once you have found the right folder, load the `opcua_debug.txt` file using the protocol page, then save and Wireshark will be able to decrypt traffic.
+Once you have found the right folder, load the `opcua_debug.txt` file in it using the protocol page, then save and Wireshark will be able to decrypt traffic.
 
 ![Wireshark Analysis](./media/keyset3.png)
 
-> IMPORTANT: While the keys that are logged are scoped to the connection and cannot be re-used, it still presents a security risk, therefore, ensure to clean up the logs when you are done, and do not use the feature in production.
+> IMPORTANT: While the keys that are logged are scoped to the connection and cannot be re-used, it still presents a security risk, therefore, ensure to properly delete the `opcua_debug` folder and all its content when you are done. Do not use the feature in production.
 
 ## Limits and contributing factors
 

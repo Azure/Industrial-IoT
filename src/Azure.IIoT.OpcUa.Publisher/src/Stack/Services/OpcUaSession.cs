@@ -39,6 +39,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ISessionServices Services => this;
 
         /// <summary>
+        /// Time the session was created
+        /// </summary>
+        internal DateTimeOffset CreatedAt { get; }
+
+        /// <summary>
         /// Type system has loaded
         /// </summary>
         internal bool IsTypeSystemLoaded
@@ -85,6 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = client;
             _serializer = serializer;
             _timeProvider = timeProvider;
+            CreatedAt = _timeProvider.GetUtcNow();
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, serializer);
@@ -105,6 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = session._client;
             _serializer = session._serializer;
             _timeProvider = session._timeProvider;
+            CreatedAt = _timeProvider.GetUtcNow();
 
             _complexTypeSystem = session._complexTypeSystem;
             _history = session._history;

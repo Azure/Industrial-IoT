@@ -21,16 +21,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public required DateTimeOffset TimeStamp { get; init; }
 
         /// <summary>
-        /// The connection information specified by user.
+        /// The session id if connected. Empty if disconnected.
         /// </summary>
-        [DataMember(Name = "connection", Order = 1)]
-        public required ConnectionModel Connection { get; init; }
+        [DataMember(Name = "sessionId", Order = 1,
+             EmitDefaultValue = false)]
+        public string? SessionId { get; init; }
+
+        /// <summary>
+        /// When the session was created.
+        /// </summary>
+        [DataMember(Name = "sessionCreated", Order = 2,
+             EmitDefaultValue = false)]
+        public DateTimeOffset? SessionCreated { get; init; }
 
         /// <summary>
         /// Effective remote ip address used for the
         /// connection if connected. Empty if disconnected.
         /// </summary>
-        [DataMember(Name = "remoteIpAddress", Order = 2,
+        [DataMember(Name = "remoteIpAddress", Order = 5,
              EmitDefaultValue = false)]
         public string? RemoteIpAddress { get; init; }
 
@@ -38,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The effective remote port used when connected,
         /// null if disconnected.
         /// </summary>
-        [DataMember(Name = "remotePort", Order = 3,
+        [DataMember(Name = "remotePort", Order = 6,
              EmitDefaultValue = false)]
         public int? RemotePort { get; init; }
 
@@ -46,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Effective local ip address used for the connection
         /// if connected. Empty if disconnected.
         /// </summary>
-        [DataMember(Name = "localIpAddress", Order = 4,
+        [DataMember(Name = "localIpAddress", Order = 7,
              EmitDefaultValue = false)]
         public string? LocalIpAddress { get; init; }
 
@@ -54,15 +62,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The effective local port used when connected,
         /// null if disconnected.
         /// </summary>
-        [DataMember(Name = "localPort", Order = 5,
+        [DataMember(Name = "localPort", Order = 8,
              EmitDefaultValue = false)]
         public int? LocalPort { get; init; }
 
         /// <summary>
         /// Channel diagnostics
         /// </summary>
-        [DataMember(Name = "channelDiagnostics", Order = 6,
+        [DataMember(Name = "channelDiagnostics", Order = 9,
              EmitDefaultValue = false)]
         public ChannelDiagnosticModel? ChannelDiagnostics { get; init; }
+
+        /// <summary>
+        /// The connection information specified by user.
+        /// </summary>
+        [DataMember(Name = "connection", Order = 10)]
+        public required ConnectionModel Connection { get; init; }
     }
 }
