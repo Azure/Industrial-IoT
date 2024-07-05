@@ -84,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Directory.Delete(rootFolder, true);
             }
-            await foreach (var change in _diagnostics.GetConnectionDiagnosticAsync(
+            await foreach (var change in _diagnostics.MonitorAsync(
                 ct).ConfigureAwait(false))
             {
                 try
