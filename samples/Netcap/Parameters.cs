@@ -11,7 +11,6 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography.X509Certificates;
@@ -248,38 +247,4 @@ internal sealed class Parameters : IDisposable
     private X509Certificate2? _certificate;
     private string? _apiKey;
     internal static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
-}
-
-internal static class Extensions
-{
-    [return: NotNullIfNotNull(nameof(defaultValue))]
-    public static string? GetProperty(this Twin twin, string name, string? defaultValue = null)
-    {
-        if (!twin.Properties.Desired.Contains(name))
-        {
-            return defaultValue;
-        }
-        var value = twin.Properties.Desired[name];
-        var result = (string?)value?.ToString();
-        if (string.IsNullOrEmpty(result))
-        {
-            return defaultValue;
-        }
-        return result;
-    }
-
-    public static bool TryGetBytes(this JsonElement elem, [NotNullWhen(true)] out byte[]? value)
-    {
-        if (elem.ValueKind == JsonValueKind.Array)
-        {
-            value = elem.EnumerateArray().Select(d => d.GetByte()).ToArray();
-            return true;
-        }
-        if (elem.ValueKind == JsonValueKind.String)
-        {
-            return elem.TryGetBytesFromBase64(out value);
-        }
-        value = default;
-        return false;
-    }
 }

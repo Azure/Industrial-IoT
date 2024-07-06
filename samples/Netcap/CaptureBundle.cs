@@ -11,96 +11,81 @@ using SharpPcap.LibPcap;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Net;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 using System.Text.Json;
+using System.IO.Compression;
 
 /// <summary>
 /// Capture traffic from any ethernet device
 /// </summary>
-internal sealed class Pcap : IDisposable
+internal sealed class CaptureBundle
 {
+    /// <summary>
+    /// Start of capture
+    /// </summary>
+    public DateTimeOffset Start { get; private set; }
+
+    /// <summary>
+    /// End of capture
+    /// </summary>
+    public DateTimeOffset End { get; private set; }
+
     /// <summary>
     /// Create capture device
     /// </summary>
-    private Pcap(ILogger logger, string folder, string? filter = null)
+    public CaptureBundle(Publisher publisher, ILogger logger, string folder)
     {
         _logger = logger;
-
-        _logger.LogInformation("Using SharpPcap {Version}",
-            SharpPcap.Pcap.SharpPcapVersion);
+        _folder = folder;
+        _logger.LogInformation("Using SharpPcap {Version}", SharpPcap.Pcap.SharpPcapVersion);
 
         if (LibPcapLiveDeviceList.Instance.Count == 0)
         {
             throw new NotSupportedException("Cannot run capture without devices.");
         }
 
-        _logger.LogInformation("Capturing to {FileName} with filter {Filter}.",
-            folder, filter);
-
-        _writer = new CaptureFileWriterDevice(Path.Combine(folder, "capture.pcap"));
-        _path = folder;
-
-        _devices = LibPcapLiveDeviceList.New().ToList();
-        var capturing = new List<LibPcapLiveDevice>();
-        foreach (var device in _devices)
+        if (Directory.Exists(_folder))
         {
-            try
-            {
-                // Open the device for capturing
-                device.Open(mode: DeviceModes.None, 1000);
-                //if (!device.Loopback &&
-                //    device.LinkType != PacketDotNet.LinkLayers.Ethernet)
-                //{
-                //    continue;
-                //}
-                if (filter != null)
-                {
-                    device.Filter = filter;
-                }
-
-                _logger.LogInformation("Start capturing from {Description} ({Link}).",
-                    device.Description, device.LinkType);
-                device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
-                capturing.Add(device);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Failed to capture with device {Device} ({Description}).",
-                    device.Name, device.Description);
-            }
+            Directory.Delete(_folder, true);
         }
+        Directory.CreateDirectory(_folder);
 
-        _writer.Open(new DeviceConfiguration
+        if (publisher.PnJson != null)
         {
-            LinkLayerType = PacketDotNet.LinkLayers.Null //Ethernet
-        });
-
-        capturing.ForEach(d => d.StartCapture());
-    }
-
-    /// <summary>
-    /// Start capturing
-    /// </summary>
-    public static Pcap Capture(ISet<IPAddress> addresses, string folder, ILogger logger)
-    {
-        if (Directory.Exists(folder))
-        {
-            Directory.Delete(folder, true);
+            // Add pn.json
+            File.WriteAllText(Path.Combine(_folder, "pn.json"), publisher.PnJson);
         }
-        Directory.CreateDirectory(folder);
 
         // Create filter
         // https://www.wireshark.org/docs/man-pages/pcap-filter.html
         // src or dst host 192.168.80.2
         // "ip and tcp and not port 80 and not port 25";
 
-        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+        var addresses = publisher.Addresses;
+        _filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
             ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
+    }
 
-        return new Pcap(logger, folder, filter);
+    /// <summary>
+    /// Collect traces
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public IDisposable CreatePcap(int index)
+    {
+        return new Pcap(this, index);
+    }
+
+    /// <summary>
+    /// Get bundle file
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public string GetBundleFile(string? name = null)
+    {
+        var zipFile = Path.Combine(Path.GetTempPath(), name ?? "capture-bundle.zip");
+        ZipFile.CreateFromDirectory(_folder, zipFile);
+        return zipFile;
     }
 
     /// <summary>
@@ -110,7 +95,7 @@ internal sealed class Pcap : IDisposable
         uint tokenId, byte[] clientIv, byte[] clientKey, int clientSigLen,
         byte[] serverIv, byte[] serverKey, int serverSigLen)
     {
-        var keysets = File.AppendText(Path.Combine(_path, fileName));
+        var keysets = File.AppendText(Path.Combine(_folder, fileName));
         await using (var _ = keysets.ConfigureAwait(false))
         {
             await keysets.WriteLineAsync(
@@ -128,6 +113,17 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
 
             await keysets.FlushAsync().ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Add published nodes json configuration
+    /// </summary>
+    /// <param name="pnJson"></param>
+    /// <returns></returns>
+    public async Task AddPublishedNodesConfigurationAsync(string pnJson)
+    {
+        await File.WriteAllTextAsync(Path.Combine(_folder, "pn.json"), pnJson)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -184,37 +180,103 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                 tokenId, clientIv, clientKey, clientSigLen, serverIv, serverKey,
                 serverSigLen).ConfigureAwait(false);
 
-            await File.AppendAllTextAsync(Path.Combine(_path, fileName + ".log"), diagnosticJson)
+            await File.AppendAllTextAsync(Path.Combine(_folder, fileName + ".log"), diagnosticJson)
                 .ConfigureAwait(false);
         }
     }
 
-    /// <inheritdoc/>
-    public void Dispose()
+    /// <summary>
+    /// Delete bundle
+    /// </summary>
+    public void Delete()
     {
-        try
-        {
-            _devices.ForEach(d =>
-            {
-                _logger.LogInformation(
-                    "Stopped capturing {Device} ({Description}) to file ({Statistics}).",
-                d.Name, d.Description, d.Statistics.ToString());
-                try
-                {
-                    d.StopCapture();
-                }
-                catch { }
-            });
-        }
-        finally
-        {
-            _writer.Dispose();
-            _devices.ForEach(d => d.Dispose());
-        }
+        Directory.Delete(_folder, true);
     }
 
-    private readonly List<LibPcapLiveDevice> _devices;
-    private readonly CaptureFileWriterDevice _writer;
-    private readonly string _path;
+    /// <summary>
+    /// Tracing
+    /// </summary>
+    internal sealed class Pcap : IDisposable
+    {
+        /// <summary>
+        /// Create pcap
+        /// </summary>
+        /// <param name="bundle"></param>
+        /// <param name="index"></param>
+        public Pcap(CaptureBundle bundle, int index)
+        {
+            _bundle = bundle;
+            _logger = bundle._logger;
+
+            _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder, $"capture{index}.pcap"));
+            _devices = LibPcapLiveDeviceList.New().ToList();
+            var capturing = new List<LibPcapLiveDevice>();
+            foreach (var device in _devices)
+            {
+                try
+                {
+                    // Open the device for capturing
+                    device.Open(mode: DeviceModes.None, 1000);
+                    //if (!device.Loopback &&
+                    //    device.LinkType != PacketDotNet.LinkLayers.Ethernet)
+                    //{
+                    //    continue;
+                    //}
+                    device.Filter = _bundle._filter;
+                    _logger.LogInformation("Capture from {Description} ({Link})...",
+                        device.Description, device.LinkType);
+                    device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
+                    capturing.Add(device);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to capture from device {Device} ({Description}).",
+                        device.Name, device.Description);
+                }
+            }
+            _writer.Open(new DeviceConfiguration
+            {
+                LinkLayerType = PacketDotNet.LinkLayers.Null //Ethernet
+            });
+            capturing.ForEach(d => d.StartCapture());
+            _logger.LogInformation("    ... to {FileName} ({Filter}).",
+                _bundle._folder, _bundle._filter);
+            _bundle.Start = DateTimeOffset.UtcNow;
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            try
+            {
+                _bundle.End = DateTimeOffset.UtcNow;
+                _devices.ForEach(d =>
+                {
+                    try
+                    {
+                        d.StopCapture();
+                        _logger.LogInformation(
+                            "Capturing {Description} completed. ({Statistics}).",
+                            d.Description, d.Statistics.ToString());
+                    }
+                    catch { }
+                });
+            }
+            finally
+            {
+                _writer.Dispose();
+                _devices.ForEach(d => d.Dispose());
+            }
+        }
+
+        private readonly List<LibPcapLiveDevice> _devices;
+        private readonly CaptureFileWriterDevice _writer;
+        private readonly CaptureBundle _bundle;
+        private readonly ILogger _logger;
+    }
+
     private readonly ILogger _logger;
+    private readonly string _folder;
+    private readonly string _filter;
 }

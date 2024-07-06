@@ -8,9 +8,8 @@ namespace Netcap;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
-using System.IO.Compression;
 
-internal sealed class Uploader : IDisposable
+internal sealed class Uploader
 {
     /// <summary>
     /// Create uploader
@@ -19,11 +18,9 @@ internal sealed class Uploader : IDisposable
     /// <param name="pnJson"></param>
     /// <param name="parameters"></param>
     /// <param name="logger"></param>
-    public Uploader(string folder, string? pnJson,
-        string deviceId, string moduleId, string blobConnectionString, ILogger logger)
+    public Uploader(string deviceId, string moduleId,
+        string blobConnectionString, ILogger logger)
     {
-        _folder = folder;
-        _pnJson = pnJson;
         _deviceId = deviceId;
         _moduleId = moduleId;
         _blobConnectionString = blobConnectionString;
@@ -35,13 +32,13 @@ internal sealed class Uploader : IDisposable
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async ValueTask UploadAsync(CancellationToken ct)
+    public async ValueTask UploadAsync(CaptureBundle bundle, CancellationToken ct)
     {
         BlobContainerClient? containerClient;
         if (!Uri.TryCreate(_blobConnectionString, UriKind.Absolute, out var blobSasUri))
         {
             // Not a sas uri, must be a connection string with key or sas
-            var containerName = $"{_deviceId}_{_moduleId}";
+            var containerName = Extensions.FixContainerName($"{_deviceId}_{_moduleId}");
             containerClient =
                 new BlobContainerClient(_blobConnectionString, containerName);
         }
@@ -49,47 +46,43 @@ internal sealed class Uploader : IDisposable
         {
             containerClient = new BlobContainerClient(blobSasUri);
         }
-        var metadata = new Dictionary<string, string>
+
+        // Create container
+        var containerMetadata = new Dictionary<string, string>
         {
             ["DeviceId"] = _deviceId,
             ["ModuleId"] = _moduleId
         };
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, metadata,
+        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, containerMetadata,
             cancellationToken: ct).ConfigureAwait(false);
         // Upload capture bundle
         var blobClient = containerClient.GetBlobClient(
             $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}");
 
-        if (_pnJson != null)
+        var bundleMetadata = new Dictionary<string, string>
         {
-            // Add pn.json
-            await File.WriteAllTextAsync(Path.Combine(_folder, "pn.json"), _pnJson,
-                ct).ConfigureAwait(false);
-        }
-        var zipFile = Path.Combine(Path.GetTempPath(), "capture-bundle.zip");
-        ZipFile.CreateFromDirectory(_folder, zipFile);
+            ["Start"] = bundle.Start.ToString("o"),
+            ["End"] = bundle.End.ToString("o"),
+            ["Duration"] = (bundle.End - bundle.Start).ToString()
+        };
+        var bundleFile = bundle.GetBundleFile();
         try
         {
-            await blobClient.UploadAsync(zipFile, new BlobUploadOptions
+            await blobClient.UploadAsync(bundleFile, new BlobUploadOptions
             {
+                Metadata = bundleMetadata,
                 ProgressHandler = new Progress<long>(
                     progress => _logger.LogInformation("Uploading {Progress} bytes", progress))
             }, ct).ConfigureAwait(false);
+
+            bundle.Delete();
         }
         finally
         {
-            File.Delete(zipFile);
+            File.Delete(bundleFile);
         }
     }
 
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Directory.Delete(_folder, true);
-    }
-
-    private string _folder;
-    private string? _pnJson;
     private readonly string _deviceId;
     private readonly string _moduleId;
     private readonly string _blobConnectionString;

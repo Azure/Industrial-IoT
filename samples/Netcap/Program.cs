@@ -15,31 +15,44 @@ Console.WriteLine();
 
 using var cts = new CancellationTokenSource();
 _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
-var factory = LoggerFactory.Create(builder => builder.AddConsole());
+var factory = LoggerFactory.Create(builder => builder
+    .AddSimpleConsole(options => options.SingleLine = true));
 var logger = factory.CreateLogger("Netcap");
 
 // Connect to publisher
 var publisher = new Publisher(factory.CreateLogger("Publisher"), parameters.HttpClient,
     parameters.OpcServerEndpointUrl);
 
+Uploader? uploader = null;
+if (!string.IsNullOrEmpty(parameters.StorageConnectionString))
+{
+    // TODO: move to seperate task
+    uploader = new Uploader(
+        parameters.PublisherDeviceId ?? "unknown", parameters.PublisherModuleId,
+        parameters.StorageConnectionString, factory.CreateLogger("Upload"));
+}
+
 for (var i = 0; !cts.IsCancellationRequested; i++)
 {
     // Get and endpoint urls and addresses to monitor if not set
     if (!await publisher.TryUpdateEndpointsAsync(cts.Token).ConfigureAwait(false))
     {
-        Console.WriteLine("waiting .....");
-        await Task.Delay(TimeSpan.FromSeconds(5), cts.Token).ConfigureAwait(false);
+        logger.LogInformation("waiting .....");
+        await Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ConfigureAwait(false);
     }
 
     // Capture traffic for duration
     using var timeoutToken = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
-    if (!string.IsNullOrEmpty(parameters.StorageConnectionString) ||
-        parameters.CaptureDuration != null)
+    if (uploader != null || parameters.CaptureDuration != null)
     {
-        timeoutToken.CancelAfter(parameters.CaptureDuration ?? TimeSpan.FromMinutes(5));
+        var duration = parameters.CaptureDuration ?? TimeSpan.FromMinutes(10);
+        logger.LogInformation("Capturing for {Duration}", duration);
+        timeoutToken.CancelAfter(duration);
     }
     var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
-    using (var capture = Pcap.Capture(publisher.Addresses, folder, factory.CreateLogger("Pcap_" + i)))
+
+    var capture = new CaptureBundle(publisher, factory.CreateLogger("Capture"), folder);
+    using (capture.CreatePcap(i))
     {
         while (!timeoutToken.IsCancellationRequested)
         {
@@ -54,17 +67,19 @@ for (var i = 0; !cts.IsCancellationRequested; i++)
                     await capture.AddSessionKeysFromDiagnosticsAsync(
                         diagnostic, publisher.Endpoints).ConfigureAwait(false);
                 }
+                logger.LogInformation("Restart monitoring diagnostics...");
             }
             catch (OperationCanceledException) { } // Done
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error monitoring diagnostics - restarting...");
+            }
         }
     }
 
-    if (!string.IsNullOrEmpty(parameters.StorageConnectionString))
+    // TODO: move to seperate task
+    if (uploader != null)
     {
-        // TODO: move to seperate task
-        using var uploader = new Uploader(folder, publisher.PnJson,
-            parameters.PublisherDeviceId ?? "unknown", parameters.PublisherModuleId,
-            parameters.StorageConnectionString, factory.CreateLogger("Upload_" + i));
-        await uploader.UploadAsync(cts.Token).ConfigureAwait(false);
+        await uploader.UploadAsync(capture, cts.Token).ConfigureAwait(false);
     }
 }
