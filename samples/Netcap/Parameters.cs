@@ -138,11 +138,8 @@ internal sealed class Parameters : IDisposable
             parameters._certificate = X509Certificate2.CreateFromPem(
                 JsonSerializer.Deserialize<string>(certResponse.GetPayloadAsJson()));
         }
-        // TODO: else if (_apiKey != null && _certificate != null))
-        // TODO: {
-        // TODO:     // Use the provided API key and certificate
-        // TODO: }
-        else
+        else if (!string.IsNullOrWhiteSpace(parameters.EdgeHubConnectionString) ||
+            Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI") != null)
         {
             // Call the "GetApiKey" and "GetServerCertificate" methods on the publisher module
             var moduleClient = string.IsNullOrWhiteSpace(parameters.EdgeHubConnectionString) ?
@@ -167,6 +164,15 @@ internal sealed class Parameters : IDisposable
                 parameters.PublisherModuleId, new MethodRequest("GetServerCertificate")).ConfigureAwait(false);
             parameters._certificate = X509Certificate2.CreateFromPem(
                 JsonSerializer.Deserialize<string>(certResponse.Result));
+        }
+        // TODO: else if (_apiKey != null && _certificate != null))
+        // TODO: {
+        // TODO:     // Use the provided API key and certificate
+        // TODO: }
+        else
+        {
+            Azure.Deploy();
+            return;
         }
 
         // Set any missing info from the twin
