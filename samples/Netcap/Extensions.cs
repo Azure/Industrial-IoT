@@ -4,11 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Netcap;
+
 using Microsoft.Azure.Devices.Shared;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
+/// <summary>
+/// Various extensions
+/// </summary>
 internal static partial class Extensions
 {
     [return: NotNullIfNotNull(nameof(defaultValue))]

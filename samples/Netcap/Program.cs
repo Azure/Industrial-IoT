@@ -8,28 +8,38 @@ using Netcap;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-using var parameters = await Parameters.Parse(args).ConfigureAwait(false);
+using var cmdLine = await CmdLine.Parse(args).ConfigureAwait(false);
+
+var factory = LoggerFactory.Create(builder => builder
+    .AddSimpleConsole(options => options.SingleLine = true));
+
+using var cts = new CancellationTokenSource();
+_ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
+var logger = factory.CreateLogger("Netcap");
+
+if (cmdLine.DeployToEdge)
+{
+    // Run deployment
+    var deployer = new Deployer(logger);
+    await deployer.RunAsync(cts.Token).ConfigureAwait(false);
+    return;
+}
 
 Console.WriteLine("Press key to exit");
 Console.WriteLine();
 
-using var cts = new CancellationTokenSource();
-_ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
-var factory = LoggerFactory.Create(builder => builder
-    .AddSimpleConsole(options => options.SingleLine = true));
-var logger = factory.CreateLogger("Netcap");
-
 // Connect to publisher
-var publisher = new Publisher(factory.CreateLogger("Publisher"), parameters.HttpClient,
-    parameters.OpcServerEndpointUrl);
+var publisher = new Publisher(factory.CreateLogger("Publisher"), cmdLine.HttpClient,
+    cmdLine.OpcServerEndpointUrl);
 
 Uploader? uploader = null;
-if (!string.IsNullOrEmpty(parameters.StorageConnectionString))
+if (!string.IsNullOrEmpty(cmdLine.StorageConnectionString))
 {
     // TODO: move to seperate task
     uploader = new Uploader(
-        parameters.PublisherDeviceId ?? "unknown", parameters.PublisherModuleId,
-        parameters.StorageConnectionString, factory.CreateLogger("Upload"));
+        cmdLine.PublisherDeviceId ?? "unknown", cmdLine.PublisherModuleId,
+        cmdLine.ModuleClient, cmdLine.StorageConnectionString,
+        factory.CreateLogger("Upload"));
 }
 
 for (var i = 0; !cts.IsCancellationRequested; i++)
@@ -43,15 +53,15 @@ for (var i = 0; !cts.IsCancellationRequested; i++)
 
     // Capture traffic for duration
     using var timeoutToken = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
-    if (uploader != null || parameters.CaptureDuration != null)
+    if (uploader != null || cmdLine.CaptureDuration != null)
     {
-        var duration = parameters.CaptureDuration ?? TimeSpan.FromMinutes(10);
+        var duration = cmdLine.CaptureDuration ?? TimeSpan.FromMinutes(10);
         logger.LogInformation("Capturing for {Duration}", duration);
         timeoutToken.CancelAfter(duration);
     }
     var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
 
-    var capture = new CaptureBundle(publisher, factory.CreateLogger("Capture"), folder);
+    var capture = new Bundle(publisher, factory.CreateLogger("Capture"), folder);
     using (capture.CreatePcap(i))
     {
         while (!timeoutToken.IsCancellationRequested)
@@ -59,7 +69,7 @@ for (var i = 0; !cts.IsCancellationRequested; i++)
             // Watch session diagnostics while we capture
             try
             {
-                await foreach (var diagnostic in parameters.HttpClient
+                await foreach (var diagnostic in cmdLine.HttpClient
                     .GetFromJsonAsAsyncEnumerable<JsonElement>(
                         "v2/diagnostics/connections/watch",
                         cancellationToken: timeoutToken.Token).ConfigureAwait(false))

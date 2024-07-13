@@ -11,14 +11,15 @@ using SharpPcap.LibPcap;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.IO.Compression;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Capture traffic from any ethernet device
+/// Network capture bundle containing everythig to analyze
+/// the OPC Publisher network traffic
 /// </summary>
-internal sealed class CaptureBundle
+internal sealed class Bundle
 {
     /// <summary>
     /// Start of capture
@@ -33,7 +34,7 @@ internal sealed class CaptureBundle
     /// <summary>
     /// Create capture device
     /// </summary>
-    public CaptureBundle(Publisher publisher, ILogger logger, string folder)
+    public Bundle(Publisher publisher, ILogger logger, string folder)
     {
         _logger = logger;
         _folder = folder;
@@ -136,7 +137,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     public async Task AddSessionKeysFromDiagnosticsAsync(JsonElement diagnostic,
         HashSet<string> endpointFilter)
     {
-        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Parameters.Indented);
+        var diagnosticJson = JsonSerializer.Serialize(diagnostic, CmdLine.Indented);
 
         if (diagnostic.TryGetProperty("connection", out var conn) &&
             conn.TryGetProperty("endpoint", out var ep) &&
@@ -203,7 +204,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
         /// </summary>
         /// <param name="bundle"></param>
         /// <param name="index"></param>
-        public Pcap(CaptureBundle bundle, int index)
+        public Pcap(Bundle bundle, int index)
         {
             _bundle = bundle;
             _logger = bundle._logger;
@@ -272,7 +273,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
 
         private readonly List<LibPcapLiveDevice> _devices;
         private readonly CaptureFileWriterDevice _writer;
-        private readonly CaptureBundle _bundle;
+        private readonly Bundle _bundle;
         private readonly ILogger _logger;
     }
 
