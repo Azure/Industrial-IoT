@@ -258,11 +258,11 @@ In this tutorial two pre-configured docker images (for Prometheus and Grafana) m
 
       - Update the environment variables to control access to the Grafana dashboard.
 
-        - GF_SECURITY_ADMIN_USER - admin
+        - GF_SECURITY_ADMIN_USER - the user name you want to use
 
-        - GF_SECURITY_ADMIN_PASSWORD - iiotgrafana
+        - GF_SECURITY_ADMIN_PASSWORD - a password of your choice
 
-        - GF_SERVER_ROOT_URL  - <http://localhost:3000>
+        - GF_SERVER_ROOT_URL  - http://localhost:3000
 
           ![10](./media/10.JPG)
 
@@ -314,7 +314,7 @@ In this tutorial two pre-configured docker images (for Prometheus and Grafana) m
 ### View Grafana dashboard
 
 - Navigate to the Grafana dashboard through a web browser against the edge’s host on port 3000.
-  - <http://{edge> host IP or name}:3000
+  - http://{edge host IP or name}:3000
   - When prompted for a user name and password enter the values entered in the environment variables
   - **Note**: When using a VM, make sure to add an inbound rule for port 3000
 
