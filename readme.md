@@ -8,8 +8,6 @@ Microsoft [OPC Publisher](docs/opc-publisher/readme.md) and the optional Azure I
 
 With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (supporting JSON, JSON+Gzip, and UADP binary encoding) and provides a large subset of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.
 
-We worked with our large partner network to support all types of industrial protocols through the use of adapters if your industrial equipment doesn't support OPC UA.  These modules are fully integrated with our platform. Check out [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules) for more information.
-
 The [companion cloud service](docs/web-api/readme.md) provided in this repository (Preview) with REST interface runs inside Azure App Service and provides a cloud side REST API to command the OPC Publisher at the edge. An easy-to-use deployment script guides you step-by-step through deploying the web service and its dependencies, as well as an optional simulation environment in Azure.
 
 Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for OPC Publisher and the other tools included in this repository.

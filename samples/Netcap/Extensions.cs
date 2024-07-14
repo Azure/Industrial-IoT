@@ -15,14 +15,24 @@ using System.Text.RegularExpressions;
 /// </summary>
 internal static partial class Extensions
 {
+    /// <summary>
+    /// Get property
+    /// </summary>
+    /// <param name="twin"></param>
+    /// <param name="name"></param>
+    /// <param name="defaultValue"></param>
+    /// <param name="desired"></param>
+    /// <returns></returns>
     [return: NotNullIfNotNull(nameof(defaultValue))]
-    public static string? GetProperty(this Twin twin, string name, string? defaultValue = null)
+    public static string? GetProperty(this Twin twin, string name,
+        string? defaultValue = null, bool desired = true)
     {
-        if (!twin.Properties.Desired.Contains(name))
+        var bag = desired ? twin.Properties.Desired : twin.Properties.Reported;
+        if (!bag.Contains(name))
         {
             return defaultValue;
         }
-        var value = twin.Properties.Desired[name];
+        var value = bag[name];
         var result = (string?)value?.ToString();
         if (string.IsNullOrEmpty(result))
         {
@@ -31,7 +41,14 @@ internal static partial class Extensions
         return result;
     }
 
-    public static bool TryGetBytes(this JsonElement elem, [NotNullWhen(true)] out byte[]? value)
+    /// <summary>
+    /// Get bytes
+    /// </summary>
+    /// <param name="elem"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static bool TryGetBytes(this JsonElement elem,
+        [NotNullWhen(true)] out byte[]? value)
     {
         if (elem.ValueKind == JsonValueKind.Array)
         {
@@ -47,11 +64,11 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Replace invalid chars in container name
+    /// Replace invalid chars in a storage entity name
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static string? FixContainerName(string name)
+    public static string? FixUpStorageName(string name)
     {
         // Remove any invalid characters
         var containerName = InvalidCharMatch().Replace(name, "");
@@ -60,13 +77,15 @@ internal static partial class Extensions
         // Check length
         if (containerName.Length < 3)
         {
-            containerName = containerName.PadRight(3 - containerName.Length, 'x');
+            containerName = containerName.PadRight(3, 'x');
         }
         else if (containerName.Length > 63)
         {
             containerName = containerName.Substring(0, 63);
         }
+#pragma warning disable CA1308 // Normalize strings to uppercase
         return containerName.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
     }
 
     [GeneratedRegex("[^a-zA-Z0-9-]")]

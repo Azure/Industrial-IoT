@@ -34,23 +34,34 @@ internal sealed class Bundle
     /// <summary>
     /// Create capture device
     /// </summary>
-    public Bundle(Publisher publisher, ILogger logger, string folder)
+    /// <param name="logger"></param>
+    /// <param name="folder"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    public Bundle(ILogger logger, string folder,
+        DateTimeOffset? start = null, DateTimeOffset? end = null)
     {
         _logger = logger;
         _folder = folder;
-        _logger.LogInformation("Using SharpPcap {Version}", SharpPcap.Pcap.SharpPcapVersion);
 
-        if (LibPcapLiveDeviceList.Instance.Count == 0)
-        {
-            throw new NotSupportedException("Cannot run capture without devices.");
-        }
+        Start = start ?? DateTimeOffset.MinValue;
+        End = end ?? DateTimeOffset.MaxValue;
 
         if (Directory.Exists(_folder))
         {
             Directory.Delete(_folder, true);
         }
         Directory.CreateDirectory(_folder);
+    }
 
+    /// <summary>
+    /// Collect traces
+    /// </summary>
+    /// <param name="publisher"></param>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public IDisposable CaptureNetworkTraces(Publisher publisher, int index)
+    {
         if (publisher.PnJson != null)
         {
             // Add pn.json
@@ -63,18 +74,9 @@ internal sealed class Bundle
         // "ip and tcp and not port 80 and not port 25";
 
         var addresses = publisher.Addresses;
-        _filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
             ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
-    }
-
-    /// <summary>
-    /// Collect traces
-    /// </summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    public IDisposable CreatePcap(int index)
-    {
-        return new Pcap(this, index);
+        return new Pcap(this, filter, index);
     }
 
     /// <summary>
@@ -92,6 +94,15 @@ internal sealed class Bundle
     /// <summary>
     /// Writes the key log file
     /// </summary>
+    /// <param name="fileName"></param>
+    /// <param name="channelId"></param>
+    /// <param name="tokenId"></param>
+    /// <param name="clientIv"></param>
+    /// <param name="clientKey"></param>
+    /// <param name="clientSigLen"></param>
+    /// <param name="serverIv"></param>
+    /// <param name="serverKey"></param>
+    /// <param name="serverSigLen"></param>
     public async ValueTask AddSessionKeysAsync(string fileName, uint channelId,
         uint tokenId, byte[] clientIv, byte[] clientKey, int clientSigLen,
         byte[] serverIv, byte[] serverKey, int serverSigLen)
@@ -130,9 +141,8 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     /// <summary>
     /// Add session keys to capture bundle from publisher diagnostics
     /// </summary>
-    /// <param name="publisher"></param>
-    /// <param name="capture"></param>
     /// <param name="diagnostic"></param>
+    /// <param name="endpointFilter"></param>
     /// <returns></returns>
     public async Task AddSessionKeysFromDiagnosticsAsync(JsonElement diagnostic,
         HashSet<string> endpointFilter)
@@ -203,13 +213,24 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
         /// Create pcap
         /// </summary>
         /// <param name="bundle"></param>
+        /// <param name="filter"></param>
         /// <param name="index"></param>
-        public Pcap(Bundle bundle, int index)
+        public Pcap(Bundle bundle, string filter, int index)
         {
             _bundle = bundle;
+            _filter = filter;
             _logger = bundle._logger;
 
-            _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder, $"capture{index}.pcap"));
+            _logger.LogInformation(
+                "Using SharpPcap {Version}", SharpPcap.Pcap.SharpPcapVersion);
+
+            if (LibPcapLiveDeviceList.Instance.Count == 0)
+            {
+                throw new NotSupportedException("Cannot run capture without devices.");
+            }
+
+            _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder,
+                $"capture{index}.pcap"));
             _devices = LibPcapLiveDeviceList.New().ToList();
             var capturing = new List<LibPcapLiveDevice>();
             foreach (var device in _devices)
@@ -223,7 +244,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                     //{
                     //    continue;
                     //}
-                    device.Filter = _bundle._filter;
+                    device.Filter = _filter;
                     _logger.LogInformation("Capture from {Description} ({Link})...",
                         device.Description, device.LinkType);
                     device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
@@ -242,7 +263,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
             });
             capturing.ForEach(d => d.StartCapture());
             _logger.LogInformation("    ... to {FileName} ({Filter}).",
-                _bundle._folder, _bundle._filter);
+                _bundle._folder, _filter);
             _bundle.Start = DateTimeOffset.UtcNow;
         }
 
@@ -274,10 +295,10 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
         private readonly List<LibPcapLiveDevice> _devices;
         private readonly CaptureFileWriterDevice _writer;
         private readonly Bundle _bundle;
+        private readonly string _filter;
         private readonly ILogger _logger;
     }
 
     private readonly ILogger _logger;
     private readonly string _folder;
-    private readonly string _filter;
 }

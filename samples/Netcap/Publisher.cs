@@ -69,12 +69,9 @@ internal sealed class Publisher
                         _opcServerEndpoint);
                     return false;
                 }
-                else
-                {
-                    Endpoints.Clear();
-                    // Select just the endpoint and continue
-                    Endpoints.Add(_opcServerEndpoint);
-                }
+                Endpoints.Clear();
+                // Select just the endpoint and continue
+                Endpoints.Add(_opcServerEndpoint);
             }
 
             // Resolve addresses

@@ -8,38 +8,31 @@ using Netcap;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-using var cmdLine = await CmdLine.Parse(args).ConfigureAwait(false);
-
-var factory = LoggerFactory.Create(builder => builder
-    .AddSimpleConsole(options => options.SingleLine = true));
-
 using var cts = new CancellationTokenSource();
 _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
-var logger = factory.CreateLogger("Netcap");
-
-if (cmdLine.DeployToEdge)
-{
-    // Run deployment
-    var deployer = new Deployer(logger);
-    await deployer.RunAsync(cts.Token).ConfigureAwait(false);
-    return;
-}
-
 Console.WriteLine("Press key to exit");
 Console.WriteLine();
 
+using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
+
+if (cmdLine.Install || cmdLine.Uninstall)
+{
+    return;
+}
+
+var logger = cmdLine.Logger.CreateLogger("Netcap");
+
 // Connect to publisher
-var publisher = new Publisher(factory.CreateLogger("Publisher"), cmdLine.HttpClient,
+var publisher = new Publisher(cmdLine.Logger.CreateLogger("Publisher"), cmdLine.HttpClient,
     cmdLine.OpcServerEndpointUrl);
 
-Uploader? uploader = null;
+Storage? uploader = null;
 if (!string.IsNullOrEmpty(cmdLine.StorageConnectionString))
 {
     // TODO: move to seperate task
-    uploader = new Uploader(
+    uploader = new Storage(
         cmdLine.PublisherDeviceId ?? "unknown", cmdLine.PublisherModuleId,
-        cmdLine.ModuleClient, cmdLine.StorageConnectionString,
-        factory.CreateLogger("Upload"));
+        cmdLine.StorageConnectionString, cmdLine.Logger.CreateLogger("Upload"));
 }
 
 for (var i = 0; !cts.IsCancellationRequested; i++)
@@ -61,8 +54,8 @@ for (var i = 0; !cts.IsCancellationRequested; i++)
     }
     var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
 
-    var capture = new Bundle(publisher, factory.CreateLogger("Capture"), folder);
-    using (capture.CreatePcap(i))
+    var bundle = new Bundle(cmdLine.Logger.CreateLogger("Capture"), folder);
+    using (bundle.CaptureNetworkTraces(publisher, i))
     {
         while (!timeoutToken.IsCancellationRequested)
         {
@@ -74,7 +67,7 @@ for (var i = 0; !cts.IsCancellationRequested; i++)
                         "v2/diagnostics/connections/watch",
                         cancellationToken: timeoutToken.Token).ConfigureAwait(false))
                 {
-                    await capture.AddSessionKeysFromDiagnosticsAsync(
+                    await bundle.AddSessionKeysFromDiagnosticsAsync(
                         diagnostic, publisher.Endpoints).ConfigureAwait(false);
                 }
                 logger.LogInformation("Restart monitoring diagnostics...");
@@ -90,6 +83,6 @@ for (var i = 0; !cts.IsCancellationRequested; i++)
     // TODO: move to seperate task
     if (uploader != null)
     {
-        await uploader.UploadAsync(capture, cts.Token).ConfigureAwait(false);
+        await uploader.UploadAsync(bundle, cts.Token).ConfigureAwait(false);
     }
 }
