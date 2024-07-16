@@ -120,6 +120,9 @@ internal sealed class CmdLine : IDisposable
             .WithNotParsed(errors => Environment.Exit(1));
         Debug.Assert(cmdLine != null);
 
+        cmdLine.Logger = LoggerFactory.Create(builder => builder
+            .AddSimpleConsole(options => options.SingleLine = true));
+
         if (cmdLine.Install)
         {
             await cmdLine.InstallAsync(ct).ConfigureAwait(false);
@@ -155,8 +158,6 @@ internal sealed class CmdLine : IDisposable
                     iothubConnectionString).ConfigureAwait(false);
             }
         }
-        cmdLine.Logger = LoggerFactory.Create(builder => builder
-            .AddSimpleConsole(options => options.SingleLine = true));
         return cmdLine;
     }
 
@@ -167,6 +168,7 @@ internal sealed class CmdLine : IDisposable
     /// <returns></returns>
     public async Task InstallAsync(CancellationToken ct = default)
     {
+        var logger = Logger.CreateLogger("Netcap");
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
@@ -175,16 +177,25 @@ internal sealed class CmdLine : IDisposable
             }));
 
         // Get publisher
-        var gateway = new Gateway(armClient, Logger.CreateLogger("Netcap"));
-        await gateway.SelectPublisherAsync(SubscriptionId, ct).ConfigureAwait(false);
+        var gateway = new Gateway(armClient, logger);
+        try
+        {
+            await gateway.SelectPublisherAsync(SubscriptionId, ct).ConfigureAwait(false);
 
-        // Create storage account or update if it already exists in the rg
-        await gateway.Storage.CreateOrUpdateAsync(ct).ConfigureAwait(false);
-        // Create container registry or update and build netcap module
-        await gateway.Netcap.CreateOrUpdateAsync(ct).ConfigureAwait(false);
+            // Create storage account or update if it already exists in the rg
+            await gateway.Storage.CreateOrUpdateAsync(ct).ConfigureAwait(false);
+            // Create container registry or update and build netcap module
+            await gateway.Netcap.CreateOrUpdateAsync(ct).ConfigureAwait(false);
 
-        // Deploy the module using manifest to device with the chosen publisher
-        await gateway.DeployNetcapModuleAsync(ct).ConfigureAwait(false);
+            // Deploy the module using manifest to device with the chosen publisher
+            await gateway.DeployNetcapModuleAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to install netcap module with error: {Error}",
+                ex.Message);
+            throw;
+        }
     }
 
     /// <summary>
@@ -194,6 +205,7 @@ internal sealed class CmdLine : IDisposable
     /// <returns></returns>
     public async Task UninstallAsync(CancellationToken ct = default)
     {
+        var logger = Logger.CreateLogger("Netcap");
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
@@ -202,16 +214,25 @@ internal sealed class CmdLine : IDisposable
             }));
 
         // Select publisher
-        var gateway = new Gateway(armClient, Logger.CreateLogger("Netcap"));
-        await gateway.SelectPublisherAsync(SubscriptionId, ct).ConfigureAwait(false);
+        var gateway = new Gateway(armClient, logger);
+        try
+        {
+            await gateway.SelectPublisherAsync(SubscriptionId, ct).ConfigureAwait(false);
 
-        // Create storage account or update if it already exists in the rg
-        await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
-        // Create container registry or update and build netcap module
-        await gateway.Netcap.DeleteAsync(ct).ConfigureAwait(false);
+            // Create storage account or update if it already exists in the rg
+            await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
+            // Create container registry or update and build netcap module
+            await gateway.Netcap.DeleteAsync(ct).ConfigureAwait(false);
 
-        // Deploy the module using manifest to device with the chosen publisher
-        await gateway.RemoveNetcapModuleAsync(ct).ConfigureAwait(false);
+            // Deploy the module using manifest to device with the chosen publisher
+            await gateway.RemoveNetcapModuleAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to uninstall netcap module with error: {Error}",
+                ex.Message);
+            throw;
+        }
     }
 
     /// <summary>

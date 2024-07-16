@@ -21,6 +21,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
 using Azure.ResourceManager.IotHub.Models;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage;
 
 /// <summary>
 /// Represents and edge gateway that can be accessed from
@@ -38,7 +41,7 @@ internal sealed record class Gateway
     /// Get storage
     /// </summary>
     /// <returns></returns>
-    public AzureStorage Storage { get; }
+    public NetcapStorage Storage { get; }
 
     /// <summary>
     /// Create gateway
@@ -51,7 +54,7 @@ internal sealed record class Gateway
         _logger = logger;
 
         Netcap = new NetcapImage(this, logger);
-        Storage = new AzureStorage(this, logger);
+        Storage = new NetcapStorage(this, logger);
     }
 
     /// <summary>
@@ -135,8 +138,9 @@ internal sealed record class Gateway
             _connectionString);
         var ncModuleId = _publisher.Id + "-nc";
         var configId = _publisher.DeviceId + ncModuleId;
-        await registryManager.RemoveConfigurationAsync(configId,
-            ct).ConfigureAwait(false);
+        try { await registryManager.RemoveConfigurationAsync(configId,
+                ct).ConfigureAwait(false); }
+        catch (ConfigurationNotFoundException) { }
         await registryManager.AddConfigurationAsync(new Configuration(configId)
         {
             TargetCondition = $"deviceId='{_publisher.DeviceId}'",
@@ -236,7 +240,6 @@ internal sealed record class Gateway
                 Console.WriteLine(sub.Data.DisplayName);
                 continue;
             }
-            Console.Write(".");
             await foreach (var hub in sub.GetIotHubDescriptionsAsync(cancellationToken: ct))
             {
                 Response<SharedAccessSignatureAuthorizationRule> keys;
@@ -301,6 +304,21 @@ internal sealed record class Gateway
                         // Not supported
                         continue;
                     }
+
+                    if (result.ConnectionState != DeviceConnectionState.Connected)
+                    {
+                        // Not connected
+                        continue;
+                    }
+
+                    var device = await registry.GetDeviceAsync(result.DeviceId,
+                        ct).ConfigureAwait(false);
+                    if (device.ConnectionState != DeviceConnectionState.Connected)
+                    {
+                        // Not connected
+                        continue;
+                    }
+
                     yield return new PublisherDeployment(sub, resourceGroupName, hub,
                         connectionString, new Module(result.DeviceId, result.ModuleId));
                 }
@@ -308,6 +326,18 @@ internal sealed record class Gateway
         }
     }
 
+    /// <summary>
+    /// Create deployment
+    /// </summary>
+    /// <param name="deviceId"></param>
+    /// <param name="netcapModuleId"></param>
+    /// <param name="publisherModuleId"></param>
+    /// <param name="server"></param>
+    /// <param name="userName"></param>
+    /// <param name="password"></param>
+    /// <param name="image"></param>
+    /// <param name="storageConnectionString"></param>
+    /// <returns></returns>
     private static IDictionary<string, IDictionary<string, object>>? Create(string deviceId,
         string netcapModuleId, string publisherModuleId, string server,
         string userName, string password, string image, string storageConnectionString)
@@ -419,26 +449,35 @@ internal sealed record class Gateway
 
             _logger.LogInformation("Building Image {Image} ...", Name);
             // Build the image and push to the registry
-            var buildStep = new ContainerRegistryDockerBuildStep("Dockerfile")
+            var quickBuild = new ContainerRegistryDockerBuildContent("Dockerfile",
+                new ContainerRegistryPlatformProperties("linux") { Architecture = "amd64" })
             {
-                ContextPath =
-                "https://github.com/Azure/Industrial-IoT.git#main:Samples/Netcap",
+                SourceLocation =
+                    "https://github.com/Azure/Industrial-IoT.git#docsandttl:samples/Netcap",
                 IsPushEnabled = true
             };
-            buildStep.ImageNames.Add(Name);
-            var taskResponse = await registryResponse.Value.GetContainerRegistryTasks()
-                .CreateOrUpdateAsync(WaitUntil.Completed, "netcap",
-                new ContainerRegistryTaskData(rg.Data.Location)
+            quickBuild.ImageNames.Add(Name);
+            var buildResponse = await registryResponse.Value.GetContainerRegistryTaskRuns()
+                .CreateOrUpdateAsync(WaitUntil.Started, "netcap", new ContainerRegistryTaskRunData
                 {
-                    Step = buildStep,
-                    Platform = new ContainerRegistryPlatformProperties("linux")
+                    RunRequest = quickBuild
                 }, ct).ConfigureAwait(false);
 
-            var buildResponse = await registryResponse.Value.GetContainerRegistryTaskRuns()
-                .CreateOrUpdateAsync(WaitUntil.Completed, "netcap", new ContainerRegistryTaskRunData
-                {
-                    RunRequest = new ContainerRegistryTaskRunContent(taskResponse.Value.Id)
-                }, ct).ConfigureAwait(false);
+            var runs = await registryResponse.Value.GetContainerRegistryTaskRuns()
+                .GetAsync("netcap", ct).ConfigureAwait(false);
+            var run = await registryResponse.Value.GetContainerRegistryRuns().GetAsync(
+                 runs.Value.Data.RunResult.RunId, ct).ConfigureAwait(false);
+            var url = await run.Value.GetLogSasUrlAsync(ct).ConfigureAwait(false);
+            var client = new BlobClient(new Uri(url.Value.LogLink));
+            using var os = Console.OpenStandardOutput();
+            using var stream = await client.OpenReadAsync(new BlobOpenReadOptions(false)
+            {
+                BufferSize = 1024 * 1024
+            }, ct).ConfigureAwait(false);
+
+            await Task.WhenAll(
+                stream.CopyToAsync(os, ct),
+                buildResponse.WaitForCompletionAsync(ct).AsTask()).ConfigureAwait(false);
 
             _logger.LogInformation("Image {Image} built with {Result}", Name,
                 buildResponse.Value.Data.RunResult);
@@ -476,7 +515,7 @@ internal sealed record class Gateway
     /// <summary>
     /// Netcap storage controller
     /// </summary>
-    internal sealed record class AzureStorage
+    internal sealed record class NetcapStorage
     {
         public string ConnectionString { get; private set; } = null!;
 
@@ -485,7 +524,7 @@ internal sealed record class Gateway
         /// </summary>
         /// <param name="gateway"></param>
         /// <param name="logger"></param>
-        public AzureStorage(Gateway gateway, ILogger logger)
+        public NetcapStorage(Gateway gateway, ILogger logger)
         {
             _gateway = gateway;
             _logger = logger;

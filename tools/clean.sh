@@ -92,7 +92,7 @@ for group in $groups; do
 done
 
 # -------------------------------------------------------------------------------
-if [[ -n "$purgekv" ]]; then 
+if [[ -n "$purgekv" ]]; then
     # purge deleted keyvault
     for vault in $(az keyvault list-deleted -o tsv | tr -d '\r'); do
         echo "deleting keyvault $vault ..."
