@@ -52,6 +52,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Testing.Servers", "src\Azure.IIoT.OpcUa.Publisher.Testing\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj", "{01D62553-CDEF-402D-955F-AC139471F522}"
 EndProject
+Project("{34036844-64E7-43A5-9151-4AD90E180989}") = "Industrial_IoT_Edge", "edge\Industrial-IoT-Edge\Industrial_IoT_Edge.iotedgeproj", "{7896333C-4D41-474A-B4F1-FB8331FB8B98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -212,6 +214,14 @@ Global
 		{01D62553-CDEF-402D-955F-AC139471F522}.Release|Any CPU.Build.0 = Release|Any CPU
 		{01D62553-CDEF-402D-955F-AC139471F522}.Release|x64.ActiveCfg = Release|Any CPU
 		{01D62553-CDEF-402D-955F-AC139471F522}.Release|x64.Build.0 = Release|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Debug|x64.Build.0 = Debug|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Release|x64.ActiveCfg = Release|Any CPU
+		{7896333C-4D41-474A-B4F1-FB8331FB8B98}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
