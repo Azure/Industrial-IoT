@@ -663,6 +663,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public async Task WriteNodesAsync(WrittenNodesEntryModel request)
+        {
+            System.Console.WriteLine("WriteNodesAsync");
+        }
+
+        /// <inheritdoc/>
         public async Task SetConfiguredEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {

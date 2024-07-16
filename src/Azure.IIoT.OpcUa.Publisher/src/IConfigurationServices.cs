@@ -139,6 +139,12 @@ namespace Azure.IIoT.OpcUa.Publisher
             CancellationToken ct = default);
 
         /// <summary>
+        /// Write nodes
+        /// </summary>
+        /// <param name="request"></param>
+        Task WriteNodesAsync(WrittenNodesEntryModel request);
+
+        /// <summary>
         /// Replace all configured endpoints with the new set.
         /// Using an empty list will remove all entries.
         /// </summary>

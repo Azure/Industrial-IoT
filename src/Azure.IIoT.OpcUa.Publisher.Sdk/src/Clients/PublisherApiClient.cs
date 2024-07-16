@@ -260,6 +260,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
+        public async Task WriteNodesAsync(
+            WrittenNodesEntryModel request)
+        {
+            Console.WriteLine("WriteNodesAsync");
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> AddOrUpdateEndpointsAsync(
             IReadOnlyList<PublishedNodesEntryModel> request, CancellationToken ct)
         {

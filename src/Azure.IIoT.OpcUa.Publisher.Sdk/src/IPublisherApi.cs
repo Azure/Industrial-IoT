@@ -151,6 +151,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
             PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
+        /// Get diagnostic info
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task WriteNodesAsync(WrittenNodesEntryModel request);
+
+        /// <summary>
         /// Start publishing node values
         /// </summary>
         /// <param name="connection"></param>

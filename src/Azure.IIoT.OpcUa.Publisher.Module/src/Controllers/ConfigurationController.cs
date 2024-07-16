@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Furly;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
@@ -261,6 +261,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.UnpublishAllNodesAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
+        }
+
+        /// <summary>
+        /// [WriteNodes](./directmethods.md#writenodes_v1)
+        /// </summary>
+        /// <remarks>
+        /// WriteNotes enables a client to set nodes.
+        /// Further information is provided in the OPC Publisher documentation.
+        /// </remarks>
+        /// <param name="request">The request contains the nodes to set.</param>
+        /// <param name="ct"></param>
+        /// <returns>The result of the operation.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("nodes/write")]
+        public async Task<WrittenNodesResponseModel> WriteNodesAsync()
+        {
+            //ArgumentNullException.ThrowIfNull(request);
+            Console.WriteLine("Writing nodes");
+            //await _configServices.PublishNodesAsync(request, ct).ConfigureAwait(false);
+            return new WrittenNodesResponseModel();
         }
 
         /// <summary>
