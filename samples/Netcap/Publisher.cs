@@ -46,6 +46,8 @@ internal sealed class Publisher
     {
         try
         {
+            _logger.LogInformation("Retrieving endpoints from publisher...");
+
             // Get and endpoint url to monitor if not set
             var configuration = await _httpClient.GetFromJsonAsync<JsonElement>(
                 "v2/configuration", JsonSerializerOptions.Default, ct).ConfigureAwait(false);
@@ -89,6 +91,7 @@ internal sealed class Publisher
                     Endpoints.Count == 0 ? "none" : string.Join(",", Endpoints.ToArray()));
                 return false;
             }
+            _logger.LogInformation("Retrieved endpoints from publisher.");
             return true;
         }
         catch (Exception ex)

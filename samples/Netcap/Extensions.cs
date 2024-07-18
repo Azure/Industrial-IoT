@@ -5,8 +5,10 @@
 
 namespace Netcap;
 
+using Azure.ResourceManager.Resources;
 using Microsoft.Azure.Devices.Shared;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -64,6 +66,26 @@ internal static partial class Extensions
     }
 
     /// <summary>
+    /// Get a unique name for a resource using the resource group
+    /// name as prefix
+    /// </summary>
+    /// <param name="rg"></param>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static string GetNameForResource(this ResourceGroupData rg,
+        string type)
+    {
+        var id = rg.Name.GetHashCode(StringComparison.Ordinal)
+            .ToString("x", CultureInfo.InvariantCulture);
+        var name = type + id;
+        if (name.Length > 24)
+        {
+            name = name.Substring(0, 24);
+        }
+        return name;
+    }
+
+    /// <summary>
     /// Replace invalid chars in a storage entity name
     /// </summary>
     /// <param name="name"></param>
@@ -86,6 +108,15 @@ internal static partial class Extensions
 #pragma warning disable CA1308 // Normalize strings to uppercase
         return containerName.ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
+    }
+
+    /// <summary>
+    /// Returns true if running in container.
+    /// </summary>
+    /// <returns></returns>
+    public static bool IsRunningInContainer()
+    {
+        return Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != null;
     }
 
     [GeneratedRegex("[^a-zA-Z0-9-]")]

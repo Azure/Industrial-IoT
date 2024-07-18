@@ -51,6 +51,7 @@ if (!(Test-Path $setupPath)) {
 # Set-ExecutionPolicy -ExecutionPolicy AllSigned -Force
 Start-Transcript -path $(join-path $setupPath "eflow-setup.log") -Append
 
+Update-AzConfig -DisplayBreakingChangeWarning $false | Out-Null
 if (![string]::IsNullOrWhiteSpace($SubscriptionId)) {
    Update-AzConfig -DefaultSubscriptionForLogin $SubscriptionId
 }
@@ -62,7 +63,7 @@ Connect-AzAccount @azargs
 
 # Find iot hub
 if ([string]::IsNullOrWhiteSpace($IotHubName)) {
-   Write-Host "Please choose a iot hub from this list (using its index):"
+   Write-Host "Please choose an Azure Iot Hub from the list (using its index):"
    $script:index = 0
    $hubs = Get-AzIoTHub
    $hubs | Format-Table -AutoSize -Property `
@@ -217,6 +218,40 @@ if ($DebuggingSupport.IsPresent) {
       "sudo netstat -lntp | grep dockerd"
 
    $vmIp = Get-EflowVmAddr
+
+   if (!$NoModules.IsPresent) {
+      $containerRegistry = "$($hub.Name)acr" -replace '[^a-zA-Z0-9]'
+      $registry = Get-AzContainerRegistry -Name $containerRegistry `
+         -ResourceGroupName $hub.Resourcegroup -ErrorAction SilentlyContinue
+      if (!$registry) {
+         Write-Host "Creating ACR $($containerRegistry) in $($hub.Location) ..."
+         $registry = New-AzContainerRegistry -Name $containerRegistry `
+            -ResourceGroupName $hub.Resourcegroup -Location $hub.Location `
+            -EnableAdminUser -Sku Standard
+      }
+      Write-Host "Getting credentials from ACR $($containerRegistry) ..."
+      $registrySecret = Get-AzContainerRegistryCredential -Name $containerRegistry `
+         -ResourceGroupName $hub.Resourcegroup
+
+      $containerRegistryUsername = $registrySecret.Username
+      $containerRegistryPassword = $registrySecret.Password
+      $containerRegistryServer = $registry.LoginServer
+
+      Connect-AzContainerRegistry -Name $containerRegistry
+
+      $proj = $path | Split-Path | Split-Path | `
+         Join-Path -ChildPath "src" | `
+         Join-Path -ChildPath "Azure.IIoT.OpcUa.Publisher.Module" | `
+         Join-Path -ChildPath "src" | `
+         Join-Path -ChildPath "Azure.IIoT.OpcUa.Publisher.Module.csproj"
+
+      Write-Host "Building and pushing debug module to $containerRegistry..."
+      dotnet publish $proj -c Debug --self-contained false `
+         /t:PublishContainer /p:ContainerImageTag=debug `
+         /p:ContainerRegistry=$containerRegistryServer
+
+      $image = "$containerRegistryServer/iotedge/opc-publisher:debug"
+   }
    Write-Host "Use 'docker -H tcp://$($vmIp[1]):2375' to connect to docker."
    Write-Host "Follow instructions in https://aka.ms/iotedge-eflow-debugging."
 }
@@ -237,8 +272,8 @@ function ConvertPSObjectToHashtable {
    if ($InputObject -is [System.Collections.IEnumerable] `
          -and $InputObject -isnot [string]) {
       $collection = @( foreach ($object in $InputObject) {
-            ConvertPSObjectToHashtable $object
-         } )
+         ConvertPSObjectToHashtable $object
+      } )
       Write-Output -NoEnumerate $collection
    }
    elseif ($InputObject -is [psobject]) {
@@ -260,12 +295,25 @@ if (!$NoModules.IsPresent) {
       throw "Module content file $modulesContentFile not found."
    }
    $modulesContent = Get-Content -Raw -Path $modulesContentFile `
-      | ConvertFrom-Json | ConvertPSObjectToHashtable
+   | ConvertFrom-Json | ConvertPSObjectToHashtable
+   if ($DebuggingSupport.IsPresent) {
+      # Update with our debug image
+      $desired = $modulesContent["`$edgeAgent"]["properties.desired"]
+      $desired["modules"]["publisher"]["settings"]["image"] = $image
+      $desired["runtime"]["settings"]["registryCredentials"] = @{
+         $containerRegistry = @{
+            username = $containerRegistryUsername
+            password = $containerRegistryPassword
+            address = $containerRegistryServer
+         }
+      }
+      $modulesContent | ConvertTo-Json -Depth 10
+   }
    $hub | Set-AzIotHubEdgeModule -DeviceId $device.Id `
       -ModulesContent $modulesContent | Out-Null
 }
 
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 10
 $vm = Get-EflowVm
 if (!$vm) {
    throw "Failed to get eflow vm."

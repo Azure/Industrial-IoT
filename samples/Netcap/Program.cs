@@ -9,19 +9,34 @@ using System.Net.Http.Json;
 using System.Text.Json;
 
 using var cts = new CancellationTokenSource();
-_ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
-Console.WriteLine("Press key to exit");
-Console.WriteLine();
+
+Console.WriteLine(@"
+   ____  _____   _____   _   _      _
+  / __ \|  __ \ / ____| | \ | |    | |
+ | |  | | |__) | |      |  \| | ___| |_ ___ __ _ _ __
+ | |  | |  ___/| |      | . ` |/ _ \ __/ __/ _` | '_ \
+ | |__| | |    | |____  | |\  |  __/ || (_| (_| | |_) |
+  \____/|_|     \_____| |_| \_|\___|\__\___\__,_| .__/
+                                                | |
+                                                |_|
+");
+
+if (!Extensions.IsRunningInContainer())
+{
+    _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
+    Console.WriteLine("Press any key to exit");
+    Console.WriteLine();
+}
+
+using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
+if (cmdLine.Install || cmdLine.Uninstall)
+{
+    return;
+}
+
+var logger = cmdLine.Logger.CreateLogger("Netcap");
 try
 {
-    using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
-    if (cmdLine.Install || cmdLine.Uninstall)
-    {
-        return;
-    }
-
-    var logger = cmdLine.Logger.CreateLogger("Netcap");
-
     // Connect to publisher
     var publisher = new Publisher(cmdLine.Logger.CreateLogger("Publisher"),
         cmdLine.HttpClient, cmdLine.OpcServerEndpointUrl);
@@ -29,6 +44,7 @@ try
     Storage? uploader = null;
     if (!string.IsNullOrEmpty(cmdLine.StorageConnectionString))
     {
+        logger.LogInformation("Uploading to storage...");
         // TODO: move to seperate task
         uploader = new Storage(
             cmdLine.PublisherDeviceId ?? "unknown", cmdLine.PublisherModuleId,
@@ -37,7 +53,7 @@ try
 
     for (var i = 0; !cts.IsCancellationRequested; i++)
     {
-        // Get and endpoint urls and addresses to monitor if not set
+        // Get endpoint urls and addresses to monitor if not set
         if (!await publisher.TryUpdateEndpointsAsync(cts.Token).ConfigureAwait(false))
         {
             logger.LogInformation("waiting .....");
@@ -88,7 +104,7 @@ try
     }
 }
 catch (OperationCanceledException) { }
-catch
+catch (Exception ex)
 {
-    Environment.Exit(-1);
+    logger.LogError(ex, "Failed to run.");
 }

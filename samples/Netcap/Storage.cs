@@ -97,53 +97,63 @@ internal sealed class Storage
     /// <returns></returns>
     public async ValueTask UploadAsync(Bundle bundle, CancellationToken ct = default)
     {
-        // Not a sas uri, must be a connection string with key or sas
-        var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
-        var containerClient = new BlobContainerClient(_connectionString, name);
-        var queueClient = new QueueClient(_connectionString, name);
-
-        var metadata = new Dictionary<string, string>
-        {
-            ["DeviceId"] = _deviceId,
-            ["ModuleId"] = _moduleId
-        };
-        await queueClient.CreateIfNotExistsAsync(metadata, ct).ConfigureAwait(false);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None,
-            metadata, cancellationToken: ct).ConfigureAwait(false);
-
-        // Upload capture bundle
-        var blobName = $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}";
-        var blobClient = containerClient.GetBlobClient(blobName);
-        var bundleMetadata = new Dictionary<string, string>
-        {
-            ["Start"] = bundle.Start.ToString("o"),
-            ["End"] = bundle.End.ToString("o"),
-            ["Duration"] = (bundle.End - bundle.Start).ToString()
-        };
-        var bundleFile = bundle.GetBundleFile();
         try
         {
-            await blobClient.UploadAsync(bundleFile, new BlobUploadOptions
-            {
-                Metadata = bundleMetadata,
-                ProgressHandler = new Progress<long>(
-                    progress => _logger.LogInformation(
-                        "Uploading {Progress} bytes", progress))
-            }, ct).ConfigureAwait(false);
+            var bundleFile = bundle.GetBundleFile();
+            _logger.LogInformation("Uploading capture bundle {File}.", bundleFile);
+            // Not a sas uri, must be a connection string with key or sas
+            var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
+            var containerClient = new BlobContainerClient(_connectionString, name);
+            var queueClient = new QueueClient(_connectionString, name);
 
-            if (queueClient != null)
+            var metadata = new Dictionary<string, string>
             {
-                // Send completion notification
-                var message = JsonSerializer.Serialize(new Notification(
-                    containerClient.Uri, blobClient.Uri,
-                    blobClient.BlobContainerName, blobClient.Name));
-                await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
+                ["DeviceId"] = _deviceId,
+                ["ModuleId"] = _moduleId
+            };
+            await queueClient.CreateIfNotExistsAsync(metadata, ct).ConfigureAwait(false);
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.None,
+                metadata, cancellationToken: ct).ConfigureAwait(false);
+
+            // Upload capture bundle
+            var blobName = $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}";
+            var blobClient = containerClient.GetBlobClient(blobName);
+            var bundleMetadata = new Dictionary<string, string>
+            {
+                ["Start"] = bundle.Start.ToString("o"),
+                ["End"] = bundle.End.ToString("o"),
+                ["Duration"] = (bundle.End - bundle.Start).ToString()
+            };
+            try
+            {
+                await blobClient.UploadAsync(bundleFile, new BlobUploadOptions
+                {
+                    Metadata = bundleMetadata,
+                    ProgressHandler = new Progress<long>(
+                        progress => _logger.LogInformation(
+                            "Uploading {Progress} bytes", progress))
+                }, ct).ConfigureAwait(false);
+
+                if (queueClient != null)
+                {
+                    // Send completion notification
+                    var message = JsonSerializer.Serialize(new Notification(
+                        containerClient.Uri, blobClient.Uri,
+                        blobClient.BlobContainerName, blobClient.Name));
+                    await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
+                }
+                bundle.Delete();
+                _logger.LogInformation("Completed upload of bundle {File}.", bundleFile);
             }
-            bundle.Delete();
+            finally
+            {
+                File.Delete(bundleFile);
+            }
         }
-        finally
+        catch (Exception ex)
         {
-            File.Delete(bundleFile);
+            _logger.LogError(ex, "Failed to upload capture bundle.");
+            throw;
         }
     }
 

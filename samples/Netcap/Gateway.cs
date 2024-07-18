@@ -23,7 +23,6 @@ using Microsoft.Azure.Devices.Shared;
 using Azure.ResourceManager.IotHub.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Azure.Storage;
 
 /// <summary>
 /// Represents and edge gateway that can be accessed from
@@ -137,13 +136,16 @@ internal sealed record class Gateway
         using var registryManager = RegistryManager.CreateFromConnectionString(
             _connectionString);
         var ncModuleId = _publisher.Id + "-nc";
-        var configId = _publisher.DeviceId + ncModuleId;
-        try { await registryManager.RemoveConfigurationAsync(configId,
-                ct).ConfigureAwait(false); }
+        var configId = Extensions.FixUpStorageName(_publisher.DeviceId + ncModuleId);
+        try
+        {
+            await registryManager.RemoveConfigurationAsync(configId,
+                ct).ConfigureAwait(false);
+        }
         catch (ConfigurationNotFoundException) { }
         await registryManager.AddConfigurationAsync(new Configuration(configId)
         {
-            TargetCondition = $"deviceId='{_publisher.DeviceId}'",
+            TargetCondition = $"deviceId = '{_publisher.DeviceId}'",
             Content = new ConfigurationContent
             {
                 ModulesContent = Create(_publisher.DeviceId,
@@ -164,7 +166,7 @@ internal sealed record class Gateway
             connected = modules.Any(m => m.Id == ncModuleId &&
                 m.ConnectionState == DeviceConnectionState.Connected);
         }
-        _logger.LogInformation("Netcap module created on {DeviceId}.",
+        _logger.LogInformation("Netcap module deployed to {DeviceId}.",
             _publisher.DeviceId);
     }
 
@@ -185,11 +187,11 @@ internal sealed record class Gateway
         using var registryManager = RegistryManager.CreateFromConnectionString(
             _connectionString);
         var ncModuleId = _publisher.Id + "-nc";
-        var configId = _publisher.DeviceId + ncModuleId;
+        var configId = Extensions.FixUpStorageName(_publisher.DeviceId + ncModuleId);
         await registryManager.RemoveConfigurationAsync(configId,
             ct).ConfigureAwait(false);
 
-        // Wait until connected
+        // Wait until not connected
         var connected = true;
         for (var i = 1; connected && !ct.IsCancellationRequested; i++)
         {
@@ -237,7 +239,6 @@ internal sealed record class Gateway
             if (subscriptionId != null && sub.Data.DisplayName != subscriptionId
                 && sub.Id.SubscriptionId != subscriptionId)
             {
-                Console.WriteLine(sub.Data.DisplayName);
                 continue;
             }
             await foreach (var hub in sub.GetIotHubDescriptionsAsync(cancellationToken: ct))
@@ -417,7 +418,6 @@ internal sealed record class Gateway
         {
             _gateway = gateway;
             _logger = logger;
-            _regName = "netcapacr";
         }
 
         /// <summary>
@@ -429,10 +429,12 @@ internal sealed record class Gateway
         {
             // Create container registry or update if it already exists in rg
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
-            _logger.LogInformation("Create netcap module image in {ResourceGroup}.",
-                rg.Data.Name);
+            var regName = rg.Data.GetNameForResource("ncacr");
+            _logger.LogInformation(
+                "Create netcap module image in {Registry} inside {ResourceGroup}.",
+                regName, rg.Data.Name);
             var registryResponse = await rg.GetContainerRegistries()
-                .CreateOrUpdateAsync(WaitUntil.Completed, _regName,
+                .CreateOrUpdateAsync(WaitUntil.Completed, regName,
                 new ContainerRegistryData(rg.Data.Location,
                     new ContainerRegistrySku(ContainerRegistrySkuName.Basic))
                 {
@@ -492,11 +494,12 @@ internal sealed record class Gateway
         {
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
             var registryCollection = rg.GetContainerRegistries();
-            if (!await registryCollection.ExistsAsync(_regName, ct).ConfigureAwait(false))
+            var regName = rg.Data.GetNameForResource("ncacr");
+            if (!await registryCollection.ExistsAsync(regName, ct).ConfigureAwait(false))
             {
                 return;
             }
-            var registryResponse = await rg.GetContainerRegistryAsync(_regName,
+            var registryResponse = await rg.GetContainerRegistryAsync(regName,
                 ct).ConfigureAwait(false);
             await registryResponse.Value.DeleteAsync(WaitUntil.Completed,
                 ct).ConfigureAwait(false);
@@ -509,7 +512,6 @@ internal sealed record class Gateway
 
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
-        private readonly string _regName;
     }
 
     /// <summary>
@@ -528,7 +530,6 @@ internal sealed record class Gateway
         {
             _gateway = gateway;
             _logger = logger;
-            _stgName = "netcapstg";
         }
 
         /// <summary>
@@ -540,10 +541,11 @@ internal sealed record class Gateway
         public async ValueTask CreateOrUpdateAsync(CancellationToken ct)
         {
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
-            _logger.LogInformation("Create Storage for netcap module in {Rg}.",
-                rg.Data.Name);
+            var stgName = rg.Data.GetNameForResource("ncstg");
+            _logger.LogInformation("Create Storage {Storage} for netcap module in {Rg}.",
+                stgName, rg.Data.Name);
             var storageResponse = await rg.GetStorageAccounts()
-                .CreateOrUpdateAsync(WaitUntil.Completed, _stgName,
+                .CreateOrUpdateAsync(WaitUntil.Completed, stgName,
                 new StorageAccountCreateOrUpdateContent(
                     new StorageSku(StorageSkuName.PremiumLrs),
                     StorageKind.StorageV2, rg.Data.Location)
@@ -574,13 +576,14 @@ internal sealed record class Gateway
         public async ValueTask DeleteAsync(CancellationToken ct)
         {
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
+            var stgName = rg.Data.GetNameForResource("ncstg");
             var storageCollection = rg.GetStorageAccounts();
-            if (!await storageCollection.ExistsAsync(_stgName,
+            if (!await storageCollection.ExistsAsync(stgName,
                 cancellationToken: ct).ConfigureAwait(false))
             {
                 return;
             }
-            var storageResponse = await rg.GetStorageAccountAsync(_stgName,
+            var storageResponse = await rg.GetStorageAccountAsync(stgName,
                 cancellationToken: ct).ConfigureAwait(false);
             await storageResponse.Value.DeleteAsync(WaitUntil.Completed,
                 ct).ConfigureAwait(false);
@@ -590,7 +593,6 @@ internal sealed record class Gateway
 
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
-        private readonly string _stgName;
     }
 
     private Module? _publisher;

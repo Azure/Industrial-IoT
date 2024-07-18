@@ -284,6 +284,12 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                     }
                     catch { }
                 });
+                _logger.LogInformation("Completed capture.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to complete capture.");
+                throw;
             }
             finally
             {

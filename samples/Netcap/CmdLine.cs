@@ -12,6 +12,7 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
@@ -117,7 +118,11 @@ internal sealed class CmdLine : IDisposable
         CmdLine? cmdLine = null;
         ParserResult<CmdLine> result = Parser.Default.ParseArguments<CmdLine>(args)
             .WithParsed(parsedParams => cmdLine = parsedParams)
-            .WithNotParsed(errors => Environment.Exit(1));
+            .WithNotParsed(errors =>
+            {
+                errors.ToList().ForEach(Console.WriteLine);
+                Environment.Exit(1);
+            });
         Debug.Assert(cmdLine != null);
 
         cmdLine.Logger = LoggerFactory.Create(builder => builder
@@ -136,11 +141,13 @@ internal sealed class CmdLine : IDisposable
         {
             await cmdLine.ConnectAsModuleAsync().ConfigureAwait(false);
         }
-// TODO:else if (_apiKey != null && _certificate != null))
-// TODO:{
-// TODO:    // Use the provided API key and certificate
-// TODO:    // Support to run without iot edge and hub
-// TODO:}
+#if NO_IOTEDGE
+        else if (_apiKey != null && _certificate != null))
+        {
+            // Use the provided API key and certificate
+            // Support to run without iot edge and hub
+        }
+#endif
         else
         {
             var iothubConnectionString =
@@ -169,12 +176,15 @@ internal sealed class CmdLine : IDisposable
     public async Task InstallAsync(CancellationToken ct = default)
     {
         var logger = Logger.CreateLogger("Netcap");
+
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
             {
                 TenantId = TenantId
             }));
+
+        logger.LogInformation("Installing netcap module...");
 
         // Get publisher
         var gateway = new Gateway(armClient, logger);
@@ -206,12 +216,15 @@ internal sealed class CmdLine : IDisposable
     public async Task UninstallAsync(CancellationToken ct = default)
     {
         var logger = Logger.CreateLogger("Netcap");
+
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
             {
                 TenantId = TenantId
             }));
+
+        logger.LogInformation("Uninstalling netcap module...");
 
         // Select publisher
         var gateway = new Gateway(armClient, logger);
