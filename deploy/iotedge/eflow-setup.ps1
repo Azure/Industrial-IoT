@@ -17,8 +17,8 @@
       The subscription id to scope all activity to.
    .PARAMETER SharedFolderPath
       The shared folder path on the host system to mount into the guest.
-   .PARAMETER ReprovisionOnly
-      Only reprovision the existing eflow vm to another iot hub.
+   .PARAMETER ProvisioningOnly
+      Only provision an existing eflow vm to an Azure IoT Hub.
    .PARAMETER DebuggingSupport
       Enable debugging support in eflow.
    .PARAMETER NoModules
@@ -32,7 +32,7 @@ param(
    [string] $TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18",
    [string] $SubscriptionId,
    [string] $SharedFolderPath,
-   [switch] $ReprovisionOnly,
+   [switch] $ProvisioningOnly,
    [switch] $DebuggingSupport,
    [switch] $NoModules,
    [switch] $NoCleanup
@@ -91,7 +91,7 @@ else {
    }
 }
 
-if (!$ReprovisionOnly.IsPresent) {
+if (!$ProvisioningOnly.IsPresent) {
    Write-Host "(Re-) Installing Azure IoT Edge eflow..."
    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
@@ -307,7 +307,7 @@ if (!$NoModules.IsPresent) {
             address = $containerRegistryServer
          }
       }
-      $modulesContent | ConvertTo-Json -Depth 10
+      # $modulesContent | ConvertTo-Json -Depth 10
    }
    $hub | Set-AzIotHubEdgeModule -DeviceId $device.Id `
       -ModulesContent $modulesContent | Out-Null
@@ -335,6 +335,9 @@ if (!$NoCleanup.IsPresent) {
    Remove-Item -Path $setupPath -Force -Recurse -ErrorAction SilentlyContinue
 }
 else {
+   Remove-Item -Path $(join-path $setupPath "eflow-setup.log") -Force `
+      -ErrorAction SilentlyContinue
+   Remove-Item -Path $(join-path $setupPath "SharedFolders.json") -Force
    Get-EflowLogs -zipName $(Join-Path $setupPath "eflow-logs.zip")
 }
 

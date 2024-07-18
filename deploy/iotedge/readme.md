@@ -5,6 +5,7 @@
 ## Table Of Contents <!-- omit in toc -->
 
 - [Azure IoT Edge EFLOW](#azure-iot-edge-eflow)
+  - [Deploying a debug OPC Publisher](#deploying-a-debug-opc-publisher)
 - [IoTEdgeHubDev](#iotedgehubdev)
 - [Azure VM based IoT Edge](#azure-vm-based-iot-edge)
 
@@ -24,7 +25,13 @@ By default the shared folder is persisted on the Host OS in the `C:\Shared` fold
 
 > The module PKI is persisted into the shared folder path. It contains keys which are secrets, make sure to guard access to the folder and properly delete the content when you are done with your development tasks.
 
-The script also provides an option to `-ReprovisionOnly` an existing EFLOW installation against a different IOT Hub. The device ID will always be the name of the VM, which should be set as `%HOSTNAME%_EFLOW`. You can find and manage this device in the portal or via AZ CLI.
+The script also provides an option to `-ProvisioningOnly` an existing EFLOW installation against a different IOT Hub. The device ID will always be the name of the VM, which should be set as `%HOSTNAME%_EFLOW`. You can find and manage this device in the portal or via AZ CLI.  If the IoT Edge VM has been provisioned before, the script will prompt to confirm whether to re-provision the VM.
+
+### Deploying a debug OPC Publisher
+
+The script can also set up the Azure IoT Edge EFLOW device to support [debugging](https://aka.ms/iotedge-eflow-debugging). Use the `-DebuggingSupport` parameter to do so.
+
+The script will print the docker command line that can be used from the host to access the docker daemon on the guest. Furthermore, if `-NoModules` is not set the script will build a debug container image of OPC Publisher from the current branch and deploy it into the IoT Edge instance instead of deploying the `latest` released container of OPC Publisher. The debug image can then be debugged using the previously mentioned instructions.
 
 ## IoTEdgeHubDev
 

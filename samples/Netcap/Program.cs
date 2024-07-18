@@ -21,17 +21,17 @@ Console.WriteLine(@"
                                                 |_|
 ");
 
+using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
+if (cmdLine.Install || cmdLine.Uninstall)
+{
+    return;
+}
+
 if (!Extensions.IsRunningInContainer())
 {
     _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
     Console.WriteLine("Press any key to exit");
     Console.WriteLine();
-}
-
-using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
-if (cmdLine.Install || cmdLine.Uninstall)
-{
-    return;
 }
 
 var logger = cmdLine.Logger.CreateLogger("Netcap");

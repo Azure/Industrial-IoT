@@ -66,40 +66,70 @@ internal sealed record class Gateway
     public async ValueTask SelectPublisherAsync(string? subscriptionId = null,
         CancellationToken ct = default)
     {
-        // Get publishers in iot hubs
-        var deployments = await GetPublisherDeploymentsAsync(subscriptionId, ct)
-            .ToListAsync(ct).ConfigureAwait(false);
+        while (!ct.IsCancellationRequested)
+        {
+            // Get publishers in iot hubs
+            var deployments = await GetPublisherDeploymentsAsync(subscriptionId, ct)
+                .ToListAsync(ct).ConfigureAwait(false);
 
-        // Select IoT Hub with publisher modules deployed
-        if (deployments.Count == 0)
-        {
-            throw new InvalidOperationException("No publishers found");
-        }
-        var selected = deployments[0];
-        if (deployments.Count > 1)
-        {
-            Console.Clear();
-            for (var index = 0; index < deployments.Count; index++)
+            // Select IoT Hub with publisher modules deployed
+            if (deployments.Count == 0)
             {
-                Console.WriteLine($"{index + 1}: {deployments[index]}");
-            }
-            var i = 0;
-            Console.WriteLine("Select index: ");
-            while (true)
-            {
-                if (int.TryParse(Console.ReadLine(), out i)
-                    && i <= deployments.Count && i > 0)
+                if (!Extensions.IsRunningInContainer())
                 {
-                    break;
+                    Console.WriteLine("No publishers found. Check again? [Y/N]");
+                    var key = Console.ReadKey();
+                    Console.WriteLine();
+                    if (key.Key != ConsoleKey.Y)
+                    {
+                        break;
+                    }
+                }
+                _logger.LogInformation("No publishers found. Trying again...");
+                continue;
+            }
+            var selected = deployments[0];
+            if (deployments.Count > 1)
+            {
+                Console.Clear();
+                Console.WriteLine($"Found {deployments.Count} publishers:");
+
+                for (var index = 0; index < deployments.Count; index++)
+                {
+                    Console.WriteLine($"{index + 1}: {deployments[index]}");
+                }
+                var i = 0;
+                Console.WriteLine("Select index: ");
+                while (true)
+                {
+                    if (int.TryParse(Console.ReadLine(), out i)
+                        && i <= deployments.Count && i > 0)
+                    {
+                        break;
+                    }
+                }
+                Console.WriteLine();
+                selected = deployments[i - 1];
+            }
+            else if (!Extensions.IsRunningInContainer())
+            {
+                Console.WriteLine($"Use {selected}? [Y/N]");
+                var key = Console.ReadKey();
+                Console.WriteLine();
+                if (key.Key != ConsoleKey.Y)
+                {
+                    _logger.LogInformation("Trying again to find other publishers...");
+                    continue;
                 }
             }
-            selected = deployments[i - 1];
-        }
 
-        _subscription = selected.Subscription;
-        _resourceGroupName = selected.ResourceGroupName;
-        _connectionString = selected.ConnectionString;
-        _publisher = selected.Publisher;
+            _subscription = selected.Subscription;
+            _resourceGroupName = selected.ResourceGroupName;
+            _connectionString = selected.ConnectionString;
+            _publisher = selected.Publisher;
+            return;
+        }
+        throw new InvalidOperationException("No publishers found.");
     }
 
     /// <summary>
@@ -215,12 +245,12 @@ internal sealed record class Gateway
     /// <param name="Publisher"></param>
     internal sealed record class PublisherDeployment(SubscriptionResource Subscription,
         string ResourceGroupName, IotHubDescriptionData Hub,
-        string ConnectionString, Module Publisher)
+        string ConnectionString, Module Publisher, bool Connected)
     {
         public override string? ToString()
         {
             return $"[{Subscription.Data.DisplayName}-{ResourceGroupName}] " +
-                $"{Hub.Name}: {Publisher.DeviceId}|{Publisher.Id}";
+                $"{Hub.Name}: {Publisher.DeviceId}|{Publisher.Id} {(Connected ? "" : "[Disconnected]")}";
         }
     }
 
@@ -233,7 +263,7 @@ internal sealed record class Gateway
     private async IAsyncEnumerable<PublisherDeployment> GetPublisherDeploymentsAsync(
         string? subscriptionId = null, [EnumeratorCancellation] CancellationToken ct = default)
     {
-        _logger.LogInformation("Getting all publishers...");
+        _logger.LogInformation("Finding publishers...");
         await foreach (var sub in _client.GetSubscriptions().GetAllAsync(ct))
         {
             if (subscriptionId != null && sub.Data.DisplayName != subscriptionId
@@ -314,14 +344,9 @@ internal sealed record class Gateway
 
                     var device = await registry.GetDeviceAsync(result.DeviceId,
                         ct).ConfigureAwait(false);
-                    if (device.ConnectionState != DeviceConnectionState.Connected)
-                    {
-                        // Not connected
-                        continue;
-                    }
-
+                    var connected = device.ConnectionState == DeviceConnectionState.Connected;
                     yield return new PublisherDeployment(sub, resourceGroupName, hub,
-                        connectionString, new Module(result.DeviceId, result.ModuleId));
+                        connectionString, new Module(result.DeviceId, result.ModuleId), connected);
                 }
             }
         }
@@ -359,43 +384,31 @@ internal sealed record class Gateway
         }).Replace("\"", "\\\"", StringComparison.Ordinal);
 
         // Return deployment modules object
-        return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>("""
-
-            {
-                "$edgeAgent": {
-                    "properties.desired.runtime.settings.registryCredentials.
-""" + netcapModuleId + """
-": {
-                        "address": "
-""" + server + """
-",
-                        "password": "
-""" + password + """
-",
-                        "username": "
-""" + userName + """
-"
-                    },
-                    "properties.desired.modules.
-""" + netcapModuleId + """
-": {
-                        "settings": {
-                            "image": "
-""" + image + """
-",
-                            "createOptions": "
-""" + createOptions + """
-"
-                        },
-                        "type": "docker",
-                        "status": "running",
-                        "restartPolicy": "always",
-                        "version": "1.0"
-                    }
+        return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>($$"""
+        {
+            "$edgeAgent": {
+                "properties.desired.runtime.settings.registryCredentials.{{netcapModuleId}}": {
+                    "address": "{{server}}",
+                    "password": "{{password}}",
+                    "username": "{{userName}}"
                 },
-                "$edgeHub": {
+                "properties.desired.modules.{{netcapModuleId}}": {
+                    "settings": {
+                        "image": "{{image}}",
+                        "createOptions": "{{createOptions}}"
+                    },
+                    "type": "docker",
+                    "status": "running",
+                    "restartPolicy": "always",
+                    "version": "1.0"
+                }
+            },
+            "$edgeHub": {
+                "properties.desired.routes.callpublisher": {
+                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO BrokeredEndpoint(\"/modules/{{publisherModuleId}}/inputs/control\")"
                 }
             }
+        }
 """);
     }
 
