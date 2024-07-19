@@ -201,7 +201,12 @@ internal sealed class CmdLine : IDisposable
         try
         {
             // Get publishers
-            await gateway.SelectPublisherAsync(SubscriptionId, false, ct).ConfigureAwait(false);
+            var found = await gateway.SelectPublisherAsync(SubscriptionId,
+                false, ct).ConfigureAwait(false);
+            if (!found)
+            {
+                return;
+            }
 
             // Create storage account or update if it already exists in the rg
             await gateway.Storage.CreateOrUpdateAsync(ct).ConfigureAwait(false);
@@ -241,12 +246,19 @@ internal sealed class CmdLine : IDisposable
         try
         {
             // Select netcap modules
-            await gateway.SelectPublisherAsync(SubscriptionId, true, ct).ConfigureAwait(false);
+            var found = await gateway.SelectPublisherAsync(SubscriptionId, true,
+                ct).ConfigureAwait(false);
+            if (!found)
+            {
+                return;
+            }
 
-            // Create storage account or update if it already exists in the rg
-            await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
-            // Create container registry or update and build netcap module
-            await gateway.Netcap.DeleteAsync(ct).ConfigureAwait(false);
+            // Add guard here
+
+            // Delete storage account or update if it already exists in the rg
+            // await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
+            // Delete container registry
+            // await gateway.Netcap.DeleteAsync(ct).ConfigureAwait(false);
 
             // Deploy the module using manifest to device with the chosen publisher
             await gateway.RemoveNetcapModuleAsync(ct).ConfigureAwait(false);
@@ -512,8 +524,8 @@ internal sealed class CmdLine : IDisposable
                 {
                     var result = await Dns.GetHostAddressesAsync(
                         PublisherModuleId).ConfigureAwait(false);
-                    if (result.Length == 0) { host = null; }
-                    isLocal = false;
+                    host = result.Length == 0 ? null : result[0].ToString();
+                    isLocal = host == null;
                 }
                 catch { host = null; }
             }

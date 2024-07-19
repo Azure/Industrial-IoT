@@ -57,6 +57,7 @@ try
         {
             logger.LogInformation("waiting .....");
             await Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ConfigureAwait(false);
+            continue;
         }
 
         // Capture traffic for duration

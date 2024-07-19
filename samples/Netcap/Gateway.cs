@@ -64,7 +64,7 @@ internal sealed record class Gateway
     /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public async ValueTask SelectPublisherAsync(string? subscriptionId = null,
+    public async ValueTask<bool> SelectPublisherAsync(string? subscriptionId = null,
         bool netcapMonitored = false, CancellationToken ct = default)
     {
         while (!ct.IsCancellationRequested)
@@ -137,9 +137,9 @@ internal sealed record class Gateway
             _connectionString = selected.ConnectionString;
             _iotHubName = selected.IoTHub.Name;
             _publisher = selected.Publisher;
-            return;
+            return true;
         }
-        throw new InvalidOperationException("No targets found.");
+        return false;
     }
 
     /// <summary>
@@ -580,7 +580,7 @@ internal sealed record class Gateway
                 buildResponse.WaitForCompletionAsync(ct).AsTask()).ConfigureAwait(false);
 
             _logger.LogInformation("Image {Image} built with {Result}", Name,
-                buildResponse.Value.Data.RunResult);
+                buildResponse.Value.Data.RunResult.Status.ToString());
         }
 
         /// <summary>
