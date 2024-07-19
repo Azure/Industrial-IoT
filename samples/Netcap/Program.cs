@@ -18,7 +18,7 @@ Console.WriteLine($@"
  | |__| | |    | |____  | |\  |  __/ || (_| (_| | |_) |
   \____/|_|     \_____| |_| \_|\___|\__\___\__,_| .__/
                                                 | |
-                                                |_| {ThisAssembly.AssemblyFileVersion}
+                                                |_| {typeof(Extensions).Assembly.GetVersion()}
 ");
 
 using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
@@ -38,16 +38,15 @@ var logger = cmdLine.Logger.CreateLogger("Netcap");
 try
 {
     // Connect to publisher
-    var publisher = new Publisher(cmdLine.Logger.CreateLogger("Publisher"),
-        cmdLine.HttpClient, cmdLine.OpcServerEndpointUrl);
+    var publisher = new Publisher(cmdLine.Logger.CreateLogger("Publisher"), cmdLine.HttpClient,
+        cmdLine.OpcServerEndpointUrl);
 
     Storage? uploader = null;
     if (!string.IsNullOrEmpty(cmdLine.StorageConnectionString))
     {
         logger.LogInformation("Uploading to storage...");
         // TODO: move to seperate task
-        uploader = new Storage(
-            cmdLine.PublisherDeviceId ?? "unknown", cmdLine.PublisherModuleId,
+        uploader = new Storage(cmdLine.PublisherDeviceId ?? "unknown", cmdLine.PublisherModuleId,
             cmdLine.StorageConnectionString, cmdLine.Logger.CreateLogger("Upload"));
     }
 
@@ -78,9 +77,9 @@ try
                 // Watch session diagnostics while we capture
                 try
                 {
-                    await foreach (var diagnostic in cmdLine.HttpClient
-                        .GetFromJsonAsAsyncEnumerable<JsonElement>(
-                            "v2/diagnostics/connections/watch",
+                    await foreach (var diagnostic in
+                        cmdLine.HttpClient.GetFromJsonAsAsyncEnumerable<JsonElement>(
+                        "v2/diagnostics/connections/watch",
                             cancellationToken: timeoutToken.Token).ConfigureAwait(false))
                     {
                         await bundle.AddSessionKeysFromDiagnosticsAsync(

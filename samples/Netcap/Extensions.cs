@@ -9,6 +9,7 @@ using Azure.ResourceManager.Resources;
 using Microsoft.Azure.Devices.Shared;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -102,6 +103,20 @@ internal static partial class Extensions
             name = name.Substring(0, 24);
         }
         return name;
+    }
+
+    /// <summary>
+    /// Get assembly version
+    /// </summary>
+    /// <param name="assembly"></param>
+    public static string GetVersion(this Assembly assembly)
+    {
+        var ver = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+        if (ver == null || !Version.TryParse(ver, out var assemblyVersion))
+        {
+            assemblyVersion = new Version();
+        }
+        return assemblyVersion.ToString();
     }
 
     /// <summary>

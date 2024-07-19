@@ -284,7 +284,7 @@ internal sealed class CmdLine : IDisposable
                 await moduleClient.UpdateReportedPropertiesAsync(new TwinCollection
                 {
                     ["__type__"] = "OpcNetcap",
-                    ["__version__"] = ThisAssembly.AssemblyFileVersion
+                    ["__version__"] = GetType().Assembly.GetVersion()
                 }, ct).ConfigureAwait(false);
 
                 var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
@@ -366,7 +366,7 @@ internal sealed class CmdLine : IDisposable
                 Reported = new TwinCollection
                 {
                     ["__type__"] = "OpcNetcap",
-                    ["__version__"] = ThisAssembly.AssemblyFileVersion
+                    ["__version__"] = GetType().Assembly.GetVersion()
                 }
             }
         }, twin.ETag, ct).ConfigureAwait(false);
