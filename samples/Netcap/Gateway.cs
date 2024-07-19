@@ -212,7 +212,7 @@ internal sealed record class Gateway
         var connected = false;
         for (var i = 1; !connected && !ct.IsCancellationRequested; i++)
         {
-            await Task.Delay(TimeSpan.FromSeconds(i), ct).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(Math.Min(i, 10)), ct).ConfigureAwait(false);
             var modules = await registryManager.GetModulesOnDeviceAsync(
                 _publisher.DeviceId, ct).ConfigureAwait(false);
             connected = modules.Any(m => m.Id == ncModuleId &&
@@ -258,7 +258,7 @@ internal sealed record class Gateway
         var connected = true;
         for (var i = 1; connected && !ct.IsCancellationRequested; i++)
         {
-            await Task.Delay(TimeSpan.FromSeconds(i), ct).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(Math.Min(i, 10)), ct).ConfigureAwait(false);
             var modules = await registryManager.GetModulesOnDeviceAsync(
                 _publisher.DeviceId, ct).ConfigureAwait(false);
             connected = modules.Any(m => m.Id == ncModuleId &&
@@ -456,10 +456,11 @@ internal sealed record class Gateway
                 }
             },
             "$edgeHub": {
-                "properties.desired.routes.callpublisher": {
-                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO BrokeredEndpoint(\"/modules/{{publisherModuleId}}/inputs/control\")",
-                    "priority": 0,
-                    "timeToLiveSecs": 86400
+                "properties.desired.routes.netcapToPublisher": {
+                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO BrokeredEndpoint(\"/modules/{{publisherModuleId}}/inputs/*\")"
+                },
+                "properties.desired.routes.netcapToUpstream": {
+                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO $upstream"
                 }
             }
         }
@@ -588,7 +589,7 @@ internal sealed record class Gateway
             Name = null!;
         }
 
-        private const string kResourceName = "ncacr";
+        private const string kResourceName = "acr";
         private const string kTaskName = "netcap";
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
@@ -671,7 +672,7 @@ internal sealed record class Gateway
             ConnectionString = null!;
         }
 
-        private const string kResourceName = "ncstg";
+        private const string kResourceName = "stg";
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
     }
