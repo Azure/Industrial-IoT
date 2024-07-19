@@ -8,16 +8,13 @@ namespace Netcap;
 using Azure.Identity;
 using Azure.ResourceManager;
 using CommandLine;
-using Microsoft.Azure.Amqp.Encoding;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
@@ -148,6 +145,9 @@ internal sealed class CmdLine : IDisposable
 
         cmdLine.Logger = LoggerFactory.Create(builder => builder
             .AddSimpleConsole(options => options.SingleLine = true));
+        var iothubConnectionString =
+            Environment.GetEnvironmentVariable("IoTHubOwnerConnectionString") ??
+            Environment.GetEnvironmentVariable("_HUB_CS");
 
         if (cmdLine.Install)
         {
@@ -162,30 +162,20 @@ internal sealed class CmdLine : IDisposable
         {
             await cmdLine.ConnectAsModuleAsync(ct).ConfigureAwait(false);
         }
-#if NO_IOTEDGE
-        else if (ApiKey != null && Certificate != null))
+        else if (!string.IsNullOrEmpty(iothubConnectionString))
         {
-            // Use the provided API key and certificate
-            // Support to run without iot edge and hub
+            // NOTE: This is for local testing against IoT Hub
+            await cmdLine.ConnectAsIoTHubOwnerAsync(
+                iothubConnectionString, ct).ConfigureAwait(false);
         }
-#endif
-        else
+        else if (string.IsNullOrWhiteSpace(cmdLine.PublisherRestApiKey) &&
+            string.IsNullOrWhiteSpace(cmdLine.PublisherRestCertificate) &&
+            string.IsNullOrWhiteSpace(cmdLine.PublisherRestApiEndpoint))
         {
-            var iothubConnectionString =
-                Environment.GetEnvironmentVariable("IoTHubOwnerConnectionString") ??
-                Environment.GetEnvironmentVariable("_HUB_CS");
-            if (string.IsNullOrEmpty(iothubConnectionString))
-            {
-                cmdLine.Install = true;
-                await cmdLine.InstallAsync(ct).ConfigureAwait(false);
-            }
-            else
-            {
-                // NOTE: For testing locally only
-                await cmdLine.ConnectAsIoTHubOwnerAsync(
-                    iothubConnectionString, ct).ConfigureAwait(false);
-            }
+            cmdLine.Install = true;
+            await cmdLine.InstallAsync(ct).ConfigureAwait(false);
         }
+        // else use the provided API key and certificate with the rest endpoint
         return cmdLine;
     }
 
