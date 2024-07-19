@@ -69,7 +69,7 @@ internal sealed record class Gateway
     {
         while (!ct.IsCancellationRequested)
         {
-            // Get target modules in iot hubs
+            // Get target publishers in iot hubs
             var deployments = await GetPublisherDeploymentsAsync(subscriptionId,
                 netcapMonitored, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -78,7 +78,7 @@ internal sealed record class Gateway
             {
                 if (!Extensions.IsRunningInContainer())
                 {
-                    Console.WriteLine("No targets found. Check again? [Y/N]");
+                    Console.WriteLine("No publishers found. Check again? [Y/N]");
                     var key = Console.ReadKey();
                     Console.WriteLine();
                     if (key.Key != ConsoleKey.Y)
@@ -86,14 +86,19 @@ internal sealed record class Gateway
                         break;
                     }
                 }
-                _logger.LogInformation("No targets found. Trying again...");
+                else
+                {
+                    _logger.LogInformation("No publishers found. Trying again...");
+                    await Task.Delay(TimeSpan.FromSeconds(5),
+                        ct).ConfigureAwait(false);
+                }
                 continue;
             }
             var selected = deployments[0];
             if (deployments.Count > 1)
             {
                 Console.Clear();
-                Console.WriteLine($"Found {deployments.Count} targets:");
+                Console.WriteLine($"Found {deployments.Count} publishers:");
 
                 for (var index = 0; index < deployments.Count; index++)
                 {
@@ -119,7 +124,8 @@ internal sealed record class Gateway
                 Console.WriteLine();
                 if (key.Key != ConsoleKey.Y)
                 {
-                    _logger.LogInformation("Trying again to find other targets...");
+                    _logger.LogInformation(
+                        "Trying again to find other publishers...");
                     continue;
                 }
             }
@@ -168,7 +174,8 @@ internal sealed record class Gateway
         using var registryManager = RegistryManager.CreateFromConnectionString(
             _connectionString);
         var ncModuleId = _publisher.Id + kPostFix;
-        _deploymentConfigId = Extensions.FixUpStorageName(_publisher.DeviceId + ncModuleId);
+        _deploymentConfigId = Extensions.FixUpStorageName(
+            _publisher.DeviceId + ncModuleId);
         try
         {
             await registryManager.RemoveConfigurationAsync(_deploymentConfigId,
@@ -176,16 +183,17 @@ internal sealed record class Gateway
         }
         catch (ConfigurationNotFoundException) { }
 
-        await registryManager.AddConfigurationAsync(new Configuration(_deploymentConfigId)
-        {
-            TargetCondition = $"deviceId = '{_publisher.DeviceId}'",
-            Content = new ConfigurationContent
+        await registryManager.AddConfigurationAsync(
+            new Configuration(_deploymentConfigId)
             {
-                ModulesContent = Create(_publisher.DeviceId,
-                    ncModuleId, _publisher.Id, Netcap.LoginServer, Netcap.Username,
-                    Netcap.Password, Netcap.Name, Storage.ConnectionString)
-            }
-        }, ct).ConfigureAwait(false);
+                TargetCondition = $"deviceId = '{_publisher.DeviceId}'",
+                Content = new ConfigurationContent
+                {
+                    ModulesContent = Create(_publisher.DeviceId, ncModuleId,
+                        _publisher.Id, Netcap.LoginServer, Netcap.Username,
+                        Netcap.Password, Netcap.Name, Storage.ConnectionString)
+                }
+            }, ct).ConfigureAwait(false);
 
         await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
             new Twin
@@ -518,13 +526,13 @@ internal sealed record class Gateway
             };
             quickBuild.ImageNames.Add(Name);
             var buildResponse = await registryResponse.Value.GetContainerRegistryTaskRuns()
-                .CreateOrUpdateAsync(WaitUntil.Started, "netcap", new ContainerRegistryTaskRunData
+                .CreateOrUpdateAsync(WaitUntil.Started, kTaskName, new ContainerRegistryTaskRunData
                 {
                     RunRequest = quickBuild
                 }, ct).ConfigureAwait(false);
 
             var runs = await registryResponse.Value.GetContainerRegistryTaskRuns()
-                .GetAsync("netcap", ct).ConfigureAwait(false);
+                .GetAsync(kTaskName, ct).ConfigureAwait(false);
             var run = await registryResponse.Value.GetContainerRegistryRuns().GetAsync(
                  runs.Value.Data.RunResult.RunId, ct).ConfigureAwait(false);
             var url = await run.Value.GetLogSasUrlAsync(ct).ConfigureAwait(false);
@@ -568,6 +576,7 @@ internal sealed record class Gateway
             Name = null!;
         }
 
+        private const string kTaskName = "netcap";
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
     }
