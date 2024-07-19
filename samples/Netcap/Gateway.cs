@@ -134,6 +134,7 @@ internal sealed record class Gateway
             _deploymentConfigId = selected.DeploymentConfigId;
             _resourceGroupName = selected.ResourceGroupName;
             _connectionString = selected.ConnectionString;
+            _iotHubName = selected.IoTHub.Name;
             _publisher = selected.Publisher;
             return;
         }
@@ -272,19 +273,19 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="Subscription"></param>
     /// <param name="ResourceGroupName"></param>
-    /// <param name="Hub"></param>
+    /// <param name="IoTHub"></param>
     /// <param name="ConnectionString"></param>
     /// <param name="Publisher"></param>
     /// <param name="Connected"></param>
     /// <param name="DeploymentConfigId"></param>
     internal sealed record class PublisherDeployment(SubscriptionResource Subscription,
-        string ResourceGroupName, IotHubDescriptionData Hub, string ConnectionString,
+        string ResourceGroupName, IotHubDescriptionData IoTHub, string ConnectionString,
         Module Publisher, bool Connected, string? DeploymentConfigId)
     {
         public override string? ToString()
         {
             return $"[{Subscription.Data.DisplayName}-{ResourceGroupName}] " +
-                $"{Hub.Name}: {Publisher.DeviceId}|{Publisher.Id} " +
+                $"{IoTHub.Name}: {Publisher.DeviceId}|{Publisher.Id} " +
                 $"{(Connected ? "" : "[Disconnected]")}";
         }
     }
@@ -466,6 +467,16 @@ internal sealed record class Gateway
     }
 
     /// <summary>
+    /// Create resource name
+    /// </summary>
+    /// <param name="postfix"></param>
+    /// <returns></returns>
+    private string GetResourceName(string postfix)
+    {
+        return Extensions.FixUpResourceName(_iotHubName + postfix);
+    }
+
+    /// <summary>
     /// Container image
     /// </summary>
     internal sealed record class NetcapImage
@@ -494,8 +505,8 @@ internal sealed record class Gateway
         public async Task CreateOrUpdateAsync(CancellationToken ct = default)
         {
             // Create container registry or update if it already exists in rg
+            var regName = _gateway.GetResourceName(kResourceName);
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
-            var regName = rg.Data.GetNameForResource("ncacr");
             _logger.LogInformation(
                 "Create netcap module image in {Registry} inside {ResourceGroup}.",
                 regName, rg.Data.Name);
@@ -503,10 +514,11 @@ internal sealed record class Gateway
                 .CreateOrUpdateAsync(WaitUntil.Completed, regName,
                 new ContainerRegistryData(rg.Data.Location,
                     new ContainerRegistrySku(ContainerRegistrySkuName.Basic))
-                {
-                    IsAdminUserEnabled = true,
-                    PublicNetworkAccess = ContainerRegistryPublicNetworkAccess.Enabled
-                }, ct).ConfigureAwait(false);
+                    {
+                        IsAdminUserEnabled = true,
+                        PublicNetworkAccess = ContainerRegistryPublicNetworkAccess.Enabled
+                    },
+                    ct).ConfigureAwait(false);
             var registryKeys = await registryResponse.Value.GetCredentialsAsync(ct)
                 .ConfigureAwait(false);
 
@@ -558,9 +570,9 @@ internal sealed record class Gateway
         /// <returns></returns>
         public async Task DeleteAsync(CancellationToken ct)
         {
+            var regName = _gateway.GetResourceName(kResourceName);
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
             var registryCollection = rg.GetContainerRegistries();
-            var regName = rg.Data.GetNameForResource("ncacr");
             if (!await registryCollection.ExistsAsync(regName, ct).ConfigureAwait(false))
             {
                 return;
@@ -576,6 +588,7 @@ internal sealed record class Gateway
             Name = null!;
         }
 
+        private const string kResourceName = "ncacr";
         private const string kTaskName = "netcap";
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
@@ -607,8 +620,8 @@ internal sealed record class Gateway
         /// <exception cref="InvalidOperationException"></exception>
         public async ValueTask CreateOrUpdateAsync(CancellationToken ct)
         {
+            var stgName = _gateway.GetResourceName(kResourceName);
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
-            var stgName = rg.Data.GetNameForResource("ncstg");
             _logger.LogInformation("Create Storage {Storage} for netcap module in {Rg}.",
                 stgName, rg.Data.Name);
             var storageResponse = await rg.GetStorageAccounts()
@@ -642,8 +655,8 @@ internal sealed record class Gateway
         /// <returns></returns>
         public async ValueTask DeleteAsync(CancellationToken ct)
         {
+            var stgName = _gateway.GetResourceName(kResourceName);
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
-            var stgName = rg.Data.GetNameForResource("ncstg");
             var storageCollection = rg.GetStorageAccounts();
             if (!await storageCollection.ExistsAsync(stgName,
                 cancellationToken: ct).ConfigureAwait(false))
@@ -658,6 +671,7 @@ internal sealed record class Gateway
             ConnectionString = null!;
         }
 
+        private const string kResourceName = "ncstg";
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
     }
@@ -666,6 +680,7 @@ internal sealed record class Gateway
     private const string kPostFix = "-nc";
     private Module? _publisher;
     private SubscriptionResource? _subscription;
+    private string? _iotHubName;
     private string? _deploymentConfigId;
     private string? _resourceGroupName;
     private string? _connectionString;

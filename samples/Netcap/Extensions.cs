@@ -90,18 +90,13 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get a unique name for a resource using the resource group
-    /// name as prefix
+    /// Fix a unique name for a resource
     /// </summary>
-    /// <param name="rg"></param>
-    /// <param name="type"></param>
+    /// <param name="name"></param>
     /// <returns></returns>
-    public static string GetNameForResource(this ResourceGroupData rg,
-        string type)
+    public static string FixUpResourceName(string name)
     {
-        var id = rg.Name.GetHashCode(StringComparison.Ordinal)
-            .ToString("x", CultureInfo.InvariantCulture);
-        var name = type + id;
+        name = AlphaNumOnly().Replace(name, "");
         if (name.Length > 24)
         {
             name = name.Substring(0, 24);
@@ -114,10 +109,10 @@ internal static partial class Extensions
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static string? FixUpStorageName(string name)
+    public static string FixUpStorageName(string name)
     {
         // Remove any invalid characters
-        var containerName = InvalidCharMatch().Replace(name, "");
+        var containerName = AlphaNumAndDashOnly().Replace(name, "");
         containerName = containerName.Trim('-');
 
         // Check length
@@ -144,5 +139,7 @@ internal static partial class Extensions
     }
 
     [GeneratedRegex("[^a-zA-Z0-9-]")]
-    private static partial Regex InvalidCharMatch();
+    private static partial Regex AlphaNumAndDashOnly();
+    [GeneratedRegex("[^a-zA-Z0-9]")]
+    private static partial Regex AlphaNumOnly();
 }
