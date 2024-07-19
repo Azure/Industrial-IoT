@@ -22,6 +22,9 @@
     <None Include="deployment.template.json" />
     <None Include="deployment.debug.template.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Azure.IIoT.OpcUa.Publisher.Module\src\Azure.IIoT.OpcUa.Publisher.Module.csproj" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsRoot)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Azure IoT Edge Tools\AzureIoTEdgeProject.Build.targets" />
   <Import Project="$(MSBuildToolsRoot)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Azure IoT Edge Tools\AzureIoTEdgeProject.Build.props" />
 </Project>

@@ -9,15 +9,21 @@
           "settings": {
             "minDockerVersion": "v1.25",
             "loggingOptions": "",
-            "registryCredentials": {}
+            "registryCredentials": {
+              "crhenkeliot001": {
+                "username": "crhenkeliot001",
+                "password": "<crhenkeliot001-password>",
+                "address": "crhenkeliot001.azurecr.io"
+              }
+            }
           }
         },
         "systemModules": {
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:DEFAULT_RT_IMAGE",
-              "createOptions": {}
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.5",
+              "createOptions": "{}"
             }
           },
           "edgeHub": {
@@ -25,38 +31,31 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:DEFAULT_RT_IMAGE",
-              "createOptions": {
-                "HostConfig": {
-                  "PortBindings": {
-                    "5671/tcp": [
-                      {
-                        "HostPort": "5671"
-                      }
-                    ],
-                    "8883/tcp": [
-                      {
-                        "HostPort": "8883"
-                      }
-                    ],
-                    "443/tcp": [
-                      {
-                        "HostPort": "443"
-                      }
-                    ]
-                  }
-                }
-              }
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.5",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
             }
           }
         },
-        "modules": {}
+        "modules": {
+          "OPCPublisher": {
+            "version": "1.0.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "<opc-publisher-image>",
+              "createOptions": "{\"Cmd\": [\"-c\", \"--dr\"]}"
+            }
+          }
+        }
       }
     },
     "$edgeHub": {
       "properties.desired": {
         "schemaVersion": "1.2",
-        "routes": {},
+        "routes": {
+          "OPCPublisherToIoTHub": "FROM /messages/modules/OPCPublisher/outputs/* INTO $upstream"
+        },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
