@@ -337,7 +337,6 @@ if (!$NoCleanup.IsPresent) {
 else {
    Remove-Item -Path $(join-path $setupPath "eflow-setup.log") -Force `
       -ErrorAction SilentlyContinue
-   Remove-Item -Path $(join-path $setupPath "SharedFolders.json") -Force
    Get-EflowLogs -zipName $(Join-Path $setupPath "eflow-logs.zip")
 }
 

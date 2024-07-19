@@ -184,6 +184,8 @@ internal sealed record class Gateway
         }
         catch (ConfigurationNotFoundException) { }
 
+        var twin = await registryManager.GetTwinAsync(_publisher.DeviceId,
+            _publisher.Id, ct).ConfigureAwait(false);
         await registryManager.AddConfigurationAsync(
             new Configuration(_deploymentConfigId)
             {
@@ -192,10 +194,11 @@ internal sealed record class Gateway
                 {
                     ModulesContent = Create(_publisher.DeviceId, ncModuleId,
                         _publisher.Id, Netcap.LoginServer, Netcap.Username,
-                        Netcap.Password, Netcap.Name, Storage.ConnectionString)
+                        Netcap.Password, Netcap.Name, Storage.ConnectionString,
+                        twin.GetProperty("__apikey__", desired: false),
+                        twin.GetProperty("__certificate__", desired: false))
                 }
             }, ct).ConfigureAwait(false);
-
         await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
             new Twin
             {
@@ -203,7 +206,7 @@ internal sealed record class Gateway
                 {
                     [kDeploymentTag] = _deploymentConfigId
                 }
-            }, etag: "*", ct).ConfigureAwait(false);
+            }, twin.ETag, ct).ConfigureAwait(false);
 
         _logger.LogInformation("Deploying netcap module to {DeviceId}...",
             _publisher.DeviceId);
@@ -416,19 +419,34 @@ internal sealed record class Gateway
     /// <param name="password"></param>
     /// <param name="image"></param>
     /// <param name="storageConnectionString"></param>
+    /// <param name="apiKey"></param>
+    /// <param name="certificate"></param>
     /// <returns></returns>
     private static IDictionary<string, IDictionary<string, object>>? Create(string deviceId,
         string netcapModuleId, string publisherModuleId, string server,
-        string userName, string password, string image, string storageConnectionString)
+        string userName, string password, string image, string storageConnectionString,
+        string? apiKey, string? certificate)
     {
+        var args = new List<string> {
+            "-d", deviceId,
+            "-m", publisherModuleId,
+            "-s", storageConnectionString
+        };
+        if (apiKey != null)
+        {
+            args.Add("-a");
+            args.Add(apiKey);
+        }
+        if (certificate != null)
+        {
+            args.Add("-p");
+            args.Add(certificate);
+        }
+
         var createOptions = JsonConvert.SerializeObject(new
         {
             User = "root",
-            Cmd = new[] {
-                "-d", deviceId,
-                "-m", publisherModuleId,
-                "-s", storageConnectionString
-            },
+            Cmd = args.ToArray(),
             HostConfig = new
             {
                 CapAdd = new[] { "NET_ADMIN" }
@@ -456,9 +474,6 @@ internal sealed record class Gateway
                 }
             },
             "$edgeHub": {
-                "properties.desired.routes.netcapToPublisher": {
-                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO BrokeredEndpoint(\"/modules/{{publisherModuleId}}/inputs/*\")"
-                },
                 "properties.desired.routes.netcapToUpstream": {
                     "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO $upstream"
                 }

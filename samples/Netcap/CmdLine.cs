@@ -48,6 +48,28 @@ internal sealed class CmdLine : IDisposable
     public string? PublisherDeviceId { get; set; } =
         Environment.GetEnvironmentVariable(nameof(PublisherDeviceId));
 
+    [Option('a', nameof(PublisherRestApiKey), Required = false,
+        HelpText = "The api key of the opc publisher." +
+            "\nDefaults to value of environment variable 'PublisherRestApiKey'.")]
+    public string? PublisherRestApiKey { get; set; } =
+        Environment.GetEnvironmentVariable(nameof(PublisherRestApiKey));
+
+    [Option('p', nameof(PublisherRestCertificate), Required = false,
+        HelpText = "The tls certificate of the opc publisher." +
+            "\nDefaults to value of environment variable 'PublisherRestCertificate'.")]
+    public string? PublisherRestCertificate
+    {
+        get => _certificate?.ExportCertificatePem();
+        set
+        {
+            if (value != null)
+            {
+                _certificate?.Dispose();
+                _certificate = X509Certificate2.CreateFromPem(value);
+            }
+        }
+    }
+
     [Option('r', nameof(PublisherRestApiEndpoint), Required = false,
         HelpText = "The Rest api endpoint of the opc publisher." +
         "\nDefaults to value of environment variable 'PublisherRestApiEndpoint'.")]
@@ -96,12 +118,21 @@ internal sealed class CmdLine : IDisposable
     /// </summary>
     internal ILoggerFactory Logger { get; private set; } = new LoggerFactory();
 
+    /// <summary>
+    /// Create
+    /// </summary>
+    public CmdLine()
+    {
+        PublisherRestCertificate =
+            Environment.GetEnvironmentVariable(nameof(PublisherRestCertificate));
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
         HttpClient.Dispose();
         _certificate?.Dispose();
-        _apiKey = null;
+        PublisherRestApiKey = null;
     }
 
     /// <summary>
@@ -140,7 +171,7 @@ internal sealed class CmdLine : IDisposable
             await cmdLine.ConnectAsModuleAsync(ct).ConfigureAwait(false);
         }
 #if NO_IOTEDGE
-        else if (_apiKey != null && _certificate != null))
+        else if (ApiKey != null && Certificate != null))
         {
             // Use the provided API key and certificate
             // Support to run without iot edge and hub
@@ -253,9 +284,6 @@ internal sealed class CmdLine : IDisposable
     /// <returns></returns>
     private async ValueTask ConnectAsModuleAsync(CancellationToken ct = default)
     {
-        Console.WriteLine("Connecting to OPC Publisher Module " +
-            $"{PublisherModuleId} on {PublisherDeviceId}...");
-
         if (string.IsNullOrWhiteSpace(EdgeHubConnectionString))
         {
             var moduleClient =
@@ -296,18 +324,29 @@ internal sealed class CmdLine : IDisposable
                 Debug.Assert(PublisherModuleId != null);
                 Debug.Assert(PublisherDeviceId != null);
 
-                var apiKeyResponse = await moduleClient.InvokeMethodAsync(
-                    PublisherDeviceId, PublisherModuleId,
-                    new MethodRequest("GetApiKey"), ct).ConfigureAwait(false);
-                _apiKey =
-                    JsonSerializer.Deserialize<string>(apiKeyResponse.Result);
-                var certResponse = await moduleClient.InvokeMethodAsync(
-                    PublisherDeviceId, PublisherModuleId,
-                    new MethodRequest("GetServerCertificate"), ct).ConfigureAwait(false);
-                _certificate = X509Certificate2.CreateFromPem(
-                    JsonSerializer.Deserialize<string>(certResponse.Result));
-
                 ConfigureFromTwin(twin);
+
+                if (PublisherRestApiKey == null || PublisherRestCertificate == null)
+                {
+                    Console.WriteLine("Connecting to OPC Publisher Module " +
+                        $"{PublisherModuleId} on {PublisherDeviceId}...");
+                    if (PublisherRestApiKey == null)
+                    {
+                        var apiKeyResponse = await moduleClient.InvokeMethodAsync(
+                            PublisherDeviceId, PublisherModuleId,
+                            new MethodRequest("GetApiKey"), ct).ConfigureAwait(false);
+                        PublisherRestApiKey =
+                            JsonSerializer.Deserialize<string>(apiKeyResponse.Result);
+                    }
+                    if (PublisherRestCertificate == null)
+                    {
+                        var certResponse = await moduleClient.InvokeMethodAsync(
+                            PublisherDeviceId, PublisherModuleId,
+                            new MethodRequest("GetServerCertificate"), ct).ConfigureAwait(false);
+                        PublisherRestCertificate =
+                            JsonSerializer.Deserialize<string>(certResponse.Result);
+                    }
+                }
                 await CreateHttpClientWithAuthAsync().ConfigureAwait(false);
             }
             finally
@@ -377,22 +416,33 @@ internal sealed class CmdLine : IDisposable
         Debug.Assert(PublisherModuleId != null);
         Debug.Assert(PublisherDeviceId != null);
 
-        Console.WriteLine("Connecting to OPC Publisher Module " +
-            $"{PublisherModuleId} on {PublisherDeviceId} via IoTHub...");
-        using var serviceClient = Microsoft.Azure.Devices.ServiceClient
-            .CreateFromConnectionString(iothubConnectionString);
-        var apiKeyResponse = await serviceClient.InvokeDeviceMethodAsync(PublisherDeviceId,
-            PublisherModuleId, new Microsoft.Azure.Devices.CloudToDeviceMethod(
-                "GetApiKey"), ct).ConfigureAwait(false);
-        _apiKey =
-            JsonSerializer.Deserialize<string>(apiKeyResponse.GetPayloadAsJson());
-        var certResponse = await serviceClient.InvokeDeviceMethodAsync(PublisherDeviceId,
-            PublisherModuleId, new Microsoft.Azure.Devices.CloudToDeviceMethod(
-                "GetServerCertificate"), ct).ConfigureAwait(false);
-        _certificate = X509Certificate2.CreateFromPem(
-            JsonSerializer.Deserialize<string>(certResponse.GetPayloadAsJson()));
-
         ConfigureFromTwin(twin);
+
+        if (PublisherRestApiKey == null || PublisherRestCertificate == null)
+        {
+            Console.WriteLine("Connecting to OPC Publisher Module " +
+                $"{PublisherModuleId} on {PublisherDeviceId} via IoTHub...");
+            using var serviceClient = Microsoft.Azure.Devices.ServiceClient
+                .CreateFromConnectionString(iothubConnectionString);
+            if (PublisherRestApiKey == null)
+            {
+                var apiKeyResponse = await serviceClient.InvokeDeviceMethodAsync(
+                    PublisherDeviceId, PublisherModuleId,
+                    new Microsoft.Azure.Devices.CloudToDeviceMethod(
+                        "GetApiKey"), ct).ConfigureAwait(false);
+                PublisherRestApiKey =
+                    JsonSerializer.Deserialize<string>(apiKeyResponse.GetPayloadAsJson());
+            }
+            if (PublisherRestCertificate == null)
+            {
+                var certResponse = await serviceClient.InvokeDeviceMethodAsync(
+                    PublisherDeviceId, PublisherModuleId,
+                    new Microsoft.Azure.Devices.CloudToDeviceMethod(
+                        "GetServerCertificate"), ct).ConfigureAwait(false);
+                PublisherRestCertificate =
+                    JsonSerializer.Deserialize<string>(certResponse.GetPayloadAsJson());
+            }
+        }
         await CreateHttpClientWithAuthAsync().ConfigureAwait(false);
     }
 
@@ -408,6 +458,10 @@ internal sealed class CmdLine : IDisposable
             nameof(OpcServerEndpointUrl), OpcServerEndpointUrl);
         PublisherRestApiEndpoint = twin.GetProperty(
             nameof(PublisherRestApiEndpoint), PublisherRestApiEndpoint);
+        PublisherRestCertificate = twin.GetProperty(
+            nameof(PublisherRestCertificate), PublisherRestCertificate);
+        PublisherRestApiKey = twin.GetProperty(
+            nameof(PublisherRestApiKey), PublisherRestApiKey);
         var captureDuration = twin.GetProperty(nameof(CaptureDuration));
         if (!string.IsNullOrWhiteSpace(captureDuration) &&
             TimeSpan.TryParse(captureDuration, out var duration))
@@ -422,7 +476,7 @@ internal sealed class CmdLine : IDisposable
     /// <returns></returns>
     private async ValueTask CreateHttpClientWithAuthAsync()
     {
-        if (_apiKey != null)
+        if (PublisherRestApiKey != null)
         {
             HttpClient.Dispose();
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -435,7 +489,7 @@ internal sealed class CmdLine : IDisposable
             HttpClient.BaseAddress =
                 await GetOpcPublisherRestEndpoint().ConfigureAwait(false);
             HttpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("ApiKey", _apiKey);
+                new AuthenticationHeaderValue("ApiKey", PublisherRestApiKey);
         }
 
         /// <summary>
@@ -471,7 +525,7 @@ internal sealed class CmdLine : IDisposable
                 Port = 9072,
                 Host = host
             };
-            if (_apiKey == null)
+            if (PublisherRestApiKey == null)
             {
                 uri.Scheme = "http";
                 uri.Port = 9071;
@@ -481,7 +535,6 @@ internal sealed class CmdLine : IDisposable
     }
 
     private X509Certificate2? _certificate;
-    private string? _apiKey;
     internal static readonly JsonSerializerOptions Indented
         = new() { WriteIndented = true };
 }
