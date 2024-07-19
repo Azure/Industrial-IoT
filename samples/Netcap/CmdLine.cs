@@ -12,8 +12,6 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -139,7 +137,7 @@ internal sealed class CmdLine : IDisposable
         else if (!string.IsNullOrWhiteSpace(cmdLine.EdgeHubConnectionString) ||
             Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI") != null)
         {
-            await cmdLine.ConnectAsModuleAsync().ConfigureAwait(false);
+            await cmdLine.ConnectAsModuleAsync(ct).ConfigureAwait(false);
         }
 #if NO_IOTEDGE
         else if (_apiKey != null && _certificate != null))
@@ -162,7 +160,7 @@ internal sealed class CmdLine : IDisposable
             {
                 // NOTE: For testing locally only
                 await cmdLine.ConnectAsIoTHubOwnerAsync(
-                    iothubConnectionString).ConfigureAwait(false);
+                    iothubConnectionString, ct).ConfigureAwait(false);
             }
         }
         return cmdLine;
@@ -186,11 +184,11 @@ internal sealed class CmdLine : IDisposable
 
         logger.LogInformation("Installing netcap module...");
 
-        // Get publisher
         var gateway = new Gateway(armClient, logger);
         try
         {
-            await gateway.SelectPublisherAsync(SubscriptionId, ct).ConfigureAwait(false);
+            // Get publishers
+            await gateway.SelectPublisherAsync(SubscriptionId, false, ct).ConfigureAwait(false);
 
             // Create storage account or update if it already exists in the rg
             await gateway.Storage.CreateOrUpdateAsync(ct).ConfigureAwait(false);
@@ -226,11 +224,11 @@ internal sealed class CmdLine : IDisposable
 
         logger.LogInformation("Uninstalling netcap module...");
 
-        // Select publisher
         var gateway = new Gateway(armClient, logger);
         try
         {
-            await gateway.SelectPublisherAsync(SubscriptionId, ct).ConfigureAwait(false);
+            // Select netcap modules
+            await gateway.SelectPublisherAsync(SubscriptionId, true, ct).ConfigureAwait(false);
 
             // Create storage account or update if it already exists in the rg
             await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
@@ -251,8 +249,9 @@ internal sealed class CmdLine : IDisposable
     /// <summary>
     /// Connect module to edge hub
     /// </summary>
+    /// <param name="ct"></param>
     /// <returns></returns>
-    private async ValueTask ConnectAsModuleAsync()
+    private async ValueTask ConnectAsModuleAsync(CancellationToken ct = default)
     {
         Console.WriteLine("Connecting to OPC Publisher Module " +
             $"{PublisherModuleId} on {PublisherDeviceId}...");
@@ -263,25 +262,32 @@ internal sealed class CmdLine : IDisposable
                 await ModuleClient.CreateFromEnvironmentAsync().ConfigureAwait(false);
             await using (var _ = moduleClient.ConfigureAwait(false))
             {
-                await ConnectAsModuleAsync(moduleClient).ConfigureAwait(false);
+                await ConnectAsModuleAsync(moduleClient, ct).ConfigureAwait(false);
             }
         }
-        else {
+        else
+        {
             var moduleClient =
                 ModuleClient.CreateFromConnectionString(EdgeHubConnectionString);
             await using (var _ = moduleClient.ConfigureAwait(false))
             {
-                await ConnectAsModuleAsync(moduleClient).ConfigureAwait(false);
+                await ConnectAsModuleAsync(moduleClient, ct).ConfigureAwait(false);
             }
         }
 
-        async Task ConnectAsModuleAsync(ModuleClient moduleClient)
+        async Task ConnectAsModuleAsync(ModuleClient moduleClient, CancellationToken ct)
         {
             // Call the "GetApiKey" and "GetServerCertificate" methods on the publisher module
-            await moduleClient.OpenAsync().ConfigureAwait(false);
+            await moduleClient.OpenAsync(ct).ConfigureAwait(false);
             try
             {
-                var twin = await moduleClient.GetTwinAsync().ConfigureAwait(false);
+                await moduleClient.UpdateReportedPropertiesAsync(new TwinCollection
+                {
+                    ["__type__"] = "OpcNetcap",
+                    ["__version__"] = ThisAssembly.AssemblyFileVersion
+                }, ct).ConfigureAwait(false);
+
+                var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
 
                 var deviceId = twin.DeviceId;
                 PublisherModuleId = twin.GetProperty(nameof(PublisherModuleId),
@@ -292,12 +298,12 @@ internal sealed class CmdLine : IDisposable
 
                 var apiKeyResponse = await moduleClient.InvokeMethodAsync(
                     PublisherDeviceId, PublisherModuleId,
-                    new MethodRequest("GetApiKey")).ConfigureAwait(false);
+                    new MethodRequest("GetApiKey"), ct).ConfigureAwait(false);
                 _apiKey =
                     JsonSerializer.Deserialize<string>(apiKeyResponse.Result);
                 var certResponse = await moduleClient.InvokeMethodAsync(
                     PublisherDeviceId, PublisherModuleId,
-                    new MethodRequest("GetServerCertificate")).ConfigureAwait(false);
+                    new MethodRequest("GetServerCertificate"), ct).ConfigureAwait(false);
                 _certificate = X509Certificate2.CreateFromPem(
                     JsonSerializer.Deserialize<string>(certResponse.Result));
 
@@ -306,7 +312,7 @@ internal sealed class CmdLine : IDisposable
             }
             finally
             {
-                await moduleClient.CloseAsync().ConfigureAwait(false);
+                await moduleClient.CloseAsync(ct).ConfigureAwait(false);
             }
         }
     }
@@ -315,9 +321,10 @@ internal sealed class CmdLine : IDisposable
     /// Connect with iot hub connections tring
     /// </summary>
     /// <param name="iothubConnectionString"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     private async ValueTask ConnectAsIoTHubOwnerAsync(
-        string iothubConnectionString)
+        string iothubConnectionString, CancellationToken ct = default)
     {
         string deviceId;
         var ncModuleId = "netcap";
@@ -338,14 +345,33 @@ internal sealed class CmdLine : IDisposable
         using var rm = Microsoft.Azure.Devices.RegistryManager
             .CreateFromConnectionString(iothubConnectionString);
         // Create module if not exist
-        try { await rm.AddDeviceAsync(
-            new Microsoft.Azure.Devices.Device(deviceId)).ConfigureAwait(false); }
+        try
+        {
+            await rm.AddDeviceAsync(new Microsoft.Azure.Devices.Device(deviceId), ct)
+                .ConfigureAwait(false);
+        }
         catch (DeviceAlreadyExistsException) { }
-        try { await rm.AddModuleAsync(new Microsoft.Azure.Devices.Module(
-                deviceId, ncModuleId)).ConfigureAwait(false); }
+        try
+        {
+            await rm.AddModuleAsync(new Microsoft.Azure.Devices.Module(
+                deviceId, ncModuleId), ct).ConfigureAwait(false);
+        }
         catch (ModuleAlreadyExistsException) { }
 
-        var twin = await rm.GetTwinAsync(deviceId, ncModuleId).ConfigureAwait(false);
+        var twin = await rm.GetTwinAsync(deviceId, ncModuleId, ct).ConfigureAwait(false);
+        twin = await rm.UpdateTwinAsync(deviceId, ncModuleId, new Twin
+        {
+            Properties = new TwinProperties
+            {
+                Reported = new TwinCollection
+                {
+                    ["__type__"] = "OpcNetcap",
+                    ["__version__"] = ThisAssembly.AssemblyFileVersion
+                }
+            }
+        }, twin.ETag, ct).ConfigureAwait(false);
+
+        // Get publisher id from twin if not configured
         PublisherModuleId = twin.GetProperty(nameof(PublisherModuleId), PublisherModuleId);
         PublisherDeviceId ??= deviceId;
         Debug.Assert(PublisherModuleId != null);
@@ -355,16 +381,14 @@ internal sealed class CmdLine : IDisposable
             $"{PublisherModuleId} on {PublisherDeviceId} via IoTHub...");
         using var serviceClient = Microsoft.Azure.Devices.ServiceClient
             .CreateFromConnectionString(iothubConnectionString);
-        var apiKeyResponse = await serviceClient.InvokeDeviceMethodAsync(
-            PublisherDeviceId, PublisherModuleId,
-            new Microsoft.Azure.Devices.CloudToDeviceMethod(
-                "GetApiKey")).ConfigureAwait(false);
+        var apiKeyResponse = await serviceClient.InvokeDeviceMethodAsync(PublisherDeviceId,
+            PublisherModuleId, new Microsoft.Azure.Devices.CloudToDeviceMethod(
+                "GetApiKey"), ct).ConfigureAwait(false);
         _apiKey =
             JsonSerializer.Deserialize<string>(apiKeyResponse.GetPayloadAsJson());
-        var certResponse = await serviceClient.InvokeDeviceMethodAsync(
-            PublisherDeviceId, PublisherModuleId,
-            new Microsoft.Azure.Devices.CloudToDeviceMethod(
-                "GetServerCertificate")).ConfigureAwait(false);
+        var certResponse = await serviceClient.InvokeDeviceMethodAsync(PublisherDeviceId,
+            PublisherModuleId, new Microsoft.Azure.Devices.CloudToDeviceMethod(
+                "GetServerCertificate"), ct).ConfigureAwait(false);
         _certificate = X509Certificate2.CreateFromPem(
             JsonSerializer.Deserialize<string>(certResponse.GetPayloadAsJson()));
 

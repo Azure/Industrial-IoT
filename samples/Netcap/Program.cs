@@ -10,7 +10,7 @@ using System.Text.Json;
 
 using var cts = new CancellationTokenSource();
 
-Console.WriteLine(@"
+Console.WriteLine($@"
    ____  _____   _____   _   _      _
   / __ \|  __ \ / ____| | \ | |    | |
  | |  | | |__) | |      |  \| | ___| |_ ___ __ _ _ __
@@ -18,7 +18,7 @@ Console.WriteLine(@"
  | |__| | |    | |____  | |\  |  __/ || (_| (_| | |_) |
   \____/|_|     \_____| |_| \_|\___|\__\___\__,_| .__/
                                                 | |
-                                                |_|
+                                                |_| {ThisAssembly.AssemblyFileVersion}
 ");
 
 using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);

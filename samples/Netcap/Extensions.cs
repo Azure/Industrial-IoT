@@ -44,6 +44,30 @@ internal static partial class Extensions
     }
 
     /// <summary>
+    /// Get tag
+    /// </summary>
+    /// <param name="twin"></param>
+    /// <param name="name"></param>
+    /// <param name="defaultValue"></param>
+    /// <returns></returns>
+    [return: NotNullIfNotNull(nameof(defaultValue))]
+    public static string? GetTag(this Twin twin, string name,
+        string? defaultValue = null)
+    {
+        if (!twin.Tags.Contains(name))
+        {
+            return defaultValue;
+        }
+        var value = twin.Tags[name];
+        var result = (string?)value?.ToString();
+        if (string.IsNullOrEmpty(result))
+        {
+            return defaultValue;
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Get bytes
     /// </summary>
     /// <param name="elem"></param>

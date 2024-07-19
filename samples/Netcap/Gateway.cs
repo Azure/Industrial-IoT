@@ -60,24 +60,25 @@ internal sealed record class Gateway
     /// Select publisher
     /// </summary>
     /// <param name="subscriptionId"></param>
+    /// <param name="netcapMonitored"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
     public async ValueTask SelectPublisherAsync(string? subscriptionId = null,
-        CancellationToken ct = default)
+        bool netcapMonitored = false, CancellationToken ct = default)
     {
         while (!ct.IsCancellationRequested)
         {
-            // Get publishers in iot hubs
-            var deployments = await GetPublisherDeploymentsAsync(subscriptionId, ct)
-                .ToListAsync(ct).ConfigureAwait(false);
+            // Get target modules in iot hubs
+            var deployments = await GetPublisherDeploymentsAsync(subscriptionId,
+                netcapMonitored, ct).ToListAsync(ct).ConfigureAwait(false);
 
             // Select IoT Hub with publisher modules deployed
             if (deployments.Count == 0)
             {
                 if (!Extensions.IsRunningInContainer())
                 {
-                    Console.WriteLine("No publishers found. Check again? [Y/N]");
+                    Console.WriteLine("No targets found. Check again? [Y/N]");
                     var key = Console.ReadKey();
                     Console.WriteLine();
                     if (key.Key != ConsoleKey.Y)
@@ -85,14 +86,14 @@ internal sealed record class Gateway
                         break;
                     }
                 }
-                _logger.LogInformation("No publishers found. Trying again...");
+                _logger.LogInformation("No targets found. Trying again...");
                 continue;
             }
             var selected = deployments[0];
             if (deployments.Count > 1)
             {
                 Console.Clear();
-                Console.WriteLine($"Found {deployments.Count} publishers:");
+                Console.WriteLine($"Found {deployments.Count} targets:");
 
                 for (var index = 0; index < deployments.Count; index++)
                 {
@@ -118,18 +119,19 @@ internal sealed record class Gateway
                 Console.WriteLine();
                 if (key.Key != ConsoleKey.Y)
                 {
-                    _logger.LogInformation("Trying again to find other publishers...");
+                    _logger.LogInformation("Trying again to find other targets...");
                     continue;
                 }
             }
 
             _subscription = selected.Subscription;
+            _deploymentConfigId = selected.DeploymentConfigId;
             _resourceGroupName = selected.ResourceGroupName;
             _connectionString = selected.ConnectionString;
             _publisher = selected.Publisher;
             return;
         }
-        throw new InvalidOperationException("No publishers found.");
+        throw new InvalidOperationException("No targets found.");
     }
 
     /// <summary>
@@ -165,15 +167,16 @@ internal sealed record class Gateway
         // Deploy the module using manifest to device with the chosen publisher
         using var registryManager = RegistryManager.CreateFromConnectionString(
             _connectionString);
-        var ncModuleId = _publisher.Id + "-nc";
-        var configId = Extensions.FixUpStorageName(_publisher.DeviceId + ncModuleId);
+        var ncModuleId = _publisher.Id + kPostFix;
+        _deploymentConfigId = Extensions.FixUpStorageName(_publisher.DeviceId + ncModuleId);
         try
         {
-            await registryManager.RemoveConfigurationAsync(configId,
+            await registryManager.RemoveConfigurationAsync(_deploymentConfigId,
                 ct).ConfigureAwait(false);
         }
         catch (ConfigurationNotFoundException) { }
-        await registryManager.AddConfigurationAsync(new Configuration(configId)
+
+        await registryManager.AddConfigurationAsync(new Configuration(_deploymentConfigId)
         {
             TargetCondition = $"deviceId = '{_publisher.DeviceId}'",
             Content = new ConfigurationContent
@@ -183,6 +186,16 @@ internal sealed record class Gateway
                     Netcap.Password, Netcap.Name, Storage.ConnectionString)
             }
         }, ct).ConfigureAwait(false);
+
+        await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
+            new Twin
+            {
+                Tags = new TwinCollection
+                {
+                    [kDeploymentTag] = _deploymentConfigId
+                }
+            }, etag: "*", ct).ConfigureAwait(false);
+
         _logger.LogInformation("Deploying netcap module to {DeviceId}...",
             _publisher.DeviceId);
 
@@ -208,20 +221,31 @@ internal sealed record class Gateway
     /// <exception cref="InvalidOperationException"></exception>
     public async ValueTask RemoveNetcapModuleAsync(CancellationToken ct = default)
     {
-        if (_publisher == null || _connectionString == null)
+        if (_publisher == null || _connectionString == null || _deploymentConfigId == null)
         {
             throw new InvalidOperationException("Publisher not selected");
         }
 
-        // Deploy the module using manifest to device with the chosen publisher
         using var registryManager = RegistryManager.CreateFromConnectionString(
             _connectionString);
-        var ncModuleId = _publisher.Id + "-nc";
-        var configId = Extensions.FixUpStorageName(_publisher.DeviceId + ncModuleId);
-        await registryManager.RemoveConfigurationAsync(configId,
-            ct).ConfigureAwait(false);
+        var ncModuleId = _publisher.Id + kPostFix;
 
-        // Wait until not connected
+        await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
+            new Twin
+            {
+                Tags = new TwinCollection
+                {
+                    [kDeploymentTag] = null
+                }
+            }, etag: "*", ct).ConfigureAwait(false);
+
+        await registryManager.RemoveConfigurationAsync(
+            _deploymentConfigId, ct).ConfigureAwait(false);
+
+        // Uninstalled
+        _deploymentConfigId = null;
+
+        // Wait until netcap is not connected anymore
         var connected = true;
         for (var i = 1; connected && !ct.IsCancellationRequested; i++)
         {
@@ -243,14 +267,17 @@ internal sealed record class Gateway
     /// <param name="Hub"></param>
     /// <param name="ConnectionString"></param>
     /// <param name="Publisher"></param>
+    /// <param name="Connected"></param>
+    /// <param name="DeploymentConfigId"></param>
     internal sealed record class PublisherDeployment(SubscriptionResource Subscription,
-        string ResourceGroupName, IotHubDescriptionData Hub,
-        string ConnectionString, Module Publisher, bool Connected)
+        string ResourceGroupName, IotHubDescriptionData Hub, string ConnectionString,
+        Module Publisher, bool Connected, string? DeploymentConfigId)
     {
         public override string? ToString()
         {
             return $"[{Subscription.Data.DisplayName}-{ResourceGroupName}] " +
-                $"{Hub.Name}: {Publisher.DeviceId}|{Publisher.Id} {(Connected ? "" : "[Disconnected]")}";
+                $"{Hub.Name}: {Publisher.DeviceId}|{Publisher.Id} " +
+                $"{(Connected ? "" : "[Disconnected]")}";
         }
     }
 
@@ -258,10 +285,12 @@ internal sealed record class Gateway
     /// Get deployments
     /// </summary>
     /// <param name="subscriptionId"></param>
+    /// <param name="netcapMonitored"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
     private async IAsyncEnumerable<PublisherDeployment> GetPublisherDeploymentsAsync(
-        string? subscriptionId = null, [EnumeratorCancellation] CancellationToken ct = default)
+        string? subscriptionId = null, bool netcapMonitored = false,
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
         _logger.LogInformation("Finding publishers...");
         await foreach (var sub in _client.GetSubscriptions().GetAllAsync(ct))
@@ -281,17 +310,15 @@ internal sealed record class Gateway
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Failed to get keys for hub {Hub}.",
-                        hub.Data.Name);
+                    _logger.LogDebug(ex, "Failed to get keys for hub {Hub}.", hub.Data.Name);
                     continue;
                 }
-                var cs = IotHubConnectionStringBuilder.Create(
-                    hub.Data.Properties.HostName,
-                    new ServiceAuthenticationWithSharedAccessPolicyKey(
-                        "iothubowner", keys.Value.PrimaryKey));
+                var cs = IotHubConnectionStringBuilder.Create(hub.Data.Properties.HostName,
+                    new ServiceAuthenticationWithSharedAccessPolicyKey("iothubowner",
+                        keys.Value.PrimaryKey));
                 Debug.Assert(hub.Id.ResourceGroupName != null);
                 var publishers = await GetPublishersAsync(sub, hub.Id.ResourceGroupName,
-                    hub.Data, cs.ToString(), ct)
+                    hub.Data, cs.ToString(), netcapMonitored, ct)
                     .ToListAsync(ct)
                     .ConfigureAwait(false);
                 foreach (var pub in publishers)
@@ -303,19 +330,20 @@ internal sealed record class Gateway
 
         static async IAsyncEnumerable<PublisherDeployment> GetPublishersAsync(
             SubscriptionResource sub, string resourceGroupName, IotHubDescriptionData hub,
-            string connectionString, [EnumeratorCancellation] CancellationToken ct = default)
+            string connectionString, bool netcapMonitored,
+            [EnumeratorCancellation] CancellationToken ct = default)
         {
             using var registry = RegistryManager.CreateFromConnectionString(connectionString);
-            var publishers = registry.CreateQuery("SELECT * FROM devices.modules WHERE " +
-                "properties.reported.__type__ = 'OpcPublisher'");
+            var query = registry.CreateQuery(
+                "SELECT * FROM devices.modules WHERE properties.reported.__type__ = 'OpcPublisher'");
             string? continuationToken = null;
-            while (publishers.HasMoreResults)
+            while (query.HasMoreResults)
             {
                 ct.ThrowIfCancellationRequested();
                 QueryResponse<Twin> results;
                 try
                 {
-                    results = await publishers.GetNextAsTwinAsync(new QueryOptions
+                    results = await query.GetNextAsTwinAsync(new QueryOptions
                     {
                         ContinuationToken = continuationToken
                     }).ConfigureAwait(false);
@@ -336,9 +364,24 @@ internal sealed record class Gateway
                         continue;
                     }
 
-                    if (result.ConnectionState != DeviceConnectionState.Connected)
+                    var configId = result.GetTag(kDeploymentTag);
+                    if (!netcapMonitored)
                     {
-                        // Not connected
+                        if (configId != null)
+                        {
+                            // Select only publishers without netcap enabled
+                            continue;
+                        }
+                        if (result.ConnectionState != DeviceConnectionState.Connected)
+                        {
+                            // Select only connected publishers
+                            continue;
+                        }
+                    }
+                    else if (configId == null)
+                    {
+                        // Select only publisher with netcap enabled
+                        // Disconnected are ok, we want to uninstall those too
                         continue;
                     }
 
@@ -346,7 +389,8 @@ internal sealed record class Gateway
                         ct).ConfigureAwait(false);
                     var connected = device.ConnectionState == DeviceConnectionState.Connected;
                     yield return new PublisherDeployment(sub, resourceGroupName, hub,
-                        connectionString, new Module(result.DeviceId, result.ModuleId), connected);
+                        connectionString, new Module(result.DeviceId, result.ModuleId),
+                        connected, configId);
                 }
             }
         }
@@ -370,7 +414,6 @@ internal sealed record class Gateway
     {
         var createOptions = JsonConvert.SerializeObject(new
         {
-            Hostname = "netcap",
             User = "root",
             Cmd = new[] {
                 "-d", deviceId,
@@ -405,7 +448,9 @@ internal sealed record class Gateway
             },
             "$edgeHub": {
                 "properties.desired.routes.callpublisher": {
-                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO BrokeredEndpoint(\"/modules/{{publisherModuleId}}/inputs/control\")"
+                    "route": "FROM /messages/modules/{{netcapModuleId}}/* INTO BrokeredEndpoint(\"/modules/{{publisherModuleId}}/inputs/control\")",
+                    "priority": 0,
+                    "timeToLiveSecs": 86400
                 }
             }
         }
@@ -608,8 +653,11 @@ internal sealed record class Gateway
         private readonly ILogger _logger;
     }
 
+    private const string kDeploymentTag = "netcapdeployment";
+    private const string kPostFix = "-nc";
     private Module? _publisher;
     private SubscriptionResource? _subscription;
+    private string? _deploymentConfigId;
     private string? _resourceGroupName;
     private string? _connectionString;
     private readonly ILogger _logger;
