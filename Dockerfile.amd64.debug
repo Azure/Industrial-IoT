@@ -1,0 +1,17 @@
+# Use the .NET 8.0 SDK image to build the project
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /app
+
+COPY ./src/Azure.IIoT.OpcUa.Publisher.Module/src/*.csproj ./
+RUN dotnet restore
+
+COPY . ./
+RUN dotnet publish ./src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj -c Debug -o out
+
+# Use the .NET 8.0 runtime image for the final image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build-env /app/out .
+
+# Set the entry point for the container
+ENTRYPOINT ["dotnet", "Azure.IIoT.OpcUa.Publisher.Module.dll"]
