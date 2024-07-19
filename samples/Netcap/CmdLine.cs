@@ -504,6 +504,7 @@ internal sealed class CmdLine : IDisposable
                 return u;
             }
             var host = PublisherModuleId;
+            var isLocal = host == null;
             if (host != null)
             {
                 // Poor man ping
@@ -512,6 +513,7 @@ internal sealed class CmdLine : IDisposable
                     var result = await Dns.GetHostAddressesAsync(
                         PublisherModuleId).ConfigureAwait(false);
                     if (result.Length == 0) { host = null; }
+                    isLocal = false;
                 }
                 catch { host = null; }
             }
@@ -522,13 +524,13 @@ internal sealed class CmdLine : IDisposable
             var uri = new UriBuilder
             {
                 Scheme = "https",
-                Port = 9072,
+                Port = isLocal ? 9072 : 443,
                 Host = host
             };
             if (PublisherRestApiKey == null)
             {
                 uri.Scheme = "http";
-                uri.Port = 9071;
+                uri.Port = isLocal ? 9071 : 80;
             }
             return uri.Uri;
         }

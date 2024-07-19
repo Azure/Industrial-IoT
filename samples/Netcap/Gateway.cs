@@ -119,6 +119,7 @@ internal sealed record class Gateway
             }
             else if (!Extensions.IsRunningInContainer())
             {
+                Console.WriteLine("Found 1 publisher.");
                 Console.WriteLine($"Use {selected}? [Y/N]");
                 var key = Console.ReadKey();
                 Console.WriteLine();
@@ -289,9 +290,9 @@ internal sealed record class Gateway
     {
         public override string? ToString()
         {
-            return $"[{Subscription.Data.DisplayName}-{ResourceGroupName}] " +
-                $"{IoTHub.Name}: {Publisher.DeviceId}|{Publisher.Id} " +
-                $"{(Connected ? "" : "[Disconnected]")}";
+            return $"[{Subscription.Data.DisplayName}/{ResourceGroupName}/" +
+                $"{IoTHub.Name}]  {Publisher.DeviceId}/modules/{Publisher.Id}" +
+                $"{(Connected ? "" : "  [Disconnected]")}";
         }
     }
 
@@ -555,14 +556,15 @@ internal sealed record class Gateway
                 IsPushEnabled = true
             };
             quickBuild.ImageNames.Add(Name);
+            var taskName = Extensions.FixUpResourceName(kTaskName + DateTime.UtcNow.ToBinary());
             var buildResponse = await registryResponse.Value.GetContainerRegistryTaskRuns()
-                .CreateOrUpdateAsync(WaitUntil.Started, kTaskName, new ContainerRegistryTaskRunData
+                .CreateOrUpdateAsync(WaitUntil.Started, taskName, new ContainerRegistryTaskRunData
                 {
                     RunRequest = quickBuild
                 }, ct).ConfigureAwait(false);
 
             var runs = await registryResponse.Value.GetContainerRegistryTaskRuns()
-                .GetAsync(kTaskName, ct).ConfigureAwait(false);
+                .GetAsync(taskName, ct).ConfigureAwait(false);
             var run = await registryResponse.Value.GetContainerRegistryRuns().GetAsync(
                  runs.Value.Data.RunResult.RunId, ct).ConfigureAwait(false);
             var url = await run.Value.GetLogSasUrlAsync(ct).ConfigureAwait(false);
@@ -607,7 +609,7 @@ internal sealed record class Gateway
         }
 
         private const string kResourceName = "acr";
-        private const string kTaskName = "netcap";
+        private const string kTaskName = "nc";
         private readonly Gateway _gateway;
         private readonly ILogger _logger;
     }

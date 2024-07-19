@@ -77,6 +77,8 @@ try
                 // Watch session diagnostics while we capture
                 try
                 {
+                    logger.LogInformation("Monitoring diagnostics at {Url}...",
+                        cmdLine.HttpClient.BaseAddress);
                     await foreach (var diagnostic in
                         cmdLine.HttpClient.GetFromJsonAsAsyncEnumerable<JsonElement>(
                         "v2/diagnostics/connections/watch",

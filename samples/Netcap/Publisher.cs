@@ -7,6 +7,7 @@ namespace Netcap;
 
 using Microsoft.Extensions.Logging;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -46,7 +47,8 @@ internal sealed class Publisher
     {
         try
         {
-            _logger.LogInformation("Retrieving endpoints from publisher...");
+            _logger.LogInformation("Retrieving endpoints from publisher on {Url}...",
+                _httpClient.BaseAddress);
 
             // Get and endpoint url to monitor if not set
             var configuration = await _httpClient.GetFromJsonAsync<JsonElement>(
