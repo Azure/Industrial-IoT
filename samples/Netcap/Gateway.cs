@@ -257,6 +257,9 @@ internal sealed record class Gateway
         // Uninstalled
         _deploymentConfigId = null;
 
+        _logger.LogInformation("Removing netcap module from {DeviceId}...",
+            _publisher.DeviceId);
+
         // Wait until netcap is not connected anymore
         var connected = true;
         for (var i = 1; connected && !ct.IsCancellationRequested; i++)
@@ -264,8 +267,7 @@ internal sealed record class Gateway
             await Task.Delay(TimeSpan.FromSeconds(Math.Min(i, 10)), ct).ConfigureAwait(false);
             var modules = await registryManager.GetModulesOnDeviceAsync(
                 _publisher.DeviceId, ct).ConfigureAwait(false);
-            connected = modules.Any(m => m.Id == ncModuleId &&
-                m.ConnectionState == DeviceConnectionState.Connected);
+            connected = modules.Any(m => m.Id == ncModuleId);
         }
         _logger.LogInformation("Netcap module removed from {DeviceId}.",
             _publisher.DeviceId);

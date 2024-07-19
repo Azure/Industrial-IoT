@@ -8,13 +8,16 @@ namespace Netcap;
 using Azure.Identity;
 using Azure.ResourceManager;
 using CommandLine;
+using Microsoft.Azure.Amqp.Encoding;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
@@ -57,18 +60,7 @@ internal sealed class CmdLine : IDisposable
     [Option('p', nameof(PublisherRestCertificate), Required = false,
         HelpText = "The tls certificate of the opc publisher." +
             "\nDefaults to value of environment variable 'PublisherRestCertificate'.")]
-    public string? PublisherRestCertificate
-    {
-        get => _certificate?.ExportCertificatePem();
-        set
-        {
-            if (value != null)
-            {
-                _certificate?.Dispose();
-                _certificate = X509Certificate2.CreateFromPem(value);
-            }
-        }
-    }
+    public string? PublisherRestCertificate { get; set; }
 
     [Option('r', nameof(PublisherRestApiEndpoint), Required = false,
         HelpText = "The Rest api endpoint of the opc publisher." +
@@ -458,10 +450,10 @@ internal sealed class CmdLine : IDisposable
             nameof(OpcServerEndpointUrl), OpcServerEndpointUrl);
         PublisherRestApiEndpoint = twin.GetProperty(
             nameof(PublisherRestApiEndpoint), PublisherRestApiEndpoint);
-        PublisherRestCertificate = twin.GetProperty(
-            nameof(PublisherRestCertificate), PublisherRestCertificate);
         PublisherRestApiKey = twin.GetProperty(
             nameof(PublisherRestApiKey), PublisherRestApiKey);
+        PublisherRestCertificate = twin.GetProperty(
+            nameof(PublisherRestCertificate), PublisherRestCertificate);
         var captureDuration = twin.GetProperty(nameof(CaptureDuration));
         if (!string.IsNullOrWhiteSpace(captureDuration) &&
             TimeSpan.TryParse(captureDuration, out var duration))
@@ -478,6 +470,24 @@ internal sealed class CmdLine : IDisposable
     {
         if (PublisherRestApiKey != null)
         {
+            // Load the certificate of the publisher if not exist
+            if (!string.IsNullOrWhiteSpace(PublisherRestCertificate)
+                && _certificate == null)
+            {
+                try
+                {
+                    _certificate = X509Certificate2.CreateFromPem(
+                        PublisherRestCertificate.Trim());
+                }
+                catch
+                {
+                    var cert = Convert.FromBase64String(
+                        PublisherRestCertificate.Trim());
+                    _certificate = new X509Certificate2(
+                        cert!, PublisherRestApiKey);
+                }
+            }
+
             HttpClient.Dispose();
 #pragma warning disable CA2000 // Dispose objects before losing scope
             HttpClient = new HttpClient(new HttpClientHandler
