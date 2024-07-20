@@ -234,5 +234,15 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Disable resource monitoring
         /// </summary>
         public bool? DisableResourceMonitoring { get; set; }
+
+        /// <summary>
+        /// Unsecure port
+        /// </summary>
+        public int? UnsecureHttpServerPort { get; set; }
+
+        /// <summary>
+        /// Secure port
+        /// </summary>
+        public int? HttpServerPort { get; set; }
     }
 }

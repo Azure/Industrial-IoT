@@ -524,7 +524,7 @@ internal sealed class CmdLine : IDisposable
                 {
                     var result = await Dns.GetHostAddressesAsync(
                         PublisherModuleId).ConfigureAwait(false);
-                    host = result.Length == 0 ? null : result[0].ToString();
+                    host = result.Length == 0 ? PublisherModuleId : result[0].ToString();
                     isLocal = host == null;
                 }
                 catch { host = null; }
@@ -536,13 +536,13 @@ internal sealed class CmdLine : IDisposable
             var uri = new UriBuilder
             {
                 Scheme = "https",
-                Port = isLocal ? 9072 : 443,
+                Port = !isLocal ? 8081 : 443,
                 Host = host
             };
             if (PublisherRestApiKey == null)
             {
                 uri.Scheme = "http";
-                uri.Port = isLocal ? 9071 : 80;
+                uri.Port = !isLocal ? 8080 : 80;
             }
             return uri.Uri;
         }
