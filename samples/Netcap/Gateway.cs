@@ -197,7 +197,10 @@ internal sealed record class Gateway
                         _publisher.Id, Netcap.LoginServer, Netcap.Username,
                         Netcap.Password, Netcap.Name, Storage.ConnectionString,
                         twin.GetProperty("__apikey__", desired: false),
-                        twin.GetProperty("__certificate__", desired: false))
+                        twin.GetProperty("__certificate__", desired: false),
+                        twin.GetProperty("__scheme__", desired: false),
+                        twin.GetProperty("__hostname__", desired: false),
+                        twin.GetProperty("__port__", desired: false))
                 }
             }, ct).ConfigureAwait(false);
         await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
@@ -428,9 +431,10 @@ internal sealed record class Gateway
     private static IDictionary<string, IDictionary<string, object>>? Create(string deviceId,
         string netcapModuleId, string publisherModuleId, string server,
         string userName, string password, string image, string storageConnectionString,
-        string? apiKey, string? certificate)
+        string? apiKey, string? certificate, string? scheme, string? hostName, string? port)
     {
-        var args = new List<string> {
+        var args = new List<string> 
+        {
             "-d", deviceId,
             "-m", publisherModuleId,
             "-s", storageConnectionString
@@ -444,6 +448,18 @@ internal sealed record class Gateway
         {
             args.Add("-p");
             args.Add(certificate);
+        }
+        if (hostName != null)
+        {
+            scheme ??= "https";
+            var url = $"{scheme}://{hostName}";
+            if (port != null)
+            {
+                url += $":{port}";
+            }
+
+            args.Add("-r");
+            args.Add(url);
         }
 
         var createOptions = JsonConvert.SerializeObject(new

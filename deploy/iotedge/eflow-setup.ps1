@@ -44,7 +44,6 @@ $eflowMsiUri = "https://aka.ms/AzEFLOWMSI_1_4_LTS_X64"
 
 $ErrorActionPreference = "Stop"
 $path = Split-Path $script:MyInvocation.MyCommand.Path
-$Configuration = "Release"
 
 $setupPath = Join-Path $path "eflow-setup"
 if (!(Test-Path $setupPath)) {
@@ -250,10 +249,10 @@ if ($DebuggingSupport.IsPresent) {
 
       Write-Host "Building and pushing debug module to $containerRegistry..."
       dotnet publish $proj -c $Configuration --self-contained false `
-         /t:PublishContainer /p:ContainerImageTag=debug `
+         /t:PublishContainer /p:ContainerImageTag=$($Configuration.ToLower()) `
          /p:ContainerRegistry=$containerRegistryServer
 
-      $image = "$containerRegistryServer/iotedge/opc-publisher:debug"
+      $image = "$containerRegistryServer/iotedge/opc-publisher:$($Configuration.ToLower())"
    }
    Write-Host "Use 'docker -H tcp://$($vmIp[1]):2375' to connect to docker."
    Write-Host "Follow instructions in https://aka.ms/iotedge-eflow-debugging."
