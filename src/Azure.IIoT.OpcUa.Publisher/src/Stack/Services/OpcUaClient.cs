@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -1150,12 +1151,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Dont allow negative or 0
                 desiredRequests = minPublishRequests;
             }
+
             if (!PublishRequestsPerSubscriptionPercent.HasValue || MaxPublishRequests > 0)
             {
                 var maxPublishRequests = MaxPublishRequests ?? kMaxPublishRequestCount;
                 if (maxPublishRequests != 0 && desiredRequests > maxPublishRequests)
                 {
                     desiredRequests = maxPublishRequests;
+                    session.MaxPublishRequest = desiredRequests;
                 }
             }
             if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
@@ -1165,6 +1168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     desiredRequests = minPublishRequests;
                 }
+                session.MaxPublishRequest = desiredRequests;
             }
 
             session.MinPublishRequestCount = desiredRequests;
@@ -1336,6 +1340,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     var limit = GoodPublishRequestCount - 1;
+                    if (MaxPublishRequests.HasValue && limit > MaxPublishRequests)
+                    {
+                        limit = MaxPublishRequests.Value;
+                    }
                     var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
                     if (minPublishRequests <= 0)
                     {
@@ -1346,9 +1354,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         break;
                     }
                     _maxPublishRequests = limit;
+                    if (session is OpcUaSession s)
+                    {
+                        s.MaxPublishRequest = limit;
+                    }
                     _logger.LogInformation(
                         "{Client}: Too many publish request error: Limiting number of requests to {Limit}...",
-                        this, limit);
+                        this, _maxPublishRequests.Value);
                     return;
                 default:
                     if (session.Connected)
