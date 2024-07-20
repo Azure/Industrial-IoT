@@ -34,6 +34,8 @@ param(
    [string] $SharedFolderPath,
    [switch] $ProvisioningOnly,
    [switch] $DebuggingSupport,
+   [ValidateSet("Debug", "Release")]
+   [string] $Configuration = "Debug",
    [switch] $NoModules,
    [switch] $NoCleanup
 )
@@ -42,6 +44,7 @@ $eflowMsiUri = "https://aka.ms/AzEFLOWMSI_1_4_LTS_X64"
 
 $ErrorActionPreference = "Stop"
 $path = Split-Path $script:MyInvocation.MyCommand.Path
+$Configuration = "Release"
 
 $setupPath = Join-Path $path "eflow-setup"
 if (!(Test-Path $setupPath)) {
@@ -246,7 +249,7 @@ if ($DebuggingSupport.IsPresent) {
          Join-Path -ChildPath "Azure.IIoT.OpcUa.Publisher.Module.csproj"
 
       Write-Host "Building and pushing debug module to $containerRegistry..."
-      dotnet publish $proj -c Debug --self-contained false `
+      dotnet publish $proj -c $Configuration --self-contained false `
          /t:PublishContainer /p:ContainerImageTag=debug `
          /p:ContainerRegistry=$containerRegistryServer
 

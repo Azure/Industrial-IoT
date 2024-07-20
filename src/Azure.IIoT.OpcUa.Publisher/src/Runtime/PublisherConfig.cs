@@ -396,8 +396,10 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
             }
 
-            options.UnsecureHttpServerPort ??= GetIntOrNull(UnsecureHttpServerPortKey);
-            options.HttpServerPort ??= GetIntOrNull(HttpServerPortKey);
+            options.UnsecureHttpServerPort ??= GetIntOrNull(
+                    UnsecureHttpServerPortKey, HttpsPortDefault);
+            options.HttpServerPort ??= GetIntOrNull(
+                    HttpServerPortKey, HttpPortDefault);
         }
 
         /// <summary>
