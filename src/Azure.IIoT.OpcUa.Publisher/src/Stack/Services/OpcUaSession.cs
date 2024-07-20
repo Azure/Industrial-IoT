@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Helper to set max publish requests
         /// </summary>
-        internal int MaxPublishRequest
+        internal int MaxPublishRequestCount
         {
             get
             {
@@ -117,11 +117,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // TODO: Make accessible in base class
             _maxPublishRequest = typeof(Session).GetField("m_tooManyPublishRequests",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-
-            if (client.MaxPublishRequests.HasValue)
-            {
-                MaxPublishRequest = client.MaxPublishRequests.Value;
-            }
+            MaxPublishRequestCount = client.MaxPublishRequests ?? 0;
+            MinPublishRequestCount = Math.Max(1, client.MinPublishRequests ?? 1);
         }
 
         /// <summary>
@@ -148,6 +145,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, _serializer);
+
+            MaxPublishRequestCount = session.MaxPublishRequestCount;
+            MinPublishRequestCount = session.MinPublishRequestCount;
         }
 
         /// <inheritdoc/>

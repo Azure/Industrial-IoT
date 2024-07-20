@@ -1158,7 +1158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (maxPublishRequests != 0 && desiredRequests > maxPublishRequests)
                 {
                     desiredRequests = maxPublishRequests;
-                    session.MaxPublishRequest = desiredRequests;
+                    session.MaxPublishRequestCount = desiredRequests;
                 }
             }
             if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
@@ -1168,7 +1168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     desiredRequests = minPublishRequests;
                 }
-                session.MaxPublishRequest = desiredRequests;
+                session.MaxPublishRequestCount = desiredRequests;
             }
 
             session.MinPublishRequestCount = desiredRequests;
@@ -1356,7 +1356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _maxPublishRequests = limit;
                     if (session is OpcUaSession s)
                     {
-                        s.MaxPublishRequest = limit;
+                        s.MaxPublishRequestCount = limit;
                     }
                     _logger.LogInformation(
                         "{Client}: Too many publish request error: Limiting number of requests to {Limit}...",
