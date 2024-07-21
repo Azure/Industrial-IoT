@@ -427,6 +427,9 @@ internal sealed record class Gateway
     /// <param name="storageConnectionString"></param>
     /// <param name="apiKey"></param>
     /// <param name="certificate"></param>
+    /// <param name="scheme"></param>
+    /// <param name="hostName"></param>
+    /// <param name="port"></param>
     /// <returns></returns>
     private static IDictionary<string, IDictionary<string, object>>? Create(string deviceId,
         string netcapModuleId, string publisherModuleId, string server,

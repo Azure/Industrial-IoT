@@ -142,6 +142,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (_options.Value.HttpServerPort.HasValue)
                 {
+                    store.State[OpcUa.Constants.TwinPropertySchemeKey] =
+                        "https";
                     store.State[OpcUa.Constants.TwinPropertyHostnameKey] =
                         Dns.GetHostName();
                     store.State[OpcUa.Constants.TwinPropertyPortKey] =
@@ -149,6 +151,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 else
                 {
+                    store.State[OpcUa.Constants.TwinPropertySchemeKey] =
+                        VariantValue.Null;
                     store.State[OpcUa.Constants.TwinPropertyHostnameKey] =
                         VariantValue.Null;
                     store.State[OpcUa.Constants.TwinPropertyPortKey] =

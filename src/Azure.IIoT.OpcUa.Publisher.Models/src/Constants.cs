@@ -31,6 +31,11 @@ namespace Azure.IIoT.OpcUa
         public const string TwinPropertyFullVersionKey = "__fullversion__";
 
         /// <summary>
+        /// Scheme property constant
+        /// </summary>
+        public const string TwinPropertySchemeKey = "__scheme__";
+
+        /// <summary>
         /// Hostname property constant
         /// </summary>
         public const string TwinPropertyHostnameKey = "__hostname__";
