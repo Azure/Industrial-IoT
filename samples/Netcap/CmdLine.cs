@@ -494,8 +494,16 @@ internal sealed class CmdLine : IDisposable
 #pragma warning disable CA2000 // Dispose objects before losing scope
             HttpClient = new HttpClient(new HttpClientHandler
             {
-                ServerCertificateCustomValidationCallback = (_, cert, _, _)
-                    => cert != null && _certificate?.Thumbprint == cert?.Thumbprint
+                ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
+                {
+                    if (_certificate?.Thumbprint != cert?.Thumbprint)
+                    {
+                        Console.WriteLine($"Certificate thumbprint mismatch: " +
+                            $"{_certificate?.Thumbprint} != {cert?.Thumbprint}");
+                        return false;
+                    }
+                    return true;
+                }
             });
 #pragma warning restore CA2000 // Dispose objects before losing scope
             HttpClient.BaseAddress =
@@ -516,16 +524,15 @@ internal sealed class CmdLine : IDisposable
                 return u;
             }
             var host = PublisherModuleId;
-            var isLocal = host == null;
             if (host != null)
             {
                 // Poor man ping
                 try
                 {
-                    var result = await Dns.GetHostAddressesAsync(
+                    var result = await Dns.GetHostEntryAsync(
                         PublisherModuleId).ConfigureAwait(false);
-                    host = result.Length == 0 ? PublisherModuleId : result[0].ToString();
-                    isLocal = host == null;
+                    if (result.AddressList.Length == 0)
+                        host = null;
                 }
                 catch { host = null; }
             }
@@ -533,6 +540,7 @@ internal sealed class CmdLine : IDisposable
             {
                 host = "localhost";
             }
+            var isLocal = host == null;
             var uri = new UriBuilder
             {
                 Scheme = "https",
