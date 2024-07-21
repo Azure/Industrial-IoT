@@ -113,12 +113,6 @@ if (!$ProvisioningOnly.IsPresent) {
    Write-Host "Run Azure IoT Edge eflow installer."
    Start-Process -Wait msiexec -ArgumentList "/i", "$msiPath", "/qn"
 
-   Write-Host "Deploy Azure IoT Edge eflow ..."
-   Deploy-Eflow -acceptEula Yes -acceptOptionalTelemetry Yes
-   if ($LASTEXITCODE -ne 0) {
-      throw "Failed to deploy eflow."
-   }
-
    $mountPath = "C:\Shared"
    if (![string]::IsNullOrWhiteSpace($SharedFolderPath)) {
       $mountPath = $SharedFolderPath
@@ -139,14 +133,19 @@ if (!$ProvisioningOnly.IsPresent) {
          )
       }
    )
-   Write-Host "Adding shared r/w folder $fullPath to eflow vm as /mount..."
+
    $sharedFoldersJsonPath = Join-Path $setupPath "SharedFolders.json"
    $sharedFolderConfig | ConvertTo-Json `
-   | Set-Content -Path $sharedFoldersJsonPath -Force -Encoding UTF8
-   Add-EflowVmSharedFolder -sharedFoldersJsonPath $sharedFoldersJsonPath
+      | Set-Content -Path $sharedFoldersJsonPath -Force -Encoding UTF8
+
+   Write-Host "Deploy Azure IoT Edge eflow with r/w folder $fullPath as /mount..."
+   Deploy-Eflow -acceptEula Yes -acceptOptionalTelemetry Yes `
+      -cpuCount 2 -memoryInMB 4096 -vmLogSize Large `
+      -sharedFoldersJsonPath $sharedFoldersJsonPath
    if ($LASTEXITCODE -ne 0) {
-      throw "Failed to add shared folder."
+      throw "Failed to deploy eflow."
    }
+
    Write-Host "Successfully installed and deployed eflow."
    Get-EflowNetwork | ConvertTo-Json
    Get-EflowVmAddr | ConvertTo-Json
@@ -197,6 +196,7 @@ Start-EflowVm
 
 if ($DebuggingSupport.IsPresent) {
    Write-Host "Configuring debugging support in eflow..."
+   Set-EflowVmFeature -feature Defender -enable:$False
 
    $ds = "/etc/systemd/system/docker.service"
    # Configure the EFLOW virtual machine Docker engine to accept external
