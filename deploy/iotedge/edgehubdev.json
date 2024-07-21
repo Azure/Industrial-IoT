@@ -42,7 +42,7 @@
                         "restartPolicy": "always",
                         "settings": {
                             "image": "iotedge/opc-publisher:latest",
-                            "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"80/tcp\":[{\"HostPort\":\"8080\"}],\"443/tcp\":[{\"HostPort\":\"8081\"}]},\"CapDrop\":[\"CHOWN\",\"SETUID\"]},\"Hostname\":\"publisher\",\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
+                            "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"443/tcp\":[{\"HostPort\":\"8081\"}]},\"CapDrop\":[\"CHOWN\",\"SETUID\"]},\"Hostname\":\"publisher\",\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
                         }
                     },
                     "opcplc": {
