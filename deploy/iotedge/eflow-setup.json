@@ -41,7 +41,7 @@
                     "restartPolicy": "always",
                     "settings": {
                         "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
-                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"PortBindings\":{\"80/tcp\":[{\"HostPort\":\"8080\"}],\"443/tcp\":[{\"HostPort\":\"8081\"}]},\"CapDrop\":[\"CHOWN\",\"SETUID\"]},\"Hostname\":\"publisher\",\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pf=/mount/pn.json\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
+                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pf=/mount/pn.json\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
                     }
                 },
                 "opcplc": {
@@ -51,7 +51,7 @@
                     "restartPolicy": "always",
                     "settings": {
                         "image": "mcr.microsoft.com/iotedge/opc-plc:latest",
-                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"PortBindings\":{\"50000/tcp\":[{\"HostPort\":\"50000\"}]},\"CapDrop\":[\"CHOWN\",\"SETUID\"]},\"Hostname\":\"opcplc\",\"User\":\"root\",\"Cmd\":[\"--sph=True\",\"--spf=/mount/pn.json\",\"--vf1k=0\",\"--vfbs=0\",\"--gn=0\",\"--nd=True\",\"--np=True\",\"--nn=True\",\"--pn=50000\",\"--alm=True\",\"--ses=True\",\"--sn=10\",\"--fn=10\",\"--aa=True\"]}"
+                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"User\":\"root\",\"Cmd\":[\"--sph=True\",\"--spf=/mount/plc.json\",\"--vf1k=0\",\"--vfbs=0\",\"--gn=0\",\"--nd=True\",\"--np=True\",\"--nn=True\",\"--pn=50000\",\"--alm=True\",\"--ses=True\",\"--sn=10\",\"--fn=10\",\"--aa=True\"]}"
                     }
                 }
             }

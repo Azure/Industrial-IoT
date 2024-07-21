@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // a message containing only a single data set message which
                             // contains (parts) of a notification.
                             //
-                            _logger.LogWarning("Resulting chunk is too large, dropped a notification.");
+                            _logger.LogDebug("Resulting chunk is too large, dropped a notification.");
                             continue;
                         }
                         validChunks++;
