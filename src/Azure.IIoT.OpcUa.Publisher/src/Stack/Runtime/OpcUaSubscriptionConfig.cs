@@ -43,6 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string AsyncMetaDataLoadThresholdKey = "AsyncMetaDataLoadThreshold";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
+        public const string EnableSessionPerDataSetWriterIdKey = "EnableSessionPerSubscription";
         public const string EnableSequentialPublishingKey = "EnableSequentialPublishing";
         public const string DefaultRebrowsePeriodKey = "DefaultRebrowsePeriod";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
@@ -68,6 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;
+        public const bool EnableSessionPerDataSetWriterIdDefault = false;
         public static readonly TimeSpan DefaultRebrowsePeriodDefault = TimeSpan.FromHours(12);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -162,6 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     EnableSequentialPublishingDefault);
             options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
                     DisableSessionPerWriterGroupDefault);
+            options.EnableSessionPerDataSetWriterId ??= GetBoolOrDefault(EnableSessionPerDataSetWriterIdKey,
+                    EnableSessionPerDataSetWriterIdDefault);
             options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
             options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
             options.ResolveDisplayName ??= GetBoolOrDefault(FetchOpcNodeDisplayNameKey,

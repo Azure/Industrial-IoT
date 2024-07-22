@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         MaxRequestThreadCount = 2000,
                         MaxQueuedRequestCount = 2000000,
 
-                        MaxSessionCount = 4,
+                        MaxSessionCount = 30,
                         MinSessionTimeout = 10000,
                         MaxSessionTimeout = 3600000,
                         MaxBrowseContinuationPoints = 1000,
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         MaxNotificationsPerPublish = 1000,
                         MinMetadataSamplingInterval = 1000,
                         MaxPublishRequestCount = 20,
-                        MaxSubscriptionCount = 100,
+                        MaxSubscriptionCount = 30,
                         MaxEventQueueSize = 10000,
                         MinSubscriptionLifetime = 10000,
 

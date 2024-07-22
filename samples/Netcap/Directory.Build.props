@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove(common.props))" Condition="'$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))' != ''" />
+</Project>

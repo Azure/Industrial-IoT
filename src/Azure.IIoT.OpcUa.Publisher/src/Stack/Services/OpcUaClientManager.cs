@@ -37,6 +37,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
 
+        /// <inheritdoc/>
+        IReadOnlyList<ConnectionDiagnosticModel> IClientDiagnostics.Diagnostics
+            => _clients.Values.Select(c => c.LastDiagnostics).ToList();
+
         /// <summary>
         /// Create client manager
         /// </summary>
@@ -148,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<ConnectionDiagnosticModel> GetConnectionDiagnosticAsync(
+        public async IAsyncEnumerable<ConnectionDiagnosticModel> MonitorAsync(
             [EnumeratorCancellation] CancellationToken ct)
         {
             var queue = new AsyncProducerConsumerQueue<ConnectionDiagnosticModel>();

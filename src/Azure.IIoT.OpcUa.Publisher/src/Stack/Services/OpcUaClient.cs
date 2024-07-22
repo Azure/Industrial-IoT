@@ -27,6 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using Opc.Ua.Extensions;
+    using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -1149,12 +1151,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Dont allow negative or 0
                 desiredRequests = minPublishRequests;
             }
+
             if (!PublishRequestsPerSubscriptionPercent.HasValue || MaxPublishRequests > 0)
             {
                 var maxPublishRequests = MaxPublishRequests ?? kMaxPublishRequestCount;
                 if (maxPublishRequests != 0 && desiredRequests > maxPublishRequests)
                 {
                     desiredRequests = maxPublishRequests;
+                    session.MaxPublishRequestCount = desiredRequests;
                 }
             }
             if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
@@ -1164,6 +1168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     desiredRequests = minPublishRequests;
                 }
+                session.MaxPublishRequestCount = desiredRequests;
             }
 
             session.MinPublishRequestCount = desiredRequests;
@@ -1335,6 +1340,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     var limit = GoodPublishRequestCount - 1;
+                    if (MaxPublishRequests.HasValue && limit > MaxPublishRequests)
+                    {
+                        limit = MaxPublishRequests.Value;
+                    }
                     var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
                     if (minPublishRequests <= 0)
                     {
@@ -1345,9 +1354,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         break;
                     }
                     _maxPublishRequests = limit;
+                    if (session is OpcUaSession s)
+                    {
+                        s.MaxPublishRequestCount = limit;
+                    }
                     _logger.LogInformation(
                         "{Client}: Too many publish request error: Limiting number of requests to {Limit}...",
-                        this, limit);
+                        this, _maxPublishRequests.Value);
                     return;
                 default:
                     if (session.Connected)
@@ -1531,7 +1544,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Not a new session
                 NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-                UpdateNamespaceTableAndSessionDiagnostics(session, oldTable);
+                UpdateNamespaceTableAndSessionDiagnostics((OpcUaSession)session,
+                    oldTable);
                 return false;
             }
 
@@ -1543,7 +1557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             kSessions.Add(1, _metrics.TagList);
             return true;
 
-            void UpdateNamespaceTableAndSessionDiagnostics(ISession session,
+            void UpdateNamespaceTableAndSessionDiagnostics(OpcUaSession session,
                 string[]? oldTable)
             {
                 if (oldTable != null)
@@ -1554,7 +1568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 lock (_channelLock)
                 {
-                    UpdateConnectionDiagnosticsFromSession(session);
+                    UpdateConnectionDiagnosticFromSession(session);
                 }
             }
         }
@@ -1568,7 +1582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 lock (_channelLock)
                 {
-                    UpdateConnectionDiagnosticsFromSession(_session);
+                    UpdateConnectionDiagnosticFromSession(_session);
                 }
             }
         }
@@ -1577,41 +1591,75 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Update session diagnostics
         /// </summary>
         /// <param name="session"></param>
-        private void UpdateConnectionDiagnosticsFromSession(ISession session)
+        private void UpdateConnectionDiagnosticFromSession(OpcUaSession session)
         {
+            // Called under lock
+
             var channel = session.TransportChannel;
             var token = channel?.CurrentToken;
 
-            // Get effective ip address and port
-            var socket = (channel as UaSCUaBinaryTransportChannel)?.Socket;
-            var remoteIpAddress = socket?.RemoteEndpoint?.GetIPAddress();
-            var remotePort = socket?.RemoteEndpoint?.GetPort();
-            var localIpAddress = socket?.LocalEndpoint?.GetIPAddress();
-            var localPort = socket?.LocalEndpoint?.GetPort();
             var now = _timeProvider.GetUtcNow();
 
             var elapsed = now - _lastDiagnostics.TimeStamp;
             var lastChannel = _lastDiagnostics.ChannelDiagnostics;
-            if (lastChannel != null &&
-                lastChannel.ChannelId == token?.ChannelId &&
-                lastChannel.TokenId == token?.TokenId &&
-                lastChannel.CreatedAt == token?.CreatedAt)
+
+            var channelChanged = false;
+            if (token != null)
             {
                 //
-                // Token has not yet been updated, let's retry later
-                // It is also assumed that the port/ip are still the same
+                // Monitor channel's token lifetime and update diagnostics
+                // Check wether the token or channel changed. If so set a
+                // timer to monitor the new token lifetime, if not then
+                // try again after the remaining lifetime or every second
+                // until it changed unless the token is then later gone.
                 //
+                channelChanged = !(lastChannel != null &&
+                    lastChannel.ChannelId == token.ChannelId &&
+                    lastChannel.TokenId == token.TokenId &&
+                    lastChannel.CreatedAt == token.CreatedAt);
+
                 var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
-                if (lifetime > elapsed)
+                if (channelChanged)
                 {
-                    _channelMonitor.Change(lifetime - elapsed,
-                        Timeout.InfiniteTimeSpan);
+                    _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
                 }
                 else
                 {
-                    _channelMonitor.Change(TimeSpan.FromSeconds(1),
-                        Timeout.InfiniteTimeSpan);
+                    //
+                    // Token has not yet been updated, let's retry later
+                    // It is also assumed that the port/ip are still the same
+                    //
+                    if (lifetime > elapsed)
+                    {
+                        _channelMonitor.Change(lifetime - elapsed,
+                            Timeout.InfiniteTimeSpan);
+                    }
+                    else
+                    {
+                        _channelMonitor.Change(TimeSpan.FromSeconds(1),
+                            Timeout.InfiniteTimeSpan);
+                    }
                 }
+            }
+
+            var sessionId = session.SessionId?.AsString(session.MessageContext,
+                NamespaceFormat.Index);
+
+            // Get effective ip address and port
+            var socket = (channel as UaSCUaBinaryTransportChannel)?.Socket;
+            var remoteIpAddress = socket?.RemoteEndpoint?.GetIPAddress()?.ToString();
+            var remotePort = socket?.RemoteEndpoint?.GetPort();
+            var localIpAddress = socket?.LocalEndpoint?.GetIPAddress()?.ToString();
+            var localPort = socket?.LocalEndpoint?.GetPort();
+
+            if (_lastDiagnostics.SessionCreated == session.CreatedAt &&
+                _lastDiagnostics.SessionId == sessionId &&
+                _lastDiagnostics.RemoteIpAddress == remoteIpAddress &&
+                _lastDiagnostics.RemotePort == remotePort &&
+                _lastDiagnostics.LocalIpAddress == localIpAddress &&
+                _lastDiagnostics.LocalPort == localPort &&
+                !channelChanged)
+            {
                 return;
             }
 
@@ -1619,9 +1667,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Connection = _connection,
                 TimeStamp = now,
-                RemoteIpAddress = remoteIpAddress?.ToString(),
+                SessionCreated = session.CreatedAt,
+                SessionId = sessionId,
+                RemoteIpAddress = remoteIpAddress,
                 RemotePort = remotePort == -1 ? null : remotePort,
-                LocalIpAddress = localIpAddress?.ToString(),
+                LocalIpAddress = localIpAddress,
                 LocalPort = localPort == -1 ? null : localPort,
 
                 ChannelDiagnostics = token != null ? new ChannelDiagnosticModel
@@ -1636,21 +1686,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         token.ServerEncryptingKey, token.ServerSigningKey)
                 } : null
             };
-
             _diagnosticsCb(_lastDiagnostics);
             _logger.LogDebug("{Client}: Diagnostics information updated.", this);
 
-            if (token != null)
+            static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
             {
-                // Monitor channel's token lifetime and update diagnostics
-                var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
-                _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
-            }
-
-            static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? signingKey)
-            {
-                if (iv == null || key == null || signingKey == null ||
-                    iv.Length == 0 || key.Length == 0 || signingKey.Length == 0)
+                if (iv == null || key == null || sk == null ||
+                    iv.Length == 0 || key.Length == 0 || sk.Length == 0)
                 {
                     return null;
                 }
@@ -1658,7 +1700,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Iv = iv,
                     Key = key,
-                    SigLen = signingKey.Length
+                    SigLen = sk.Length
                 };
             }
         }

@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Reflection;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -37,6 +38,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ISessionServices Services => this;
+
+        /// <summary>
+        /// Time the session was created
+        /// </summary>
+        internal DateTimeOffset CreatedAt { get; }
 
         /// <summary>
         /// Type system has loaded
@@ -55,6 +61,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return Subscriptions.OfType<IOpcUaSubscription>().ToList();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Helper to set max publish requests
+        /// </summary>
+        internal int MaxPublishRequestCount
+        {
+            get
+            {
+                // TODO: Make accessible in base class
+                var r = _maxPublishRequest?.GetValue(this);
+                return r == null ? 0 : (int)r;
+            }
+            set
+            {
+                // TODO: Make accessible in base class
+                _maxPublishRequest?.SetValue(this, value);
             }
         }
 
@@ -85,9 +109,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = client;
             _serializer = serializer;
             _timeProvider = timeProvider;
+            CreatedAt = _timeProvider.GetUtcNow();
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, serializer);
+
+            // TODO: Make accessible in base class
+            _maxPublishRequest = typeof(Session).GetField("m_tooManyPublishRequests",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            MaxPublishRequestCount = client.MaxPublishRequests ?? 0;
+            MinPublishRequestCount = Math.Max(1, client.MinPublishRequests ?? 1);
         }
 
         /// <summary>
@@ -105,6 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = session._client;
             _serializer = session._serializer;
             _timeProvider = session._timeProvider;
+            CreatedAt = _timeProvider.GetUtcNow();
 
             _complexTypeSystem = session._complexTypeSystem;
             _history = session._history;
@@ -113,6 +145,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, _serializer);
+
+            MaxPublishRequestCount = session.MaxPublishRequestCount;
+            MinPublishRequestCount = session.MinPublishRequestCount;
         }
 
         /// <inheritdoc/>
@@ -1116,6 +1151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly OpcUaClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly TimeProvider _timeProvider;
+        private readonly FieldInfo? _maxPublishRequest;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);

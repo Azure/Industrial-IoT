@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Server keys
         /// </summary>
-        [DataMember(Name = "aerver", Order = 5,
+        [DataMember(Name = "server", Order = 5,
              EmitDefaultValue = false)]
         public ChannelKeyModel? Server { get; init; }
     }

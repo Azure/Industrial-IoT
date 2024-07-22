@@ -78,6 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string PreferAvroOverJsonSchemaKey = "PreferAvroOverJsonSchema";
         public const string SchemaNamespaceKey = "SchemaNamespace";
         public const string DisableResourceMonitoringKey = "DisableResourceMonitoring";
+        public const string HttpServerPortKey = "HttpServerPort";
+        public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -127,6 +129,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int BatchTriggerIntervalLLegacyDefaultMillis = 10 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
         public const int ScaleTestCountDefault = 1;
+        public static readonly int UnsecureHttpServerPortDefault = IsContainer ? 80 : 9071;
+        public static readonly int HttpServerPortDefault = IsContainer ? 443 : 9072;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -391,7 +395,19 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.SchemaOptions.Namespace ??= schemaNamespace;
                 options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
             }
+
+            options.UnsecureHttpServerPort ??= GetIntOrNull(
+                    UnsecureHttpServerPortKey, UnsecureHttpServerPortDefault);
+            options.HttpServerPort ??= GetIntOrNull(
+                    HttpServerPortKey, HttpServerPortDefault);
         }
+
+        /// <summary>
+        /// Running in container
+        /// </summary>
+        static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
+            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
+                ?? string.Empty, "true");
 
         /// <summary>
         /// Create configurator
@@ -399,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="configuration"></param>
         /// <param name="identity"></param>
         public PublisherConfig(IConfiguration configuration, IProcessIdentity? identity = null)
-            : base(configuration)
+                : base(configuration)
         {
             _identity = identity;
         }

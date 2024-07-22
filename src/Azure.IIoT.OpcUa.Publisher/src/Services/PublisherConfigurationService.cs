@@ -287,15 +287,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async Task RemoveDataSetWriterEntryAsync(string writerGroupId,
-            string dataSetWriterId, CancellationToken ct = default)
+            string dataSetWriterId, bool force = false, CancellationToken ct = default)
         {
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
-                var remove = Find(writerGroupId, dataSetWriterId, currentNodes);
-                currentNodes.Remove(remove);
-
+                if (!force)
+                {
+                    var remove = Find(writerGroupId, dataSetWriterId, currentNodes);
+                    currentNodes.Remove(remove);
+                }
+                else
+                {
+                    currentNodes.RemoveAll(e =>
+                        (e.DataSetWriterGroup ?? string.Empty) == writerGroupId &&
+                        (e.DataSetWriterId ?? string.Empty) == dataSetWriterId);
+                }
                 var jobs = _publishedNodesJobConverter.ToWriterGroups(currentNodes);
                 await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
                 await PersistPublishedNodesAsync().ConfigureAwait(false);

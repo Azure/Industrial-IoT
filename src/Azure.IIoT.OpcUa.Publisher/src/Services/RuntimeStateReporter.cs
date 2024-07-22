@@ -139,6 +139,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     GetType().Assembly.GetReleaseVersion().ToString();
                 store.State[OpcUa.Constants.TwinPropertyFullVersionKey] =
                     PublisherConfig.Version;
+
+                if (_options.Value.HttpServerPort.HasValue)
+                {
+                    store.State[OpcUa.Constants.TwinPropertySchemeKey] =
+                        "https";
+                    store.State[OpcUa.Constants.TwinPropertyHostnameKey] =
+                        Dns.GetHostName();
+                    store.State[OpcUa.Constants.TwinPropertyPortKey] =
+                        _options.Value.HttpServerPort;
+                }
+                else
+                {
+                    store.State[OpcUa.Constants.TwinPropertySchemeKey] =
+                        VariantValue.Null;
+                    store.State[OpcUa.Constants.TwinPropertyHostnameKey] =
+                        VariantValue.Null;
+                    store.State[OpcUa.Constants.TwinPropertyPortKey] =
+                        VariantValue.Null;
+                }
             }
 
             await UpdateApiKeyAndCertificateAsync().ConfigureAwait(false);
