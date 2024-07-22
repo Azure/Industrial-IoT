@@ -13,6 +13,8 @@ using System.Text.Json;
 using System.IO;
 using System.Globalization;
 using Microsoft.Azure.Devices.Shared;
+using Azure;
+using System.IO.Compression;
 
 /// <summary>
 /// Upload and download bundles
@@ -45,7 +47,7 @@ internal sealed class Storage
     {
         var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
         var queueClient = new QueueClient(_connectionString, name);
-        await queueClient.CreateIfNotExistsAsync(GetClientMetadata(), ct).ConfigureAwait(false);
+        await EnsureQueueAsync(queueClient, ct).ConfigureAwait(false);
 
         if (!Directory.Exists(path))
         {
@@ -91,6 +93,10 @@ internal sealed class Storage
                             .ConfigureAwait(false);
 
                         _logger.LogInformation("Downloaded capture bundle {File}.", file);
+                        var folder = Path.Combine(path, Path.GetFileNameWithoutExtension(file));
+                        ZipFile.ExtractToDirectory(file, folder);
+                        _logger.LogInformation("Unpacked file {File} to {Folder}.", file,
+                            folder);
                     }
                 }
                 catch (Exception ex)
@@ -129,8 +135,7 @@ internal sealed class Storage
             var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
             var containerClient = new BlobContainerClient(_connectionString, name);
             var queueClient = new QueueClient(_connectionString, name);
-
-            await queueClient.CreateIfNotExistsAsync(GetClientMetadata(), ct).ConfigureAwait(false);
+            await EnsureQueueAsync(queueClient, ct).ConfigureAwait(false);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.None,
                 GetClientMetadata(), cancellationToken: ct).ConfigureAwait(false);
 
@@ -196,6 +201,30 @@ internal sealed class Storage
         if (await queueClient.ExistsAsync(ct).ConfigureAwait(false))
         {
             await queueClient.DeleteAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Ensure queue exists and can be used
+    /// </summary>
+    /// <param name="queueClient"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async Task EnsureQueueAsync(QueueClient queueClient, CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                await queueClient.CreateIfNotExistsAsync(GetClientMetadata(),
+                    ct).ConfigureAwait(false);
+                break;
+            }
+            catch (RequestFailedException ex)
+                when (ex.Status == 409 && ex.ErrorCode == "QueueBeingDeleted")
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);
+            }
         }
     }
 

@@ -14,9 +14,8 @@ using System.IO;
 using System.Text.Json;
 using System.IO.Compression;
 using Microsoft.Extensions.Logging;
-using Microsoft.Azure.Devices.Common.Exceptions;
-using Microsoft.Azure.Devices;
 using System.Diagnostics;
+using System.Text;
 
 /// <summary>
 /// Network capture bundle containing everythig to analyze
@@ -90,7 +89,8 @@ internal sealed class Bundle
     public string GetBundleFile(string? name = null)
     {
         var zipFile = Path.Combine(Path.GetTempPath(), name ?? "capture-bundle.zip");
-        ZipFile.CreateFromDirectory(_folder, zipFile);
+        ZipFile.CreateFromDirectory(_folder, zipFile, CompressionLevel.SmallestSize,
+            false, entryNameEncoding: Encoding.UTF8);
         return zipFile;
     }
 
@@ -257,23 +257,25 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
 
             // Try to capture from cooked mode (https://wiki.wireshark.org/SLL)
             var linkType = PacketDotNet.LinkLayers.LinuxSll;
+#if COOKED_MODE
             var capturing = Capture(open.Where(d => d.LinkType == linkType));
             if (capturing.Count == 0)
             {
-                // capturing = Capture(open
-                //     .Where(d =>
-                //         d.LinkType == PacketDotNet.LinkLayers.Ethernet ||
-                //         d.LinkType == PacketDotNet.LinkLayers.Loop));
-
                 linkType = PacketDotNet.LinkLayers.Null;
+                capturing = Capture(open.Where(d =>
+                    d.LinkType == PacketDotNet.LinkLayers.Ethernet ||
+                    d.LinkType == PacketDotNet.LinkLayers.Loop));
 
-                // if (capturing.Count == 0)
+                if (capturing.Count == 0)
                 {
                     // Capture from all interfaces that are open
                     capturing = Capture(open);
                 }
             }
-
+#else
+            linkType = PacketDotNet.LinkLayers.Null;
+            var capturing = Capture(open);
+#endif
             _writer.Open(new DeviceConfiguration
             {
                 LinkLayerType = linkType
