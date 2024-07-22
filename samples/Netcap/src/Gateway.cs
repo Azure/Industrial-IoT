@@ -47,12 +47,13 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="client"></param>
     /// <param name="logger"></param>
-    public Gateway(ArmClient client, ILogger logger)
+    /// <param name="branch"></param>
+    public Gateway(ArmClient client, ILogger logger, string? branch = null)
     {
         _client = client;
         _logger = logger;
 
-        Netcap = new NetcapImage(this, logger);
+        Netcap = new NetcapImage(this, branch, logger);
         Storage = new NetcapStorage(this, logger);
     }
 
@@ -547,9 +548,10 @@ internal sealed record class Gateway
         /// </summary>
         /// <param name="gateway"></param>
         /// <param name="logger"></param>
-        public NetcapImage(Gateway gateway, ILogger logger)
+        public NetcapImage(Gateway gateway, string? branch, ILogger logger)
         {
             _gateway = gateway;
+            _branch = branch ?? "main";
             _logger = logger;
         }
 
@@ -589,7 +591,7 @@ internal sealed record class Gateway
                 new ContainerRegistryPlatformProperties("linux") { Architecture = "amd64" })
             {
                 SourceLocation =
-                    "https://github.com/Azure/Industrial-IoT.git#docsandttl:samples/Netcap/src",
+                    $"https://github.com/Azure/Industrial-IoT.git#{_branch}:samples/Netcap/src",
                 IsPushEnabled = true
             };
             quickBuild.ImageNames.Add(Name);
@@ -668,6 +670,7 @@ internal sealed record class Gateway
         private const string kResourceName = "acr";
         private const string kTaskName = "nc";
         private readonly Gateway _gateway;
+        private readonly string _branch;
         private readonly ILogger _logger;
     }
 

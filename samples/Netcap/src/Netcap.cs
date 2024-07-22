@@ -143,6 +143,11 @@ internal sealed class Main : IDisposable
         [Option('o', nameof(OutputPath), Required = false,
             HelpText = "The output path to capture to.")]
         public string? OutputPath { get; set; }
+
+        [Option('b', nameof(Branch), Required = false,
+           HelpText = "The branch to build netcap from." +
+           "\nDefaults to main branch.")]
+        public string? Branch { get; set; } = "main";
     }
 
     [Verb("uninstall", HelpText = "Uninstall netcap from one or all publishers.")]
@@ -361,7 +366,7 @@ internal sealed class Main : IDisposable
 
         _logger.LogInformation("Installing netcap module...");
 
-        var gateway = new Gateway(armClient, _logger);
+        var gateway = new Gateway(armClient, _logger, _install.Branch);
         try
         {
             // Get publishers
