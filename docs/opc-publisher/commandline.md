@@ -19,8 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.10 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.70)
-
+                                                 2.9.10 (.NET 8.0.7/win-x64/OPC Stack 1.5.374.78)
 General
 -------
 
@@ -397,15 +396,15 @@ Transport settings
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
                                `9071` port is used.
+      --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
+                             If set a new tls certificate is created during
+                               startup updating any previously created ones.
+                               Default: `false`.
       --useopenapiv3, --UseOpenApiV3[=VALUE]
                              If enabled exposes the open api schema of OPC
                                Publisher using v3 schema (yaml).
                                Only valid if Open API endpoint is not disabled.
                                Default: `v2` (json).
-      --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
-                             If set a new tls certificate is created during
-                               startup updating any previously created ones.
-                               Default: `false`.
 
 Routing configuration
 ---------------------
@@ -716,6 +715,12 @@ Subscription settings
                              Disable creating a separate session per writer
                                group. Instead sessions are re-used across
                                writer groups.
+                               Default: `False`.
+      --spw, --enablesessionperwriter, --EnableSessionPerSubscription[=VALUE]
+                             Enable creating a separate session per data set
+                               writer instead of the default behavior to create
+                               one per writer group.
+                               This setting overrides the `--dsg` option.
                                Default: `False`.
 
 OPC UA Client configuration
