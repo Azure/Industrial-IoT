@@ -14,6 +14,7 @@ using System.IO;
 using System.Text.Json;
 using System.IO.Compression;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Devices.Common.Exceptions;
 
 /// <summary>
 /// Network capture bundle containing everythig to analyze
@@ -231,40 +232,70 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
 
             _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder,
                 $"capture{index}.pcap"));
+
+
             _devices = LibPcapLiveDeviceList.New().ToList();
             var capturing = new List<LibPcapLiveDevice>();
-            foreach (var device in _devices)
+
+            // Try to capture from any
+            Capture(_devices
+                .Where(d => d.LinkType == PacketDotNet.LinkLayers.LinuxSll),
+                PacketDotNet.LinkLayers.LinuxSll, capturing);
+
+            if (capturing.Count == 0)
             {
-                try
-                {
-                    // Open the device for capturing
-                    device.Open(mode: DeviceModes.None, 1000);
-                    //if (!device.Loopback &&
-                    //    device.LinkType != PacketDotNet.LinkLayers.Ethernet)
-                    //{
-                    //    continue;
-                    //}
-                    device.Filter = _filter;
-                    _logger.LogInformation("Capture from {Description} ({Link})...",
-                        device.Description, device.LinkType);
-                    device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
-                    capturing.Add(device);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        "Failed to capture from device {Device} ({Description}).",
-                        device.Name, device.Description);
-                }
+                // Ethernet only
+                Capture(_devices
+                    .Where(d => d.LinkType == PacketDotNet.LinkLayers.Ethernet),
+                    PacketDotNet.LinkLayers.Null, // PacketDotNet.LinkLayers.Ethernet
+                    capturing);
             }
-            _writer.Open(new DeviceConfiguration
+
+            if (capturing.Count == 0)
             {
-                LinkLayerType = PacketDotNet.LinkLayers.Null //Ethernet
+                // Consider all
+                Capture(_devices, PacketDotNet.LinkLayers.Null, capturing);
+            }
+
+            capturing.ForEach(d =>
+            {
+                d.StartCapture();
+                _logger.LogInformation("Capturing {Device} ({Description})...",
+                    d.Name, d.Description);
             });
-            capturing.ForEach(d => d.StartCapture());
             _logger.LogInformation("    ... to {FileName} ({Filter}).",
                 _bundle._folder, _filter);
             _bundle.Start = DateTimeOffset.UtcNow;
+
+            void Capture(IEnumerable<LibPcapLiveDevice> candidates,
+                PacketDotNet.LinkLayers linkType, List<LibPcapLiveDevice> capturing)
+            {
+                foreach (var device in candidates)
+                {
+                    try
+                    {
+                        _logger.LogInformation("Try capture from {Device} ({Link})...",
+                            device, device.LinkType);
+
+                        // Open the device for capturing
+                        device.Open(mode: DeviceModes.None, 1000);
+                        device.Filter = _filter;
+                        device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
+
+                        capturing.Add(device);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Failed to capture {Device} ({Description}): {Message}",
+                            device.Name, device.Description, ex.Message);
+                    }
+
+                    _writer.Open(new DeviceConfiguration
+                    {
+                        LinkLayerType = linkType
+                    });
+                }
+            }
         }
 
         /// <inheritdoc/>

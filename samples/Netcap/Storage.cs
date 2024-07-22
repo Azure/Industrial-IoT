@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.IO;
 using System.Globalization;
+using Microsoft.Azure.Devices.Shared;
 
 /// <summary>
 /// Upload and download bundles

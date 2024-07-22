@@ -436,7 +436,7 @@ internal sealed record class Gateway
         string userName, string password, string image, string storageConnectionString,
         string? apiKey, string? certificate, string? scheme, string? hostName, string? port)
     {
-        var args = new List<string> 
+        var args = new List<string>
         {
             "-d", deviceId,
             "-m", publisherModuleId,
@@ -666,12 +666,17 @@ internal sealed record class Gateway
             var storageResponse = await rg.GetStorageAccounts()
                 .CreateOrUpdateAsync(WaitUntil.Completed, stgName,
                 new StorageAccountCreateOrUpdateContent(
-                    new StorageSku(StorageSkuName.PremiumLrs),
+                    new StorageSku(StorageSkuName.StandardGrs),
                     StorageKind.StorageV2, rg.Data.Location)
                 {
-                    AllowSharedKeyAccess = true
+                    AllowSharedKeyAccess = true,
+                    EnableHttpsTrafficOnly = true,
+                    PublicNetworkAccess = StoragePublicNetworkAccess.Enabled,
                 }, ct).ConfigureAwait(false);
+
             var storageName = storageResponse.Value.Data.Name;
+            var endpoints = storageResponse.Value.Data.PrimaryEndpoints;
+
             var keys = await storageResponse.Value.GetKeysAsync(
                 cancellationToken: ct).ToListAsync(ct).ConfigureAwait(false);
             if (keys.Count == 0)
@@ -682,6 +687,10 @@ internal sealed record class Gateway
 
             // Create connection string for storage account
             ConnectionString = "DefaultEndpointsProtocol=https;" +
+                $"BlobEndpoint={endpoints.BlobUri};" +
+                $"QueueEndpoint={endpoints.QueueUri};" +
+                $"FileEndpoint={endpoints.FileUri};" +
+                $"TableEndpoint={endpoints.TableUri};" +
                 $"AccountName={storageName};AccountKey={keys[0].Value}";
             _logger.LogInformation("Storage {Name} for netcap module created.",
                 storageName);
