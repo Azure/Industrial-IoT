@@ -307,7 +307,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                     {
                         // Open the device for capturing
                         Debug.Assert(device.Opened);
-                        device.Filter = _filter;
+                        // device.Filter = _filter;
                         device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
 
                         capturing.Add(device);
