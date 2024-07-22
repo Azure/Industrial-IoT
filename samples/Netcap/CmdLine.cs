@@ -258,7 +258,7 @@ internal sealed class CmdLine : IDisposable
             // Delete storage account or update if it already exists in the rg
             // await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
             // Delete container registry
-            // await gateway.Netcap.DeleteAsync(ct).ConfigureAwait(false);
+            // await gateway.NetcapException.DeleteAsync(ct).ConfigureAwait(false);
 
             // Deploy the module using manifest to device with the chosen publisher
             await gateway.RemoveNetcapModuleAsync(ct).ConfigureAwait(false);

@@ -15,6 +15,8 @@ using System.Text.Json;
 using System.IO.Compression;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Devices.Common.Exceptions;
+using Microsoft.Azure.Devices;
+using System.Diagnostics;
 
 /// <summary>
 /// Network capture bundle containing everythig to analyze
@@ -235,50 +237,75 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
 
 
             _devices = LibPcapLiveDeviceList.New().ToList();
-            var capturing = new List<LibPcapLiveDevice>();
+            // Open devices
+            var open = _devices
+                .Where(d =>
+                {
+                    try
+                    {
+                        _logger.LogInformation("Opening {Device}...", d);
+                        d.Open(mode: DeviceModes.None, 1000);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInformation(
+                            "Failed to open {Device} ({Description}): {Message}",
+                            d.Name, d.Description, ex.Message);
+                    }
+                    return d.Opened;
+                })
+                .ToList();
 
-            // Try to capture from any
-            Capture(_devices
-                .Where(d => d.LinkType == PacketDotNet.LinkLayers.LinuxSll),
-                PacketDotNet.LinkLayers.LinuxSll, capturing);
-
+            // Try to capture from cooked mode (https://wiki.wireshark.org/SLL)
+            var linkType = PacketDotNet.LinkLayers.LinuxSll;
+            var capturing = Capture(open.Where(d => d.LinkType == linkType));
             if (capturing.Count == 0)
             {
-                // Ethernet only
-                Capture(_devices
-                    .Where(d => d.LinkType == PacketDotNet.LinkLayers.Ethernet),
-                    PacketDotNet.LinkLayers.Null, // PacketDotNet.LinkLayers.Ethernet
-                    capturing);
+                // capturing = Capture(open
+                //     .Where(d =>
+                //         d.LinkType == PacketDotNet.LinkLayers.Ethernet ||
+                //         d.LinkType == PacketDotNet.LinkLayers.Loop));
+
+                linkType = PacketDotNet.LinkLayers.Null;
+
+                // if (capturing.Count == 0)
+                {
+                    // Capture from all interfaces that are open
+                    capturing = Capture(open);
+                }
             }
 
-            if (capturing.Count == 0)
+            _writer.Open(new DeviceConfiguration
             {
-                // Consider all
-                Capture(_devices, PacketDotNet.LinkLayers.Null, capturing);
-            }
-
-            capturing.ForEach(d =>
-            {
-                d.StartCapture();
-                _logger.LogInformation("Capturing {Device} ({Description})...",
-                    d.Name, d.Description);
+                LinkLayerType = linkType
             });
-            _logger.LogInformation("    ... to {FileName} ({Filter}).",
-                _bundle._folder, _filter);
+
+            if (capturing.Count != 0)
+            {
+                capturing.ForEach(d =>
+                {
+                    d.StartCapture();
+                    _logger.LogInformation("Capturing {Device} ({Description})...",
+                        d.Name, d.Description);
+                });
+                _logger.LogInformation("    ... to {FileName} ({Filter}).",
+                    _bundle._folder, _filter);
+            }
+            else
+            {
+                _logger.LogWarning("No capture devices found to capture from.");
+            }
             _bundle.Start = DateTimeOffset.UtcNow;
 
-            void Capture(IEnumerable<LibPcapLiveDevice> candidates,
-                PacketDotNet.LinkLayers linkType, List<LibPcapLiveDevice> capturing)
+            List<LibPcapLiveDevice> Capture(IEnumerable<LibPcapLiveDevice> candidates)
             {
+                var capturing = new List<LibPcapLiveDevice>();
                 foreach (var device in candidates)
                 {
                     try
                     {
-                        _logger.LogInformation("Try capture from {Device} ({Link})...",
-                            device, device.LinkType);
-
                         // Open the device for capturing
-                        device.Open(mode: DeviceModes.None, 1000);
+                        Debug.Assert(device.Opened);
                         device.Filter = _filter;
                         device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
 
@@ -289,12 +316,8 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                         _logger.LogError("Failed to capture {Device} ({Description}): {Message}",
                             device.Name, device.Description, ex.Message);
                     }
-
-                    _writer.Open(new DeviceConfiguration
-                    {
-                        LinkLayerType = linkType
-                    });
                 }
+                return capturing;
             }
         }
 

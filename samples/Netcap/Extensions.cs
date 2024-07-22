@@ -5,10 +5,8 @@
 
 namespace Netcap;
 
-using Azure.ResourceManager.Resources;
 using Microsoft.Azure.Devices.Shared;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;

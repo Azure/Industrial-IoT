@@ -147,13 +147,13 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="global::Netcap.NetcapException"></exception>
     public async Task<ResourceGroupResource> GetResourceGroupAsync(
         CancellationToken ct = default)
     {
         if (_resourceGroupName == null || _subscription == null)
         {
-            throw new InvalidOperationException("Hub not selected");
+            throw new NetcapException("Hub not selected");
         }
         return await _subscription.GetResourceGroupAsync(_resourceGroupName,
             ct).ConfigureAwait(false);
@@ -164,12 +164,12 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="global::Netcap.NetcapException"></exception>
     public async ValueTask DeployNetcapModuleAsync(CancellationToken ct = default)
     {
         if (_publisher == null || _connectionString == null)
         {
-            throw new InvalidOperationException("Publisher not selected");
+            throw new NetcapException("Publisher not selected");
         }
 
         // Deploy the module using manifest to device with the chosen publisher
@@ -234,12 +234,12 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="global::Netcap.NetcapException"></exception>
     public async ValueTask RemoveNetcapModuleAsync(CancellationToken ct = default)
     {
         if (_publisher == null || _connectionString == null || _deploymentConfigId == null)
         {
-            throw new InvalidOperationException("Publisher not selected");
+            throw new NetcapException("Publisher not selected");
         }
 
         using var registryManager = RegistryManager.CreateFromConnectionString(
@@ -634,7 +634,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Netcap storage controller
+    /// NetcapException storage controller
     /// </summary>
     internal sealed record class NetcapStorage
     {
@@ -681,7 +681,7 @@ internal sealed record class Gateway
                 cancellationToken: ct).ToListAsync(ct).ConfigureAwait(false);
             if (keys.Count == 0)
             {
-                throw new InvalidOperationException(
+                throw new NetcapException(
                     $"No keys found for storage account {storageName}");
             }
 
