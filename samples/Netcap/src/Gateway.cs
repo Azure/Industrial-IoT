@@ -583,7 +583,7 @@ internal sealed record class Gateway
             LoginServer = registryResponse.Value.Data.LoginServer;
             Username = registryKeys.Value.Username;
             Password = registryKeys.Value.Passwords[0].Value;
-            Name = LoginServer + "/netcap:latest";
+            Name = LoginServer + "/netcap:" + GetType().Assembly.GetVersion();
 
             _logger.LogInformation("Building Image {Image} ...", Name);
             // Build the image and push to the registry
