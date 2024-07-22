@@ -109,10 +109,13 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="writerGroupId">The writer group</param>
         /// <param name="dataSetWriterId">The data set writer</param>
+        /// <param name="force">Force delete all writers even if more than
+        /// one were found. Does not error when none were found.</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task RemoveDataSetWriterEntryAsync(string writerGroupId,
-            string dataSetWriterId, CancellationToken ct = default);
+            string dataSetWriterId, bool force = false,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Add nodes to be published to the configuration

@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Avro.Generic;
 
     /// <summary>
     /// Tests the PublisherConfigService class
@@ -343,6 +344,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Should()
                 .ThrowAsync<ResourceNotFoundException>()
                 .WithMessage("Could not find entry with provided writer id and writer group.");
+
+            // Remove force
+            await configService.RemoveDataSetWriterEntryAsync(writer2.DataSetWriterGroup!,
+                writer2.DataSetWriterId!, true);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
         }
 
         [Fact]
@@ -394,6 +401,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Should()
                 .ThrowAsync<ResourceNotFoundException>()
                 .WithMessage("Could not find entry with provided writer id and writer group.");
+
+            // No failure when forcing
+            await configService.RemoveDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!, true);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
         }
 
         [Fact]
