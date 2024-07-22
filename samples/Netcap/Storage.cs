@@ -45,10 +45,7 @@ internal sealed class Storage
     {
         var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
         var queueClient = new QueueClient(_connectionString, name);
-        if (!await queueClient.ExistsAsync(ct).ConfigureAwait(false))
-        {
-            return;
-        }
+        await queueClient.CreateIfNotExistsAsync(GetClientMetadata(), ct).ConfigureAwait(false);
 
         if (!Directory.Exists(path))
         {
@@ -58,12 +55,12 @@ internal sealed class Storage
         _logger.LogInformation("Downloading capture bundles to {Path}.", path);
         while (!ct.IsCancellationRequested)
         {
-            // Receive message
-            var message = await queueClient.ReceiveMessageAsync(
-                cancellationToken: ct).ConfigureAwait(false);
             try
             {
-                if (!message.HasValue)
+                // Receive message
+                var message = await queueClient.ReceiveMessageAsync(
+                    cancellationToken: ct).ConfigureAwait(false);
+                if (!message.HasValue || message.Value?.Body == null)
                 {
                     continue;
                 }
@@ -73,35 +70,46 @@ internal sealed class Storage
                 {
                     continue;
                 }
-                var containerClient = new BlobContainerClient(_connectionString,
-                    notification.ContainerName);
-                var blobClient = containerClient.GetBlobClient(notification.BlobName);
-
-                var blobProperties = await blobClient.GetPropertiesAsync(
-                    cancellationToken: ct).ConfigureAwait(false);
-                var metadata = blobProperties.Value.Metadata;
-                if (metadata.TryGetValue("Start", out var s) &&
-                    metadata.TryGetValue("End", out var e) &&
-                    DateTimeOffset.TryParse(s,
-                        CultureInfo.InvariantCulture, out var start) &&
-                    DateTimeOffset.TryParse(e,
-                        CultureInfo.InvariantCulture, out var end))
+                try
                 {
-                    var file = Path.Combine(path, notification.BlobName);
-                    await blobClient.DownloadToAsync(file, cancellationToken: ct)
-                        .ConfigureAwait(false);
+                    var containerClient = new BlobContainerClient(_connectionString,
+                        notification.ContainerName);
+                    var blobClient = containerClient.GetBlobClient(notification.BlobName);
 
-                    _logger.LogInformation("Downloaded capture bundle {File}.", file);
+                    var blobProperties = await blobClient.GetPropertiesAsync(
+                        cancellationToken: ct).ConfigureAwait(false);
+                    var metadata = blobProperties.Value.Metadata;
+                    if (metadata.TryGetValue("Start", out var s) &&
+                        metadata.TryGetValue("End", out var e) &&
+                        DateTimeOffset.TryParse(s,
+                            CultureInfo.InvariantCulture, out var start) &&
+                        DateTimeOffset.TryParse(e,
+                            CultureInfo.InvariantCulture, out var end))
+                    {
+                        var file = Path.Combine(path, notification.BlobName);
+                        await blobClient.DownloadToAsync(file, cancellationToken: ct)
+                            .ConfigureAwait(false);
+
+                        _logger.LogInformation("Downloaded capture bundle {File}.", file);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to download capture bundle {Bundle}.",
+                        notification.BlobName);
+                }
+                finally
+                {
+                    if (message.Value?.MessageId != null)
+                    {
+                        await queueClient.DeleteMessageAsync(message.Value.MessageId,
+                            message.Value.PopReceipt, ct).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to download capture bundle.");
-            }
-            finally
-            {
-                await queueClient.DeleteMessageAsync(message.Value.MessageId,
-                    message.Value.PopReceipt, ct).ConfigureAwait(false);
+                _logger.LogError(ex, "Error receiving download notification.");
             }
         }
     }
@@ -122,14 +130,9 @@ internal sealed class Storage
             var containerClient = new BlobContainerClient(_connectionString, name);
             var queueClient = new QueueClient(_connectionString, name);
 
-            var metadata = new Dictionary<string, string>
-            {
-                ["DeviceId"] = _deviceId,
-                ["ModuleId"] = _moduleId
-            };
-            await queueClient.CreateIfNotExistsAsync(metadata, ct).ConfigureAwait(false);
+            await queueClient.CreateIfNotExistsAsync(GetClientMetadata(), ct).ConfigureAwait(false);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.None,
-                metadata, cancellationToken: ct).ConfigureAwait(false);
+                GetClientMetadata(), cancellationToken: ct).ConfigureAwait(false);
 
             // Upload capture bundle
             var blobName = $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}.zip";
@@ -171,6 +174,38 @@ internal sealed class Storage
             _logger.LogError(ex, "Failed to upload capture bundle.");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Delete storage
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public async Task DeleteAsync(CancellationToken ct)
+    {
+        var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
+        _logger.LogInformation("Delete storage {Name}...", name);
+
+        var containerClient = new BlobContainerClient(_connectionString, name);
+        if (await containerClient.ExistsAsync(ct).ConfigureAwait(false))
+        {
+            // leave
+            // await containerClient.DeleteAsync(cancellationToken: ct).ConfigureAwait(false);
+        }
+        var queueClient = new QueueClient(_connectionString, name);
+        if (await queueClient.ExistsAsync(ct).ConfigureAwait(false))
+        {
+            await queueClient.DeleteAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    private Dictionary<string, string> GetClientMetadata()
+    {
+        return new Dictionary<string, string>
+        {
+            ["DeviceId"] = _deviceId,
+            ["ModuleId"] = _moduleId
+        };
     }
 
     internal sealed record class Notification(Uri ContainerUri, Uri BlobUri,

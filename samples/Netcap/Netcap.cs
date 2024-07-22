@@ -259,6 +259,7 @@ internal sealed class Main : IDisposable
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         if (!Extensions.IsRunningInContainer())
         {
+            while (Console.KeyAvailable) { Console.ReadKey(); }
             _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); }, ct);
             Console.WriteLine("Press any key to exit");
             Console.WriteLine();
@@ -384,6 +385,7 @@ internal sealed class Main : IDisposable
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 if (!Extensions.IsRunningInContainer())
                 {
+                    while (Console.KeyAvailable) { Console.ReadKey(); }
                     _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); }, ct);
                     Console.WriteLine("Press any key to exit");
                     Console.WriteLine();

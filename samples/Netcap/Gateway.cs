@@ -187,6 +187,9 @@ internal sealed record class Gateway
             throw new NetcapException("Publisher not selected");
         }
 
+        // Remove storage
+        await GetStorage().DeleteAsync(ct).ConfigureAwait(false);
+
         // Deploy the module using manifest to device with the chosen publisher
         using var registryManager = RegistryManager.CreateFromConnectionString(
             _connectionString);
@@ -601,14 +604,34 @@ internal sealed record class Gateway
                 .GetAsync(taskName, ct).ConfigureAwait(false);
             var run = await registryResponse.Value.GetContainerRegistryRuns().GetAsync(
                  runs.Value.Data.RunResult.RunId, ct).ConfigureAwait(false);
-            var url = await run.Value.GetLogSasUrlAsync(ct).ConfigureAwait(false);
-            var client = new BlobClient(new Uri(url.Value.LogLink));
-            using var os = Console.OpenStandardOutput();
-            using var stream = await client.OpenReadAsync(new BlobOpenReadOptions(false),
-                ct).ConfigureAwait(false);
 
             using var cts = new CancellationTokenSource();
-            var copyTask = stream.CopyToAsync(os, cts.Token);
+            var copyTask = LogRunLog(run.Value, cts.Token);
+
+            async Task LogRunLog(ContainerRegistryRunResource run, CancellationToken ct)
+            {
+                var position = 0;
+                var url = await run.GetLogSasUrlAsync(ct).ConfigureAwait(false);
+                while (!ct.IsCancellationRequested)
+                {
+                    try
+                    {
+                        var client = new BlobClient(new Uri(url.Value.LogLink));
+                        using var os = Console.OpenStandardOutput();
+                        using var source = await client.OpenReadAsync(new BlobOpenReadOptions(true)
+                        {
+                            Position = position
+                        }, ct).ConfigureAwait(false);
+                        position += await source.CopyAsync(os, ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Download from {Url} failed.", url.Value.LogLink);
+                    }
+                }
+            }
+
             await buildResponse.WaitForCompletionAsync(ct).ConfigureAwait(false);
             await cts.CancelAsync().ConfigureAwait(false);
             try { await copyTask.ConfigureAwait(false); } catch { }

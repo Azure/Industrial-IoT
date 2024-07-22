@@ -150,9 +150,10 @@ internal static partial class Extensions
     /// <param name="destination"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public static async Task CopyUntilCancelledAsync(this Stream source, Stream destination,
+    public static async Task<int> CopyAsync(this Stream source, Stream destination,
         CancellationToken ct = default)
     {
+        var copied = 0;
         byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
         try
         {
@@ -162,21 +163,18 @@ internal static partial class Extensions
                     ct).ConfigureAwait(false);
                 if (bytesRead == 0)
                 {
-                    await Task.Delay(100, ct).ConfigureAwait(false);
-                    continue;
-                }
-                if (bytesRead == -1)
-                {
                     break;
                 }
-                await destination.WriteAsync(
-                    new ReadOnlyMemory<byte>(buffer, 0, bytesRead), ct).ConfigureAwait(false);
+                copied += bytesRead;
+                await destination.WriteAsync(new ReadOnlyMemory<byte>(
+                    buffer, 0, bytesRead), ct).ConfigureAwait(false);
             }
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
+        return copied;
     }
 
     /// <summary>
