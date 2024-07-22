@@ -235,7 +235,6 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
             _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder,
                 $"capture{index}.pcap"));
 
-
             _devices = LibPcapLiveDeviceList.New().ToList();
             // Open devices
             var open = _devices

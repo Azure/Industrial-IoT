@@ -78,9 +78,16 @@ internal sealed class Storage
                     DateTimeOffset.TryParse(e,
                         CultureInfo.InvariantCulture, out var end))
                 {
-                    await blobClient.DownloadToAsync(path, cancellationToken: ct)
+                    var file = Path.Combine(path, notification.BlobName);
+                    await blobClient.DownloadToAsync(file, cancellationToken: ct)
                         .ConfigureAwait(false);
+
+                    _logger.LogInformation("Downloaded capture bundle {File}.", file);
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to download capture bundle.");
             }
             finally
             {
@@ -117,7 +124,7 @@ internal sealed class Storage
                 metadata, cancellationToken: ct).ConfigureAwait(false);
 
             // Upload capture bundle
-            var blobName = $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}";
+            var blobName = $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}.zip";
             var blobClient = containerClient.GetBlobClient(blobName);
             var bundleMetadata = new Dictionary<string, string>
             {

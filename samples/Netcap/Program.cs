@@ -22,7 +22,7 @@ Console.WriteLine($@"
 ");
 
 using var cmdLine = await CmdLine.CreateAsync(args, cts.Token).ConfigureAwait(false);
-if (cmdLine.Install || cmdLine.Uninstall)
+if (cmdLine.Run == null)
 {
     return;
 }
@@ -39,15 +39,16 @@ try
 {
     // Connect to publisher
     var publisher = new Publisher(cmdLine.Logger.CreateLogger("Publisher"), cmdLine.HttpClient,
-        cmdLine.OpcServerEndpointUrl);
+        cmdLine.Run.OpcServerEndpointUrl);
 
     Storage? uploader = null;
-    if (!string.IsNullOrEmpty(cmdLine.StorageConnectionString))
+    if (!string.IsNullOrEmpty(cmdLine.Run.StorageConnectionString))
     {
-        logger.LogInformation("Uploading to storage...");
+        logger.LogInformation("Uploading to storage of publisher {DeviceId} {ModuleId}...",
+            cmdLine.Run.PublisherDeviceId, cmdLine.Run.PublisherModuleId);
         // TODO: move to seperate task
-        uploader = new Storage(cmdLine.PublisherDeviceId ?? "unknown", cmdLine.PublisherModuleId,
-            cmdLine.StorageConnectionString, cmdLine.Logger.CreateLogger("Upload"));
+        uploader = new Storage(cmdLine.Run.PublisherDeviceId ?? "unknown", cmdLine.Run.PublisherModuleId,
+            cmdLine.Run.StorageConnectionString, cmdLine.Logger.CreateLogger("Upload"));
     }
 
     for (var i = 0; !cts.IsCancellationRequested; i++)
@@ -62,9 +63,9 @@ try
 
         // Capture traffic for duration
         using var timeoutToken = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
-        if (uploader != null || cmdLine.CaptureDuration != null)
+        if (uploader != null || cmdLine.Run.CaptureDuration != null)
         {
-            var duration = cmdLine.CaptureDuration ?? TimeSpan.FromMinutes(10);
+            var duration = cmdLine.Run.CaptureDuration ?? TimeSpan.FromMinutes(10);
             logger.LogInformation("Capturing for {Duration}", duration);
             timeoutToken.CancelAfter(duration);
         }

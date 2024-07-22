@@ -657,6 +657,7 @@ internal sealed record class Gateway
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="NetcapException"></exception>
         public async ValueTask CreateOrUpdateAsync(CancellationToken ct)
         {
             var stgName = _gateway.GetResourceName(kResourceName);
@@ -671,7 +672,7 @@ internal sealed record class Gateway
                 {
                     AllowSharedKeyAccess = true,
                     EnableHttpsTrafficOnly = true,
-                    PublicNetworkAccess = StoragePublicNetworkAccess.Enabled,
+                    PublicNetworkAccess = StoragePublicNetworkAccess.Enabled
                 }, ct).ConfigureAwait(false);
 
             var storageName = storageResponse.Value.Data.Name;

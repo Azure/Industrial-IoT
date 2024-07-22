@@ -23,79 +23,121 @@ using System.Text.Json;
 /// </summary>
 internal sealed class CmdLine : IDisposable
 {
-    [Option('c', nameof(EdgeHubConnectionString), Required = false,
-        HelpText = "The edge hub connection string that OPC Publisher is using " +
-            "to bootstrap the rest api." +
-            "\nDefaults to value of environment variable 'EdgeHubConnectionString'.")]
-    public string? EdgeHubConnectionString { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(EdgeHubConnectionString));
+    [Verb("run", isDefault: true, HelpText = "Run netcap to capture diagnostics.")]
+    public sealed class RunOptions
+    {
+        [Option('c', nameof(EdgeHubConnectionString), Required = false,
+            HelpText = "The edge hub connection string that OPC Publisher is using " +
+                "to bootstrap the rest api." +
+                "\nDefaults to value of environment variable 'EdgeHubConnectionString'.")]
+        public string? EdgeHubConnectionString { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(EdgeHubConnectionString));
 
-    [Option('s', nameof(StorageConnectionString), Required = false,
-        HelpText = "The storage connection string to use to upload capture bundles." +
-        "\nDefaults to value of environment variable 'StorageConnectionString'.")]
-    public string? StorageConnectionString { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(StorageConnectionString));
+        [Option('s', nameof(StorageConnectionString), Required = false,
+            HelpText = "The storage connection string to use to upload capture bundles." +
+            "\nDefaults to value of environment variable 'StorageConnectionString'.")]
+        public string? StorageConnectionString { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(StorageConnectionString));
 
-    [Option('m', nameof(PublisherModuleId), Required = false,
-        HelpText = "The module id of the opc publisher." +
-            "\nDefaults to value of environment variable 'PublisherModuleId'.")]
-    public string PublisherModuleId { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(PublisherModuleId)) ?? "publisher";
+        [Option('m', nameof(PublisherModuleId), Required = false,
+            HelpText = "The module id of the opc publisher." +
+                "\nDefaults to value of environment variable 'PublisherModuleId'.")]
+        public string PublisherModuleId { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(PublisherModuleId)) ?? "publisher";
 
-    [Option('d', nameof(PublisherDeviceId), Required = false,
-        HelpText = "The device id of the opc publisher." +
-            "\nDefaults to value of environment variable 'PublisherDeviceId'.")]
-    public string? PublisherDeviceId { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(PublisherDeviceId));
+        [Option('d', nameof(PublisherDeviceId), Required = false,
+            HelpText = "The device id of the opc publisher." +
+                "\nDefaults to value of environment variable 'PublisherDeviceId'.")]
+        public string? PublisherDeviceId { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(PublisherDeviceId));
 
-    [Option('a', nameof(PublisherRestApiKey), Required = false,
-        HelpText = "The api key of the opc publisher." +
-            "\nDefaults to value of environment variable 'PublisherRestApiKey'.")]
-    public string? PublisherRestApiKey { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(PublisherRestApiKey));
+        [Option('a', nameof(PublisherRestApiKey), Required = false,
+            HelpText = "The api key of the opc publisher." +
+                "\nDefaults to value of environment variable 'PublisherRestApiKey'.")]
+        public string? PublisherRestApiKey { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(PublisherRestApiKey));
 
-    [Option('p', nameof(PublisherRestCertificate), Required = false,
-        HelpText = "The tls certificate of the opc publisher." +
-            "\nDefaults to value of environment variable 'PublisherRestCertificate'.")]
-    public string? PublisherRestCertificate { get; set; }
+        [Option('p', nameof(PublisherRestCertificate), Required = false,
+            HelpText = "The tls certificate of the opc publisher." +
+                "\nDefaults to value of environment variable 'PublisherRestCertificate'.")]
+        public string? PublisherRestCertificate { get; set; }
 
-    [Option('r', nameof(PublisherRestApiEndpoint), Required = false,
-        HelpText = "The Rest api endpoint of the opc publisher." +
-        "\nDefaults to value of environment variable 'PublisherRestApiEndpoint'.")]
-    public string? PublisherRestApiEndpoint { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(PublisherRestApiEndpoint));
+        [Option('r', nameof(PublisherRestApiEndpoint), Required = false,
+            HelpText = "The Rest api endpoint of the opc publisher." +
+            "\nDefaults to value of environment variable 'PublisherRestApiEndpoint'.")]
+        public string? PublisherRestApiEndpoint { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(PublisherRestApiEndpoint));
 
-    [Option('e', nameof(OpcServerEndpointUrl), Required = false,
-        HelpText = "The endpoint of the opc publisher." +
-        "\nDefaults to value of environment variable 'OpcServerEndpointUrl'.")]
-    public string? OpcServerEndpointUrl { get; set; } =
-        Environment.GetEnvironmentVariable(nameof(OpcServerEndpointUrl));
+        [Option('e', nameof(OpcServerEndpointUrl), Required = false,
+            HelpText = "The endpoint of the opc publisher." +
+            "\nDefaults to value of environment variable 'OpcServerEndpointUrl'.")]
+        public string? OpcServerEndpointUrl { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(OpcServerEndpointUrl));
 
-    [Option('t', nameof(CaptureDuration), Required = false,
-        HelpText = "The capture duration until data is uploaded and capture is restarted." +
-        "\nDefaults to value of environment variable 'CaptureDuration'.")]
-    public TimeSpan? CaptureDuration { get; set; } = TimeSpan.TryParse(
-        Environment.GetEnvironmentVariable(nameof(CaptureDuration)), out var t) ? t : null;
+        [Option('t', nameof(CaptureDuration), Required = false,
+            HelpText = "The capture duration until data is uploaded and capture is restarted." +
+            "\nDefaults to value of environment variable 'CaptureDuration'.")]
+        public TimeSpan? CaptureDuration { get; set; } = TimeSpan.TryParse(
+            Environment.GetEnvironmentVariable(nameof(CaptureDuration)), out var t) ? t : null;
 
-    [Option('i', nameof(Install), Required = false,
-        HelpText = "Whether to install the module." +
-        "\nDefault if nothing else is provided.")]
-    public bool Install { get; set; }
+        public RunOptions()
+        {
+            PublisherRestCertificate =
+                Environment.GetEnvironmentVariable(nameof(PublisherRestCertificate));
+        }
 
-    [Option(nameof(TenantId), Required = false,
-        HelpText = "The tenant to use to filter subscriptions down." +
-        "\nDefault uses all tenants accessible.")]
-    public string? TenantId { get; set; }
+        /// <summary>
+        /// Get configuration from twin
+        /// </summary>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        public void ConfigureFromTwin(Twin twin)
+        {
+            // Set any missing info from the netcap twin
+            OpcServerEndpointUrl = twin.GetProperty(
+                nameof(OpcServerEndpointUrl), OpcServerEndpointUrl);
+            PublisherRestApiEndpoint = twin.GetProperty(
+                nameof(PublisherRestApiEndpoint), PublisherRestApiEndpoint);
+            PublisherRestApiKey = twin.GetProperty(
+                nameof(PublisherRestApiKey), PublisherRestApiKey);
+            PublisherRestCertificate = twin.GetProperty(
+                nameof(PublisherRestCertificate), PublisherRestCertificate);
+            var captureDuration = twin.GetProperty(nameof(CaptureDuration));
+            if (!string.IsNullOrWhiteSpace(captureDuration) &&
+                TimeSpan.TryParse(captureDuration, out var duration))
+            {
+                CaptureDuration = duration;
+            }
+        }
+    }
 
-    [Option(nameof(SubscriptionId), Required = false,
-        HelpText = "The subscription to use to install to." +
-        "\nDefault uses all subscriptions accessible.")]
-    public string? SubscriptionId { get; set; }
+    [Verb("install", HelpText = "Install netcap into a publisher.")]
+    public sealed class InstallOptions
+    {
+        [Option(nameof(TenantId), Required = false,
+            HelpText = "The tenant to use to filter subscriptions down." +
+            "\nDefault uses all tenants accessible.")]
+        public string? TenantId { get; set; }
 
-    [Option('u', nameof(Uninstall), Required = false,
-        HelpText = "Whether to uninstall the module and remove all cloud resources." +
-        "\nNot valid with install option.")]
-    public bool Uninstall { get; set; }
+        [Option(nameof(SubscriptionId), Required = false,
+            HelpText = "The subscription to use to install to." +
+            "\nDefault uses all subscriptions accessible.")]
+        public string? SubscriptionId { get; set; }
+    }
+
+    [Verb("uninstall", HelpText = "Uninstall netcap from one or all publishers.")]
+    public sealed class UninstallOptions
+    {
+        [Option(nameof(TenantId), Required = false,
+            HelpText = "The tenant to use to filter subscriptions down." +
+            "\nDefault uses all tenants accessible.")]
+        public string? TenantId { get; set; }
+
+        [Option(nameof(SubscriptionId), Required = false,
+            HelpText = "The subscription to use to install to." +
+            "\nDefault uses all subscriptions accessible.")]
+        public string? SubscriptionId { get; set; }
+    }
 
     /// <summary>
     /// Http Client
@@ -105,15 +147,19 @@ internal sealed class CmdLine : IDisposable
     /// <summary>
     /// Logger
     /// </summary>
-    internal ILoggerFactory Logger { get; private set; } = new LoggerFactory();
+    internal ILoggerFactory Logger { get; private set; } = null!;
+
+    /// <summary>
+    /// Whether to run
+    /// </summary>
+    internal RunOptions? Run => _run;
 
     /// <summary>
     /// Create
     /// </summary>
     public CmdLine()
     {
-        PublisherRestCertificate =
-            Environment.GetEnvironmentVariable(nameof(PublisherRestCertificate));
+        _logger = UpdateLogger();
     }
 
     /// <inheritdoc/>
@@ -121,7 +167,6 @@ internal sealed class CmdLine : IDisposable
     {
         HttpClient.Dispose();
         _certificate?.Dispose();
-        PublisherRestApiKey = null;
     }
 
     /// <summary>
@@ -133,50 +178,59 @@ internal sealed class CmdLine : IDisposable
     public static async ValueTask<CmdLine> CreateAsync(string[] args,
         CancellationToken ct = default)
     {
-        CmdLine? cmdLine = null;
-        ParserResult<CmdLine> result = Parser.Default.ParseArguments<CmdLine>(args)
-            .WithParsed(parsedParams => cmdLine = parsedParams)
+        var cmdLine = new CmdLine();
+        await cmdLine.ParseAsync(args, ct).ConfigureAwait(false);
+        return cmdLine;
+    }
+
+    /// <summary>
+    /// Parse parameters
+    /// </summary>
+    /// <param name="args"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async ValueTask ParseAsync(string[] args, CancellationToken ct = default)
+    {
+        Parser.Default.ParseArguments<RunOptions, InstallOptions, UninstallOptions>(args)
+            .WithParsed<RunOptions>(parsedParams => _run = parsedParams)
+            .WithParsed<InstallOptions>(parsedParams => _install = parsedParams)
+            .WithParsed<UninstallOptions>(parsedParams => _uninstall = parsedParams)
             .WithNotParsed(errors =>
             {
                 errors.ToList().ForEach(Console.WriteLine);
                 Environment.Exit(1);
             });
-        Debug.Assert(cmdLine != null);
 
-        cmdLine.Logger = LoggerFactory.Create(builder => builder
-            .AddSimpleConsole(options => options.SingleLine = true));
+        _logger = UpdateLogger();
         var iothubConnectionString =
             Environment.GetEnvironmentVariable("IoTHubOwnerConnectionString") ??
             Environment.GetEnvironmentVariable("_HUB_CS");
 
-        if (cmdLine.Install)
+        if (_install != null)
         {
-            await cmdLine.InstallAsync(ct).ConfigureAwait(false);
+            await InstallAsync(ct).ConfigureAwait(false);
         }
-        else if (cmdLine.Uninstall)
+        else if (_uninstall != null)
         {
-            await cmdLine.UninstallAsync(ct).ConfigureAwait(false);
+            await UninstallAsync(ct).ConfigureAwait(false);
         }
-        else if (!string.IsNullOrWhiteSpace(cmdLine.EdgeHubConnectionString) ||
+        else if (!string.IsNullOrWhiteSpace(_run?.EdgeHubConnectionString) ||
             Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI") != null)
         {
-            await cmdLine.ConnectAsModuleAsync(ct).ConfigureAwait(false);
+            await ConnectAsModuleAsync(ct).ConfigureAwait(false);
         }
         else if (!string.IsNullOrEmpty(iothubConnectionString))
         {
             // NOTE: This is for local testing against IoT Hub
-            await cmdLine.ConnectAsIoTHubOwnerAsync(
+            await ConnectAsIoTHubOwnerAsync(
                 iothubConnectionString, ct).ConfigureAwait(false);
         }
-        else if (string.IsNullOrWhiteSpace(cmdLine.PublisherRestApiKey) &&
-            string.IsNullOrWhiteSpace(cmdLine.PublisherRestCertificate) &&
-            string.IsNullOrWhiteSpace(cmdLine.PublisherRestApiEndpoint))
+        else if (string.IsNullOrWhiteSpace(_run?.PublisherRestApiKey) &&
+            string.IsNullOrWhiteSpace(_run?.PublisherRestCertificate) &&
+            string.IsNullOrWhiteSpace(_run?.PublisherRestApiEndpoint))
         {
-            cmdLine.Install = true;
-            await cmdLine.InstallAsync(ct).ConfigureAwait(false);
+            await InstallAsync(ct).ConfigureAwait(false);
         }
-        // else use the provided API key and certificate with the rest endpoint
-        return cmdLine;
     }
 
     /// <summary>
@@ -184,24 +238,26 @@ internal sealed class CmdLine : IDisposable
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async Task InstallAsync(CancellationToken ct = default)
+    private async Task InstallAsync(CancellationToken ct = default)
     {
-        var logger = Logger.CreateLogger("Netcap");
-
+        if (_install == null)
+        {
+            _install = new InstallOptions();
+        }
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
             {
-                TenantId = TenantId
+                TenantId = _install.TenantId
             }));
 
-        logger.LogInformation("Installing netcap module...");
+        _logger.LogInformation("Installing netcap module...");
 
-        var gateway = new Gateway(armClient, logger);
+        var gateway = new Gateway(armClient, _logger);
         try
         {
             // Get publishers
-            var found = await gateway.SelectPublisherAsync(SubscriptionId,
+            var found = await gateway.SelectPublisherAsync(_install.SubscriptionId,
                 false, ct).ConfigureAwait(false);
             if (!found)
             {
@@ -218,7 +274,7 @@ internal sealed class CmdLine : IDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to install netcap module with error: {Error}",
+            _logger.LogError("Failed to install netcap module with error: {Error}",
                 ex.Message);
             throw;
         }
@@ -229,24 +285,26 @@ internal sealed class CmdLine : IDisposable
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async Task UninstallAsync(CancellationToken ct = default)
+    private async Task UninstallAsync(CancellationToken ct = default)
     {
-        var logger = Logger.CreateLogger("Netcap");
-
+        if (_uninstall == null)
+        {
+            _uninstall = new UninstallOptions();
+        }
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
             {
-                TenantId = TenantId
+                TenantId = _uninstall.TenantId
             }));
 
-        logger.LogInformation("Uninstalling netcap module...");
+        _logger.LogInformation("Uninstalling netcap module...");
 
-        var gateway = new Gateway(armClient, logger);
+        var gateway = new Gateway(armClient, _logger);
         try
         {
             // Select netcap modules
-            var found = await gateway.SelectPublisherAsync(SubscriptionId, true,
+            var found = await gateway.SelectPublisherAsync(_uninstall.SubscriptionId, true,
                 ct).ConfigureAwait(false);
             if (!found)
             {
@@ -265,7 +323,7 @@ internal sealed class CmdLine : IDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError("Failed to uninstall netcap module with error: {Error}",
+            _logger.LogError("Failed to uninstall netcap module with error: {Error}",
                 ex.Message);
             throw;
         }
@@ -278,7 +336,11 @@ internal sealed class CmdLine : IDisposable
     /// <returns></returns>
     private async ValueTask ConnectAsModuleAsync(CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(EdgeHubConnectionString))
+        if (_run == null)
+        {
+            _run = new RunOptions();
+        }
+        if (string.IsNullOrWhiteSpace(_run.EdgeHubConnectionString))
         {
             var moduleClient =
                 await ModuleClient.CreateFromEnvironmentAsync().ConfigureAwait(false);
@@ -290,7 +352,7 @@ internal sealed class CmdLine : IDisposable
         else
         {
             var moduleClient =
-                ModuleClient.CreateFromConnectionString(EdgeHubConnectionString);
+                ModuleClient.CreateFromConnectionString(_run.EdgeHubConnectionString);
             await using (var _ = moduleClient.ConfigureAwait(false))
             {
                 await ConnectAsModuleAsync(moduleClient, ct).ConfigureAwait(false);
@@ -311,33 +373,35 @@ internal sealed class CmdLine : IDisposable
 
                 var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
 
-                var deviceId = twin.DeviceId;
-                PublisherModuleId = twin.GetProperty(nameof(PublisherModuleId),
-                    PublisherModuleId);
-                PublisherDeviceId = deviceId; // Override as we must be in the same device
-                Debug.Assert(PublisherModuleId != null);
-                Debug.Assert(PublisherDeviceId != null);
+                var deviceId = twin.DeviceId ?? Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
+                var moduleId = twin.ModuleId ?? Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
+                _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
+                _run.PublisherDeviceId = deviceId; // Override as we must be in the same device
+                Debug.Assert(_run.PublisherModuleId != null);
+                Debug.Assert(_run.PublisherDeviceId != null);
 
-                ConfigureFromTwin(twin);
+                _run.ConfigureFromTwin(twin);
 
-                if (PublisherRestApiKey == null || PublisherRestCertificate == null)
+                _logger.LogInformation(
+                    "Connecting to OPC Publisher Module {PublisherModuleId} on {PublisherDeviceId}...",
+                    _run.PublisherModuleId, _run.PublisherDeviceId);
+
+                if (_run.PublisherRestApiKey == null || _run.PublisherRestCertificate == null)
                 {
-                    Console.WriteLine("Connecting to OPC Publisher Module " +
-                        $"{PublisherModuleId} on {PublisherDeviceId}...");
-                    if (PublisherRestApiKey == null)
+                    if (_run.PublisherRestApiKey == null)
                     {
                         var apiKeyResponse = await moduleClient.InvokeMethodAsync(
-                            PublisherDeviceId, PublisherModuleId,
+                            _run.PublisherDeviceId, _run.PublisherModuleId,
                             new MethodRequest("GetApiKey"), ct).ConfigureAwait(false);
-                        PublisherRestApiKey =
+                        _run.PublisherRestApiKey =
                             JsonSerializer.Deserialize<string>(apiKeyResponse.Result);
                     }
-                    if (PublisherRestCertificate == null)
+                    if (_run.PublisherRestCertificate == null)
                     {
                         var certResponse = await moduleClient.InvokeMethodAsync(
-                            PublisherDeviceId, PublisherModuleId,
+                            _run.PublisherDeviceId, _run.PublisherModuleId,
                             new MethodRequest("GetServerCertificate"), ct).ConfigureAwait(false);
-                        PublisherRestCertificate =
+                        _run.PublisherRestCertificate =
                             JsonSerializer.Deserialize<string>(certResponse.Result);
                     }
                 }
@@ -361,10 +425,14 @@ internal sealed class CmdLine : IDisposable
     {
         string deviceId;
         var ncModuleId = "netcap";
-        if (!string.IsNullOrWhiteSpace(EdgeHubConnectionString))
+        if (_run == null)
+        {
+            _run = new RunOptions();
+        }
+        if (!string.IsNullOrWhiteSpace(_run.EdgeHubConnectionString))
         {
             // Get device and module id from edge hub connection string provided
-            var ehc = IotHubConnectionStringBuilder.Create(EdgeHubConnectionString);
+            var ehc = IotHubConnectionStringBuilder.Create(_run.EdgeHubConnectionString);
             deviceId = ehc.DeviceId;
             ncModuleId = ehc.ModuleId ?? ncModuleId;
         }
@@ -405,63 +473,39 @@ internal sealed class CmdLine : IDisposable
         }, twin.ETag, ct).ConfigureAwait(false);
 
         // Get publisher id from twin if not configured
-        PublisherModuleId = twin.GetProperty(nameof(PublisherModuleId), PublisherModuleId);
-        PublisherDeviceId ??= deviceId;
-        Debug.Assert(PublisherModuleId != null);
-        Debug.Assert(PublisherDeviceId != null);
+        _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
+        _run.PublisherDeviceId ??= deviceId;
+        Debug.Assert(_run.PublisherModuleId != null);
+        Debug.Assert(_run.PublisherDeviceId != null);
 
-        ConfigureFromTwin(twin);
+        _run.ConfigureFromTwin(twin);
 
-        if (PublisherRestApiKey == null || PublisherRestCertificate == null)
+        _logger.LogInformation("Connecting to OPC Publisher Module {PublisherModuleId} " +
+            "on {PublisherDeviceId} via IoTHub...", _run.PublisherModuleId, _run.PublisherDeviceId);
+        if (_run.PublisherRestApiKey == null || _run.PublisherRestCertificate == null)
         {
-            Console.WriteLine("Connecting to OPC Publisher Module " +
-                $"{PublisherModuleId} on {PublisherDeviceId} via IoTHub...");
             using var serviceClient = Microsoft.Azure.Devices.ServiceClient
                 .CreateFromConnectionString(iothubConnectionString);
-            if (PublisherRestApiKey == null)
+            if (_run.PublisherRestApiKey == null)
             {
                 var apiKeyResponse = await serviceClient.InvokeDeviceMethodAsync(
-                    PublisherDeviceId, PublisherModuleId,
+                    _run.PublisherDeviceId, _run.PublisherModuleId,
                     new Microsoft.Azure.Devices.CloudToDeviceMethod(
                         "GetApiKey"), ct).ConfigureAwait(false);
-                PublisherRestApiKey =
+                _run.PublisherRestApiKey =
                     JsonSerializer.Deserialize<string>(apiKeyResponse.GetPayloadAsJson());
             }
-            if (PublisherRestCertificate == null)
+            if (_run.PublisherRestCertificate == null)
             {
                 var certResponse = await serviceClient.InvokeDeviceMethodAsync(
-                    PublisherDeviceId, PublisherModuleId,
+                    _run.PublisherDeviceId, _run.PublisherModuleId,
                     new Microsoft.Azure.Devices.CloudToDeviceMethod(
                         "GetServerCertificate"), ct).ConfigureAwait(false);
-                PublisherRestCertificate =
+                _run.PublisherRestCertificate =
                     JsonSerializer.Deserialize<string>(certResponse.GetPayloadAsJson());
             }
         }
         await CreateHttpClientWithAuthAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Get configuration from twin
-    /// </summary>
-    /// <param name="twin"></param>
-    /// <returns></returns>
-    private void ConfigureFromTwin(Twin twin)
-    {
-        // Set any missing info from the netcap twin
-        OpcServerEndpointUrl = twin.GetProperty(
-            nameof(OpcServerEndpointUrl), OpcServerEndpointUrl);
-        PublisherRestApiEndpoint = twin.GetProperty(
-            nameof(PublisherRestApiEndpoint), PublisherRestApiEndpoint);
-        PublisherRestApiKey = twin.GetProperty(
-            nameof(PublisherRestApiKey), PublisherRestApiKey);
-        PublisherRestCertificate = twin.GetProperty(
-            nameof(PublisherRestCertificate), PublisherRestCertificate);
-        var captureDuration = twin.GetProperty(nameof(CaptureDuration));
-        if (!string.IsNullOrWhiteSpace(captureDuration) &&
-            TimeSpan.TryParse(captureDuration, out var duration))
-        {
-            CaptureDuration = duration;
-        }
     }
 
     /// <summary>
@@ -470,23 +514,23 @@ internal sealed class CmdLine : IDisposable
     /// <returns></returns>
     private async ValueTask CreateHttpClientWithAuthAsync()
     {
-        if (PublisherRestApiKey != null)
+        if (_run?.PublisherRestApiKey != null)
         {
             // Load the certificate of the publisher if not exist
-            if (!string.IsNullOrWhiteSpace(PublisherRestCertificate)
+            if (!string.IsNullOrWhiteSpace(_run?.PublisherRestCertificate)
                 && _certificate == null)
             {
                 try
                 {
                     _certificate = X509Certificate2.CreateFromPem(
-                        PublisherRestCertificate.Trim());
+                        _run.PublisherRestCertificate.Trim());
                 }
                 catch
                 {
                     var cert = Convert.FromBase64String(
-                        PublisherRestCertificate.Trim());
+                        _run.PublisherRestCertificate.Trim());
                     _certificate = new X509Certificate2(
-                        cert!, PublisherRestApiKey);
+                        cert!, _run.PublisherRestApiKey);
                 }
             }
 
@@ -498,8 +542,9 @@ internal sealed class CmdLine : IDisposable
                 {
                     if (_certificate?.Thumbprint != cert?.Thumbprint)
                     {
-                        Console.WriteLine($"Certificate thumbprint mismatch: " +
-                            $"{_certificate?.Thumbprint} != {cert?.Thumbprint}");
+                        _logger.LogWarning(
+                            "Certificate thumbprint mismatch: {Expected} != {Actual}",
+                            _certificate?.Thumbprint, cert?.Thumbprint);
                         return false;
                     }
                     return true;
@@ -509,7 +554,7 @@ internal sealed class CmdLine : IDisposable
             HttpClient.BaseAddress =
                 await GetOpcPublisherRestEndpoint().ConfigureAwait(false);
             HttpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("ApiKey", PublisherRestApiKey);
+                new AuthenticationHeaderValue("ApiKey", _run?.PublisherRestApiKey);
         }
 
         /// <summary>
@@ -517,20 +562,19 @@ internal sealed class CmdLine : IDisposable
         /// </summary>
         async ValueTask<Uri> GetOpcPublisherRestEndpoint()
         {
-            if (PublisherRestApiEndpoint != null &&
-                Uri.TryCreate(PublisherRestApiEndpoint,
+            if (_run?.PublisherRestApiEndpoint != null &&
+                Uri.TryCreate(_run.PublisherRestApiEndpoint,
                 UriKind.Absolute, out var u))
             {
                 return u;
             }
-            var host = PublisherModuleId;
+            var host = _run?.PublisherModuleId;
             if (host != null)
             {
                 // Poor man ping
                 try
                 {
-                    var result = await Dns.GetHostEntryAsync(
-                        PublisherModuleId).ConfigureAwait(false);
+                    var result = await Dns.GetHostEntryAsync(host).ConfigureAwait(false);
                     if (result.AddressList.Length == 0)
                         host = null;
                 }
@@ -547,7 +591,7 @@ internal sealed class CmdLine : IDisposable
                 Port = !isLocal ? 8081 : 443,
                 Host = host
             };
-            if (PublisherRestApiKey == null)
+            if (_run?.PublisherRestApiKey == null)
             {
                 uri.Scheme = "http";
                 uri.Port = !isLocal ? 8080 : 80;
@@ -556,7 +600,21 @@ internal sealed class CmdLine : IDisposable
         }
     }
 
+    /// <summary>
+    /// Update logger
+    /// </summary>
+    private ILogger UpdateLogger()
+    {
+        Logger = LoggerFactory.Create(builder => builder
+            .AddSimpleConsole(options => options.SingleLine = true));
+        return Logger.CreateLogger("Netcap");
+    }
+
+    private ILogger _logger;
     private X509Certificate2? _certificate;
+    private InstallOptions? _install;
+    private UninstallOptions? _uninstall;
+    private RunOptions? _run;
     internal static readonly JsonSerializerOptions Indented
         = new() { WriteIndented = true };
 }
