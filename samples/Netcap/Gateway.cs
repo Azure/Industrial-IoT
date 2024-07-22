@@ -147,7 +147,7 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    /// <exception cref="global::Netcap.NetcapException"></exception>
+    /// <exception cref="NetcapException"></exception>
     public async Task<ResourceGroupResource> GetResourceGroupAsync(
         CancellationToken ct = default)
     {
@@ -160,11 +160,26 @@ internal sealed record class Gateway
     }
 
     /// <summary>
+    /// Get storage
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NetcapException"></exception>
+    public Storage GetStorage()
+    {
+        if (_publisher == null || _subscription == null)
+        {
+            throw new NetcapException("Publisher not selected");
+        }
+        return new Storage(_publisher.DeviceId, _publisher.Id,
+            Storage.ConnectionString, _logger);
+    }
+
+    /// <summary>
     /// Deploy netcap module and wait until it is connected
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    /// <exception cref="global::Netcap.NetcapException"></exception>
+    /// <exception cref="NetcapException"></exception>
     public async ValueTask DeployNetcapModuleAsync(CancellationToken ct = default)
     {
         if (_publisher == null || _connectionString == null)
@@ -234,7 +249,7 @@ internal sealed record class Gateway
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    /// <exception cref="global::Netcap.NetcapException"></exception>
+    /// <exception cref="NetcapException"></exception>
     public async ValueTask RemoveNetcapModuleAsync(CancellationToken ct = default)
     {
         if (_publisher == null || _connectionString == null || _deploymentConfigId == null)
@@ -589,14 +604,14 @@ internal sealed record class Gateway
             var url = await run.Value.GetLogSasUrlAsync(ct).ConfigureAwait(false);
             var client = new BlobClient(new Uri(url.Value.LogLink));
             using var os = Console.OpenStandardOutput();
-            using var stream = await client.OpenReadAsync(new BlobOpenReadOptions(false)
-            {
-                BufferSize = 1024 * 1024
-            }, ct).ConfigureAwait(false);
+            using var stream = await client.OpenReadAsync(new BlobOpenReadOptions(false),
+                ct).ConfigureAwait(false);
 
-            await Task.WhenAll(
-                stream.CopyToAsync(os, ct),
-                buildResponse.WaitForCompletionAsync(ct).AsTask()).ConfigureAwait(false);
+            using var cts = new CancellationTokenSource();
+            var copyTask = stream.CopyToAsync(os, cts.Token);
+            await buildResponse.WaitForCompletionAsync(ct).ConfigureAwait(false);
+            await cts.CancelAsync().ConfigureAwait(false);
+            try { await copyTask.ConfigureAwait(false); } catch { }
 
             _logger.LogInformation("Image {Image} built with {Result}", Name,
                 buildResponse.Value.Data.RunResult.Status.ToString());

@@ -150,7 +150,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     public async Task AddSessionKeysFromDiagnosticsAsync(JsonElement diagnostic,
         HashSet<string> endpointFilter)
     {
-        var diagnosticJson = JsonSerializer.Serialize(diagnostic, CmdLine.Indented);
+        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Main.Indented);
 
         if (diagnostic.TryGetProperty("connection", out var conn) &&
             conn.TryGetProperty("endpoint", out var ep) &&

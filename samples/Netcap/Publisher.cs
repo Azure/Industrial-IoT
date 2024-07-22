@@ -54,7 +54,7 @@ internal sealed class Publisher
             var configuration = await _httpClient.GetFromJsonAsync<JsonElement>(
                 "v2/configuration?includeNodes=true",
                 JsonSerializerOptions.Default, ct).ConfigureAwait(false);
-            PnJson = JsonSerializer.Serialize(configuration, CmdLine.Indented);
+            PnJson = JsonSerializer.Serialize(configuration, Main.Indented);
             foreach (var endpoint in configuration.GetProperty("endpoints").EnumerateArray())
             {
                 var endpointUrl = endpoint.GetProperty("EndpointUrl").GetString();

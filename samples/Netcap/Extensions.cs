@@ -6,6 +6,7 @@
 namespace Netcap;
 
 using Microsoft.Azure.Devices.Shared;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
@@ -140,6 +141,42 @@ internal static partial class Extensions
 #pragma warning disable CA1308 // Normalize strings to uppercase
         return containerName.ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
+    }
+
+    /// <summary>
+    /// Copy stream without
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="destination"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public static async Task CopyUntilCancelledAsync(this Stream source, Stream destination,
+        CancellationToken ct = default)
+    {
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                var bytesRead = await source.ReadAsync(new Memory<byte>(buffer),
+                    ct).ConfigureAwait(false);
+                if (bytesRead == 0)
+                {
+                    await Task.Delay(100, ct).ConfigureAwait(false);
+                    continue;
+                }
+                if (bytesRead == -1)
+                {
+                    break;
+                }
+                await destination.WriteAsync(
+                    new ReadOnlyMemory<byte>(buffer, 0, bytesRead), ct).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 
     /// <summary>

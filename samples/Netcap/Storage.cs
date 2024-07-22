@@ -43,7 +43,6 @@ internal sealed class Storage
     /// <returns></returns>
     public async Task DownloadAsync(string path, CancellationToken ct = default)
     {
-        // Not a sas uri, must be a connection string with key or sas
         var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
         var queueClient = new QueueClient(_connectionString, name);
         if (!await queueClient.ExistsAsync(ct).ConfigureAwait(false))
@@ -51,6 +50,12 @@ internal sealed class Storage
             return;
         }
 
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        _logger.LogInformation("Downloading capture bundles to {Path}.", path);
         while (!ct.IsCancellationRequested)
         {
             // Receive message
@@ -58,6 +63,10 @@ internal sealed class Storage
                 cancellationToken: ct).ConfigureAwait(false);
             try
             {
+                if (!message.HasValue)
+                {
+                    continue;
+                }
                 var notification =
                     JsonSerializer.Deserialize<Notification>(message.Value.Body);
                 if (notification == null)
@@ -109,7 +118,6 @@ internal sealed class Storage
         {
             var bundleFile = bundle.GetBundleFile();
             _logger.LogInformation("Uploading capture bundle {File}.", bundleFile);
-            // Not a sas uri, must be a connection string with key or sas
             var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
             var containerClient = new BlobContainerClient(_connectionString, name);
             var queueClient = new QueueClient(_connectionString, name);
