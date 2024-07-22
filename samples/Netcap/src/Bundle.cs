@@ -243,13 +243,20 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                     try
                     {
                         _logger.LogInformation("Opening {Device}...", d);
-                        d.Open(mode: DeviceModes.None, 1000);
+                        d.Open(mode: DeviceModes.Promiscuous, 1000);
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        _logger.LogInformation(
-                            "Failed to open {Device} ({Description}): {Message}",
-                            d.Name, d.Description, ex.Message);
+                        try
+                        {
+                            d.Open(mode: DeviceModes.None, 1000);
+                        }
+                        catch (Exception ex2)
+                        {
+                            _logger.LogInformation(
+                                "Failed to open {Device} ({Description}): {Message}",
+                                d.Name, d.Description, ex2.Message);
+                        }
                     }
                     return d.Opened;
                 })
