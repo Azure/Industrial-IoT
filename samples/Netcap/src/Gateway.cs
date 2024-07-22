@@ -589,7 +589,7 @@ internal sealed record class Gateway
                 new ContainerRegistryPlatformProperties("linux") { Architecture = "amd64" })
             {
                 SourceLocation =
-                    "https://github.com/Azure/Industrial-IoT.git#docsandttl:samples/Netcap",
+                    "https://github.com/Azure/Industrial-IoT.git#docsandttl:samples/Netcap/src",
                 IsPushEnabled = true
             };
             quickBuild.ImageNames.Add(Name);
