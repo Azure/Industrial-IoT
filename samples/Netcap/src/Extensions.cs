@@ -110,12 +110,14 @@ internal static partial class Extensions
     /// <param name="assembly"></param>
     public static string GetVersion(this Assembly assembly)
     {
+        var branch = Environment.GetEnvironmentVariable("BRANCH");
+        branch = !string.IsNullOrEmpty(branch) ? "-" + branch : string.Empty;
         var ver = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
         if (ver == null || !Version.TryParse(ver, out var assemblyVersion))
         {
             assemblyVersion = new Version();
         }
-        return assemblyVersion.ToString();
+        return assemblyVersion.ToString() + branch;
     }
 
     /// <summary>
