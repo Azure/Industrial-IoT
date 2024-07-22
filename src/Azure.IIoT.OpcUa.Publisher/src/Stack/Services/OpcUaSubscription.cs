@@ -315,7 +315,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask CloseInSessionAsync(ISession? session, CancellationToken ct)
         {
-            Debug.Assert(_closed);
+            if (!_closed)
+            {
+                _logger.LogWarning("Hard close subscription {Subscription} in session {Session}.",
+                    this, session);
+                _closed = true;
+            }
 
             // Finalize closing the subscription
             ResetKeepAliveTimer();

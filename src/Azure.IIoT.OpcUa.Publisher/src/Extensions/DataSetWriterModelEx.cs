@@ -94,6 +94,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
             var connection = dataSetWriter.DataSet.DataSetSource.Connection;
 
+            if (connection.Group == null && options.EnableSessionPerDataSetWriterId == true)
+            {
+                connection = connection with
+                {
+                    Group = $"{writerGroupName}_{dataSetWriter.Id}"
+                };
+            }
+
             if (connection.Group == null && options.DisableSessionPerWriterGroup != true)
             {
                 connection = connection with

@@ -354,6 +354,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"dsg|disablesessionpergroup:|{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey}:",
                     $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{OpcUaSubscriptionConfig.DisableSessionPerWriterGroupDefault}`.\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
+                { $"spw|enablesessionperwriter:|{OpcUaSubscriptionConfig.EnableSessionPerDataSetWriterIdKey}:",
+                    $"Enable creating a separate session per data set writer instead of the default behavior to create one per writer group.\nThis setting overrides the `--dsg` option.\nDefault: `{OpcUaSubscriptionConfig.EnableSessionPerDataSetWriterIdDefault}`.\n",
+                    (bool? b) => this[OpcUaSubscriptionConfig.EnableSessionPerDataSetWriterIdKey] = b?.ToString() ?? "True" },
 
                 "",
                 "OPC UA Client configuration",

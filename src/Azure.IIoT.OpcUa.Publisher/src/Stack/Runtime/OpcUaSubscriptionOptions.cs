@@ -151,6 +151,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? DisableSessionPerWriterGroup { get; set; }
 
         /// <summary>
+        /// Create a new session for every subscription that is created.
+        /// </summary>
+        public bool? EnableSessionPerDataSetWriterId { get; set; }
+
+        /// <summary>
         /// Retrieve paths from root folder to enable automatic
         /// unified namespace publishing
         /// </summary>
