@@ -483,14 +483,13 @@ internal sealed record class Gateway
             args.Add("-r");
             args.Add(url);
         }
-
         var createOptions = JsonConvert.SerializeObject(new
         {
             User = "root",
             Cmd = args.ToArray(),
             HostConfig = new
             {
-                Privileged = true,
+                NetworkMode = "host", // $"container:{hostName ?? publisherModuleId}",
                 CapAdd = new[] { "NET_ADMIN" }
             }
         }).Replace("\"", "\\\"", StringComparison.Ordinal);
