@@ -41,7 +41,7 @@ internal sealed class Bundle
     public DateTimeOffset End { get; private set; }
 
     /// <summary>
-    /// Create capture device
+    /// CreateSidecarDeployment capture device
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="folder"></param>
@@ -79,12 +79,16 @@ internal sealed class Bundle
             File.WriteAllText(Path.Combine(_folder, "pn.json"), publisher.PnJson);
         }
 
-        // Create filter
+        // CreateSidecarDeployment filter
         // https://www.wireshark.org/docs/man-pages/pcap-filter.html
         // src or dst host 192.168.80.2
         // "ip and tcp and not port 80 and not port 25";
-
+        // TODO: Filter on src/dst of publisher ip
         var addresses = publisher.Addresses;
+        if (addresses.Count == 0)
+        {
+            return new Pcap(this, itf, "ip and tcp", index);
+        }
         var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
             ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
         return new Pcap(this, itf, filter, index);
@@ -222,7 +226,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     internal sealed class Pcap : IDisposable
     {
         /// <summary>
-        /// Create pcap
+        /// CreateSidecarDeployment pcap
         /// </summary>
         /// <param name="bundle"></param>
         /// <param name="itf"></param>

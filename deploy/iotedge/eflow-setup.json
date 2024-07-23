@@ -41,7 +41,7 @@
                     "restartPolicy": "always",
                     "settings": {
                         "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
-                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"PortBindings\":{\"443/tcp\":[{\"HostPort\":\"8081\"}]},\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pf=/mount/pn.json\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
+                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"PortBindings\":{\"443/tcp\":[{\"HostPort\":\"8081\"}]}},\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pf=/mount/pn.json\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
                     }
                 },
                 "opcplc": {

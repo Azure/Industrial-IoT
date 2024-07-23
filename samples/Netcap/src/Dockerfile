@@ -1,9 +1,10 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 ARG BRANCH=main
+ARG VERSION
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 RUN DEBIAN_FRONTEND=noninteractive apt update -y && apt install -y libpcap-dev bash net-tools
 USER root:root
 ENV BRANCH=${BRANCH}
+ENV VERSION=${VERSION}
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build

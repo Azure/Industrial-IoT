@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -28,6 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net;
 
     /// <summary>
     /// Publisher module host process
@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     }
                 }
 
-                deviceId = Utils.GetHostName();
+                deviceId = Dns.GetHostName().ToUpperInvariant();
                 logger.LogInformation("Using <deviceId> '{DeviceId}'", deviceId);
                 moduleId = "publisher";
                 logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);

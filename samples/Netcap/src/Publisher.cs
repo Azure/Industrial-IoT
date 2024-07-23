@@ -27,7 +27,7 @@ internal sealed class Publisher
     public string? PnJson { get; set; }
 
     /// <summary>
-    /// Addresses
+    /// Addresses of the publisher
     /// </summary>
     public HashSet<IPAddress> Addresses { get; } = new HashSet<IPAddress>();
 
@@ -79,22 +79,13 @@ internal sealed class Publisher
                 Endpoints.Add(_opcServerEndpoint);
             }
 
-            // Resolve addresses
-            Addresses.Clear();
-            foreach (var e in Endpoints)
+            if (Endpoints.Count == 0)
             {
-                var uri = new Uri(e, UriKind.Absolute);
-                var a = await Dns.GetHostAddressesAsync(uri.Host, ct).ConfigureAwait(false);
-                Addresses.UnionWith(a);
-            }
-
-            if (Addresses.Count == 0)
-            {
-                _logger.LogInformation("No addresses found for {Endpoints} - waiting .....",
-                    Endpoints.Count == 0 ? "none" : string.Join(",", Endpoints.ToArray()));
+                _logger.LogInformation("No endpoints found in configuration - waiting....");
                 return false;
             }
-            _logger.LogInformation("Retrieved endpoints from publisher.");
+            _logger.LogInformation("Retrieved {Count} endpoints from publisher.",
+                Endpoints.Count);
             return true;
         }
         catch (Exception ex)

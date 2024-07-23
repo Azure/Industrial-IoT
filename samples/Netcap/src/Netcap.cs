@@ -169,7 +169,7 @@ internal sealed class Main : IDisposable
     }
 
     /// <summary>
-    /// Create
+    /// CreateSidecarDeployment
     /// </summary>
     public Main()
     {
@@ -381,9 +381,9 @@ internal sealed class Main : IDisposable
                 return;
             }
 
-            // Create storage account or update if it already exists in the rg
+            // CreateSidecarDeployment storage account or update if it already exists in the rg
             await gateway.Storage.CreateOrUpdateAsync(ct).ConfigureAwait(false);
-            // Create container registry or update and build netcap module
+            // CreateSidecarDeployment container registry or update and build netcap module
             await gateway.Netcap.CreateOrUpdateAsync(ct).ConfigureAwait(false);
 
             // Deploy the module using manifest to device with the chosen publisher
@@ -585,7 +585,7 @@ internal sealed class Main : IDisposable
         }
         using var rm = Microsoft.Azure.Devices.RegistryManager
             .CreateFromConnectionString(iothubConnectionString);
-        // Create module if not exist
+        // CreateSidecarDeployment module if not exist
         try
         {
             await rm.AddDeviceAsync(new Microsoft.Azure.Devices.Device(deviceId), ct)
@@ -649,7 +649,7 @@ internal sealed class Main : IDisposable
     }
 
     /// <summary>
-    /// Create client
+    /// CreateSidecarDeployment client
     /// </summary>
     /// <returns></returns>
     private async ValueTask CreateHttpClientWithAuthAsync()

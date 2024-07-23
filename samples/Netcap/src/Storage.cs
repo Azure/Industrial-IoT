@@ -22,7 +22,7 @@ using System.IO.Compression;
 internal sealed class Storage
 {
     /// <summary>
-    /// Create capture sync
+    /// CreateSidecarDeployment capture sync
     /// </summary>
     /// <param name="deviceId"></param>
     /// <param name="moduleId"></param>

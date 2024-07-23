@@ -13,18 +13,17 @@ using Azure.ResourceManager.ContainerRegistry.Models;
 using Azure.ResourceManager.ContainerRegistry;
 using Azure.ResourceManager.IotHub;
 using Azure.ResourceManager.Resources;
-using Microsoft.Azure.Devices;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Microsoft.Azure.Devices.Common.Exceptions;
-using Microsoft.Azure.Devices.Shared;
 using Azure.ResourceManager.IotHub.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Azure.Devices;
+using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Devices.Common.Exceptions;
+using Microsoft.Azure.Devices.Shared;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Microsoft.Win32;
 
 /// <summary>
 /// Represents and edge gateway that can be accessed from
@@ -45,7 +44,7 @@ internal sealed record class Gateway
     public NetcapStorage Storage { get; }
 
     /// <summary>
-    /// Create gateway
+    /// CreateSidecarDeployment gateway
     /// </summary>
     /// <param name="client"></param>
     /// <param name="logger"></param>
@@ -224,15 +223,20 @@ internal sealed record class Gateway
                 var options = (string?)settings["createOptions"];
                 if (options != null)
                 {
-
                     var createOptions = JObject.Parse(options
                         .Replace("\\\"", "\"", StringComparison.Ordinal));
+
+                    if (createOptions.TryGetValue("Hostname", out var hn) &&
+                            hn.Type == JTokenType.String)
+                    {
+                        hostname = hn.Value<string>();
+                    }
                     if (createOptions.TryGetValue("HostConfig", out var cfg) &&
                         cfg is JObject hostConfig &&
                         hostConfig.TryGetValue("PortBindings", out var bd) &&
                         bd is JObject bindings)
                     {
-                        // {\"443/tcp\":[{\"HostPort\":\"8081\"}]}
+                        // Looks like {\"443/tcp\":[{\"HostPort\":\"8081\"}]}
                         foreach (var pm in bindings)
                         {
                             if (pm.Key.StartsWith("443", StringComparison.Ordinal) &&
@@ -240,13 +244,9 @@ internal sealed record class Gateway
                                 arr[0] is JObject o && o.TryGetValue("HostPort", out var p))
                             {
                                 port = p.Value<string>();
+                                hostname = "localhost"; // Connect to host port
                             }
                         }
-                    }
-                    if (createOptions.TryGetValue("Hostname", out var hn) &&
-                            hn.Type == JTokenType.String)
-                    {
-                        hostname = hn.Value<string>();
                     }
                 }
             }
@@ -258,7 +258,7 @@ internal sealed record class Gateway
                 TargetCondition = $"deviceId = '{_publisher.DeviceId}'",
                 Content = new ConfigurationContent
                 {
-                    ModulesContent = Create(_publisher.DeviceId, ncModuleId,
+                    ModulesContent = CreateSidecarDeployment(_publisher.DeviceId, ncModuleId,
                         _publisher.Id, Netcap.LoginServer, Netcap.Username,
                         Netcap.Password, Netcap.Name, Storage.ConnectionString,
                         publisherTwin.GetProperty("__apikey__", desired: false),
@@ -480,7 +480,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Create deployment
+    /// CreateSidecarDeployment deployment
     /// </summary>
     /// <param name="deviceId"></param>
     /// <param name="netcapModuleId"></param>
@@ -496,8 +496,8 @@ internal sealed record class Gateway
     /// <param name="hostName"></param>
     /// <param name="port"></param>
     /// <returns></returns>
-    private static IDictionary<string, IDictionary<string, object>>? Create(string deviceId,
-        string netcapModuleId, string publisherModuleId, string server,
+    private static IDictionary<string, IDictionary<string, object>>? CreateSidecarDeployment(
+        string deviceId, string netcapModuleId, string publisherModuleId, string server,
         string userName, string password, string image, string storageConnectionString,
         string? apiKey, string? certificate, string? scheme, string? hostName, string? port)
     {
@@ -577,7 +577,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Create resource name
+    /// CreateSidecarDeployment resource name
     /// </summary>
     /// <param name="postfix"></param>
     /// <returns></returns>
@@ -597,9 +597,10 @@ internal sealed record class Gateway
         public string Name { get; private set; } = null!;
 
         /// <summary>
-        /// Create image
+        /// CreateSidecarDeployment image
         /// </summary>
         /// <param name="gateway"></param>
+        /// <param name="branch"></param>
         /// <param name="logger"></param>
         public NetcapImage(Gateway gateway, string? branch, ILogger logger)
         {
@@ -609,13 +610,13 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Create or update
+        /// CreateSidecarDeployment or update
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task CreateOrUpdateAsync(CancellationToken ct = default)
         {
-            // Create container registry or update if it already exists in rg
+            // CreateSidecarDeployment container registry or update if it already exists in rg
             var regName = _gateway.GetResourceName(kResourceName);
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
             _logger.LogInformation(
@@ -625,10 +626,10 @@ internal sealed record class Gateway
                 .CreateOrUpdateAsync(WaitUntil.Completed, regName,
                 new ContainerRegistryData(rg.Data.Location,
                     new ContainerRegistrySku(ContainerRegistrySkuName.Basic))
-                    {
-                        IsAdminUserEnabled = true,
-                        PublicNetworkAccess = ContainerRegistryPublicNetworkAccess.Enabled
-                    },
+                {
+                    IsAdminUserEnabled = true,
+                    PublicNetworkAccess = ContainerRegistryPublicNetworkAccess.Enabled
+                },
                     ct).ConfigureAwait(false);
             var registryKeys = await registryResponse.Value.GetCredentialsAsync(ct)
                 .ConfigureAwait(false);
@@ -696,7 +697,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Create or update
+        /// CreateSidecarDeployment or update
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -735,7 +736,7 @@ internal sealed record class Gateway
         public string ConnectionString { get; private set; } = null!;
 
         /// <summary>
-        /// Create storage
+        /// CreateSidecarDeployment storage
         /// </summary>
         /// <param name="gateway"></param>
         /// <param name="logger"></param>
@@ -746,7 +747,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Create or update
+        /// CreateSidecarDeployment or update
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -780,7 +781,7 @@ internal sealed record class Gateway
                     $"No keys found for storage account {storageName}");
             }
 
-            // Create connection string for storage account
+            // CreateSidecarDeployment connection string for storage account
             ConnectionString = "DefaultEndpointsProtocol=https;" +
                 $"BlobEndpoint={endpoints.BlobUri};" +
                 $"QueueEndpoint={endpoints.QueueUri};" +
