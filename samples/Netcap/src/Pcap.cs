@@ -12,6 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System;
+using System.Globalization;
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Authorization;
 
 /// <summary>
 /// Pcap capture
@@ -32,7 +35,7 @@ internal sealed class Pcap : IDisposable
     }
 
     /// <summary>
-    /// Start of capture
+    /// Put of capture
     /// </summary>
     public DateTimeOffset Start { get; }
 
@@ -47,7 +50,7 @@ internal sealed class Pcap : IDisposable
     public string File => _configuration.File;
 
     /// <summary>
-    /// Pcap file is capturing
+    /// Pcap handle is capturing
     /// </summary>
     public bool Open => End == null;
 
@@ -55,6 +58,12 @@ internal sealed class Pcap : IDisposable
     /// Remote capture
     /// </summary>
     public bool Remote => _hostCaptureEndpointUrl != null;
+
+    /// <summary>
+    /// Handle
+    /// </summary>
+    public int Handle { get; } = Interlocked.Increment(ref _handles);
+    private static int _handles;
 
     /// <summary>
     /// Create pcap
@@ -246,6 +255,49 @@ internal sealed class Pcap : IDisposable
                 _devices?.ForEach(d => d.Dispose());
             }
         }
+    }
+
+    /// <summary>
+    /// Remote server
+    /// </summary>
+    /// <param name="logger"></param>
+    public sealed record PcapServer(ILogger logger)
+    {
+        public void Put(CaptureConfiguration configuration)
+        {
+            var pcap = new Pcap(logger, configuration);
+            _captures.TryAdd(pcap.Handle, pcap);
+        }
+
+        public IResult GetAndStop(int handle)
+        {
+            if (!_captures.TryGetValue(handle, out var capture))
+            {
+                throw new NetcapException("Capture not found");
+            }
+            capture.Dispose();
+            return Results.File(capture.File);
+        }
+
+        public CaptureResult Delete(int handle)
+        {
+            if (!_captures.TryRemove(handle, out var capture))
+            {
+                throw new NetcapException("Capture not found");
+            }
+            capture.Dispose();
+            Debug.Assert(capture.End.HasValue);
+            System.IO.File.Delete(capture.File);
+            return new CaptureResult(capture.Start, capture.End.Value);
+        }
+
+        /// <summary>
+        /// Capture result
+        /// </summary>
+        public sealed record class CaptureResult(DateTimeOffset Start,
+            DateTimeOffset End);
+
+        private readonly ConcurrentDictionary<int, Pcap> _captures = new();
     }
 
     private readonly CaptureConfiguration _configuration;

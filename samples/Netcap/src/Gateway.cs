@@ -32,13 +32,13 @@ using Newtonsoft.Json.Linq;
 internal sealed record class Gateway
 {
     /// <summary>
-    /// Get image
+    /// GetAndStop image
     /// </summary>
     /// <returns></returns>
     public NetcapImage Netcap { get; }
 
     /// <summary>
-    /// Get storage
+    /// GetAndStop storage
     /// </summary>
     /// <returns></returns>
     public NetcapStorage Storage { get; }
@@ -71,7 +71,7 @@ internal sealed record class Gateway
     {
         while (!ct.IsCancellationRequested)
         {
-            // Get target publishers in iot hubs
+            // GetAndStop target publishers in iot hubs
             var deployments = await GetPublisherDeploymentsAsync(subscriptionId,
                 netcapMonitored, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -145,7 +145,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Get resource group
+    /// GetAndStop resource group
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
@@ -162,7 +162,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Get storage
+    /// GetAndStop storage
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NetcapException"></exception>
@@ -211,7 +211,7 @@ internal sealed record class Gateway
         var hostname = publisherTwin.GetProperty("__hostname__", desired: false);
         var port = publisherTwin.GetProperty("__port__", desired: false);
 
-        // Get the create options of the publisher
+        // GetAndStop the create options of the publisher
         var agent = await registryManager.GetTwinAsync(_publisher.DeviceId,
             "$edgeAgent", ct).ConfigureAwait(false);
         if (agent?.Properties.Desired.Contains("modules") == true)
@@ -365,7 +365,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Get deployments
+    /// GetAndStop deployments
     /// </summary>
     /// <param name="subscriptionId"></param>
     /// <param name="netcapMonitored"></param>

@@ -7,17 +7,22 @@ namespace Netcap;
 
 using Azure.Identity;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Resources.Models;
 using CommandLine;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Devices.Shared;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 /// <summary>
@@ -101,9 +106,17 @@ internal sealed class Main : IDisposable
             HelpText = "The network interfaces to capture from.")]
         public Pcap.InterfaceType CaptureInterfaces { get; set; } = Pcap.InterfaceType.AnyIfAvailable;
 
-        [Option('h', nameof(HostCaptureEndpointUrl), Required = false,
+        [Option('E', nameof(HostCaptureEndpointUrl), Required = false, Group = "HostCapture",
             HelpText = "The remote capture endpoint to use.")]
         public string? HostCaptureEndpointUrl { get; internal set; }
+
+        [Option('C', nameof(HostCaptureCertificate), Required = false, Group = "HostCapture",
+            HelpText = "The remote capture endpoint certificate.")]
+        public string? HostCaptureCertificate { get; internal set; }
+
+        [Option('A', nameof(HostCaptureApiKey), Required = false, Group = "HostCapture",
+            HelpText = "The remote capture endpoint api key.")]
+        public string? HostCaptureApiKey { get; internal set; }
 
         public RunOptions()
         {
@@ -112,7 +125,7 @@ internal sealed class Main : IDisposable
         }
 
         /// <summary>
-        /// Get configuration from twin
+        /// GetAndStop configuration from twin
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
@@ -127,6 +140,12 @@ internal sealed class Main : IDisposable
                 nameof(PublisherRestApiKey), PublisherRestApiKey);
             PublisherRestCertificate = twin.GetProperty(
                 nameof(PublisherRestCertificate), PublisherRestCertificate);
+            HostCaptureEndpointUrl = twin.GetProperty(
+                nameof(HostCaptureEndpointUrl), HostCaptureEndpointUrl);
+            HostCaptureCertificate = twin.GetProperty(
+                nameof(HostCaptureCertificate), HostCaptureCertificate);
+            HostCaptureApiKey = twin.GetProperty(
+                nameof(HostCaptureApiKey), HostCaptureApiKey);
             var captureDuration = twin.GetProperty(nameof(CaptureDuration));
             if (!string.IsNullOrWhiteSpace(captureDuration) &&
                 TimeSpan.TryParse(captureDuration, out var duration))
@@ -134,6 +153,16 @@ internal sealed class Main : IDisposable
                 CaptureDuration = duration;
             }
         }
+    }
+
+    [Verb("sidecar", HelpText = "Run netcap as capture side car.")]
+    public sealed class SidecarOptions
+    {
+        [Option('c', nameof(EdgeHubConnectionString), Required = false,
+            HelpText = "The edge hub connection string to connect with." +
+            "\nDefaults to value of environment variable 'EdgeHubConnectionString'.")]
+        public string? EdgeHubConnectionString { get; set; } =
+            Environment.GetEnvironmentVariable(nameof(EdgeHubConnectionString));
     }
 
     [Verb("install", HelpText = "Install netcap into a publisher.")]
@@ -216,6 +245,7 @@ internal sealed class Main : IDisposable
         Parser.Default.ParseArguments<RunOptions, InstallOptions, UninstallOptions>(args)
             .WithParsed<RunOptions>(parsedParams => _run = parsedParams)
             .WithParsed<InstallOptions>(parsedParams => _install = parsedParams)
+            .WithParsed<SidecarOptions>(parsedParams => _sidecar = parsedParams)
             .WithParsed<UninstallOptions>(parsedParams => _uninstall = parsedParams)
             .WithNotParsed(errors =>
             {
@@ -236,20 +266,20 @@ internal sealed class Main : IDisposable
         {
             await UninstallAsync(ct).ConfigureAwait(false);
         }
+        else if (_sidecar != null)
+        {
+            await RunAsSidecarModuleAsync(ct).ConfigureAwait(false);
+        }
         else if (!string.IsNullOrWhiteSpace(_run?.EdgeHubConnectionString) ||
             Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI") != null)
         {
-            await ConnectAsModuleAsync(ct).ConfigureAwait(false);
-
-            await RunAsync(ct).ConfigureAwait(false);
+            await RunAsModuleAsync(ct).ConfigureAwait(false);
         }
         else if (!string.IsNullOrEmpty(iothubConnectionString))
         {
             // NOTE: This is for local testing against IoT Hub
-            await ConnectAsIoTHubOwnerAsync(
+            await RunAsIoTHubConnectedModuleAsync(
                 iothubConnectionString, ct).ConfigureAwait(false);
-
-            await RunAsync(ct).ConfigureAwait(false);
         }
         else if (string.IsNullOrWhiteSpace(_run?.PublisherRestApiKey) &&
             string.IsNullOrWhiteSpace(_run?.PublisherRestCertificate) &&
@@ -266,10 +296,7 @@ internal sealed class Main : IDisposable
     /// <returns></returns>
     private async Task RunAsync(CancellationToken ct = default)
     {
-        if (_run == null)
-        {
-            _run = new RunOptions();
-        }
+        _run ??= new RunOptions();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         if (!Extensions.IsRunningInContainer())
         {
@@ -297,7 +324,7 @@ internal sealed class Main : IDisposable
 
             for (var i = 0; !cts.IsCancellationRequested; i++)
             {
-                // Get endpoint urls and addresses to monitor if not set
+                // GetAndStop endpoint urls and addresses to monitor if not set
                 if (!await publisher.TryUpdateEndpointsAsync(cts.Token).ConfigureAwait(false))
                 {
                     _logger.LogInformation("waiting .....");
@@ -356,37 +383,13 @@ internal sealed class Main : IDisposable
     }
 
     /// <summary>
-    /// Run as side car
-    /// </summary>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    private static async Task RunSidecarAsync(CancellationToken ct = default)
-    {
-        var builder = WebApplication.CreateBuilder();
-        var app = builder.Build();
-
-       // app.MapPost("/", );
-        app.MapGet("/{fileName}", async (string fileName) =>
-        {
-            var path = @$"{fileName}.zip";
-            var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
-            return Results.File(path, "application/zip", $"{fileName}.zip");
-        }).Produces(StatusCodes.Status200OK).Produces(StatusCodes.Status404NotFound);
-
-        await app.RunAsync(ct).ConfigureAwait(false);
-    }
-
-    /// <summary>
     /// Install
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
     private async Task InstallAsync(CancellationToken ct = default)
     {
-        if (_install == null)
-        {
-            _install = new InstallOptions();
-        }
+        _install ??= new InstallOptions();
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
@@ -399,7 +402,7 @@ internal sealed class Main : IDisposable
         var gateway = new Gateway(armClient, _logger, _install.Branch);
         try
         {
-            // Get publishers
+            // GetAndStop publishers
             var found = await gateway.SelectPublisherAsync(_install.SubscriptionId,
                 false, ct).ConfigureAwait(false);
             if (!found)
@@ -427,7 +430,7 @@ internal sealed class Main : IDisposable
                 }
                 try
                 {
-                    // Get the logs from the module, when cancelled undeploy
+                    // GetAndStop the logs from the module, when cancelled undeploy
                     var downloader = gateway.GetStorage();
                     await downloader.DownloadAsync(_install.OutputPath,
                         cts.Token).ConfigureAwait(false);
@@ -453,10 +456,7 @@ internal sealed class Main : IDisposable
     /// <returns></returns>
     private async Task UninstallAsync(CancellationToken ct = default)
     {
-        if (_uninstall == null)
-        {
-            _uninstall = new UninstallOptions();
-        }
+        _uninstall ??= new UninstallOptions();
         // Login to azure
         var armClient = new ArmClient(new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
@@ -470,8 +470,8 @@ internal sealed class Main : IDisposable
         try
         {
             // Select netcap modules
-            var found = await gateway.SelectPublisherAsync(_uninstall.SubscriptionId, true,
-                ct).ConfigureAwait(false);
+            var found = await gateway.SelectPublisherAsync(_uninstall.SubscriptionId,
+                true, ct).ConfigureAwait(false);
             if (!found)
             {
                 return;
@@ -500,83 +500,169 @@ internal sealed class Main : IDisposable
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    private async ValueTask ConnectAsModuleAsync(CancellationToken ct = default)
+    private async ValueTask RunAsModuleAsync(CancellationToken ct = default)
     {
-        if (_run == null)
-        {
-            _run = new RunOptions();
-        }
-        if (string.IsNullOrWhiteSpace(_run.EdgeHubConnectionString))
-        {
-            var moduleClient =
-                await ModuleClient.CreateFromEnvironmentAsync().ConfigureAwait(false);
-            await using (var _ = moduleClient.ConfigureAwait(false))
-            {
-                await ConnectAsModuleAsync(moduleClient, ct).ConfigureAwait(false);
-            }
-        }
-        else
-        {
-            var moduleClient =
-                ModuleClient.CreateFromConnectionString(_run.EdgeHubConnectionString);
-            await using (var _ = moduleClient.ConfigureAwait(false))
-            {
-                await ConnectAsModuleAsync(moduleClient, ct).ConfigureAwait(false);
-            }
-        }
-
-        async Task ConnectAsModuleAsync(ModuleClient moduleClient, CancellationToken ct)
+        _run ??= new RunOptions();
+        var moduleClient = await CreateModuleClientAsync(
+            _run.EdgeHubConnectionString).ConfigureAwait(false);
+        try
         {
             // Call the "GetApiKey" and "GetServerCertificate" methods on the publisher module
             await moduleClient.OpenAsync(ct).ConfigureAwait(false);
-            try
+            await moduleClient.UpdateReportedPropertiesAsync(new TwinCollection
             {
+                ["__type__"] = "OpcNetcap",
+                ["__version__"] = GetType().Assembly.GetVersion()
+            }, ct).ConfigureAwait(false);
+
+            var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
+
+            var deviceId = twin.DeviceId ?? Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
+            var moduleId = twin.ModuleId ?? Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
+            _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId),
+                _run.PublisherModuleId);
+            _run.PublisherDeviceId = deviceId; // Override as we must be in the same device
+            Debug.Assert(_run.PublisherModuleId != null);
+            Debug.Assert(_run.PublisherDeviceId != null);
+
+            _run.ConfigureFromTwin(twin);
+
+            _logger.LogInformation(
+                "Connecting to OPC Publisher Module {PublisherModuleId} on {PublisherDeviceId}...",
+                _run.PublisherModuleId, _run.PublisherDeviceId);
+
+            if (_run.PublisherRestApiKey == null || _run.PublisherRestCertificate == null)
+            {
+                if (_run.PublisherRestApiKey == null)
+                {
+                    var apiKeyResponse = await moduleClient.InvokeMethodAsync(
+                        _run.PublisherDeviceId, _run.PublisherModuleId,
+                        new MethodRequest("GetApiKey"), ct).ConfigureAwait(false);
+                    _run.PublisherRestApiKey =
+                        JsonSerializer.Deserialize<string>(apiKeyResponse.Result);
+                }
+                if (_run.PublisherRestCertificate == null)
+                {
+                    var certResponse = await moduleClient.InvokeMethodAsync(
+                        _run.PublisherDeviceId, _run.PublisherModuleId,
+                        new MethodRequest("GetServerCertificate"), ct).ConfigureAwait(false);
+                    _run.PublisherRestCertificate =
+                        JsonSerializer.Deserialize<string>(certResponse.Result);
+                }
+            }
+            await CreatePublisherHttpClientAsync().ConfigureAwait(false);
+            await RunAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            await moduleClient.CloseAsync(ct).ConfigureAwait(false);
+            await moduleClient.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Run the side car providing the host side capture capabilities
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async Task RunAsSidecarModuleAsync(CancellationToken ct = default)
+    {
+        _sidecar ??= new SidecarOptions();
+        var moduleClient = await CreateModuleClientAsync(
+            _sidecar.EdgeHubConnectionString).ConfigureAwait(false);
+        try
+        {
+            await moduleClient.OpenAsync(ct).ConfigureAwait(false);
+            await moduleClient.UpdateReportedPropertiesAsync(new TwinCollection
+            {
+                ["__type__"] = "OpcNetcapSidecar",
+                ["__version__"] = GetType().Assembly.GetVersion()
+            }, ct).ConfigureAwait(false);
+
+            var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
+            var cert = twin.GetProperty("__certificate__", desired: false);
+            var apiKey = twin.GetProperty("__apikey__", desired: false);
+            if (cert != null && apiKey != null)
+            {
+                _certificate = new X509Certificate2(
+                    Convert.FromBase64String(cert.Trim()), apiKey);
+            }
+            else
+            {
+                _certificate = CreateCertificate(twin);
+                apiKey = Guid.NewGuid().ToString();
+                cert = Convert.ToBase64String(_certificate.Export(
+                    X509ContentType.Pfx, apiKey));
                 await moduleClient.UpdateReportedPropertiesAsync(new TwinCollection
                 {
-                    ["__type__"] = "OpcNetcap",
-                    ["__version__"] = GetType().Assembly.GetVersion()
+                    ["__certificate__"] = cert,
+                    ["__apikey__"] = apiKey
                 }, ct).ConfigureAwait(false);
-
-                var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
-
-                var deviceId = twin.DeviceId ?? Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
-                var moduleId = twin.ModuleId ?? Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
-                _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
-                _run.PublisherDeviceId = deviceId; // Override as we must be in the same device
-                Debug.Assert(_run.PublisherModuleId != null);
-                Debug.Assert(_run.PublisherDeviceId != null);
-
-                _run.ConfigureFromTwin(twin);
-
-                _logger.LogInformation(
-                    "Connecting to OPC Publisher Module {PublisherModuleId} on {PublisherDeviceId}...",
-                    _run.PublisherModuleId, _run.PublisherDeviceId);
-
-                if (_run.PublisherRestApiKey == null || _run.PublisherRestCertificate == null)
-                {
-                    if (_run.PublisherRestApiKey == null)
-                    {
-                        var apiKeyResponse = await moduleClient.InvokeMethodAsync(
-                            _run.PublisherDeviceId, _run.PublisherModuleId,
-                            new MethodRequest("GetApiKey"), ct).ConfigureAwait(false);
-                        _run.PublisherRestApiKey =
-                            JsonSerializer.Deserialize<string>(apiKeyResponse.Result);
-                    }
-                    if (_run.PublisherRestCertificate == null)
-                    {
-                        var certResponse = await moduleClient.InvokeMethodAsync(
-                            _run.PublisherDeviceId, _run.PublisherModuleId,
-                            new MethodRequest("GetServerCertificate"), ct).ConfigureAwait(false);
-                        _run.PublisherRestCertificate =
-                            JsonSerializer.Deserialize<string>(certResponse.Result);
-                    }
-                }
-                await CreateHttpClientWithAuthAsync().ConfigureAwait(false);
             }
-            finally
+
+            var builder = WebApplication.CreateBuilder();
+            builder.WebHost.ConfigureKestrel((_, serverOptions) =>
+                serverOptions.ListenAnyIP(443,
+                    options => options.UseHttps(_certificate)));
+
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.TryAddSingleton(_sidecar);
+            builder.Services.AddLogging(builder => builder
+                .AddSimpleConsole(options => options.SingleLine = true));
+            builder.Services.AddAuthentication(nameof(ApiKeyProvider.ApiKey))
+                .AddScheme<AuthenticationSchemeOptions, ApiKeyHandler>(
+                    nameof(ApiKeyProvider.ApiKey), null);
+            builder.Services.AddAuthentication();
+
+            var app = builder.Build();
+            app.UseCors();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseHttpsRedirection();
+
+            var server = new Pcap.PcapServer(_logger);
+            app.MapPut("/", server.Put)
+                .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status404NotFound);
+            app.MapGet("/{handle}", server.GetAndStop)
+                .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status404NotFound);
+            app.MapPost("/{handle}", server.Delete)
+                .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status404NotFound);
+
+            await app.RunAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (moduleClient != null)
             {
                 await moduleClient.CloseAsync(ct).ConfigureAwait(false);
+                await moduleClient.DisposeAsync().ConfigureAwait(false);
             }
+        }
+
+        static X509Certificate2 CreateCertificate(Twin twin)
+        {
+            var dnsName = Dns.GetHostName();
+            using var ecdsa = ECDsa.Create();
+            var req = new CertificateRequest("DC=" + dnsName, ecdsa, HashAlgorithmName.SHA256);
+            var san = new SubjectAlternativeNameBuilder();
+            san.AddDnsName(dnsName);
+            var altDns = twin?.ModuleId ?? twin?.DeviceId;
+            if (!string.IsNullOrEmpty(altDns) &&
+                !string.Equals(altDns, dnsName, StringComparison.OrdinalIgnoreCase))
+            {
+                san.AddDnsName(altDns);
+            }
+            req.CertificateExtensions.Add(san.Build());
+            var certificate = req.CreateSelfSigned(DateTimeOffset.Now,
+                DateTimeOffset.Now + TimeSpan.FromDays(90));
+            Debug.Assert(certificate.HasPrivateKey);
+            return certificate;
         }
     }
 
@@ -586,18 +672,15 @@ internal sealed class Main : IDisposable
     /// <param name="iothubConnectionString"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    private async ValueTask ConnectAsIoTHubOwnerAsync(
+    private async ValueTask RunAsIoTHubConnectedModuleAsync(
         string iothubConnectionString, CancellationToken ct = default)
     {
         string deviceId;
         var ncModuleId = "netcap";
-        if (_run == null)
-        {
-            _run = new RunOptions();
-        }
+        _run ??= new RunOptions();
         if (!string.IsNullOrWhiteSpace(_run.EdgeHubConnectionString))
         {
-            // Get device and module id from edge hub connection string provided
+            // GetAndStop device and module id from edge hub connection string provided
             var ehc = IotHubConnectionStringBuilder.Create(_run.EdgeHubConnectionString);
             deviceId = ehc.DeviceId;
             ncModuleId = ehc.ModuleId ?? ncModuleId;
@@ -638,7 +721,7 @@ internal sealed class Main : IDisposable
             }
         }, twin.ETag, ct).ConfigureAwait(false);
 
-        // Get publisher id from twin if not configured
+        // GetAndStop publisher id from twin if not configured
         _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
         _run.PublisherDeviceId ??= deviceId;
         Debug.Assert(_run.PublisherModuleId != null);
@@ -671,14 +754,15 @@ internal sealed class Main : IDisposable
                     JsonSerializer.Deserialize<string>(certResponse.GetPayloadAsJson());
             }
         }
-        await CreateHttpClientWithAuthAsync().ConfigureAwait(false);
+        await CreatePublisherHttpClientAsync().ConfigureAwait(false);
+        await RunAsync(ct).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// CreateSidecarDeployment client
+    /// Create publisher client
     /// </summary>
     /// <returns></returns>
-    private async ValueTask CreateHttpClientWithAuthAsync()
+    private async ValueTask CreatePublisherHttpClientAsync()
     {
         if (_run?.PublisherRestApiKey != null)
         {
@@ -746,10 +830,7 @@ internal sealed class Main : IDisposable
                 }
                 catch { host = null; }
             }
-            if (host == null)
-            {
-                host = "localhost";
-            }
+            host ??= "localhost";
             var isLocal = host == null;
             var uri = new UriBuilder
             {
@@ -777,6 +858,100 @@ internal sealed class Main : IDisposable
         return _loggerFactory.CreateLogger("Netcap");
     }
 
+    /// <summary>
+    /// Create module client
+    /// </summary>
+    /// <param name="connectionString"></param>
+    /// <returns></returns>
+    private async static ValueTask<ModuleClient> CreateModuleClientAsync(string? connectionString)
+    {
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            return ModuleClient.CreateFromConnectionString(connectionString);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        }
+        return await ModuleClient.CreateFromEnvironmentAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Injected apikey
+    /// </summary>
+    /// <param name="ApiKey"></param>
+    public record class ApiKeyProvider(string ApiKey);
+
+    /// <summary>
+    /// Api key authentication handler
+    /// </summary>
+    internal sealed class ApiKeyHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        public const string SchemeName = "ApiKey";
+
+        /// <summary>
+        /// Create authentication handler
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="logger"></param>
+        /// <param name="encoder"></param>
+        /// <param name="context"></param>
+        /// <param name="apiKeyProvider"></param>
+        public ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger, UrlEncoder encoder, IHttpContextAccessor context,
+            ApiKeyProvider apiKeyProvider) :
+            base(options, logger, encoder)
+        {
+            _context = context;
+            _apiKeyProvider = apiKeyProvider;
+        }
+
+        /// <inheritdoc/>
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            var httpContext = _context.HttpContext;
+            if (httpContext == null)
+            {
+                return Task.FromResult(AuthenticateResult.Fail(
+                    "No request."));
+            }
+
+            var authorization = httpContext.Request.Headers.Authorization;
+            if (authorization.Count == 0 || string.IsNullOrEmpty(authorization[0]))
+            {
+                return Task.FromResult(AuthenticateResult.Fail(
+                    "Missing Authorization header."));
+            }
+            try
+            {
+                var header = AuthenticationHeaderValue.Parse(authorization[0]!);
+                if (header.Scheme != nameof(ApiKeyProvider.ApiKey))
+                {
+                    return Task.FromResult(AuthenticateResult.NoResult());
+                }
+
+                if (_apiKeyProvider.ApiKey != header.Parameter?.Trim())
+                {
+                    throw new UnauthorizedAccessException();
+                }
+
+                var claims = new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, nameof(ApiKeyProvider.ApiKey))
+                };
+
+                var identity = new ClaimsIdentity(claims, Scheme.Name);
+                var principal = new ClaimsPrincipal(identity);
+                var ticket = new AuthenticationTicket(principal, Scheme.Name);
+                return Task.FromResult(AuthenticateResult.Success(ticket));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(AuthenticateResult.Fail(ex));
+            }
+        }
+
+        private readonly IHttpContextAccessor _context;
+        private readonly ApiKeyProvider _apiKeyProvider;
+    }
 
     private HttpClient _httpClient;
     private ILoggerFactory _loggerFactory = null!;
@@ -785,6 +960,7 @@ internal sealed class Main : IDisposable
     private InstallOptions? _install;
     private UninstallOptions? _uninstall;
     private RunOptions? _run;
+    private SidecarOptions? _sidecar;
     internal static readonly JsonSerializerOptions Indented
         = new() { WriteIndented = true };
 }

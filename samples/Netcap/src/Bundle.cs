@@ -20,7 +20,7 @@ using System;
 internal sealed class Bundle
 {
     /// <summary>
-    /// Start of capture
+    /// Put of capture
     /// </summary>
     public DateTimeOffset Start { get; }
 
@@ -105,7 +105,7 @@ internal sealed class Bundle
     }
 
     /// <summary>
-    /// Get bundle file
+    /// GetAndStop bundle file
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>

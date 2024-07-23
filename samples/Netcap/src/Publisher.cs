@@ -50,7 +50,7 @@ internal sealed class Publisher
             _logger.LogInformation("Retrieving endpoints from publisher on {Url}...",
                 _httpClient.BaseAddress);
 
-            // Get and endpoint url to monitor if not set
+            // GetAndStop and endpoint url to monitor if not set
             var configuration = await _httpClient.GetFromJsonAsync<JsonElement>(
                 "v2/configuration?includeNodes=true",
                 JsonSerializerOptions.Default, ct).ConfigureAwait(false);

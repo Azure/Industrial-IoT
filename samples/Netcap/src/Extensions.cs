@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 internal static partial class Extensions
 {
     /// <summary>
-    /// Get property
+    /// GetAndStop property
     /// </summary>
     /// <param name="twin"></param>
     /// <param name="name"></param>
@@ -44,7 +44,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get tag
+    /// GetAndStop tag
     /// </summary>
     /// <param name="twin"></param>
     /// <param name="name"></param>
@@ -68,7 +68,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get bytes
+    /// GetAndStop bytes
     /// </summary>
     /// <param name="elem"></param>
     /// <param name="value"></param>
@@ -105,7 +105,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get assembly version
+    /// GetAndStop assembly version
     /// </summary>
     /// <param name="assembly"></param>
     public static string GetVersion(this Assembly assembly)
