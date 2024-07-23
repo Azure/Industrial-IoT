@@ -4,25 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Netcap;
-
-using SharpPcap;
-using SharpPcap.LibPcap;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
 using System.IO.Compression;
-using System.Diagnostics;
 using System.Text;
 using System;
-
-internal enum InterfaceType
-{
-    AnyIfAvailable,
-    AllButAny,
-    EthernetOnly
-}
 
 /// <summary>
 /// Network capture bundle containing everythig to analyze
@@ -33,7 +22,7 @@ internal sealed class Bundle
     /// <summary>
     /// Start of capture
     /// </summary>
-    public DateTimeOffset Start { get; private set; }
+    public DateTimeOffset Start { get; }
 
     /// <summary>
     /// End of capture
@@ -69,9 +58,11 @@ internal sealed class Bundle
     /// <param name="publisher"></param>
     /// <param name="index"></param>
     /// <param name="itf"></param>
+    /// <param name="hostCaptureEndpointUrl"></param>
     /// <returns></returns>
-    public IDisposable CaptureNetworkTraces(Publisher publisher, int index,
-        InterfaceType itf = InterfaceType.AnyIfAvailable)
+    public Pcap AddPcap(Publisher publisher, int index,
+        Pcap.InterfaceType itf = Pcap.InterfaceType.AnyIfAvailable,
+        string? hostCaptureEndpointUrl = null)
     {
         if (publisher.PnJson != null)
         {
@@ -79,19 +70,38 @@ internal sealed class Bundle
             File.WriteAllText(Path.Combine(_folder, "pn.json"), publisher.PnJson);
         }
 
-        // CreateSidecarDeployment filter
+        var file = Path.Combine(_folder, $"capture{index}.pcap");
+
+        // Capture filter
         // https://www.wireshark.org/docs/man-pages/pcap-filter.html
         // src or dst host 192.168.80.2
         // "ip and tcp and not port 80 and not port 25";
         // TODO: Filter on src/dst of publisher ip
+        Pcap pcap;
         var addresses = publisher.Addresses;
         if (addresses.Count == 0)
         {
-            return new Pcap(this, itf, "ip and tcp", index);
+            pcap = new Pcap(_logger, new Pcap.CaptureConfiguration(file, itf, "ip and tcp"),
+                hostCaptureEndpointUrl);
         }
-        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
-            ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
-        return new Pcap(this, itf, filter, index);
+        else
+        {
+            var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+                ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
+            pcap = new Pcap(_logger, new Pcap.CaptureConfiguration(file, itf, filter),
+                hostCaptureEndpointUrl);
+        }
+        _captures.Add(pcap);
+        return pcap;
+    }
+
+    /// <summary>
+    /// Add an extra pcap
+    /// </summary>
+    /// <param name="pcap"></param>
+    public void AddExtraPcap(Pcap pcap)
+    {
+        _captures.Add(pcap);
     }
 
     /// <summary>
@@ -101,6 +111,31 @@ internal sealed class Bundle
     /// <returns></returns>
     public string GetBundleFile(string? name = null)
     {
+        foreach (var capture in _captures)
+        {
+            if (capture.Open)
+            {
+                capture.Dispose();
+            }
+            if (Path.GetDirectoryName(capture.File) != _folder)
+            {
+                var additionalcaptures = Path.Combine(_folder, "extra");
+                if (!Directory.Exists(additionalcaptures))
+                {
+                    Directory.CreateDirectory(additionalcaptures);
+                }
+                File.Copy(capture.File, Path.Combine(additionalcaptures,
+                    Path.GetFileName(capture.File)));
+            }
+            if (capture.End > End)
+            {
+                End = capture.End.Value;
+            }
+            if (capture.Start < Start)
+            {
+                End = capture.Start;
+            }
+        }
         var zipFile = Path.Combine(Path.GetTempPath(), name ?? "capture-bundle.zip");
         ZipFile.CreateFromDirectory(_folder, zipFile, CompressionLevel.SmallestSize,
             false, entryNameEncoding: Encoding.UTF8);
@@ -220,186 +255,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
         Directory.Delete(_folder, true);
     }
 
-    /// <summary>
-    /// Tracing
-    /// </summary>
-    internal sealed class Pcap : IDisposable
-    {
-        /// <summary>
-        /// CreateSidecarDeployment pcap
-        /// </summary>
-        /// <param name="bundle"></param>
-        /// <param name="itf"></param>
-        /// <param name="filter"></param>
-        /// <param name="index"></param>
-        public Pcap(Bundle bundle, InterfaceType itf, string filter, int index)
-        {
-            _bundle = bundle;
-            _filter = filter;
-            _itf = itf;
-            _logger = bundle._logger;
-
-            _logger.LogInformation(
-                "Using SharpPcap {Version}", SharpPcap.Pcap.SharpPcapVersion);
-
-            if (LibPcapLiveDeviceList.Instance.Count == 0)
-            {
-                throw new NotSupportedException("Cannot run capture without devices.");
-            }
-
-            _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder,
-                $"capture{index}.pcap"));
-
-            _devices = LibPcapLiveDeviceList.New().ToList();
-            // Open devices
-            var open = _devices
-                .Where(d =>
-                {
-                    try
-                    {
-                        _logger.LogInformation("Opening {Device} in promiscuous mode...", d);
-                        d.Open(mode: DeviceModes.Promiscuous, 1000);
-                    }
-                    catch
-                    {
-                        try
-                        {
-                            _logger.LogInformation("Fall back to normal mode...");
-                            d.Open(mode: DeviceModes.None, 1000);
-                        }
-                        catch (Exception ex2)
-                        {
-                            _logger.LogInformation(
-                                "Failed to open {Device} ({Description}): {Message}",
-                                d.Name, d.Description, ex2.Message);
-                        }
-                    }
-                    return d.Opened;
-                })
-                .ToList();
-
-            var capturing = Array.Empty<LibPcapLiveDevice>();
-            var linkType = PacketDotNet.LinkLayers.Null;
-            if (_itf == InterfaceType.AnyIfAvailable)
-            {
-                // Try to capture from cooked mode (https://wiki.wireshark.org/SLL)
-                linkType = PacketDotNet.LinkLayers.LinuxSll;
-                capturing = Capture(open.Where(d => d.LinkType == linkType));
-                if (capturing.Length == 0)
-                {
-                    _itf = InterfaceType.AllButAny;
-                }
-            }
-            if (_itf == InterfaceType.EthernetOnly)
-            {
-                linkType = PacketDotNet.LinkLayers.Ethernet;
-                capturing = Capture(open.Where(d => d.LinkType != linkType));
-                if (capturing.Length == 0)
-                {
-                    _itf = InterfaceType.AllButAny;
-                }
-            }
-            if (_itf == InterfaceType.AllButAny)
-            {
-                linkType = PacketDotNet.LinkLayers.Null;
-                capturing = Capture(open.Where(d =>
-                    d.LinkType != PacketDotNet.LinkLayers.LinuxSll));
-            }
-
-            if (capturing.Length == 0)
-            {
-                // Capture from all interfaces that are open
-                linkType = PacketDotNet.LinkLayers.Null;
-                capturing = Capture(open);
-            }
-
-            _writer.Open(new DeviceConfiguration
-            {
-                LinkLayerType = linkType
-            });
-
-            if (capturing.Length != 0)
-            {
-                foreach (var device in capturing)
-                {
-                    device.StartCapture();
-                    _logger.LogInformation("Capturing {Device} ({Description})...",
-                        device.Name, device.Description);
-                };
-                _logger.LogInformation("    ... to {FileName} ({Filter}).",
-                    _bundle._folder, _filter);
-            }
-            else
-            {
-                _logger.LogWarning("No capture devices found to capture from.");
-            }
-            _bundle.Start = DateTimeOffset.UtcNow;
-
-            LibPcapLiveDevice[] Capture(IEnumerable<LibPcapLiveDevice> candidates)
-            {
-                var capturing = new List<LibPcapLiveDevice>();
-                foreach (var device in candidates)
-                {
-                    try
-                    {
-                        // Open the device for capturing
-                        Debug.Assert(device.Opened);
-                        device.Filter = _filter;
-                        device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
-
-                        capturing.Add(device);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Failed to capture {Device} ({Description}): {Message}",
-                            device.Name, device.Description, ex.Message);
-                    }
-                }
-                return capturing.ToArray();
-            }
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            try
-            {
-                _bundle.End = DateTimeOffset.UtcNow;
-                _devices.ForEach(d =>
-                {
-                    try
-                    {
-                        d.StopCapture();
-                        _logger.LogInformation(
-                            "Capturing {Description} completed. ({Statistics}).",
-                            d.Description, d.Statistics.ToString());
-                    }
-                    catch { }
-                });
-                _logger.LogInformation("Completed capture ({Statistics}).",
-                    _writer.Statistics);
-                _writer.Close();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to complete capture.");
-                throw;
-            }
-            finally
-            {
-                _writer.Dispose();
-                _devices.ForEach(d => d.Dispose());
-            }
-        }
-
-        private readonly List<LibPcapLiveDevice> _devices;
-        private readonly CaptureFileWriterDevice _writer;
-        private readonly Bundle _bundle;
-        private readonly string _filter;
-        private readonly InterfaceType _itf;
-        private readonly ILogger _logger;
-    }
-
+    private readonly List<Pcap> _captures = new();
     private readonly ILogger _logger;
     private readonly string _folder;
 }

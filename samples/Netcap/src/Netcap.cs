@@ -7,6 +7,7 @@ namespace Netcap;
 
 using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Resources.Models;
 using CommandLine;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Common.Exceptions;
@@ -98,7 +99,11 @@ internal sealed class Main : IDisposable
 
         [Option('i', nameof(CaptureInterfaces), Required = false,
             HelpText = "The network interfaces to capture from.")]
-        public InterfaceType CaptureInterfaces { get; set; } = InterfaceType.AnyIfAvailable;
+        public Pcap.InterfaceType CaptureInterfaces { get; set; } = Pcap.InterfaceType.AnyIfAvailable;
+
+        [Option('h', nameof(HostCaptureEndpointUrl), Required = false,
+            HelpText = "The remote capture endpoint to use.")]
+        public string? HostCaptureEndpointUrl { get; internal set; }
 
         public RunOptions()
         {
@@ -311,7 +316,7 @@ internal sealed class Main : IDisposable
                 var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
 
                 var bundle = new Bundle(_loggerFactory.CreateLogger("Capture"), folder);
-                using (bundle.CaptureNetworkTraces(publisher, i, _run.CaptureInterfaces))
+                using (bundle.AddPcap(publisher, i, _run.CaptureInterfaces, _run.HostCaptureEndpointUrl))
                 {
                     while (!timeoutToken.IsCancellationRequested)
                     {
@@ -348,6 +353,27 @@ internal sealed class Main : IDisposable
         {
             _logger.LogError(ex, "Failed to run.");
         }
+    }
+
+    /// <summary>
+    /// Run as side car
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private static async Task RunSidecarAsync(CancellationToken ct = default)
+    {
+        var builder = WebApplication.CreateBuilder();
+        var app = builder.Build();
+
+       // app.MapPost("/", );
+        app.MapGet("/{fileName}", async (string fileName) =>
+        {
+            var path = @$"{fileName}.zip";
+            var bytes = await File.ReadAllBytesAsync(path).ConfigureAwait(false);
+            return Results.File(path, "application/zip", $"{fileName}.zip");
+        }).Produces(StatusCodes.Status200OK).Produces(StatusCodes.Status404NotFound);
+
+        await app.RunAsync(ct).ConfigureAwait(false);
     }
 
     /// <summary>
