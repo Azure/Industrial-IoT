@@ -182,7 +182,7 @@ internal sealed class Storage
     }
 
     /// <summary>
-    /// Delete storage
+    /// Cleanup storage
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>

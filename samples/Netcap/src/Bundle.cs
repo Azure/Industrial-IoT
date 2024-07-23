@@ -20,7 +20,7 @@ using System;
 internal sealed class Bundle
 {
     /// <summary>
-    /// Put of capture
+    /// CreateAndStart of capture
     /// </summary>
     public DateTimeOffset Start { get; }
 
@@ -248,7 +248,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Delete bundle
+    /// Cleanup bundle
     /// </summary>
     public void Delete()
     {

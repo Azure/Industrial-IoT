@@ -479,9 +479,9 @@ internal sealed class Main : IDisposable
 
             // Add guard here
 
-            // Delete storage account or update if it already exists in the rg
+            // Cleanup storage account or update if it already exists in the rg
             // await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
-            // Delete container registry
+            // Cleanup container registry
             // await gateway.NetcapException.DeleteAsync(ct).ConfigureAwait(false);
 
             // Deploy the module using manifest to device with the chosen publisher
@@ -621,7 +621,7 @@ internal sealed class Main : IDisposable
             app.UseHttpsRedirection();
 
             var server = new Pcap.PcapServer(_logger);
-            app.MapPut("/", server.Put)
+            app.MapPut("/", server.CreateAndStart)
                 .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
                 .Produces(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status404NotFound);
@@ -629,7 +629,7 @@ internal sealed class Main : IDisposable
                 .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
                 .Produces(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status404NotFound);
-            app.MapPost("/{handle}", server.Delete)
+            app.MapPost("/{handle}", server.Cleanup)
                 .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
                 .Produces(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status404NotFound);

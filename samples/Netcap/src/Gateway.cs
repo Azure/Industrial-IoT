@@ -673,11 +673,13 @@ internal sealed record class Gateway
                     try
                     {
                         var client = new BlobClient(new Uri(url.Value.LogLink));
+#pragma warning disable RCS1261 // Resource can be disposed asynchronously
                         using var os = Console.OpenStandardOutput();
                         using var source = await client.OpenReadAsync(new BlobOpenReadOptions(true)
                         {
                             Position = position
                         }, ct).ConfigureAwait(false);
+#pragma warning restore RCS1261 // Resource can be disposed asynchronously
                         position += await source.CopyAsync(os, ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
@@ -793,7 +795,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Delete
+        /// Cleanup
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>

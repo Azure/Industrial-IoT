@@ -121,7 +121,7 @@ internal static partial class Extensions
                 assemblyVersion = new Version();
             }
         }
-        return assemblyVersion.ToString() + branch;
+        return assemblyVersion + branch;
     }
 
     /// <summary>

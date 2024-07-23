@@ -24,6 +24,9 @@ internal sealed class Pcap : IDisposable
     /// <summary>
     /// Pcap configuration
     /// </summary>
+    /// <param name="File"></param>
+    /// <param name="InterfaceType"></param>
+    /// <param name="Filter"></param>
     public sealed record class CaptureConfiguration(string File,
         InterfaceType InterfaceType, string? Filter = null);
 
@@ -35,7 +38,7 @@ internal sealed class Pcap : IDisposable
     }
 
     /// <summary>
-    /// Put of capture
+    /// CreateAndStart of capture
     /// </summary>
     public DateTimeOffset Start { get; }
 
@@ -68,9 +71,9 @@ internal sealed class Pcap : IDisposable
     /// <summary>
     /// Create pcap
     /// </summary>
+    /// <param name="logger"></param>
     /// <param name="configuration"></param>
     /// <param name="hostCaptureEndpointUrl"></param>
-    /// <param name="logger"></param>
     public Pcap(ILogger logger, CaptureConfiguration configuration,
         string? hostCaptureEndpointUrl = null)
     {
@@ -171,7 +174,7 @@ internal sealed class Pcap : IDisposable
                     device.StartCapture();
                     _logger.LogInformation("Capturing {Device} ({Description})...",
                         device.Name, device.Description);
-                };
+                }
                 _logger.LogInformation("    ... to {FileName} ({Filter}).",
                     File, _configuration.Filter ?? "No filter");
             }
@@ -263,12 +266,22 @@ internal sealed class Pcap : IDisposable
     /// <param name="logger"></param>
     public sealed record PcapServer(ILogger logger)
     {
-        public void Put(CaptureConfiguration configuration)
+        /// <summary>
+        /// Start
+        /// </summary>
+        /// <param name="configuration"></param>
+        public void CreateAndStart(CaptureConfiguration configuration)
         {
             var pcap = new Pcap(logger, configuration);
             _captures.TryAdd(pcap.Handle, pcap);
         }
 
+        /// <summary>
+        /// Get file and stop
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>
+        /// <exception cref="NetcapException"></exception>
         public IResult GetAndStop(int handle)
         {
             if (!_captures.TryGetValue(handle, out var capture))
@@ -279,7 +292,13 @@ internal sealed class Pcap : IDisposable
             return Results.File(capture.File);
         }
 
-        public CaptureResult Delete(int handle)
+        /// <summary>
+        /// get metadata and cleanup
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>
+        /// <exception cref="NetcapException"></exception>
+        public CaptureResult Cleanup(int handle)
         {
             if (!_captures.TryRemove(handle, out var capture))
             {
@@ -294,6 +313,8 @@ internal sealed class Pcap : IDisposable
         /// <summary>
         /// Capture result
         /// </summary>
+        /// <param name="Start"></param>
+        /// <param name="End"></param>
         public sealed record class CaptureResult(DateTimeOffset Start,
             DateTimeOffset End);
 

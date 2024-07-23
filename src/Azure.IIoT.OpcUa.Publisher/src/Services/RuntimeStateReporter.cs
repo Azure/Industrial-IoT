@@ -128,6 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public async ValueTask SendRestartAnnouncementAsync(CancellationToken ct)
         {
+            var hostAddresses = await GetHostAddressesAsync(ct).ConfigureAwait(false);
+
             // Set runtime state in state stores
             foreach (var store in _stores)
             {
@@ -139,6 +141,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     GetType().Assembly.GetReleaseVersion().ToString();
                 store.State[OpcUa.Constants.TwinPropertyFullVersionKey] =
                     PublisherConfig.Version;
+                store.State[OpcUa.Constants.TwinPropertyIpAddressesKey] =
+                    hostAddresses;
 
                 if (_options.Value.HttpServerPort.HasValue)
                 {
@@ -182,6 +186,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             _runtimeState = RuntimeStateEventType.Running;
+        }
+
+        /// <summary>
+        /// Get comma seperated host addresses
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<VariantValue> GetHostAddressesAsync(CancellationToken ct)
+        {
+            try
+            {
+                var host = await Dns.GetHostEntryAsync(Dns.GetHostName(),
+                    ct).ConfigureAwait(false);
+                return host.AddressList.Select(ip => ip.ToString())
+                    .Aggregate((a, b) => a + ", " + b);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to resolve hostname.");
+                return VariantValue.Null;
+            }
         }
 
         /// <summary>
