@@ -96,6 +96,10 @@ internal sealed class Main : IDisposable
         public TimeSpan? CaptureDuration { get; set; } = TimeSpan.TryParse(
             Environment.GetEnvironmentVariable(nameof(CaptureDuration)), out var t) ? t : null;
 
+        [Option('i', nameof(CaptureInterfaces), Required = false,
+            HelpText = "The network interfaces to capture from.")]
+        public InterfaceType CaptureInterfaces { get; set; } = InterfaceType.AnyIfAvailable;
+
         public RunOptions()
         {
             PublisherRestCertificate =
@@ -307,7 +311,7 @@ internal sealed class Main : IDisposable
                 var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
 
                 var bundle = new Bundle(_loggerFactory.CreateLogger("Capture"), folder);
-                using (bundle.CaptureNetworkTraces(publisher, i))
+                using (bundle.CaptureNetworkTraces(publisher, i, _run.CaptureInterfaces))
                 {
                     while (!timeoutToken.IsCancellationRequested)
                     {

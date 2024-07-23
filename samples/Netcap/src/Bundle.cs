@@ -5,17 +5,24 @@
 
 namespace Netcap;
 
-using System;
 using SharpPcap;
 using SharpPcap.LibPcap;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
 using System.IO.Compression;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text;
+using System;
+
+internal enum InterfaceType
+{
+    AnyIfAvailable,
+    AllButAny,
+    EthernetOnly
+}
 
 /// <summary>
 /// Network capture bundle containing everythig to analyze
@@ -61,8 +68,10 @@ internal sealed class Bundle
     /// </summary>
     /// <param name="publisher"></param>
     /// <param name="index"></param>
+    /// <param name="itf"></param>
     /// <returns></returns>
-    public IDisposable CaptureNetworkTraces(Publisher publisher, int index)
+    public IDisposable CaptureNetworkTraces(Publisher publisher, int index,
+        InterfaceType itf = InterfaceType.AnyIfAvailable)
     {
         if (publisher.PnJson != null)
         {
@@ -78,7 +87,7 @@ internal sealed class Bundle
         var addresses = publisher.Addresses;
         var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
             ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
-        return new Pcap(this, filter, index);
+        return new Pcap(this, itf, filter, index);
     }
 
     /// <summary>
@@ -216,12 +225,14 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
         /// Create pcap
         /// </summary>
         /// <param name="bundle"></param>
+        /// <param name="itf"></param>
         /// <param name="filter"></param>
         /// <param name="index"></param>
-        public Pcap(Bundle bundle, string filter, int index)
+        public Pcap(Bundle bundle, InterfaceType itf, string filter, int index)
         {
             _bundle = bundle;
             _filter = filter;
+            _itf = itf;
             _logger = bundle._logger;
 
             _logger.LogInformation(
@@ -242,13 +253,14 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                 {
                     try
                     {
-                        _logger.LogInformation("Opening {Device}...", d);
+                        _logger.LogInformation("Opening {Device} in promiscuous mode...", d);
                         d.Open(mode: DeviceModes.Promiscuous, 1000);
                     }
                     catch
                     {
                         try
                         {
+                            _logger.LogInformation("Fall back to normal mode...");
                             d.Open(mode: DeviceModes.None, 1000);
                         }
                         catch (Exception ex2)
@@ -262,40 +274,54 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                 })
                 .ToList();
 
-            // Try to capture from cooked mode (https://wiki.wireshark.org/SLL)
-            var linkType = PacketDotNet.LinkLayers.LinuxSll;
-#if COOKED_MODE
-            var capturing = Capture(open.Where(d => d.LinkType == linkType));
-            if (capturing.Count == 0)
+            var capturing = Array.Empty<LibPcapLiveDevice>();
+            var linkType = PacketDotNet.LinkLayers.Null;
+            if (_itf == InterfaceType.AnyIfAvailable)
+            {
+                // Try to capture from cooked mode (https://wiki.wireshark.org/SLL)
+                linkType = PacketDotNet.LinkLayers.LinuxSll;
+                capturing = Capture(open.Where(d => d.LinkType == linkType));
+                if (capturing.Length == 0)
+                {
+                    _itf = InterfaceType.AllButAny;
+                }
+            }
+            if (_itf == InterfaceType.EthernetOnly)
+            {
+                linkType = PacketDotNet.LinkLayers.Ethernet;
+                capturing = Capture(open.Where(d => d.LinkType != linkType));
+                if (capturing.Length == 0)
+                {
+                    _itf = InterfaceType.AllButAny;
+                }
+            }
+            if (_itf == InterfaceType.AllButAny)
             {
                 linkType = PacketDotNet.LinkLayers.Null;
                 capturing = Capture(open.Where(d =>
-                    d.LinkType == PacketDotNet.LinkLayers.Ethernet ||
-                    d.LinkType == PacketDotNet.LinkLayers.Loop));
-
-                if (capturing.Count == 0)
-                {
-                    // Capture from all interfaces that are open
-                    capturing = Capture(open);
-                }
+                    d.LinkType != PacketDotNet.LinkLayers.LinuxSll));
             }
-#else
-            linkType = PacketDotNet.LinkLayers.Null;
-            var capturing = Capture(open);
-#endif
+
+            if (capturing.Length == 0)
+            {
+                // Capture from all interfaces that are open
+                linkType = PacketDotNet.LinkLayers.Null;
+                capturing = Capture(open);
+            }
+
             _writer.Open(new DeviceConfiguration
             {
                 LinkLayerType = linkType
             });
 
-            if (capturing.Count != 0)
+            if (capturing.Length != 0)
             {
-                capturing.ForEach(d =>
+                foreach (var device in capturing)
                 {
-                    d.StartCapture();
+                    device.StartCapture();
                     _logger.LogInformation("Capturing {Device} ({Description})...",
-                        d.Name, d.Description);
-                });
+                        device.Name, device.Description);
+                };
                 _logger.LogInformation("    ... to {FileName} ({Filter}).",
                     _bundle._folder, _filter);
             }
@@ -305,7 +331,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
             }
             _bundle.Start = DateTimeOffset.UtcNow;
 
-            List<LibPcapLiveDevice> Capture(IEnumerable<LibPcapLiveDevice> candidates)
+            LibPcapLiveDevice[] Capture(IEnumerable<LibPcapLiveDevice> candidates)
             {
                 var capturing = new List<LibPcapLiveDevice>();
                 foreach (var device in candidates)
@@ -325,7 +351,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                             device.Name, device.Description, ex.Message);
                     }
                 }
-                return capturing;
+                return capturing.ToArray();
             }
         }
 
@@ -346,7 +372,9 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
                     }
                     catch { }
                 });
-                _logger.LogInformation("Completed capture.");
+                _logger.LogInformation("Completed capture ({Statistics}).",
+                    _writer.Statistics);
+                _writer.Close();
             }
             catch (Exception ex)
             {
@@ -364,6 +392,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
         private readonly CaptureFileWriterDevice _writer;
         private readonly Bundle _bundle;
         private readonly string _filter;
+        private readonly InterfaceType _itf;
         private readonly ILogger _logger;
     }
 

@@ -115,7 +115,11 @@ internal static partial class Extensions
         var ver = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
         if (ver == null || !Version.TryParse(ver, out var assemblyVersion))
         {
-            assemblyVersion = new Version();
+            ver = Environment.GetEnvironmentVariable("VERSION");
+            if (ver == null || !Version.TryParse(ver, out assemblyVersion))
+            {
+                assemblyVersion = new Version();
+            }
         }
         return assemblyVersion.ToString() + branch;
     }

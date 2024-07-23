@@ -490,6 +490,7 @@ internal sealed record class Gateway
             Cmd = args.ToArray(),
             HostConfig = new
             {
+                Privileged = true,
                 CapAdd = new[] { "NET_ADMIN" }
             }
         }).Replace("\"", "\\\"", StringComparison.Ordinal);
