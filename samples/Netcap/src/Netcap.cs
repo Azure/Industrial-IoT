@@ -106,15 +106,15 @@ internal sealed class Main : IDisposable
             HelpText = "The network interfaces to capture from.")]
         public Pcap.InterfaceType CaptureInterfaces { get; set; } = Pcap.InterfaceType.AnyIfAvailable;
 
-        [Option('E', nameof(HostCaptureEndpointUrl), Required = false, Group = "HostCapture",
+        [Option('E', nameof(HostCaptureEndpointUrl), Required = false,
             HelpText = "The remote capture endpoint to use.")]
         public string? HostCaptureEndpointUrl { get; internal set; }
 
-        [Option('C', nameof(HostCaptureCertificate), Required = false, Group = "HostCapture",
+        [Option('C', nameof(HostCaptureCertificate), Required = false,
             HelpText = "The remote capture endpoint certificate.")]
         public string? HostCaptureCertificate { get; internal set; }
 
-        [Option('A', nameof(HostCaptureApiKey), Required = false, Group = "HostCapture",
+        [Option('A', nameof(HostCaptureApiKey), Required = false,
             HelpText = "The remote capture endpoint api key.")]
         public string? HostCaptureApiKey { get; internal set; }
 
