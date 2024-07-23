@@ -15,7 +15,6 @@ using Azure.ResourceManager.IotHub;
 using Azure.ResourceManager.Resources;
 using Microsoft.Azure.Devices;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Azure.Devices.Common.Exceptions;
@@ -23,6 +22,9 @@ using Microsoft.Azure.Devices.Shared;
 using Azure.ResourceManager.IotHub.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Microsoft.Win32;
 
 /// <summary>
 /// Represents and edge gateway that can be accessed from
@@ -204,8 +206,52 @@ internal sealed record class Gateway
         }
         catch (ConfigurationNotFoundException) { }
 
-        var twin = await registryManager.GetTwinAsync(_publisher.DeviceId,
+        var publisherTwin = await registryManager.GetTwinAsync(_publisher.DeviceId,
             _publisher.Id, ct).ConfigureAwait(false);
+
+        var hostname = publisherTwin.GetProperty("__hostname__", desired: false);
+        var port = publisherTwin.GetProperty("__port__", desired: false);
+
+        // Get the create options of the publisher
+        var agent = await registryManager.GetTwinAsync(_publisher.DeviceId,
+            "$edgeAgent", ct).ConfigureAwait(false);
+        if (agent?.Properties.Desired.Contains("modules") == true)
+        {
+            var publisherDeployment = agent.Properties.Desired["modules"][_publisher.Id];
+            if (publisherDeployment != null)
+            {
+                var settings = publisherDeployment["settings"];
+                var options = (string?)settings["createOptions"];
+                if (options != null)
+                {
+
+                    var createOptions = JObject.Parse(options
+                        .Replace("\\\"", "\"", StringComparison.Ordinal));
+                    if (createOptions.TryGetValue("HostConfig", out var cfg) &&
+                        cfg is JObject hostConfig &&
+                        hostConfig.TryGetValue("PortBindings", out var bd) &&
+                        bd is JObject bindings)
+                    {
+                        // {\"443/tcp\":[{\"HostPort\":\"8081\"}]}
+                        foreach (var pm in bindings)
+                        {
+                            if (pm.Key.StartsWith("443", StringComparison.Ordinal) &&
+                                pm.Value is JArray arr && arr.Count > 0 &&
+                                arr[0] is JObject o && o.TryGetValue("HostPort", out var p))
+                            {
+                                port = p.Value<string>();
+                            }
+                        }
+                    }
+                    if (createOptions.TryGetValue("Hostname", out var hn) &&
+                            hn.Type == JTokenType.String)
+                    {
+                        hostname = hn.Value<string>();
+                    }
+                }
+            }
+        }
+
         await registryManager.AddConfigurationAsync(
             new Configuration(_deploymentConfigId)
             {
@@ -215,11 +261,11 @@ internal sealed record class Gateway
                     ModulesContent = Create(_publisher.DeviceId, ncModuleId,
                         _publisher.Id, Netcap.LoginServer, Netcap.Username,
                         Netcap.Password, Netcap.Name, Storage.ConnectionString,
-                        twin.GetProperty("__apikey__", desired: false),
-                        twin.GetProperty("__certificate__", desired: false),
-                        twin.GetProperty("__scheme__", desired: false),
-                        twin.GetProperty("__hostname__", desired: false),
-                        twin.GetProperty("__port__", desired: false))
+                        publisherTwin.GetProperty("__apikey__", desired: false),
+                        publisherTwin.GetProperty("__certificate__", desired: false),
+                        publisherTwin.GetProperty("__scheme__", desired: false),
+                        hostname,
+                        port)
                 }
             }, ct).ConfigureAwait(false);
         await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
@@ -229,7 +275,7 @@ internal sealed record class Gateway
                 {
                     [kDeploymentTag] = _deploymentConfigId
                 }
-            }, twin.ETag, ct).ConfigureAwait(false);
+            }, publisherTwin.ETag, ct).ConfigureAwait(false);
 
         _logger.LogInformation("Deploying netcap module to {DeviceId}...",
             _publisher.DeviceId);
@@ -487,6 +533,13 @@ internal sealed record class Gateway
         {
             User = "root",
             Cmd = args.ToArray(),
+            NetworkingConfig = new
+            {
+                EndpointsConfig = new
+                {
+                    host = new { }
+                }
+            },
             HostConfig = new
             {
                 NetworkMode = "host", // $"container:{hostName ?? publisherModuleId}",
