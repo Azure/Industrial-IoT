@@ -112,6 +112,7 @@ internal sealed class Storage
                     }
                 }
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error receiving download notification.");

@@ -510,6 +510,11 @@ internal sealed record class Gateway
             "-m", publisherModuleId,
             "-s", storageConnectionString
         };
+        if (ipAddresses != null)
+        {
+            args.Add("-i");
+            args.Add(ipAddresses);
+        }
         if (apiKey != null)
         {
             args.Add("-a");

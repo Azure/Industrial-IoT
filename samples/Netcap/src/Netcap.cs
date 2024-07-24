@@ -76,7 +76,7 @@ internal sealed class Main : IDisposable
         public string? PublisherRestApiEndpoint { get; set; } =
             Environment.GetEnvironmentVariable(nameof(PublisherRestApiEndpoint));
 
-        [Option('e', nameof(PublisherIpAddresses), Required = false,
+        [Option('i', nameof(PublisherIpAddresses), Required = false,
             HelpText = "The endpoint of the opc publisher.")]
         public string? PublisherIpAddresses { get; set; }
 
@@ -85,7 +85,7 @@ internal sealed class Main : IDisposable
         public TimeSpan? CaptureDuration { get; set; } = TimeSpan.TryParse(
             Environment.GetEnvironmentVariable(nameof(CaptureDuration)), out var t) ? t : null;
 
-        [Option('i', nameof(CaptureInterfaces), Required = false,
+        [Option('I', nameof(CaptureInterfaces), Required = false,
             HelpText = "The network interfaces to capture from.")]
         public Pcap.InterfaceType CaptureInterfaces { get; set; } = Pcap.InterfaceType.AnyIfAvailable;
 
@@ -282,13 +282,14 @@ internal sealed class Main : IDisposable
         try
         {
             // Connect to publisher
-            var publisher = new Publisher(_loggerFactory.CreateLogger("Publisher"), _publisherHttpClient,
-                _run.PublisherIpAddresses);
+            var publisher = new Publisher(_loggerFactory.CreateLogger("Publisher"),
+                _publisherHttpClient, _run.PublisherIpAddresses);
 
             Storage? uploader = null;
             if (!string.IsNullOrEmpty(_run.StorageConnectionString))
             {
-                _logger.LogInformation("Uploading to storage of publisher module {DeviceId}/{ModuleId}...",
+                _logger.LogInformation(
+                    "Uploading to storage of publisher module {DeviceId}/{ModuleId}...",
                     _run.PublisherDeviceId, _run.PublisherModuleId);
                 // TODO: move to seperate task
                 uploader = new Storage(_run.PublisherDeviceId ?? "unknown", _run.PublisherModuleId,
@@ -306,7 +307,13 @@ internal sealed class Main : IDisposable
                 }
 
                 // Capture traffic for duration
+                var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
+                var bundle = new Bundle(_loggerFactory.CreateLogger("Capture"), folder);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 using var timeoutToken = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
                 if (uploader != null || _run.CaptureDuration != null)
                 {
                     var duration = _run.CaptureDuration ?? TimeSpan.FromMinutes(10);
@@ -314,8 +321,6 @@ internal sealed class Main : IDisposable
                     timeoutToken.CancelAfter(duration);
                 }
 
-                var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
-                var bundle = new Bundle(_loggerFactory.CreateLogger("Capture"), folder);
                 using (bundle.AddPcap(publisher, i, _run.CaptureInterfaces, _sidecarHttpClient))
                 {
                     await publisher.MonitorPublisherAsync(diagnostic =>
@@ -512,7 +517,7 @@ internal sealed class Main : IDisposable
                 }
             }
             await CreatePublisherHttpClientAsync().ConfigureAwait(false);
-            await CreateSidecarHttpClientAsync().ConfigureAwait(false);
+            CreateSidecarHttpClientIfRequired();
             await RunAsync(ct).ConfigureAwait(false);
         }
         finally
@@ -703,6 +708,7 @@ internal sealed class Main : IDisposable
             }
         }
         await CreatePublisherHttpClientAsync().ConfigureAwait(false);
+        CreateSidecarHttpClientIfRequired();
         await RunAsync(ct).ConfigureAwait(false);
     }
 
@@ -710,7 +716,7 @@ internal sealed class Main : IDisposable
     /// Create sidecar client
     /// </summary>
     /// <returns></returns>
-    private async ValueTask CreateSidecarHttpClientAsync()
+    private void CreateSidecarHttpClientIfRequired()
     {
         if (_run?.HostCaptureEndpointUrl == null ||
             _run?.HostCaptureApiKey == null ||

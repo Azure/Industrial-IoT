@@ -351,7 +351,8 @@ internal sealed class Pcap : IDisposable
             var s = await _client.GetStreamAsync(new Uri($"/{handle}"),
                 ct).ConfigureAwait(false);
             var f = System.IO.File.Create(file);
-            await using var _ = f.ConfigureAwait(false);
+            await using var sd = s.ConfigureAwait(false);
+            await using var fd = f.ConfigureAwait(false);
             await s.CopyToAsync(f, ct).ConfigureAwait(false);
 
             var response = await _client.PostAsJsonAsync(
