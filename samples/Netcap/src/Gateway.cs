@@ -32,13 +32,13 @@ using Newtonsoft.Json.Linq;
 internal sealed record class Gateway
 {
     /// <summary>
-    /// GetAndStop image
+    /// Stop image
     /// </summary>
     /// <returns></returns>
     public NetcapImage Netcap { get; }
 
     /// <summary>
-    /// GetAndStop storage
+    /// Stop storage
     /// </summary>
     /// <returns></returns>
     public NetcapStorage Storage { get; }
@@ -71,7 +71,7 @@ internal sealed record class Gateway
     {
         while (!ct.IsCancellationRequested)
         {
-            // GetAndStop target publishers in iot hubs
+            // Stop target publishers in iot hubs
             var deployments = await GetPublisherDeploymentsAsync(subscriptionId,
                 netcapMonitored, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -145,7 +145,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// GetAndStop resource group
+    /// Stop resource group
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
@@ -162,7 +162,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// GetAndStop storage
+    /// Stop storage
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NetcapException"></exception>
@@ -211,7 +211,7 @@ internal sealed record class Gateway
         var hostname = publisherTwin.GetProperty("__hostname__", desired: false);
         var port = publisherTwin.GetProperty("__port__", desired: false);
 
-        // GetAndStop the create options of the publisher
+        // Stop the create options of the publisher
         var agent = await registryManager.GetTwinAsync(_publisher.DeviceId,
             "$edgeAgent", ct).ConfigureAwait(false);
         if (agent?.Properties.Desired.Contains("modules") == true)
@@ -366,7 +366,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// GetAndStop deployments
+    /// Stop deployments
     /// </summary>
     /// <param name="subscriptionId"></param>
     /// <param name="netcapMonitored"></param>

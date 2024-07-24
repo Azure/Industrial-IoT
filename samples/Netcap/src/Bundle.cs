@@ -20,7 +20,7 @@ using System;
 internal sealed class Bundle
 {
     /// <summary>
-    /// CreateAndStart of capture
+    /// Start of capture
     /// </summary>
     public DateTimeOffset Start { get; }
 
@@ -58,11 +58,11 @@ internal sealed class Bundle
     /// <param name="publisher"></param>
     /// <param name="index"></param>
     /// <param name="itf"></param>
-    /// <param name="hostCaptureEndpointUrl"></param>
+    /// <param name="hostCaptureClient"></param>
     /// <returns></returns>
     public Pcap AddPcap(Publisher publisher, int index,
         Pcap.InterfaceType itf = Pcap.InterfaceType.AnyIfAvailable,
-        string? hostCaptureEndpointUrl = null)
+        HttpClient? hostCaptureClient = null)
     {
         if (publisher.PnJson != null)
         {
@@ -82,14 +82,14 @@ internal sealed class Bundle
         if (addresses.Count == 0)
         {
             pcap = new Pcap(_logger, new Pcap.CaptureConfiguration(file, itf, "ip and tcp"),
-                hostCaptureEndpointUrl);
+                hostCaptureClient);
         }
         else
         {
             var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
                 ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
             pcap = new Pcap(_logger, new Pcap.CaptureConfiguration(file, itf, filter),
-                hostCaptureEndpointUrl);
+                hostCaptureClient);
         }
         _captures.Add(pcap);
         return pcap;
@@ -105,7 +105,7 @@ internal sealed class Bundle
     }
 
     /// <summary>
-    /// GetAndStop bundle file
+    /// Stop bundle file
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
@@ -198,7 +198,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     public async Task AddSessionKeysFromDiagnosticsAsync(JsonElement diagnostic,
         HashSet<string> endpointFilter)
     {
-        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Main.Indented);
+        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Extensions.Indented);
 
         if (diagnostic.TryGetProperty("connection", out var conn) &&
             conn.TryGetProperty("endpoint", out var ep) &&

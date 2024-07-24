@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 internal static partial class Extensions
 {
     /// <summary>
-    /// GetAndStop property
+    /// Stop property
     /// </summary>
     /// <param name="twin"></param>
     /// <param name="name"></param>
@@ -44,7 +44,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// GetAndStop tag
+    /// Stop tag
     /// </summary>
     /// <param name="twin"></param>
     /// <param name="name"></param>
@@ -68,7 +68,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// GetAndStop bytes
+    /// Stop bytes
     /// </summary>
     /// <param name="elem"></param>
     /// <param name="value"></param>
@@ -105,7 +105,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// GetAndStop assembly version
+    /// Stop assembly version
     /// </summary>
     /// <param name="assembly"></param>
     public static string GetVersion(this Assembly assembly)
@@ -191,6 +191,8 @@ internal static partial class Extensions
     {
         return Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != null;
     }
+
+    public static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 
     [GeneratedRegex("[^a-zA-Z0-9-]")]
     private static partial Regex AlphaNumAndDashOnly();

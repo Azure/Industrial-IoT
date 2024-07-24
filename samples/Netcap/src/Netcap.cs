@@ -18,7 +18,6 @@ using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -41,64 +40,48 @@ public class NetcapException : Exception
 }
 
 /// <summary>
-/// Netcap main
+/// Netcap application
 /// </summary>
 internal sealed class Main : IDisposable
 {
     [Verb("run", isDefault: true, HelpText = "Run netcap to capture diagnostics.")]
     public sealed class RunOptions
     {
-        [Option('c', nameof(EdgeHubConnectionString), Required = false,
-            HelpText = "The edge hub connection string that OPC Publisher is using " +
-                "to bootstrap the rest api." +
-                "\nDefaults to value of environment variable 'EdgeHubConnectionString'.")]
-        public string? EdgeHubConnectionString { get; set; } =
-            Environment.GetEnvironmentVariable(nameof(EdgeHubConnectionString));
-
         [Option('s', nameof(StorageConnectionString), Required = false,
-            HelpText = "The storage connection string to use to upload capture bundles." +
-            "\nDefaults to value of environment variable 'StorageConnectionString'.")]
+            HelpText = "The storage connection string to use to upload capture bundles.")]
         public string? StorageConnectionString { get; set; } =
             Environment.GetEnvironmentVariable(nameof(StorageConnectionString));
 
         [Option('m', nameof(PublisherModuleId), Required = false,
-            HelpText = "The module id of the opc publisher." +
-                "\nDefaults to value of environment variable 'PublisherModuleId'.")]
+            HelpText = "The module id of the opc publisher.")]
         public string PublisherModuleId { get; set; } =
             Environment.GetEnvironmentVariable(nameof(PublisherModuleId)) ?? "publisher";
 
         [Option('d', nameof(PublisherDeviceId), Required = false,
-            HelpText = "The device id of the opc publisher." +
-                "\nDefaults to value of environment variable 'PublisherDeviceId'.")]
+            HelpText = "The device id of the opc publisher.")]
         public string? PublisherDeviceId { get; set; } =
             Environment.GetEnvironmentVariable(nameof(PublisherDeviceId));
 
         [Option('a', nameof(PublisherRestApiKey), Required = false,
-            HelpText = "The api key of the opc publisher." +
-                "\nDefaults to value of environment variable 'PublisherRestApiKey'.")]
+            HelpText = "The api key of the opc publisher.")]
         public string? PublisherRestApiKey { get; set; } =
             Environment.GetEnvironmentVariable(nameof(PublisherRestApiKey));
 
         [Option('p', nameof(PublisherRestCertificate), Required = false,
-            HelpText = "The tls certificate of the opc publisher." +
-                "\nDefaults to value of environment variable 'PublisherRestCertificate'.")]
+            HelpText = "The tls certificate of the opc publisher.")]
         public string? PublisherRestCertificate { get; set; }
 
         [Option('r', nameof(PublisherRestApiEndpoint), Required = false,
-            HelpText = "The Rest api endpoint of the opc publisher." +
-            "\nDefaults to value of environment variable 'PublisherRestApiEndpoint'.")]
+            HelpText = "The Rest api endpoint of the opc publisher.")]
         public string? PublisherRestApiEndpoint { get; set; } =
             Environment.GetEnvironmentVariable(nameof(PublisherRestApiEndpoint));
 
-        [Option('e', nameof(OpcServerEndpointUrl), Required = false,
-            HelpText = "The endpoint of the opc publisher." +
-            "\nDefaults to value of environment variable 'OpcServerEndpointUrl'.")]
-        public string? OpcServerEndpointUrl { get; set; } =
-            Environment.GetEnvironmentVariable(nameof(OpcServerEndpointUrl));
+        [Option('e', nameof(PublisherIpAddresses), Required = false,
+            HelpText = "The endpoint of the opc publisher.")]
+        public string? PublisherIpAddresses { get; set; }
 
         [Option('t', nameof(CaptureDuration), Required = false,
-            HelpText = "The capture duration until data is uploaded and capture is restarted." +
-            "\nDefaults to value of environment variable 'CaptureDuration'.")]
+            HelpText = "The capture duration.")]
         public TimeSpan? CaptureDuration { get; set; } = TimeSpan.TryParse(
             Environment.GetEnvironmentVariable(nameof(CaptureDuration)), out var t) ? t : null;
 
@@ -125,15 +108,15 @@ internal sealed class Main : IDisposable
         }
 
         /// <summary>
-        /// GetAndStop configuration from twin
+        /// Stop configuration from twin
         /// </summary>
         /// <param name="twin"></param>
         /// <returns></returns>
         public void ConfigureFromTwin(Twin twin)
         {
             // Set any missing info from the netcap twin
-            OpcServerEndpointUrl = twin.GetProperty(
-                nameof(OpcServerEndpointUrl), OpcServerEndpointUrl);
+            PublisherIpAddresses = twin.GetProperty(
+                nameof(PublisherIpAddresses), PublisherIpAddresses);
             PublisherRestApiEndpoint = twin.GetProperty(
                 nameof(PublisherRestApiEndpoint), PublisherRestApiEndpoint);
             PublisherRestApiKey = twin.GetProperty(
@@ -158,11 +141,6 @@ internal sealed class Main : IDisposable
     [Verb("sidecar", HelpText = "Run netcap as capture side car.")]
     public sealed class SidecarOptions
     {
-        [Option('c', nameof(EdgeHubConnectionString), Required = false,
-            HelpText = "The edge hub connection string to connect with." +
-            "\nDefaults to value of environment variable 'EdgeHubConnectionString'.")]
-        public string? EdgeHubConnectionString { get; set; } =
-            Environment.GetEnvironmentVariable(nameof(EdgeHubConnectionString));
     }
 
     [Verb("install", HelpText = "Install netcap into a publisher.")]
@@ -207,7 +185,7 @@ internal sealed class Main : IDisposable
     /// </summary>
     public Main()
     {
-        _httpClient = new HttpClient();
+        _publisherHttpClient = new HttpClient();
         _loggerFactory = new LoggerFactory();
         _logger = UpdateLogger();
     }
@@ -216,8 +194,10 @@ internal sealed class Main : IDisposable
     public void Dispose()
     {
         _loggerFactory.Dispose();
-        _httpClient.Dispose();
-        _certificate?.Dispose();
+        _publisherHttpClient.Dispose();
+        _publisherCertificate?.Dispose();
+        _sidecarHttpClient?.Dispose();
+        _sidecarCertificate?.Dispose();
     }
 
     /// <summary>
@@ -270,8 +250,7 @@ internal sealed class Main : IDisposable
         {
             await RunAsSidecarModuleAsync(ct).ConfigureAwait(false);
         }
-        else if (!string.IsNullOrWhiteSpace(_run?.EdgeHubConnectionString) ||
-            Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI") != null)
+        else if (_run != null)
         {
             await RunAsModuleAsync(ct).ConfigureAwait(false);
         }
@@ -280,12 +259,6 @@ internal sealed class Main : IDisposable
             // NOTE: This is for local testing against IoT Hub
             await RunAsIoTHubConnectedModuleAsync(
                 iothubConnectionString, ct).ConfigureAwait(false);
-        }
-        else if (string.IsNullOrWhiteSpace(_run?.PublisherRestApiKey) &&
-            string.IsNullOrWhiteSpace(_run?.PublisherRestCertificate) &&
-            string.IsNullOrWhiteSpace(_run?.PublisherRestApiEndpoint))
-        {
-            await InstallAsync(ct).ConfigureAwait(false);
         }
     }
 
@@ -309,8 +282,8 @@ internal sealed class Main : IDisposable
         try
         {
             // Connect to publisher
-            var publisher = new Publisher(_loggerFactory.CreateLogger("Publisher"), _httpClient,
-                _run.OpcServerEndpointUrl);
+            var publisher = new Publisher(_loggerFactory.CreateLogger("Publisher"), _publisherHttpClient,
+                _run.PublisherIpAddresses);
 
             Storage? uploader = null;
             if (!string.IsNullOrEmpty(_run.StorageConnectionString))
@@ -324,7 +297,7 @@ internal sealed class Main : IDisposable
 
             for (var i = 0; !cts.IsCancellationRequested; i++)
             {
-                // GetAndStop endpoint urls and addresses to monitor if not set
+                // Stop endpoint urls and addresses to monitor if not set
                 if (!await publisher.TryUpdateEndpointsAsync(cts.Token).ConfigureAwait(false))
                 {
                     _logger.LogInformation("waiting .....");
@@ -340,32 +313,14 @@ internal sealed class Main : IDisposable
                     _logger.LogInformation("Capturing for {Duration}", duration);
                     timeoutToken.CancelAfter(duration);
                 }
-                var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
 
+                var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
                 var bundle = new Bundle(_loggerFactory.CreateLogger("Capture"), folder);
-                using (bundle.AddPcap(publisher, i, _run.CaptureInterfaces, _run.HostCaptureEndpointUrl))
+                using (bundle.AddPcap(publisher, i, _run.CaptureInterfaces, _sidecarHttpClient))
                 {
-                    while (!timeoutToken.IsCancellationRequested)
-                    {
-                        // Watch session diagnostics while we capture
-                        try
-                        {
-                            _logger.LogInformation("Monitoring diagnostics at {Url}...", _httpClient.BaseAddress);
-                            await foreach (var diagnostic in _httpClient.GetFromJsonAsAsyncEnumerable<JsonElement>(
-                                "v2/diagnostics/connections/watch",
-                                    cancellationToken: timeoutToken.Token).ConfigureAwait(false))
-                            {
-                                await bundle.AddSessionKeysFromDiagnosticsAsync(
-                                    diagnostic, publisher.Endpoints).ConfigureAwait(false);
-                            }
-                            _logger.LogInformation("Restart monitoring diagnostics...");
-                        }
-                        catch (OperationCanceledException) { } // Done
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error monitoring diagnostics - restarting...");
-                        }
-                    }
+                    await publisher.MonitorPublisherAsync(diagnostic =>
+                        bundle.AddSessionKeysFromDiagnosticsAsync(diagnostic, publisher.Endpoints),
+                        timeoutToken.Token).ConfigureAwait(false);
                 }
 
                 // TODO: move to seperate task
@@ -402,7 +357,7 @@ internal sealed class Main : IDisposable
         var gateway = new Gateway(armClient, _logger, _install.Branch);
         try
         {
-            // GetAndStop publishers
+            // Stop publishers
             var found = await gateway.SelectPublisherAsync(_install.SubscriptionId,
                 false, ct).ConfigureAwait(false);
             if (!found)
@@ -430,7 +385,7 @@ internal sealed class Main : IDisposable
                 }
                 try
                 {
-                    // GetAndStop the logs from the module, when cancelled undeploy
+                    // Stop the logs from the module, when cancelled undeploy
                     var downloader = gateway.GetStorage();
                     await downloader.DownloadAsync(_install.OutputPath,
                         cts.Token).ConfigureAwait(false);
@@ -502,9 +457,15 @@ internal sealed class Main : IDisposable
     /// <returns></returns>
     private async ValueTask RunAsModuleAsync(CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(_run?.PublisherRestApiKey) &&
+            string.IsNullOrWhiteSpace(_run?.PublisherRestCertificate) &&
+            string.IsNullOrWhiteSpace(_run?.PublisherRestApiEndpoint))
+        {
+            await InstallAsync(ct).ConfigureAwait(false);
+        }
+
         _run ??= new RunOptions();
-        var moduleClient = await CreateModuleClientAsync(
-            _run.EdgeHubConnectionString).ConfigureAwait(false);
+        var moduleClient = await CreateModuleClientAsync().ConfigureAwait(false);
         try
         {
             // Call the "GetApiKey" and "GetServerCertificate" methods on the publisher module
@@ -551,6 +512,7 @@ internal sealed class Main : IDisposable
                 }
             }
             await CreatePublisherHttpClientAsync().ConfigureAwait(false);
+            await CreateSidecarHttpClientAsync().ConfigureAwait(false);
             await RunAsync(ct).ConfigureAwait(false);
         }
         finally
@@ -568,8 +530,7 @@ internal sealed class Main : IDisposable
     private async Task RunAsSidecarModuleAsync(CancellationToken ct = default)
     {
         _sidecar ??= new SidecarOptions();
-        var moduleClient = await CreateModuleClientAsync(
-            _sidecar.EdgeHubConnectionString).ConfigureAwait(false);
+        var moduleClient = await CreateModuleClientAsync().ConfigureAwait(false);
         try
         {
             await moduleClient.OpenAsync(ct).ConfigureAwait(false);
@@ -584,14 +545,14 @@ internal sealed class Main : IDisposable
             var apiKey = twin.GetProperty("__apikey__", desired: false);
             if (cert != null && apiKey != null)
             {
-                _certificate = new X509Certificate2(
+                _sidecarCertificate = new X509Certificate2(
                     Convert.FromBase64String(cert.Trim()), apiKey);
             }
             else
             {
-                _certificate = CreateCertificate(twin);
+                _sidecarCertificate = CreateCertificate(twin);
                 apiKey = Guid.NewGuid().ToString();
-                cert = Convert.ToBase64String(_certificate.Export(
+                cert = Convert.ToBase64String(_sidecarCertificate.Export(
                     X509ContentType.Pfx, apiKey));
                 await moduleClient.UpdateReportedPropertiesAsync(new TwinCollection
                 {
@@ -603,7 +564,7 @@ internal sealed class Main : IDisposable
             var builder = WebApplication.CreateBuilder();
             builder.WebHost.ConfigureKestrel((_, serverOptions) =>
                 serverOptions.ListenAnyIP(443,
-                    options => options.UseHttps(_certificate)));
+                    options => options.UseHttps(_sidecarCertificate)));
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.TryAddSingleton(_sidecar);
@@ -619,21 +580,7 @@ internal sealed class Main : IDisposable
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseHttpsRedirection();
-
-            var server = new Pcap.PcapServer(_logger);
-            app.MapPut("/", server.CreateAndStart)
-                .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
-                .Produces(StatusCodes.Status200OK)
-                .Produces(StatusCodes.Status404NotFound);
-            app.MapGet("/{handle}", server.GetAndStop)
-                .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
-                .Produces(StatusCodes.Status200OK)
-                .Produces(StatusCodes.Status404NotFound);
-            app.MapPost("/{handle}", server.Cleanup)
-                .RequireAuthorization(nameof(ApiKeyProvider.ApiKey))
-                .Produces(StatusCodes.Status200OK)
-                .Produces(StatusCodes.Status404NotFound);
-
+            var server = new Pcap.Server(app, _logger);
             await app.RunAsync(ct).ConfigureAwait(false);
         }
         finally
@@ -678,10 +625,11 @@ internal sealed class Main : IDisposable
         string deviceId;
         var ncModuleId = "netcap";
         _run ??= new RunOptions();
-        if (!string.IsNullOrWhiteSpace(_run.EdgeHubConnectionString))
+        var edgeHubConnectionString = Environment.GetEnvironmentVariable("EdgeHubConnectionString");
+        if (!string.IsNullOrWhiteSpace(edgeHubConnectionString))
         {
-            // GetAndStop device and module id from edge hub connection string provided
-            var ehc = IotHubConnectionStringBuilder.Create(_run.EdgeHubConnectionString);
+            // Stop device and module id from edge hub connection string provided
+            var ehc = IotHubConnectionStringBuilder.Create(edgeHubConnectionString);
             deviceId = ehc.DeviceId;
             ncModuleId = ehc.ModuleId ?? ncModuleId;
         }
@@ -721,7 +669,7 @@ internal sealed class Main : IDisposable
             }
         }, twin.ETag, ct).ConfigureAwait(false);
 
-        // GetAndStop publisher id from twin if not configured
+        // Stop publisher id from twin if not configured
         _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
         _run.PublisherDeviceId ??= deviceId;
         Debug.Assert(_run.PublisherModuleId != null);
@@ -759,6 +707,46 @@ internal sealed class Main : IDisposable
     }
 
     /// <summary>
+    /// Create sidecar client
+    /// </summary>
+    /// <returns></returns>
+    private async ValueTask CreateSidecarHttpClientAsync()
+    {
+        if (_run?.HostCaptureEndpointUrl == null ||
+            _run?.HostCaptureApiKey == null ||
+            _run?.HostCaptureCertificate == null)
+        {
+            return;
+        }
+
+        var cert = Convert.FromBase64String(
+            _run.HostCaptureCertificate.Trim());
+        _sidecarCertificate = new X509Certificate2(
+            cert!, _run.HostCaptureApiKey);
+
+        _sidecarHttpClient?.Dispose();
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        _sidecarHttpClient = new HttpClient(new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
+            {
+                if (_sidecarCertificate?.Thumbprint != cert?.Thumbprint)
+                {
+                    _logger.LogWarning(
+                        "Certificate thumbprint mismatch: {Expected} != {Actual}",
+                        _sidecarCertificate?.Thumbprint, cert?.Thumbprint);
+                    return false;
+                }
+                return true;
+            }
+        });
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        _sidecarHttpClient.BaseAddress = new Uri(_run.HostCaptureEndpointUrl);
+        _sidecarHttpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("ApiKey", _run?.HostCaptureApiKey);
+    }
+
+    /// <summary>
     /// Create publisher client
     /// </summary>
     /// <returns></returns>
@@ -768,42 +756,42 @@ internal sealed class Main : IDisposable
         {
             // Load the certificate of the publisher if not exist
             if (!string.IsNullOrWhiteSpace(_run?.PublisherRestCertificate)
-                && _certificate == null)
+                && _publisherCertificate == null)
             {
                 try
                 {
-                    _certificate = X509Certificate2.CreateFromPem(
+                    _publisherCertificate = X509Certificate2.CreateFromPem(
                         _run.PublisherRestCertificate.Trim());
                 }
                 catch
                 {
                     var cert = Convert.FromBase64String(
                         _run.PublisherRestCertificate.Trim());
-                    _certificate = new X509Certificate2(
+                    _publisherCertificate = new X509Certificate2(
                         cert!, _run.PublisherRestApiKey);
                 }
             }
 
-            _httpClient.Dispose();
+            _publisherHttpClient.Dispose();
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            _httpClient = new HttpClient(new HttpClientHandler
+            _publisherHttpClient = new HttpClient(new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = (_, cert, _, _) =>
                 {
-                    if (_certificate?.Thumbprint != cert?.Thumbprint)
+                    if (_publisherCertificate?.Thumbprint != cert?.Thumbprint)
                     {
                         _logger.LogWarning(
                             "Certificate thumbprint mismatch: {Expected} != {Actual}",
-                            _certificate?.Thumbprint, cert?.Thumbprint);
+                            _publisherCertificate?.Thumbprint, cert?.Thumbprint);
                         return false;
                     }
                     return true;
                 }
             });
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            _httpClient.BaseAddress =
+            _publisherHttpClient.BaseAddress =
                 await GetOpcPublisherRestEndpoint().ConfigureAwait(false);
-            _httpClient.DefaultRequestHeaders.Authorization =
+            _publisherHttpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("ApiKey", _run?.PublisherRestApiKey);
         }
 
@@ -861,14 +849,14 @@ internal sealed class Main : IDisposable
     /// <summary>
     /// Create module client
     /// </summary>
-    /// <param name="connectionString"></param>
     /// <returns></returns>
-    private async static ValueTask<ModuleClient> CreateModuleClientAsync(string? connectionString)
+    private async static ValueTask<ModuleClient> CreateModuleClientAsync()
     {
-        if (!string.IsNullOrWhiteSpace(connectionString))
+        var edgeHubConnectionString = Environment.GetEnvironmentVariable("EdgeHubConnectionString");
+        if (!string.IsNullOrWhiteSpace(edgeHubConnectionString))
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            return ModuleClient.CreateFromConnectionString(connectionString);
+            return ModuleClient.CreateFromConnectionString(edgeHubConnectionString);
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
         return await ModuleClient.CreateFromEnvironmentAsync().ConfigureAwait(false);
@@ -953,14 +941,14 @@ internal sealed class Main : IDisposable
         private readonly ApiKeyProvider _apiKeyProvider;
     }
 
-    private HttpClient _httpClient;
+    private HttpClient _publisherHttpClient;
+    private X509Certificate2? _publisherCertificate;
+    private HttpClient? _sidecarHttpClient;
+    private X509Certificate2? _sidecarCertificate;
     private ILoggerFactory _loggerFactory = null!;
     private ILogger _logger;
-    private X509Certificate2? _certificate;
     private InstallOptions? _install;
     private UninstallOptions? _uninstall;
     private RunOptions? _run;
     private SidecarOptions? _sidecar;
-    internal static readonly JsonSerializerOptions Indented
-        = new() { WriteIndented = true };
 }
