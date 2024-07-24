@@ -22,12 +22,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="configure"></param>
         /// <param name="writerGroupName"></param>
         /// <param name="fetchBrowsePathFromRootOverride"></param>
+        /// <param name="ignoreConfiguredPublishingIntervals"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionModel ToSubscriptionModel(
             this DataSetWriterModel dataSetWriter, OpcUaSubscriptionOptions configuration,
             Func<PublishingQueueSettingsModel?, object?> configure, string? writerGroupName = null,
-            bool? fetchBrowsePathFromRootOverride = null)
+            bool? fetchBrowsePathFromRootOverride = null, bool? ignoreConfiguredPublishingIntervals = null)
         {
             if (dataSetWriter.DataSet == null)
             {
@@ -48,7 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Id = ToSubscriptionId(dataSetWriter, writerGroupName, configuration),
                 MonitoredItems = monitoredItems,
                 Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionConfigurationModel(
-                    dataSetWriter.DataSet.DataSetMetaData, configuration, fetchBrowsePathFromRootOverride)
+                    dataSetWriter.DataSet.DataSetMetaData, configuration, fetchBrowsePathFromRootOverride,
+                    ignoreConfiguredPublishingIntervals)
             };
         }
 

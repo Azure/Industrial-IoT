@@ -1104,11 +1104,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, e.Message);
                     noErrorFound = false;
                 }
-                if (noErrorFound)
-                {
-                    _logger.LogInformation("ConditionRefresh on subscription " +
-                        "{Subscription} has completed.", this);
-                }
             }
 
             // Set up subscription management trigger

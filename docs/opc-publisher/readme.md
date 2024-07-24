@@ -566,7 +566,7 @@ The following configuration properties of the published nodes entry model apply 
 
 > IMPORTANT: It is important to set a unique `DataSetWriterGroup` name when configuring the above settings. Not doing so will yield unexpected behavior as all configurations with the same writer group name are collated into a single one with differing settings being clobbered.
 
-A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSetPublishingInterval` of the writer. A group of nodes with the same publishing interval becomes a writer inside a writer group, regardless of using the same `DataSetWriterId`. If the same `DataSetWriterId` is used but with nodes that have different effective publishing intervals, then a postfix string is added to the name to further disambiguate.
+A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSetPublishingInterval` of the writer. A group of nodes with the same [publishing interval](#sampling-and-publishing-interval-configuration) becomes a writer inside a writer group, regardless of using the same `DataSetWriterId`. If the same `DataSetWriterId` is used but with nodes that have different effective publishing intervals, then a postfix string is added to the name to further disambiguate.
 
 > IMPORTANT: Just like the writer group configuration, it is important to set a unique `DataSetWriterId` name when configuring multiple writers with different settings (publishing interval excluded). Not doing so will yield unexpected behavior as all configurations with the same dataset writer name are collated into a single one with differing settings being clobbered.
 
@@ -589,7 +589,9 @@ The following overview diagram courtesy of the OPC Foundation shows how the serv
 
 A subscription is created for each unique `DataSetWriter`. The publishing interval (configured using the `DataSetPublishingInterval` or `OpcPublishingInterval` values) is an attribute of the subscription (hence multiple writers are instantiated if there are multiple different publishing intervals). It defines the cyclic rate at which it collects values from the monitored item queues. Each time it attempts to send a Notification Message to OPC Publisher containing new values or events of its monitored items.
 
-The diagnostics output and metrics contain a `Server queue overflows` instrument which captures the number of data values with overflow bit set and indicates data changes were lost. Increase the `QueueSize` of frequently sampled items until the instrument stays 0.
+A default OPC Publisher wide publishing interval can be provided using the [command line option](./commandline.md) (`--op`) which is used when the interval is not configured.  The default publishing interval used by OPC Publisher is 1 second.  It is also possible to override all publishing intervals configured in the OPC Publisher configuration using the `--ipi` command line option. In this case, if `--op` is not specified a publishing interval of `0` is used, which instructs the server to choose the fastest publishing interval cycle it can manage. This can be useful if you have existing configuration specifying multiple publishing intervals but would like to avoid separate subscriptions to be created for each interval, or just put the server in charge. Note though that the `--npd` command line will still split the data set writer into multiple subscriptions if more nodes than the configured amount are specified.
+
+The diagnostics output and metrics contain a `Server queue overflows` instrument which captures the number of data values with overflow bit set and indicates data changes were lost. Increase the `QueueSize` of frequently sampled items until the instrument stays `0`.
 
 Notifications received by the writers in the writer group inside OPC Publisher are batched and encoded and published to the chosen [transport sink](./transports.md).
 

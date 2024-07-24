@@ -52,13 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);
-                _timerInterval = Timeout.InfiniteTimeSpan;
                 _heartbeatBehavior = dataTemplate.HeartbeatBehavior
                     ?? HeartbeatBehavior.WatchdogLKV;
-                _heartbeatTimer = new TimerEx(timeProvider);
-                _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
-                _heartbeatTimer.AutoReset = true;
-                _heartbeatTimer.Enabled = true;
             }
 
             /// <summary>
@@ -72,13 +67,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 _heartbeatInterval = item._heartbeatInterval;
-                _timerInterval = item._timerInterval;
                 _heartbeatBehavior = item._heartbeatBehavior;
                 _callback = item._callback;
-                _heartbeatTimer = item.CloneTimer();
-                if (_heartbeatTimer != null)
+                if (item._timerEnabled)
                 {
-                    _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
+                    EnableHeartbeatTimer();
                 }
             }
 
@@ -119,8 +112,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (disposing)
                 {
-                    var timer = CloneTimer();
-                    timer?.Dispose();
+                    lock (_timerLock)
+                    {
+                        _disposed = true;
+                        if (_heartbeatTimer != null)
+                        {
+                            _heartbeatTimer.Elapsed -= SendHeartbeatNotifications;
+                            _heartbeatTimer.Dispose();
+                            _heartbeatTimer = null;
+                        }
+                    }
                 }
                 base.Dispose(disposing);
             }
@@ -134,10 +135,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var result = base.ProcessMonitoredItemNotification(sequenceNumber, publishTime,
                     monitoredItemNotification, notifications);
 
-                if (_heartbeatTimer != null && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                if (!_disposed && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
-                    _heartbeatTimer.Interval = _timerInterval;
-                    _heartbeatTimer.Enabled = true;
+                    EnableHeartbeatTimer();
                 }
                 return result;
             }
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges, Callback cb)
             {
-                if (_heartbeatTimer == null)
+                if (_disposed)
                 {
                     _logger.LogError("{Item}: Item was moved to another subscription " +
                         "and the timer is handled by the new subscription now.", this);
@@ -194,20 +194,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         _callback = null;
                         // Stop heartbeat
-                        _heartbeatTimer.Enabled = false;
-                        _timerInterval = Timeout.InfiniteTimeSpan;
+                        DisableHeartbeatTimer();
                     }
                     else
                     {
                         Debug.Assert(AttachedToSubscription);
                         _callback = cb;
-                        if (_timerInterval != _heartbeatInterval)
-                        {
-                            // Start heartbeat after completion
-                            _heartbeatTimer.Interval = _heartbeatInterval;
-                            _timerInterval = _heartbeatInterval;
-                        }
-                        _heartbeatTimer.Enabled = true;
+                        EnableHeartbeatTimer();
                     }
                 }
                 return result;
@@ -217,9 +210,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset publishTime,
                 IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
-                if (_heartbeatTimer != null && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                if (!_disposed && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
-                    _heartbeatTimer.Enabled = false;
+                    EnableHeartbeatTimer();
                 }
                 return base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications);
             }
@@ -344,26 +337,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <summary>
-            /// Clone the timer
+            /// Enable timer
             /// </summary>
-            /// <returns></returns>
-            private TimerEx? CloneTimer()
+            private void EnableHeartbeatTimer()
             {
-                var timer = _heartbeatTimer;
-                _heartbeatTimer = null;
-                if (timer != null)
+                lock (_timerLock)
                 {
-                    timer.Elapsed -= SendHeartbeatNotifications;
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    if (_heartbeatTimer == null)
+                    {
+                        _heartbeatTimer = new TimerEx(TimeProvider);
+                        _heartbeatTimer.AutoReset = true;
+                        _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
+                        _heartbeatTimer.Enabled = true;
+                        _logger.LogDebug("Re-enable heartbeat timer");
+                    }
+                    else if (_heartbeatInterval != _heartbeatTimer.Interval)
+                    {
+                        Debug.Assert(_heartbeatTimer.Enabled);
+                        _heartbeatTimer.Interval = _heartbeatInterval;
+                        _logger.LogDebug("Re-configured heartbeat timer");
+                    }
+                    _timerEnabled = true;
                 }
-                return timer;
+            }
+
+            /// <summary>
+            /// Disable timer
+            /// </summary>
+            private void DisableHeartbeatTimer()
+            {
+                lock (_timerLock)
+                {
+                    if (_heartbeatTimer != null)
+                    {
+                        _heartbeatTimer.Elapsed -= SendHeartbeatNotifications;
+                        _heartbeatTimer.Dispose();
+                        _heartbeatTimer = null;
+                        _logger.LogDebug("Disabled heartbeat timer");
+                    }
+                    _timerEnabled = false;
+                }
             }
 
             private TimerEx? _heartbeatTimer;
-            private TimeSpan _timerInterval;
             private HeartbeatBehavior _heartbeatBehavior;
+            private bool _timerEnabled;
             private TimeSpan _heartbeatInterval;
             private Callback? _callback;
             private StatusCode? _lastStatusCode;
+            private object _timerLock = new();
+            private bool _disposed;
         }
     }
 }

@@ -357,6 +357,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"spw|enablesessionperwriter:|{OpcUaSubscriptionConfig.EnableSessionPerDataSetWriterIdKey}:",
                     $"Enable creating a separate session per data set writer instead of the default behavior to create one per writer group.\nThis setting overrides the `--dsg` option.\nDefault: `{OpcUaSubscriptionConfig.EnableSessionPerDataSetWriterIdDefault}`.\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.EnableSessionPerDataSetWriterIdKey] = b?.ToString() ?? "True" },
+                { $"ipi|ignorepublishingintervals:|{PublisherConfig.IgnoreConfiguredPublishingIntervalsKey}:",
+                    $"Always use the publishing interval provided via command line argument `--op` or otherwise `0` and ignore all publishing interval settings in the configuration.\nIf `--op` is not set, then effectively the server decides the best publishing interval.\nDefault: `{PublisherConfig.IgnoreConfiguredPublishingIntervalsDefault}` (disabled).\n",
+                    (bool? b) => this[PublisherConfig.IgnoreConfiguredPublishingIntervalsKey] = b?.ToString() ?? "True" },
 
                 "",
                 "OPC UA Client configuration",

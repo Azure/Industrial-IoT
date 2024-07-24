@@ -56,10 +56,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <summary>
         /// Default values
         /// </summary>
-        public const int DefaultKeepAliveCountDefault = 5;
+        public const int DefaultKeepAliveCountDefault = 0;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const bool ResolveDisplayNameDefault = false;
-        public const int DefaultLifetimeCountDefault = 5;
+        public const int DefaultLifetimeCountDefault = 0;
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const int AsyncMetaDataLoadThresholdDefault = 30;
@@ -110,7 +110,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DefaultPublishingInterval = GetDurationOrNull(DefaultPublishingIntervalKey) ??
                     TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultPublishingIntervalKey,
-                    DefaultPublishingIntervalDefaultMillis));
+                    _options.Value.IgnoreConfiguredPublishingIntervals == true ?
+                        0 : DefaultPublishingIntervalDefaultMillis));
             }
 
             if (options.DefaultMonitoredItemWatchdogTimeout == null)

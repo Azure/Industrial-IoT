@@ -570,13 +570,13 @@ Subscription settings
                              Specifies the default number of publishing
                                intervals before a keep alive is returned with
                                the next queued publishing response.
-                               Default: `10`.
+                               Default: `0`.
       --slt, --lifetimecount, --DefaultLifetimeCount=VALUE
                              Default subscription lifetime count which is a
                                multiple of the keep alive counter and when
                                reached instructs the server to declare the
                                subscription invalid.
-                               Default: `100`.
+                               Default: `0`.
       --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
                              Fetches the displayname for the monitored items
                                subscribed if a display name was not specified
@@ -722,6 +722,14 @@ Subscription settings
                                one per writer group.
                                This setting overrides the `--dsg` option.
                                Default: `False`.
+      --ipi, --ignorepublishingintervals, --IgnoreConfiguredPublishingIntervals[=VALUE]
+                             Always use the publishing interval provided via
+                               command line argument `--op` or otherwise `0`
+                               and ignore all publishing interval settings in
+                               the configuration.
+                               If `--op` is not set, then effectively the
+                               server decides the best publishing interval.
+                               Default: `False` (disabled).
 
 OPC UA Client configuration
 ---------------------------

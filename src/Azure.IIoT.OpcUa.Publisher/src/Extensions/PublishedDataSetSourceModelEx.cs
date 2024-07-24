@@ -24,10 +24,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataSetMetaData"></param>
         /// <param name="options"></param>
         /// <param name="fetchBrowsePathFromRootOverride"></param>
+        /// <param name="ignoreConfiguredPublishingIntervals"></param>
         /// <returns></returns>
         public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
             this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel? dataSetMetaData,
-            OpcUaSubscriptionOptions options, bool? fetchBrowsePathFromRootOverride)
+            OpcUaSubscriptionOptions options, bool? fetchBrowsePathFromRootOverride,
+            bool? ignoreConfiguredPublishingIntervals)
         {
             return new SubscriptionConfigurationModel
             {
@@ -37,7 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? options.DefaultLifeTimeCount,
                 KeepAliveCount = dataSetSource.SubscriptionSettings?.MaxKeepAliveCount
                     ?? options.DefaultKeepAliveCount,
-                PublishingInterval = dataSetSource.SubscriptionSettings?.PublishingInterval
+                PublishingInterval = ignoreConfiguredPublishingIntervals == true ?
+                       options.DefaultPublishingInterval : dataSetSource.SubscriptionSettings?.PublishingInterval
                     ?? options.DefaultPublishingInterval,
                 UseDeferredAcknoledgements = dataSetSource.SubscriptionSettings?.UseDeferredAcknoledgements
                     ?? options.UseDeferredAcknoledgements,

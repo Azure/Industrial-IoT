@@ -214,6 +214,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public int? ScaleTestCount { get; set; }
 
         /// <summary>
+        /// Ignore all publishing intervals set in the configuration.
+        /// </summary>
+        public bool? IgnoreConfiguredPublishingIntervals { get; set; }
+
+        /// <summary>
         /// Allow setting or overriding the current api key
         /// </summary>
         public string? ApiKeyOverride { get; set; }

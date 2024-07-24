@@ -48,6 +48,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 Math.Max(1, options.Value.ScaleTestCount ?? 0);
             _maxNodesPerDataSet = options.Value.MaxNodesPerDataSet <= 0
                 ? int.MaxValue : options.Value.MaxNodesPerDataSet;
+            _noPublishingIntervalGrouping =
+                options.Value.IgnoreConfiguredPublishingIntervals ?? false;
         }
 
         /// <summary>
@@ -313,31 +315,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             var sw = Stopwatch.StartNew();
             try
             {
-                return entries
+                if (!_noPublishingIntervalGrouping)
+                {
                     //
                     // Split all entries by the publishing interval in the nodes using the entry publishing
                     // interval as default. To prevent entries with no nodes to be removed here a dummy
                     // entry is added to the list of nodes and removed again from the group entries selected.
                     //
-                    .SelectMany(entry => GetNodeModels(entry, _scaleTestCount)
-                        .DefaultIfEmpty(kDummyEntry)
-                        .GroupBy(n => n.GetNormalizedPublishingInterval(
-                                      entry.GetNormalizedDataSetPublishingInterval()))
-                        .Select(g => entry with
-                        {
-                            // Set the publishing interval for this entry at the top
-                            DataSetPublishingIntervalTimespan = g.Key,
-                            DataSetPublishingInterval = null,
-                            OpcNodes = g
-                                .Where(n => n != kDummyEntry)
-                                .Select(n => n with
-                                {
-                                    // Unset all node specific settings.
-                                    OpcPublishingIntervalTimespan = null,
-                                    OpcPublishingInterval = null
-                                })
-                                .ToList()
-                        }))
+                    entries = entries
+                        .SelectMany(entry => GetNodeModels(entry, _scaleTestCount)
+                            .DefaultIfEmpty(kDummyEntry)
+                            .GroupBy(n => n.GetNormalizedPublishingInterval(
+                                          entry.GetNormalizedDataSetPublishingInterval()))
+                            .Select(g => entry with
+                            {
+                                // Set the publishing interval for this entry at the top
+                                DataSetPublishingIntervalTimespan = g.Key,
+                                DataSetPublishingInterval = null,
+                                OpcNodes = g
+                                    .Where(n => n != kDummyEntry)
+                                    .Select(n => n with
+                                    {
+                                        // Unset all node specific settings.
+                                        OpcPublishingIntervalTimespan = null,
+                                        OpcPublishingInterval = null
+                                    })
+                                    .ToList()
+                            }));
+                }
+                return entries
                     //
                     // Now we have entries with nodes that have no publishing interval, group all entries
                     // by group identifier
@@ -881,6 +887,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         private readonly bool _forceCredentialEncryption;
         private readonly int _scaleTestCount;
         private readonly int _maxNodesPerDataSet;
+        private readonly bool _noPublishingIntervalGrouping;
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
