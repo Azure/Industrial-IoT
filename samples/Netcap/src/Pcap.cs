@@ -64,7 +64,7 @@ internal sealed class Pcap : IDisposable
     /// <summary>
     /// Handle
     /// </summary>
-    public int Handle { get; private set; } = Interlocked.Increment(ref _handles);
+    public int Handle { get; }
 
     /// <summary>
     /// Create pcap
@@ -87,6 +87,7 @@ internal sealed class Pcap : IDisposable
         }
         else
         {
+            Handle = Interlocked.Increment(ref _handles);
             _logger.LogInformation(
                 "Using SharpPcap {Version}", SharpPcap.Pcap.SharpPcapVersion);
 
@@ -94,12 +95,10 @@ internal sealed class Pcap : IDisposable
             {
                 throw new NetcapException("Cannot run capture without devices.");
             }
-            else
-            {
-                _writer = new CaptureFileWriterDevice(File);
-                _devices = LibPcapLiveDeviceList.New().ToList();
-                LocalCaptureStart();
-            }
+
+            _writer = new CaptureFileWriterDevice(File);
+            _devices = LibPcapLiveDeviceList.New().ToList();
+            LocalCaptureStart();
         }
     }
 
