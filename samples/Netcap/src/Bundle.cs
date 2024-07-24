@@ -30,7 +30,7 @@ internal sealed class Bundle
     public DateTimeOffset End { get; private set; }
 
     /// <summary>
-    /// CreateSidecarDeployment capture device
+    /// Create capture device
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="folder"></param>

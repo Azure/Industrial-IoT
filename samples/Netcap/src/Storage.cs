@@ -5,6 +5,7 @@
 
 namespace Netcap;
 
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Azure.Storage.Blobs.Models;
@@ -12,8 +13,6 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.IO;
 using System.Globalization;
-using Microsoft.Azure.Devices.Shared;
-using Azure;
 using System.IO.Compression;
 
 /// <summary>
@@ -22,7 +21,7 @@ using System.IO.Compression;
 internal sealed class Storage
 {
     /// <summary>
-    /// CreateSidecarDeployment capture sync
+    /// Create capture sync
     /// </summary>
     /// <param name="deviceId"></param>
     /// <param name="moduleId"></param>

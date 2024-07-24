@@ -416,10 +416,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var entry = endpoint.ToPublishedNodesEntry();
-                var existingGroups = new List<PublishedNodesEntryModel>();
+                var entries = GetCurrentPublishedNodes().ToList();
                 return new PublishedItemListResponseModel
                 {
-                    Items = GetCurrentPublishedNodes()
+                    Items = entries
                         .Where(n => n.HasSameDataSet(entry))
                         .SelectMany(n => n.OpcNodes ?? new List<OpcNodeModel>())
                         .Where(n => n.EventFilter == null) // Exclude event filtering
@@ -1191,6 +1191,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 currentNodes.Add(entry);
                 found = entry;
             }
+            found.MessageEncoding = MessageEncoding.Json;
+            found.MessagingMode = MessagingMode.FullSamples;
             found.OpcNodes ??= new List<OpcNodeModel>();
             var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
             if (node == null)

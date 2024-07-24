@@ -203,7 +203,7 @@ internal sealed class Main : IDisposable
     }
 
     /// <summary>
-    /// CreateSidecarDeployment
+    /// Create netcap application
     /// </summary>
     public Main()
     {
@@ -410,9 +410,9 @@ internal sealed class Main : IDisposable
                 return;
             }
 
-            // CreateSidecarDeployment storage account or update if it already exists in the rg
+            // Create storage account or update if it already exists in the rg
             await gateway.Storage.CreateOrUpdateAsync(ct).ConfigureAwait(false);
-            // CreateSidecarDeployment container registry or update and build netcap module
+            // Create container registry or update and build netcap module
             await gateway.Netcap.CreateOrUpdateAsync(ct).ConfigureAwait(false);
 
             // Deploy the module using manifest to device with the chosen publisher
@@ -694,7 +694,7 @@ internal sealed class Main : IDisposable
         }
         using var rm = Microsoft.Azure.Devices.RegistryManager
             .CreateFromConnectionString(iothubConnectionString);
-        // CreateSidecarDeployment module if not exist
+        // Create module if not exist
         try
         {
             await rm.AddDeviceAsync(new Microsoft.Azure.Devices.Device(deviceId), ct)

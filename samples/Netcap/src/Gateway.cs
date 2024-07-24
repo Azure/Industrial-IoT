@@ -44,7 +44,7 @@ internal sealed record class Gateway
     public NetcapStorage Storage { get; }
 
     /// <summary>
-    /// CreateSidecarDeployment gateway
+    /// Create gateway
     /// </summary>
     /// <param name="client"></param>
     /// <param name="logger"></param>
@@ -264,6 +264,7 @@ internal sealed record class Gateway
                         publisherTwin.GetProperty("__apikey__", desired: false),
                         publisherTwin.GetProperty("__certificate__", desired: false),
                         publisherTwin.GetProperty("__scheme__", desired: false),
+                        publisherTwin.GetProperty("__ip__", desired: false),
                         hostname,
                         port)
                 }
@@ -480,7 +481,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// CreateSidecarDeployment deployment
+    /// Create Sidecar Deployment deployment
     /// </summary>
     /// <param name="deviceId"></param>
     /// <param name="netcapModuleId"></param>
@@ -493,13 +494,15 @@ internal sealed record class Gateway
     /// <param name="apiKey"></param>
     /// <param name="certificate"></param>
     /// <param name="scheme"></param>
+    /// <param name="ipAddresses"></param>
     /// <param name="hostName"></param>
     /// <param name="port"></param>
     /// <returns></returns>
     private static IDictionary<string, IDictionary<string, object>>? CreateSidecarDeployment(
         string deviceId, string netcapModuleId, string publisherModuleId, string server,
         string userName, string password, string image, string storageConnectionString,
-        string? apiKey, string? certificate, string? scheme, string? hostName, string? port)
+        string? apiKey, string? certificate, string? scheme, string? ipAddresses,
+        string? hostName, string? port)
     {
         var args = new List<string>
         {
@@ -577,7 +580,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// CreateSidecarDeployment resource name
+    /// Create resource name
     /// </summary>
     /// <param name="postfix"></param>
     /// <returns></returns>
@@ -597,7 +600,7 @@ internal sealed record class Gateway
         public string Name { get; private set; } = null!;
 
         /// <summary>
-        /// CreateSidecarDeployment image
+        /// Create image
         /// </summary>
         /// <param name="gateway"></param>
         /// <param name="branch"></param>
@@ -610,13 +613,13 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// CreateSidecarDeployment or update
+        /// Create or update
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task CreateOrUpdateAsync(CancellationToken ct = default)
         {
-            // CreateSidecarDeployment container registry or update if it already exists in rg
+            // Create container registry or update if it already exists in rg
             var regName = _gateway.GetResourceName(kResourceName);
             var rg = await _gateway.GetResourceGroupAsync(ct).ConfigureAwait(false);
             _logger.LogInformation(
@@ -699,7 +702,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// CreateSidecarDeployment or update
+        /// Create or update
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -738,7 +741,7 @@ internal sealed record class Gateway
         public string ConnectionString { get; private set; } = null!;
 
         /// <summary>
-        /// CreateSidecarDeployment storage
+        /// Create storage
         /// </summary>
         /// <param name="gateway"></param>
         /// <param name="logger"></param>
@@ -749,7 +752,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// CreateSidecarDeployment or update
+        /// Create or update
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -783,7 +786,7 @@ internal sealed record class Gateway
                     $"No keys found for storage account {storageName}");
             }
 
-            // CreateSidecarDeployment connection string for storage account
+            // Create connection string for storage account
             ConnectionString = "DefaultEndpointsProtocol=https;" +
                 $"BlobEndpoint={endpoints.BlobUri};" +
                 $"QueueEndpoint={endpoints.QueueUri};" +
