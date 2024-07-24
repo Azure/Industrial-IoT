@@ -227,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         QueueSize = variable.ServerQueueSize,
                         DataChangeTrigger = variable.DataChangeTrigger,
                         HeartbeatBehavior = variable.HeartbeatBehavior,
-                        HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalMilliseconds,
+                        HeartbeatInterval = preferTimeSpan ? null : (int?)variable.HeartbeatInterval?.TotalSeconds,
                         HeartbeatIntervalTimespan = !preferTimeSpan ? null : variable.HeartbeatInterval,
                         OpcSamplingInterval = preferTimeSpan ? null : (int?)variable.SamplingIntervalHint?.TotalMilliseconds,
                         OpcSamplingIntervalTimespan = !preferTimeSpan ? null : variable.SamplingIntervalHint,
