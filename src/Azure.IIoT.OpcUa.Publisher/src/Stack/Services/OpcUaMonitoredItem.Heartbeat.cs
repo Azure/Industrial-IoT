@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.Serialization;
-    using System.Threading;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -356,6 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _heartbeatTimer.AutoReset = true;
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
                         _heartbeatTimer.Enabled = true;
+                        _heartbeatTimer.Interval = _heartbeatInterval;
                         _logger.LogDebug("Re-enable heartbeat timer");
                     }
                     else if (_heartbeatInterval != _heartbeatTimer.Interval)
