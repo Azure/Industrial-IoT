@@ -423,6 +423,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public void LogRevisedSamplingRateAndQueueSize()
         {
+            if (!AttachedToSubscription || SamplingInterval < 0)
+            {
+                return;
+            }
+            Debug.Assert(Subscription != null);
             if (SamplingInterval != Status.SamplingInterval &&
                 QueueSize != Status.QueueSize)
             {
