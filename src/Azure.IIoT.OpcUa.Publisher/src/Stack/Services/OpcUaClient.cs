@@ -385,6 +385,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Get session diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(
+            CancellationToken ct = default)
+        {
+            if (_session?.Connected == true)
+            {
+                return await _session.GetServerDiagnosticAsync(ct).ConfigureAwait(false);
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Close client
         /// </summary>
         /// <returns></returns>

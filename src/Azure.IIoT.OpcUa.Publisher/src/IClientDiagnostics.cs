@@ -17,6 +17,11 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IClientDiagnostics
     {
         /// <summary>
+        /// Get all active connections
+        /// </summary>
+        IReadOnlyList<ConnectionModel> ActiveConnections { get; }
+
+        /// <summary>
         /// Get diagnostic information of all connections
         /// abd return.
         /// </summary>
@@ -36,6 +41,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="ct"></param>
         /// <returns></returns>
         IAsyncEnumerable<ConnectionDiagnosticModel> MonitorAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get client diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<ClientDiagnosticsModel> GetDiagnosticsAsync(
             CancellationToken ct = default);
     }
 }

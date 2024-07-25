@@ -93,6 +93,6 @@ This setup is certainly experimental because:
 - Alpine images must be used if you want to run for more than 3 seconds with said limit. The official OPC Publisher images are based on Alpine, but the ones built from the repository do not.
 - We disable meta data loading which has significant memory overhead. But you might need it.
 - The publisher publishes 11 nodes with value changes every 1 second. There is no buffering enabled, the messages are immediately dropped after encoding.
-- The setup is continously under GC pressure and a good chunk of CPU is used for garbage collection and compression.
+- The setup is continuously under GC pressure and a good chunk of CPU is used for garbage collection and compression.
 - Open Telemetry and Prometheus metrics are disabled as they consume a large amount of memory.
 - The .net GC is configured to be over aggressive which are not ideal for production scenarios.

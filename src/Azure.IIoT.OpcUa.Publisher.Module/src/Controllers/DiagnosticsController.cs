@@ -74,6 +74,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// GetActiveConnections
+        /// </summary>
+        /// <remarks>
+        /// Get all active connections the publisher is currently managing.
+        /// </remarks>
+        /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpGet("connections")]
+        public Task<IReadOnlyList<ConnectionModel>> GetActiveConnectionsAsync(
+            CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            return Task.FromResult(_diagnostics.ActiveConnections);
+        }
+
+        /// <summary>
+        /// GetClientDiagnostics
+        /// </summary>
+        /// <remarks>
+        /// Get diagnostics for all active clients including server and
+        /// client session diagnostics.
+        /// </remarks>
+        /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpGet("diagnostics/clients")]
+        public IAsyncEnumerable<ClientDiagnosticsModel> GetClientDiagnosticsAsync(
+            CancellationToken ct = default)
+        {
+            return _diagnostics.GetDiagnosticsAsync(ct);
+        }
+
+        /// <summary>
         /// GetConnectionDiagnostics
         /// </summary>
         /// <remarks>

@@ -199,6 +199,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public async ValueTask<SessionDiagnosticsModel> GetServerDiagnosticAsync(
+            CancellationToken ct = default)
+        {
+            _lastDiagnostics = await FetchServerDiagnosticAsync(new RequestHeader(),
+                ct).ConfigureAwait(false);
+            return _lastDiagnostics ?? new SessionDiagnosticsModel();
+        }
+
+        /// <inheritdoc/>
         public async ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
             CancellationToken ct = default)
         {
@@ -702,6 +711,124 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Fetch server diagnostics
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<SessionDiagnosticsModel?> FetchServerDiagnosticAsync(RequestHeader header,
+            CancellationToken ct)
+        {
+            var response = await ReadAsync(header, 0.0, Opc.Ua.TimestampsToReturn.Neither, new[]
+            {
+                new ReadValueId
+                {
+                    AttributeId = Attributes.Value,
+                    NodeId =
+        Variables.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray
+                }
+            }, ct).ConfigureAwait(false);
+            var diagnostics = (response.Results[0].Value as SessionDiagnosticsDataTypeCollection)?
+                .FirstOrDefault(d => d.SessionId == SessionId);
+            if (diagnostics == null)
+            {
+                return null;
+            }
+            return new SessionDiagnosticsModel
+            {
+                SessionId =
+                    diagnostics.SessionId.AsString(MessageContext, NamespaceFormat.Expanded),
+                TranslateBrowsePathsToNodeIdsCount =
+                    ToCounter(diagnostics.TranslateBrowsePathsToNodeIdsCount),
+                AddNodesCount =
+                    ToCounter(diagnostics.AddNodesCount),
+                AddReferencesCount =
+                    ToCounter(diagnostics.AddReferencesCount),
+                BrowseCount =
+                    ToCounter(diagnostics.BrowseCount),
+                BrowseNextCount =
+                    ToCounter(diagnostics.BrowseNextCount),
+                CreateMonitoredItemsCount =
+                    ToCounter(diagnostics.CreateMonitoredItemsCount),
+                CreateSubscriptionCount =
+                    ToCounter(diagnostics.CreateSubscriptionCount),
+                DeleteMonitoredItemsCount =
+                    ToCounter(diagnostics.DeleteMonitoredItemsCount),
+                DeleteNodesCount =
+                    ToCounter(diagnostics.DeleteNodesCount),
+                DeleteReferencesCount =
+                    ToCounter(diagnostics.DeleteReferencesCount),
+                DeleteSubscriptionsCount =
+                    ToCounter(diagnostics.DeleteSubscriptionsCount),
+                CallCount =
+                    ToCounter(diagnostics.CallCount),
+                HistoryReadCount =
+                    ToCounter(diagnostics.HistoryReadCount),
+                HistoryUpdateCount =
+                    ToCounter(diagnostics.HistoryUpdateCount),
+                ModifyMonitoredItemsCount =
+                    ToCounter(diagnostics.ModifyMonitoredItemsCount),
+                ModifySubscriptionCount =
+                    ToCounter(diagnostics.ModifySubscriptionCount),
+                PublishCount =
+                    ToCounter(diagnostics.PublishCount),
+                RegisterNodesCount =
+                    ToCounter(diagnostics.RegisterNodesCount),
+                RepublishCount =
+                    ToCounter(diagnostics.RepublishCount),
+                SetMonitoringModeCount =
+                    ToCounter(diagnostics.SetMonitoringModeCount),
+                SetPublishingModeCount =
+                    ToCounter(diagnostics.SetPublishingModeCount),
+                UnregisterNodesCount =
+                    ToCounter(diagnostics.UnregisterNodesCount),
+                QueryFirstCount =
+                    ToCounter(diagnostics.QueryFirstCount),
+                QueryNextCount =
+                    ToCounter(diagnostics.QueryNextCount),
+                ReadCount =
+                    ToCounter(diagnostics.ReadCount),
+                WriteCount =
+                    ToCounter(diagnostics.WriteCount),
+                SetTriggeringCount =
+                    ToCounter(diagnostics.SetTriggeringCount),
+                TotalRequestCount =
+                    ToCounter(diagnostics.TotalRequestCount),
+                TransferSubscriptionsCount =
+                    ToCounter(diagnostics.TransferSubscriptionsCount),
+                ServerUri =
+                    diagnostics.ServerUri,
+                SessionName =
+                    diagnostics.SessionName,
+                ActualSessionTimeout =
+                    diagnostics.ActualSessionTimeout,
+                MaxResponseMessageSize =
+                    diagnostics.MaxResponseMessageSize,
+                UnauthorizedRequestCount =
+                    diagnostics.UnauthorizedRequestCount,
+                ConnectTime =
+                    diagnostics.ClientConnectionTime,
+                LastContactTime =
+                    diagnostics.ClientLastContactTime,
+                CurrentSubscriptionsCount =
+                    diagnostics.CurrentSubscriptionsCount,
+                CurrentMonitoredItemsCount =
+                    diagnostics.CurrentMonitoredItemsCount,
+                CurrentPublishRequestsInQueue =
+                    diagnostics.CurrentPublishRequestsInQueue
+            };
+
+            static ServiceCounterModel ToCounter(ServiceCounterDataType counter)
+            {
+                return new ServiceCounterModel
+                {
+                    TotalCount = counter.TotalCount,
+                    ErrorCount = counter.ErrorCount
+                };
+            }
+        }
+
+        /// <summary>
         /// Read operation limits
         /// </summary>
         /// <param name="header"></param>
@@ -1143,6 +1270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private ServerCapabilitiesModel? _server;
         private OperationLimitsModel? _limits;
+        private SessionDiagnosticsModel? _lastDiagnostics;
         private HistoryServerCapabilitiesModel? _history;
         private Task<ComplexTypeSystem>? _complexTypeSystem;
         private bool _disposed;

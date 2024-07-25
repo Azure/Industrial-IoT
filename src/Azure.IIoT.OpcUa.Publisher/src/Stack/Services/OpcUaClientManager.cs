@@ -41,8 +41,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IReadOnlyList<ConnectionDiagnosticModel> IClientDiagnostics.Diagnostics
             => _clients.Values.Select(c => c.LastDiagnostics).ToList();
 
+        /// <inheritdoc/>
+        public IReadOnlyList<ConnectionModel> ActiveConnections
+            => _clients.Keys.Select(c => c.Connection).ToList();
+
         /// <summary>
-        /// Create client manager
+        /// Create kv manager
         /// </summary>
         /// <param name="loggerFactory"></param>
         /// <param name="serializer"></param>
@@ -81,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             TimeProvider? timeProvider)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            // Create subscription which will register with callback/client
+            // Create subscription which will register with callback/kv
 #pragma warning disable CA2000 // Dispose objects before losing scope
             _ = new OpcUaSubscription(this, callback, subscription,
                 _options, _loggerFactory, new OpcUaClientTagList(
@@ -149,6 +153,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public Task ResetAllClientsAsync(CancellationToken ct)
         {
             return Task.WhenAll(_clients.Values.Select(c => c.ResetAsync(ct)).ToArray());
+        }
+
+        /// <inheritdoc/>
+        public async IAsyncEnumerable<ClientDiagnosticsModel> GetDiagnosticsAsync(
+            [EnumeratorCancellation] CancellationToken ct)
+        {
+            foreach (var kv in _clients.ToList())
+            {
+                SessionDiagnosticsModel? server = null;
+                try
+                {
+                    server = await kv.Value.GetSessionDiagnosticsAsync(
+                        ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to get diagnostics for client {Name}.",
+                        kv.Value);
+                }
+                yield return new ClientDiagnosticsModel
+                {
+                    Connection = kv.Key.Connection,
+                    // Client = kv,
+                    Server = server
+                };
+            }
         }
 
         /// <inheritdoc/>
@@ -474,7 +504,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Load client configuration
+        /// Load kv configuration
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -545,7 +575,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Get or add new client
+        /// Get or add new kv
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
@@ -558,9 +588,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw _reverseConnectStartException.Value;
             }
 
-            // Find client and if not exists create
+            // Find kv and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing client
+            // try to get an existing kv
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,

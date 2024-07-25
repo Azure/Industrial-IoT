@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WriteReadbackValue", "Write
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SetConfiguration", "SetConfiguration\SetConfiguration.csproj", "{890F70EB-7C90-41F3-A1D0-8CB02B9E72E6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetDiagnostics", "GetDiagnostics\GetDiagnostics.csproj", "{3A16E303-DB2C-4E94-BA51-A41943EADA0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{890F70EB-7C90-41F3-A1D0-8CB02B9E72E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{890F70EB-7C90-41F3-A1D0-8CB02B9E72E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{890F70EB-7C90-41F3-A1D0-8CB02B9E72E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A16E303-DB2C-4E94-BA51-A41943EADA0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A16E303-DB2C-4E94-BA51-A41943EADA0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A16E303-DB2C-4E94-BA51-A41943EADA0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A16E303-DB2C-4E94-BA51-A41943EADA0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
