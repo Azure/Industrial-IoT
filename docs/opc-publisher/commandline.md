@@ -554,6 +554,8 @@ Subscription settings
                                interval setting of a subscription created with
                                an OPC UA server. This value is used if an
                                explicit publishing interval was not configured.
+                               When setting `--op=0` the server decides the
+                               lowest publishing interval it can support.
                                Default: `1000`.
                                Also can be set using `DefaultPublishingInterval`
                                 environment variable in the form of a duration
@@ -594,6 +596,15 @@ Subscription settings
                                queue size was not specified in the
                                configuration.
                                Default: `1` (for backwards compatibility).
+      --aq, --autosetqueuesize, --AutoSetQueueSizes[=VALUE]
+                             (Experimental) Automatically calculate queue sizes
+                               for monitored items using the subscription
+                               publishing interval and the item's sampling rate
+                               as max(configured queue size, roundup(
+                               publishinginterval / samplinginterval)).
+                               Note that the server might revise the queue size
+                               down if it cannot handle the calculated size.
+                               Default: `false` (disabled).
       --ndo, --nodiscardold, --DiscardNew[=VALUE]
                              The publisher is using this as default value for
                                the discard old setting of monitored item queue
@@ -724,11 +735,11 @@ Subscription settings
                                Default: `False`.
       --ipi, --ignorepublishingintervals, --IgnoreConfiguredPublishingIntervals[=VALUE]
                              Always use the publishing interval provided via
-                               command line argument `--op` or otherwise `0`
-                               and ignore all publishing interval settings in
-                               the configuration.
-                               If `--op` is not set, then effectively the
-                               server decides the best publishing interval.
+                               command line argument `--op` and ignore all
+                               publishing interval settings in the
+                               configuration.
+                               Combine with `--op=0` to let the server use the
+                               lowest publishing interval it can support.
                                Default: `False` (disabled).
 
 OPC UA Client configuration
