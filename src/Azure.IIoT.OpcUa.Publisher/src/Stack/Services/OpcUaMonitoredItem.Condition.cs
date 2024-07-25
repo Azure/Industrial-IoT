@@ -97,9 +97,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override string ToString()
             {
-                return
-                    $"Condition Item '{Template.StartNodeId}' with server id {RemoteId}" +
-                    $" - {(Status?.Created == true ? "" : "not ")}created";
+                var str = $"Condition Item '{Template.StartNodeId}'";
+                if (RemoteId.HasValue)
+                {
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                }
+                return str;
             }
 
             /// <inheritdoc/>

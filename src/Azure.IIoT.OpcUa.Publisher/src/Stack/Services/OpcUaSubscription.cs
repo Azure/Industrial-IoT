@@ -740,6 +740,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 desired.Remove(theDesiredUpdate);
                 Debug.Assert(toUpdate.GetType() == theDesiredUpdate.GetType());
+                Debug.Assert(toUpdate.Subscription == this);
                 try
                 {
                     if (toUpdate.MergeWith(theDesiredUpdate, session, out var metadata))
@@ -775,6 +776,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var removed = 0;
             foreach (var toRemove in remove)
             {
+                Debug.Assert(toRemove.Subscription == this);
                 try
                 {
                     if (toRemove.RemoveFrom(this, out var metadata))
@@ -803,6 +805,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             foreach (var toAdd in add)
             {
                 desired.Remove(toAdd);
+                Debug.Assert(toAdd.Subscription == null);
                 try
                 {
                     if (toAdd.AddTo(this, session, out var metadata))
@@ -1059,6 +1062,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _additionallyMonitored = set
                 .Where(m => !m.AttachedToSubscription)
                 .ToFrozenDictionary(m => m.ClientHandle, m => m);
+
+            set.ForEach(item => item.LogRevisedSamplingRateAndQueueSize());
 
             _badMonitoredItems = invalidItems;
             _goodMonitoredItems = Math.Max(set.Count - invalidItems, 0);

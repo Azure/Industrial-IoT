@@ -101,10 +101,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Data Item '{Template.StartNodeId}' " +
-                    $"(with {Template.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV} Heartbeat) " +
-                    $"with server id {RemoteId} - {(Status?.Created == true ? "" :
-                        "not ")}created";
+                var str = $"Data Item '{Template.StartNodeId}' " +
+                    $"(with {Template.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV} Heartbeat) ";
+                if (RemoteId.HasValue)
+                {
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                }
+                return str;
             }
 
             /// <inheritdoc/>

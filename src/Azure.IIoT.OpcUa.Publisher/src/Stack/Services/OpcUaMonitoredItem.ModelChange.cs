@@ -64,13 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _client = item._client;
                 _callback = item._callback;
                 _fields = item._fields;
-
-                _browser = item.CloneBrowser();
-                if (_browser != null)
-                {
-                    _browser.OnReferenceChange += OnReferenceChange;
-                    _browser.OnNodeChange += OnNodeChange;
-                }
             }
 
             /// <inheritdoc/>
@@ -84,8 +77,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override void Dispose(bool disposing)
             {
                 // Cleanup
-                var browser = CloneBrowser();
-                browser?.CloseAsync().AsTask().GetAwaiter().GetResult();
+                var browser = _browser;
+                lock (_lock)
+                {
+                    _disposed = true;
+                    _browser = null;
+                    if (browser != null)
+                    {
+                        browser.OnReferenceChange -= OnReferenceChange;
+                        browser.OnNodeChange -= OnNodeChange;
+                        browser.CloseAsync().AsTask().GetAwaiter().GetResult();
+                    }
+                }
                 base.Dispose(disposing);
             }
 
@@ -131,9 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override string ToString()
             {
-                return
-                    $"Model Change Item with server id {RemoteId}" +
-                    $" - {(Status?.Created == true ? "" : "not ")}created";
+                var str = "Model Change Item";
+                if (RemoteId.HasValue)
+                {
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                }
+                return str;
             }
 
             /// <inheritdoc/>
@@ -178,29 +184,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (!AttachedToSubscription)
                 {
-                    // Stop the browser
-                    if (_browser != null)
-                    {
-                        _browser.OnReferenceChange -= OnReferenceChange;
-                        _browser.OnNodeChange -= OnNodeChange;
-
-                        await _browser.CloseAsync().ConfigureAwait(false);
-                        _logger.LogInformation("Item {Item} unregistered from browser.", this);
-                        _browser = null;
-                    }
+                    await StopBrowserAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    // Start the browser
-                    if (_browser == null)
-                    {
-                        _browser = _client.Browse(Template.RebrowsePeriod ??
-                            TimeSpan.FromHours(12), Subscription.DisplayName);
-
-                        _browser.OnReferenceChange += OnReferenceChange;
-                        _browser.OnNodeChange += OnNodeChange;
-                        _logger.LogInformation("Item {Item} registered with browser.", this);
-                    }
+                    EnsureBrowserStarted();
                 }
             };
 
@@ -219,8 +207,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 AttributeId = Attributes.EventNotifier;
                 MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
-                QueueSize = Template.QueueSize;
                 SamplingInterval = 0;
+                UpdateQueueSize(subscription, Template);
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
@@ -285,6 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // The model changed, trigger Rebrowse
+                EnsureBrowserStarted();
                 _browser?.Rebrowse();
                 return true;
             }
@@ -308,6 +297,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
+            /// <inheritdoc/>
+            protected override bool OnSamplingIntervalOrQueueSizeRevised(
+                bool samplingIntervalChanged, bool queueSizeChanged)
+            {
+                Debug.Assert(Subscription != null);
+                var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
+                    samplingIntervalChanged, queueSizeChanged);
+                if (samplingIntervalChanged && Status.SamplingInterval != 0)
+                {
+                    // Not necessary as sampling interval will likely always stay 0
+                    applyChanges |= UpdateQueueSize(Subscription, Template);
+                }
+                return applyChanges;
+            }
+
             /// <summary>
             /// Called when node changed
             /// </summary>
@@ -328,22 +332,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _callback?.Invoke(MessageType.Event, CreateEvent(_refChangeType, e),
                     sender as ISession, DataSetName);
-            }
-
-            /// <summary>
-            /// Clone the browser
-            /// </summary>
-            /// <returns></returns>
-            private IOpcUaBrowser? CloneBrowser()
-            {
-                var browser = _browser;
-                _browser = null;
-                if (browser != null)
-                {
-                    browser.OnReferenceChange -= OnReferenceChange;
-                    browser.OnNodeChange -= OnNodeChange;
-                }
-                return browser;
             }
 
             /// <summary>
@@ -421,14 +409,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
+            /// <summary>
+            /// Start browser
+            /// </summary>
+            private void EnsureBrowserStarted()
+            {
+                lock (_lock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    // Start the browser
+                    if (_browser == null)
+                    {
+                        _browser = _client.Browse(Template.RebrowsePeriod ??
+                            TimeSpan.FromHours(12), Subscription.DisplayName);
+
+                        _browser.OnReferenceChange += OnReferenceChange;
+                        _browser.OnNodeChange += OnNodeChange;
+                        _logger.LogInformation("Item {Item} registered with browser.", this);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Stop browser
+            /// </summary>
+            /// <returns></returns>
+            private async Task StopBrowserAsync()
+            {
+                // Stop the browser
+                IOpcUaBrowser? browser;
+                lock (_lock)
+                {
+                    browser = _browser;
+                    if (browser != null)
+                    {
+                        browser.OnReferenceChange -= OnReferenceChange;
+                        browser.OnNodeChange -= OnNodeChange;
+                    }
+                    _browser = null;
+                }
+                if (browser != null)
+                {
+                    await browser.CloseAsync().ConfigureAwait(false);
+                    _logger.LogInformation("Item {Item} unregistered from browser.", this);
+                }
+            }
+
             private static readonly ExpandedNodeId _refChangeType
                 = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
             private static readonly ExpandedNodeId _nodeChangeType
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
             private readonly PublishedFieldMetaDataModel[] _fields;
             private readonly IOpcUaClient _client;
+            private readonly object _lock = new();
             private IOpcUaBrowser? _browser;
             private Callback? _callback;
+            private bool _disposed;
         }
     }
 }

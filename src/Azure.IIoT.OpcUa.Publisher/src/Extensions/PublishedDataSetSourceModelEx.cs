@@ -207,6 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     // as revisedQueueSize for event monitored items.
                     //
                     QueueSize = options.DefaultQueueSize ?? 0,
+                    AutoSetQueueSize = options.AutoSetQueueSizes ?? false,
                     FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
                         ?? settings?.ResolveDisplayName
                         ?? options.ResolveDisplayName,
@@ -243,8 +244,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // 0 the Server returns the default queue size for Event Notifications
                 // as revisedQueueSize for event monitored items.
                 //
-                QueueSize = publishedEvent.QueueSize
-                    ?? options.DefaultQueueSize ?? 0,
+                QueueSize = publishedEvent.QueueSize ?? options.DefaultQueueSize ?? 0,
+                AutoSetQueueSize = options.AutoSetQueueSizes ?? false,
                 AttributeId = null,
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = eventNotifier,
@@ -324,6 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 QueueSize = publishedVariable.ServerQueueSize
                     ?? options.DefaultQueueSize
                     ?? 1,
+                AutoSetQueueSize = options.AutoSetQueueSizes ?? false,
                 RelativePath = publishedVariable.BrowsePath,
                 AttributeId = publishedVariable.Attribute,
                 IndexRange = publishedVariable.IndexRange,
