@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
-    using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.

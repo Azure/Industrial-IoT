@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Amqp.Framing;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
