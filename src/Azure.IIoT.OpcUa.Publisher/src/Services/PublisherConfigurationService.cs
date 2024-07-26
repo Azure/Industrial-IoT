@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel endpoint,
             PublishStartRequestModel request, CancellationToken ct = default)
         {
-            if (request.Item is null)
+            if (request.Item?.NodeId is null)
             {
                 throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
@@ -372,6 +372,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             PublishBulkRequestModel request, CancellationToken ct = default)
         {
             if (request.NodesToAdd is null && request.NodesToRemove is null)
+            {
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
+            }
+            if ((request.NodesToRemove?.Any(n => n == null) ?? false) ||
+                (request.NodesToAdd?.Any(n => n.NodeId == null) ?? false))
             {
                 throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
@@ -674,6 +679,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task SetConfiguredEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {
+            foreach (var entry in request)
+            {
+                if (entry.OpcNodes != null)
+                {
+                    entry.OpcNodes = ValidateNodes(entry.OpcNodes, false);
+                }
+            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -725,6 +737,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 foreach (var updateRequest in request.Where(e => e.OpcNodes?.Count > 0))
                 {
+                    ValidateNodes(updateRequest.OpcNodes!, false);
                     // We will add the update request entry and clean up anything else matching.
                     var found = currentNodes.FirstOrDefault(entry => entry.HasSameDataSet(updateRequest));
                     if (found != null)
@@ -1152,13 +1165,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var set = new HashSet<string>();
             foreach (var node in opcNodes)
             {
-                if (string.IsNullOrWhiteSpace(node.Id))
+                if (!node.TryGetId(out var id))
                 {
                     throw new BadRequestException("Node must contain a node ID");
                 }
                 if (dataSetWriterApiRequirements)
                 {
-                    node.DataSetFieldId ??= node.Id;
+                    node.DataSetFieldId ??= id;
                     set.Add(node.DataSetFieldId);
                     if (node.OpcPublishingInterval != null ||
                         node.OpcPublishingIntervalTimespan != null)

@@ -506,18 +506,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 sw.Stop();
             }
 
-            static IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item, int scaleTestCount)
+            IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item, int scaleTestCount)
             {
                 if (item.OpcNodes != null)
                 {
                     foreach (var node in item.OpcNodes)
                     {
-                        var id = !string.IsNullOrWhiteSpace(node.Id) ?
-                            node.Id : !string.IsNullOrWhiteSpace(node.ExpandedNodeId) ?
-                            node.ExpandedNodeId : node.BrowsePath?.Count > 0 ?
-                            Opc.Ua.ObjectIds.RootFolder.ToString() : null; // Default to root folder
-                        if (id == null)
+                        if (!node.TryGetId(out var id))
                         {
+                            _logger.LogError("No node id was configured in the opc node entry - skipping...");
                             continue;
                         }
                         if (scaleTestCount <= 1)
