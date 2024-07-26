@@ -725,7 +725,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     AttributeId = Attributes.Value,
                     NodeId =
-        Variables.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray
+        VariableIds.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray
                 }
             }, ct).ConfigureAwait(false);
             var diagnostics = (response.Results[0].Value as SessionDiagnosticsDataTypeCollection)?
