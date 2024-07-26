@@ -89,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #endif
 
         /// <summary>
-        /// Enable or disable Diagnostics
+        /// Enable or disable ChannelDiagnostics
         /// </summary>
         public bool DiagnosticsEnabled
         {

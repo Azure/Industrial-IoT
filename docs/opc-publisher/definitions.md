@@ -303,6 +303,46 @@ View to browse
 |**viewId**  <br>*required*|Node of the view to browse  <br>**Minimum length** : `1`|string|
 
 
+<a name="channeldiagnosticmodel"></a>
+### ChannelDiagnosticModel
+Channel diagnostics model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**channelId**  <br>*optional*|The id assigned to the channel that the token<br>belongs to.|integer (int64)|
+|**client**  <br>*optional*||[ChannelKeyModel](definitions.md#channelkeymodel)|
+|**connection**  <br>*required*||[ConnectionModel](definitions.md#connectionmodel)|
+|**createdAt**  <br>*optional*|When the token was created by the server<br>(refers to the server's clock).|string (date-time)|
+|**lifetime**  <br>*optional*|The lifetime of the token|string (date-span)|
+|**localIpAddress**  <br>*optional*|Effective local ip address used for the connection<br>if connected. Empty if disconnected.|string|
+|**localPort**  <br>*optional*|The effective local port used when connected,<br>null if disconnected.|integer (int32)|
+|**remoteIpAddress**  <br>*optional*|Effective remote ip address used for the<br>connection if connected. Empty if disconnected.|string|
+|**remotePort**  <br>*optional*|The effective remote port used when connected,<br>null if disconnected.|integer (int32)|
+|**server**  <br>*optional*||[ChannelKeyModel](definitions.md#channelkeymodel)|
+|**sessionCreated**  <br>*optional*|When the session was created.|string (date-time)|
+|**sessionId**  <br>*optional*|The session id if connected. Empty if disconnected.|string|
+|**timeStamp**  <br>*required*|Timestamp of the diagnostic information|string (date-time)|
+|**tokenId**  <br>*optional*|The id assigned to the token.|integer (int64)|
+
+
+<a name="channeldiagnosticmodeliasyncenumerable"></a>
+### ChannelDiagnosticModelIAsyncEnumerable
+*Type* : object
+
+
+<a name="channelkeymodel"></a>
+### ChannelKeyModel
+Channel token key model.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**iv**  <br>*required*|Iv|< integer (int32) > array|
+|**key**  <br>*required*|Key|< integer (int32) > array|
+|**sigLen**  <br>*required*|Signature length|integer (int32)|
+
+
 <a name="conditionhandlingoptionsmodel"></a>
 ### ConditionHandlingOptionsModel
 Condition handling options model
@@ -314,8 +354,8 @@ Condition handling options model
 |**updateInterval**  <br>*optional*|Time interval for sending pending interval updates in seconds.|integer (int32)|
 
 
-<a name="connectiondiagnosticmodeliasyncenumerable"></a>
-### ConnectionDiagnosticModelIAsyncEnumerable
+<a name="connectiondiagnosticsmodeliasyncenumerable"></a>
+### ConnectionDiagnosticsModelIAsyncEnumerable
 *Type* : object
 
 

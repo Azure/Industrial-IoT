@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Last diagnostic information on this client
         /// </summary>
-        internal ConnectionDiagnosticModel LastDiagnostics => _lastDiagnostics;
+        internal ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
 
         /// <summary>
         /// No complex type loading ever
@@ -188,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Meter meter, IMetricsContext metrics,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
-            Action<ConnectionDiagnosticModel> diagnosticsCallback,
+            Action<ChannelDiagnosticModel> diagnosticsCallback,
             TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
             _timeProvider = timeProvider;
@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _connection = connection.Connection;
             _diagnosticsCb = diagnosticsCallback;
-            _lastDiagnostics = new ConnectionDiagnosticModel
+            _lastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
                 TimeStamp = _timeProvider.GetUtcNow()
@@ -1568,8 +1568,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var now = _timeProvider.GetUtcNow();
 
-            var elapsed = now - _lastDiagnostics.TimeStamp;
-            var lastChannel = _lastDiagnostics.ChannelDiagnostics;
+            var lastDiagnostics = _lastDiagnostics;
+            var elapsed = now - lastDiagnostics.TimeStamp;
 
             var channelChanged = false;
             if (token != null)
@@ -1581,10 +1581,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // try again after the remaining lifetime or every second
                 // until it changed unless the token is then later gone.
                 //
-                channelChanged = !(lastChannel != null &&
-                    lastChannel.ChannelId == token.ChannelId &&
-                    lastChannel.TokenId == token.TokenId &&
-                    lastChannel.CreatedAt == token.CreatedAt);
+                channelChanged = !(lastDiagnostics != null &&
+                    lastDiagnostics.ChannelId == token.ChannelId &&
+                    lastDiagnostics.TokenId == token.TokenId &&
+                    lastDiagnostics.CreatedAt == token.CreatedAt);
 
                 var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
                 if (channelChanged)
@@ -1631,7 +1631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            _lastDiagnostics = new ConnectionDiagnosticModel
+            _lastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
                 TimeStamp = now,
@@ -1641,18 +1641,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RemotePort = remotePort == -1 ? null : remotePort,
                 LocalIpAddress = localIpAddress,
                 LocalPort = localPort == -1 ? null : localPort,
-
-                ChannelDiagnostics = token != null ? new ChannelDiagnosticModel
-                {
-                    ChannelId = token.ChannelId,
-                    TokenId = token.TokenId,
-                    CreatedAt = token.CreatedAt,
-                    Lifetime = TimeSpan.FromMilliseconds(token.Lifetime),
-                    Client = ToChannelKey(token.ClientInitializationVector,
-                        token.ClientEncryptingKey, token.ClientSigningKey),
-                    Server = ToChannelKey(token.ServerInitializationVector,
-                        token.ServerEncryptingKey, token.ServerSigningKey)
-                } : null
+                ChannelId = token?.ChannelId,
+                TokenId = token?.TokenId,
+                CreatedAt = token?.CreatedAt,
+                Lifetime = token == null ? null :
+                    TimeSpan.FromMilliseconds(token.Lifetime),
+                Client = ToChannelKey(token?.ClientInitializationVector,
+                    token?.ClientEncryptingKey, token?.ClientSigningKey),
+                Server = ToChannelKey(token?.ServerInitializationVector,
+                    token?.ServerEncryptingKey, token?.ServerSigningKey)
             };
             _diagnosticsCb(_lastDiagnostics);
             _logger.LogDebug("{Client}: Diagnostics information updated.", this);
@@ -2123,7 +2120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
         private int _namespaceTableChanges;
-        private ConnectionDiagnosticModel _lastDiagnostics;
+        private ChannelDiagnosticModel _lastDiagnostics;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
@@ -2143,7 +2140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
-        private readonly Action<ConnectionDiagnosticModel> _diagnosticsCb;
+        private readonly Action<ChannelDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<(string, TimeSpan), Sampler> _samplers = new();
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();

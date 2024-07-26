@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpGet("reset")]
         public async Task ResetAllClientsAsync(CancellationToken ct = default)
         {
-            await _diagnostics.ResetAllClientsAsync(ct).ConfigureAwait(false);
+            await _diagnostics.ResetAllConnectionsAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// GetClientDiagnostics
+        /// GetConnectionDiagnostics
         /// </summary>
         /// <remarks>
         /// Get diagnostics for all active clients including server and
@@ -106,37 +106,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/clients")]
-        public IAsyncEnumerable<ClientDiagnosticsModel> GetClientDiagnosticsAsync(
+        [HttpGet("diagnostics/connections")]
+        public IAsyncEnumerable<ConnectionDiagnosticsModel> GetConnectionDiagnosticsAsync(
             CancellationToken ct = default)
         {
-            return _diagnostics.GetDiagnosticsAsync(ct);
+            return _diagnostics.GetConnectionDiagnosticsAsync(ct);
         }
 
         /// <summary>
-        /// GetConnectionDiagnostics
+        /// GetChannelDiagnostics
         /// </summary>
         /// <remarks>
-        /// Get connection diagnostic information for all connections.
+        /// Get channel diagnostic information for all connections.
         /// </remarks>
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/connections")]
-        public Task<IReadOnlyList<ConnectionDiagnosticModel>> GetConnectionDiagnosticsAsync(
+        [HttpGet("diagnostics/channels")]
+        public Task<IReadOnlyList<ChannelDiagnosticModel>> GetChannelDiagnosticsAsync(
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            return Task.FromResult(_diagnostics.Diagnostics);
+            return Task.FromResult(_diagnostics.ChannelDiagnostics);
         }
 
         /// <summary>
-        /// WatchConnectionDiagnostics
+        /// WatchChannelDiagnostics
         /// </summary>
         /// <remarks>
-        /// Get connection diagnostic information for all connections.
+        /// Get channel diagnostic information for all connections.
         /// The first set of diagnostics are the diagnostics active for
         /// all connections, continue reading to get updates.
         /// </remarks>
@@ -145,11 +145,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/connections/watch")]
-        public IAsyncEnumerable<ConnectionDiagnosticModel> WatchConnectionDiagnosticsAsync(
+        [HttpGet("diagnostics/channels/watch")]
+        public IAsyncEnumerable<ChannelDiagnosticModel> WatchChannelDiagnosticsAsync(
             CancellationToken ct = default)
         {
-            return _diagnostics.MonitorAsync(ct);
+            return _diagnostics.WatchChannelDiagnosticsAsync(ct);
         }
 
         private readonly IClientDiagnostics _diagnostics;

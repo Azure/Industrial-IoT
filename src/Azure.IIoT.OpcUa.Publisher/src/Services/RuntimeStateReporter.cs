@@ -428,7 +428,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Diagnostics timer to dump out all diagnostics
+        /// ChannelDiagnostics timer to dump out all diagnostics
         /// </summary>
         /// <param name="ct"></param>
         private async Task DiagnosticsOutputTimerAsync(CancellationToken ct)

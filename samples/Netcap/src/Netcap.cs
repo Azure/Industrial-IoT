@@ -323,8 +323,8 @@ internal sealed class Main : IDisposable
 
                 using (bundle.AddPcap(publisher, i, _run.CaptureInterfaces, _sidecarHttpClient))
                 {
-                    await publisher.MonitorPublisherAsync(diagnostic =>
-                        bundle.AddSessionKeysFromDiagnosticsAsync(diagnostic, publisher.Endpoints),
+                    await publisher.MonitorChannelsAsync(channelDiagnostics =>
+                        bundle.AddSessionKeysFromDiagnosticsAsync(channelDiagnostics, publisher.Endpoints),
                         timeoutToken.Token).ConfigureAwait(false);
                 }
 

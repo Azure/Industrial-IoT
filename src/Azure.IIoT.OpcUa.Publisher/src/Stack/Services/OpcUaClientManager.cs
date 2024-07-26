@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
 
         /// <inheritdoc/>
-        IReadOnlyList<ConnectionDiagnosticModel> IClientDiagnostics.Diagnostics
+        IReadOnlyList<ChannelDiagnosticModel> IClientDiagnostics.ChannelDiagnostics
             => _clients.Values.Select(c => c.LastDiagnostics).ToList();
 
         /// <inheritdoc/>
@@ -150,13 +150,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public Task ResetAllClientsAsync(CancellationToken ct)
+        public Task ResetAllConnectionsAsync(CancellationToken ct)
         {
             return Task.WhenAll(_clients.Values.Select(c => c.ResetAsync(ct)).ToArray());
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<ClientDiagnosticsModel> GetDiagnosticsAsync(
+        public async IAsyncEnumerable<ConnectionDiagnosticsModel> GetConnectionDiagnosticsAsync(
             [EnumeratorCancellation] CancellationToken ct)
         {
             foreach (var kv in _clients.ToList())
@@ -164,33 +164,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SessionDiagnosticsModel? server = null;
                 try
                 {
-                    server = await kv.Value.GetSessionDiagnosticsAsync(
-                        ct).ConfigureAwait(false);
+                    server = await kv.Value.GetSessionDiagnosticsAsync(ct).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to get diagnostics for client {Name}.",
                         kv.Value);
                 }
-                yield return new ClientDiagnosticsModel
+                yield return new ConnectionDiagnosticsModel
                 {
                     Connection = kv.Key.Connection,
-                    // Client = kv,
+                    // Client = kv.Value.Diagnostics,
                     Server = server
                 };
             }
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<ConnectionDiagnosticModel> MonitorAsync(
+        public async IAsyncEnumerable<ChannelDiagnosticModel> WatchChannelDiagnosticsAsync(
             [EnumeratorCancellation] CancellationToken ct)
         {
-            var queue = new AsyncProducerConsumerQueue<ConnectionDiagnosticModel>();
+            var queue = new AsyncProducerConsumerQueue<ChannelDiagnosticModel>();
             _listeners.TryAdd(queue, true);
             try
             {
                 // Get all items from buffer
-                var set = new HashSet<ConnectionDiagnosticModel>(
+                var set = new HashSet<ChannelDiagnosticModel>(
                     _clients.Values.Select(c => c.LastDiagnostics));
                 foreach (var item in set)
                 {
@@ -662,7 +661,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Called by clients when their connection information changed
         /// </summary>
         /// <param name="model"></param>
-        private void OnClientConnectionDiagnosticChange(ConnectionDiagnosticModel model)
+        private void OnClientConnectionDiagnosticChange(ChannelDiagnosticModel model)
         {
             foreach (var listener in _listeners.Keys)
             {
@@ -691,7 +690,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<
-            AsyncProducerConsumerQueue<ConnectionDiagnosticModel>, bool> _listeners = new();
+            AsyncProducerConsumerQueue<ChannelDiagnosticModel>, bool> _listeners = new();
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

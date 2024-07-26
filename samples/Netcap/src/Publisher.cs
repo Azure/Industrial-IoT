@@ -62,7 +62,7 @@ internal sealed class Publisher
     /// <param name="diagnostics"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async ValueTask MonitorPublisherAsync(Func<JsonElement, Task> diagnostics,
+    public async ValueTask MonitorChannelsAsync(Func<JsonElement, Task> diagnostics,
         CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
@@ -70,19 +70,19 @@ internal sealed class Publisher
             // Watch session diagnostics while we capture
             try
             {
-                _logger.LogInformation("Monitoring diagnostics at {Url}...", _httpClient.BaseAddress);
+                _logger.LogInformation("Monitoring channels at {Url}...", _httpClient.BaseAddress);
                 await foreach (var diagnostic in _httpClient.GetFromJsonAsAsyncEnumerable<JsonElement>(
-                    "v2/diagnostics/connections/watch",
+                    "v2/diagnostics/channels/watch",
                         cancellationToken: ct).ConfigureAwait(false))
                 {
                     await diagnostics(diagnostic).ConfigureAwait(false);
                 }
-                _logger.LogInformation("Restart monitoring diagnostics...");
+                _logger.LogInformation("Restart monitoring channel diagnostics...");
             }
             catch (OperationCanceledException) { } // Done
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error monitoring diagnostics - restarting...");
+                _logger.LogError(ex, "Error monitoring channel diagnostics - restarting...");
             }
         }
     }

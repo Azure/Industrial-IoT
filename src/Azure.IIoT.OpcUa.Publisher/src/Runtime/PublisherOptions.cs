@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public int? MaxNetworkMessageSize { get; set; }
 
         /// <summary>
-        /// Diagnostics interval
+        /// ChannelDiagnostics interval
         /// </summary>
         public TimeSpan? DiagnosticsInterval { get; set; }
 

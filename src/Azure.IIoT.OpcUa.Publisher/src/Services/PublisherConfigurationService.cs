@@ -818,7 +818,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var result = new List<PublishDiagnosticInfoModel>();
                 if (_diagnostics == null)
                 {
-                    // Diagnostics disabled
+                    // ChannelDiagnostics disabled
                     throw new ResourceInvalidStateException("Diagnostics service is disabled.");
                 }
                 foreach (var nodes in GetCurrentPublishedNodes().GroupBy(k => k.GetUniqueWriterGroupId()))

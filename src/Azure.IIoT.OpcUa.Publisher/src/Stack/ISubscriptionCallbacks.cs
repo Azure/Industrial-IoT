@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             IOpcUaSubscriptionNotification notification);
 
         /// <summary>
-        /// Diagnostics for data change notifications
+        /// ChannelDiagnostics for data change notifications
         /// </summary>
         /// <param name="liveData"></param>
         /// <param name="valueChanges"></param>
@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             int valueChanges, int overflow, int heartbeats);
 
         /// <summary>
-        /// Diagnostics for data change notifications
+        /// ChannelDiagnostics for data change notifications
         /// </summary>
         /// <param name="valuesSampled"></param>
         /// <param name="overflow"></param>

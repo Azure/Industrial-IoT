@@ -209,19 +209,18 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
             remotePortToken.TryGetInt32(out var remotePort) &&
             diagnostic.TryGetProperty("sessionId", out var sessionId) &&
             sessionId.GetString() != null &&
-            diagnostic.TryGetProperty("channelDiagnostics", out var channel) &&
-            channel.TryGetProperty("channelId", out var channelIdToken) &&
+            diagnostic.TryGetProperty("channelId", out var channelIdToken) &&
             channelIdToken.TryGetUInt32(out var channelId) &&
-            channel.TryGetProperty("tokenId", out var tokenIdToken) &&
+            diagnostic.TryGetProperty("tokenId", out var tokenIdToken) &&
             tokenIdToken.TryGetUInt32(out var tokenId) &&
-            channel.TryGetProperty("client", out var clientToken) &&
+            diagnostic.TryGetProperty("client", out var clientToken) &&
             clientToken.TryGetProperty("iv", out var clientIvToken) &&
             clientIvToken.TryGetBytes(out var clientIv) &&
             clientToken.TryGetProperty("key", out var clientKeyToken) &&
             clientKeyToken.TryGetBytes(out var clientKey) &&
             clientToken.TryGetProperty("sigLen", out var clientSigLenToken) &&
             clientSigLenToken.TryGetInt32(out var clientSigLen) &&
-            channel.TryGetProperty("server", out var serverToken) &&
+            diagnostic.TryGetProperty("server", out var serverToken) &&
             serverToken.TryGetProperty("iv", out var serverIvToken) &&
             serverIvToken.TryGetBytes(out var serverIv) &&
             serverToken.TryGetProperty("key", out var serverKeyToken) &&
