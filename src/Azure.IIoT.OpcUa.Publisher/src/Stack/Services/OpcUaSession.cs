@@ -64,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+#if NO_UAFIX
         /// <summary>
         /// Helper to set max publish requests
         /// </summary>
@@ -81,6 +82,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _maxPublishRequest?.SetValue(this, value);
             }
         }
+        private readonly FieldInfo? _maxPublishRequest = typeof(Session).GetField(
+            "m_tooManyPublishRequests", BindingFlags.NonPublic | BindingFlags.Instance);
+#endif
+
+        /// <summary>
+        /// Enable or disable Diagnostics
+        /// </summary>
+        public bool DiagnosticsEnabled
+        {
+            get => _diagnosticsEnabled != false;
+            set => _diagnosticsEnabled = value ? null : false;
+        }
 
         /// <summary>
         /// Create session
@@ -95,7 +108,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="clientCertificate"></param>
         /// <param name="availableEndpoints"></param>
         /// <param name="discoveryProfileUris"></param>
-        /// <exception cref="ArgumentNullException"></exception>
         public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
             ILogger<OpcUaSession> logger, TimeProvider timeProvider,
             ITransportChannel channel, ApplicationConfiguration configuration,
@@ -113,12 +125,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, serializer);
-
-            // TODO: Make accessible in base class
-            _maxPublishRequest = typeof(Session).GetField("m_tooManyPublishRequests",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            MaxPublishRequestCount = client.MaxPublishRequests ?? 0;
-            MinPublishRequestCount = Math.Max(1, client.MinPublishRequests ?? 1);
         }
 
         /// <summary>
@@ -202,8 +208,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask<SessionDiagnosticsModel> GetServerDiagnosticAsync(
             CancellationToken ct = default)
         {
-            _lastDiagnostics = await FetchServerDiagnosticAsync(new RequestHeader(),
-                ct).ConfigureAwait(false);
+            try
+            {
+                _lastDiagnostics = await FetchServerDiagnosticAsync(new RequestHeader(),
+                    ct).ConfigureAwait(false);
+            }
+            catch (ServiceResultException sre)
+            {
+                _logger.LogDebug(sre, "Failed to fetch server diagnostics.");
+            }
             return _lastDiagnostics ?? new SessionDiagnosticsModel();
         }
 
@@ -719,6 +732,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task<SessionDiagnosticsModel?> FetchServerDiagnosticAsync(RequestHeader header,
             CancellationToken ct)
         {
+            if (_diagnosticsEnabled == false)
+            {
+                return null;
+            }
+            if (!_diagnosticsEnabled.HasValue)
+            {
+                // Check whether enabled and if not enabled enable it
+                var diagnosticsEnabled = await ReadValueAsync(
+                    VariableIds.Server_ServerDiagnostics_EnabledFlag, ct).ConfigureAwait(false);
+                _diagnosticsEnabled = diagnosticsEnabled.Value as bool?;
+                if (_diagnosticsEnabled == false)
+                {
+                    var enableResponse = await WriteAsync(header, new[]
+                    {
+                        new WriteValue
+                        {
+                            AttributeId = Attributes.Value,
+                            NodeId = VariableIds.Server_ServerDiagnostics_EnabledFlag,
+                            Value = new DataValue(true)
+                        }
+                    }, ct).ConfigureAwait(false);
+                    if (ServiceResult.IsBad(enableResponse.Results[0]))
+                    {
+                        _logger.LogError("Session diagnostics disabled and failed to enable ({Error}).",
+                            enableResponse.Results[0]);
+                        return null;
+                    }
+                    _diagnosticsEnabled = true;
+                }
+            }
             var response = await ReadAsync(header, 0.0, Opc.Ua.TimestampsToReturn.Neither, new[]
             {
                 new ReadValueId
@@ -726,100 +769,173 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     AttributeId = Attributes.Value,
                     NodeId =
         VariableIds.Server_ServerDiagnostics_SessionsDiagnosticsSummary_SessionDiagnosticsArray
+                },
+                new ReadValueId
+                {
+                    AttributeId = Attributes.Value,
+                    NodeId = VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray
                 }
             }, ct).ConfigureAwait(false);
-            var diagnostics = (response.Results[0].Value as SessionDiagnosticsDataTypeCollection)?
-                .FirstOrDefault(d => d.SessionId == SessionId);
-            if (diagnostics == null)
+            if (ServiceResult.IsBad(response.Results[0].StatusCode))
             {
+                _logger.LogInformation("Session diagnostics not retrievable ({Error1}/{Error2}).",
+                    response.Results[0].StatusCode, response.Results[1].StatusCode);
                 return null;
             }
+            var sessionDiagnosticsArray = response.Results[0].Value as ExtensionObject[];
+            var sessionDiagnostics = sessionDiagnosticsArray?
+                .Select(o => o.Body)
+                .OfType<SessionDiagnosticsDataType>()
+                .FirstOrDefault(d => d.SessionId == SessionId);
+            if (sessionDiagnostics == null)
+            {
+                _logger.LogError("Failed to find diagnostics for this session ({Error}).",
+                    response.Results[0].StatusCode);
+                 return null;
+            }
+
+            List<SubscriptionDiagnosticsModel>? subscriptions = null;
+            var subscriptionDiagnosticsArray = response.Results[1].Value as ExtensionObject[];
+            if (!ServiceResult.IsBad(response.Results[1].StatusCode) &&
+                subscriptionDiagnosticsArray != null)
+            {
+                subscriptions = subscriptionDiagnosticsArray
+                    .Select(o => o.Body)
+                    .OfType<SubscriptionDiagnosticsDataType>()
+                    .Where(d => d.SessionId == SessionId)
+                    .Select(diag => new SubscriptionDiagnosticsModel
+                    {
+                        SubscriptionId = diag.SubscriptionId,
+                        Priority = diag.Priority,
+                        PublishingInterval = diag.PublishingInterval,
+                        MaxKeepAliveCount = diag.MaxKeepAliveCount,
+                        MaxLifetimeCount = diag.MaxLifetimeCount,
+                        MaxNotificationsPerPublish = diag.MaxNotificationsPerPublish,
+                        PublishingEnabled = diag.PublishingEnabled,
+                        ModifyCount = diag.ModifyCount,
+                        EnableCount = diag.EnableCount,
+                        DisableCount = diag.DisableCount,
+                        RepublishRequestCount = diag.RepublishRequestCount,
+                        RepublishMessageRequestCount = diag.RepublishMessageRequestCount,
+                        RepublishMessageCount = diag.RepublishMessageCount,
+                        TransferRequestCount = diag.TransferRequestCount,
+                        TransferredToAltClientCount = diag.TransferredToAltClientCount,
+                        TransferredToSameClientCount = diag.TransferredToSameClientCount,
+                        PublishRequestCount = diag.PublishRequestCount,
+                        DataChangeNotificationsCount = diag.DataChangeNotificationsCount,
+                        EventNotificationsCount = diag.EventNotificationsCount,
+                        NotificationsCount = diag.NotificationsCount,
+                        LatePublishRequestCount = diag.LatePublishRequestCount,
+                        CurrentKeepAliveCount = diag.CurrentKeepAliveCount,
+                        CurrentLifetimeCount = diag.CurrentLifetimeCount,
+                        UnacknowledgedMessageCount = diag.UnacknowledgedMessageCount,
+                        DiscardedMessageCount = diag.DiscardedMessageCount,
+                        MonitoredItemCount = diag.MonitoredItemCount,
+                        DisabledMonitoredItemCount = diag.DisabledMonitoredItemCount,
+                        MonitoringQueueOverflowCount = diag.MonitoringQueueOverflowCount,
+                        NextSequenceNumber = diag.NextSequenceNumber,
+                        EventQueueOverFlowCount = diag.EventQueueOverFlowCount
+                    })
+                    .ToList();
+            }
+            else
+            {
+                _logger.LogInformation("Subscription diagnostics not retrievable ({Error}).",
+                    response.Results[1].StatusCode);
+            }
+
             return new SessionDiagnosticsModel
             {
                 SessionId =
-                    diagnostics.SessionId.AsString(MessageContext, NamespaceFormat.Expanded),
+                    sessionDiagnostics.SessionId.AsString(MessageContext, NamespaceFormat.Expanded),
                 TranslateBrowsePathsToNodeIdsCount =
-                    ToCounter(diagnostics.TranslateBrowsePathsToNodeIdsCount),
+                    ToCounter(sessionDiagnostics.TranslateBrowsePathsToNodeIdsCount),
                 AddNodesCount =
-                    ToCounter(diagnostics.AddNodesCount),
+                    ToCounter(sessionDiagnostics.AddNodesCount),
                 AddReferencesCount =
-                    ToCounter(diagnostics.AddReferencesCount),
+                    ToCounter(sessionDiagnostics.AddReferencesCount),
                 BrowseCount =
-                    ToCounter(diagnostics.BrowseCount),
+                    ToCounter(sessionDiagnostics.BrowseCount),
                 BrowseNextCount =
-                    ToCounter(diagnostics.BrowseNextCount),
+                    ToCounter(sessionDiagnostics.BrowseNextCount),
                 CreateMonitoredItemsCount =
-                    ToCounter(diagnostics.CreateMonitoredItemsCount),
+                    ToCounter(sessionDiagnostics.CreateMonitoredItemsCount),
                 CreateSubscriptionCount =
-                    ToCounter(diagnostics.CreateSubscriptionCount),
+                    ToCounter(sessionDiagnostics.CreateSubscriptionCount),
                 DeleteMonitoredItemsCount =
-                    ToCounter(diagnostics.DeleteMonitoredItemsCount),
+                    ToCounter(sessionDiagnostics.DeleteMonitoredItemsCount),
                 DeleteNodesCount =
-                    ToCounter(diagnostics.DeleteNodesCount),
+                    ToCounter(sessionDiagnostics.DeleteNodesCount),
                 DeleteReferencesCount =
-                    ToCounter(diagnostics.DeleteReferencesCount),
+                    ToCounter(sessionDiagnostics.DeleteReferencesCount),
                 DeleteSubscriptionsCount =
-                    ToCounter(diagnostics.DeleteSubscriptionsCount),
+                    ToCounter(sessionDiagnostics.DeleteSubscriptionsCount),
                 CallCount =
-                    ToCounter(diagnostics.CallCount),
+                    ToCounter(sessionDiagnostics.CallCount),
                 HistoryReadCount =
-                    ToCounter(diagnostics.HistoryReadCount),
+                    ToCounter(sessionDiagnostics.HistoryReadCount),
                 HistoryUpdateCount =
-                    ToCounter(diagnostics.HistoryUpdateCount),
+                    ToCounter(sessionDiagnostics.HistoryUpdateCount),
                 ModifyMonitoredItemsCount =
-                    ToCounter(diagnostics.ModifyMonitoredItemsCount),
+                    ToCounter(sessionDiagnostics.ModifyMonitoredItemsCount),
                 ModifySubscriptionCount =
-                    ToCounter(diagnostics.ModifySubscriptionCount),
+                    ToCounter(sessionDiagnostics.ModifySubscriptionCount),
                 PublishCount =
-                    ToCounter(diagnostics.PublishCount),
+                    ToCounter(sessionDiagnostics.PublishCount),
                 RegisterNodesCount =
-                    ToCounter(diagnostics.RegisterNodesCount),
+                    ToCounter(sessionDiagnostics.RegisterNodesCount),
                 RepublishCount =
-                    ToCounter(diagnostics.RepublishCount),
+                    ToCounter(sessionDiagnostics.RepublishCount),
                 SetMonitoringModeCount =
-                    ToCounter(diagnostics.SetMonitoringModeCount),
+                    ToCounter(sessionDiagnostics.SetMonitoringModeCount),
                 SetPublishingModeCount =
-                    ToCounter(diagnostics.SetPublishingModeCount),
+                    ToCounter(sessionDiagnostics.SetPublishingModeCount),
                 UnregisterNodesCount =
-                    ToCounter(diagnostics.UnregisterNodesCount),
+                    ToCounter(sessionDiagnostics.UnregisterNodesCount),
                 QueryFirstCount =
-                    ToCounter(diagnostics.QueryFirstCount),
+                    ToCounter(sessionDiagnostics.QueryFirstCount),
                 QueryNextCount =
-                    ToCounter(diagnostics.QueryNextCount),
+                    ToCounter(sessionDiagnostics.QueryNextCount),
                 ReadCount =
-                    ToCounter(diagnostics.ReadCount),
+                    ToCounter(sessionDiagnostics.ReadCount),
                 WriteCount =
-                    ToCounter(diagnostics.WriteCount),
+                    ToCounter(sessionDiagnostics.WriteCount),
                 SetTriggeringCount =
-                    ToCounter(diagnostics.SetTriggeringCount),
+                    ToCounter(sessionDiagnostics.SetTriggeringCount),
                 TotalRequestCount =
-                    ToCounter(diagnostics.TotalRequestCount),
+                    ToCounter(sessionDiagnostics.TotalRequestCount),
                 TransferSubscriptionsCount =
-                    ToCounter(diagnostics.TransferSubscriptionsCount),
+                    ToCounter(sessionDiagnostics.TransferSubscriptionsCount),
                 ServerUri =
-                    diagnostics.ServerUri,
+                    sessionDiagnostics.ServerUri,
                 SessionName =
-                    diagnostics.SessionName,
+                    sessionDiagnostics.SessionName,
                 ActualSessionTimeout =
-                    diagnostics.ActualSessionTimeout,
+                    sessionDiagnostics.ActualSessionTimeout,
                 MaxResponseMessageSize =
-                    diagnostics.MaxResponseMessageSize,
+                    sessionDiagnostics.MaxResponseMessageSize,
                 UnauthorizedRequestCount =
-                    diagnostics.UnauthorizedRequestCount,
+                    sessionDiagnostics.UnauthorizedRequestCount,
                 ConnectTime =
-                    diagnostics.ClientConnectionTime,
+                    sessionDiagnostics.ClientConnectionTime,
                 LastContactTime =
-                    diagnostics.ClientLastContactTime,
+                    sessionDiagnostics.ClientLastContactTime,
                 CurrentSubscriptionsCount =
-                    diagnostics.CurrentSubscriptionsCount,
+                    sessionDiagnostics.CurrentSubscriptionsCount,
                 CurrentMonitoredItemsCount =
-                    diagnostics.CurrentMonitoredItemsCount,
+                    sessionDiagnostics.CurrentMonitoredItemsCount,
                 CurrentPublishRequestsInQueue =
-                    diagnostics.CurrentPublishRequestsInQueue
+                    sessionDiagnostics.CurrentPublishRequestsInQueue,
+                Subscriptions =
+                    subscriptions
             };
 
-            static ServiceCounterModel ToCounter(ServiceCounterDataType counter)
+            static ServiceCounterModel? ToCounter(ServiceCounterDataType counter)
             {
+                if (counter.TotalCount == 0 && counter.ErrorCount == 0)
+                {
+                    return null;
+                }
                 return new ServiceCounterModel
                 {
                     TotalCount = counter.TotalCount,
@@ -1274,12 +1390,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private HistoryServerCapabilitiesModel? _history;
         private Task<ComplexTypeSystem>? _complexTypeSystem;
         private bool _disposed;
+        private bool? _diagnosticsEnabled;
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly TimeProvider _timeProvider;
-        private readonly FieldInfo? _maxPublishRequest;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);

@@ -269,8 +269,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 }
             }
 
-            options.MinPublishRequests ??= GetIntOrDefault(MinPublishRequestsKey);
-            options.MaxPublishRequests ??= GetIntOrDefault(MaxPublishRequestsKey);
+            options.MinPublishRequests ??= GetIntOrNull(MinPublishRequestsKey);
+            options.MaxPublishRequests ??= GetIntOrNull(MaxPublishRequestsKey);
 
             options.PublishRequestsPerSubscriptionPercent ??= GetIntOrNull(
                     PublishRequestsPerSubscriptionPercentKey);

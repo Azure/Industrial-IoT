@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -293,5 +294,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "unregisterNodesCount", Order = 43,
             EmitDefaultValue = false)]
         public ServiceCounterModel? UnregisterNodesCount { get; init; }
+
+        /// <summary>
+        /// Subscription diagnostics
+        /// </summary>
+        [DataMember(Name = "subscriptions", Order = 44,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<SubscriptionDiagnosticsModel>? Subscriptions { get; init; }
     }
 }

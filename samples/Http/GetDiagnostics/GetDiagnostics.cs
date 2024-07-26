@@ -6,22 +6,31 @@
 using System.Text.Json;
 using System.Net.Http.Json;
 
-Console.WriteLine("Press key to exit");
-Console.WriteLine();
 using var cts = new CancellationTokenSource();
 _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); });
 
 using var parameters = await Parameters.Parse(args).ConfigureAwait(false);
 // Connect to publisher
 using var httpClient = parameters.CreateHttpClientWithAuth();
-
 while (!cts.IsCancellationRequested)
 {
     Console.Clear();
-    await foreach (var info in httpClient.GetFromJsonAsAsyncEnumerable<JsonElement>(
-        parameters.OpcPublisher + "/v2/diagnostics/clients", cts.Token))
+    try
     {
-        Console.WriteLine(JsonSerializer.Serialize(info, Parameters.Indented));
+        await foreach (var info in httpClient.GetFromJsonAsAsyncEnumerable<JsonElement>(
+            parameters.OpcPublisher + "/v2/diagnostics/clients", cts.Token))
+        {
+            var str = JsonSerializer.Serialize(info, Parameters.Indented);
+            Console.WriteLine(str);
+        }
+        Console.WriteLine();
+        Console.WriteLine("Press key to exit");
+        Console.SetCursorPosition(0, 0);
+        await Task.Delay(TimeSpan.FromSeconds(1), cts.Token).ConfigureAwait(false);
     }
-    await Task.Delay(TimeSpan.FromSeconds(1), cts.Token).ConfigureAwait(false);
+    catch (OperationCanceledException) { break; }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex);
+    }
 }

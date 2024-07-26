@@ -698,7 +698,8 @@ Options:
                         using (var server = new ServerConsoleHost(
                             new ServerFactory(loggerFactory.CreateLogger<ServerFactory>(), scaleunits)
                             {
-                                LogStatus = false
+                                LogStatus = false,
+                                EnableDiagnostics = true
                             }, loggerFactory.CreateLogger<ServerConsoleHost>())
                         {
                             PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "server"),
