@@ -64,10 +64,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-#if NO_UAFIX
-        /// <summary>
-        /// Helper to set max publish requests
-        /// </summary>
+        // Remove when fixed in stack
+#if !NO_UAFIX
+#if !NO_DUMMY
+        internal int MaxPublishRequestCount { get; set; }
+#else
         internal int MaxPublishRequestCount
         {
             get
@@ -84,6 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
         private readonly FieldInfo? _maxPublishRequest = typeof(Session).GetField(
             "m_tooManyPublishRequests", BindingFlags.NonPublic | BindingFlags.Instance);
+#endif
 #endif
 
         /// <summary>
