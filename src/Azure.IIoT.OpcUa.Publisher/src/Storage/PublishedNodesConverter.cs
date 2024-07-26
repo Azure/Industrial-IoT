@@ -512,11 +512,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 {
                     foreach (var node in item.OpcNodes)
                     {
+                        var id = !string.IsNullOrWhiteSpace(node.Id) ?
+                            node.Id : !string.IsNullOrWhiteSpace(node.ExpandedNodeId) ?
+                            node.ExpandedNodeId : node.BrowsePath?.Count > 0 ?
+                            Opc.Ua.ObjectIds.RootFolder.ToString() : null; // Default to root folder
+                        if (id == null)
+                        {
+                            continue;
+                        }
                         if (scaleTestCount <= 1)
                         {
                             yield return new OpcNodeModel
                             {
-                                Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
+                                Id = id,
                                 DisplayName = node.DisplayName,
                                 DataSetClassFieldId = node.DataSetClassFieldId,
                                 DataSetFieldId = node.DataSetFieldId,
@@ -555,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             {
                                 yield return new OpcNodeModel
                                 {
-                                    Id = !string.IsNullOrEmpty(node.Id) ? node.Id : node.ExpandedNodeId,
+                                    Id = id,
                                     DisplayName = !string.IsNullOrEmpty(node.DisplayName) ?
                                         $"{node.DisplayName}_{i}" : null,
                                     DataSetFieldId = node.DataSetFieldId,
@@ -593,7 +601,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     }
                 }
 
-                if (item.NodeId?.Identifier != null)
+                if (!string.IsNullOrWhiteSpace(item.NodeId?.Identifier))
                 {
                     yield return new OpcNodeModel
                     {

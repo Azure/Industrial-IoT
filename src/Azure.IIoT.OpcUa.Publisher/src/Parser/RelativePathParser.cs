@@ -91,8 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                     value.Append(reference)
                         .Append('>');
                 }
-                var escape = element.TargetName.AsSpan().IndexOfAny(
-kAllowedChars) != -1;
+                var escape = element.TargetName.AsSpan().IndexOfAny(kAllowedChars) != -1;
                 if (escape)
                 {
                     value.Append('[');

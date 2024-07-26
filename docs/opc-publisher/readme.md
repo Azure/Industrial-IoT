@@ -42,6 +42,8 @@ Here you find information about
     - [Calling the Direct Methods API](#calling-the-direct-methods-api)
     - [Calling the API over HTTP](#calling-the-api-over-http)
   - [JSON encoding](#json-encoding)
+    - [Node Ids](#node-ids)
+    - [Browse paths](#browse-paths)
   - [Discovering OPC UA servers with OPC Publisher](#discovering-opc-ua-servers-with-opc-publisher)
     - [Discovery Configuration](#discovery-configuration)
     - [One-time discovery](#one-time-discovery)
@@ -423,6 +425,7 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
     {
       "Id": "string",
       "ExpandedNodeId": "string",
+      "BrowsePath": [ "string" ],
       "AttributeId": "string",
       "IndexRange": "string",
       "UseCyclicRead": "boolean",
@@ -520,8 +523,9 @@ Each [OpcNode](./definitions.md#opcnodemodel) has the following attributes:
 
 | Attribute | Mandatory | Type | Default | Description |
 | --------- | --------- | ---- | ------- | ----------- |
-| `Id` | Yes* | String | N/A | The OPC UA NodeId in the OPC UA server whose data value changes should be published. <br>Can be specified as NodeId or ExpandedNodeId as per OPC UA specification, <br>or as ExpandedNodeId IIoT format {NamespaceUi}#{NodeIdentifier}. <br>**Note*: `Id` field may be omitted when `ExpandedNodeId` is present. |
+| `Id` | Yes* | String | N/A | The OPC UA [NodeId](#node-ids) in the OPC UA server whose data value changes should be published. <br>Can be specified as NodeId or ExpandedNodeId as per OPC UA specification, <br>or as ExpandedNodeId IIoT format {NamespaceUi}#{NodeIdentifier}. <br>**Note*: `Id` field may be omitted when `ExpandedNodeId` is present. |
 | `ExpandedNodeId` | No | String | `null` | Enables backwards compatibility. <br>Must be specified as ExpandedNodeId as per OPC UA specification. <br>**Note*: when `ExpandedNodeId` is present `Id` field may be omitted. |
+| `BrowsePath` | No | `List<String>` | `null` | The [browse path](#browse-paths) from the Node configured in `Id` to the actual node to monitor.<br>**Note*: if the node `Id` is not provided, `i=84` (root node) is assumed. |
 | `AttributeId` | No | String | `Value` | The node attribute to sample in case the node is a variable value (data item). <br>The allowed values are defined in the OPC UA specification. <br>Ignored when subscribing to events. |
 | `IndexRange` | No | String | `null` | The index range of the value to publish. <br>Value expressed as a numeric range as defined in the OPC UA specification. <br>Ignored when subscribing to events. |
 | `OpcSamplingInterval` | No | Integer | `1000` | The sampling interval for the monitored item to be published. <br>Value expressed in milliseconds. <br>The value is used as defined in the OPC UA specification. <br>Ignored when `OpcSamplingIntervalTimespan` is present. |
@@ -762,7 +766,7 @@ In addition you can configure optional [Condition](#condition-handling-options) 
 
 #### Simple event filter
 
-As highlighted in the example above you can specify namespaces both by using the index or the full name for the namespace. Also look at how the BrowsePath can be configured.
+As highlighted in the example above you can specify namespaces both by using the index or the full name for the namespace. Also look at how the [BrowsePath](#browse-paths) can be configured.
 
 Here is an example of a configuration file in simple mode:
 
@@ -908,7 +912,7 @@ OPC Publisher allows you to map values and events obtained from the OPC UA addre
 
 Specify topic templates at the level of `WriterGroup`, `DataSetWriter` or `Node` as part of the [configuration](#configuration-schema) to configure routing that meets your needs. Topic templates can apply not just to MQTT but to any transport supporting topic or queue name based routing, however, the default templates that apply use the MQTT topic format with `/` path delimiter and escape only MQTT topic reserved characters (using `\x<ascii-code>`).
 
-For extra convenience use the automatic routing feature which leverages the OPC UA browse paths inside the address space to automatically create the topic structure. The browse path from the root folder (`i=84`) is used as it maps well with how clients visualize the address space. To use this feature, configure the `DataSetRouting` option in the configuration or set a default on the [command line](./commandline.md). For example when configuring the `UseBrowseNames` option all Events and data changes are routed to topics that match the browse path of the source node effectively mapping the address space into the MQTT topic structure with limited configuration overhead.
+For extra convenience use the automatic routing feature which leverages the OPC UA browse paths inside the address space to automatically create the topic structure. The [browse paths](#browse-paths) from the root folder (`i=84`) is used as it maps well with how clients visualize the address space. To use this feature, configure the `DataSetRouting` option in the configuration or set a default on the [command line](./commandline.md). For example when configuring the `UseBrowseNames` option all Events and data changes are routed to topics that match the browse path of the source node effectively mapping the address space into the MQTT topic structure with limited configuration overhead.
 
 When publishing value changes to topics best choose a [Message format](./messageformats.md) that has limited overhead, e.g., `SingleRawDataSet` or `SingleDataSetMessage`.
 
@@ -1082,7 +1086,13 @@ curl -H "Authorization: ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://loc
 
 The REST API uses OPC UA JSON reversible encoding as per standard defined in [OPC UA](../readme.md#what-is-opc-ua) specification 1.04, Part 6, with the exception that default scalar values and `null` values are not encoded except when inside of an array.  A missing value implies `null` or the default of the scalar data type.
 
-In addition to the standard string encoding using a namespace `Index` (e.g. `ns=4;i=3`) or the `Expanded` format (e.g. `nsu=http://opcfoundation.org/UA/;i=3523`) OPC Publisher also supports the use of `Uri` encoded Node Ids and Qualified Names (see [RFC 3986](http://tools.ietf.org/html/rfc3986)).
+All *primitive built-in* values (`integer`, `string`, `int32`, `double`, etc.) and *Arrays* of them can be passed as JSON encoded Variant objects (as per standard) or as JSON Token.  The twin module attempts to coerce the JSON Token in the payload to the expected built-in type of the Variable or Input argument.
+
+The decoder will match JSON variable names case-**in**sensitively.  This means you can write a JSON object property name as `"tyPeiD": ""`, `"typeid": ""`, or `"TYPEID": ""` and all are decoded into a OPC UA structure's `"TypeId"` member.
+
+#### Node Ids
+
+In addition to the standard string encoding using a namespace `Index` (e.g. `ns=4;i=3`) or the `Expanded` format (e.g. `nsu=http://opcfoundation.org/UA/;i=3523`). OPC Publisher also supports the use of (non-standards compliant) `Uri` encoded Node Ids and Qualified Names (see [RFC 3986](http://tools.ietf.org/html/rfc3986)).
 
 ```bash
 <namespace-uri>#<id-type>=<URL-encoded-id-value>
@@ -1090,21 +1100,65 @@ In addition to the standard string encoding using a namespace `Index` (e.g. `ns=
 
 Examples are: `http://opcfoundation.org/UA/#i=3523` or `http://opcfoundation.org/UA/#s=tag1`.
 
-Qualified Names are encoded as a single string the same way as Node Ids, where the name is the ID element of the URI. Examples of qualified names are in `Uri` format e.g. `http://opcfoundation.org/UA/#Browse%20Name`, in `Expanded` format `nsu=http://microsoft.com/;Browse%20Name` and in `Index` format this would be `3:Browse%20Name`.
+While the API supports any input format for node ids and qualified names (e.g., such as in [browse paths](#browse-paths)), you can select the desired output namespace format through the [header in the request](./definitions.md#requestheadermodel) and its property `NamespaceFormat`.  You can also set a default on the [command line](./commandline.md) using `--nf`. If the publisher is started in `--strict` the namespace format is `Expanded`, otherwise defaults to `Uri`.
 
-While the API supports any input format for qualified names (e.g., in browse paths) or node ids, you can select the desired output namespace format through the [header in the request](./definitions.md#requestheadermodel) and its property `NamespaceFormat`.  You can also set a default on the [command line](./commandline.md) using `--nf`. If the publisher is started in `--strict` the namespace format is `Expanded`, otherwise defaults to `Uri`.
+> The use of the `Uri` format is discouraged because it is not standards compliant. The use of the `Index` format is also discouraged as it does not allow configuring stable identifiers (the namespace table can change between sessions or when the server is updated, in which case the index might then point to a different namespace).  Use the `Expanded` format when possible.
+[browse paths](#browse-paths)
 
-Non Uri namespace Uri's must always be encoded using the `Index` or `Expanded` syntax (e.g. `nsu=taglist;i=3523`). Expanded Node Identifiers should be encoded using the OPC UA `Index` or `Expanded` syntax (e.g. `svu=opc.tcp://test;nsu=http://opcfoundation.org/UA/;i=3523`).  In the `Uri` format case the server URI is appended as
+Non Uri namespace Uri's must always be encoded using the `Index` or `Expanded` syntax (e.g. `nsu=taglist;i=3523`). Expanded Node Identifiers should be encoded using the OPC UA `Index` or `Expanded` syntax (e.g. `svu=opc.tcp://test;nsu=http://opcfoundation.org/UA/;i=3523`). However, the `Uri` format is also possible. In this case the server URI is appended as
 
 ```bash
 <namespace-uri>&srv=<URL-encoded-server-uri>#<id-type>=<URL-encoded-id-value>
 ```
 
-While not always enforced, ensure you **URL encode** the id value or name of Qualified Names, Node Ids and Expanded Node Ids.
+#### Browse paths
 
-All *primitive built-in* values (`integer`, `string`, `int32`, `double`, etc.) and *Arrays* of them can be passed as JSON encoded Variant objects (as per standard) or as JSON Token.  The twin module attempts to coerce the JSON Token in the payload to the expected built-in type of the Variable or Input argument.
+A browse path is a set of browse names that the server should follow inside the address space to get to a node. The browse name is an attribute of a node and is a qualified name. Qualified Names are encoded as a single string the same way as Node Ids, where the name is the ID element of the URI. Examples of qualified names in `Expanded` format is `nsu=http://microsoft.com/;Browse%20Name`, in `Index` format `3:Browse%20Name` and in `Uri` format `http://opcfoundation.org/UA/#Browse%20Name`.
 
-The decoder will match JSON variable names case-**in**sensitively.  This means you can write a JSON object property name as `"tyPeiD": ""`, `"typeid": ""`, or `"TYPEID": ""` and all are decoded into a OPC UA structure's `"TypeId"` member.
+ The browse path starts by default from the root node. If this is not desired, the starting node id must also be provided.
+
+The browse path format follows the documented browse path format in the OPC UA reference normative section. In all API and configuration the browse path is a JSON array containing the individual relative path element. The simplest example when using a browse path with browse names in the default namespace is:
+
+```json
+[ "Objects", "Server", "ServerStatus", "CurrentTime" ]
+```
+
+In this example, the default `References` reference type is assumed linking the objects named by the browse path. The paths are forward traversed.
+The relative path element by default must be a browse name formatted using one of the namespace formatting options (`Index`, `Expanded`, or `Uri`), e.g., the following are equivalent:
+
+```json
+[  // Expanded
+    "Objects",
+    "nsu=http://opcfoundation.org/UA/Plc/Applications;OpcPlc",
+    "nsu=http://opcfoundation.org/UA/Plc/Applications;Telemetry",
+    "nsu=http://opcfoundation.org/UA/Plc/Applications;Fast",
+    "nsu=http://opcfoundation.org/UA/Plc/Applications;FastUIntScalar1"
+],
+[ // Index
+    "Objects", "17:OpcPlc", "17:Telemetry", "17:Fast", "17:FastUIntScalar1"
+],
+[  // Uri
+    "Objects",
+    "http://opcfoundation.org/UA/Plc/Applications#OpcPlc",
+    "http://opcfoundation.org/UA/Plc/Applications#Telemetry",
+    "http://opcfoundation.org/UA/Plc/Applications#Fast",
+    "http://opcfoundation.org/UA/Plc/Applications#FastUIntScalar1"
+]
+```
+
+The first option is the preferred and recommended model because it is the official formatting defined in the specification, and it is stable compared to the second option of using a namespace index, which can point to a different namespace in the namespace table than intended.
+
+In addition each path element can be prefixed to narrow the reference or describe whether the path follow an inverse reference:
+
+- `.`: Short for `Aggregates` reference to select a property of a variable.
+- `/`: Short for a `HierarchicalReference` reference.
+- `#`: Whether to use the explicitly defined reference and do not consider subtypes of the reference type linking the elements.
+- `!`: Whether the inverse of the reference should be used
+- `<{ReferenceTypeId}>`: An explicit reference type to use, the well known reference types can be specified by name, otherwise use the node id of the reference type.
+
+If the prefix is a valid character of the browse name it can be escaped by prefixing it with a `&` ampersand character, e.g. `&<, &>, &/, &., &:, &&`.
+
+> Note that in a filter query string the browse path is not specified as a JSON array but as a concatenation of the elements. In this case a prefix must be used. In addition the target can be then escaped by specifying it with brackets `[` and `]`. However, this only applies to the [query parser API](./api.md#compilequery).
 
 ### Discovering OPC UA servers with OPC Publisher
 
