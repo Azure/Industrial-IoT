@@ -374,7 +374,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _outer._options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
-                    outer._writerGroup.Name, _routing != DataSetRoutingMode.None);
+                    outer._writerGroup.Name, _routing != DataSetRoutingMode.None,
+                    outer._options.Value.IgnoreConfiguredPublishingIntervals);
 
                 DataSetWriterName = _dataSetWriter.DataSetWriterName;
                 for (var index = 1; ; index++)
@@ -482,7 +483,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _dataSetWriter.DataSetWriterName = DataSetWriterName;
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel(
                     _outer._subscriptionConfig.Value, CreateMonitoredItemContext,
-                    _outer._writerGroup.Name, _routing != DataSetRoutingMode.None);
+                    _outer._writerGroup.Name, _routing != DataSetRoutingMode.None,
+                    _outer._options.Value.IgnoreConfiguredPublishingIntervals);
 
                 var subscription = Subscription;
                 if (subscription == null)

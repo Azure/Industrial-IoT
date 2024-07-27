@@ -70,33 +70,73 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpGet("reset")]
         public async Task ResetAllClientsAsync(CancellationToken ct = default)
         {
-            await _diagnostics.ResetAllClientsAsync(ct).ConfigureAwait(false);
+            await _diagnostics.ResetAllConnectionsAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// GetConnectionDiagnostics
+        /// GetActiveConnections
         /// </summary>
         /// <remarks>
-        /// Get connection diagnostic information for all connections.
+        /// Get all active connections the publisher is currently managing.
         /// </remarks>
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/connections")]
-        public Task<IReadOnlyList<ConnectionDiagnosticModel>> GetConnectionDiagnosticsAsync(
+        [HttpGet("connections")]
+        public Task<IReadOnlyList<ConnectionModel>> GetActiveConnectionsAsync(
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            return Task.FromResult(_diagnostics.Diagnostics);
+            return Task.FromResult(_diagnostics.ActiveConnections);
         }
 
         /// <summary>
-        /// WatchConnectionDiagnostics
+        /// GetConnectionDiagnostics
         /// </summary>
         /// <remarks>
-        /// Get connection diagnostic information for all connections.
+        /// Get diagnostics for all active clients including server and
+        /// client session diagnostics.
+        /// </remarks>
+        /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpGet("diagnostics/connections")]
+        public IAsyncEnumerable<ConnectionDiagnosticsModel> GetConnectionDiagnosticsAsync(
+            CancellationToken ct = default)
+        {
+            return _diagnostics.GetConnectionDiagnosticsAsync(ct);
+        }
+
+        /// <summary>
+        /// GetChannelDiagnostics
+        /// </summary>
+        /// <remarks>
+        /// Get channel diagnostic information for all connections.
+        /// </remarks>
+        /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpGet("diagnostics/channels")]
+        public Task<IReadOnlyList<ChannelDiagnosticModel>> GetChannelDiagnosticsAsync(
+            CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            return Task.FromResult(_diagnostics.ChannelDiagnostics);
+        }
+
+        /// <summary>
+        /// WatchChannelDiagnostics
+        /// </summary>
+        /// <remarks>
+        /// Get channel diagnostic information for all connections.
         /// The first set of diagnostics are the diagnostics active for
         /// all connections, continue reading to get updates.
         /// </remarks>
@@ -105,11 +145,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/connections/watch")]
-        public IAsyncEnumerable<ConnectionDiagnosticModel> WatchConnectionDiagnosticsAsync(
+        [HttpGet("diagnostics/channels/watch")]
+        public IAsyncEnumerable<ChannelDiagnosticModel> WatchChannelDiagnosticsAsync(
             CancellationToken ct = default)
         {
-            return _diagnostics.MonitorAsync(ct);
+            return _diagnostics.WatchChannelDiagnosticsAsync(ct);
         }
 
         private readonly IClientDiagnostics _diagnostics;

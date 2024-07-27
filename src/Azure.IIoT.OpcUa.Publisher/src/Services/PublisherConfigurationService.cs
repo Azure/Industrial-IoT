@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<PublishStartResponseModel> PublishStartAsync(ConnectionModel endpoint,
             PublishStartRequestModel request, CancellationToken ct = default)
         {
-            if (request.Item is null)
+            if (request.Item?.NodeId is null)
             {
                 throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
@@ -375,6 +375,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
             }
+            if ((request.NodesToRemove?.Any(n => n == null) ?? false) ||
+                (request.NodesToAdd?.Any(n => n.NodeId == null) ?? false))
+            {
+                throw new BadRequestException(kNullOrEmptyOpcNodesMessage);
+            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -416,10 +421,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var entry = endpoint.ToPublishedNodesEntry();
-                var existingGroups = new List<PublishedNodesEntryModel>();
+                var entries = GetCurrentPublishedNodes().ToList();
                 return new PublishedItemListResponseModel
                 {
-                    Items = GetCurrentPublishedNodes()
+                    Items = entries
                         .Where(n => n.HasSameDataSet(entry))
                         .SelectMany(n => n.OpcNodes ?? new List<OpcNodeModel>())
                         .Where(n => n.EventFilter == null) // Exclude event filtering
@@ -674,6 +679,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task SetConfiguredEndpointsAsync(IReadOnlyList<PublishedNodesEntryModel> request,
             CancellationToken ct = default)
         {
+            foreach (var entry in request)
+            {
+                if (entry.OpcNodes != null)
+                {
+                    entry.OpcNodes = ValidateNodes(entry.OpcNodes, false);
+                }
+            }
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -725,6 +737,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 foreach (var updateRequest in request.Where(e => e.OpcNodes?.Count > 0))
                 {
+                    ValidateNodes(updateRequest.OpcNodes!, false);
                     // We will add the update request entry and clean up anything else matching.
                     var found = currentNodes.FirstOrDefault(entry => entry.HasSameDataSet(updateRequest));
                     if (found != null)
@@ -818,7 +831,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var result = new List<PublishDiagnosticInfoModel>();
                 if (_diagnostics == null)
                 {
-                    // Diagnostics disabled
+                    // ChannelDiagnostics disabled
                     throw new ResourceInvalidStateException("Diagnostics service is disabled.");
                 }
                 foreach (var nodes in GetCurrentPublishedNodes().GroupBy(k => k.GetUniqueWriterGroupId()))
@@ -1152,13 +1165,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var set = new HashSet<string>();
             foreach (var node in opcNodes)
             {
-                if (string.IsNullOrWhiteSpace(node.Id))
+                if (!node.TryGetId(out var id))
                 {
                     throw new BadRequestException("Node must contain a node ID");
                 }
                 if (dataSetWriterApiRequirements)
                 {
-                    node.DataSetFieldId ??= node.Id;
+                    node.DataSetFieldId ??= id;
                     set.Add(node.DataSetFieldId);
                     if (node.OpcPublishingInterval != null ||
                         node.OpcPublishingIntervalTimespan != null)
@@ -1191,6 +1204,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 currentNodes.Add(entry);
                 found = entry;
             }
+            found.MessageEncoding = MessageEncoding.Json;
+            found.MessagingMode = MessagingMode.FullSamples;
             found.OpcNodes ??= new List<OpcNodeModel>();
             var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
             if (node == null)

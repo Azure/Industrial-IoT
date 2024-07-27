@@ -24,6 +24,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Profiles\BrowsePath.json" />
     <None Remove="Profiles\Empty.json" />
     <None Remove="Profiles\SlowSample.json" />
   </ItemGroup>

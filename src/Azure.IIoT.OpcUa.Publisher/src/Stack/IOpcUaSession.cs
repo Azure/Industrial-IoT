@@ -75,6 +75,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             CancellationToken ct = default);
 
         /// <summary>
+        /// Get server diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<SessionDiagnosticsModel> GetServerDiagnosticAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Get history capabilities of the server
         /// </summary>
         /// <param name="namespaceFormat"></param>

@@ -4,18 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Netcap;
-
-using System;
-using SharpPcap;
-using SharpPcap.LibPcap;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
 using System.IO.Compression;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using System.Text;
+using System;
 
 /// <summary>
 /// Network capture bundle containing everythig to analyze
@@ -26,7 +22,7 @@ internal sealed class Bundle
     /// <summary>
     /// Start of capture
     /// </summary>
-    public DateTimeOffset Start { get; private set; }
+    public DateTimeOffset Start { get; }
 
     /// <summary>
     /// End of capture
@@ -61,8 +57,12 @@ internal sealed class Bundle
     /// </summary>
     /// <param name="publisher"></param>
     /// <param name="index"></param>
+    /// <param name="itf"></param>
+    /// <param name="hostCaptureClient"></param>
     /// <returns></returns>
-    public IDisposable CaptureNetworkTraces(Publisher publisher, int index)
+    public Pcap AddPcap(Publisher publisher, int index,
+        Pcap.InterfaceType itf = Pcap.InterfaceType.AnyIfAvailable,
+        HttpClient? hostCaptureClient = null)
     {
         if (publisher.PnJson != null)
         {
@@ -70,24 +70,72 @@ internal sealed class Bundle
             File.WriteAllText(Path.Combine(_folder, "pn.json"), publisher.PnJson);
         }
 
-        // Create filter
+        var file = Path.Combine(_folder, $"capture{index}.pcap");
+
+        // Capture filter
         // https://www.wireshark.org/docs/man-pages/pcap-filter.html
         // src or dst host 192.168.80.2
         // "ip and tcp and not port 80 and not port 25";
-
+        // TODO: Filter on src/dst of publisher ip
+        Pcap pcap;
         var addresses = publisher.Addresses;
-        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
-            ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
-        return new Pcap(this, filter, index);
+        if (addresses.Count == 0)
+        {
+            pcap = new Pcap(_logger, new Pcap.CaptureConfiguration(file, itf, "ip and tcp"),
+                hostCaptureClient);
+        }
+        else
+        {
+            var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+                ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
+            pcap = new Pcap(_logger, new Pcap.CaptureConfiguration(file, itf, filter),
+                hostCaptureClient);
+        }
+        _captures.Add(pcap);
+        return pcap;
     }
 
     /// <summary>
-    /// Get bundle file
+    /// Add an extra pcap
+    /// </summary>
+    /// <param name="pcap"></param>
+    public void AddExtraPcap(Pcap pcap)
+    {
+        _captures.Add(pcap);
+    }
+
+    /// <summary>
+    /// Stop bundle file
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
     public string GetBundleFile(string? name = null)
     {
+        foreach (var capture in _captures)
+        {
+            if (capture.Open)
+            {
+                capture.Dispose();
+            }
+            if (Path.GetDirectoryName(capture.File) != _folder)
+            {
+                var additionalcaptures = Path.Combine(_folder, "extra");
+                if (!Directory.Exists(additionalcaptures))
+                {
+                    Directory.CreateDirectory(additionalcaptures);
+                }
+                File.Copy(capture.File, Path.Combine(additionalcaptures,
+                    Path.GetFileName(capture.File)));
+            }
+            if (capture.End > End)
+            {
+                End = capture.End.Value;
+            }
+            if (capture.Start < Start)
+            {
+                End = capture.Start;
+            }
+        }
         var zipFile = Path.Combine(Path.GetTempPath(), name ?? "capture-bundle.zip");
         ZipFile.CreateFromDirectory(_folder, zipFile, CompressionLevel.SmallestSize,
             false, entryNameEncoding: Encoding.UTF8);
@@ -150,7 +198,7 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     public async Task AddSessionKeysFromDiagnosticsAsync(JsonElement diagnostic,
         HashSet<string> endpointFilter)
     {
-        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Main.Indented);
+        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Extensions.Indented);
 
         if (diagnostic.TryGetProperty("connection", out var conn) &&
             conn.TryGetProperty("endpoint", out var ep) &&
@@ -161,19 +209,18 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
             remotePortToken.TryGetInt32(out var remotePort) &&
             diagnostic.TryGetProperty("sessionId", out var sessionId) &&
             sessionId.GetString() != null &&
-            diagnostic.TryGetProperty("channelDiagnostics", out var channel) &&
-            channel.TryGetProperty("channelId", out var channelIdToken) &&
+            diagnostic.TryGetProperty("channelId", out var channelIdToken) &&
             channelIdToken.TryGetUInt32(out var channelId) &&
-            channel.TryGetProperty("tokenId", out var tokenIdToken) &&
+            diagnostic.TryGetProperty("tokenId", out var tokenIdToken) &&
             tokenIdToken.TryGetUInt32(out var tokenId) &&
-            channel.TryGetProperty("client", out var clientToken) &&
+            diagnostic.TryGetProperty("client", out var clientToken) &&
             clientToken.TryGetProperty("iv", out var clientIvToken) &&
             clientIvToken.TryGetBytes(out var clientIv) &&
             clientToken.TryGetProperty("key", out var clientKeyToken) &&
             clientKeyToken.TryGetBytes(out var clientKey) &&
             clientToken.TryGetProperty("sigLen", out var clientSigLenToken) &&
             clientSigLenToken.TryGetInt32(out var clientSigLen) &&
-            channel.TryGetProperty("server", out var serverToken) &&
+            diagnostic.TryGetProperty("server", out var serverToken) &&
             serverToken.TryGetProperty("iv", out var serverIvToken) &&
             serverIvToken.TryGetBytes(out var serverIv) &&
             serverToken.TryGetProperty("key", out var serverKeyToken) &&
@@ -200,166 +247,14 @@ $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Delete bundle
+    /// Cleanup bundle
     /// </summary>
     public void Delete()
     {
         Directory.Delete(_folder, true);
     }
 
-    /// <summary>
-    /// Tracing
-    /// </summary>
-    internal sealed class Pcap : IDisposable
-    {
-        /// <summary>
-        /// Create pcap
-        /// </summary>
-        /// <param name="bundle"></param>
-        /// <param name="filter"></param>
-        /// <param name="index"></param>
-        public Pcap(Bundle bundle, string filter, int index)
-        {
-            _bundle = bundle;
-            _filter = filter;
-            _logger = bundle._logger;
-
-            _logger.LogInformation(
-                "Using SharpPcap {Version}", SharpPcap.Pcap.SharpPcapVersion);
-
-            if (LibPcapLiveDeviceList.Instance.Count == 0)
-            {
-                throw new NotSupportedException("Cannot run capture without devices.");
-            }
-
-            _writer = new CaptureFileWriterDevice(Path.Combine(_bundle._folder,
-                $"capture{index}.pcap"));
-
-            _devices = LibPcapLiveDeviceList.New().ToList();
-            // Open devices
-            var open = _devices
-                .Where(d =>
-                {
-                    try
-                    {
-                        _logger.LogInformation("Opening {Device}...", d);
-                        d.Open(mode: DeviceModes.None, 1000);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInformation(
-                            "Failed to open {Device} ({Description}): {Message}",
-                            d.Name, d.Description, ex.Message);
-                    }
-                    return d.Opened;
-                })
-                .ToList();
-
-            // Try to capture from cooked mode (https://wiki.wireshark.org/SLL)
-            var linkType = PacketDotNet.LinkLayers.LinuxSll;
-#if COOKED_MODE
-            var capturing = Capture(open.Where(d => d.LinkType == linkType));
-            if (capturing.Count == 0)
-            {
-                linkType = PacketDotNet.LinkLayers.Null;
-                capturing = Capture(open.Where(d =>
-                    d.LinkType == PacketDotNet.LinkLayers.Ethernet ||
-                    d.LinkType == PacketDotNet.LinkLayers.Loop));
-
-                if (capturing.Count == 0)
-                {
-                    // Capture from all interfaces that are open
-                    capturing = Capture(open);
-                }
-            }
-#else
-            linkType = PacketDotNet.LinkLayers.Null;
-            var capturing = Capture(open);
-#endif
-            _writer.Open(new DeviceConfiguration
-            {
-                LinkLayerType = linkType
-            });
-
-            if (capturing.Count != 0)
-            {
-                capturing.ForEach(d =>
-                {
-                    d.StartCapture();
-                    _logger.LogInformation("Capturing {Device} ({Description})...",
-                        d.Name, d.Description);
-                });
-                _logger.LogInformation("    ... to {FileName} ({Filter}).",
-                    _bundle._folder, _filter);
-            }
-            else
-            {
-                _logger.LogWarning("No capture devices found to capture from.");
-            }
-            _bundle.Start = DateTimeOffset.UtcNow;
-
-            List<LibPcapLiveDevice> Capture(IEnumerable<LibPcapLiveDevice> candidates)
-            {
-                var capturing = new List<LibPcapLiveDevice>();
-                foreach (var device in candidates)
-                {
-                    try
-                    {
-                        // Open the device for capturing
-                        Debug.Assert(device.Opened);
-                        device.Filter = _filter;
-                        device.OnPacketArrival += (_, e) => _writer.Write(e.GetPacket());
-
-                        capturing.Add(device);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Failed to capture {Device} ({Description}): {Message}",
-                            device.Name, device.Description, ex.Message);
-                    }
-                }
-                return capturing;
-            }
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            try
-            {
-                _bundle.End = DateTimeOffset.UtcNow;
-                _devices.ForEach(d =>
-                {
-                    try
-                    {
-                        d.StopCapture();
-                        _logger.LogInformation(
-                            "Capturing {Description} completed. ({Statistics}).",
-                            d.Description, d.Statistics.ToString());
-                    }
-                    catch { }
-                });
-                _logger.LogInformation("Completed capture.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to complete capture.");
-                throw;
-            }
-            finally
-            {
-                _writer.Dispose();
-                _devices.ForEach(d => d.Dispose());
-            }
-        }
-
-        private readonly List<LibPcapLiveDevice> _devices;
-        private readonly CaptureFileWriterDevice _writer;
-        private readonly Bundle _bundle;
-        private readonly string _filter;
-        private readonly ILogger _logger;
-    }
-
+    private readonly List<Pcap> _captures = new();
     private readonly ILogger _logger;
     private readonly string _folder;
 }

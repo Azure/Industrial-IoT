@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -84,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Directory.Delete(rootFolder, true);
             }
-            await foreach (var change in _diagnostics.MonitorAsync(
+            await foreach (var change in _diagnostics.WatchChannelDiagnosticsAsync(
                 ct).ConfigureAwait(false))
             {
                 try
@@ -106,13 +105,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task WriteDebugLogFileAsync(string rootFolder,
-            ConnectionDiagnosticModel change, CancellationToken ct)
+            ChannelDiagnosticModel change, CancellationToken ct)
         {
-            var entry = change.ChannelDiagnostics;
-            if (entry?.Client == null || entry?.Server == null ||
+            if (change?.Client == null || change?.Server == null ||
                 change.SessionCreated == null || change.RemotePort == null)
             {
-                // Not a valid entry, channel without keys
+                // Not a valid change, channel without keys
                 return;
             }
 
@@ -141,9 +139,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .ConfigureAwait(false);
                 await log.WriteLineAsync($"LocalEP: {change.LocalIpAddress}:{change.LocalPort}")
                     .ConfigureAwait(false);
-                await log.WriteLineAsync($"ChannelId: {entry.ChannelId}")
+                await log.WriteLineAsync($"ChannelId: {change.ChannelId}")
                     .ConfigureAwait(false);
-                await log.WriteLineAsync($"TokenId: {entry.TokenId}")
+                await log.WriteLineAsync($"TokenId: {change.TokenId}")
                     .ConfigureAwait(false);
                 await log.WriteLineAsync($"Session: {change.SessionId}")
                     .ConfigureAwait(false);
@@ -160,30 +158,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var keysets = File.AppendText(keysetsFileName);
             await using (var _ = keysets.ConfigureAwait(false))
             {
-                await keysets.WriteAsync($"client_iv_{entry.ChannelId}_{entry.TokenId}: ")
+                await keysets.WriteAsync($"client_iv_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(entry.Client.Iv.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString(change.Client.Iv.ToArray()))
                     .ConfigureAwait(false);
-                await keysets.WriteAsync($"client_key_{entry.ChannelId}_{entry.TokenId}: ")
+                await keysets.WriteAsync($"client_key_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(entry.Client.Key.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString(change.Client.Key.ToArray()))
                     .ConfigureAwait(false);
-                await keysets.WriteAsync($"client_siglen_{entry.ChannelId}_{entry.TokenId}: ")
+                await keysets.WriteAsync($"client_siglen_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(entry.Client.SigLen.ToString(CultureInfo.InvariantCulture))
+                await keysets.WriteLineAsync(change.Client.SigLen.ToString(CultureInfo.InvariantCulture))
                     .ConfigureAwait(false);
 
-                await keysets.WriteAsync($"server_iv_{entry.ChannelId}_{entry.TokenId}: ")
+                await keysets.WriteAsync($"server_iv_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(entry.Server.Iv.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString(change.Server.Iv.ToArray()))
                     .ConfigureAwait(false);
-                await keysets.WriteAsync($"server_key_{entry.ChannelId}_{entry.TokenId}: ")
+                await keysets.WriteAsync($"server_key_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(entry.Server.Key.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString(change.Server.Key.ToArray()))
                     .ConfigureAwait(false);
-                await keysets.WriteAsync($"server_siglen_{entry.ChannelId}_{entry.TokenId}: ")
+                await keysets.WriteAsync($"server_siglen_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(entry.Server.SigLen.ToString(CultureInfo.InvariantCulture))
+                await keysets.WriteLineAsync(change.Server.SigLen.ToString(CultureInfo.InvariantCulture))
                     .ConfigureAwait(false);
 
                 await keysets.FlushAsync(ct).ConfigureAwait(false);

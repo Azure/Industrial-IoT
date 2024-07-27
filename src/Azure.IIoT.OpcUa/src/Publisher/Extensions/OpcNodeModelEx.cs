@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Dataset source extensions
@@ -20,6 +21,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         public static EqualityComparer<OpcNodeModel> Comparer { get; } =
             new OpcNodeModelComparer();
+
+        /// <summary>
+        /// Try get the id element of the node
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static bool TryGetId(this OpcNodeModel node, [NotNullWhen(true)] out string? id)
+        {
+            id = !string.IsNullOrWhiteSpace(node.Id) ?
+                node.Id : !string.IsNullOrWhiteSpace(node.ExpandedNodeId) ?
+                node.ExpandedNodeId : node.BrowsePath?.Count > 0 ?
+                Opc.Ua.ObjectIds.RootFolder.ToString() : node.ModelChangeHandling != null ?
+                Opc.Ua.ObjectIds.Server.ToString() : null;
+            return id != null;
+        }
 
         /// <summary>
         /// Check if nodes are equal

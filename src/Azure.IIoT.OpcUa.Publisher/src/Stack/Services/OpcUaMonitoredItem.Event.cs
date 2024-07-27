@@ -173,8 +173,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Event Item '{Template.StartNodeId}' with server id {RemoteId} - " +
-                    $"{(Status?.Created == true ? "" : "not ")}created";
+                var str = $"Event Item '{Template.StartNodeId}'";
+                if (RemoteId.HasValue)
+                {
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                }
+                return str;
             }
 
             /// <inheritdoc/>
@@ -246,8 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MonitoringMode = Template.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
-                QueueSize = Template.QueueSize;
                 SamplingInterval = 0;
+                UpdateQueueSize(subscription, Template);
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
@@ -283,6 +287,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     itemChange = true;
                 }
                 return itemChange;
+            }
+
+            /// <inheritdoc/>
+            protected override bool OnSamplingIntervalOrQueueSizeRevised(
+                bool samplingIntervalChanged, bool queueSizeChanged)
+            {
+                Debug.Assert(Subscription != null);
+                var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
+                    samplingIntervalChanged, queueSizeChanged);
+                if (samplingIntervalChanged && Status.SamplingInterval != 0)
+                {
+                    // Not necessary as sampling interval will likely always stay 0
+                    applyChanges |= UpdateQueueSize(Subscription, Template);
+                }
+                return applyChanges;
             }
 
             public override Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith

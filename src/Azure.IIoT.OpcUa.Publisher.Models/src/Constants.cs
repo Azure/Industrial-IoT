@@ -41,6 +41,11 @@ namespace Azure.IIoT.OpcUa
         public const string TwinPropertyHostnameKey = "__hostname__";
 
         /// <summary>
+        /// Adresseses property constant
+        /// </summary>
+        public const string TwinPropertyIpAddressesKey = "__ip__";
+
+        /// <summary>
         /// Port key constant
         /// </summary>
         public const string TwinPropertyPortKey = "__port__";

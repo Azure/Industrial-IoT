@@ -182,7 +182,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
-            var config = _factory.CreateServer(ports, pkiRootPath, out _server);
+            var config = _factory.CreateServer(ports, pkiRootPath, out _server,
+                configuration => configuration.DiagnosticsEnabled = true);
             _logger.LogInformation("Server {Instance} created...", this);
 
             config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;

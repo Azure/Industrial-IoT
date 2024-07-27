@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 internal static partial class Extensions
 {
     /// <summary>
-    /// Get property
+    /// Stop property
     /// </summary>
     /// <param name="twin"></param>
     /// <param name="name"></param>
@@ -44,7 +44,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get tag
+    /// Stop tag
     /// </summary>
     /// <param name="twin"></param>
     /// <param name="name"></param>
@@ -68,7 +68,7 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get bytes
+    /// Stop bytes
     /// </summary>
     /// <param name="elem"></param>
     /// <param name="value"></param>
@@ -105,17 +105,23 @@ internal static partial class Extensions
     }
 
     /// <summary>
-    /// Get assembly version
+    /// Stop assembly version
     /// </summary>
     /// <param name="assembly"></param>
     public static string GetVersion(this Assembly assembly)
     {
+        var branch = Environment.GetEnvironmentVariable("BRANCH");
+        branch = !string.IsNullOrEmpty(branch) ? "-" + branch : string.Empty;
         var ver = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
         if (ver == null || !Version.TryParse(ver, out var assemblyVersion))
         {
-            assemblyVersion = new Version();
+            ver = Environment.GetEnvironmentVariable("VERSION");
+            if (ver == null || !Version.TryParse(ver, out assemblyVersion))
+            {
+                assemblyVersion = new Version();
+            }
         }
-        return assemblyVersion.ToString();
+        return assemblyVersion + branch;
     }
 
     /// <summary>
@@ -185,6 +191,8 @@ internal static partial class Extensions
     {
         return Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != null;
     }
+
+    public static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 
     [GeneratedRegex("[^a-zA-Z0-9-]")]
     private static partial Regex AlphaNumAndDashOnly();

@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public int? MaxNetworkMessageSize { get; set; }
 
         /// <summary>
-        /// Diagnostics interval
+        /// ChannelDiagnostics interval
         /// </summary>
         public TimeSpan? DiagnosticsInterval { get; set; }
 
@@ -212,6 +212,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Scale test option
         /// </summary>
         public int? ScaleTestCount { get; set; }
+
+        /// <summary>
+        /// Ignore all publishing intervals set in the configuration.
+        /// </summary>
+        public bool? IgnoreConfiguredPublishingIntervals { get; set; }
 
         /// <summary>
         /// Allow setting or overriding the current api key

@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
-    using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -114,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Last diagnostic information on this client
         /// </summary>
-        internal ConnectionDiagnosticModel LastDiagnostics => _lastDiagnostics;
+        internal ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
 
         /// <summary>
         /// No complex type loading ever
@@ -189,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Meter meter, IMetricsContext metrics,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
-            Action<ConnectionDiagnosticModel> diagnosticsCallback,
+            Action<ChannelDiagnosticModel> diagnosticsCallback,
             TimeSpan? maxReconnectPeriod = null, string? sessionName = null)
         {
             _timeProvider = timeProvider;
@@ -200,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _connection = connection.Connection;
             _diagnosticsCb = diagnosticsCallback;
-            _lastDiagnostics = new ConnectionDiagnosticModel
+            _lastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
                 TimeStamp = _timeProvider.GetUtcNow()
@@ -383,6 +382,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 tcs.TrySetException(ex);
             }
             return tcs.Task;
+        }
+
+        /// <summary>
+        /// Get session diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(
+            CancellationToken ct = default)
+        {
+            if (_session?.Connected == true)
+            {
+                return await _session.GetServerDiagnosticAsync(ct).ConfigureAwait(false);
+            }
+            return null;
         }
 
         /// <summary>
@@ -784,7 +798,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             currentSubscriptions = _session.SubscriptionHandles;
                                             //
                                             // Equality is through subscriptionidentifer therefore only subscriptions
-                                            // that are not yet created inside the session remain in queued state.
+                                            // that are not yet createdSubscriptions inside the session remain in queued state.
                                             //
                                             queuedSubscriptions.ExceptWith(currentSubscriptions);
                                             await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions,
@@ -915,7 +929,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             currentSubscriptions = _session.SubscriptionHandles;
                                             //
                                             // Equality is through subscriptionidentifer therefore only subscriptions
-                                            // that are not yet created inside the session remain in queued state.
+                                            // that are not yet createdSubscriptions inside the session remain in queued state.
                                             //
                                             queuedSubscriptions.ExceptWith(currentSubscriptions);
                                             await ApplySubscriptionAsync(currentSubscriptions, queuedSubscriptions,
@@ -1047,7 +1061,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 })).ConfigureAwait(false);
 
-                EnsureMinimumNumberOfPublishRequestsQueued();
+                UpdatePublishRequestCounts();
 
                 if (numberOfSubscriptions > 1)
                 {
@@ -1122,72 +1136,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
-        /// Ensure min publish requests are queued
+        /// Ensure min publish requests are configured correctly
         /// </summary>
-        private void EnsureMinimumNumberOfPublishRequestsQueued()
+        private void UpdatePublishRequestCounts()
         {
             var session = _session;
             if (session == null)
             {
                 return;
             }
-            var created = SubscriptionCount;
-            if (created == 0)
-            {
-                return;
-            }
 
-            var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
+            var minPublishRequests = MinPublishRequests ?? 0;
             if (minPublishRequests <= 0)
             {
-                minPublishRequests = 1;
-            }
-            var percentage = PublishRequestsPerSubscriptionPercent ?? 100;
-            var desiredRequests = Math.Max(minPublishRequests,
-                percentage == 100 || percentage <= 0 ? created :
-                    (int)Math.Ceiling(created * (percentage / 100.0)));
-            if (desiredRequests <= 0)
-            {
-                // Dont allow negative or 0
-                desiredRequests = minPublishRequests;
+                minPublishRequests = kMinPublishRequestCount;
             }
 
-            if (!PublishRequestsPerSubscriptionPercent.HasValue || MaxPublishRequests > 0)
+            var maxPublishRequests = MaxPublishRequests ?? kMaxPublishRequestCount;
+            if (maxPublishRequests <= 0 || maxPublishRequests > ushort.MaxValue)
             {
-                var maxPublishRequests = MaxPublishRequests ?? kMaxPublishRequestCount;
-                if (maxPublishRequests != 0 && desiredRequests > maxPublishRequests)
+                maxPublishRequests = ushort.MaxValue;
+            }
+
+            var createdSubscriptions = SubscriptionCount;
+            if (PublishRequestsPerSubscriptionPercent.HasValue)
+            {
+                var percentage = PublishRequestsPerSubscriptionPercent ?? 100;
+                var minPublishOverride = percentage == 100 || percentage <= 0 ?
+                    createdSubscriptions :
+                    (int)Math.Ceiling(createdSubscriptions * (percentage / 100.0));
+                if (minPublishRequests < minPublishOverride)
                 {
-                    desiredRequests = maxPublishRequests;
-                    session.MaxPublishRequestCount = desiredRequests;
+                    minPublishRequests = minPublishOverride;
                 }
             }
-            if (_maxPublishRequests.HasValue && desiredRequests > _maxPublishRequests)
+
+            Debug.Assert(minPublishRequests > 0);
+            Debug.Assert(maxPublishRequests > 0);
+
+            if (minPublishRequests > maxPublishRequests)
             {
-                desiredRequests = _maxPublishRequests.Value;
-                if (desiredRequests < minPublishRequests)
-                {
-                    desiredRequests = minPublishRequests;
-                }
-                session.MaxPublishRequestCount = desiredRequests;
+                // Dont allow min to be higher than max
+                minPublishRequests = maxPublishRequests;
             }
 
-            session.MinPublishRequestCount = desiredRequests;
+            //
+            // The stack will choose a value based on the subscription
+            // count that is between min and max.
+            //
+            session.MinPublishRequestCount = minPublishRequests;
+            session.MaxPublishRequestCount = maxPublishRequests;
 
-            var currently = OutstandingRequestCount;
-            var additionalRequests = desiredRequests - currently;
-            if (additionalRequests <= 0)
+            if (createdSubscriptions > 0 && minPublishRequests > OutstandingRequestCount)
             {
-                return;
-            }
-
-            _logger.LogDebug(
-                "{Client}: Ensuring publish request count {Count} is {Desired} requests.",
-                this, currently, desiredRequests);
-
-            // Queue requests
-            for (var i = 0; i < additionalRequests; i++)
-            {
-                session.BeginPublish(session.OperationTimeout);
+                session.StartPublishing(session.OperationTimeout, false);
             }
         }
 
@@ -1300,7 +1302,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     session.RenewUserIdentity += (_, _) => userIdentity;
 
-                    // Assign the created session
+                    // Assign the createdSubscriptions session
                     var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
                     Debug.Assert(isNew);
                     _logger.LogInformation(
@@ -1332,47 +1334,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            switch (e.Status.Code)
+            if (session.Connected)
             {
-                case StatusCodes.BadTooManyPublishRequests:
-                    if (!session.Connected)
-                    {
-                        return;
-                    }
-                    var limit = GoodPublishRequestCount - 1;
-                    if (MaxPublishRequests.HasValue && limit > MaxPublishRequests)
-                    {
-                        limit = MaxPublishRequests.Value;
-                    }
-                    var minPublishRequests = MinPublishRequests ?? kMinPublishRequestCount;
-                    if (minPublishRequests <= 0)
-                    {
-                        minPublishRequests = 1;
-                    }
-                    if (limit <= minPublishRequests || limit == _maxPublishRequests)
-                    {
-                        break;
-                    }
-                    _maxPublishRequests = limit;
-                    if (session is OpcUaSession s)
-                    {
-                        s.MaxPublishRequestCount = limit;
-                    }
-                    _logger.LogInformation(
-                        "{Client}: Too many publish request error: Limiting number of requests to {Limit}...",
-                        this, _maxPublishRequests.Value);
-                    return;
-                default:
-                    if (session.Connected)
-                    {
-                        _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
-                            this, e.Status, ActivePublishErrorHandling);
-                        break;
-                    }
-                    _logger.LogDebug(
-                        "{Client}: Disconnected - publish error: {Error} (Actively handled: {Active})...",
-                        this, e.Status, ActivePublishErrorHandling);
-                    break;
+                _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
+                    this, e.Status, ActivePublishErrorHandling);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "{Client}: Disconnected - publish error: {Error} (Actively handled: {Active})...",
+                    this, e.Status, ActivePublishErrorHandling);
             }
 
             if (!ActivePublishErrorHandling)
@@ -1491,7 +1462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
                 {
-                    EnsureMinimumNumberOfPublishRequestsQueued();
+                    UpdatePublishRequestCounts();
                 }
             }
             catch (Exception ex)
@@ -1540,22 +1511,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var oldTable = _session?.NamespaceUris.ToArray();
             Debug.Assert(_reconnectingSession == null);
-            if (ReferenceEquals(_session, session))
+            var isNewSession = false;
+            if (!ReferenceEquals(_session, session))
             {
-                // Not a new session
-                NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-                UpdateNamespaceTableAndSessionDiagnostics((OpcUaSession)session,
-                    oldTable);
-                return false;
+                await CloseSessionAsync().ConfigureAwait(false);
+                _session = (OpcUaSession)session;
+                isNewSession = true;
+                kSessions.Add(1, _metrics.TagList);
             }
 
-            await CloseSessionAsync().ConfigureAwait(false);
-            _session = (OpcUaSession)session;
-
+            UpdatePublishRequestCounts();
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
             UpdateNamespaceTableAndSessionDiagnostics(_session, oldTable);
-            kSessions.Add(1, _metrics.TagList);
-            return true;
+            return isNewSession;
 
             void UpdateNamespaceTableAndSessionDiagnostics(OpcUaSession session,
                 string[]? oldTable)
@@ -1600,8 +1568,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var now = _timeProvider.GetUtcNow();
 
-            var elapsed = now - _lastDiagnostics.TimeStamp;
-            var lastChannel = _lastDiagnostics.ChannelDiagnostics;
+            var lastDiagnostics = _lastDiagnostics;
+            var elapsed = now - lastDiagnostics.TimeStamp;
 
             var channelChanged = false;
             if (token != null)
@@ -1613,10 +1581,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // try again after the remaining lifetime or every second
                 // until it changed unless the token is then later gone.
                 //
-                channelChanged = !(lastChannel != null &&
-                    lastChannel.ChannelId == token.ChannelId &&
-                    lastChannel.TokenId == token.TokenId &&
-                    lastChannel.CreatedAt == token.CreatedAt);
+                channelChanged = !(lastDiagnostics != null &&
+                    lastDiagnostics.ChannelId == token.ChannelId &&
+                    lastDiagnostics.TokenId == token.TokenId &&
+                    lastDiagnostics.CreatedAt == token.CreatedAt);
 
                 var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
                 if (channelChanged)
@@ -1663,7 +1631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            _lastDiagnostics = new ConnectionDiagnosticModel
+            _lastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
                 TimeStamp = now,
@@ -1673,18 +1641,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RemotePort = remotePort == -1 ? null : remotePort,
                 LocalIpAddress = localIpAddress,
                 LocalPort = localPort == -1 ? null : localPort,
-
-                ChannelDiagnostics = token != null ? new ChannelDiagnosticModel
-                {
-                    ChannelId = token.ChannelId,
-                    TokenId = token.TokenId,
-                    CreatedAt = token.CreatedAt,
-                    Lifetime = TimeSpan.FromMilliseconds(token.Lifetime),
-                    Client = ToChannelKey(token.ClientInitializationVector,
-                        token.ClientEncryptingKey, token.ClientSigningKey),
-                    Server = ToChannelKey(token.ServerInitializationVector,
-                        token.ServerEncryptingKey, token.ServerSigningKey)
-                } : null
+                ChannelId = token?.ChannelId,
+                TokenId = token?.TokenId,
+                CreatedAt = token?.CreatedAt,
+                Lifetime = token == null ? null :
+                    TimeSpan.FromMilliseconds(token.Lifetime),
+                Client = ToChannelKey(token?.ClientInitializationVector,
+                    token?.ClientEncryptingKey, token?.ClientSigningKey),
+                Server = ToChannelKey(token?.ServerInitializationVector,
+                    token?.ServerEncryptingKey, token?.ServerSigningKey)
             };
             _diagnosticsCb(_lastDiagnostics);
             _logger.LogDebug("{Client}: Diagnostics information updated.", this);
@@ -2152,11 +2117,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _numberOfConnectRetries;
         private bool _disposed;
         private int _refCount;
-        private int? _maxPublishRequests;
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
         private int _namespaceTableChanges;
-        private ConnectionDiagnosticModel _lastDiagnostics;
+        private ChannelDiagnosticModel _lastDiagnostics;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
@@ -2176,7 +2140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly TimeSpan _maxReconnectPeriod;
         private readonly Channel<(ConnectionEvent, object?)> _channel;
-        private readonly Action<ConnectionDiagnosticModel> _diagnosticsCb;
+        private readonly Action<ChannelDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
         private readonly Dictionary<(string, TimeSpan), Sampler> _samplers = new();
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();

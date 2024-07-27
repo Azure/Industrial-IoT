@@ -34,7 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultDataChangeTriggerKey = "DefaulDataChangeTrigger";
         public const string FetchOpcNodeDisplayNameKey = "FetchOpcNodeDisplayName";
         public const string FetchOpcBrowsePathFromRootKey = "FetchOpcBrowsePathFromRoot";
-        public const string DefaultQueueSize = "DefaultQueueSize";
+        public const string DefaultQueueSizeKey = "DefaultQueueSize";
+        public const string AutoSetQueueSizesKey = "AutoSetQueueSizes";
         public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
         public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
@@ -56,10 +57,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <summary>
         /// Default values
         /// </summary>
-        public const int DefaultKeepAliveCountDefault = 10;
+        public const int DefaultKeepAliveCountDefault = 0;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const bool ResolveDisplayNameDefault = false;
-        public const int DefaultLifetimeCountDefault = 100;
+        public const int DefaultLifetimeCountDefault = 0;
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const int AsyncMetaDataLoadThresholdDefault = 30;
@@ -110,9 +111,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             {
                 options.DefaultPublishingInterval = GetDurationOrNull(DefaultPublishingIntervalKey) ??
                     TimeSpan.FromMilliseconds(GetIntOrDefault(DefaultPublishingIntervalKey,
-                    DefaultPublishingIntervalDefaultMillis));
+                        DefaultPublishingIntervalDefaultMillis));
             }
-
             if (options.DefaultMonitoredItemWatchdogTimeout == null)
             {
                 var watchdogInterval = GetIntOrNull(DefaultMonitoredItemWatchdogSecondsKey);
@@ -170,7 +170,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
             options.ResolveDisplayName ??= GetBoolOrDefault(FetchOpcNodeDisplayNameKey,
                     ResolveDisplayNameDefault);
-            options.DefaultQueueSize ??= (uint?)GetIntOrNull(DefaultQueueSize);
+            options.DefaultQueueSize ??= (uint?)GetIntOrNull(DefaultQueueSizeKey);
+            options.AutoSetQueueSizes ??= GetBoolOrNull(AutoSetQueueSizesKey);
 
             var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
             options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None

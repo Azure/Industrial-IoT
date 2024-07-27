@@ -60,6 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DebugLogNotificationsWithHeartbeatKey = "DebugLogNotificationsWithHeartbeat";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string ScaleTestCountKey = "ScaleTestCount";
+        public const string IgnoreConfiguredPublishingIntervalsKey = "IgnoreConfiguredPublishingIntervals";
         public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
         public const string DefaultNamespaceFormatKey = "DefaultNamespaceFormat";
         public const string MessageTimestampKey = "MessageTimestamp";
@@ -129,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int BatchTriggerIntervalLLegacyDefaultMillis = 10 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
         public const int ScaleTestCountDefault = 1;
+        public const bool IgnoreConfiguredPublishingIntervalsDefault = false;
         public static readonly int UnsecureHttpServerPortDefault = IsContainer ? 80 : 9071;
         public static readonly int HttpServerPortDefault = IsContainer ? 443 : 9072;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -233,6 +235,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                     MaxNetworkMessageSendQueueSizeDefault);
 
             options.DefaultWriterGroupPartitions ??= GetIntOrNull(DefaultWriterGroupPartitionCountKey);
+            options.IgnoreConfiguredPublishingIntervals ??= GetBoolOrDefault(IgnoreConfiguredPublishingIntervalsKey,
+                    IgnoreConfiguredPublishingIntervalsDefault);
 
             if (options.TopicTemplates.Root == null)
             {

@@ -13,16 +13,17 @@ using Azure.ResourceManager.ContainerRegistry.Models;
 using Azure.ResourceManager.ContainerRegistry;
 using Azure.ResourceManager.IotHub;
 using Azure.ResourceManager.Resources;
-using Microsoft.Azure.Devices;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Microsoft.Azure.Devices.Common.Exceptions;
-using Microsoft.Azure.Devices.Shared;
 using Azure.ResourceManager.IotHub.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Azure.Devices;
+using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Devices.Common.Exceptions;
+using Microsoft.Azure.Devices.Shared;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 /// <summary>
 /// Represents and edge gateway that can be accessed from
@@ -31,13 +32,13 @@ using Azure.Storage.Blobs.Models;
 internal sealed record class Gateway
 {
     /// <summary>
-    /// Get image
+    /// Stop image
     /// </summary>
     /// <returns></returns>
     public NetcapImage Netcap { get; }
 
     /// <summary>
-    /// Get storage
+    /// Stop storage
     /// </summary>
     /// <returns></returns>
     public NetcapStorage Storage { get; }
@@ -70,7 +71,7 @@ internal sealed record class Gateway
     {
         while (!ct.IsCancellationRequested)
         {
-            // Get target publishers in iot hubs
+            // Stop target publishers in iot hubs
             var deployments = await GetPublisherDeploymentsAsync(subscriptionId,
                 netcapMonitored, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -144,7 +145,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Get resource group
+    /// Stop resource group
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
@@ -161,7 +162,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Get storage
+    /// Stop storage
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NetcapException"></exception>
@@ -204,22 +205,68 @@ internal sealed record class Gateway
         }
         catch (ConfigurationNotFoundException) { }
 
-        var twin = await registryManager.GetTwinAsync(_publisher.DeviceId,
+        var publisherTwin = await registryManager.GetTwinAsync(_publisher.DeviceId,
             _publisher.Id, ct).ConfigureAwait(false);
+
+        var hostname = publisherTwin.GetProperty("__hostname__", desired: false);
+        var port = publisherTwin.GetProperty("__port__", desired: false);
+
+        // Stop the create options of the publisher
+        var agent = await registryManager.GetTwinAsync(_publisher.DeviceId,
+            "$edgeAgent", ct).ConfigureAwait(false);
+        if (agent?.Properties.Desired.Contains("modules") == true)
+        {
+            var publisherDeployment = agent.Properties.Desired["modules"][_publisher.Id];
+            if (publisherDeployment != null)
+            {
+                var settings = publisherDeployment["settings"];
+                var options = (string?)settings["createOptions"];
+                if (options != null)
+                {
+                    var createOptions = JObject.Parse(options
+                        .Replace("\\\"", "\"", StringComparison.Ordinal));
+
+                    if (createOptions.TryGetValue("Hostname", out var hn) &&
+                            hn.Type == JTokenType.String)
+                    {
+                        hostname = hn.Value<string>();
+                    }
+                    if (createOptions.TryGetValue("HostConfig", out var cfg) &&
+                        cfg is JObject hostConfig &&
+                        hostConfig.TryGetValue("PortBindings", out var bd) &&
+                        bd is JObject bindings)
+                    {
+                        // Looks like {\"443/tcp\":[{\"HostPort\":\"8081\"}]}
+                        foreach (var pm in bindings)
+                        {
+                            if (pm.Key.StartsWith("443", StringComparison.Ordinal) &&
+                                pm.Value is JArray arr && arr.Count > 0 &&
+                                arr[0] is JObject o && o.TryGetValue("HostPort", out var p))
+                            {
+                                port = p.Value<string>();
+                                hostname = "localhost"; // Connect to host port
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         await registryManager.AddConfigurationAsync(
             new Configuration(_deploymentConfigId)
             {
                 TargetCondition = $"deviceId = '{_publisher.DeviceId}'",
                 Content = new ConfigurationContent
                 {
-                    ModulesContent = Create(_publisher.DeviceId, ncModuleId,
+                    ModulesContent = CreateSidecarDeployment(_publisher.DeviceId, ncModuleId,
                         _publisher.Id, Netcap.LoginServer, Netcap.Username,
                         Netcap.Password, Netcap.Name, Storage.ConnectionString,
-                        twin.GetProperty("__apikey__", desired: false),
-                        twin.GetProperty("__certificate__", desired: false),
-                        twin.GetProperty("__scheme__", desired: false),
-                        twin.GetProperty("__hostname__", desired: false),
-                        twin.GetProperty("__port__", desired: false))
+                        publisherTwin.GetProperty("__apikey__", desired: false),
+                        publisherTwin.GetProperty("__certificate__", desired: false),
+                        publisherTwin.GetProperty("__scheme__", desired: false),
+                        publisherTwin.GetProperty("__ip__", desired: false),
+                        hostname,
+                        port)
                 }
             }, ct).ConfigureAwait(false);
         await registryManager.UpdateTwinAsync(_publisher.DeviceId, _publisher.Id,
@@ -229,7 +276,7 @@ internal sealed record class Gateway
                 {
                     [kDeploymentTag] = _deploymentConfigId
                 }
-            }, twin.ETag, ct).ConfigureAwait(false);
+            }, publisherTwin.ETag, ct).ConfigureAwait(false);
 
         _logger.LogInformation("Deploying netcap module to {DeviceId}...",
             _publisher.DeviceId);
@@ -319,7 +366,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Get deployments
+    /// Stop deployments
     /// </summary>
     /// <param name="subscriptionId"></param>
     /// <param name="netcapMonitored"></param>
@@ -434,7 +481,7 @@ internal sealed record class Gateway
     }
 
     /// <summary>
-    /// Create deployment
+    /// Create Sidecar Deployment deployment
     /// </summary>
     /// <param name="deviceId"></param>
     /// <param name="netcapModuleId"></param>
@@ -447,13 +494,15 @@ internal sealed record class Gateway
     /// <param name="apiKey"></param>
     /// <param name="certificate"></param>
     /// <param name="scheme"></param>
+    /// <param name="ipAddresses"></param>
     /// <param name="hostName"></param>
     /// <param name="port"></param>
     /// <returns></returns>
-    private static IDictionary<string, IDictionary<string, object>>? Create(string deviceId,
-        string netcapModuleId, string publisherModuleId, string server,
+    private static IDictionary<string, IDictionary<string, object>>? CreateSidecarDeployment(
+        string deviceId, string netcapModuleId, string publisherModuleId, string server,
         string userName, string password, string image, string storageConnectionString,
-        string? apiKey, string? certificate, string? scheme, string? hostName, string? port)
+        string? apiKey, string? certificate, string? scheme, string? ipAddresses,
+        string? hostName, string? port)
     {
         var args = new List<string>
         {
@@ -461,6 +510,11 @@ internal sealed record class Gateway
             "-m", publisherModuleId,
             "-s", storageConnectionString
         };
+        if (ipAddresses != null)
+        {
+            args.Add("-i");
+            args.Add(ipAddresses);
+        }
         if (apiKey != null)
         {
             args.Add("-a");
@@ -483,13 +537,20 @@ internal sealed record class Gateway
             args.Add("-r");
             args.Add(url);
         }
-
         var createOptions = JsonConvert.SerializeObject(new
         {
             User = "root",
             Cmd = args.ToArray(),
+            NetworkingConfig = new
+            {
+                EndpointsConfig = new
+                {
+                    host = new { }
+                }
+            },
             HostConfig = new
             {
+                NetworkMode = "host", // $"container:{hostName ?? publisherModuleId}",
                 CapAdd = new[] { "NET_ADMIN" }
             }
         }).Replace("\"", "\\\"", StringComparison.Ordinal);
@@ -547,6 +608,7 @@ internal sealed record class Gateway
         /// Create image
         /// </summary>
         /// <param name="gateway"></param>
+        /// <param name="branch"></param>
         /// <param name="logger"></param>
         public NetcapImage(Gateway gateway, string? branch, ILogger logger)
         {
@@ -572,10 +634,10 @@ internal sealed record class Gateway
                 .CreateOrUpdateAsync(WaitUntil.Completed, regName,
                 new ContainerRegistryData(rg.Data.Location,
                     new ContainerRegistrySku(ContainerRegistrySkuName.Basic))
-                    {
-                        IsAdminUserEnabled = true,
-                        PublicNetworkAccess = ContainerRegistryPublicNetworkAccess.Enabled
-                    },
+                {
+                    IsAdminUserEnabled = true,
+                    PublicNetworkAccess = ContainerRegistryPublicNetworkAccess.Enabled
+                },
                     ct).ConfigureAwait(false);
             var registryKeys = await registryResponse.Value.GetCredentialsAsync(ct)
                 .ConfigureAwait(false);
@@ -583,7 +645,7 @@ internal sealed record class Gateway
             LoginServer = registryResponse.Value.Data.LoginServer;
             Username = registryKeys.Value.Username;
             Password = registryKeys.Value.Passwords[0].Value;
-            Name = LoginServer + "/netcap:latest";
+            Name = LoginServer + "/netcap:" + GetType().Assembly.GetVersion();
 
             _logger.LogInformation("Building Image {Image} ...", Name);
             // Build the image and push to the registry
@@ -619,11 +681,13 @@ internal sealed record class Gateway
                     try
                     {
                         var client = new BlobClient(new Uri(url.Value.LogLink));
+#pragma warning disable RCS1261 // Resource can be disposed asynchronously
                         using var os = Console.OpenStandardOutput();
                         using var source = await client.OpenReadAsync(new BlobOpenReadOptions(true)
                         {
                             Position = position
                         }, ct).ConfigureAwait(false);
+#pragma warning restore RCS1261 // Resource can be disposed asynchronously
                         position += await source.CopyAsync(os, ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
@@ -739,7 +803,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Delete
+        /// Cleanup
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>

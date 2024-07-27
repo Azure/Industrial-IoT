@@ -5,6 +5,7 @@
 
 namespace Netcap;
 
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Azure.Storage.Blobs.Models;
@@ -12,8 +13,6 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.IO;
 using System.Globalization;
-using Microsoft.Azure.Devices.Shared;
-using Azure;
 using System.IO.Compression;
 
 /// <summary>
@@ -113,6 +112,7 @@ internal sealed class Storage
                     }
                 }
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error receiving download notification.");
@@ -182,7 +182,7 @@ internal sealed class Storage
     }
 
     /// <summary>
-    /// Delete storage
+    /// Cleanup storage
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>

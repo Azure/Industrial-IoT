@@ -108,8 +108,8 @@ internal sealed class Parameters : IDisposable
                 parameters.IoTHubOwnerConnectionString);
             var twin = await registryManager.GetTwinAsync(deviceId, moduleId).ConfigureAwait(false);
             parameters.ApiKey = (string)twin.Properties.Reported["__apikey__"];
-            parameters.Certificate = new X509Certificate2(
-                (byte[])twin.Properties.Reported["__certificate__"], parameters.ApiKey);
+            var cert = (byte[])twin.Properties.Reported["__certificate__"];
+            parameters.Certificate = new X509Certificate2(cert, parameters.ApiKey);
             return parameters;
         }
         catch (Exception ex)

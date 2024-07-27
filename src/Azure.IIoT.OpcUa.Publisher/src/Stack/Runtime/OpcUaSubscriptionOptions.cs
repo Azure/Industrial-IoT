@@ -123,6 +123,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public uint? DefaultQueueSize { get; set; }
 
         /// <summary>
+        /// Automatically calculate queue sizes based on the
+        /// publishing interval and sampling interval as
+        /// max(1, roundup(subscription pi / si)).
+        /// </summary>
+        public bool? AutoSetQueueSizes { get; set; }
+
+        /// <summary>
         /// Use deferred acnkoledgement (experimental)
         /// </summary>
         public bool? UseDeferredAcknoledgements { get; set; }

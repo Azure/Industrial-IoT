@@ -62,6 +62,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         public bool LogStatus { get; set; }
 
         /// <summary>
+        /// Whether to enable diagnostics
+        /// </summary>
+        public bool EnableDiagnostics { get; set; }
+
+        /// <summary>
         /// Server factory
         /// </summary>
         /// <param name="logger"></param>
@@ -103,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports, pkiRootPath);
+            return Server.CreateServerConfiguration(ports, pkiRootPath, EnableDiagnostics);
         }
 
         /// <inheritdoc/>
@@ -131,19 +136,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// </summary>
             /// <param name="ports"></param>
             /// <param name="pkiRootPath"></param>
+            /// <param name="enableDiagnostics"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports, string pkiRootPath)
+                IEnumerable<int> ports, string pkiRootPath, bool enableDiagnostics = false)
             {
-                var extensions = new List<object> {
-                    new MemoryBuffer.MemoryBufferConfiguration {
-                        Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
-                            new MemoryBuffer.MemoryBufferInstance {
+                var extensions = new List<object>
+                {
+                    new MemoryBuffer.MemoryBufferConfiguration
+                    {
+                        Buffers = new MemoryBuffer.MemoryBufferInstanceCollection
+                        {
+                            new MemoryBuffer.MemoryBufferInstance
+                            {
                                 Name = "UInt32",
                                 TagCount = 10000,
                                 DataType = "UInt32"
                             },
-                            new MemoryBuffer.MemoryBufferInstance {
+                            new MemoryBuffer.MemoryBufferInstance
+                            {
                                 Name = "Double",
                                 TagCount = 100,
                                 DataType = "Double"
@@ -230,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         },
 
                         NodeManagerSaveFile = "nodes.xml",
-                        DiagnosticsEnabled = false,
+                        DiagnosticsEnabled = enableDiagnostics,
                         ShutdownDelay = 0,
 
                         // Runtime configuration
@@ -284,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         MaxNotificationQueueSize = 100,
                         MaxNotificationsPerPublish = 1000,
                         MinMetadataSamplingInterval = 1000,
-                        MaxPublishRequestCount = 20,
+                        MaxPublishRequestCount = 8,
                         MaxSubscriptionCount = 30,
                         MaxEventQueueSize = 10000,
                         MinSubscriptionLifetime = 10000,
