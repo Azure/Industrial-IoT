@@ -75,19 +75,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Subscription
         /// </summary>
-        /// <param name="clients"></param>
+        /// <param name="client"></param>
         /// <param name="callbacks"></param>
         /// <param name="template"></param>
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="timeProvider"></param>
-        internal OpcUaSubscription(IClientAccessor<ConnectionModel> clients,
+        internal OpcUaSubscription(OpcUaClient client,
             ISubscriptionCallbacks callbacks, SubscriptionModel template,
             IOptions<OpcUaClientOptions> options, ILoggerFactory loggerFactory,
             IMetricsContext metrics, TimeProvider? timeProvider = null)
         {
-            _clients = clients ?? throw new ArgumentNullException(nameof(clients));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
@@ -97,6 +97,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
             _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+
+            // Take a reference to the client for the lifetime of the subscription
+            _client.AddRef();
             LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
 
             Initialize();
@@ -109,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
-            TriggerManageSubscription(true);
+            TriggerManageSubscription();
             ResetMonitoredItemWatchdogTimer(PublishingEnabled);
             Debug.Assert(_client != null);
         }
@@ -122,7 +125,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaSubscription(OpcUaSubscription subscription, bool copyEventHandlers)
             : base(subscription, copyEventHandlers)
         {
-            _clients = subscription._clients;
             _options = subscription._options;
             _loggerFactory = subscription._loggerFactory;
             _timeProvider = subscription._timeProvider;
@@ -167,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (!_closed)
             {
-                TriggerManageSubscription(!_closed);
+                TriggerManageSubscription();
             }
         }
 
@@ -275,22 +277,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var previousTemplateId = _template.Id;
 
                 _template = ValidateSubscriptionInfo(subscription, previousTemplateId.Id);
-                Debug.Assert(Name == previousTemplateId.Id, "The name must not change");
 
-                // But connection information could have changed
-                if (previousTemplateId != _template.Id)
-                {
-                    _logger.LogError("Upgrading subscription to different session.");
+                // Assert connection information has not changed
+                Debug.Assert(previousTemplateId == _template.Id);
 
-                    // Force closing of the subscription and ...
-                    _forceRecreate = true;
-
-                    // ... release client handle to cause closing of session if last reference.
-                    _client?.Dispose();
-                    _client = null;
-                }
-
-                TriggerManageSubscription(true);
+                TriggerManageSubscription();
             }
         }
 
@@ -308,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(!_closed);
                 _closed = true;
 
-                TriggerManageSubscription(true);
+                TriggerManageSubscription();
             }
         }
 
@@ -1436,34 +1427,23 @@ Actual (revised) state/desired state:
         {
             lock (_lock)
             {
-                TriggerManageSubscription(false);
+                TriggerManageSubscription();
             }
         }
 
         /// <summary>
         /// Trigger managing of this subscription, ensure client exists if it is null
         /// </summary>
-        /// <param name="ensureClientExists"></param>
-        private void TriggerManageSubscription(bool ensureClientExists)
+        private void TriggerManageSubscription()
         {
             Debug.Assert(!_disposed);
-            //
-            // Ensure a client and session exists for this subscription. This takes a
-            // reference that must be released when the subscription is closed or the
-            // underlying connection information changes.
-            //
 
             if (_client == null)
             {
-                if (!ensureClientExists)
-                {
-                    return;
-                }
-                _client = _clients.GetOrCreateClient(_template.Id.Connection);
+                return;
             }
 
             // Execute creation/update on the session management thread inside the client
-            Debug.Assert(_client != null);
 
             _logger.LogInformation("Trigger management of subscription {Subscription}...",
                 this);
@@ -2636,7 +2616,7 @@ Actual (revised) state/desired state:
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromMinutes(1);
         private FrozenDictionary<uint, OpcUaMonitoredItem> _additionallyMonitored;
         private SubscriptionModel _template;
-        private IOpcUaClient? _client;
+        private OpcUaClient? _client;
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
@@ -2646,7 +2626,6 @@ Actual (revised) state/desired state:
         private bool _forceRecreate;
         private readonly ISubscriptionCallbacks _callbacks;
         private readonly Lazy<MetaDataLoader> _metaDataLoader;
-        private readonly IClientAccessor<ConnectionModel> _clients;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;

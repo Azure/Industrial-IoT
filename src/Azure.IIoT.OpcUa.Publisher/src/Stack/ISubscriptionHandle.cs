@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         void Update(SubscriptionModel configuration);
 
         /// <summary>
-        /// Close and delete subscription
+        /// Close subscription handle
         /// </summary>
         /// <returns></returns>
         void Close();

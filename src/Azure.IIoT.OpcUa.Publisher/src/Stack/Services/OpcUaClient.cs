@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -359,6 +360,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string subscriptionName, uint clientHandle)
         {
             return Sampler.Register(this, samplingRate, item, subscriptionName, clientHandle);
+        }
+
+        /// <summary>
+        /// Add subscription
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="callback"></param>
+        /// <param name="options"></param>
+        /// <param name="metrics"></param>
+        internal void AddOrUpdateSubscription(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IOptions<OpcUaClientOptions> options, 
+            IMetricsContext? metrics = null)
+        {
+            // Create subscription which will register with callback/kv
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            _ = new OpcUaSubscription(this, callback, subscription,
+                options, _loggerFactory, new OpcUaClientTagList(
+                    subscription.Id.Connection, metrics ?? _metrics), _timeProvider);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>

@@ -456,8 +456,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // if none already exist and transfer the subscription into the session
                 // management realm
                 //
-                _outer._subscriptionManager.CreateSubscription(_subscriptionInfo, this, this,
-                    _outer._timeProvider);
+                _outer._subscriptionManager.RegisterSubscriptionCallbacks(
+                    _subscriptionInfo, this, this);
 
                 _frameCount = 0;
                 InitializeMetaDataTrigger();

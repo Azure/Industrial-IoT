@@ -80,17 +80,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void CreateSubscription(SubscriptionModel subscription,
-            ISubscriptionCallbacks callback, IMetricsContext metrics,
-            TimeProvider? timeProvider)
+        public void RegisterSubscriptionCallbacks(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IMetricsContext metrics)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            // Create subscription which will register with callback/kv
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            _ = new OpcUaSubscription(this, callback, subscription,
-                _options, _loggerFactory, new OpcUaClientTagList(
-                    subscription.Id.Connection, metrics ?? _metrics), timeProvider);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+
+            using var client = GetOrAddClient(subscription.Id.Connection);
+            client.AddOrUpdateSubscription(subscription, callback, _options, 
+                metrics);
         }
 
         /// <inheritdoc/>

@@ -21,10 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="subscription">The subscription template</param>
         /// <param name="callback">Callbacks from the subscription</param>
         /// <param name="metrics">Additional metrics information</param>
-        /// <param name="timeProvider"></param>
         /// <returns></returns>
-        void CreateSubscription(SubscriptionModel subscription,
-            ISubscriptionCallbacks callback, IMetricsContext metrics,
-            TimeProvider? timeProvider = null);
+        void RegisterSubscriptionCallbacks(SubscriptionModel subscription,
+            ISubscriptionCallbacks callback, IMetricsContext metrics);
     }
 }
