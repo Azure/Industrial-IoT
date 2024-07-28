@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="callback"></param>
         /// <param name="options"></param>
         /// <param name="metrics"></param>
-        internal void AddOrUpdateSubscription(SubscriptionModel subscription,
+        internal void AddOrUpdateSubscription(SubscriptionTemplateModel subscription,
             ISubscriptionCallbacks callback, IOptions<OpcUaClientOptions> options, 
             IMetricsContext? metrics = null)
         {

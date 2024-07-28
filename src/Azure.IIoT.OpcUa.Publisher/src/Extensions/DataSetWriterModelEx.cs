@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="ignoreConfiguredPublishingIntervals"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public static SubscriptionModel ToSubscriptionModel(
+        public static SubscriptionTemplateModel ToSubscriptionTemplateModel(
             this DataSetWriterModel dataSetWriter, OpcUaSubscriptionOptions configuration,
             Func<PublishingQueueSettingsModel?, object?> configure, string? writerGroupName = null,
             bool? fetchBrowsePathFromRootOverride = null, bool? ignoreConfiguredPublishingIntervals = null)
@@ -44,11 +44,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 throw new ArgumentException("DataSet source empty.", nameof(dataSetWriter));
             }
-            return new SubscriptionModel
+            return new SubscriptionTemplateModel
             {
-                Id = ToSubscriptionId(dataSetWriter, writerGroupName, configuration),
+                Id = ToSubscriptionId(dataSetWriter, writerGroupName, configuration,
+                    fetchBrowsePathFromRootOverride,
+                    ignoreConfiguredPublishingIntervals),
                 MonitoredItems = monitoredItems,
-                Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionConfigurationModel(
+                Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionModel(
                     dataSetWriter.DataSet.DataSetMetaData, configuration, fetchBrowsePathFromRootOverride,
                     ignoreConfiguredPublishingIntervals)
             };
@@ -79,10 +81,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataSetWriter"></param>
         /// <param name="writerGroupName"></param>
         /// <param name="options"></param>
+        /// <param name="fetchBrowsePathFromRootOverride"></param>
+        /// <param name="ignoreConfiguredPublishingIntervals"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
-            string? writerGroupName, OpcUaSubscriptionOptions options)
+            string? writerGroupName, OpcUaSubscriptionOptions options,
+            bool? fetchBrowsePathFromRootOverride = null, 
+            bool? ignoreConfiguredPublishingIntervals = null)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriter);
             if (dataSetWriter.Id == null)
@@ -138,7 +144,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     Options = connection.Options | ConnectionOptions.NoSubscriptionTransfer
                 };
             }
-            return new SubscriptionIdentifier(connection, dataSetWriter.Id);
+            return new SubscriptionIdentifier(connection,
+                dataSetWriter.DataSet.DataSetSource.ToSubscriptionModel(
+                    dataSetWriter.DataSet.DataSetMetaData, options, fetchBrowsePathFromRootOverride,
+                    ignoreConfiguredPublishingIntervals));
         }
     }
 }

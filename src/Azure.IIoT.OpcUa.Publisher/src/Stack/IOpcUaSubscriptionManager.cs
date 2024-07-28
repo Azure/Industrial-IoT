@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="callback">Callbacks from the subscription</param>
         /// <param name="metrics">Additional metrics information</param>
         /// <returns></returns>
-        void RegisterSubscriptionCallbacks(SubscriptionModel subscription,
+        void RegisterSubscriptionCallbacks(SubscriptionTemplateModel subscription,
             ISubscriptionCallbacks callback, IMetricsContext metrics);
     }
 }

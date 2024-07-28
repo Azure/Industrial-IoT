@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IOpcUaSubscription
     {
         /// <inheritdoc/>
-        public string Name => _template.Id.Id;
+        public string Name => _template.Id.ToString();
 
         /// <inheritdoc/>
         public ushort LocalIndex { get; }
@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="metrics"></param>
         /// <param name="timeProvider"></param>
         internal OpcUaSubscription(OpcUaClient client,
-            ISubscriptionCallbacks callbacks, SubscriptionModel template,
+            ISubscriptionCallbacks callbacks, SubscriptionTemplateModel template,
             IOptions<OpcUaClientOptions> options, ILoggerFactory loggerFactory,
             IMetricsContext metrics, TimeProvider? timeProvider = null)
         {
@@ -188,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_template.Id.Id}:{Id}";
+            return $"{_template.Id}:{Id}";
         }
 
         /// <inheritdoc/>
@@ -262,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void Update(SubscriptionModel subscription)
+        public void Update(SubscriptionTemplateModel subscription)
         {
             Debug.Assert(!_closed);
             lock (_lock)
@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Update subscription configuration
                 var previousTemplateId = _template.Id;
 
-                _template = ValidateSubscriptionInfo(subscription, previousTemplateId.Id);
+                _template = ValidateSubscriptionInfo(subscription, previousTemplateId.ToString());
 
                 // Assert connection information has not changed
                 Debug.Assert(previousTemplateId == _template.Id);
@@ -2197,7 +2197,7 @@ Actual (revised) state/desired state:
         /// <param name="subscription"></param>
         /// <param name="subscriptionName"></param>
         /// <exception cref="ArgumentException"></exception>
-        private static SubscriptionModel ValidateSubscriptionInfo(SubscriptionModel subscription,
+        private static SubscriptionTemplateModel ValidateSubscriptionInfo(SubscriptionTemplateModel subscription,
             string? subscriptionName = null)
         {
             ArgumentNullException.ThrowIfNull(subscription);
@@ -2216,7 +2216,7 @@ Actual (revised) state/desired state:
                     MetaData = subscription.Configuration.MetaData.Clone()
                 },
                 Id = new SubscriptionIdentifier(subscription.Id.Connection,
-                    subscriptionName ?? subscription.Id.Id),
+                    subscription.Configuration),
                 MonitoredItems = subscription.MonitoredItems?.ToList()
             };
         }
@@ -2615,7 +2615,7 @@ Actual (revised) state/desired state:
 
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromMinutes(1);
         private FrozenDictionary<uint, OpcUaMonitoredItem> _additionallyMonitored;
-        private SubscriptionModel _template;
+        private SubscriptionTemplateModel _template;
         private OpcUaClient? _client;
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;

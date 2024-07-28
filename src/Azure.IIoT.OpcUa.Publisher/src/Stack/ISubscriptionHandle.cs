@@ -43,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// the subscription needs to be recreated.
         /// </summary>
         /// <param name="configuration"></param>
-        void Update(SubscriptionModel configuration);
+        void Update(SubscriptionTemplateModel configuration);
 
         /// <summary>
         /// Close subscription handle

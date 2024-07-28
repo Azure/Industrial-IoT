@@ -6,8 +6,10 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Subscription identifier
@@ -15,24 +17,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
     public sealed class SubscriptionIdentifier : IEquatable<SubscriptionIdentifier>
     {
         /// <summary>
-        /// Id of the subscription
-        /// </summary>
-        public string Id { get; }
-
-        /// <summary>
         /// Connection configuration
         /// </summary>
         public ConnectionModel Connection => _id.Connection;
 
         /// <summary>
+        /// Subscription configuration
+        /// </summary>
+        public SubscriptionModel Subscription { get; }
+
+        /// <summary>
         /// Create identifier
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="id"></param>
-        public SubscriptionIdentifier(ConnectionModel connection, string id)
+        /// <param name="subscription"></param>
+        public SubscriptionIdentifier(ConnectionModel connection,
+            SubscriptionModel subscription)
         {
-            Id = id;
             _id = new ConnectionIdentifier(connection);
+            Subscription = subscription;
+            _hash = HashCode.Combine(_id.GetHashCode(), subscription);
         }
 
         /// <inheritdoc/>
@@ -57,27 +61,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            var hashCode = 2082053542;
-            hashCode = (hashCode * -1521134295) +
-                Connection.CreateConsistentHash();
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Id);
-            return hashCode;
+            return _hash;
         }
 
         /// <inheritdoc/>
         public bool Equals(SubscriptionIdentifier? other)
         {
-            return Connection.IsSameAs(other?.Connection) &&
-                Id == other?.Id;
+            return other is not null && 
+                _id.Equals(other._id) &&
+                Subscription == other.Subscription;
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{Connection.CreateConnectionId()}:{Id}";
+            return $"{Connection.CreateConnectionId()}:{_hash}";
         }
 
+        private readonly int _hash;
         private readonly ConnectionIdentifier _id;
     }
 }

@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void RegisterSubscriptionCallbacks(SubscriptionModel subscription,
+        public void RegisterSubscriptionCallbacks(SubscriptionTemplateModel subscription,
             ISubscriptionCallbacks callback, IMetricsContext metrics)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
