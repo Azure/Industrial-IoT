@@ -1512,6 +1512,8 @@ Contains the nodes which should be published
 |**LastChangeDateTime**  <br>*optional*|Last change to the entry|string (date-time)|
 |**MaxKeepAliveCount**  <br>*optional*|When the publishing timer has expired this number of<br>times without requiring any Notification to be sent,<br>to the writer a keep-alive message is sent.|integer (int64)|
 |**MessageEncoding**  <br>*optional*||[MessageEncoding](definitions.md#messageencoding)|
+|**MessageRetention**  <br>*optional*|Message retention setting for messages sent by<br>the writer if the transport supports it.|boolean|
+|**MessageTtlTimespan**  <br>*optional*|Message time to live for messages sent by the<br>writer if the transport supports it.|string (date-span)|
 |**MessagingMode**  <br>*optional*||[MessagingMode](definitions.md#messagingmode)|
 |**MetaDataQueueName**  <br>*optional*|Meta data queue name to use for the writer. Overrides<br>the default metadata topic template.|string|
 |**MetaDataUpdateTime**  <br>*optional*|Send metadata at the configured interval<br>even when not changing expressed in milliseconds.|integer (int32)|
@@ -1530,6 +1532,8 @@ Contains the nodes which should be published
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
 |**Version**  <br>*optional*|Version number of the entry|integer (int64)|
+|**WriterGroupMessageRetention**  <br>*optional*|Default message retention setting for messages sent<br>through the writer group if the transport supports it.|boolean|
+|**WriterGroupMessageTtlTimepan**  <br>*optional*|Default time to live for messages sent through<br>the writer group if the transport supports it.|string (date-span)|
 |**WriterGroupPartitions**  <br>*optional*|Number of partitions to split the writer group into<br>when publishing to target topics.|integer (int32)|
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|

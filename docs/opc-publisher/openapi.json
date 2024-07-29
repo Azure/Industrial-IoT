@@ -1140,9 +1140,9 @@
                 "tags": [
                     "Diagnostics"
                 ],
-                "summary": "ResetAllClients",
+                "summary": "ResetAllConnections",
                 "description": "Can be used to reset all established connections causing a full reconnect and recreate of all subscriptions.",
-                "operationId": "ResetAllClients",
+                "operationId": "ResetAllConnections",
                 "produces": [
                     "application/json",
                     "application/x-msgpack"

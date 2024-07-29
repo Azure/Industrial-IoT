@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// ResetAllClients
+        /// ResetAllConnections
         /// </summary>
         /// <remarks>
         /// Can be used to reset all established connections causing a full
@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpGet("reset")]
-        public async Task ResetAllClientsAsync(CancellationToken ct = default)
+        public async Task ResetAllConnectionsAsync(CancellationToken ct = default)
         {
             await _diagnostics.ResetAllConnectionsAsync(ct).ConfigureAwait(false);
         }
