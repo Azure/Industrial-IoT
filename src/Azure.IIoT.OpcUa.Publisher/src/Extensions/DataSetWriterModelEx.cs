@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Data set extensions
@@ -20,15 +21,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataSetWriter"></param>
         /// <param name="configuration"></param>
         /// <param name="configure"></param>
-        /// <param name="writerGroupName"></param>
-        /// <param name="fetchBrowsePathFromRootOverride"></param>
-        /// <param name="ignoreConfiguredPublishingIntervals"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public static SubscriptionTemplateModel ToSubscriptionTemplateModel(
+        public static IReadOnlyList<BaseMonitoredItemModel> GetMonitoredItems(
             this DataSetWriterModel dataSetWriter, OpcUaSubscriptionOptions configuration,
-            Func<PublishingQueueSettingsModel?, object?> configure, string? writerGroupName = null,
-            bool? fetchBrowsePathFromRootOverride = null, bool? ignoreConfiguredPublishingIntervals = null)
+            Func<PublishingQueueSettingsModel?, object?> configure)
         {
             if (dataSetWriter.DataSet == null)
             {
@@ -44,16 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 throw new ArgumentException("DataSet source empty.", nameof(dataSetWriter));
             }
-            return new SubscriptionTemplateModel
-            {
-                Id = ToSubscriptionId(dataSetWriter, writerGroupName, configuration,
-                    fetchBrowsePathFromRootOverride,
-                    ignoreConfiguredPublishingIntervals),
-                MonitoredItems = monitoredItems,
-                Configuration = dataSetWriter.DataSet?.DataSetSource.ToSubscriptionModel(
-                    dataSetWriter.DataSet.DataSetMetaData, configuration, fetchBrowsePathFromRootOverride,
-                    ignoreConfiguredPublishingIntervals)
-            };
+            return monitoredItems;
         }
 
         /// <summary>
@@ -81,14 +69,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="dataSetWriter"></param>
         /// <param name="writerGroupName"></param>
         /// <param name="options"></param>
-        /// <param name="fetchBrowsePathFromRootOverride"></param>
-        /// <param name="ignoreConfiguredPublishingIntervals"></param>
+        /// <param name="publisher"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
         public static SubscriptionIdentifier ToSubscriptionId(this DataSetWriterModel dataSetWriter,
-            string? writerGroupName, OpcUaSubscriptionOptions options,
-            bool? fetchBrowsePathFromRootOverride = null, 
-            bool? ignoreConfiguredPublishingIntervals = null)
+            string? writerGroupName, OpcUaSubscriptionOptions options, PublisherOptions publisher)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriter);
             if (dataSetWriter.Id == null)
@@ -144,10 +129,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     Options = connection.Options | ConnectionOptions.NoSubscriptionTransfer
                 };
             }
+
+            var routing = dataSetWriter.DataSet.Routing ??
+                publisher.DefaultDataSetRouting ?? DataSetRoutingMode.None;
+
             return new SubscriptionIdentifier(connection,
                 dataSetWriter.DataSet.DataSetSource.ToSubscriptionModel(
-                    dataSetWriter.DataSet.DataSetMetaData, options, fetchBrowsePathFromRootOverride,
-                    ignoreConfiguredPublishingIntervals));
+                    dataSetWriter.DataSet.DataSetMetaData, options, routing != DataSetRoutingMode.None,
+                    publisher.IgnoreConfiguredPublishingIntervals));
         }
     }
 }

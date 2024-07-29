@@ -42,8 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// configuration is updated or when a session is reconnected and
         /// the subscription needs to be recreated.
         /// </summary>
-        /// <param name="configuration"></param>
-        void Update(SubscriptionTemplateModel configuration);
+        void Update();
 
         /// <summary>
         /// Close subscription handle

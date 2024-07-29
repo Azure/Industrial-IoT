@@ -5,11 +5,20 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Subscription callbacks
     /// </summary>
     public interface ISubscriptionCallbacks
     {
+        /// <summary>
+        /// Gets all monitored items in the subscription
+        /// </summary>
+        public IReadOnlyList<BaseMonitoredItemModel> MonitoredItems { get; }
+
         /// <summary>
         /// Called when the subscription is updated
         /// </summary>

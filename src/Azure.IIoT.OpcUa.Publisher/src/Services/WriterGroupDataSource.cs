@@ -33,6 +33,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public event EventHandler<EventArgs>? OnCounterReset;
 
         /// <summary>
+        /// Get writer group
+        /// </summary>
+        internal WriterGroupModel WriterGroup { get; set; }
+
+        /// <summary>
         /// Create trigger from writer group
         /// </summary>
         /// <param name="writerGroup"></param>
@@ -67,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _heartbeats = new RollingAverage(_timeProvider);
             _overflows = new RollingAverage(_timeProvider);
 
-            _writerGroup = Copy(writerGroup);
+            WriterGroup = Copy(writerGroup);
             InitializeMetrics();
         }
 
@@ -78,9 +83,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 Debug.Assert(_subscriptions.Count == 0);
-                if (_writerGroup.DataSetWriters != null)
+                if (WriterGroup.DataSetWriters != null)
                 {
-                    foreach (var writer in _writerGroup.DataSetWriters)
+                    foreach (var writer in WriterGroup.DataSetWriters)
                     {
                         // Create writer subscriptions
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -116,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         "Removed all subscriptions from writer group {WriterGroup}.",
                             writerGroup.Id);
                     _subscriptions.Clear();
-                    _writerGroup = writerGroup;
+                    WriterGroup = writerGroup;
                     return;
                 }
 
@@ -172,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.LogInformation(
                     "Successfully updated all subscriptions inside the writer group {WriterGroup}.",
                     writerGroup.Id);
-                _writerGroup = writerGroup;
+                WriterGroup = writerGroup;
             }
             finally
             {
@@ -277,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (_lastMetadataChange != _metadataChanges)
                     {
                         // Check for schema support and create schema only if enabled
-                        writerGroup = _writerGroup;
+                        writerGroup = WriterGroup;
                         if (_options.Value.SchemaOptions == null)
                         {
                             schema = null;
@@ -322,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _lock.Release();
                 }
             }
-            writerGroup = _writerGroup;
+            writerGroup = WriterGroup;
             schema = _schema;
         }
 
@@ -458,7 +463,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "OPC UA endpoints that are disconnected.");
         }
 
-        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
         private readonly Dictionary<SubscriptionIdentifier, DataSetWriter> _subscriptions = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILogger _logger;
@@ -478,7 +482,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly RollingAverage _modelChanges;
         private readonly RollingAverage _heartbeats;
         private readonly RollingAverage _overflows;
-        private WriterGroupModel _writerGroup;
         private long _keepAliveCount;
         private int _metadataChanges;
         private int _lastMetadataChange = -1;

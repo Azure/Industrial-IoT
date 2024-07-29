@@ -51,7 +51,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     public sealed partial class WriterGroupDataSource
     {
-        private sealed class DataSetWriter : IDisposable, ISubscriptionCallbacks, IMetricsContext
+        private sealed class DataSetWriterSubscription : IDisposable, ISubscriptionCallbacks,
+            IMetricsContext
         {
             /// <inheritdoc/>
             public TagList TagList { get; }
@@ -70,21 +71,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public ISubscriptionHandle? Subscription { get; set; }
 
             /// <summary>
-            /// Data set writer name assigned if none was chosen
-            /// </summary>
-            public string? DataSetWriterName { get; }
-
-            /// <summary>
-            /// Last meta data
-            /// </summary>
-            public PublishedDataSetMessageSchemaModel? LastMetaData { get; private set; }
-
-            /// <summary>
             /// Create subscription from a DataSetWriterModel template
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="dataSetWriter"></param>
-            public DataSetWriter(WriterGroupDataSource outer, DataSetWriterModel dataSetWriter)
+            public DataSetWriterSubscription(WriterGroupDataSource outer, DataSetWriterModel dataSetWriter)
             {
                 _outer = outer;
                 _dataSetWriter = dataSetWriter;
@@ -98,17 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Id = _dataSetWriter.ToSubscriptionId(_outer.WriterGroup.Name,
                     _outer._subscriptionConfig.Value, _outer._options.Value);
 
-                DataSetWriterName = _dataSetWriter.DataSetWriterName;
-                for (var index = 1; ; index++)
-                {
-                    if (!_outer._subscriptions.Values
-                        .Any(e => e.DataSetWriterName == DataSetWriterName))
-                    {
-                        break;
-                    }
-                    DataSetWriterName = $"{_dataSetWriter.DataSetWriterName}{index}";
-                }
-                _dataSetWriter.DataSetWriterName = DataSetWriterName;
                 _logger.LogDebug(
                     "Open new writer {Writer} with subscription {Id} in writer group {WriterGroup}...",
                         _dataSetWriter.DataSetWriterName, Id, _outer.WriterGroup.Id);
@@ -207,7 +187,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Id, _outer.WriterGroup.Id);
 
                 _dataSetWriter = dataSetWriter.Clone();
-                _dataSetWriter.DataSetWriterName = DataSetWriterName;
 
                 MonitoredItems = _dataSetWriter.GetMonitoredItems(
                     _outer._subscriptionConfig.Value, CreateMonitoredItemContext);
