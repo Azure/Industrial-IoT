@@ -746,19 +746,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             switch (trigger)
                             {
                                 case ConnectionEvent.Reset:
-                                    // If currently reconnecting, dispose the reconnect handler and stop timer
+                                    if (currentSessionState != SessionState.Connected)
+                                    {
+                                        (context as TaskCompletionSource)?.TrySetResult();
+                                        break;
+                                    }
+                                    // If currently reconnecting, dispose the reconnect handler
                                     _reconnectHandler.CancelReconnect();
-                                    NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
-                                    currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(true));
-
-                                    // Clean up
-                                    await CloseSessionAsync().ConfigureAwait(false);
-                                    Debug.Assert(_session == null);
-
-                                    currentSessionState = SessionState.Disconnected;
-                                    (context as TaskCompletionSource)?.TrySetResult();
-
-                                    goto case ConnectionEvent.Connect;
+                                    //
+                                    // Close bypassing everything but keep channel open then trigger a
+                                    // reconnect. The reconnect will recreate the session and subscriptions
+                                    //
+                                    Debug.Assert(_session != null);
+                                    await _session.CloseAsync(false, default).ConfigureAwait(false);
+                                    goto case ConnectionEvent.StartReconnect;
                                 case ConnectionEvent.Connect:
                                     if (currentSessionState == SessionState.Disconnected)
                                     {
@@ -792,6 +793,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             Debug.Assert(_session != null);
 
                                             // Allow access to session now
+                                            Debug.Assert(_disconnectLock != null);
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
 
@@ -852,9 +854,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             Debug.Assert(_disconnectLock == null);
                                             _disconnectLock = await _lock.WriterLockAsync(ct);
 
-                                            _logger.LogInformation(
-                                                "{Client}: Reconnecting session {Session} due to error {Error}...",
-                                                this, _sessionName, context as ServiceResult);
+                                            _logger.LogInformation("{Client}: Reconnecting session {Session} due to {Reason}...",
+                                                this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
                                             var state = _reconnectHandler.BeginReconnect(_session,
                                                 _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                                 {
@@ -873,6 +874,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             currentSessionState = SessionState.Reconnecting;
                                             _reconnectingSession?.SubscriptionHandles
                                                 .ForEach(h => h.NotifySessionConnectionState(true));
+                                            (context as TaskCompletionSource)?.TrySetResult();
                                             break;
                                         case SessionState.Connecting:
                                         case SessionState.Disconnected:
