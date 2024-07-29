@@ -963,8 +963,8 @@ Get diagnostics for all active clients including server and client session diagn
 * `application/x-msgpack`
 
 
-<a name="resetallclients"></a>
-#### ResetAllClients
+<a name="resetallconnections"></a>
+#### ResetAllConnections
 ```
 GET /v2/reset
 ```
