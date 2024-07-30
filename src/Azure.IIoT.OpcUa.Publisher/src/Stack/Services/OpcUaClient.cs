@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
+    using System.Text.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -111,6 +112,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OperationLimits? LimitOverrides { get; set; }
 
         /// <summary>
+        /// Dump diagnostics using this interval
+        /// </summary>
+        internal TimeSpan? DiagnosticsInterval { get; set; }
+
+        /// <summary>
         /// Last diagnostic information on this client
         /// </summary>
         internal ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
@@ -126,6 +132,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public bool DisableTransferSubscriptionOnReconnect
             => _connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer);
+
+        /// <summary>
+        /// Dump diagnostics for this client
+        /// </summary>
+        public bool DumpDiagnostics
+            => _connection.Options.HasFlag(ConnectionOptions.DumpDiagnostics);
 
         /// <summary>
         /// Client is connected
@@ -237,6 +249,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _disconnectLock = _lock.WriterLock(_cts.Token);
             _channelMonitor = _timeProvider.CreateTimer(_ => OnUpdateConnectionDiagnostics(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _diagnosticsDumper = !DumpDiagnostics ? null :
+                DumpDiagnosticsPeriodicallyAsync(_cts.Token);
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
         }
 
@@ -2018,6 +2032,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return ServiceCallTimeout ?? kDefaultConnectTimeout;
         }
 
+        /// <summary>
+        /// Dump diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task DumpDiagnosticsPeriodicallyAsync(CancellationToken ct)
+        {
+            using var timer = new PeriodicTimer(DiagnosticsInterval
+                ?? TimeSpan.FromSeconds(30));
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await timer.WaitForNextTickAsync(ct).ConfigureAwait(false);
+                    if (_session != null)
+                    {
+                        var diagnostics = await _session.GetServerDiagnosticAsync(
+                            ct).ConfigureAwait(false);
+                        var str = JsonSerializer.Serialize(diagnostics, kIndented);
+                        Console.WriteLine(str);
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+        }
+        private readonly static JsonSerializerOptions kIndented = new()
+        {
+            WriteIndented = true
+        };
+
         private enum ConnectionEvent
         {
             Connect,
@@ -2143,6 +2187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly object _channelLock = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ITimer _channelMonitor;
+        private readonly Task? _diagnosticsDumper;
         private readonly SessionReconnectHandler _reconnectHandler;
         private readonly CancellationTokenSource _cts;
 #pragma warning restore CA2213 // Disposable fields should be disposed

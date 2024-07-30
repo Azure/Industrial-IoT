@@ -617,6 +617,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     },
                     MinPublishRequests = _options.Value.MinPublishRequests,
                     MaxPublishRequests = _options.Value.MaxPublishRequests,
+                    DiagnosticsInterval = _options.Value.DiagnosticsInterval,
                     PublishRequestsPerSubscriptionPercent =
                         _options.Value.PublishRequestsPerSubscriptionPercent
                 };

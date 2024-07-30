@@ -37,6 +37,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Do not transfer subscription on reconnect
         /// </summary>
         [EnumMember(Value = "NoSubscriptionTransfer")]
-        NoSubscriptionTransfer = 0x20
+        NoSubscriptionTransfer = 0x20,
+
+        /// <summary>
+        /// Dump diagnostics on a timer
+        /// </summary>
+        [EnumMember(Value = "DumpDiagnostics")]
+        DumpDiagnostics = 0x100
     }
 }

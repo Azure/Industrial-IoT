@@ -18,6 +18,7 @@ In this document you find information about
 - [Restart the module](#restart-the-module)
 - [Analyzing network capture files](#analyzing-network-capture-files)
   - [Netcap](#netcap)
+- [Session and Subscription diagnostics](#session-and-subscription-diagnostics)
 - [Limits and contributing factors](#limits-and-contributing-factors)
 - [Debugging Discovery](#debugging-discovery)
 
@@ -66,7 +67,7 @@ For a complete overview of all production deployment settings for IoT Edge, see 
 
 [Retrieve the logs](./observability.md) from publisher and examine.
 
-If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` c[command line options](./commandline.md). Using the logs:
+If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` [command line options](./commandline.md). Using the logs:
 
 - Observe data throughput and make sure that the data changes over time are as you are expecting.
 - Check whether all endpoints are connected. This can be seen during session establishment and in the periodic diagnostic logs.
@@ -195,6 +196,16 @@ Once you have found the right folder, load the `opcua_debug.txt` file in it usin
 ### Netcap
 
 To simplify capturing network traces you can try out the [Netcap](../../samples/Netcap/readme.md) sample tool. It enables you to capture network traffic for an OPC Publisher module deployed to Azure IoT Edge.
+
+## Session and Subscription diagnostics
+
+To enable client diagnostics output to the console use the `--di` [command line options](./commandline.md).
+
+The OPC Publisher can be configured to dump a the server diagnostics information for a session (connection) at an interval. The diagnostic information contains the session diagnostics and subscription diagnostics the server maintains provided it is enabled on the server. The OPC Publisher tries to enable the diagnostics information if it is disabled.
+
+To enable a connection to dump its diagnostics, add a `"DumpConnectionDiagnostics": true` entry into the JSON configuration entry you want to diagnose. You can configure the interval in seconds using the `--cdi` option, the default is 30 seconds.
+
+Dumping diagnostics info is heavy on the server. Use it to see how the server sees the OPC Publisher and identify issues like leaked subscriptions (not cleaned up and causing resource exhaustion) or monitored items not being reflected on the server's view of the subscription.
 
 ## Limits and contributing factors
 

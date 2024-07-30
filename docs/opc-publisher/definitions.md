@@ -378,7 +378,7 @@ Connection model
 ### ConnectionOptions
 Options that can be applied to a connection
 
-*Type* : enum (None, UseReverseConnect, NoComplexTypeSystem, NoSubscriptionTransfer)
+*Type* : enum (None, UseReverseConnect, NoComplexTypeSystem, NoSubscriptionTransfer, DumpDiagnostics)
 
 
 <a name="contentfilterelementmodel"></a>
@@ -1621,6 +1621,7 @@ Contains the nodes which should be published
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**DataSetWriterWatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
 |**DisableSubscriptionTransfer**  <br>*optional*|Disable subscription transfer on reconnect|boolean|
+|**DumpConnectionDiagnostics**  <br>*optional*|Dump server diagnostics for the connection to enable<br>advanced troubleshooting scenarios.|boolean|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
 |**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|

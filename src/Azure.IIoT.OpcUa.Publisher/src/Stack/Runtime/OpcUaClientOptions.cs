@@ -172,5 +172,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// related to session connectivity.
         /// </summary>
         public bool? ActivePublishErrorHandling { get; set; }
+
+        /// <summary>
+        /// Dump diagnostics period
+        /// </summary>
+        public TimeSpan? DiagnosticsInterval { get; set; }
     }
 }
