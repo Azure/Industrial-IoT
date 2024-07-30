@@ -15,6 +15,7 @@ using System.IO;
 using System.Globalization;
 using System.IO.Compression;
 using System.Runtime.Intrinsics.Arm;
+using System;
 
 /// <summary>
 /// Upload and download files
@@ -150,19 +151,15 @@ internal sealed class Storage
                 await blobClient.UploadAsync(file, new BlobUploadOptions
                 {
                     Metadata = blobMetadata,
-                    ProgressHandler = new Progress<long>(
-                        progress => _logger.LogDebug(
-                            "Uploading {Blob} - {Progress} bytes", blobName, progress))
+                    ProgressHandler = new ProgressLogger(_logger, blobName)
                 }, ct).ConfigureAwait(false);
 
-                if (queueClient != null)
-                {
-                    // Send completion notification
-                    var message = JsonSerializer.Serialize(new Notification(
-                        containerClient.Uri, blobClient.Uri,
-                        blobClient.BlobContainerName, blobClient.Name));
-                    await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
-                }
+                // Send completion notification
+                var message = JsonSerializer.Serialize(new Notification(
+                    containerClient.Uri, blobClient.Uri,
+                    blobClient.BlobContainerName, blobClient.Name));
+                await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
+
                 _logger.LogInformation("Completed upload of file {File} to {BlobName}.",
                     file, blobName);
             }
@@ -232,6 +229,22 @@ internal sealed class Storage
             ["DeviceId"] = _deviceId,
             ["ModuleId"] = _moduleId
         };
+    }
+
+    private sealed record class ProgressLogger(ILogger Logger, string BlobName) :
+        IProgress<long>
+    {
+        /// <inheritdoc/>
+        public void Report(long value)
+        {
+            if (value != _lastProgress)
+            {
+                _lastProgress = value;
+                Logger.LogInformation(
+                    "Uploading {Blob} - {Progress} bytes", BlobName, value);
+            }
+        }
+        private long _lastProgress;
     }
 
     internal sealed record class Notification(Uri ContainerUri, Uri BlobUri,
