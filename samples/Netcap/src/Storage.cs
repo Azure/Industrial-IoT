@@ -99,10 +99,18 @@ internal sealed class Storage
                     }
 
                     var file = Path.Combine(folder, Extensions.FixFileName(f));
-                    await blobClient.DownloadToAsync(file, cancellationToken: ct)
-                        .ConfigureAwait(false);
+                    await blobClient.DownloadToAsync(file, new BlobDownloadToOptions
+                    {
+                        TransferOptions = new StorageTransferOptions
+                        {
+                            MaximumConcurrency = 4,
+                            InitialTransferSize = 8 * 1024 * 1024,
+                            MaximumTransferSize = 8 * 1024 * 1024
+                        }
+                    }, default).ConfigureAwait(false);
                     _logger.LogInformation("Downloaded file {File}.", file);
                 }
+                catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to download file from blob {BlobName}.",

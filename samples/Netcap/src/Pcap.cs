@@ -48,14 +48,50 @@ internal abstract class Pcap
     /// <param name="logger"></param>
     /// <param name="httpClient"></param>
     /// <returns></returns>
-    public static IDisposable Capture(CaptureConfiguration configuration, Storage storage,
-        ILogger logger, HttpClient? httpClient = null)
+    public static IDisposable Capture(CaptureConfiguration configuration,
+        Storage storage, ILogger logger, HttpClient? httpClient = null)
     {
         if (httpClient == null)
         {
             return new Local(logger, configuration, storage);
         }
         return new Remote(logger, configuration, storage, httpClient);
+    }
+
+    /// <summary>
+    /// Merge files
+    /// </summary>
+    /// <param name="folder"></param>
+    /// <param name="outputFile"></param>
+    public static void Merge(string folder, string outputFile)
+    {
+        if (File.Exists(outputFile))
+        {
+            File.Delete(outputFile);
+        }
+        var files = Directory.GetFiles(folder, "*.pcap");
+        if (files.Length == 0)
+        {
+            return;
+        }
+        using var writer = new CaptureFileWriterDevice(outputFile);
+        foreach (var file in files.Order())
+        {
+            using var reader = new CaptureFileReaderDevice(file);
+            reader.Open();
+            if (!writer.Opened)
+            {
+                writer.Open(new DeviceConfiguration
+                {
+                    LinkLayerType = reader.LinkType
+                });
+            }
+            while ((reader.GetNextPacket(out var packet))
+                == GetPacketStatus.PacketRead)
+            {
+                writer.Write(packet.GetPacket());
+            }
+        }
     }
 
     /// <summary>

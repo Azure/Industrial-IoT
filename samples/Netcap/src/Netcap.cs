@@ -396,6 +396,18 @@ internal sealed class App : IDisposable
                 {
                     await gateway.RemoveNetcapModuleAsync(ct).ConfigureAwait(false);
                 }
+
+                // Merge capture files for convinience
+                foreach (var d in Directory.GetDirectories(_install.OutputPath))
+                {
+                    var merged = Path.Combine(d, "capture.pcap");
+                    if (!File.Exists(merged))
+                    {
+                        _logger.LogInformation(
+                            "Merging capture files in {Directory} into {File}", d, merged);
+                        Pcap.Merge(d, merged);
+                    }
+                }
             }
         }
         catch (Exception ex)
