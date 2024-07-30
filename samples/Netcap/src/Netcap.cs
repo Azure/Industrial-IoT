@@ -391,7 +391,8 @@ internal sealed class App : IDisposable
                     await downloader.DownloadAsync(_install.OutputPath,
                         cts.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) { }
+                finally
                 {
                     await gateway.RemoveNetcapModuleAsync(ct).ConfigureAwait(false);
                 }

@@ -13,8 +13,6 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.IO;
 using System.Globalization;
-using System.IO.Compression;
-using System.Runtime.Intrinsics.Arm;
 using System;
 using Azure.Storage;
 
@@ -124,8 +122,8 @@ internal sealed class Storage
     /// <summary>
     /// Upload file
     /// </summary>
-    /// <param containerName="file"></param>
-    /// <param containerName="ct"></param>
+    /// <param queueName="file"></param>
+    /// <param queueName="ct"></param>
     /// <returns></returns>
     public async ValueTask UploadAsync(string file, CancellationToken ct = default)
     {
@@ -148,33 +146,26 @@ internal sealed class Storage
                 ["Date"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture),
                 ["File"] = Path.GetFileName(file)
             };
-            try
+            await blobClient.UploadAsync(file, new BlobUploadOptions
             {
-                await blobClient.UploadAsync(file, new BlobUploadOptions
+                TransferOptions = new StorageTransferOptions
                 {
-                    TransferOptions = new StorageTransferOptions
-                    {
-                        MaximumConcurrency = 2,
-                        InitialTransferSize = 8 * 1024 * 1024,
-                        MaximumTransferSize = 4 * 1024 * 1024
-                    },
-                    Metadata = blobMetadata,
-                    ProgressHandler = new ProgressLogger(_logger, blobName)
-                }, ct).ConfigureAwait(false);
+                    MaximumConcurrency = 2,
+                    InitialTransferSize = 8 * 1024 * 1024,
+                    MaximumTransferSize = 8 * 1024 * 1024
+                },
+                Metadata = blobMetadata,
+                ProgressHandler = new ProgressLogger(_logger, blobName)
+            }, ct).ConfigureAwait(false);
 
-                // Send completion notification
-                var message = JsonSerializer.Serialize(new Notification(
-                    containerClient.Uri, blobClient.Uri,
-                    blobClient.BlobContainerName, blobClient.Name));
-                await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
+            // Send completion notification
+            var message = JsonSerializer.Serialize(new Notification(
+                containerClient.Uri, blobClient.Uri,
+                blobClient.BlobContainerName, blobClient.Name));
+            await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
 
-                _logger.LogInformation("Completed upload of file {File} to {BlobName}.",
-                    file, blobName);
-            }
-            finally
-            {
-                File.Delete(file);
-            }
+            _logger.LogInformation("Completed upload of file {File} to {BlobName}.",
+                file, blobName);
         }
         catch (Exception ex)
         {
@@ -184,22 +175,24 @@ internal sealed class Storage
     }
 
     /// <summary>
-    /// Stop storage
+    /// Delete storage
     /// </summary>
     /// <param containerName="ct"></param>
     /// <returns></returns>
     public async Task DeleteAsync(CancellationToken ct)
     {
-        var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
-        _logger.LogInformation("Delete storage {Name}...", name);
+        var containerName = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}_{_runName}");
+        _logger.LogInformation("Delete storage {Name}...", containerName);
 
-        var containerClient = new BlobContainerClient(_connectionString, name);
+        var containerClient = new BlobContainerClient(_connectionString, containerName);
         if (await containerClient.ExistsAsync(ct).ConfigureAwait(false))
         {
             // leave
             // await containerClient.DeleteAsync(cancellationToken: ct).ConfigureAwait(false);
         }
-        var queueClient = new QueueClient(_connectionString, name);
+
+        var queueName = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
+        var queueClient = new QueueClient(_connectionString, queueName);
         if (await queueClient.ExistsAsync(ct).ConfigureAwait(false))
         {
             await queueClient.DeleteAsync(ct).ConfigureAwait(false);
