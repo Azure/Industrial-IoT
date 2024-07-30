@@ -26,8 +26,11 @@ internal abstract class Pcap
     /// </summary>
     /// <param name="InterfaceType"></param>
     /// <param name="Filter"></param>
+    /// <param name="MaxFileSize"></param>
+    /// <param name="MaxDuration"></param>
     public sealed record class CaptureConfiguration(
-        InterfaceType InterfaceType, string? Filter = null);
+        InterfaceType InterfaceType, string? Filter = null,
+        int? MaxFileSize = null, TimeSpan? MaxDuration = null);
 
     public enum InterfaceType
     {
@@ -79,6 +82,10 @@ internal abstract class Pcap
             _logger = logger;
             _configuration = configuration;
             _folder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(_folder);
+            _maxPcapSize =  configuration.MaxFileSize ?? kMaxPcapSize;
+            _maxPcapDuration = configuration.MaxDuration.HasValue ?
+                (long)configuration.MaxDuration.Value.TotalMilliseconds : kMaxPcapDuration;
             _channel = Channel.CreateUnbounded<int>();
 
             Handle = Interlocked.Increment(ref _handles);
@@ -168,6 +175,7 @@ internal abstract class Pcap
                 }
                 _logger.LogInformation("    ... with {Filter}.",
                     _configuration.Filter ?? "No filter");
+                _captureWatch.Start();
             }
             else
             {
@@ -242,7 +250,10 @@ internal abstract class Pcap
 
                     _logger.LogInformation("Completed capture.");
 
-                    CompleteWriter(_index);
+                    if (_captureCount > 0)
+                    {
+                        _channel.Writer.TryWrite(_index);
+                    }
                     _devices?.ForEach(d => d.Dispose());
                 }
                 catch (OperationCanceledException) { }
@@ -267,24 +278,35 @@ internal abstract class Pcap
         {
             var pkt = e.GetPacket();
             _captureCount += pkt.PacketLength;
-            if (_captureCount >= kMaxPcapSize)
+            if (_captureCount >= _maxPcapSize ||
+                _captureWatch.ElapsedMilliseconds > kMaxPcapDuration)
             {
-                _captureCount = 0;
-                var next = Interlocked.Increment(ref _index);
-                CompleteWriter(next - 1);
-                _writer = CreateWriter(next);
+                UpdateWriter();
             }
             _writer.Write(pkt);
         }
 
         /// <summary>
-        /// Complete and signal upload of file
+        /// Locked update of writer
         /// </summary>
-        /// <param name="index"></param>
-        private void CompleteWriter(int index)
+        private void UpdateWriter()
         {
-            _writer.Dispose();
-            _channel.Writer.TryWrite(index);
+            lock (_lock)
+            {
+                if (_captureCount >= _maxPcapSize ||
+                    _captureWatch.ElapsedMilliseconds > kMaxPcapDuration)
+                {
+                    var finished = _index;
+                    _writer.Dispose();
+                    _writer = CreateWriter(_index + 1);
+
+                    _index++;
+                    _captureCount = 0;
+                    _captureWatch.Restart();
+
+                    _channel.Writer.TryWrite(finished);
+                }
+            }
         }
 
         /// <summary>
@@ -302,15 +324,21 @@ internal abstract class Pcap
             return writer;
         }
 
-        /// <summary> 10MB - make configurable </summary>
-        private const long kMaxPcapSize = 10 * 1024 * 1024;
+        /// <summary> 100MB </summary>
+        private const long kMaxPcapSize = 100 * 1024 * 1024;
+        /// <summary> 5 minutes </summary>
+        private const long kMaxPcapDuration = 5 * 60 * 1000;
         private static int _handles;
         private int _index;
         private long _captureCount;
+        private readonly Stopwatch _captureWatch = new Stopwatch();
+        private readonly object _lock = new();
         private readonly CaptureConfiguration _configuration;
         private readonly List<LibPcapLiveDevice>? _devices;
         private CaptureFileWriterDevice _writer;
         private readonly string _folder;
+        private readonly long _maxPcapSize;
+        private readonly long _maxPcapDuration;
         private readonly Channel<int> _channel;
         private readonly LinkLayers _linkType;
         protected readonly ILogger _logger;

@@ -38,6 +38,7 @@ internal sealed class Publisher : IDisposable
         _logger = logger;
         _httpClient = httpClient;
         _folder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(_folder);
 
         if (!string.IsNullOrWhiteSpace(publisherIpAddresses))
         {
@@ -62,23 +63,30 @@ internal sealed class Publisher : IDisposable
     /// Collect traces
     /// </summary>
     /// <param name="itf"></param>
+    /// <param name="maxPcapFileSize"></param>
+    /// <param name="maxPcapDuration"></param>
     /// <returns></returns>
     public Pcap.CaptureConfiguration GetCaptureConfiguration(
-        Pcap.InterfaceType itf = Pcap.InterfaceType.AnyIfAvailable)
+        Pcap.InterfaceType itf = Pcap.InterfaceType.AnyIfAvailable,
+        int? maxPcapFileSize = null, TimeSpan? maxPcapDuration = null)
     {
         // Base filter
         // https://www.wireshark.org/docs/man-pages/pcap-filter.html
         // src or dst host 192.168.80.2
         // "ip and tcp and not port 80 and not port 25";
         // TODO: Filter on src/dst of publisher ip
-        if (Addresses.Count == 0)
+        var addresses = Addresses
+            .Where(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            .ToList();
+        if (addresses.Count == 0)
         {
-            return new Pcap.CaptureConfiguration(itf, "ip and tcp");
+            return new Pcap.CaptureConfiguration(itf, "ip and tcp",
+                maxPcapFileSize, maxPcapDuration);
         }
-        var filter = "src or dst host " + ((Addresses.Count == 1) ? Addresses.First() :
-            ("(" + string.Join(" or ", Addresses.Select(a => $"{a}")) + ")"));
+        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+            ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
 
-        return new Pcap.CaptureConfiguration(itf, filter);
+        return new Pcap.CaptureConfiguration(itf, filter, maxPcapFileSize, maxPcapDuration);
     }
 
     /// <summary>

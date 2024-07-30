@@ -860,7 +860,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     PublishingInterval = TimeSpan.FromSeconds(2),
                     NodeId = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
                     DisplayName = "test",
-                    SamplingInterval = TimeSpan.FromSeconds(3),
+                    SamplingInterval = TimeSpan.FromSeconds(3)
                 }
             });
 
@@ -969,7 +969,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var entries = await configService.GetConfiguredEndpointsAsync(true);
             entries.Count.Should().Be(100);
-            var entry = entries.FirstOrDefault(e => e.EndpointUrl == results[0].EndpointUrl);
+            var entry = entries.Find(e => e.EndpointUrl == results[0].EndpointUrl);
             entry.Should().NotBeNull();
             entry.MessageEncoding.Should().Be(MessageEncoding.Json);
             entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
@@ -992,7 +992,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             entries = await configService.GetConfiguredEndpointsAsync(true);
             entries.Count.Should().Be(100);
-            entry = entries.FirstOrDefault(e => e.EndpointUrl == results[0].EndpointUrl);
+            entry = entries.Find(e => e.EndpointUrl == results[0].EndpointUrl);
             entry.MessageEncoding.Should().Be(MessageEncoding.Json);
             entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
             entry.OpcNodes.Count.Should().Be(1);

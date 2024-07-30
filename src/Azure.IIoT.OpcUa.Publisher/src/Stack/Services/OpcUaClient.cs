@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal Task ResetAsync(CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            var tcs = new TaskCompletionSource();
+            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
                 ct.Register(() => tcs.TrySetCanceled());

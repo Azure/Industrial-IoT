@@ -125,13 +125,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Directory.CreateDirectory(keySetLogPath);
             }
             var keysetsFileName = Path.Combine(keySetLogPath, "opcua_debug.txt");
-
+            var keysetFileRoot = keysetsFileName.Replace(rootFolder, ".",
+                StringComparison.OrdinalIgnoreCase);
             var log = File.AppendText(Path.Combine(rootFolder, "log.md"));
             await using (var _ = log.ConfigureAwait(false))
             {
                 await log.WriteLineAsync($"# {change.TimeStamp}")
                     .ConfigureAwait(false);
-                await log.WriteLineAsync($"[KeySetFile]({keysetsFileName.Replace(rootFolder, ".")})")
+                await log.WriteLineAsync($"[KeySetFile]({keysetFileRoot})")
                     .ConfigureAwait(false);
                 await log.WriteLineAsync($"EndpointUrl: {change.Connection.Endpoint?.Url}")
                     .ConfigureAwait(false);

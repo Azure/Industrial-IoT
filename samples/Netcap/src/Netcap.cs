@@ -15,6 +15,7 @@ using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -85,6 +86,11 @@ internal sealed class App : IDisposable
         public TimeSpan? CaptureDuration { get; set; } = TimeSpan.TryParse(
             Environment.GetEnvironmentVariable(nameof(CaptureDuration)), out var t) ? t : null;
 
+        [Option('f', nameof(CaptureFileSize), Required = false,
+            HelpText = "The max file size of pcap in bytes.")]
+        public int? CaptureFileSize { get; set; } = int.TryParse(
+            Environment.GetEnvironmentVariable(nameof(CaptureFileSize)), out var f) ? f : null;
+
         [Option('I', nameof(CaptureInterfaces), Required = false,
             HelpText = "The network interfaces to capture from.")]
         public Pcap.InterfaceType CaptureInterfaces { get; set; } =
@@ -137,6 +143,12 @@ internal sealed class App : IDisposable
                 TimeSpan.TryParse(captureDuration, out var duration))
             {
                 CaptureDuration = duration;
+            }
+            var captureFileSize = twin.GetProperty(nameof(CaptureFileSize));
+            if (!string.IsNullOrWhiteSpace(captureFileSize) &&
+                int.TryParse(captureFileSize, out var filesize))
+            {
+                CaptureFileSize = filesize;
             }
         }
     }
@@ -255,15 +267,14 @@ internal sealed class App : IDisposable
         {
             await RunAsSidecarModuleAsync(ct).ConfigureAwait(false);
         }
-        else if (_run != null)
-        {
-            await RunAsModuleAsync(ct).ConfigureAwait(false);
-        }
         else if (!string.IsNullOrEmpty(iothubConnectionString))
         {
-            // NOTE: This is for local testing against IoT Hub
             await RunAsIoTHubConnectedModuleAsync(
                 iothubConnectionString, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            await RunAsModuleAsync(ct).ConfigureAwait(false);
         }
     }
 
@@ -301,16 +312,19 @@ internal sealed class App : IDisposable
             for (var i = 0; !cts.IsCancellationRequested; i++)
             {
                 // Update endpoint urls and addresses to monitor if not set
-                if (!await publisher.TryUploadEndpointsAsync(storage, cts.Token).ConfigureAwait(false))
+                if (await publisher.TryUploadEndpointsAsync(storage, cts.Token).ConfigureAwait(false))
                 {
-                    _logger.LogInformation("waiting .....");
-                    await Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ConfigureAwait(false);
-                    continue;
+                    break;
                 }
+                _logger.LogInformation("waiting .....");
+                await Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ConfigureAwait(false);
+                continue;
             }
+            cts.Token.ThrowIfCancellationRequested();
 
             // Start capture and upload capture files and channel information
-            var configuration = publisher.GetCaptureConfiguration(_run.CaptureInterfaces);
+            var configuration = publisher.GetCaptureConfiguration(_run.CaptureInterfaces,
+                _run.CaptureFileSize, _run.CaptureDuration);
             using (Pcap.Capture(configuration, storage, _loggerFactory.CreateLogger("Capture"),
                 _sidecarHttpClient))
             {
@@ -601,7 +615,7 @@ internal sealed class App : IDisposable
     }
 
     /// <summary>
-    /// Connect with iot hub connections tring
+    /// Connect with iot hub connection string
     /// </summary>
     /// <param name="iothubConnectionString"></param>
     /// <param name="ct"></param>
@@ -609,16 +623,17 @@ internal sealed class App : IDisposable
     private async ValueTask RunAsIoTHubConnectedModuleAsync(
         string iothubConnectionString, CancellationToken ct = default)
     {
+        // NOTE: This is for local testing against IoT Hub
         string deviceId;
         var ncModuleId = "netcap";
         _run ??= new RunOptions();
         var edgeHubConnectionString = Environment.GetEnvironmentVariable("EdgeHubConnectionString");
         if (!string.IsNullOrWhiteSpace(edgeHubConnectionString))
         {
-            // Stop device and module id from edge hub connection string provided
+            // Update device and module id from edge hub connection string provided
             var ehc = IotHubConnectionStringBuilder.Create(edgeHubConnectionString);
             deviceId = ehc.DeviceId;
-            ncModuleId = ehc.ModuleId ?? ncModuleId;
+            _run.PublisherModuleId = ehc.ModuleId ?? ncModuleId;
         }
         else
         {
@@ -656,8 +671,9 @@ internal sealed class App : IDisposable
             }
         }, twin.ETag, ct).ConfigureAwait(false);
 
-        // Stop publisher id from twin if not configured
-        _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
+        // Update publisher id from twin if not configured
+        _run.PublisherModuleId =
+            twin.GetProperty(nameof(_run.PublisherModuleId), _run.PublisherModuleId);
         _run.PublisherDeviceId ??= deviceId;
         Debug.Assert(_run.PublisherModuleId != null);
         Debug.Assert(_run.PublisherDeviceId != null);
@@ -665,7 +681,30 @@ internal sealed class App : IDisposable
         _run.ConfigureFromTwin(twin);
 
         _logger.LogInformation("Connecting to OPC Publisher Module {PublisherModuleId} " +
-            "on {PublisherDeviceId} via IoTHub...", _run.PublisherModuleId, _run.PublisherDeviceId);
+            "on {PublisherDeviceId} via IoTHub...", _run.PublisherModuleId,
+            _run.PublisherDeviceId);
+
+        var publisherTwin = await rm.GetTwinAsync(_run.PublisherDeviceId,
+            _run.PublisherModuleId, ct).ConfigureAwait(false);
+        _run.PublisherRestApiKey
+            ??= publisherTwin.GetProperty("__apikey__", desired: false);
+        _run.PublisherRestCertificate
+            ??= publisherTwin.GetProperty("__certificate__", desired: false);
+        _run.PublisherIpAddresses
+            ??= publisherTwin.GetProperty("__ip__", desired: false);
+        var scheme = publisherTwin.GetProperty("__scheme__", desired: false);
+        var hostName = publisherTwin.GetProperty("__hostname__", desired: false);
+        var port = publisherTwin.GetProperty("__port__", desired: false);
+        if (hostName != null)
+        {
+            scheme ??= "https";
+            var url = $"{scheme}://{hostName}";
+            if (port != null)
+            {
+                url += $":{port}";
+            }
+            _run.PublisherRestApiEndpoint ??= url;
+        }
         if (_run.PublisherRestApiKey == null || _run.PublisherRestCertificate == null)
         {
             using var serviceClient = Microsoft.Azure.Devices.ServiceClient

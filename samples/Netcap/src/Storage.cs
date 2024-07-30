@@ -24,24 +24,27 @@ internal sealed class Storage
     /// <summary>
     /// Create capture sync
     /// </summary>
-    /// <param name="deviceId"></param>
-    /// <param name="moduleId"></param>
-    /// <param name="connectionString"></param>
-    /// <param name="logger"></param>
+    /// <param containerName="deviceId"></param>
+    /// <param containerName="moduleId"></param>
+    /// <param containerName="connectionString"></param>
+    /// <param containerName="logger"></param>
+    /// <param containerName="runName"></param>
     public Storage(string deviceId, string moduleId, string connectionString,
-        ILogger logger)
+        ILogger logger, string? runName = null)
     {
+        _logger = logger;
         _connectionString = connectionString;
         _deviceId = deviceId;
         _moduleId = moduleId;
-        _logger = logger;
+        _runName = runName ?? DateTime.UtcNow.ToBinary()
+            .ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
     /// Download files
     /// </summary>
-    /// <param name="path"></param>
-    /// <param name="ct"></param>
+    /// <param containerName="path"></param>
+    /// <param containerName="ct"></param>
     /// <returns></returns>
     public async Task DownloadAsync(string path, CancellationToken ct = default)
     {
@@ -118,17 +121,18 @@ internal sealed class Storage
     /// <summary>
     /// Upload file
     /// </summary>
-    /// <param name="file"></param>
-    /// <param name="ct"></param>
+    /// <param containerName="file"></param>
+    /// <param containerName="ct"></param>
     /// <returns></returns>
     public async ValueTask UploadAsync(string file, CancellationToken ct = default)
     {
         try
         {
             _logger.LogInformation("Uploading file {File}.", file);
-            var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
-            var containerClient = new BlobContainerClient(_connectionString, name);
-            var queueClient = new QueueClient(_connectionString, name);
+            var containerName = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}_{_runName}");
+            var containerClient = new BlobContainerClient(_connectionString, containerName);
+            var queueName = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
+            var queueClient = new QueueClient(_connectionString, queueName);
             await EnsureQueueAsync(queueClient, ct).ConfigureAwait(false);
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.None,
                 GetClientMetadata(), cancellationToken: ct).ConfigureAwait(false);
@@ -147,7 +151,7 @@ internal sealed class Storage
                 {
                     Metadata = blobMetadata,
                     ProgressHandler = new Progress<long>(
-                        progress => _logger.LogInformation(
+                        progress => _logger.LogDebug(
                             "Uploading {Blob} - {Progress} bytes", blobName, progress))
                 }, ct).ConfigureAwait(false);
 
@@ -177,7 +181,7 @@ internal sealed class Storage
     /// <summary>
     /// Stop storage
     /// </summary>
-    /// <param name="ct"></param>
+    /// <param containerName="ct"></param>
     /// <returns></returns>
     public async Task DeleteAsync(CancellationToken ct)
     {
@@ -200,8 +204,8 @@ internal sealed class Storage
     /// <summary>
     /// Ensure queue exists and can be used
     /// </summary>
-    /// <param name="queueClient"></param>
-    /// <param name="ct"></param>
+    /// <param containerName="queueClient"></param>
+    /// <param containerName="ct"></param>
     /// <returns></returns>
     private async Task EnsureQueueAsync(QueueClient queueClient, CancellationToken ct)
     {
@@ -235,6 +239,7 @@ internal sealed class Storage
 
     private readonly string _deviceId;
     private readonly string _moduleId;
+    private readonly string _runName;
     private readonly string _connectionString;
     private readonly ILogger _logger;
 }

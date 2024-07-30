@@ -392,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private TimeSpan _heartbeatInterval;
             private Callback? _callback;
             private StatusCode? _lastStatusCode;
-            private object _timerLock = new();
+            private readonly object _timerLock = new();
             private bool _disposed;
         }
     }
