@@ -644,7 +644,7 @@ For example here are resources of a sample deployment:
 
 ![resources](./media/image52.png)
 
-Go to the resource in Azure Portal, then to Container Settings under Settings on left pane. Change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say `2.9.9`, and then click on Save.
+Go to the resource in Azure Portal, then to Container Settings under Settings on left pane. Change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say `2.9.10`, and then click on Save.
 
 ![resources](./media/image53.png)
 
