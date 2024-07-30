@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 ARG BRANCH=main
 ARG VERSION
-RUN DEBIAN_FRONTEND=noninteractive apt update -y && apt install -y libpcap-dev bash net-tools
+RUN apt update -y && DEBIAN_FRONTEND=noninteractive apt install -y libpcap-dev bash net-tools
 USER root:root
 ENV BRANCH=${BRANCH}
 ENV VERSION=${VERSION}

@@ -383,13 +383,12 @@ internal sealed class App : IDisposable
             if (!string.IsNullOrWhiteSpace(_install.OutputPath))
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                if (!Extensions.IsRunningInContainer())
-                {
-                    while (Console.KeyAvailable) { Console.ReadKey(); }
-                    _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); }, ct);
-                    Console.WriteLine("Press any key to exit");
-                    Console.WriteLine();
-                }
+
+                while (Console.KeyAvailable) { Console.ReadKey(); }
+                _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); }, ct);
+                Console.WriteLine("Press any key to exit");
+                Console.WriteLine();
+
                 try
                 {
                     // Stop the logs from the module, when cancelled undeploy

@@ -14,11 +14,7 @@ The Netcap tool has three modes of operation:
 3. **Proxy Mode**: Netcap captures traces on a different network than OPC Publisher is connected to, e.g. the host network. It then exposes a remote API to allow the OPC Publisher side car to retrieve and upload the traces.
 4. **Uninstall Mode**: Removes the Netcap module from the IoT Edge device. This leaves the storage account and container registry in place which must can be removed in Cleanup mode.
 
-Installation and un-installation require administrator rights to the subscription that includes the IoT Hub OPC Publisher is connected to. Rights must include access to the IoT Hub as well as the permission to create storage and container registry resources. If you do not have permissions to create resources in the subscription, you must build Netcap and deploy it manually.
-
-During installation the Netcap tool is built inside the provisioned container registry from the sources found in the main branch of this repository. If you want to use a different branch, you must specify so using the `-b` option during installation.
-
-All captured files are stored in the storage account provisioned during installation. The storage account contains sensitive data that must be handled with care, e.g. in addition to the OPC Publisher configuration it also contains key/token material that can be used in Wireshark 4.3 to decrypt secure channel communication inside the network traces.
+Installation and un-installation require administrator rights to the subscription in which the Azure IoT Hub resides that OPC Publisher is connected to. Rights must include access to the Azure IoT Hub resource as well as the permission to create storage and container registry resources in the same resource group as the IoT Hub instance. If you do not have permissions to create resources in the subscription and/or resource group, you must build Netcap and deploy it manually.
 
 ## Getting started
 
@@ -28,15 +24,21 @@ In the `src` sub folder run
 dotnet run -- install -o <output-folder>
 ```
 
-or if you want to use docker run
+or if you want to use docker you can also run
 
 ``` bash
 docker build -t netcap .
-docker run -it -v <host-folder>:/tmp netcap install -d -o /tmp
+docker run -it -v <output-folder-on-your-host>:/tmp netcap install -d -o /tmp
 ```
 
 > Do not forget to specify the `-d` option to force authorizing with Azure Resource Manager (ARM) using the device code flow.
 
-Follow the instructions to select a OPC Publisher you want to diagnose. When you are done, cancel capture by pressing any key. The folder you specified now contains the key set logs and a capture file (`capture.pcap`) which you can open in Wireshark. In the `Preferences` view under `Edit` select the page for the OPC UA protocol. You must enter the port of the OPC UA server there. You can consult the session `*.log` file you are interested in the download folder. The file name starts with the port number (or the log contains it). 
+Follow the instructions to select a OPC Publisher you want to diagnose. When you are done, cancel capture by pressing any key. The folder you specified now contains the key set logs and a capture file (`capture.pcap`) which you can open in Wireshark. In the `Preferences` view under `Edit` select the page for the OPC UA protocol. You must enter the port of the OPC UA server there. You can consult the session `*.log` file you are interested in the download folder. The file name starts with the port number (or the log contains it).
 
 You can also provide the key set to decrypt encrypted traffic which is the corresponding `*.txt` file with the same name as the `*.log` file (requires Wireshark 4.3 RC builds). Once saved, you can filter the traces using the `opcua` filter in the filter edit box on the main screen. Tip: right click on the traces and you can select the OPC UA protocol configuration directly from there.
+
+## Advanced
+
+During installation the Netcap tool is built using the deployed Azure Container Registry (ACR) instance using the source found in the main branch of this repository. If you want to use a different branch, you must specify this branch using the `-b` option during installation.
+
+All captured files are stored in the storage account provisioned during installation. The storage account contains sensitive data that must be handled with care, e.g. in addition to the OPC Publisher configuration it also contains key/token material that can be used in Wireshark 4.3 to decrypt secure channel communication inside the network traces.
