@@ -37,7 +37,9 @@ Follow the instructions to select a OPC Publisher you want to diagnose. When you
 
 You can also provide the key set to decrypt encrypted traffic which is the corresponding `*.txt` file with the same name as the `*.log` file (requires Wireshark 4.3 RC builds). Once saved, you can filter the traces using the `opcua` filter in the filter edit box on the main screen. Tip: right click on the traces and you can select the OPC UA protocol configuration directly from there.
 
-## Advanced
+## Advanced install options
+
+For installation and un-installation you might want to narrow down where Netcap looks for OPC Publisher deployments it should consider presenting to you. Use the `-s` option to specify the subscription. If you are working in multiple tenants, specify the tenant ID using the `-t` command line option.
 
 During installation the Netcap tool is built using the deployed Azure Container Registry (ACR) instance using the source found in the main branch of this repository. If you want to use a different branch, you must specify this branch using the `-b` option during installation.
 
