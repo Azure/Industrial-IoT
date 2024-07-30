@@ -93,7 +93,7 @@ Use the Microsoft supported docker containers for OPC Publisher available in the
 docker pull mcr.microsoft.com/iotedge/opc-publisher:latest
 ```
 
-> We recommend to use a floating version tag ("2.9") when deploying the OPC Publisher container images instead of "latest". You can also use a fixed tag such as "2.9.9" but this will require you to manually update your edge deployment to keep up with the latest secure and supported version.
+> We recommend to use a floating version tag ("2.9") when deploying the OPC Publisher container images instead of "latest". You can also use a fixed tag such as "2.9.10" but this will require you to manually update your edge deployment to keep up with the latest secure and supported version.
 
 The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
 
@@ -1066,10 +1066,10 @@ If the OPC Publisher has successfully started then this will produce e.g., outpu
 ```json
       ...
       "$version": 3,
-      "__apikey__": "6dee3fd4-0bb2-4fb1-9736-99bb4435f020",
+      "__apikey__": "...",
       "__certificate__": "...",
       "__type__": "OpcPublisher",
-      "__version__": "2.9.9"
+      "__version__": "2.9.10"
       ...
 ```
 

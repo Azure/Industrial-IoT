@@ -55,7 +55,7 @@
 
 ## Azure Industrial IoT OPC Publisher 2.9.10
 
-We are pleased to announce the release of version 2.9.9 of OPC Publisher and the companion web api service. This release comes with several bug and security fixes and is the latest supported release. We recommend strongly to update from 2.9.8 due to several security fixes and overall instability in 2.9.8 and before in reconnect situations.
+We are pleased to announce the release of version 2.9.10 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
 
 ### Changes in 2.9.10
 
