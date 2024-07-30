@@ -16,6 +16,7 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Runtime.Intrinsics.Arm;
 using System;
+using Azure.Storage;
 
 /// <summary>
 /// Upload and download files
@@ -92,6 +93,7 @@ internal sealed class Storage
                         continue;
                     }
 
+                    f = Extensions.FixFileName(f);
                     var file = Path.Combine(path, f);
                     await blobClient.DownloadToAsync(file, cancellationToken: ct)
                         .ConfigureAwait(false);
@@ -150,6 +152,12 @@ internal sealed class Storage
             {
                 await blobClient.UploadAsync(file, new BlobUploadOptions
                 {
+                    TransferOptions = new StorageTransferOptions
+                    {
+                        MaximumConcurrency = 2,
+                        InitialTransferSize = 8 * 1024 * 1024,
+                        MaximumTransferSize = 4 * 1024 * 1024
+                    },
                     Metadata = blobMetadata,
                     ProgressHandler = new ProgressLogger(_logger, blobName)
                 }, ct).ConfigureAwait(false);
@@ -237,7 +245,7 @@ internal sealed class Storage
         /// <inheritdoc/>
         public void Report(long value)
         {
-            if (value != _lastProgress)
+            if (value > _lastProgress)
             {
                 _lastProgress = value;
                 Logger.LogInformation(

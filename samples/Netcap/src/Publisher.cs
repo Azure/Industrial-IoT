@@ -219,9 +219,8 @@ internal sealed class Publisher : IDisposable
         {
             // Add session keys to the endpoint capture
             var sid = sessionId.GetString()!;
-            var filePath = Path.Combine(_folder, $"{remotePort}_{string.Join(
-                '_', (sid + sessionCreated).Split(Path.GetInvalidFileNameChars(),
-                    StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))}");
+            var name = Extensions.FixFileName(sid + sessionCreated);
+            var filePath = Path.Combine(_folder, $"{remotePort}_{name}");
 
             var keyFile = filePath + ".txt";
             await AddSessionKeysAsync(keyFile, channelId,
