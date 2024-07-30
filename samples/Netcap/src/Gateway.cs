@@ -803,7 +803,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Cleanup
+        /// Stop
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>

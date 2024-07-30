@@ -42,13 +42,13 @@ public class NetcapException : Exception
 /// <summary>
 /// Netcap application
 /// </summary>
-internal sealed class Main : IDisposable
+internal sealed class App : IDisposable
 {
     [Verb("run", isDefault: true, HelpText = "Run netcap to capture diagnostics.")]
     public sealed class RunOptions
     {
         [Option('s', nameof(StorageConnectionString), Required = false,
-            HelpText = "The storage connection string to use to upload capture bundles.")]
+            HelpText = "The storage connection string to use to upload files.")]
         public string? StorageConnectionString { get; set; } =
             Environment.GetEnvironmentVariable(nameof(StorageConnectionString));
 
@@ -87,7 +87,8 @@ internal sealed class Main : IDisposable
 
         [Option('I', nameof(CaptureInterfaces), Required = false,
             HelpText = "The network interfaces to capture from.")]
-        public Pcap.InterfaceType CaptureInterfaces { get; set; } = Pcap.InterfaceType.AnyIfAvailable;
+        public Pcap.InterfaceType CaptureInterfaces { get; set; } =
+            Pcap.InterfaceType.AnyIfAvailable;
 
         [Option('E', nameof(HostCaptureEndpointUrl), Required = false,
             HelpText = "The remote capture endpoint to use.")]
@@ -129,6 +130,8 @@ internal sealed class Main : IDisposable
                 nameof(HostCaptureCertificate), HostCaptureCertificate);
             HostCaptureApiKey = twin.GetProperty(
                 nameof(HostCaptureApiKey), HostCaptureApiKey);
+            StorageConnectionString = twin.GetProperty(
+                nameof(StorageConnectionString), StorageConnectionString);
             var captureDuration = twin.GetProperty(nameof(CaptureDuration));
             if (!string.IsNullOrWhiteSpace(captureDuration) &&
                 TimeSpan.TryParse(captureDuration, out var duration))
@@ -138,7 +141,7 @@ internal sealed class Main : IDisposable
         }
     }
 
-    [Verb("sidecar", HelpText = "Run netcap as capture side car.")]
+    [Verb("sidecar", HelpText = "Run netcap as capture host.")]
     public sealed class SidecarOptions
     {
     }
@@ -149,7 +152,8 @@ internal sealed class Main : IDisposable
         [Option('t', nameof(TenantId), Required = false,
             HelpText = "The tenant to use to filter subscriptions down." +
             "\nDefault uses all tenants accessible.")]
-        public string? TenantId { get; set; }
+        public string? TenantId { get; set; } =
+            Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
 
         [Option('s', nameof(SubscriptionId), Required = false,
             HelpText = "The subscription to use to install to." +
@@ -172,7 +176,8 @@ internal sealed class Main : IDisposable
         [Option('t', nameof(TenantId), Required = false,
             HelpText = "The tenant to use to filter subscriptions down." +
             "\nDefault uses all tenants accessible.")]
-        public string? TenantId { get; set; }
+        public string? TenantId { get; set; } =
+            Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
 
         [Option('s', nameof(SubscriptionId), Required = false,
             HelpText = "The subscription to use to install to." +
@@ -183,7 +188,7 @@ internal sealed class Main : IDisposable
     /// <summary>
     /// Create netcap application
     /// </summary>
-    public Main()
+    public App()
     {
         _publisherHttpClient = new HttpClient();
         _loggerFactory = new LoggerFactory();
@@ -206,10 +211,10 @@ internal sealed class Main : IDisposable
     /// <param name="args"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public static async ValueTask<Main> RunAsync(string[] args,
+    public static async ValueTask<App> RunAsync(string[] args,
         CancellationToken ct = default)
     {
-        var cmd = new Main();
+        var cmd = new App();
         await cmd.ParseAsync(args, ct).ConfigureAwait(false);
         return cmd;
     }
@@ -267,9 +272,16 @@ internal sealed class Main : IDisposable
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
+    /// <exception cref="NetcapException"></exception>
     private async Task RunAsync(CancellationToken ct = default)
     {
         _run ??= new RunOptions();
+
+        if (string.IsNullOrEmpty(_run.StorageConnectionString))
+        {
+            throw new NetcapException("Storage must be provided");
+        }
+
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         if (!Extensions.IsRunningInContainer())
         {
@@ -278,61 +290,31 @@ internal sealed class Main : IDisposable
             Console.WriteLine("Press any key to exit");
             Console.WriteLine();
         }
-
         try
         {
             // Connect to publisher
-            var publisher = new Publisher(_loggerFactory.CreateLogger("Publisher"),
-                _publisherHttpClient, _run.PublisherIpAddresses);
+            using var publisher = new Publisher(_publisherHttpClient, _run.PublisherIpAddresses,
+                _loggerFactory.CreateLogger("Publisher"));
 
-            Storage? uploader = null;
-            if (!string.IsNullOrEmpty(_run.StorageConnectionString))
-            {
-                _logger.LogInformation(
-                    "Uploading to storage of publisher module {DeviceId}/{ModuleId}...",
-                    _run.PublisherDeviceId, _run.PublisherModuleId);
-                // TODO: move to seperate task
-                uploader = new Storage(_run.PublisherDeviceId ?? "unknown", _run.PublisherModuleId,
-                    _run.StorageConnectionString, _loggerFactory.CreateLogger("Upload"));
-            }
-
+            var storage = new Storage(_run.PublisherDeviceId ?? "unknown", _run.PublisherModuleId,
+                _run.StorageConnectionString, _loggerFactory.CreateLogger("Upload"));
             for (var i = 0; !cts.IsCancellationRequested; i++)
             {
-                // Stop endpoint urls and addresses to monitor if not set
-                if (!await publisher.TryUpdateEndpointsAsync(cts.Token).ConfigureAwait(false))
+                // Update endpoint urls and addresses to monitor if not set
+                if (!await publisher.TryUploadEndpointsAsync(storage, cts.Token).ConfigureAwait(false))
                 {
                     _logger.LogInformation("waiting .....");
                     await Task.Delay(TimeSpan.FromMinutes(1), cts.Token).ConfigureAwait(false);
                     continue;
                 }
+            }
 
-                // Capture traffic for duration
-                var folder = Path.Combine(Path.GetTempPath(), "capture" + i);
-                var bundle = new Bundle(_loggerFactory.CreateLogger("Capture"), folder);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                using var timeoutToken = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
-                if (uploader != null || _run.CaptureDuration != null)
-                {
-                    var duration = _run.CaptureDuration ?? TimeSpan.FromMinutes(10);
-                    _logger.LogInformation("Capturing for {Duration}", duration);
-                    timeoutToken.CancelAfter(duration);
-                }
-
-                using (bundle.AddPcap(publisher, i, _run.CaptureInterfaces, _sidecarHttpClient))
-                {
-                    await publisher.MonitorChannelsAsync(channelDiagnostics =>
-                        bundle.AddSessionKeysFromDiagnosticsAsync(channelDiagnostics, publisher.Endpoints),
-                        timeoutToken.Token).ConfigureAwait(false);
-                }
-
-                // TODO: move to seperate task
-                if (uploader != null)
-                {
-                    await uploader.UploadAsync(bundle, cts.Token).ConfigureAwait(false);
-                }
+            // Start capture and upload capture files and channel information
+            var configuration = publisher.GetCaptureConfiguration(_run.CaptureInterfaces);
+            using (Pcap.Capture(configuration, storage, _loggerFactory.CreateLogger("Capture"),
+                _sidecarHttpClient))
+            {
+                await publisher.UploadChannelLogsAsync(storage, cts.Token).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException) { }
@@ -439,9 +421,9 @@ internal sealed class Main : IDisposable
 
             // Add guard here
 
-            // Cleanup storage account or update if it already exists in the rg
+            // Stop storage account or update if it already exists in the rg
             // await gateway.Storage.DeleteAsync(ct).ConfigureAwait(false);
-            // Cleanup container registry
+            // Stop container registry
             // await gateway.NetcapException.DeleteAsync(ct).ConfigureAwait(false);
 
             // Deploy the module using manifest to device with the chosen publisher
@@ -585,7 +567,7 @@ internal sealed class Main : IDisposable
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseHttpsRedirection();
-            var server = new Pcap.Server(app, _logger);
+            using var server = new Pcap.Server(app, _logger);
             await app.RunAsync(ct).ConfigureAwait(false);
         }
         finally
@@ -872,7 +854,7 @@ internal sealed class Main : IDisposable
     /// Injected apikey
     /// </summary>
     /// <param name="ApiKey"></param>
-    public record class ApiKeyProvider(string ApiKey);
+    public sealed record class ApiKeyProvider(string ApiKey);
 
     /// <summary>
     /// Api key authentication handler

@@ -14,9 +14,10 @@ using System.Text.Json;
 using System.IO;
 using System.Globalization;
 using System.IO.Compression;
+using System.Runtime.Intrinsics.Arm;
 
 /// <summary>
-/// Upload and download bundles
+/// Upload and download files
 /// </summary>
 internal sealed class Storage
 {
@@ -37,7 +38,7 @@ internal sealed class Storage
     }
 
     /// <summary>
-    /// Download
+    /// Download files
     /// </summary>
     /// <param name="path"></param>
     /// <param name="ct"></param>
@@ -53,7 +54,7 @@ internal sealed class Storage
             Directory.CreateDirectory(path);
         }
 
-        _logger.LogInformation("Downloading capture bundles to {Path}.", path);
+        _logger.LogInformation("Downloading files to {Path}.", path);
         while (!ct.IsCancellationRequested)
         {
             try
@@ -79,28 +80,22 @@ internal sealed class Storage
 
                     var blobProperties = await blobClient.GetPropertiesAsync(
                         cancellationToken: ct).ConfigureAwait(false);
-                    var metadata = blobProperties.Value.Metadata;
-                    if (metadata.TryGetValue("Start", out var s) &&
-                        metadata.TryGetValue("End", out var e) &&
-                        DateTimeOffset.TryParse(s,
-                            CultureInfo.InvariantCulture, out var start) &&
-                        DateTimeOffset.TryParse(e,
-                            CultureInfo.InvariantCulture, out var end))
-                    {
-                        var file = Path.Combine(path, notification.BlobName);
-                        await blobClient.DownloadToAsync(file, cancellationToken: ct)
-                            .ConfigureAwait(false);
 
-                        _logger.LogInformation("Downloaded capture bundle {File}.", file);
-                        var folder = Path.Combine(path, Path.GetFileNameWithoutExtension(file));
-                        ZipFile.ExtractToDirectory(file, folder);
-                        _logger.LogInformation("Unpacked file {File} to {Folder}.", file,
-                            folder);
+                    var metadata = blobProperties.Value.Metadata;
+                    if (!metadata.TryGetValue("File", out var f) ||
+                        !metadata.TryGetValue("Date", out var d))
+                    {
+                        continue;
                     }
+
+                    var file = Path.Combine(path, f);
+                    await blobClient.DownloadToAsync(file, cancellationToken: ct)
+                        .ConfigureAwait(false);
+                    _logger.LogInformation("Downloaded file {File}.", file);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to download capture bundle {Bundle}.",
+                    _logger.LogError(ex, "Failed to download file from blob {BlobName}.",
                         notification.BlobName);
                 }
                 finally
@@ -121,17 +116,16 @@ internal sealed class Storage
     }
 
     /// <summary>
-    /// Upload bundle
+    /// Upload file
     /// </summary>
-    /// <param name="bundle"></param>
+    /// <param name="file"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async ValueTask UploadAsync(Bundle bundle, CancellationToken ct = default)
+    public async ValueTask UploadAsync(string file, CancellationToken ct = default)
     {
         try
         {
-            var bundleFile = bundle.GetBundleFile();
-            _logger.LogInformation("Uploading capture bundle {File}.", bundleFile);
+            _logger.LogInformation("Uploading file {File}.", file);
             var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
             var containerClient = new BlobContainerClient(_connectionString, name);
             var queueClient = new QueueClient(_connectionString, name);
@@ -139,23 +133,22 @@ internal sealed class Storage
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.None,
                 GetClientMetadata(), cancellationToken: ct).ConfigureAwait(false);
 
-            // Upload capture bundle
-            var blobName = $"{DateTime.UtcNow:yyyy-MM-ddTHH-mm-ssZ}.zip";
+            // Upload file
+            var blobName = Extensions.FixUpStorageName(Path.GetFileName(file));
             var blobClient = containerClient.GetBlobClient(blobName);
-            var bundleMetadata = new Dictionary<string, string>
+            var blobMetadata = new Dictionary<string, string>()
             {
-                ["Start"] = bundle.Start.ToString("o"),
-                ["End"] = bundle.End.ToString("o"),
-                ["Duration"] = (bundle.End - bundle.Start).ToString()
+                ["Date"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture),
+                ["File"] = Path.GetFileName(file)
             };
             try
             {
-                await blobClient.UploadAsync(bundleFile, new BlobUploadOptions
+                await blobClient.UploadAsync(file, new BlobUploadOptions
                 {
-                    Metadata = bundleMetadata,
+                    Metadata = blobMetadata,
                     ProgressHandler = new Progress<long>(
                         progress => _logger.LogInformation(
-                            "Uploading {Progress} bytes", progress))
+                            "Uploading {Blob} - {Progress} bytes", blobName, progress))
                 }, ct).ConfigureAwait(false);
 
                 if (queueClient != null)
@@ -166,23 +159,23 @@ internal sealed class Storage
                         blobClient.BlobContainerName, blobClient.Name));
                     await queueClient.SendMessageAsync(message, ct).ConfigureAwait(false);
                 }
-                bundle.Delete();
-                _logger.LogInformation("Completed upload of bundle {File}.", bundleFile);
+                _logger.LogInformation("Completed upload of file {File} to {BlobName}.",
+                    file, blobName);
             }
             finally
             {
-                File.Delete(bundleFile);
+                File.Delete(file);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to upload capture bundle.");
+            _logger.LogError(ex, "Failed to upload file {File}.", file);
             throw;
         }
     }
 
     /// <summary>
-    /// Cleanup storage
+    /// Stop storage
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>

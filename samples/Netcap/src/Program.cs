@@ -18,4 +18,4 @@ Console.WriteLine($@"
                                                 |_| {typeof(Extensions).Assembly.GetVersion()}
 ");
 
-using var cmdLine = await Main.RunAsync(args, cts.Token).ConfigureAwait(false);
+using var cmdLine = await App.RunAsync(args, cts.Token).ConfigureAwait(false);
