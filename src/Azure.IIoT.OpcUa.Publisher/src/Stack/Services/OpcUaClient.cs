@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal Task ResetAsync(CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            var tcs = new TaskCompletionSource();
+            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
                 ct.Register(() => tcs.TrySetCanceled());
@@ -1588,10 +1588,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     lastDiagnostics.TokenId == token.TokenId &&
                     lastDiagnostics.CreatedAt == token.CreatedAt);
 
-                var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
+                var lifetime = TimeSpan.FromMilliseconds(Math.Min(token.Lifetime,
+                    _configuration.TransportQuotas.SecurityTokenLifetime));
                 if (channelChanged)
                 {
                     _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
+                    _logger.LogInformation(
+                        "Channel {Channel} got new token {TokenId} ({Created}).",
+                        token.ChannelId, token.TokenId, token.CreatedAt);
                 }
                 else
                 {
@@ -1654,7 +1658,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     token?.ServerEncryptingKey, token?.ServerSigningKey)
             };
             _diagnosticsCb(_lastDiagnostics);
-            _logger.LogDebug("{Client}: Diagnostics information updated.", this);
+
+            _logger.LogInformation("Channel diagnostics for session {SessionId} updated.",
+                sessionId);
 
             static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
             {

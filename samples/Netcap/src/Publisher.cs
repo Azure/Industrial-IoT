@@ -15,7 +15,7 @@ using System.Text.Json;
 /// <summary>
 /// Publisher interaction
 /// </summary>
-internal sealed class Publisher
+internal sealed class Publisher : IDisposable
 {
     /// <summary>
     /// Endpoint urls
@@ -28,20 +28,17 @@ internal sealed class Publisher
     public HashSet<IPAddress> Addresses { get; } = new();
 
     /// <summary>
-    /// Publisher configuration
-    /// </summary>
-    public string? PnJson { get; set; }
-
-    /// <summary>
     /// Create publisher
     /// </summary>
-    /// <param name="logger"></param>
     /// <param name="httpClient"></param>
     /// <param name="publisherIpAddresses"></param>
-    public Publisher(ILogger logger, HttpClient httpClient, string? publisherIpAddresses)
+    /// <param name="logger"></param>
+    public Publisher(HttpClient httpClient, string? publisherIpAddresses, ILogger logger)
     {
         _logger = logger;
         _httpClient = httpClient;
+        _folder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(_folder);
 
         if (!string.IsNullOrWhiteSpace(publisherIpAddresses))
         {
@@ -56,14 +53,49 @@ internal sealed class Publisher
         }
     }
 
+    /// <inheritdoc>
+    public void Dispose()
+    {
+        Directory.Delete(_folder, true);
+    }
+
+    /// <summary>
+    /// Collect traces
+    /// </summary>
+    /// <param name="itf"></param>
+    /// <param name="maxPcapFileSize"></param>
+    /// <param name="maxPcapDuration"></param>
+    /// <returns></returns>
+    public Pcap.CaptureConfiguration GetCaptureConfiguration(
+        Pcap.InterfaceType itf = Pcap.InterfaceType.AnyIfAvailable,
+        int? maxPcapFileSize = null, TimeSpan? maxPcapDuration = null)
+    {
+        // Base filter
+        // https://www.wireshark.org/docs/man-pages/pcap-filter.html
+        // src or dst host 192.168.80.2
+        // "ip and tcp and not port 80 and not port 25";
+        // TODO: Filter on src/dst of publisher ip
+        var addresses = Addresses
+            .Where(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            .ToList();
+        if (addresses.Count == 0)
+        {
+            return new Pcap.CaptureConfiguration(itf, "ip and tcp",
+                maxPcapFileSize, maxPcapDuration);
+        }
+        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+            ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
+
+        return new Pcap.CaptureConfiguration(itf, filter, maxPcapFileSize, maxPcapDuration);
+    }
+
     /// <summary>
     /// Monitor publisher
     /// </summary>
-    /// <param name="diagnostics"></param>
+    /// <param name="storage"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async ValueTask MonitorChannelsAsync(Func<JsonElement, Task> diagnostics,
-        CancellationToken ct)
+    public async ValueTask UploadChannelLogsAsync(Storage storage, CancellationToken ct = default)
     {
         while (!ct.IsCancellationRequested)
         {
@@ -75,7 +107,16 @@ internal sealed class Publisher
                     "v2/diagnostics/channels/watch",
                         cancellationToken: ct).ConfigureAwait(false))
                 {
-                    await diagnostics(diagnostic).ConfigureAwait(false);
+                    try
+                    {
+                        await UploadSessionKeysFromDiagnosticsAsync(storage,
+                            diagnostic, ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error uploading session keys.");
+                    }
                 }
                 _logger.LogInformation("Restart monitoring channel diagnostics...");
             }
@@ -90,9 +131,11 @@ internal sealed class Publisher
     /// <summary>
     /// Try update the endpoints and addresses from the publisher.
     /// </summary>
+    /// <param name="storage"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async ValueTask<bool> TryUpdateEndpointsAsync(CancellationToken ct)
+    public async ValueTask<bool> TryUploadEndpointsAsync(Storage storage,
+        CancellationToken ct = default)
     {
         try
         {
@@ -103,7 +146,7 @@ internal sealed class Publisher
             var configuration = await _httpClient.GetFromJsonAsync<JsonElement>(
                 "v2/configuration?includeNodes=true",
                 JsonSerializerOptions.Default, ct).ConfigureAwait(false);
-            PnJson = JsonSerializer.Serialize(configuration, Extensions.Indented);
+            var pnJson = JsonSerializer.Serialize(configuration, Extensions.Indented);
             foreach (var endpoint in configuration.GetProperty("endpoints").EnumerateArray())
             {
                 var endpointUrl = endpoint.GetProperty("EndpointUrl").GetString();
@@ -120,15 +163,118 @@ internal sealed class Publisher
             }
             _logger.LogInformation("Retrieved {Count} endpoints from publisher.",
                 Endpoints.Count);
+
+            var pnJsonFile = Path.Combine(_folder, "pn.json");
+            await File.WriteAllTextAsync(pnJsonFile, pnJson, ct).ConfigureAwait(false);
+            await storage.UploadAsync(pnJsonFile, ct).ConfigureAwait(false);
             return true;
         }
+        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update endpoints from publisher.");
-            return false;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Upload session keys to storage from publisher diagnostics
+    /// </summary>
+    /// <param name="storage"></param>
+    /// <param name="diagnostic"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async Task UploadSessionKeysFromDiagnosticsAsync(Storage storage,
+        JsonElement diagnostic, CancellationToken ct = default)
+    {
+        var diagnosticJson = JsonSerializer.Serialize(diagnostic, Extensions.Indented);
+
+        if (diagnostic.TryGetProperty("connection", out var conn) &&
+            conn.TryGetProperty("endpoint", out var ep) &&
+            ep.TryGetProperty("url", out var url) &&
+            diagnostic.TryGetProperty("sessionCreated", out var sessionCreatedToken) &&
+            sessionCreatedToken.TryGetDateTimeOffset(out var sessionCreated) &&
+            diagnostic.TryGetProperty("sessionId", out var sessionId) &&
+            sessionId.GetString() != null &&
+            diagnostic.TryGetProperty("remotePort", out var remotePortToken) &&
+            remotePortToken.TryGetInt32(out var remotePort))
+        {
+            var name = Extensions.FixFileName(sessionId.GetString() + sessionCreated);
+            var filePath = Path.Combine(_folder, $"{remotePort}_{name}");
+
+            var logFile = filePath + ".log";
+            await File.AppendAllTextAsync(logFile, diagnosticJson, ct)
+                .ConfigureAwait(false);
+            await storage.UploadAsync(logFile, ct).ConfigureAwait(false);
+
+            if (diagnostic.TryGetProperty("channelId", out var channelIdToken) &&
+                channelIdToken.TryGetUInt32(out var channelId) &&
+                diagnostic.TryGetProperty("tokenId", out var tokenIdToken) &&
+                tokenIdToken.TryGetUInt32(out var tokenId) &&
+                diagnostic.TryGetProperty("client", out var clientToken) &&
+                clientToken.TryGetProperty("iv", out var clientIvToken) &&
+                clientIvToken.TryGetBytes(out var clientIv) &&
+                clientToken.TryGetProperty("key", out var clientKeyToken) &&
+                clientKeyToken.TryGetBytes(out var clientKey) &&
+                clientToken.TryGetProperty("sigLen", out var clientSigLenToken) &&
+                clientSigLenToken.TryGetInt32(out var clientSigLen) &&
+                diagnostic.TryGetProperty("server", out var serverToken) &&
+                serverToken.TryGetProperty("iv", out var serverIvToken) &&
+                serverIvToken.TryGetBytes(out var serverIv) &&
+                serverToken.TryGetProperty("key", out var serverKeyToken) &&
+                serverKeyToken.TryGetBytes(out var serverKey) &&
+                serverToken.TryGetProperty("sigLen", out var serverSigLenToken) &&
+                serverSigLenToken.TryGetInt32(out var serverSigLen))
+            {
+                // Add session keys to the endpoint capture
+                _logger.LogInformation(
+                    "Logging session keys for channel {ChannelId} token {TokenId}",
+                    channelId, tokenId);
+
+                var keyFile = filePath + ".txt";
+                await AddSessionKeysAsync(keyFile, channelId,
+                    tokenId, clientIv, clientKey, clientSigLen, serverIv, serverKey,
+                    serverSigLen, ct).ConfigureAwait(false);
+                await storage.UploadAsync(keyFile, ct).ConfigureAwait(false);
+
+                static async ValueTask AddSessionKeysAsync(string fileName, uint channelId,
+                     uint tokenId, byte[] clientIv, byte[] clientKey, int clientSigLen,
+                     byte[] serverIv, byte[] serverKey, int serverSigLen,
+                     CancellationToken ct = default)
+                {
+                    var keysets = File.AppendText(fileName);
+                    await using (var _ = keysets.ConfigureAwait(false))
+                    {
+                        await keysets.WriteLineAsync(
+    $"client_iv_{channelId}_{tokenId}: {Convert.ToHexString(clientIv)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"client_key_{channelId}_{tokenId}: {Convert.ToHexString(clientKey)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"client_siglen_{channelId}_{tokenId}: {clientSigLen}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"server_iv_{channelId}_{tokenId}: {Convert.ToHexString(serverIv)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"server_key_{channelId}_{tokenId}: {Convert.ToHexString(serverKey)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
+
+                        await keysets.FlushAsync(ct).ConfigureAwait(false);
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No key information logged.");
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Received invalid diagnostic: {Diagnostic}",
+                diagnosticJson);
         }
     }
 
     private readonly ILogger _logger;
     private readonly HttpClient _httpClient;
+    private readonly string _folder;
 }

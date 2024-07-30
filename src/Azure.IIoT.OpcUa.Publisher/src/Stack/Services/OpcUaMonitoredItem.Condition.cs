@@ -497,7 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _snapshotInterval;
             private int _updateInterval;
             private TimerEx? _conditionTimer;
-            private object _timerLock = new();
+            private readonly object _timerLock = new();
             private bool _disposed;
         }
     }
