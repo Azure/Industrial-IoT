@@ -48,8 +48,8 @@ internal sealed class Storage
     /// <returns></returns>
     public async Task DownloadAsync(string path, CancellationToken ct = default)
     {
-        var name = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
-        var queueClient = new QueueClient(_connectionString, name);
+        var queueName = Extensions.FixUpStorageName($"{_deviceId}_{_moduleId}");
+        var queueClient = new QueueClient(_connectionString, queueName);
         await EnsureQueueAsync(queueClient, ct).ConfigureAwait(false);
 
         if (!Directory.Exists(path))
@@ -91,8 +91,14 @@ internal sealed class Storage
                         continue;
                     }
 
-                    f = Extensions.FixFileName(f);
-                    var file = Path.Combine(path, f);
+                    var c = Extensions.FixFolderName(notification.ContainerName);
+                    var folder = Path.Combine(path, c);
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
+                    var file = Path.Combine(folder, Extensions.FixFileName(f));
                     await blobClient.DownloadToAsync(file, cancellationToken: ct)
                         .ConfigureAwait(false);
                     _logger.LogInformation("Downloaded file {File}.", file);

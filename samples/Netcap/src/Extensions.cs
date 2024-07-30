@@ -137,6 +137,17 @@ internal static partial class Extensions
     }
 
     /// <summary>
+    /// Fix folder name
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static string FixFolderName(string name)
+    {
+        return string.Join('_', name.Split(Path.GetInvalidPathChars(),
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    /// <summary>
     /// Replace invalid chars in a storage entity name
     /// </summary>
     /// <param name="name"></param>

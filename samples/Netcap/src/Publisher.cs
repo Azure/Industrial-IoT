@@ -194,69 +194,83 @@ internal sealed class Publisher : IDisposable
             ep.TryGetProperty("url", out var url) &&
             diagnostic.TryGetProperty("sessionCreated", out var sessionCreatedToken) &&
             sessionCreatedToken.TryGetDateTimeOffset(out var sessionCreated) &&
-            diagnostic.TryGetProperty("remotePort", out var remotePortToken) &&
-            remotePortToken.TryGetInt32(out var remotePort) &&
             diagnostic.TryGetProperty("sessionId", out var sessionId) &&
             sessionId.GetString() != null &&
-            diagnostic.TryGetProperty("channelId", out var channelIdToken) &&
-            channelIdToken.TryGetUInt32(out var channelId) &&
-            diagnostic.TryGetProperty("tokenId", out var tokenIdToken) &&
-            tokenIdToken.TryGetUInt32(out var tokenId) &&
-            diagnostic.TryGetProperty("client", out var clientToken) &&
-            clientToken.TryGetProperty("iv", out var clientIvToken) &&
-            clientIvToken.TryGetBytes(out var clientIv) &&
-            clientToken.TryGetProperty("key", out var clientKeyToken) &&
-            clientKeyToken.TryGetBytes(out var clientKey) &&
-            clientToken.TryGetProperty("sigLen", out var clientSigLenToken) &&
-            clientSigLenToken.TryGetInt32(out var clientSigLen) &&
-            diagnostic.TryGetProperty("server", out var serverToken) &&
-            serverToken.TryGetProperty("iv", out var serverIvToken) &&
-            serverIvToken.TryGetBytes(out var serverIv) &&
-            serverToken.TryGetProperty("key", out var serverKeyToken) &&
-            serverKeyToken.TryGetBytes(out var serverKey) &&
-            serverToken.TryGetProperty("sigLen", out var serverSigLenToken) &&
-            serverSigLenToken.TryGetInt32(out var serverSigLen))
+            diagnostic.TryGetProperty("remotePort", out var remotePortToken) &&
+            remotePortToken.TryGetInt32(out var remotePort))
         {
-            // Add session keys to the endpoint capture
-            var sid = sessionId.GetString()!;
-            var name = Extensions.FixFileName(sid + sessionCreated);
+            var name = Extensions.FixFileName(sessionId.GetString() + sessionCreated);
             var filePath = Path.Combine(_folder, $"{remotePort}_{name}");
-
-            var keyFile = filePath + ".txt";
-            await AddSessionKeysAsync(keyFile, channelId,
-                tokenId, clientIv, clientKey, clientSigLen, serverIv, serverKey,
-                serverSigLen, ct).ConfigureAwait(false);
-            await storage.UploadAsync(keyFile, ct).ConfigureAwait(false);
-
-            static async ValueTask AddSessionKeysAsync(string fileName, uint channelId,
-                 uint tokenId, byte[] clientIv, byte[] clientKey, int clientSigLen,
-                 byte[] serverIv, byte[] serverKey, int serverSigLen,
-                 CancellationToken ct = default)
-            {
-                var keysets = File.AppendText(fileName);
-                await using (var _ = keysets.ConfigureAwait(false))
-                {
-                    await keysets.WriteLineAsync(
-$"client_iv_{channelId}_{tokenId}: {Convert.ToHexString(clientIv)}").ConfigureAwait(false);
-                    await keysets.WriteLineAsync(
-$"client_key_{channelId}_{tokenId}: {Convert.ToHexString(clientKey)}").ConfigureAwait(false);
-                    await keysets.WriteLineAsync(
-$"client_siglen_{channelId}_{tokenId}: {clientSigLen}").ConfigureAwait(false);
-                    await keysets.WriteLineAsync(
-$"server_iv_{channelId}_{tokenId}: {Convert.ToHexString(serverIv)}").ConfigureAwait(false);
-                    await keysets.WriteLineAsync(
-$"server_key_{channelId}_{tokenId}: {Convert.ToHexString(serverKey)}").ConfigureAwait(false);
-                    await keysets.WriteLineAsync(
-$"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
-
-                    await keysets.FlushAsync(ct).ConfigureAwait(false);
-                }
-            }
 
             var logFile = filePath + ".log";
             await File.AppendAllTextAsync(logFile, diagnosticJson, ct)
                 .ConfigureAwait(false);
             await storage.UploadAsync(logFile, ct).ConfigureAwait(false);
+
+            if (diagnostic.TryGetProperty("channelId", out var channelIdToken) &&
+                channelIdToken.TryGetUInt32(out var channelId) &&
+                diagnostic.TryGetProperty("tokenId", out var tokenIdToken) &&
+                tokenIdToken.TryGetUInt32(out var tokenId) &&
+                diagnostic.TryGetProperty("client", out var clientToken) &&
+                clientToken.TryGetProperty("iv", out var clientIvToken) &&
+                clientIvToken.TryGetBytes(out var clientIv) &&
+                clientToken.TryGetProperty("key", out var clientKeyToken) &&
+                clientKeyToken.TryGetBytes(out var clientKey) &&
+                clientToken.TryGetProperty("sigLen", out var clientSigLenToken) &&
+                clientSigLenToken.TryGetInt32(out var clientSigLen) &&
+                diagnostic.TryGetProperty("server", out var serverToken) &&
+                serverToken.TryGetProperty("iv", out var serverIvToken) &&
+                serverIvToken.TryGetBytes(out var serverIv) &&
+                serverToken.TryGetProperty("key", out var serverKeyToken) &&
+                serverKeyToken.TryGetBytes(out var serverKey) &&
+                serverToken.TryGetProperty("sigLen", out var serverSigLenToken) &&
+                serverSigLenToken.TryGetInt32(out var serverSigLen))
+            {
+                // Add session keys to the endpoint capture
+                _logger.LogInformation(
+                    "Logging session keys for channel {ChannelId} token {TokenId}",
+                    channelId, tokenId);
+
+                var keyFile = filePath + ".txt";
+                await AddSessionKeysAsync(keyFile, channelId,
+                    tokenId, clientIv, clientKey, clientSigLen, serverIv, serverKey,
+                    serverSigLen, ct).ConfigureAwait(false);
+                await storage.UploadAsync(keyFile, ct).ConfigureAwait(false);
+
+                static async ValueTask AddSessionKeysAsync(string fileName, uint channelId,
+                     uint tokenId, byte[] clientIv, byte[] clientKey, int clientSigLen,
+                     byte[] serverIv, byte[] serverKey, int serverSigLen,
+                     CancellationToken ct = default)
+                {
+                    var keysets = File.AppendText(fileName);
+                    await using (var _ = keysets.ConfigureAwait(false))
+                    {
+                        await keysets.WriteLineAsync(
+    $"client_iv_{channelId}_{tokenId}: {Convert.ToHexString(clientIv)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"client_key_{channelId}_{tokenId}: {Convert.ToHexString(clientKey)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"client_siglen_{channelId}_{tokenId}: {clientSigLen}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"server_iv_{channelId}_{tokenId}: {Convert.ToHexString(serverIv)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"server_key_{channelId}_{tokenId}: {Convert.ToHexString(serverKey)}").ConfigureAwait(false);
+                        await keysets.WriteLineAsync(
+    $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
+
+                        await keysets.FlushAsync(ct).ConfigureAwait(false);
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No key information logged.");
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Received invalid diagnostic: {Diagnostic}",
+                diagnosticJson);
         }
     }
 

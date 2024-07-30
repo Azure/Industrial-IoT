@@ -18,6 +18,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 internal abstract class Pcap
 {
@@ -55,6 +56,16 @@ internal abstract class Pcap
             return new Local(logger, configuration, storage);
         }
         return new Remote(logger, configuration, storage, httpClient);
+    }
+
+    /// <summary>
+    /// Get file path
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    private static string GetFilePath(string folder, int index)
+    {
+        return Path.Combine(folder, $"capture{index}.pcap");
     }
 
     /// <summary>
@@ -217,16 +228,6 @@ internal abstract class Pcap
         }
 
         /// <summary>
-        /// Get file path
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public string GetFilePath(int index)
-        {
-            return Path.Combine(_folder, $"capture{index}.pcap");
-        }
-
-        /// <summary>
         /// Dispose
         /// </summary>
         /// <param name="disposing"></param>
@@ -236,25 +237,7 @@ internal abstract class Pcap
             {
                 try
                 {
-                    _devices?.ForEach(d =>
-                    {
-                        try
-                        {
-                            d.StopCapture();
-                            _logger.LogInformation(
-                                "Capturing {Description} completed. ({Statistics}).",
-                                d.Description, d.Statistics.ToString());
-                        }
-                        catch { }
-                    });
-
-                    _logger.LogInformation("Completed capture.");
-
-                    if (_captureCount > 0)
-                    {
-                        _channel.Writer.TryWrite(_index);
-                    }
-                    _devices?.ForEach(d => d.Dispose());
+                    StopCapture();
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -265,6 +248,39 @@ internal abstract class Pcap
                 {
                     _writer.Dispose();
                     Directory.Delete(_folder, true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// StopCapture
+        /// </summary>
+        protected void StopCapture()
+        {
+            if (_devices != null)
+            {
+                _devices.ForEach(d =>
+                {
+                    try
+                    {
+                        d.StopCapture();
+                        _logger.LogInformation(
+                            "Capturing {Description} completed. ({Statistics}).",
+                            d.Description, d.Statistics.ToString());
+                    }
+                    catch { }
+                });
+                _devices.ForEach(d => d.Dispose());
+                _logger.LogInformation("Completed capture.");
+                _devices = null;
+
+                if (_captureCount > 0)
+                {
+                    _writer.Close();
+                    _captureCount = 0;
+
+                    _channel.Writer.TryWrite(_index);
+                    _channel.Writer.TryComplete();
                 }
             }
         }
@@ -316,7 +332,7 @@ internal abstract class Pcap
         /// <returns></returns>
         private CaptureFileWriterDevice CreateWriter(int index)
         {
-            var writer = new CaptureFileWriterDevice(GetFilePath(index));
+            var writer = new CaptureFileWriterDevice(GetFilePath(_folder, index));
             writer.Open(new DeviceConfiguration
             {
                 LinkLayerType = _linkType
@@ -334,13 +350,13 @@ internal abstract class Pcap
         private readonly Stopwatch _captureWatch = new Stopwatch();
         private readonly object _lock = new();
         private readonly CaptureConfiguration _configuration;
-        private readonly List<LibPcapLiveDevice>? _devices;
+        private List<LibPcapLiveDevice>? _devices;
         private CaptureFileWriterDevice _writer;
-        private readonly string _folder;
         private readonly long _maxPcapSize;
         private readonly long _maxPcapDuration;
         private readonly Channel<int> _channel;
         private readonly LinkLayers _linkType;
+        protected readonly string _folder;
         protected readonly ILogger _logger;
     }
 
@@ -360,19 +376,18 @@ internal abstract class Pcap
             : base(logger, configuration)
         {
             _storage = storage;
-            _cts = new CancellationTokenSource();
-            _runner = RunAsync(_cts.Token);
+            _runner = RunAsync();
         }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
             if (disposing)
             {
+                StopCapture();
                 try
                 {
-                    _cts.Cancel();
+                    // Will exit after stop capture as channel is completed
                     _runner.GetAwaiter().GetResult();
                 }
                 catch (OperationCanceledException) { }
@@ -380,11 +395,8 @@ internal abstract class Pcap
                 {
                     _logger.LogError(ex, "Failed to stop capture.");
                 }
-                finally
-                {
-                    _cts.Dispose();
-                }
             }
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -392,17 +404,16 @@ internal abstract class Pcap
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task RunAsync(CancellationToken ct)
+        private async Task RunAsync(CancellationToken ct = default)
         {
             await foreach (var index in Reader.ReadAllAsync(ct))
             {
-                var file = GetFilePath(index);
+                var file = GetFilePath(_folder, index);
                 await _storage.UploadAsync(file, ct).ConfigureAwait(false);
                 File.Delete(file);
             }
         }
 
-        private readonly CancellationTokenSource _cts;
         private readonly Storage _storage;
         private readonly Task _runner;
     }
@@ -410,7 +421,7 @@ internal abstract class Pcap
     /// <summary>
     /// Remote client
     /// </summary>
-    private sealed class Remote : Base
+    private sealed class Remote : IDisposable
     {
         /// <summary>
         /// Create client
@@ -421,8 +432,10 @@ internal abstract class Pcap
         /// <param name="client"></param>
         public Remote(ILogger logger, CaptureConfiguration configuration,
             Storage storage, HttpClient client)
-            : base(logger, configuration)
         {
+            _logger = logger;
+            _folder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(_folder);
             _client = client;
             _storage = storage;
             _handle = StartAsync(configuration).GetAwaiter().GetResult();
@@ -431,27 +444,24 @@ internal abstract class Pcap
         }
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            base.Dispose(disposing); // Does not throw
-            if (disposing)
+            try
             {
-                try
-                {
-                    StopAsync().GetAwaiter().GetResult();
+                StopAsync().GetAwaiter().GetResult();
 
-                    _cts.Cancel();
-                    _runner.GetAwaiter().GetResult();
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to stop");
-                }
-                finally
-                {
-                    _cts.Dispose();
-                }
+                _cts.Cancel();
+                _runner.GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to stop");
+            }
+            finally
+            {
+                _cts.Dispose();
+                Directory.Delete(_folder, true);
             }
         }
 
@@ -487,7 +497,7 @@ internal abstract class Pcap
                         var s = await _client.GetStreamAsync(new Uri($"/{_handle}/{index}"),
                             ct).ConfigureAwait(false);
 
-                        var file = GetFilePath(index);
+                        var file = GetFilePath(_folder, index);
                         var f = System.IO.File.Create(file);
                         await using var sd = s.ConfigureAwait(false);
                         await using var fd = f.ConfigureAwait(false);
@@ -522,6 +532,8 @@ internal abstract class Pcap
         private readonly CancellationTokenSource _cts;
         private readonly Storage _storage;
         private readonly Task _runner;
+        private readonly ILogger _logger;
+        private readonly string _folder;
     }
 
     /// <summary>
@@ -607,11 +619,6 @@ internal abstract class Pcap
             {
                 throw new NetcapException("Capture not found");
             }
-            if (index > 0)
-            {
-                // Clean up previous file
-                File.Delete(capture.GetFilePath(index - 1));
-            }
             return capture.Download(index);
         }
 
@@ -645,15 +652,23 @@ internal abstract class Pcap
             /// </summary>
             /// <param name="index"></param>
             /// <returns></returns>
-            public IResult Download(int index) => Results.File(GetFilePath(index));
+            public IResult Download(int index)
+            {
+                if (index > 0)
+                {
+                    // Clean up previous file
+                    File.Delete(GetFilePath(_folder, index - 1));
+                }
+                return Results.File(GetFilePath(_folder, index));
+            }
 
             /// <summary>
             /// Read indexes
             /// </summary>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public IAsyncEnumerable<int> ReadAllAsync(
-                CancellationToken ct = default) => Reader.ReadAllAsync(ct);
+            public IAsyncEnumerable<int> ReadAllAsync(CancellationToken ct = default)
+                => Reader.ReadAllAsync(ct);
         }
 
         private readonly ConcurrentDictionary<int, CaptureAdapter> _captures = new();
