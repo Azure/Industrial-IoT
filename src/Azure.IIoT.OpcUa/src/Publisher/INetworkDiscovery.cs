@@ -12,33 +12,37 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Network discovery services
     /// </summary>
-    public interface INetworkDiscovery
+    /// <typeparam name="T"></typeparam>
+    public interface INetworkDiscovery<T> where T : class
     {
         /// <summary>
         /// Discovery server in network with discovery url.
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task RegisterAsync(ServerRegistrationRequestModel request,
-            CancellationToken ct = default);
+            T? context = null, CancellationToken ct = default);
 
         /// <summary>
         /// Start a discovery run for servers in network.
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DiscoverAsync(DiscoveryRequestModel request,
-            CancellationToken ct = default);
+            T? context = null, CancellationToken ct = default);
 
         /// <summary>
         /// Cancel a discovery run that is ongoing
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task CancelAsync(DiscoveryCancelRequestModel request,
-            CancellationToken ct = default);
+            T? context = null, CancellationToken ct = default);
     }
 }

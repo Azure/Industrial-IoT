@@ -27,28 +27,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// Kick off onboarding of new server
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="discovererId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task RegisterAsync(ServerRegistrationRequestModel request,
-            CancellationToken ct = default);
+            string? discovererId = null, CancellationToken ct = default);
 
         /// <summary>
         /// Kick off a one time discovery on all supervisors
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="discovererId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DiscoverAsync(DiscoveryRequestModel request,
-            CancellationToken ct = default);
+            string? discovererId = null, CancellationToken ct = default);
 
         /// <summary>
         /// Cancel a discovery request with a particular id
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="discovererId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task CancelAsync(DiscoveryCancelRequestModel request,
-            CancellationToken ct = default);
+            string? discovererId = null, CancellationToken ct = default);
 
         /// <summary>
         /// Register new application.
@@ -158,10 +161,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         /// matches the endpoint query and register it in the registry.
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="discovererId"></param>
         /// <param name="ct"></param>
         /// <returns>New Endpoint identifier</returns>
         Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct = default);
+            string? discovererId = null, CancellationToken ct = default);
 
         /// <summary>
         /// Get endpoint

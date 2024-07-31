@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     /// <summary>
     /// Provides network discovery of endpoints
     /// </summary>
-    public sealed class NetworkDiscovery : INetworkDiscovery, IDisposable
+    public sealed class NetworkDiscovery : INetworkDiscovery<object>, IDisposable
     {
         /// <summary>
         /// Running in container
@@ -78,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         }
 
         /// <inheritdoc/>
-        public Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
+        public Task RegisterAsync(ServerRegistrationRequestModel request, object? context,
+            CancellationToken ct)
         {
             if (request.DiscoveryUrl == null)
             {
@@ -92,11 +93,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 {
                     DiscoveryUrls = new List<string> { request.DiscoveryUrl }
                 }
-            }, ct);
+            }, context, ct);
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
+        public async Task DiscoverAsync(DiscoveryRequestModel request, object? context,
+            CancellationToken ct)
         {
             kDiscoverAsync.Add(1, _metrics.TagList);
             ArgumentNullException.ThrowIfNull(request);
@@ -126,7 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
+        public async Task CancelAsync(DiscoveryCancelRequestModel request, object? context,
+            CancellationToken ct)
         {
             kCancelAsync.Add(1, _metrics.TagList);
             ArgumentNullException.ThrowIfNull(request);

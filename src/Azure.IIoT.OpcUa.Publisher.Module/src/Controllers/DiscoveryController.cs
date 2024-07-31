@@ -46,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <param name="discover"></param>
         /// <param name="servers"></param>
-        public DiscoveryController(INetworkDiscovery discover,
-            IServerDiscovery servers)
+        public DiscoveryController(INetworkDiscovery<object> discover,
+            IServerDiscovery<object> servers)
         {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _servers = servers ?? throw new ArgumentNullException(nameof(servers));
@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             [FromBody][Required] ServerEndpointQueryModel endpoint, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
-            return await _servers.FindServerAsync(endpoint, ct).ConfigureAwait(false);
+            return await _servers.FindServerAsync(endpoint, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _discover.RegisterAsync(request, ct).ConfigureAwait(false);
+            await _discover.RegisterAsync(request, ct: ct).ConfigureAwait(false);
             return true;
         }
 
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _discover.DiscoverAsync(request, ct).ConfigureAwait(false);
+            await _discover.DiscoverAsync(request, ct: ct).ConfigureAwait(false);
             return true;
         }
 
@@ -182,11 +182,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _discover.CancelAsync(request, ct).ConfigureAwait(false);
+            await _discover.CancelAsync(request, ct: ct).ConfigureAwait(false);
             return true;
         }
 
-        private readonly INetworkDiscovery _discover;
-        private readonly IServerDiscovery _servers;
+        private readonly INetworkDiscovery<object> _discover;
+        private readonly IServerDiscovery<object> _servers;
     }
 }
