@@ -26,14 +26,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "context", Order = 1,
             EmitDefaultValue = false)]
         public OperationContextModel? Context { get; set; }
-
-        /// <summary>
-        /// Cancel the discovery request with the specified
-        /// identifier on this publisher when the discovery
-        /// request originally was scoped to a single publisher.
-        /// </summary>
-        [DataMember(Name = "discovererId", Order = 2,
-            EmitDefaultValue = false)]
-        public string? DiscovererId { get; set; }
     }
 }

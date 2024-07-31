@@ -15,14 +15,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
     /// Registers endpoints with the endpoint and application
     /// registry
     /// </summary>
-    public sealed class EndpointManager : IEndpointManager
+    public sealed class EndpointManager : IEndpointManager<string>
     {
         /// <summary>
         /// Create endpoint manager
         /// </summary>
         /// <param name="discovery"></param>
         /// <param name="registry"></param>
-        public EndpointManager(IServerDiscovery discovery, IApplicationBulkProcessor registry)
+        public EndpointManager(IServerDiscovery<string> discovery, IApplicationBulkProcessor registry)
         {
             _discovery = discovery ?? throw new ArgumentNullException(nameof(discovery));
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
@@ -30,9 +30,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
 
         /// <inheritdoc/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct = default)
+            string? context = null, CancellationToken ct = default)
         {
-            var application = await _discovery.FindServerAsync(query, ct).ConfigureAwait(false)
+            var application = await _discovery.FindServerAsync(query, context, ct).ConfigureAwait(false)
                 ?? throw new ResourceNotFoundException("Could not find any endpoint");
             var registered = await _registry.AddDiscoveredApplicationAsync(application,
                 ct).ConfigureAwait(false);
@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services
                 ?? throw new ResourceInvalidStateException("Failed to register endpoint.");
         }
 
-        private readonly IServerDiscovery _discovery;
+        private readonly IServerDiscovery<string> _discovery;
         private readonly IApplicationBulkProcessor _registry;
     }
 }

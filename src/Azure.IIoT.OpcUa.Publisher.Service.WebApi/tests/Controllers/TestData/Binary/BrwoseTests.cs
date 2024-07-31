@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Controllers.TestData.M
         private BrowseServicesTests<string> GetTests()
         {
             var client = _factory.CreateClient(); // Call to create server
-            var registry = _factory.Resolve<IEndpointManager>();
+            var registry = _factory.Resolve<IEndpointManager<string>>();
             var endpointId = registry.RegisterEndpointAsync(_server.GetConnection().Endpoint).Result;
             return new BrowseServicesTests<string>(() => // Create an adapter over the api
                 new TwinWebApiAdapter(_client.Resolve<ControllerTestClient>()), endpointId);

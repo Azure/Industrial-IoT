@@ -17,12 +17,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <summary>
         /// Register endpoint
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="manager"></param>
         /// <param name="endpoint"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task<string> RegisterEndpointAsync(this IEndpointManager manager,
-            EndpointModel endpoint, CancellationToken ct = default)
+        public static Task<string> RegisterEndpointAsync<T>(this IEndpointManager<T> manager,
+            EndpointModel endpoint, T context = null, CancellationToken ct = default) where T : class
         {
             return manager.RegisterEndpointAsync(new ServerEndpointQueryModel
             {
@@ -30,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
                 SecurityPolicy = endpoint.SecurityPolicy,
                 SecurityMode = endpoint.SecurityMode,
                 Certificate = endpoint.Certificate
-            }, ct);
+            }, context, ct);
         }
     }
 }

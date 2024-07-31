@@ -45,13 +45,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "certificate", Order = 4,
             EmitDefaultValue = false)]
         public string? Certificate { get; set; }
-
-        /// <summary>
-        /// Use selected publisher for discovery or if not
-        /// specified the first publisher that can discover
-        /// </summary>
-        [DataMember(Name = "discovererId", Order = 5,
-            EmitDefaultValue = false)]
-        public string? DiscovererId { get; set; }
     }
 }

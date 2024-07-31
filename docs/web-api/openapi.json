@@ -36,6 +36,12 @@
                 ],
                 "parameters": [
                     {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the registration to a specific OPC Publisher using the publisher id",
+                        "type": "string"
+                    },
+                    {
                         "in": "body",
                         "name": "body",
                         "description": "Server registration request",
@@ -303,6 +309,12 @@
                 ],
                 "parameters": [
                     {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the discovery to a specific OPC Publisher using the publisher id",
+                        "type": "string"
+                    },
+                    {
                         "in": "body",
                         "name": "body",
                         "description": "Discovery request",
@@ -360,7 +372,7 @@
                     {
                         "in": "query",
                         "name": "discovererId",
-                        "description": "",
+                        "description": "Scope the cancellation to a specific OPC Publisher using the publisher id",
                         "type": "string"
                     }
                 ],
@@ -971,6 +983,12 @@
                     "application/x-msgpack"
                 ],
                 "parameters": [
+                    {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the registration to a specific OPC Publisher using the publisher id",
+                        "type": "string"
+                    },
                     {
                         "in": "body",
                         "name": "body",
@@ -6090,10 +6108,6 @@
                 },
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
-                },
-                "discovererId": {
-                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
-                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -8904,10 +8918,6 @@
                 "certificate": {
                     "description": "Endpoint must match with this certificate thumbprint",
                     "type": "string"
-                },
-                "discovererId": {
-                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
-                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -8926,10 +8936,6 @@
                 },
                 "id": {
                     "description": "User defined request id",
-                    "type": "string"
-                },
-                "discovererId": {
-                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
                     "type": "string"
                 },
                 "context": {

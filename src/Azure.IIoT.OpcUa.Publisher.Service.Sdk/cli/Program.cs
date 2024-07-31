@@ -1660,11 +1660,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new DiscoveryRequestModel
                 {
                     Id = id,
-                    DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId"),
                     Discovery = options.GetValueOrDefault(DiscoveryMode.Fast,
                         "-d", "--discovery"),
                     Configuration = BuildDiscoveryConfig(options)
-                }).ConfigureAwait(false);
+                }, options.GetValueOrNull<string>("-D", "--discovererId")).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1676,9 +1675,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             await _client.Registry.CancelAsync(
                 new DiscoveryCancelRequestModel
                 {
-                    DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId"),
                     Id = options.GetValueOrThrow<string>("-i", "--id")
-                }).ConfigureAwait(false);
+                }, options.GetValueOrNull<string>("-D", "--discovererId")).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -2066,9 +2064,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                     Url = options.GetValueOrNull<string>("-e", "--endpoint-url"),
                     SecurityMode = options.GetValueOrNull<SecurityMode?>("-m", "--mode"),
                     SecurityPolicy = options.GetValueOrNull<string>("-l", "--policy"),
-                    DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId"),
                     Certificate = options.GetValueOrNull<string>("-c", "--certificate")
-                }).ConfigureAwait(false);
+                }, options.GetValueOrNull<string>("-D", "--discovererId")).ConfigureAwait(false);
 
             PrintResult(options, result);
         }

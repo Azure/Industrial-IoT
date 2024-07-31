@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
     /// <summary>
     /// Implements discovery services as adapter on top of discovery api.
     /// </summary>
-    public sealed class DiscoveryApiAdapter : INetworkDiscovery, IServerDiscovery
+    public sealed class DiscoveryApiAdapter : INetworkDiscovery<object>, IServerDiscovery<object>
     {
         /// <summary>
         /// Create adapter
@@ -27,28 +27,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
 
         /// <inheritdoc/>
         public async Task RegisterAsync(ServerRegistrationRequestModel request,
-            CancellationToken ct = default)
+            object? context = null, CancellationToken ct = default)
         {
             await _client.RegisterAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request,
-            CancellationToken ct = default)
+            object? context = null, CancellationToken ct = default)
         {
             await _client.DiscoverAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelRequestModel request,
-            CancellationToken ct = default)
+            object? context = null, CancellationToken ct = default)
         {
             await _client.CancelAsync(request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel query, CancellationToken ct = default)
+            ServerEndpointQueryModel query, object? context = null,
+            CancellationToken ct = default)
         {
             return await _client.FindServerAsync(query, ct).ConfigureAwait(false);
         }

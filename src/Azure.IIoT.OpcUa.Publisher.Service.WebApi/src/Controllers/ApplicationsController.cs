@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="applications"></param>
         /// <param name="onboarding"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            INetworkDiscovery onboarding)
+            INetworkDiscovery<string> onboarding)
         {
             _applications = applications;
             _onboarding = onboarding;
@@ -54,6 +54,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// located by a supervisor in its network using the discovery url.
         /// </remarks>
         /// <param name="request">Server registration request</param>
+        /// <param name="discovererId">Scope the registration to a specific
+        /// OPC Publisher using the publisher id</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
@@ -70,10 +72,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [Authorize(Policy = Policies.CanWrite)]
         public async Task RegisterServerAsync(
             [FromBody][Required] ServerRegistrationRequestModel request,
-            CancellationToken ct)
+            [FromQuery] string? discovererId, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _onboarding.RegisterAsync(request, ct).ConfigureAwait(false);
+            await _onboarding.RegisterAsync(request, discovererId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -132,6 +134,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// network. Requires that the onboarding agent service is running.
         /// </remarks>
         /// <param name="request">Discovery request</param>
+        /// <param name="discovererId">Scope the discovery to a specific
+        /// OPC Publisher using the publisher id</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
@@ -147,10 +151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
         public async Task DiscoverServerAsync([FromBody][Required] DiscoveryRequestModel request,
-            CancellationToken ct)
+            [FromQuery] string? discovererId, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
-            await _onboarding.DiscoverAsync(request, ct).ConfigureAwait(false);
+            await _onboarding.DiscoverAsync(request, discovererId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -160,7 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Cancels a discovery request using the request identifier.
         /// </remarks>
         /// <param name="requestId">Discovery request</param>
-        /// <param name="discovererId"></param>
+        /// <param name="discovererId">Scope the cancellation to a specific
+        /// OPC Publisher using the publisher id</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
@@ -183,10 +188,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             await _onboarding.CancelAsync(new DiscoveryCancelRequestModel
             {
-                DiscovererId = discovererId,
                 Id = requestId
                 // TODO: AuthorityId = User.Identity.Name;
-            }, ct).ConfigureAwait(false);
+            }, discovererId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -476,6 +480,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         }
 
         private readonly IApplicationRegistry _applications;
-        private readonly INetworkDiscovery _onboarding;
+        private readonly INetworkDiscovery<string> _onboarding;
     }
 }

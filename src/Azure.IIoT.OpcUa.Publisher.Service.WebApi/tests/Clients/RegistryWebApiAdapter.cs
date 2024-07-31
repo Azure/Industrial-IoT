@@ -11,12 +11,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Google.Api;
 
     /// <summary>
     /// Registry services adapter to run dependent services outside of cloud.
     /// </summary>
     public sealed class RegistryWebApiAdapter : IEndpointRegistry, ISupervisorRegistry,
-        IApplicationRegistry, IPublisherRegistry, INetworkDiscovery, IEndpointManager
+        IApplicationRegistry, IPublisherRegistry, INetworkDiscovery<string>, IEndpointManager<string>
     {
         /// <summary>
         /// Create registry services
@@ -29,16 +30,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct)
+            string context, CancellationToken ct)
         {
-            return await _client.RegisterEndpointAsync(query, ct).ConfigureAwait(false);
+            return await _client.RegisterEndpointAsync(query, context,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId, bool onlyServerState,
-            CancellationToken ct)
+        public async Task<EndpointInfoModel> GetEndpointAsync(string endpointId,
+            bool onlyServerState, CancellationToken ct)
         {
-            return await _client.GetEndpointAsync(endpointId, onlyServerState, ct).ConfigureAwait(false);
+            return await _client.GetEndpointAsync(endpointId, onlyServerState,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -79,7 +82,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         public async Task<SupervisorModel> GetSupervisorAsync(string supervisorId,
             bool onlyServerState, CancellationToken ct)
         {
-            return await _client.GetSupervisorAsync(supervisorId, onlyServerState, ct).ConfigureAwait(false);
+            return await _client.GetSupervisorAsync(supervisorId, onlyServerState,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -110,14 +114,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         public async Task<PublisherModel> GetPublisherAsync(string publisherId,
             bool onlyServerState, CancellationToken ct)
         {
-            return await _client.GetPublisherAsync(publisherId, onlyServerState, ct).ConfigureAwait(false);
+            return await _client.GetPublisherAsync(publisherId, onlyServerState,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task UpdatePublisherAsync(string publisherId, PublisherUpdateModel request,
             CancellationToken ct)
         {
-            await _client.UpdatePublisherAsync(publisherId, request, ct).ConfigureAwait(false);
+            await _client.UpdatePublisherAsync(publisherId, request,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -146,21 +152,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
         public async Task<ApplicationSiteListModel> ListSitesAsync(
             string continuation, int? pageSize, CancellationToken ct)
         {
-            return await _client.ListSitesAsync(continuation, pageSize, ct).ConfigureAwait(false);
+            return await _client.ListSitesAsync(continuation, pageSize,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListApplicationsAsync(
             string continuation, int? pageSize, CancellationToken ct)
         {
-            return await _client.ListApplicationsAsync(continuation, pageSize, ct).ConfigureAwait(false);
+            return await _client.ListApplicationsAsync(continuation, pageSize,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryModel query, int? pageSize, CancellationToken ct)
         {
-            return await _client.QueryApplicationsAsync(query, pageSize, ct).ConfigureAwait(false);
+            return await _client.QueryApplicationsAsync(query, pageSize,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -193,22 +202,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
 
         /// <inheritdoc/>
         public Task DiscoverAsync(DiscoveryRequestModel request,
-            CancellationToken ct)
+            string context, CancellationToken ct)
         {
-            return _client.DiscoverAsync(request, ct);
+            return _client.DiscoverAsync(request, context, ct);
         }
 
         /// <inheritdoc/>
-        public Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
+        public Task CancelAsync(DiscoveryCancelRequestModel request,
+            string context, CancellationToken ct)
         {
-            return _client.CancelAsync(request, ct);
+            return _client.CancelAsync(request, context, ct);
         }
 
         /// <inheritdoc/>
         public Task RegisterAsync(ServerRegistrationRequestModel request,
-            CancellationToken ct = default)
+            string context, CancellationToken ct = default)
         {
-            return _client.RegisterAsync(request, ct);
+            return _client.RegisterAsync(request, context, ct);
         }
 
         private readonly IRegistryServiceApi _client;

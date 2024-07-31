@@ -585,7 +585,6 @@ Discovery request
 |---|---|---|
 |**configuration**  <br>*optional*||[DiscoveryConfigModel](definitions.md#discoveryconfigmodel)|
 |**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
-|**discovererId**  <br>*optional*|Use selected publisher for discovery or if not<br>specified the first publisher that can discover|string|
 |**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
 |**id**  <br>*optional*|Id of discovery request|string|
 
@@ -1824,7 +1823,6 @@ Endpoint model
 |Name|Description|Schema|
 |---|---|---|
 |**certificate**  <br>*optional*|Endpoint must match with this certificate thumbprint|string|
-|**discovererId**  <br>*optional*|Use selected publisher for discovery or if not<br>specified the first publisher that can discover|string|
 |**discoveryUrl**  <br>*optional*|Discovery url to use to query|string|
 |**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
 |**securityPolicy**  <br>*optional*|Endpoint must support this Security policy.|string|
@@ -1839,7 +1837,6 @@ Server registration request
 |Name|Description|Schema|
 |---|---|---|
 |**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
-|**discovererId**  <br>*optional*|Use selected publisher for discovery or if not<br>specified the first publisher that can discover|string|
 |**discoveryUrl**  <br>*required*|Discovery url to use for registration  <br>**Minimum length** : `1`|string|
 |**id**  <br>*optional*|User defined request id|string|
 

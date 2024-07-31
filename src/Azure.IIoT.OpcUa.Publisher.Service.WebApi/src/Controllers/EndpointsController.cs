@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <param name="activation"></param>
         /// <param name="certificates"></param>
         public EndpointsController(IEndpointRegistry endpoints,
-            IEndpointManager manager, IConnectionServices<string> activation,
+            IEndpointManager<string> manager, IConnectionServices<string> activation,
             ICertificateServices<string> certificates)
         {
             _manager = manager;
@@ -63,6 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// have at least the discovery url. If more information is specified it
         /// is used to validate that the application has such endpoint and if
         /// not the call will fail.</param>
+        /// <param name="discovererId">Scope the registration to a specific
+        /// OPC Publisher using the publisher id</param>
         /// <param name="ct"></param>
         /// <returns>Endpoint identifier</returns>
         /// <response code="200">The operation was successful.</response>
@@ -75,9 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPut]
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct)
+            [FromQuery] string? discovererId, CancellationToken ct)
         {
-            return await _manager.RegisterEndpointAsync(query, ct).ConfigureAwait(false);
+            return await _manager.RegisterEndpointAsync(query, discovererId, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -275,8 +277,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
                 ct).ConfigureAwait(false);
         }
 
-        private readonly IEndpointManager _manager;
         private readonly IEndpointRegistry _endpoints;
+        private readonly IEndpointManager<string> _manager;
         private readonly IConnectionServices<string> _connections;
         private readonly ICertificateServices<string> _certificates;
     }
