@@ -72,12 +72,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful or the response payload
         /// contains relevant error information.</response>
         /// <response code="400">The passed in information is invalid</response>
-        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("findserver")]
@@ -139,12 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful or the response payload
         /// contains relevant error information.</response>
         /// <response code="400">The passed in information is invalid</response>
-        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost]
@@ -174,12 +170,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful or the response payload
         /// contains relevant error information.</response>
         /// <response code="400">The passed in information is invalid</response>
-        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("cancel")]

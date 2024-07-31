@@ -1024,7 +1024,6 @@ Start network discovery using the provided discovery request configuration. The 
 |---|---|---|
 |**200**|The operation was successful or the response payload contains relevant error information.|boolean|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
-|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
@@ -1065,7 +1064,6 @@ Cancel a discovery run that is ongoing using the discovery request token specifi
 |---|---|---|
 |**200**|The operation was successful or the response payload contains relevant error information.|boolean|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
-|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
@@ -1106,7 +1104,6 @@ Find servers matching the specified endpoint query spec.
 |---|---|---|
 |**200**|The operation was successful or the response payload contains relevant error information.|[ApplicationRegistrationModel](definitions.md#applicationregistrationmodel)|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
-|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
