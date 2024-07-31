@@ -29,6 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? Id { get; set; }
 
         /// <summary>
+        /// Use selected publisher for discovery or if not
+        /// specified the first publisher that can discover
+        /// </summary>
+        [DataMember(Name = "discovererId", Order = 2,
+            EmitDefaultValue = false)]
+        public string? DiscovererId { get; set; }
+
+        /// <summary>
         /// Operation audit context
         /// </summary>
         [DataMember(Name = "context", Order = 3,

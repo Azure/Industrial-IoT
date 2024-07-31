@@ -60,9 +60,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// is <c>null</c>.</exception>
         /// <response code="200">The operation was successful.</response>
         /// <response code="400">The passed in information is invalid</response>
+        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost]
         [Authorize(Policy = Policies.CanWrite)]
@@ -136,14 +138,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// is <c>null</c>.</exception>
         /// <response code="200">The operation was successful.</response>
         /// <response code="400">The passed in information is invalid</response>
+        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("discover")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task DiscoverServerAsync(
-            [FromBody][Required] DiscoveryRequestModel request,
+        public async Task DiscoverServerAsync([FromBody][Required] DiscoveryRequestModel request,
             CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -157,18 +160,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// Cancels a discovery request using the request identifier.
         /// </remarks>
         /// <param name="requestId">Discovery request</param>
+        /// <param name="discovererId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <response code="200">The operation was successful.</response>
         /// <response code="400">The passed in information is invalid</response>
+        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpDelete("discover/{requestId}")]
         [Authorize(Policy = Policies.CanWrite)]
-        public async Task CancelAsync(string requestId,
+        public async Task CancelAsync(string requestId, [FromQuery] string? discovererId,
             CancellationToken ct)
         {
             if (string.IsNullOrEmpty(requestId))
@@ -177,6 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
             }
             await _onboarding.CancelAsync(new DiscoveryCancelRequestModel
             {
+                DiscovererId = discovererId,
                 Id = requestId
                 // TODO: AuthorityId = User.Identity.Name;
             }, ct).ConfigureAwait(false);

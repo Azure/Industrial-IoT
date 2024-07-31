@@ -40,5 +40,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "context", Order = 3,
             EmitDefaultValue = false)]
         public OperationContextModel? Context { get; set; }
+
+        /// <summary>
+        /// Use selected publisher for discovery or if not
+        /// specified the first publisher that can discover
+        /// </summary>
+        [DataMember(Name = "discovererId", Order = 4,
+            EmitDefaultValue = false)]
+        public string? DiscovererId { get; set; }
     }
 }

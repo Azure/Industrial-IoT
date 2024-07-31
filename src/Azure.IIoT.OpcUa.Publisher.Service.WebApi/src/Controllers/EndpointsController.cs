@@ -67,9 +67,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Controllers
         /// <returns>Endpoint identifier</returns>
         /// <response code="200">The operation was successful.</response>
         /// <response code="400">The passed in information is invalid</response>
+        /// <response code="404">The publisher specified was not found.</response>
         /// <response code="500">An internal error ocurred.</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPut]
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
