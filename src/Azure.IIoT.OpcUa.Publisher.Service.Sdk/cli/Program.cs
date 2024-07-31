@@ -1660,6 +1660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 new DiscoveryRequestModel
                 {
                     Id = id,
+                    DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId"),
                     Discovery = options.GetValueOrDefault(DiscoveryMode.Fast,
                         "-d", "--discovery"),
                     Configuration = BuildDiscoveryConfig(options)
@@ -1675,6 +1676,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             await _client.Registry.CancelAsync(
                 new DiscoveryCancelRequestModel
                 {
+                    DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId"),
                     Id = options.GetValueOrThrow<string>("-i", "--id")
                 }).ConfigureAwait(false);
         }
@@ -2064,6 +2066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                     Url = options.GetValueOrNull<string>("-e", "--endpoint-url"),
                     SecurityMode = options.GetValueOrNull<SecurityMode?>("-m", "--mode"),
                     SecurityPolicy = options.GetValueOrNull<string>("-l", "--policy"),
+                    DiscovererId = options.GetValueOrNull<string>("-D", "--discovererId"),
                     Certificate = options.GetValueOrNull<string>("-c", "--certificate")
                 }).ConfigureAwait(false);
 
@@ -2423,6 +2426,8 @@ Commands and Options
         with ...
         -i, --id        Request id for the discovery request.
         -d, --discovery Set discovery mode to use
+        -D  --discovererId
+                        Discover using specified discoverer.
         -I, --idle-time Idle time between scans in seconds
         -p, --port-ranges
                         Port ranges to scan.
@@ -2441,6 +2446,8 @@ Commands and Options
      cancel      Cancel application discovery.
         with ...
         -i, --id        Request id of the discovery request (mandatory).
+        -D  --discovererId
+                        Discovery was started using this discoverer.
 
      register    Manually register Application
         with ...
@@ -2535,6 +2542,8 @@ Commands and Options
         -e, --endpoint  The endpoint url to match against
         -c, --certificate
                         The certificate thumbprint to match
+        -D  --discovererId
+                        Onboard using specified discoverer.
         -m, --mode      The security mode to match
         -l, --policy    The security policy to match
 

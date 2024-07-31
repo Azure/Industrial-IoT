@@ -31,6 +31,7 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -176,6 +177,7 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -207,6 +209,7 @@ Cancels a discovery request using the request identifier.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**requestId**  <br>*required*|Discovery request|string|
+|**Query**|**discovererId**  <br>*optional*||string|
 
 
 ##### Responses
@@ -215,6 +218,7 @@ Cancels a discovery request using the request identifier.
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -758,6 +762,7 @@ Adds an endpoint. This will onboard the endpoint and the associated application 
 |---|---|---|
 |**200**|The operation was successful.|string|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 

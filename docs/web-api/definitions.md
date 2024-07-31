@@ -585,6 +585,7 @@ Discovery request
 |---|---|---|
 |**configuration**  <br>*optional*||[DiscoveryConfigModel](definitions.md#discoveryconfigmodel)|
 |**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+|**discovererId**  <br>*optional*|Use selected publisher for discovery or if not<br>specified the first publisher that can discover|string|
 |**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
 |**id**  <br>*optional*|Id of discovery request|string|
 
@@ -1504,6 +1505,7 @@ Contains the nodes which should be published
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**DataSetWriterWatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
 |**DisableSubscriptionTransfer**  <br>*optional*|Disable subscription transfer on reconnect|boolean|
+|**DumpConnectionDiagnostics**  <br>*optional*|Dump server diagnostics for the connection to enable<br>advanced troubleshooting scenarios.|boolean|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
 |**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
@@ -1822,6 +1824,7 @@ Endpoint model
 |Name|Description|Schema|
 |---|---|---|
 |**certificate**  <br>*optional*|Endpoint must match with this certificate thumbprint|string|
+|**discovererId**  <br>*optional*|Use selected publisher for discovery or if not<br>specified the first publisher that can discover|string|
 |**discoveryUrl**  <br>*optional*|Discovery url to use to query|string|
 |**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
 |**securityPolicy**  <br>*optional*|Endpoint must support this Security policy.|string|
@@ -1836,6 +1839,7 @@ Server registration request
 |Name|Description|Schema|
 |---|---|---|
 |**context**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
+|**discovererId**  <br>*optional*|Use selected publisher for discovery or if not<br>specified the first publisher that can discover|string|
 |**discoveryUrl**  <br>*required*|Discovery url to use for registration  <br>**Minimum length** : `1`|string|
 |**id**  <br>*optional*|User defined request id|string|
 

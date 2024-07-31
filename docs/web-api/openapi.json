@@ -55,6 +55,12 @@
                             "$ref": "#/definitions/ProblemDetails"
                         }
                     },
+                    "404": {
+                        "description": "The publisher specified was not found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
                     "500": {
                         "description": "An internal error ocurred.",
                         "schema": {
@@ -316,6 +322,12 @@
                             "$ref": "#/definitions/ProblemDetails"
                         }
                     },
+                    "404": {
+                        "description": "The publisher specified was not found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
                     "500": {
                         "description": "An internal error ocurred.",
                         "schema": {
@@ -344,6 +356,12 @@
                         "description": "Discovery request",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "",
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -352,6 +370,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -965,6 +989,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -6060,6 +6090,10 @@
                 },
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
+                },
+                "discovererId": {
+                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
+                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -8261,6 +8295,10 @@
                     "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
                     "type": "boolean"
                 },
+                "DumpConnectionDiagnostics": {
+                    "description": "Dump server diagnostics for the connection to enable\r\nadvanced troubleshooting scenarios.",
+                    "type": "boolean"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }
@@ -8866,6 +8904,10 @@
                 "certificate": {
                     "description": "Endpoint must match with this certificate thumbprint",
                     "type": "string"
+                },
+                "discovererId": {
+                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
+                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -8884,6 +8926,10 @@
                 },
                 "id": {
                     "description": "User defined request id",
+                    "type": "string"
+                },
+                "discovererId": {
+                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
                     "type": "string"
                 },
                 "context": {

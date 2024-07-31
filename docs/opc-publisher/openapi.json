@@ -1330,6 +1330,12 @@
                             "$ref": "#/definitions/ProblemDetails"
                         }
                     },
+                    "404": {
+                        "description": "The publisher specified was not found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
                     "408": {
                         "description": "The operation timed out.",
                         "schema": {
@@ -1440,6 +1446,12 @@
                             "$ref": "#/definitions/ProblemDetails"
                         }
                     },
+                    "404": {
+                        "description": "The publisher specified was not found.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
                     "408": {
                         "description": "The operation timed out.",
                         "schema": {
@@ -1491,6 +1503,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -5534,6 +5552,10 @@
                 },
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
+                },
+                "discovererId": {
+                    "description": "Cancel the discovery request with the specified\r\nidentifier on this publisher when the discovery\r\nrequest originally was scoped to a single publisher.",
+                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -5628,6 +5650,10 @@
                 },
                 "context": {
                     "$ref": "#/definitions/OperationContextModel"
+                },
+                "discovererId": {
+                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
+                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -8656,6 +8682,10 @@
                 "certificate": {
                     "description": "Endpoint must match with this certificate thumbprint",
                     "type": "string"
+                },
+                "discovererId": {
+                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
+                    "type": "string"
                 }
             },
             "additionalProperties": false
@@ -8674,6 +8704,10 @@
                 },
                 "id": {
                     "description": "User defined request id",
+                    "type": "string"
+                },
+                "discovererId": {
+                    "description": "Use selected publisher for discovery or if not\r\nspecified the first publisher that can discover",
                     "type": "string"
                 },
                 "context": {
