@@ -5,6 +5,7 @@
 
 namespace Netcap;
 
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using CommandLine;
@@ -167,6 +168,10 @@ internal sealed class App : IDisposable
         public string? TenantId { get; set; } =
             Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
 
+        [Option('d', nameof(UseDeviceCode), Required = false,
+            HelpText = "Use device code authentication.")]
+        public bool UseDeviceCode { get; set; }
+
         [Option('s', nameof(SubscriptionId), Required = false,
             HelpText = "The subscription to use to install to." +
             "\nDefault uses all subscriptions accessible.")]
@@ -190,6 +195,10 @@ internal sealed class App : IDisposable
             "\nDefault uses all tenants accessible.")]
         public string? TenantId { get; set; } =
             Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+
+        [Option('d', nameof(UseDeviceCode), Required = false,
+            HelpText = "Use device code authentication.")]
+        public bool UseDeviceCode { get; set; }
 
         [Option('s', nameof(SubscriptionId), Required = false,
             HelpText = "The subscription to use to install to." +
@@ -347,11 +356,8 @@ internal sealed class App : IDisposable
     {
         _install ??= new InstallOptions();
         // Login to azure
-        var armClient = new ArmClient(new DefaultAzureCredential(
-            new DefaultAzureCredentialOptions
-            {
-                TenantId = _install.TenantId
-            }));
+        var armClient = new ArmClient(
+            GetAzureCredentials(_install.TenantId, _install.UseDeviceCode));
 
         _logger.LogInformation("Installing netcap module...");
 
@@ -377,13 +383,12 @@ internal sealed class App : IDisposable
             if (!string.IsNullOrWhiteSpace(_install.OutputPath))
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                if (!Extensions.IsRunningInContainer())
-                {
-                    while (Console.KeyAvailable) { Console.ReadKey(); }
-                    _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); }, ct);
-                    Console.WriteLine("Press any key to exit");
-                    Console.WriteLine();
-                }
+
+                while (Console.KeyAvailable) { Console.ReadKey(); }
+                _ = Task.Run(() => { Console.ReadKey(); cts.Cancel(); }, ct);
+                Console.WriteLine("Press any key to exit");
+                Console.WriteLine();
+
                 try
                 {
                     // Stop the logs from the module, when cancelled undeploy
@@ -427,11 +432,8 @@ internal sealed class App : IDisposable
     {
         _uninstall ??= new UninstallOptions();
         // Login to azure
-        var armClient = new ArmClient(new DefaultAzureCredential(
-            new DefaultAzureCredentialOptions
-            {
-                TenantId = _uninstall.TenantId
-            }));
+        var armClient = new ArmClient(GetAzureCredentials(_uninstall.TenantId,
+            _uninstall.UseDeviceCode));
 
         _logger.LogInformation("Uninstalling netcap module...");
 
@@ -979,6 +981,23 @@ internal sealed class App : IDisposable
 
         private readonly IHttpContextAccessor _context;
         private readonly ApiKeyProvider _apiKeyProvider;
+    }
+
+    private static TokenCredential GetAzureCredentials(string? tenantId,
+        bool useDeviceCode = false)
+    {
+        if (useDeviceCode)
+        {
+            return new DeviceCodeCredential(new DeviceCodeCredentialOptions
+            {
+                TenantId = tenantId
+            });
+        }
+        return new DefaultAzureCredential(
+            new DefaultAzureCredentialOptions
+            {
+                TenantId = tenantId
+            });
     }
 
     private HttpClient _publisherHttpClient;

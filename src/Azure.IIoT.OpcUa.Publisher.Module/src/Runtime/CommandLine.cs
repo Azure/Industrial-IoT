@@ -541,7 +541,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"ll|loglevel=|{Configuration.LoggingLevel.LogLevelKey}=",
                     $"The loglevel to use.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(LogLevel)))}`\nDefault: `{LogLevel.Information}`.\n",
                     (LogLevel l) => this[Configuration.LoggingLevel.LogLevelKey] = l.ToString() },
-               { $"lfm|logformat=|{Configuration.LoggingFormat.LogFormatKey}=",
+                { $"lfm|logformat=|{Configuration.LoggingFormat.LogFormatKey}=",
                     $"The log format to use when writing to the console.\nAllowed values:\n    `{string.Join("`\n    `", Configuration.LoggingFormat.LogFormatsSupported)}`\nDefault: `{Configuration.LoggingFormat.LogFormatDefault}`.\n",
                     (string s) => this[Configuration.LoggingFormat.LogFormatKey] = s },
                 { $"di|diagnosticsinterval=|{PublisherConfig.DiagnosticsIntervalKey}=",

@@ -170,6 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             UseSecurity = false,
                             UseReverseConnect = null,
                             DisableSubscriptionTransfer = null,
+                            DumpConnectionDiagnostics = null,
                             EndpointSecurityPolicy = null,
                             EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,
@@ -441,7 +442,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                     (b.Header.UseReverseConnect == true ?
                                                          ConnectionOptions.UseReverseConnect : ConnectionOptions.None) |
                                                     (b.Header.DisableSubscriptionTransfer == true ?
-                                                         ConnectionOptions.NoSubscriptionTransfer : ConnectionOptions.None),
+                                                         ConnectionOptions.NoSubscriptionTransfer : ConnectionOptions.None) |
+                                                    (b.Header.DumpConnectionDiagnostics == true ?
+                                                         ConnectionOptions.DumpDiagnostics : ConnectionOptions.None),
                                                 Endpoint = new EndpointModel
                                                 {
                                                     Url = b.Header.EndpointUrl,
@@ -769,6 +772,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null;
                 publishedNodesEntryModel.DisableSubscriptionTransfer =
                     connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null;
+                publishedNodesEntryModel.DumpConnectionDiagnostics =
+                    connection.Options.HasFlag(ConnectionOptions.DumpDiagnostics) ? true : null;
             }
             return publishedNodesEntryModel;
 

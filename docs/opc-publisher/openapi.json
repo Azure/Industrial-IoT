@@ -5173,7 +5173,8 @@
                 "None",
                 "UseReverseConnect",
                 "NoComplexTypeSystem",
-                "NoSubscriptionTransfer"
+                "NoSubscriptionTransfer",
+                "DumpDiagnostics"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -7951,6 +7952,10 @@
                 },
                 "MessageRetention": {
                     "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
+                    "type": "boolean"
+                },
+                "DumpConnectionDiagnostics": {
+                    "description": "Dump server diagnostics for the connection to enable\r\nadvanced troubleshooting scenarios.",
                     "type": "boolean"
                 },
                 "NodeId": {

@@ -17,6 +17,8 @@ In this document you find information about
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
 - [Restart the module](#restart-the-module)
 - [Analyzing network capture files](#analyzing-network-capture-files)
+  - [Netcap](#netcap)
+- [Session and Subscription diagnostics](#session-and-subscription-diagnostics)
 - [Limits and contributing factors](#limits-and-contributing-factors)
 - [Debugging Discovery](#debugging-discovery)
 
@@ -65,7 +67,7 @@ For a complete overview of all production deployment settings for IoT Edge, see 
 
 [Retrieve the logs](./observability.md) from publisher and examine.
 
-If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` c[command line options](./commandline.md). Using the logs:
+If you disabled console output of the logs and are not monitoring metrics, enable diagnostics output to the console using the `--di` [command line options](./commandline.md). Using the logs:
 
 - Observe data throughput and make sure that the data changes over time are as you are expecting.
 - Check whether all endpoints are connected. This can be seen during session establishment and in the periodic diagnostic logs.
@@ -169,7 +171,7 @@ You can also troubleshoot the OPC Publisher module remotely through the Azure Po
 
 ## Analyzing network capture files
 
-The issue might be between the OPC Publisher OPC UA client and the OPC UA server you are using. A network capture provides the definitive answer as to where the issue lies. To capture network traffic you can use [Wireshark](https://www.wireshark.org/) or [tshark](https://tshark.dev/setup/install/) (aka. command line wireshark) and capture a .pcap file for analysis.  An example of how to capture network traces in a docker environment can be found [here](../../deploy/docker/with-pcap-capture.yaml). To analyze OPC UA traffic, you must load the .pcap or .pcapng file you captured with Wireshark.
+The issue might be between the OPC Publisher OPC UA client and the OPC UA server you are using. A network capture provides the definitive answer as to where the issue lies. To capture network traffic you can use [Wireshark](https://www.wireshark.org/) or [tshark](https://tshark.dev/setup/install/) (aka. command line wireshark) and capture a .pcap file for analysis.  An example of how to capture network traces in a docker environment can be found [here](../../deploy/docker/with-pcap-capture.yaml). To analyze OPC UA traffic, you must load the .pcap or .pcapng file you captured in Wireshark.
 
 Follow [these instructions](https://opcconnect.opcfoundation.org/2017/02/analyzing-opc-ua-communications-with-wireshark/#:~:text=Wireshark%20has%20a%20built-in%20filter%20for%20OPC%20UA%2C,fairly%20easy%20to%20capture%20and%20analyze%20the%20conversation.) to visualize the OPC UA traffic between OPC Publisher and your OPC UA server.
 
@@ -190,6 +192,22 @@ Once you have found the right folder, load the `opcua_debug.txt` file in it usin
 ![Wireshark Analysis](./media/keyset3.png)
 
 > IMPORTANT: While the keys that are logged are scoped to the connection and cannot be re-used, it still presents a security risk, therefore, ensure to properly delete the `opcua_debug` folder and all its content when you are done. Do not use the feature in production.
+
+### Netcap
+
+To simplify capturing network traces you can try out the [Netcap](../../samples/Netcap/readme.md) sample tool. It enables you to capture network traffic for an OPC Publisher module deployed to Azure IoT Edge.
+
+## Session and Subscription diagnostics
+
+To enable client diagnostics output to the console use the `--di` [command line options](./commandline.md).
+
+The OPC Publisher can be configured to dump a the server diagnostics information for a session (connection) at an interval. The diagnostic information contains the session diagnostics and subscription diagnostics the server maintains provided it is enabled on the server. The OPC Publisher tries to enable the diagnostics information if it is disabled.
+
+Use it to see how the server sees the OPC Publisher and identify issues like leaked subscriptions (not cleaned up and causing resource exhaustion) or monitored items not being reflected on the server's view of the subscription.
+
+To enable a connection to dump its diagnostics, add a `"DumpConnectionDiagnostics": true` entry into the JSON configuration entry you want to diagnose.
+
+> Dumping diagnostics info is additional heavy load on the server. Use only sparingly, temporarily, and as a diagnostics tool only.
 
 ## Limits and contributing factors
 

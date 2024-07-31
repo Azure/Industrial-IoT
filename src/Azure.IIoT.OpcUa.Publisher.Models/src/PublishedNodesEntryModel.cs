@@ -433,6 +433,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? MessageRetention { get; set; }
 
         /// <summary>
+        /// Dump server diagnostics for the connection to enable
+        /// advanced troubleshooting scenarios.
+        /// </summary>
+        [DataMember(Name = "DumpConnectionDiagnostics", Order = 54,
+            EmitDefaultValue = false)]
+        public bool? DumpConnectionDiagnostics { get; set; }
+
+        /// <summary>
         /// The node to monitor in "ns=" syntax.
         /// </summary>
         [DataMember(Name = "NodeId", Order = 99,
