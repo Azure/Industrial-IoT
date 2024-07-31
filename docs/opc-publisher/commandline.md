@@ -1072,11 +1072,6 @@ Diagnostic options
                                    `Logger`
                                    `Events`
                                Default: `Logger`.
-      --cdi, --clientdiagnosticinterval, --ClientDiagnosticsInterval=VALUE
-                             When enabled in the configuration diagnostics for
-                               the connection are dumped to the console every n
-                               seconds.
-                               Default: `30` seconds when enabled.
       --dr, --disableresourcemonitoring, --DisableResourceMonitoring[=VALUE]
                              Disable resource monitoring as part of the
                                diagnostics output and metrics.

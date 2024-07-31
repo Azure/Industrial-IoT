@@ -112,11 +112,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OperationLimits? LimitOverrides { get; set; }
 
         /// <summary>
-        /// Dump diagnostics using this interval
-        /// </summary>
-        internal TimeSpan? DiagnosticsInterval { get; set; }
-
-        /// <summary>
         /// Last diagnostic information on this client
         /// </summary>
         internal ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
@@ -2039,8 +2034,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async Task DumpDiagnosticsPeriodicallyAsync(CancellationToken ct)
         {
-            using var timer = new PeriodicTimer(DiagnosticsInterval
-                ?? TimeSpan.FromSeconds(30));
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
             try
             {
                 while (!ct.IsCancellationRequested)

@@ -203,9 +203,11 @@ To enable client diagnostics output to the console use the `--di` [command line 
 
 The OPC Publisher can be configured to dump a the server diagnostics information for a session (connection) at an interval. The diagnostic information contains the session diagnostics and subscription diagnostics the server maintains provided it is enabled on the server. The OPC Publisher tries to enable the diagnostics information if it is disabled.
 
-To enable a connection to dump its diagnostics, add a `"DumpConnectionDiagnostics": true` entry into the JSON configuration entry you want to diagnose. You can configure the interval in seconds using the `--cdi` option, the default is 30 seconds.
+Use it to see how the server sees the OPC Publisher and identify issues like leaked subscriptions (not cleaned up and causing resource exhaustion) or monitored items not being reflected on the server's view of the subscription.
 
-Dumping diagnostics info is heavy on the server. Use it to see how the server sees the OPC Publisher and identify issues like leaked subscriptions (not cleaned up and causing resource exhaustion) or monitored items not being reflected on the server's view of the subscription.
+To enable a connection to dump its diagnostics, add a `"DumpConnectionDiagnostics": true` entry into the JSON configuration entry you want to diagnose.
+
+> Dumping diagnostics info is additional heavy load on the server. Use only sparingly, temporarily, and as a diagnostics tool only.
 
 ## Limits and contributing factors
 
