@@ -33,7 +33,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// the server.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class NodeServices<T> : INodeServices<T>, INodeServicesInternal<T>, IDisposable
+    public sealed class NodeServices<T> : INodeServices<T>, INodeServicesInternal<T>,
+        IDisposable
     {
         /// <summary>
         /// Create node service
@@ -1616,12 +1617,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 rootId = ObjectIds.RootFolder;
             }
-            var result = new BrowsePathResponseModel
+            var browsepaths = new BrowsePathCollection
             {
-                Targets = new List<NodePathTargetModel>()
-            };
-            var browsepaths = new BrowsePathCollection {
-                new BrowsePath {
+                new BrowsePath
+                {
                     StartingNode = rootId,
                     RelativePath = paths.ToRelativePath(session.MessageContext)
                 }

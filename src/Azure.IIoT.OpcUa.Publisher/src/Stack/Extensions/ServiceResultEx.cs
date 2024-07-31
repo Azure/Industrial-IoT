@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Avro.File;
     using Opc.Ua;
     using System;
 
@@ -18,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="sr"></param>
         /// <returns></returns>
-        public static ServiceResultModel? ToServiceResultModel(this ServiceResult sr)
+        public static ServiceResultModel ToServiceResultModel(this ServiceResult sr)
         {
             return new ServiceResultModel
             {
@@ -39,25 +40,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        public static ServiceResultModel? ToServiceResultModel(this Exception e)
+        public static ServiceResultModel ToServiceResultModel(this Exception e)
         {
             switch (e)
             {
-                case null:
-                    return null;
                 case ServiceResultException sre:
                     return sre.Result.ToServiceResultModel();
                 case TimeoutException:
+                    return Create(StatusCodes.BadTimeout, e.Message);
                 case OperationCanceledException:
-                    return null;
+                    return Create(StatusCodes.BadRequestCancelledByClient, e.Message);
                 default:
-                    return new ServiceResultModel
-                    {
-                        ErrorMessage = e.Message,
-                        SymbolicId = StatusCode.LookupSymbolicId(StatusCodes.Bad),
-                        StatusCode = StatusCodes.Bad
-                    };
+                    return Create(StatusCodes.Bad, e.Message);
             }
+            static ServiceResultModel Create(uint code, string message) =>
+                new ServiceResultModel
+                {
+                    ErrorMessage = message,
+                    SymbolicId = StatusCode.LookupSymbolicId(code),
+                    StatusCode = code
+                };
         }
 
         /// <summary>
