@@ -8,17 +8,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System;
 
     /// <summary>
-    /// Access to clients
+    /// The session handle
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal interface IClientAccessor<T>
+    public interface ISessionHandle : IDisposable
     {
         /// <summary>
-        /// Get a client handle. The client handle must be
-        /// disposed when not used anymore.
+        /// Session
         /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        IOpcUaClient GetOrCreateClient(T connection);
+        public IOpcUaSession Session { get; }
+
+        /// <summary>
+        /// Service call timeout
+        /// </summary>
+        TimeSpan ServiceCallTimeout { get; }
     }
 }

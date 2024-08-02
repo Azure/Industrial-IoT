@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="attributeId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<(T?, ServiceResultModel?)> ReadAttributeAsync<T>(
+        internal static async Task<(T?, ServiceResultModel?)> ReadAttributeAsync<T>(
             this IOpcUaSession session, RequestHeader header, NodeId nodeIds,
             uint attributeId, CancellationToken ct = default)
         {
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="attributeId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<(T?, ServiceResultModel?)>> ReadAttributeAsync<T>(
+        internal static async Task<IEnumerable<(T?, ServiceResultModel?)>> ReadAttributeAsync<T>(
             this IOpcUaSession session, RequestHeader header, IEnumerable<NodeId> nodeIds,
             uint attributeId, CancellationToken ct = default)
         {
@@ -625,7 +625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="hierarchy"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task CollectTypeHierarchyAsync(this IOpcUaSession session,
+        internal static async Task CollectTypeHierarchyAsync(this IOpcUaSession session,
             RequestHeader header, NodeId typeId, IList<(NodeId, ReferenceDescription)> hierarchy,
             CancellationToken ct = default)
         {
@@ -714,9 +714,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     .ToList();
 
                 // find the modelling rules.
-                var targets = await session.FindTargetOfReferenceAsync(requestHeader,
+                var (targets, errorInfo2) = await session.FindAsync(requestHeader,
                     references.Select(r => (NodeId)r.NodeId),
-                    ReferenceTypeIds.HasModellingRule, ct).ConfigureAwait(false);
+                    ReferenceTypeIds.HasModellingRule, ct: ct).ConfigureAwait(false);
+                if (errorInfo2 != null)
+                {
+                    return errorInfo2;
+                }
                 var referencesWithRules = targets
                     .Zip(references)
                     .ToList();
@@ -730,7 +734,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     var relativePath = ImmutableRelativePath.Create(parent?.BrowsePath,
                         "/" + browseName);
                     var nodeClass = reference.NodeClass.ToServiceType();
-                    if (NodeId.IsNull(modellingRule.Item2) || nodeClass == null)
+                    if (NodeId.IsNull(modellingRule.Node) || nodeClass == null)
                     {
                         // if the modelling rule is null then the instance is not part
                         // of the type declaration.
@@ -756,9 +760,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             displayName : $"{parent.DisplayPath}/{displayName}",
                         DisplayName = displayName,
                         BrowsePath = relativePath.Path,
-                        ModellingRule = modellingRule.Item1.AsString(session.MessageContext,
+                        ModellingRule = modellingRule.Name.AsString(session.MessageContext,
                             namespaceFormat),
-                        ModellingRuleId = modellingRule.Item2.AsString(session.MessageContext,
+                        ModellingRuleId = modellingRule.Node.AsString(session.MessageContext,
                             namespaceFormat),
                         OverriddenDeclaration = overriden
                     };
@@ -1207,18 +1211,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         }
 
         /// <summary>
+        /// Find results
+        /// </summary>
+        /// <param name="Name"></param>
+        /// <param name="Node"></param>
+        /// <param name="TypeDefinition"></param>
+        /// <param name="ErrorInfo"></param>
+        internal record struct FindResult(QualifiedName Name, NodeId Node,
+            ExpandedNodeId TypeDefinition, ServiceResultModel? ErrorInfo = null);
+
+        /// <summary>
         /// Finds the targets for the specified reference.
         /// </summary>
         /// <param name="session"></param>
         /// <param name="requestHeader"></param>
         /// <param name="nodeIds"></param>
         /// <param name="referenceTypeId"></param>
+        /// <param name="includeSubTypes"></param>
+        /// <param name="nodeClassMask"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal static async Task<IEnumerable<(QualifiedName, NodeId)>> FindTargetOfReferenceAsync(
+        internal static async Task<(IEnumerable<FindResult>, ServiceResultModel?)> FindAsync(
             this IOpcUaSession session, RequestHeader requestHeader,
-            IEnumerable<NodeId> nodeIds, NodeId referenceTypeId,
-            CancellationToken ct = default)
+            IEnumerable<NodeId> nodeIds, NodeId referenceTypeId, bool includeSubTypes = false,
+            uint nodeClassMask = 0, CancellationToken ct = default)
         {
             // construct browse request.
             var nodesToBrowse = new BrowseDescriptionCollection(nodeIds
@@ -1227,19 +1243,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     NodeId = nodeId,
                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeId = referenceTypeId,
-                    IncludeSubtypes = false,
-                    NodeClassMask = 0,
-                    ResultMask = (uint)BrowseResultMask.BrowseName
+                    IncludeSubtypes = includeSubTypes,
+                    NodeClassMask = nodeClassMask,
+                    ResultMask =
+                        (uint)BrowseResultMask.BrowseName |
+                        (uint)BrowseResultMask.TypeDefinition
                 }));
 
             var response = await session.Services.BrowseAsync(requestHeader, null, 1,
                 nodesToBrowse, ct).ConfigureAwait(false);
             var results = response.Validate(response.Results, s => s.StatusCode,
                 response.DiagnosticInfos, nodesToBrowse);
-            var targetIds = new List<(QualifiedName, NodeId)>();
+            var targetIds = new List<FindResult>();
             if (results.ErrorInfo != null)
             {
-                return targetIds;
+                return (targetIds, results.ErrorInfo);
             }
 
             var continuationPoints = new ByteStringCollection();
@@ -1248,7 +1266,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 // check for error.
                 if (result.ErrorInfo != null)
                 {
-                    targetIds.Add((QualifiedName.Null, NodeId.Null));
+                    targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
+                        ExpandedNodeId.Null, result.ErrorInfo));
                     continue;
                 }
                 // check for continuation point.
@@ -1262,12 +1281,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     if (NodeId.IsNull(result.Result.References[0].NodeId) ||
                         result.Result.References[0].NodeId.IsAbsolute)
                     {
-                        targetIds.Add((QualifiedName.Null, NodeId.Null));
+                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null, ExpandedNodeId.Null,
+                            new ServiceResultModel { ErrorMessage = "Target node is null or absolute"}));
                         continue;
                     }
-                    targetIds.Add(
-                        (result.Result.References[0].BrowseName,
-                         (NodeId)result.Result.References[0].NodeId));
+                    targetIds.Add(new FindResult(result.Result.References[0].BrowseName,
+                         (NodeId)result.Result.References[0].NodeId,
+                         result.Result.References[0].TypeDefinition));
                 }
             }
 
@@ -1277,7 +1297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 await session.Services.BrowseNextAsync(requestHeader, true,
                     continuationPoints, ct).ConfigureAwait(false);
             }
-            return targetIds;
+            return (targetIds, null);
         }
 
         /// <summary>

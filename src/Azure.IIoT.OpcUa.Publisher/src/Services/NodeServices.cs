@@ -313,10 +313,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 else if (node.NodeClass is NodeClass.Variable or NodeClass.Object)
                 {
                     // Get type definition
-                    var references = await context.Session.FindTargetOfReferenceAsync(
+                    var (references, ei) = await context.Session.FindAsync(
                         request.Header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
-                        ReferenceTypeIds.HasTypeDefinition, context.Ct).ConfigureAwait(false);
-                    (_, typeId) = references.FirstOrDefault();
+                        ReferenceTypeIds.HasTypeDefinition, ct: context.Ct).ConfigureAwait(false);
+                    typeId = references.FirstOrDefault(r => r.ErrorInfo == null).Node;
                     if (NodeId.IsNull(typeId))
                     {
                         typeId = nodeId;

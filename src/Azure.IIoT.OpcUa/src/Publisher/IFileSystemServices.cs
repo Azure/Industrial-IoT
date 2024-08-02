@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Avro.File;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.IO;
@@ -34,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="fileSystemOrDirectory"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        IAsyncEnumerable<ServiceResponse<FileSystemObjectModel>> GetDirectoriesAsync(
+        Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetDirectoriesAsync(
             T endpoint, FileSystemObjectModel fileSystemOrDirectory,
             CancellationToken ct = default);
 
@@ -45,9 +46,19 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="fileSystemOrDirectory"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        IAsyncEnumerable<ServiceResponse<FileSystemObjectModel>> GetFilesAsync(
+        Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetFilesAsync(
             T endpoint, FileSystemObjectModel fileSystemOrDirectory,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Get file information for a file
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="file"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<ServiceResponse<FileInfoModel>> GetFileInfoAsync(T endpoint,
+            FileSystemObjectModel file, CancellationToken ct = default);
 
         /// <summary>
         /// Opens the file for reading. Closing the stream will close the file.
@@ -69,33 +80,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         Task<ServiceResponse<Stream>> OpenWriteAsync(T endpoint, FileSystemObjectModel file,
             FileWriteMode mode = FileWriteMode.Create, CancellationToken ct = default);
-
-        /// <summary>
-        /// Open the file for writing and copy the data from the stream
-        /// reaches the end. The stream is not closed.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="file"></param>
-        /// <param name="mode"></param>
-        /// <param name="stream"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<ServiceResultModel> CopyFromAsync(T endpoint, FileSystemObjectModel file,
-            Stream stream, FileWriteMode mode = FileWriteMode.Create,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Open the file for reading and copy the contents to the stream.
-        /// The stream is flushed but not closed.
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="file"></param>
-        /// <param name="stream"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<ServiceResultModel> CopyToAsync(T endpoint, FileSystemObjectModel file,
-            Stream stream, CancellationToken ct);
-
 
         /// <summary>
         /// Create parent directory under a file system or directory.
@@ -134,15 +118,5 @@ namespace Azure.IIoT.OpcUa.Publisher
         Task<ServiceResultModel> DeleteFileSystemObjectAsync(T endpoint,
             FileSystemObjectModel parentOrObjectToDelete, string? name = null,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Get file information for a file
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="file"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<ServiceResponse<FileInfoModel>> GetFileInfoAsync(T endpoint,
-            FileSystemObjectModel file, CancellationToken ct = default);
     }
 }
