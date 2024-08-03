@@ -70,7 +70,7 @@ namespace FileSystem
                 // enumerate segments.
                 if (_stage == Stage.Directories)
                 {
-                    if (IsRequired(ReferenceTypeIds.Organizes, false))
+                    if (IsRequired(ReferenceTypeIds.HasComponent, false))
                     {
                         reference = NextChild();
 
@@ -85,7 +85,7 @@ namespace FileSystem
                 }
 
                 // enumerate files.
-                if (_stage == Stage.Files && IsRequired(ReferenceTypeIds.Organizes, false))
+                if (_stage == Stage.Files && IsRequired(ReferenceTypeIds.HasComponent, false))
                 {
                     reference = NextChild();
 

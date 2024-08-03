@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Get type definition
                     var (references, ei) = await context.Session.FindAsync(
                         request.Header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
-                        ReferenceTypeIds.HasTypeDefinition, ct: context.Ct).ConfigureAwait(false);
+                        ReferenceTypeIds.HasTypeDefinition, maxGoodResults: 1, ct: context.Ct).ConfigureAwait(false);
                     typeId = references.FirstOrDefault(r => r.ErrorInfo == null).Node;
                     if (NodeId.IsNull(typeId))
                     {
@@ -1476,7 +1476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Result = new FileSystemObjectModel
                         {
                             NodeId = AsString(f.Node, context.Session.MessageContext, header),
-                            Name = AsString(f.Name, context.Session.MessageContext, header)
+                            Name = f.Name.Name
                         }
                     });
             }, header, ct).ConfigureAwait(false);
@@ -1516,7 +1516,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Result = new FileSystemObjectModel
                         {
                             NodeId = AsString(f.Node, context.Session.MessageContext, header),
-                            Name = AsString(f.Name, context.Session.MessageContext, header)
+                            Name = f.Name.Name
                         }
                     });
             }, header, ct).ConfigureAwait(false);

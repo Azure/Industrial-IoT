@@ -15,17 +15,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
     using Xunit.Abstractions;
 
     [Collection(FileCollection.Name)]
-    public class FileSystemTests
+    public class FileSystemBrowseTests
     {
-        public FileSystemTests(FileSystemServer server, ITestOutputHelper output)
+        public FileSystemBrowseTests(FileSystemServer server, ITestOutputHelper output)
         {
             _server = server;
             _output = output;
         }
 
-        private FileSystemTests<ConnectionModel> GetTests()
+        private FileSystemBrowseTests<ConnectionModel> GetTests()
         {
-            return new FileSystemTests<ConnectionModel>(
+            return new FileSystemBrowseTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level),
                     new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions()),
@@ -36,9 +36,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         private readonly ITestOutputHelper _output;
 
         [Fact]
-        public Task GetServerCapabilitiesTestAsync()
+        public Task GetFileSystemsTest1Async()
         {
-            return GetTests().GetServerCapabilitiesTestAsync();
+            return GetTests().GetFileSystemsTest1Async();
+        }
+
+        [Fact]
+        public Task GetDirectoriesTest1Async()
+        {
+            return GetTests().GetDirectoriesTest1Async();
+        }
+
+        [Fact]
+        public Task GetDirectoriesTest2Async()
+        {
+            return GetTests().GetDirectoriesTest2Async();
+        }
+
+        [Fact]
+        public Task GetDirectoriesTest3Async()
+        {
+            return GetTests().GetDirectoriesTest3Async();
         }
     }
 }

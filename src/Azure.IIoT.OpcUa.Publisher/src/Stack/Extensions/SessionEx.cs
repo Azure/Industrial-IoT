@@ -716,7 +716,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 // find the modelling rules.
                 var (targets, errorInfo2) = await session.FindAsync(requestHeader,
                     references.Select(r => (NodeId)r.NodeId),
-                    ReferenceTypeIds.HasModellingRule, ct: ct).ConfigureAwait(false);
+                    ReferenceTypeIds.HasModellingRule, maxGoodResults: 1, ct: ct).ConfigureAwait(false);
                 if (errorInfo2 != null)
                 {
                     return errorInfo2;
@@ -1229,12 +1229,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="referenceTypeId"></param>
         /// <param name="includeSubTypes"></param>
         /// <param name="nodeClassMask"></param>
+        /// <param name="maxGoodResults"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(IEnumerable<FindResult>, ServiceResultModel?)> FindAsync(
             this IOpcUaSession session, RequestHeader requestHeader,
             IEnumerable<NodeId> nodeIds, NodeId referenceTypeId, bool includeSubTypes = false,
-            uint nodeClassMask = 0, CancellationToken ct = default)
+            uint nodeClassMask = 0, uint? maxGoodResults = null, CancellationToken ct = default)
         {
             // construct browse request.
             var nodesToBrowse = new BrowseDescriptionCollection(nodeIds
@@ -1250,54 +1251,110 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         (uint)BrowseResultMask.TypeDefinition
                 }));
 
-            var response = await session.Services.BrowseAsync(requestHeader, null, 1,
-                nodesToBrowse, ct).ConfigureAwait(false);
-            var results = response.Validate(response.Results, s => s.StatusCode,
-                response.DiagnosticInfos, nodesToBrowse);
-            var targetIds = new List<FindResult>();
-            if (results.ErrorInfo != null)
-            {
-                return (targetIds, results.ErrorInfo);
-            }
-
             var continuationPoints = new ByteStringCollection();
-            foreach (var result in results)
+            try
             {
-                // check for error.
-                if (result.ErrorInfo != null)
+                var response = await session.Services.BrowseAsync(requestHeader, null,
+                    0u, nodesToBrowse, ct).ConfigureAwait(false);
+                var results = response.Validate(response.Results, s => s.StatusCode,
+                    response.DiagnosticInfos, nodesToBrowse);
+                var targetIds = new List<FindResult>();
+                if (results.ErrorInfo != null)
                 {
-                    targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
-                        ExpandedNodeId.Null, result.ErrorInfo));
-                    continue;
+                    return (targetIds, results.ErrorInfo);
                 }
-                // check for continuation point.
-                if (result.Result.ContinuationPoint?.Length > 0)
+
+                foreach (var result in results)
                 {
-                    continuationPoints.Add(result.Result.ContinuationPoint);
-                }
-                // get the node id.
-                if (result.Result.References.Count > 0)
-                {
-                    if (NodeId.IsNull(result.Result.References[0].NodeId) ||
-                        result.Result.References[0].NodeId.IsAbsolute)
+                    // check for error.
+                    if (result.ErrorInfo != null)
                     {
-                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null, ExpandedNodeId.Null,
-                            new ServiceResultModel { ErrorMessage = "Target node is null or absolute"}));
+                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
+                            ExpandedNodeId.Null, result.ErrorInfo));
                         continue;
                     }
-                    targetIds.Add(new FindResult(result.Result.References[0].BrowseName,
-                         (NodeId)result.Result.References[0].NodeId,
-                         result.Result.References[0].TypeDefinition));
+                    // check for continuation point.
+                    if (result.Result.ContinuationPoint?.Length > 0)
+                    {
+                        continuationPoints.Add(result.Result.ContinuationPoint);
+                    }
+                    if (!Extract(ref maxGoodResults, targetIds, result.Result.References))
+                    {
+                        break;
+                    }
+                }
+
+                while (continuationPoints.Count > 0 &&
+                    (!maxGoodResults.HasValue || maxGoodResults.Value > 0))
+                {
+                    var next = await session.Services.BrowseNextAsync(requestHeader, false,
+                        continuationPoints, ct).ConfigureAwait(false);
+                    var nextResults = next.Validate(next.Results, s => s.StatusCode,
+                                        next.DiagnosticInfos, continuationPoints);
+                    if (nextResults.ErrorInfo != null)
+                    {
+                        return (targetIds, nextResults.ErrorInfo);
+                    }
+
+                    continuationPoints = new ByteStringCollection();
+                    foreach (var result in nextResults)
+                    {
+                        // check for error.
+                        if (result.ErrorInfo != null)
+                        {
+                            targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
+                                ExpandedNodeId.Null, result.ErrorInfo));
+                            continue;
+                        }
+                        // check for continuation point.
+                        if (result.Result.ContinuationPoint?.Length > 0)
+                        {
+                            continuationPoints.Add(result.Result.ContinuationPoint);
+                        }
+                        if (!Extract(ref maxGoodResults, targetIds, result.Result.References))
+                        {
+                            break;
+                        }
+                    }
+                }
+                return (targetIds, null);
+            }
+            finally
+            {
+                // release continuation points.
+                if (continuationPoints.Count > 0)
+                {
+                    try
+                    {
+                        await session.Services.BrowseNextAsync(requestHeader, true,
+                            continuationPoints, ct).ConfigureAwait(false);
+                    }
+                    catch { }
                 }
             }
 
-            // release continuation points.
-            if (continuationPoints.Count > 0)
+            static bool Extract(ref uint? maxResults, List<FindResult> targetIds, ReferenceDescriptionCollection references)
             {
-                await session.Services.BrowseNextAsync(requestHeader, true,
-                    continuationPoints, ct).ConfigureAwait(false);
+                // get the node ids.
+                foreach (var reference in references)
+                {
+                    if (NodeId.IsNull(reference.NodeId) ||
+                        reference.NodeId.IsAbsolute)
+                    {
+                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null, ExpandedNodeId.Null,
+                            new ServiceResultModel { ErrorMessage = "Target node is null or absolute" }));
+                        continue;
+                    }
+                    targetIds.Add(new FindResult(reference.BrowseName,
+                         (NodeId)reference.NodeId,
+                         reference.TypeDefinition));
+                    if (maxResults.HasValue && --maxResults == 0)
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
-            return (targetIds, null);
         }
 
         /// <summary>

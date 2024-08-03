@@ -28,6 +28,12 @@ namespace FileSystem
             SystemContext.SystemHandle = _system = new FileSystem();
             SystemContext.NodeIdFactory = this;
 
+            var namespaceUris = new List<string> {
+                Namespaces.FileSystem
+            };
+            NamespaceUris = namespaceUris;
+
+            _namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[0]);
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
             _configuration = configuration.ParseExtension<FileSystemServerConfiguration>() ??
@@ -87,7 +93,7 @@ namespace FileSystem
                     }
 
                     // construct the NodeId of a segment.
-                    var fsId = ModelUtils.ConstructIdForVolume(fs.RootDirectory.FullName, NamespaceIndex);
+                    var fsId = ModelUtils.ConstructIdForVolume(fs.RootDirectory.FullName, _namespaceIndex);
 
                     // add an organizes reference from the server to the volume.
                     references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, fsId));
@@ -213,7 +219,7 @@ namespace FileSystem
                         return null;
                     }
 
-                    var rootId = ModelUtils.ConstructIdForVolume(volume.RootDirectory.FullName, NamespaceIndex);
+                    var rootId = ModelUtils.ConstructIdForVolume(volume.RootDirectory.FullName, _namespaceIndex);
 
                     // create a temporary object to use for the operation.
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -230,7 +236,7 @@ namespace FileSystem
                         return null;
                     }
 
-                    var rootId = ModelUtils.ConstructIdForDirectory(parsedNodeId.RootId, NamespaceIndex);
+                    var rootId = ModelUtils.ConstructIdForDirectory(parsedNodeId.RootId, _namespaceIndex);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     root = new DirectoryObjectState(context, rootId, parsedNodeId.RootId, false);
@@ -246,7 +252,7 @@ namespace FileSystem
                         return null;
                     }
 
-                    var rootId = ModelUtils.ConstructIdForFile(parsedNodeId.RootId, NamespaceIndex);
+                    var rootId = ModelUtils.ConstructIdForFile(parsedNodeId.RootId, _namespaceIndex);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     root = new FileObjectState(context, rootId, parsedNodeId.RootId);
@@ -287,6 +293,8 @@ namespace FileSystem
                 cache?.Add(handle.NodeId, target);
             }
         }
+
+        private readonly ushort _namespaceIndex;
 
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly FileSystemServerConfiguration _configuration;
