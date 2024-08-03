@@ -686,8 +686,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             CancellationToken ct = default)
         {
             // find the children of the type.
-            var nodeToBrowse = new BrowseDescriptionCollection {
-                new BrowseDescription {
+            var nodeToBrowse = new BrowseDescriptionCollection
+            {
+                new BrowseDescription
+                {
                     NodeId = parent == null ? typeId : parent.NodeId.ToNodeId(session.MessageContext),
                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeId = ReferenceTypeIds.HasChild,
@@ -712,11 +714,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 var references = result.References
                     .Where(r => !r.NodeId.IsAbsolute)
                     .ToList();
+                if (references.Count == 0)
+                {
+                    continue;
+                }
 
                 // find the modelling rules.
                 var (targets, errorInfo2) = await session.FindAsync(requestHeader,
                     references.Select(r => (NodeId)r.NodeId),
-                    ReferenceTypeIds.HasModellingRule, maxGoodResults: 1, ct: ct).ConfigureAwait(false);
+                    ReferenceTypeIds.HasModellingRule, maxResults: 1, ct: ct).ConfigureAwait(false);
                 if (errorInfo2 != null)
                 {
                     return errorInfo2;
@@ -1229,13 +1235,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="referenceTypeId"></param>
         /// <param name="includeSubTypes"></param>
         /// <param name="nodeClassMask"></param>
-        /// <param name="maxGoodResults"></param>
+        /// <param name="maxResults"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(IEnumerable<FindResult>, ServiceResultModel?)> FindAsync(
             this IOpcUaSession session, RequestHeader requestHeader,
             IEnumerable<NodeId> nodeIds, NodeId referenceTypeId, bool includeSubTypes = false,
-            uint nodeClassMask = 0, uint? maxGoodResults = null, CancellationToken ct = default)
+            uint nodeClassMask = 0, uint? maxResults = null, CancellationToken ct = default)
         {
             // construct browse request.
             var nodesToBrowse = new BrowseDescriptionCollection(nodeIds
@@ -1255,7 +1261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             try
             {
                 var response = await session.Services.BrowseAsync(requestHeader, null,
-                    0u, nodesToBrowse, ct).ConfigureAwait(false);
+                    maxResults ?? 0u, nodesToBrowse, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, s => s.StatusCode,
                     response.DiagnosticInfos, nodesToBrowse);
                 var targetIds = new List<FindResult>();
@@ -1278,14 +1284,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     {
                         continuationPoints.Add(result.Result.ContinuationPoint);
                     }
-                    if (!Extract(ref maxGoodResults, targetIds, result.Result.References))
+                    if (!Extract(targetIds, result.Result.References))
                     {
                         break;
                     }
                 }
 
-                while (continuationPoints.Count > 0 &&
-                    (!maxGoodResults.HasValue || maxGoodResults.Value > 0))
+                while (continuationPoints.Count > 0 && !maxResults.HasValue)
                 {
                     var next = await session.Services.BrowseNextAsync(requestHeader, false,
                         continuationPoints, ct).ConfigureAwait(false);
@@ -1311,7 +1316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         {
                             continuationPoints.Add(result.Result.ContinuationPoint);
                         }
-                        if (!Extract(ref maxGoodResults, targetIds, result.Result.References))
+                        if (!Extract(targetIds, result.Result.References))
                         {
                             break;
                         }
@@ -1333,7 +1338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 }
             }
 
-            static bool Extract(ref uint? maxResults, List<FindResult> targetIds, ReferenceDescriptionCollection references)
+            static bool Extract(List<FindResult> targetIds, ReferenceDescriptionCollection references)
             {
                 // get the node ids.
                 foreach (var reference in references)
@@ -1348,10 +1353,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     targetIds.Add(new FindResult(reference.BrowseName,
                          (NodeId)reference.NodeId,
                          reference.TypeDefinition));
-                    if (maxResults.HasValue && --maxResults == 0)
-                    {
-                        return false;
-                    }
                 }
                 return true;
             }
