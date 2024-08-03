@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// The name of the filesystem object
         /// </summary>
-        [DataMember(Name = "name", Order = 1,
+        [DataMember(Name = "name", Order = 2,
            EmitDefaultValue = false)]
         public string? Name { get; init; }
     }
