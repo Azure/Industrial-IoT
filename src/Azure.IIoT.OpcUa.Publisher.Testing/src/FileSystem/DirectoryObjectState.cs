@@ -12,7 +12,7 @@ namespace FileSystem
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-
+    using System.Xml.Linq;
 
     /// <summary>
     /// A object which maps a segment to directory
@@ -26,6 +26,11 @@ namespace FileSystem
         public string FullPath { get; }
 
         /// <summary>
+        /// Is volume
+        /// </summary>
+        public bool IsVolume { get; }
+
+        /// <summary>
         /// Create directory object
         /// </summary>
         /// <param name="context"></param>
@@ -33,165 +38,220 @@ namespace FileSystem
         /// <param name="path"></param>
         /// <param name="isVolume"></param>
         public DirectoryObjectState(ISystemContext context, NodeId nodeId,
-            string path, bool isVolume = false) : base(null)
+            string path, bool isVolume) : base(null)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             FullPath = path;
-
+            IsVolume = isVolume;
             TypeDefinitionId = ObjectTypeIds.FileDirectoryType;
             SymbolicName = path;
             NodeId = nodeId;
-            BrowseName = new QualifiedName(isVolume ? path : Path.GetDirectoryName(path), nodeId.NamespaceIndex);
-            DisplayName = new LocalizedText(isVolume ? path : Path.GetDirectoryName(path));
+            BrowseName = new QualifiedName(ModelUtils.GetName(path), nodeId.NamespaceIndex);
+            DisplayName = new LocalizedText(ModelUtils.GetName(path));
             Description = null;
             WriteMask = 0;
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
 
-            DeleteFileSystemObject.OnCallMethod2 += OnDeleteFileSystemObject;
-            CreateFile.OnCallMethod2 += OnCreateFile;
-            CreateDirectory.OnCallMethod2 += OnCreateDirectory;
-            MoveOrCopy.OnCallMethod2 += OnMoveOrCopy;
+            DeleteFileSystemObject = new DeleteFileMethodState(this);
+            DeleteFileSystemObject.OnCall = new DeleteFileMethodStateMethodCallHandler(OnDeleteFileSystemObject);
+            DeleteFileSystemObject.Executable = true;
+            DeleteFileSystemObject.UserExecutable = true;
+            DeleteFileSystemObject.Create(context, MethodIds.FileDirectoryType_DeleteFileSystemObject,
+                BrowseNames.DeleteFileSystemObject, BrowseNames.DeleteFileSystemObject, false);
+
+            CreateFile = new CreateFileMethodState(this);
+            CreateFile.OnCall = new CreateFileMethodStateMethodCallHandler(OnCreateFile);
+            CreateFile.Executable = true;
+            CreateFile.UserExecutable = true;
+            CreateFile.Create(context, MethodIds.FileDirectoryType_CreateFile,
+                BrowseNames.CreateFile, BrowseNames.CreateFile, false);
+
+            CreateDirectory = new CreateDirectoryMethodState(this);
+            CreateDirectory.OnCall = new CreateDirectoryMethodStateMethodCallHandler(OnCreateDirectory);
+            CreateDirectory.Executable = true;
+            CreateDirectory.UserExecutable = true;
+            CreateDirectory.Create(context, MethodIds.FileDirectoryType_CreateDirectory,
+                BrowseNames.CreateDirectory, BrowseNames.CreateDirectory, false);
+
+            MoveOrCopy = new MoveOrCopyMethodState(this);
+            MoveOrCopy.OnCall = new MoveOrCopyMethodStateMethodCallHandler(OnMoveOrCopy);
+            MoveOrCopy.Executable = true;
+            MoveOrCopy.UserExecutable = true;
+            MoveOrCopy.Create(context, MethodIds.FileDirectoryType_MoveOrCopy,
+                BrowseNames.MoveOrCopy, BrowseNames.MoveOrCopy, false);
         }
 
-        private ServiceResult OnMoveOrCopy(ISystemContext context, MethodState method,
-            NodeId objectId, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnMoveOrCopy(ISystemContext _context, MethodState _method,
+            NodeId _objectId, NodeId objectToMoveOrCopy, NodeId targetDirectory, bool createCopy,
+            string newName, ref NodeId newNodeId)
         {
-            var objectToMoveOrCopy = ParsedNodeId.Parse((NodeId)inputArguments[0]);
-            if (objectToMoveOrCopy.RootType == ModelUtils.Volume)
+            var objectToMoveOrCopy2 = ParsedNodeId.Parse(objectToMoveOrCopy);
+            if (objectToMoveOrCopy2.RootType == ModelUtils.Volume)
             {
-                return StatusCodes.BadInvalidArgument;
+                return ServiceResult.Create(StatusCodes.BadInvalidArgument,
+                    "Source is not a directory or file");
             }
-            var targetDirectory = ParsedNodeId.Parse((NodeId)inputArguments[1]);
-            if (targetDirectory.RootType != ModelUtils.Directory)
+            var targetDirectory2 = ParsedNodeId.Parse(targetDirectory);
+            if (targetDirectory2.RootType != ModelUtils.Directory)
             {
-                return StatusCodes.BadInvalidArgument;
+                return ServiceResult.Create(StatusCodes.BadInvalidArgument,
+                    "Target is not a directory");
             }
-            var path = Path.Combine(FullPath, objectToMoveOrCopy.RootId);
-            var dst = Path.Combine(FullPath, targetDirectory.RootId);
-            var copy = (bool)inputArguments[2];
-            if (File.Exists(path))
-            {
-                dst = Path.Combine(dst, Path.GetFileName(path));
-                if (copy)
-                {
-                    File.Copy(path, dst);
-                }
-                else
-                {
-                    File.Move(path, dst);
-                }
-                outputArguments.Add(ModelUtils.ConstructIdForFile(dst, NodeId.NamespaceIndex));
-                return StatusCodes.Good;
-            }
-            if (Directory.Exists(path))
-            {
-                if (copy)
-                {
-                    return StatusCodes.BadNotSupported;
-                    // System.IO.Directory.Copy(path, dst);
-                }
-                else
-                {
-                    Directory.Move(path, dst);
-                }
-                outputArguments.Add(ModelUtils.ConstructIdForDirectory(dst, NodeId.NamespaceIndex));
-                return StatusCodes.Good;
-            }
-            return StatusCodes.BadNotFound;
-        }
-
-        private ServiceResult OnCreateDirectory(ISystemContext context, MethodState method,
-            NodeId objectId, IList<object> inputArguments, IList<object> outputArguments)
-        {
-            var name = Path.Combine(FullPath, (string)inputArguments[0]);
-            if (Path.Exists(name))
-            {
-                return StatusCodes.BadBrowseNameDuplicated;
-            }
-            Directory.CreateDirectory(name);
-            outputArguments.Add(ModelUtils.ConstructIdForDirectory(name, NodeId.NamespaceIndex));
-            return StatusCodes.Good;
-        }
-
-        private ServiceResult OnCreateFile(ISystemContext context, MethodState method,
-            NodeId objectId, IList<object> inputArguments, IList<object> outputArguments)
-        {
-            if ((bool)inputArguments[1])
-            {
-                // requestFileOpen
-                return StatusCodes.BadNotSupported;
-            }
-            var name = Path.Combine(FullPath, (string)inputArguments[0]);
-            if (Path.Exists(name))
-            {
-                return StatusCodes.BadBrowseNameDuplicated;
-            }
-            using var f = File.Create(name);
-            outputArguments.Add(ModelUtils.ConstructIdForFile(name, NodeId.NamespaceIndex));
-            outputArguments.Add(0);
-            return StatusCodes.Good;
-        }
-
-        private ServiceResult OnDeleteFileSystemObject(ISystemContext context, MethodState method,
-            NodeId objectId, IList<object> inputArguments, IList<object> outputArguments)
-        {
-            var path = Path.Combine(FullPath, (string)inputArguments[0]);
+            var path = objectToMoveOrCopy2.RootId;
+            var dst = Path.Combine(targetDirectory2.RootId, newName ?? Path.GetFileName(path));
             try
             {
                 if (File.Exists(path))
                 {
-                    File.Delete(path);
-                    return StatusCodes.Good;
+                    if (createCopy)
+                    {
+                        File.Copy(path, dst);
+                    }
+                    else
+                    {
+                        File.Move(path, dst);
+                    }
+                    newNodeId = ModelUtils.ConstructIdForFile(dst,
+                        NodeId.NamespaceIndex);
                 }
-                if (Directory.Exists(path))
+                else if (Directory.Exists(path))
                 {
-                    Directory.Delete(path, true);
-                    return StatusCodes.Good;
+                    if (createCopy)
+                    {
+                        return ServiceResult.Create(StatusCodes.BadNotSupported,
+                            "Not supported");
+                        // System.IO.Directory.Copy(path, dst);
+                    }
+                    else
+                    {
+                        Directory.Move(path, dst);
+                    }
+                    newNodeId = ModelUtils.ConstructIdForDirectory(dst,
+                        NodeId.NamespaceIndex);
                 }
-                return StatusCodes.BadNotFound;
+                else
+                {
+                    return ServiceResult.Create(StatusCodes.BadNotFound, "");
+                }
+                return ServiceResult.Good;
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCodes.BadInvalidState;
+                return ServiceResult.Create(ex, StatusCodes.BadUserAccessDenied,
+                    "Failed to move or copy");
             }
         }
 
+        private ServiceResult OnCreateDirectory(ISystemContext _context, MethodState _method,
+            NodeId _objectId, string directoryName, ref NodeId directoryNodeId)
+        {
+            var name = Path.Combine(FullPath, directoryName);
+            if (Path.Exists(name))
+            {
+                return ServiceResult.Create(StatusCodes.BadBrowseNameDuplicated,
+                    "Directory or file with same name exists");
+            }
+            Directory.CreateDirectory(name);
+            directoryNodeId = ModelUtils.ConstructIdForDirectory(name, NodeId.NamespaceIndex);
+            return ServiceResult.Good;
+        }
+
+        private ServiceResult OnCreateFile(ISystemContext _context, MethodState _method,
+            NodeId _objectId, string fileName, bool requestFileOpen, ref NodeId fileNodeId,
+            ref uint fileHandle)
+        {
+            var name = Path.Combine(FullPath, fileName);
+            if (Path.Exists(name))
+            {
+                return ServiceResult.Create(StatusCodes.BadBrowseNameDuplicated,
+                    "Directory or file with same name exists");
+            }
+            fileNodeId = ModelUtils.ConstructIdForFile(name, NodeId.NamespaceIndex);
+            if (requestFileOpen)
+            {
+                if (_context.SystemHandle is not FileSystem system ||
+                    system.GetHandle(fileNodeId) is not FileHandle handle)
+                {
+                    return ServiceResult.Create(StatusCodes.BadInvalidState,
+                        "Failed to get handle");
+                }
+
+                return handle.Open(0x2, out fileHandle); // open for writing
+            }
+            try
+            {
+                using var f = File.Create(name);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.Create(ex, null,
+                    StatusCodes.BadUserAccessDenied);
+            }
+            fileHandle = 0;
+            return StatusCodes.Good;
+        }
+
+        private ServiceResult OnDeleteFileSystemObject(ISystemContext _context,
+            MethodState _method, NodeId _objectId, NodeId objectToDelete)
+        {
+            var objectToDelete2 = ParsedNodeId.Parse(objectToDelete);
+            var path = objectToDelete2.RootId;
+            try
+            {
+                if (objectToDelete2.RootType == ModelUtils.File &&
+                    File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+                else if (objectToDelete2.RootType == ModelUtils.Directory &&
+                    Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
+                }
+                else if (objectToDelete2.RootType == ModelUtils.Volume)
+                {
+                    return ServiceResult.Create(StatusCodes.BadUserAccessDenied,
+                        "Cannot delete root of filesystem");
+                }
+                else
+                {
+                    return ServiceResult.Create(StatusCodes.BadNotFound,
+                        "FileSystem object not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.Create(ex, StatusCodes.BadUserAccessDenied,
+                    "Failed to delete file system object.");
+            }
+            return ServiceResult.Good;
+        }
+
         /// <summary>
-        /// Creates a browser that explores the structure of the volume.
+        /// Create browser on directory
         /// </summary>
-        /// <param name="context">The system context to use.</param>
-        /// <param name="view">The view which may restrict the set of references/nodes found.</param>
-        /// <param name="referenceType">The type of references being followed.</param>
-        /// <param name="includeSubtypes">Whether subtypes of the reference type are followed.</param>
-        /// <param name="browseDirection">Which way the references are being followed.</param>
-        /// <param name="browseName">The browse name of a specific target (used when translating browse paths).</param>
-        /// <param name="additionalReferences">Any additional references that should be included.</param>
-        /// <param name="internalOnly">If true the browser should not making blocking calls to external systems.</param>
-        /// <returns>The browse object (must be disposed).</returns>
+        /// <param name="context"></param>
+        /// <param name="view"></param>
+        /// <param name="referenceType"></param>
+        /// <param name="includeSubtypes"></param>
+        /// <param name="browseDirection"></param>
+        /// <param name="browseName"></param>
+        /// <param name="additionalReferences"></param>
+        /// <param name="internalOnly"></param>
+        /// <returns></returns>
         public override INodeBrowser CreateBrowser(
-            ISystemContext context,
-            ViewDescription view,
-            NodeId referenceType,
-            bool includeSubtypes,
-            BrowseDirection browseDirection,
-            QualifiedName browseName,
-            IEnumerable<IReference> additionalReferences,
+            ISystemContext context, ViewDescription view, NodeId referenceType,
+            bool includeSubtypes, BrowseDirection browseDirection,
+            QualifiedName browseName, IEnumerable<IReference> additionalReferences,
             bool internalOnly)
         {
-            NodeBrowser browser = new FileSystemBrowser(
-                context,
-                view,
-                referenceType,
-                includeSubtypes,
-                browseDirection,
-                browseName,
-                additionalReferences,
-                internalOnly,
-                this);
+            NodeBrowser browser = new DirectoryBrowser(
+                context, view, referenceType, includeSubtypes,
+                browseDirection, browseName, additionalReferences,
+                internalOnly, this);
 
             PopulateBrowser(context, browser);
-
             return browser;
         }
 
@@ -205,11 +265,26 @@ namespace FileSystem
             base.PopulateBrowser(context, browser);
 
             // check if the parent segments need to be returned.
-            if (browser.IsRequired(ReferenceTypeIds.Organizes, true))
+            if (browser.IsRequired(ReferenceTypeIds.Organizes, true) && IsVolume)
             {
-                // add reference for parent segment.
-                browser.Add(ReferenceTypeIds.Organizes, true,
-                    ModelUtils.ConstructIdForVolume(FullPath, NodeId.NamespaceIndex));
+                // add reference to server
+                browser.Add(ReferenceTypeIds.Organizes, true, ObjectIds.Server);
+            }
+            else if (browser.IsRequired(ReferenceTypeIds.HasComponent, true) && !IsVolume)
+            {
+                var parent = Path.GetDirectoryName(FullPath);
+                if (Path.GetPathRoot(FullPath) == parent)
+                {
+                    // add reference for parent volume.
+                    browser.Add(ReferenceTypeIds.HasComponent, true,
+                        ModelUtils.ConstructIdForVolume(parent, NodeId.NamespaceIndex));
+                }
+                else
+                {
+                    // add reference to parent directory
+                    browser.Add(ReferenceTypeIds.HasComponent, true,
+                        ModelUtils.ConstructIdForDirectory(parent, NodeId.NamespaceIndex));
+                }
             }
         }
     }

@@ -7,6 +7,7 @@ namespace FileSystem
 {
     using Opc.Ua;
     using Opc.Ua.Server;
+    using System.IO;
     using System.Text;
 
     /// <summary>
@@ -78,6 +79,16 @@ namespace FileSystem
                 RootType = 2
             };
             return parsedNodeId.Construct();
+        }
+
+        public static string GetName(string path)
+        {
+            var name = Path.GetFileName(path);
+            if (string.IsNullOrEmpty(name))
+            {
+                return path;
+            }
+            return name;
         }
 
         /// <summary>

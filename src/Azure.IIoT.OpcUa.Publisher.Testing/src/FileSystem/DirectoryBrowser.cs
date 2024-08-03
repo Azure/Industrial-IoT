@@ -13,7 +13,7 @@ namespace FileSystem
     /// <summary>
     /// Browses the file system folder and files
     /// </summary>
-    public class FileSystemBrowser : NodeBrowser
+    public class DirectoryBrowser : NodeBrowser
     {
         /// <summary>
         /// Create browser
@@ -27,7 +27,7 @@ namespace FileSystem
         /// <param name="additionalReferences"></param>
         /// <param name="internalOnly"></param>
         /// <param name="source"></param>
-        public FileSystemBrowser(ISystemContext context, ViewDescription view,
+        public DirectoryBrowser(ISystemContext context, ViewDescription view,
             NodeId referenceType, bool includeSubtypes, BrowseDirection browseDirection,
             QualifiedName browseName, IEnumerable<IReference> additionalReferences,
             bool internalOnly, DirectoryObjectState source)
@@ -167,7 +167,7 @@ namespace FileSystem
             // create reference.
             if (targetId != null)
             {
-                return new NodeStateReference(ReferenceTypeIds.Organizes, false, targetId);
+                return new NodeStateReference(ReferenceTypeIds.HasComponent, false, targetId);
             }
 
             return null;

@@ -6,6 +6,7 @@
 namespace FileSystem
 {
     using Opc.Ua;
+    using Opc.Ua.Export;
     using Opc.Ua.Server;
     using System.Collections.Generic;
     using System.IO;
@@ -24,7 +25,7 @@ namespace FileSystem
         public FileSystemNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
             base(server, configuration, Namespaces.FileSystem)
         {
-           // SystemContext.SystemHandle = _system = new UnderlyingSystem();
+            SystemContext.SystemHandle = _system = new FileSystem();
             SystemContext.NodeIdFactory = this;
 
             // get the configuration for the node manager.
@@ -41,6 +42,7 @@ namespace FileSystem
         {
             if (disposing)
             {
+                _system.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -76,22 +78,18 @@ namespace FileSystem
         {
             lock (Lock)
             {
-                // find the top level segments and link them to the ObjectsFolder.
+                // find the top level segments and link them to the Server folder.
                 foreach (var fs in DriveInfo.GetDrives())
                 {
-                    // Top level areas need a reference from the Server object.
-                    // These references are added to a list that is returned to the caller.
-                    // The caller will update the Objects folder node.
-
-                    if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
+                    if (!externalReferences.TryGetValue(ObjectIds.Server, out var references))
                     {
-                        externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
+                        externalReferences[ObjectIds.Server] = references = new List<IReference>();
                     }
 
                     // construct the NodeId of a segment.
                     var fsId = ModelUtils.ConstructIdForVolume(fs.RootDirectory.FullName, NamespaceIndex);
 
-                    // add an organizes reference from the ObjectsFolder to the volume.
+                    // add an organizes reference from the server to the volume.
                     references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, fsId));
                 }
             }
@@ -122,18 +120,6 @@ namespace FileSystem
                 if (!IsNodeIdInNamespace(nodeId))
                 {
                     return null;
-                }
-
-                // check for check for nodes that are being currently monitored.
-
-                if (MonitoredNodes.TryGetValue(nodeId, out var monitoredNode))
-                {
-                    return new NodeHandle
-                    {
-                        NodeId = nodeId,
-                        Validated = true,
-                        Node = monitoredNode.Node
-                    };
                 }
 
                 if (nodeId.IdType != IdType.String && PredefinedNodes.TryGetValue(nodeId, out var node))
@@ -247,7 +233,7 @@ namespace FileSystem
                     var rootId = ModelUtils.ConstructIdForDirectory(parsedNodeId.RootId, NamespaceIndex);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                    root = new DirectoryObjectState(context, rootId, parsedNodeId.RootId);
+                    root = new DirectoryObjectState(context, rootId, parsedNodeId.RootId, false);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
@@ -304,6 +290,7 @@ namespace FileSystem
 
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly FileSystemServerConfiguration _configuration;
+        private readonly FileSystem _system;
 #pragma warning restore IDE0052 // Remove unread private members
     }
 }
