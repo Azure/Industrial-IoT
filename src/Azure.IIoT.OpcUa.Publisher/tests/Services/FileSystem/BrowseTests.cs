@@ -15,9 +15,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     using Xunit.Abstractions;
 
     [Collection(FileCollection.Name)]
-    public class FileSystemBrowseTests
+    public class BrowseTests
     {
-        public FileSystemBrowseTests(FileSystemServer server, ITestOutputHelper output)
+        public BrowseTests(FileSystemServer server, ITestOutputHelper output)
         {
             _server = server;
             _output = output;
@@ -57,6 +57,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         public Task GetDirectoriesTest3Async()
         {
             return GetTests().GetDirectoriesTest3Async();
+        }
+
+        [Fact]
+        public Task GetDirectoriesTest4Async()
+        {
+            return GetTests().GetDirectoriesTest4Async();
+        }
+
+        [Fact]
+        public Task GetDirectoriesTest5Async()
+        {
+            return GetTests().GetDirectoriesTest5Async();
+        }
+
+        [Fact]
+        public Task GetFilesTest1Async()
+        {
+            return GetTests().GetFilesTest1Async();
+        }
+
+        [Fact]
+        public Task GetFilesTest2Async()
+        {
+            return GetTests().GetFilesTest2Async();
+        }
+
+        [Fact]
+        public Task GetFilesTest3Async()
+        {
+            return GetTests().GetFilesTest3Async();
+        }
+
+        [Fact]
+        public Task GetFilesTest4Async()
+        {
+            return GetTests().GetFilesTest4Async();
+        }
+
+        [Fact]
+        public Task GetFilesTest5Async()
+        {
+            return GetTests().GetFilesTest5Async();
         }
     }
 }

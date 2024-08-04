@@ -1473,7 +1473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Select(f => new ServiceResponse<FileSystemObjectModel>
                     {
                         ErrorInfo = f.ErrorInfo,
-                        Result = new FileSystemObjectModel
+                        Result = f.ErrorInfo != null ? null : new FileSystemObjectModel
                         {
                             NodeId = AsString(f.Node, context.Session.MessageContext, header),
                             Name = f.Name.Name
@@ -1513,7 +1513,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Select(f => new ServiceResponse<FileSystemObjectModel>
                     {
                         ErrorInfo = f.ErrorInfo,
-                        Result = new FileSystemObjectModel
+                        Result = f.ErrorInfo != null ? null : new FileSystemObjectModel
                         {
                             NodeId = AsString(f.Node, context.Session.MessageContext, header),
                             Name = f.Name.Name
