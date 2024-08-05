@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="fileSystemOrDirectory"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetDirectoriesAsync(
+        Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetDirectoriesAsync(
             T endpoint, FileSystemObjectModel fileSystemOrDirectory,
             CancellationToken ct = default);
 
@@ -46,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="fileSystemOrDirectory"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetFilesAsync(
+        Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetFilesAsync(
             T endpoint, FileSystemObjectModel fileSystemOrDirectory,
             CancellationToken ct = default);
 
@@ -111,12 +111,13 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// deleted from its parent object.
         /// </summary>
         /// <param name="endpoint"></param>
-        /// <param name="parentOrObjectToDelete"></param>
-        /// <param name="name"></param>
+        /// <param name="fileOrDirectoryObject"></param>
+        /// <param name="parentFileSystemOrDirectory"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ServiceResultModel> DeleteFileSystemObjectAsync(T endpoint,
-            FileSystemObjectModel parentOrObjectToDelete, string? name = null,
+            FileSystemObjectModel fileOrDirectoryObject,
+            FileSystemObjectModel? parentFileSystemOrDirectory = null,
             CancellationToken ct = default);
     }
 }

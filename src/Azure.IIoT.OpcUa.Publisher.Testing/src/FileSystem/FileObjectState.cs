@@ -143,7 +143,7 @@ namespace FileSystem
             NodeState node, NumericRange indexRange, QualifiedName dataEncoding,
             ref object value, ref StatusCode statusCode, ref DateTime timestamp)
         {
-            if (GetFileHandle(context, node.NodeId, out var handle, out var result))
+            if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
                 value = handle.MaxByteStringLength;
                 timestamp = DateTime.UtcNow;
@@ -156,7 +156,7 @@ namespace FileSystem
             NumericRange indexRange, QualifiedName dataEncoding, ref object value,
             ref StatusCode statusCode, ref DateTime timestamp)
         {
-            if (GetFileHandle(context, node.NodeId, out var handle, out var result))
+            if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
                 value = handle.MimeType;
                 timestamp = DateTime.UtcNow;
@@ -169,7 +169,7 @@ namespace FileSystem
             NodeState node, NumericRange indexRange, QualifiedName dataEncoding,
             ref object value, ref StatusCode statusCode, ref DateTime timestamp)
         {
-            if (GetFileHandle(context, node.NodeId, out var handle, out var result))
+            if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
                 value = handle.LastModifiedTime;
                 timestamp = DateTime.UtcNow;
@@ -182,7 +182,7 @@ namespace FileSystem
             NumericRange indexRange, QualifiedName dataEncoding, ref object value,
             ref StatusCode statusCode, ref DateTime timestamp)
         {
-            if (GetFileHandle(context, node.NodeId, out var handle, out var result))
+            if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
                 value = handle.IsWriteable;
                 timestamp = DateTime.UtcNow;
@@ -195,7 +195,7 @@ namespace FileSystem
             NumericRange indexRange, QualifiedName dataEncoding, ref object value,
             ref StatusCode statusCode, ref DateTime timestamp)
         {
-            if (GetFileHandle(context, node.NodeId, out var handle, out var result))
+            if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
                 value = handle.Length;
                 timestamp = DateTime.UtcNow;
@@ -208,7 +208,7 @@ namespace FileSystem
             NumericRange indexRange, QualifiedName dataEncoding, ref object value,
             ref StatusCode statusCode, ref DateTime timestamp)
         {
-            if (GetFileHandle(context, node.NodeId, out var handle, out var result))
+            if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
                 value = handle.OpenCount;
                 timestamp = DateTime.UtcNow;

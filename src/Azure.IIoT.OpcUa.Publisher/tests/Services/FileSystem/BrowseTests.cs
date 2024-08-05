@@ -23,9 +23,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
             _output = output;
         }
 
-        private FileSystemBrowseTests<ConnectionModel> GetTests()
+        private BrowseTests<ConnectionModel> GetTests()
         {
-            return new FileSystemBrowseTests<ConnectionModel>(
+            return new BrowseTests<ConnectionModel>(
                 () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
                     _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level),
                     new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions()),
@@ -72,6 +72,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         }
 
         [Fact]
+        public Task GetDirectoriesTest6Async()
+        {
+            return GetTests().GetDirectoriesTest6Async();
+        }
+
+        [Fact]
         public Task GetFilesTest1Async()
         {
             return GetTests().GetFilesTest1Async();
@@ -99,6 +105,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         public Task GetFilesTest5Async()
         {
             return GetTests().GetFilesTest5Async();
+        }
+
+        [Fact]
+        public Task GetFilesTest6Async()
+        {
+            return GetTests().GetFilesTest6Async();
         }
     }
 }

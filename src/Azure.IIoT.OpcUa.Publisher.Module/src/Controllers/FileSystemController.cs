@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/directories")]
-        public async Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetDirectoriesAsync(
+        public async Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetDirectoriesAsync(
             [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
             CancellationToken ct = default)
         {
@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("browse/files")]
-        public async Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetFilesAsync(
+        public async Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetFilesAsync(
             [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
             CancellationToken ct = default)
         {
@@ -270,8 +270,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="request">The file or directory object to delete and the
         /// connection information identifying the server to connect to perform
         /// the operation on.</param>
-        /// <param name="name">An optional name of the file or directory under
-        /// the provided directory object to delete.</param>
         /// <param name="ct"></param>
         /// <returns>The new file.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/>
@@ -288,13 +286,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [HttpPost("delete")]
         public async Task<ServiceResultModel> DeleteFileSystemObjectAsync(
             [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
-            [FromQuery] string? name, CancellationToken ct = default)
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
             return await _files.DeleteFileSystemObjectAsync(request.Connection,
-                request.Request, name, ct).ConfigureAwait(false);
+                request.Request, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>

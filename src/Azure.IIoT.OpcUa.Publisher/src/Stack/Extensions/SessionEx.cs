@@ -1234,21 +1234,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="nodeIds"></param>
         /// <param name="referenceTypeId"></param>
         /// <param name="includeSubTypes"></param>
+        /// <param name="isInverse"></param>
         /// <param name="nodeClassMask"></param>
         /// <param name="maxResults"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal static async Task<(IEnumerable<FindResult>, ServiceResultModel?)> FindAsync(
+        internal static async Task<(IReadOnlyList<FindResult>, ServiceResultModel?)> FindAsync(
             this IOpcUaSession session, RequestHeader requestHeader,
             IEnumerable<NodeId> nodeIds, NodeId referenceTypeId, bool includeSubTypes = false,
-            uint nodeClassMask = 0, uint? maxResults = null, CancellationToken ct = default)
+            bool isInverse = false, uint nodeClassMask = 0, uint? maxResults = null,
+            CancellationToken ct = default)
         {
             // construct browse request.
             var nodesToBrowse = new BrowseDescriptionCollection(nodeIds
                 .Select(nodeId => new BrowseDescription
                 {
                     NodeId = nodeId,
-                    BrowseDirection = Opc.Ua.BrowseDirection.Forward,
+                    BrowseDirection = isInverse ?
+                        Opc.Ua.BrowseDirection.Inverse : Opc.Ua.BrowseDirection.Forward,
                     ReferenceTypeId = referenceTypeId,
                     IncludeSubtypes = includeSubTypes,
                     NodeClassMask = nodeClassMask,

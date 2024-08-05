@@ -539,6 +539,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var items = CurrentlyMonitored.ToList();
 
                 _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+                RemoveItems(MonitoredItems);
                 _currentSequenceNumber = 0;
                 _goodMonitoredItems = 0;
                 _badMonitoredItems = 0;
@@ -563,10 +564,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (Session != null)
                 {
                     await Session.RemoveSubscriptionAsync(this).ConfigureAwait(false);
-                    Debug.Assert(Session == null);
                 }
-
-                Debug.Assert(!CurrentlyMonitored.Any());
+                Debug.Assert(Session == null, "Subscription should not be part of session");
+                Debug.Assert(!CurrentlyMonitored.Any(), "Not all items removed.");
                 _logger.LogInformation("Subscription '{Subscription}' closed.", this);
             }
             catch (Exception e)

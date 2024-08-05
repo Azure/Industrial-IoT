@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Avro.File;
+    using Furly.Exceptions;
     using Opc.Ua;
     using System;
 
@@ -50,6 +51,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     return Create(StatusCodes.BadTimeout, e.Message);
                 case OperationCanceledException:
                     return Create(StatusCodes.BadRequestCancelledByClient, e.Message);
+                case ResourceInvalidStateException:
+                    return Create(StatusCodes.BadInvalidState, e.Message);
+                case ResourceNotFoundException:
+                    return Create(StatusCodes.BadNotFound, e.Message);
+                case ResourceConflictException:
+                    return Create(StatusCodes.BadDuplicateReferenceNotAllowed, e.Message);
                 default:
                     return Create(StatusCodes.Bad, e.Message);
             }

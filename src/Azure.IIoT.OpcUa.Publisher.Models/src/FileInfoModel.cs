@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "openCount", Order = 2,
            EmitDefaultValue = false)]
-        public int OpenCount { get; init; }
+        public ushort OpenCount { get; init; }
 
         /// <summary>
         /// The media type of the file based on RFC 2046.

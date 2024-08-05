@@ -107,9 +107,9 @@ namespace FileSystem
                         }
                         if ((mode & 0x4) != 0)
                         {
-                            // Erase
+                            // Erase = OpenOrCreate + Truncate
                             _write = new FileStream(NodeId.RootId,
-                                FileMode.CreateNew, FileAccess.Write);
+                                FileMode.Create, FileAccess.Write);
                         }
                         else if ((mode & 0x8) != 0)
                         {

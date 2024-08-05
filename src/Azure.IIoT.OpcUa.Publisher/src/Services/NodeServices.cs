@@ -1445,7 +1445,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetDirectoriesAsync(
+        public async Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetDirectoriesAsync(
             T endpoint, FileSystemObjectModel fileSystemOrDirectory, CancellationToken ct)
         {
             using var trace = _activitySource.StartActivity("GetDirectories");
@@ -1457,33 +1457,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                        header, fileSystemOrDirectory, context.Ct).ConfigureAwait(false);
                 if (argInfo != null)
                 {
-                    new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo }
-                         .YieldReturn();
+                    new ServiceResponse<IEnumerable<FileSystemObjectModel>> { ErrorInfo = argInfo };
                 }
                 var (references, errorInfo) = await context.Session.FindAsync(
                     header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
                     ReferenceTypeIds.HasComponent, ct: context.Ct).ConfigureAwait(false);
-                if (errorInfo != null)
+                if (errorInfo == null && references.Count > 0 &&
+                    references.All(r => r.ErrorInfo != null))
                 {
-                    new ServiceResponse<FileSystemObjectModel> { ErrorInfo = errorInfo }
-                        .YieldReturn();
+                    errorInfo = references[0].ErrorInfo;
                 }
-                return references
-                    .Where(r => r.TypeDefinition == Opc.Ua.ObjectTypes.FileDirectoryType)
-                    .Select(f => new ServiceResponse<FileSystemObjectModel>
-                    {
-                        ErrorInfo = f.ErrorInfo,
-                        Result = f.ErrorInfo != null ? null : new FileSystemObjectModel
+                return new ServiceResponse<IEnumerable<FileSystemObjectModel>>
+                {
+                    ErrorInfo = errorInfo,
+                    Result = references
+                        .Where(r => r.TypeDefinition == Opc.Ua.ObjectTypes.FileDirectoryType &&
+                            r.ErrorInfo == null)
+                        .Select(f => new FileSystemObjectModel
                         {
                             NodeId = AsString(f.Node, context.Session.MessageContext, header),
                             Name = f.Name.Name
-                        }
-                    });
+                        })
+                };
             }, header, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<ServiceResponse<FileSystemObjectModel>>> GetFilesAsync(
+        public async Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetFilesAsync(
             T endpoint, FileSystemObjectModel fileSystemOrDirectory, CancellationToken ct)
         {
             using var trace = _activitySource.StartActivity("GetFiles");
@@ -1495,30 +1495,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                        header, fileSystemOrDirectory, context.Ct).ConfigureAwait(false);
                 if (argInfo != null)
                 {
-                    new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo }
-                         .YieldReturn();
+                    new ServiceResponse<IEnumerable<FileSystemObjectModel>> { ErrorInfo = argInfo };
                 }
 
                 var (references, errorInfo) = await context.Session.FindAsync(
                     header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
                     ReferenceTypeIds.HasComponent, ct: context.Ct).ConfigureAwait(false);
-                if (errorInfo != null)
+                if (errorInfo == null && references.Count > 0 &&
+                    references.All(r => r.ErrorInfo != null))
                 {
-                    new ServiceResponse<FileSystemObjectModel> { ErrorInfo = errorInfo }
-                        .YieldReturn();
+                    errorInfo = references[0].ErrorInfo;
                 }
-
-                return references
-                    .Where(r => r.TypeDefinition == Opc.Ua.ObjectTypes.FileType)
-                    .Select(f => new ServiceResponse<FileSystemObjectModel>
-                    {
-                        ErrorInfo = f.ErrorInfo,
-                        Result = f.ErrorInfo != null ? null : new FileSystemObjectModel
+                return new ServiceResponse<IEnumerable<FileSystemObjectModel>>
+                {
+                    ErrorInfo = errorInfo,
+                    Result = references
+                        .Where(r => r.TypeDefinition == Opc.Ua.ObjectTypes.FileType &&
+                            r.ErrorInfo == null)
+                        .Select(f => new FileSystemObjectModel
                         {
                             NodeId = AsString(f.Node, context.Session.MessageContext, header),
                             Name = f.Name.Name
-                        }
-                    });
+                        })
+                };
             }, header, ct).ConfigureAwait(false);
         }
 
@@ -1572,7 +1571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         ObjectId = nodeId,
                         MethodId = Opc.Ua.MethodIds.FileDirectoryType_CreateDirectory,
-                        InputArguments = new [] { new Variant(name), new Variant(false) }
+                        InputArguments = new [] { new Variant(name) }
                     }
                 };
                 // Call method
@@ -1584,13 +1583,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = results.ErrorInfo };
                 }
-                if (results[0].Result?.OutputArguments == null ||
+                if (results[0].ErrorInfo != null ||
+                    results[0].Result?.OutputArguments == null ||
                     results[0].Result.OutputArguments.Count == 0 ||
                     results[0].Result.OutputArguments[0].Value is not NodeId result)
                 {
                     return new ServiceResponse<FileSystemObjectModel>
                     {
-                        ErrorInfo = new ServiceResultModel { ErrorMessage = "no node id returned" }
+                        ErrorInfo = results[0].ErrorInfo ??
+                            new ServiceResultModel { ErrorMessage = "no node id returned" }
                     };
                 }
                 return new ServiceResponse<FileSystemObjectModel>
@@ -1638,13 +1639,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = results.ErrorInfo };
                 }
-                if (results[0].Result?.OutputArguments == null ||
+                if (results[0].ErrorInfo != null ||
+                    results[0].Result?.OutputArguments == null ||
                     results[0].Result.OutputArguments.Count == 0 ||
                     results[0].Result.OutputArguments[0].Value is not NodeId result)
                 {
                     return new ServiceResponse<FileSystemObjectModel>
                     {
-                        ErrorInfo = new ServiceResultModel { ErrorMessage = "no node id returned" }
+                        ErrorInfo = results[0].ErrorInfo ??
+                            new ServiceResultModel { ErrorMessage = "no node id returned" }
                     };
                 }
                 return new ServiceResponse<FileSystemObjectModel>
@@ -1660,32 +1663,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async Task<ServiceResultModel> DeleteFileSystemObjectAsync(T endpoint,
-            FileSystemObjectModel parentOrObjectToDelete, string? name, CancellationToken ct)
+            FileSystemObjectModel fileOrDirectoryObject, FileSystemObjectModel? parentFileSystemOrDirectory,
+            CancellationToken ct)
         {
-            using var trace = _activitySource.StartActivity("DeleteFile");
+            using var trace = _activitySource.StartActivity("DeleteFileSystemObject");
             var header = new RequestHeaderModel();
             return await _client.ExecuteAsync(endpoint, async context =>
             {
                 var (nodeId, argInfo) = await GetFileSystemNodeIdAsync(context.Session,
-                     header, parentOrObjectToDelete, context.Ct).ConfigureAwait(false);
+                     header, fileOrDirectoryObject, context.Ct).ConfigureAwait(false);
                 if (argInfo != null)
                 {
                     return argInfo;
                 }
 
                 var targetId = nodeId;
-                if (name != null)
+                if (parentFileSystemOrDirectory != null)
                 {
-                    targetId = await ResolveBrowsePathToNodeAsync(context.Session, header,
-                        nodeId, new[] { name }, nameof(name), _timeProvider,
-                        context.Ct).ConfigureAwait(false);
+                    (nodeId, argInfo) = await GetFileSystemNodeIdAsync(context.Session,
+                         header, parentFileSystemOrDirectory, context.Ct).ConfigureAwait(false);
+                    if (argInfo != null)
+                    {
+                        return argInfo;
+                    }
                 }
                 else
                 {
-                    // Get parent of the targetId by reverting the browse path
-                    nodeId = await ResolveBrowsePathToNodeAsync(context.Session, header,
-                        targetId, new[] { $"!<HasComponent>{name}" }, nameof(name),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
+                    // Find parent
+                    var (parents, argInfo2) = await context.Session.FindAsync(
+                        header.ToRequestHeader(_timeProvider), targetId.YieldReturn(),
+                        ReferenceTypeIds.HasComponent, isInverse: true,
+                        maxResults: 1, ct: context.Ct).ConfigureAwait(false);
+                    if (argInfo2 != null)
+                    {
+                        return argInfo2;
+                    }
+                    var result = parents.FirstOrDefault();
+                    nodeId = result.Node;
+                    if (NodeId.IsNull(nodeId) ||
+                        result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)
+                    {
+                        return new ServiceResultModel
+                        {
+                            StatusCode = StatusCodes.BadNodeIdInvalid,
+                            ErrorMessage = "Could not find a file directory object parent."
+                        };
+                    }
                 }
                 var requests = new CallMethodRequestCollection
                 {
@@ -1702,7 +1725,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, requests);
-                return results.ErrorInfo ?? new ServiceResultModel();
+                return results.ErrorInfo ?? results[0].ErrorInfo ?? new ServiceResultModel();
             }, header, ct).ConfigureAwait(false);
         }
 
@@ -1710,7 +1733,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async Task<ServiceResponse<FileInfoModel>> GetFileInfoAsync(T endpoint,
             FileSystemObjectModel file, CancellationToken ct)
         {
-            using var trace = _activitySource.StartActivity("DeleteFile");
+            using var trace = _activitySource.StartActivity("GetFileInfo");
             var header = new RequestHeaderModel();
             return await _client.ExecuteAsync(endpoint, async context =>
             {
@@ -1758,9 +1781,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     nodeId = ObjectIds.RootFolder;
                 }
-                nodeId = await ResolveBrowsePathToNodeAsync(session, header,
-                    nodeId, fileSystemObject.BrowsePath.ToArray(),
-                    nameof(fileSystemObject.BrowsePath), _timeProvider, ct).ConfigureAwait(false);
+                try
+                {
+                    nodeId = await ResolveBrowsePathToNodeAsync(session, header,
+                        nodeId, fileSystemObject.BrowsePath.Select(b => "<HasComponent>" + b).ToArray(),
+                        nameof(fileSystemObject.BrowsePath), _timeProvider, ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    return (NodeId.Null, ex.ToServiceResultModel());
+                }
             }
             if (NodeId.IsNull(nodeId))
             {
@@ -2498,16 +2528,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         return (null, argInfo);
                     }
+
                     var (fileInfo, errorInfo) = await handle.Session.GetFileInfoAsync(
                         header.ToRequestHeader(outer._timeProvider),
                         nodeId, ct).ConfigureAwait(false);
+
+                    var tryCreate = errorInfo != null;
                     if (errorInfo != null)
                     {
+                        // There should be file info
                         return (null, errorInfo);
                     }
-                    var bufferSize = fileInfo?.MaxBufferSize;
-
-                    if (fileInfo?.Writable == false)
+                    if (mode != null && fileInfo?.Writable == false)
                     {
                         return (null, new ServiceResultModel
                         {
@@ -2516,6 +2548,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         });
                     }
 
+                    var bufferSize = fileInfo?.MaxBufferSize;
                     if (bufferSize == null)
                     {
                         var caps = await handle.Session.GetServerCapabilitiesAsync(
@@ -2526,8 +2559,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var (fileHandle, errorInfo2) = await handle.Session.OpenAsync(
                         header.ToRequestHeader(outer._timeProvider), nodeId, mode switch
                         {
-                            FileWriteMode.Create => 0x6, // Write bit plus erase
-                            FileWriteMode.Append => 0x10, // Write bit plus append
+                            FileWriteMode.Create => 0x2 | 0x4, // Write bit plus erase
+                            FileWriteMode.Append => 0x2 | 0x8, // Write bit plus append
                             FileWriteMode.Write => 0x2, // Write bit
                             _ => 0x1 // Read bit
                         }, ct).ConfigureAwait(false);

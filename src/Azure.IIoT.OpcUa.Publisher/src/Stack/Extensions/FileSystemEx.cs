@@ -59,14 +59,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return (null, results.ErrorInfo);
                 }
-
-                var read = await session.Services.ReadAsync(header, 0.0,
-                    Opc.Ua.TimestampsToReturn.Neither, results.Select(r => new ReadValueId
+                if (results.All(r => r.ErrorInfo != null))
+                {
+                    return (null, new ServiceResultModel
                     {
-                        AttributeId = Attributes.Value,
-                        NodeId = r.Result.Targets[0].TargetId
-                            .ToNodeId(session.MessageContext.NamespaceUris)
-                    }).ToArray(), ct).ConfigureAwait(false);
+                        StatusCode = StatusCodes.BadNotFound,
+                        ErrorMessage = "File info not found."
+                    });
+                }
+                var read = await session.Services.ReadAsync(header, 0.0,
+                    Opc.Ua.TimestampsToReturn.Neither, results
+                        .Select(r => r.Result.Targets.Count > 0 ?
+                            r.Result.Targets[0].TargetId : ExpandedNodeId.Null)
+                        .Select(n => new ReadValueId
+                        {
+                            AttributeId = Attributes.Value,
+                            NodeId = n.ToNodeId(session.MessageContext.NamespaceUris)
+                        })
+                        .ToArray(), ct).ConfigureAwait(false);
                 var values = read.Validate(read.Results, r => r.StatusCode, read.DiagnosticInfos,
                     browsePaths);
                 if (values.ErrorInfo != null)
@@ -76,8 +86,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 return (new FileInfoModel
                 {
                     Size = values[0].Result?.Value as long? ?? 0,
+                    //
                     Writable = values[2].Result?.Value as bool? ?? false,
-                    OpenCount = values[3].Result?.Value as int? ?? 0,
+                    OpenCount = values[3].Result?.Value as ushort? ?? 0,
                     MimeType = values[4].Result?.Value as string,
                     MaxBufferSize = values[5].Result?.Value as uint?,
                     LastModified = values[6].Result?.Value as DateTime?
@@ -150,11 +161,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return (null, results.ErrorInfo);
                 }
-                if (results[0].Result?.OutputArguments == null ||
+                if (results[0].ErrorInfo != null ||
+                    results[0].Result?.OutputArguments == null ||
                     results[0].Result.OutputArguments.Count == 0 ||
                     results[0].Result.OutputArguments[0].Value is not uint fileHandle)
                 {
-                    return (null, new ServiceResultModel
+                    return (null, results[0].ErrorInfo ?? new ServiceResultModel
                     {
                         ErrorMessage = "no file handle returned"
                     });

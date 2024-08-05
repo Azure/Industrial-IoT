@@ -8,6 +8,7 @@ namespace FileSystem
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
 
     /// <summary>
@@ -55,29 +56,31 @@ namespace FileSystem
                     return reference;
                 }
 
-                if (_stage == Stage.Begin)
-                {
-                    _directories = System.IO.Directory.GetDirectories(_source.FullPath).ToList();
-                    _stage = Stage.Directories;
-                }
-
                 // don't start browsing huge number of references when only internal references are requested.
                 if (InternalOnly)
                 {
                     return null;
                 }
 
+                if (!IsRequired(ReferenceTypeIds.HasComponent, false))
+                {
+                    return null;
+                }
+
+                if (_stage == Stage.Begin)
+                {
+                    _directories = System.IO.Directory.GetDirectories(_source.FullPath).ToList();
+                    _stage = Stage.Directories;
+                }
+
                 // enumerate segments.
                 if (_stage == Stage.Directories)
                 {
-                    if (IsRequired(ReferenceTypeIds.HasComponent, false))
-                    {
-                        reference = NextChild();
+                    reference = NextChild();
 
-                        if (reference != null)
-                        {
-                            return reference;
-                        }
+                    if (reference != null)
+                    {
+                        return reference;
                     }
 
                     _files = System.IO.Directory.GetFiles(_source.FullPath).ToList();
@@ -85,7 +88,7 @@ namespace FileSystem
                 }
 
                 // enumerate files.
-                if (_stage == Stage.Files && IsRequired(ReferenceTypeIds.HasComponent, false))
+                if (_stage == Stage.Files)
                 {
                     reference = NextChild();
 
@@ -123,12 +126,14 @@ namespace FileSystem
                 {
                     foreach (var name in _directories)
                     {
-                        if (BrowseName.Name == name)
+                        if (BrowseName.Name == Path.GetFileName(name))
                         {
                             targetId = ModelUtils.ConstructIdForDirectory(name, _source.NodeId.NamespaceIndex);
+                            _directories = null;
                             break;
                         }
                     }
+                    _directories = null;
                 }
 
                 // look for matching file.
@@ -136,12 +141,14 @@ namespace FileSystem
                 {
                     foreach (var name in _files)
                     {
-                        if (BrowseName.Name == name)
+                        if (BrowseName.Name == Path.GetFileName(name))
                         {
                             targetId = ModelUtils.ConstructIdForFile(name, _source.NodeId.NamespaceIndex);
+                            _files = null;
                             break;
                         }
                     }
+                    _files = null;
                 }
             }
             // return the child at the next position.
