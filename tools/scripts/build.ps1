@@ -66,9 +66,9 @@ if (![string]::IsNullOrWhiteSpace($script:ContainerRegistry)) {
     } 
 }
 
-$env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
-$env:SDK_CONTAINER_REGISTRY_CHUNKED_UPLOAD_SIZE_BYTES = 131072
-$env:SDK_CONTAINER_REGISTRY_PARALLEL_UPLOAD = $false
+$env:DOTNET_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
+$env:DOTNET_CONTAINER_REGISTRY_CHUNKED_UPLOAD_SIZE_BYTES = 131072
+$env:DOTNET_CONTAINER_REGISTRY_PARALLEL_UPLOAD = $false
 
 # Find all container projects, publish them and then push to container registry
 Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
