@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using Opc.Ua.Client;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -24,11 +25,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Net;
     using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Opc.Ua.Extensions;
-    using System.Text.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.

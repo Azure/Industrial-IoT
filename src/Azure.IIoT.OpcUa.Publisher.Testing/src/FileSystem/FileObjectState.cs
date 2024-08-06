@@ -8,7 +8,6 @@ namespace FileSystem
     using Opc.Ua;
     using System;
     using System.IO;
-    using System.Xml.Linq;
 
     /// <summary>
     /// A object which maps a segment to a UA object.

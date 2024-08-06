@@ -5,17 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
+    using System.Buffers;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Buffers;
 
     /// <summary>
     /// File system methods

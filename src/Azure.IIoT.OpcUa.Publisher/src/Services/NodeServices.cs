@@ -19,18 +19,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
+    using System.Buffers;
     using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Buffers;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-    using System.Xml.Linq;
-    using static Azure.Core.HttpHeader;
 
     /// <summary>
     /// This class provides access to a servers address space providing node

@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Avro.File;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.IO;

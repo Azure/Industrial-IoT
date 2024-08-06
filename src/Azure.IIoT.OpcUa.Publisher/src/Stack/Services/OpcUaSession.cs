@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Reflection;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -793,7 +792,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogError("Failed to find diagnostics for this session ({Error}).",
                     response.Results[0].StatusCode);
-                 return null;
+                return null;
             }
 
             List<SubscriptionDiagnosticsModel>? subscriptions = null;

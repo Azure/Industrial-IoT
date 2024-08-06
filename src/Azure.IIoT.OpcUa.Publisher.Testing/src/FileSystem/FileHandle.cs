@@ -133,7 +133,7 @@ namespace FileSystem
                 }
                 catch (Exception ex)
                 {
-                    return  ServiceResult.Create(ex, StatusCodes.BadUserAccessDenied,
+                    return ServiceResult.Create(ex, StatusCodes.BadUserAccessDenied,
                         "Failed to open file");
                 }
             }

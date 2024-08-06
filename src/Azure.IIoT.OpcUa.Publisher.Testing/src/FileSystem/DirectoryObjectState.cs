@@ -5,14 +5,11 @@
 
 namespace FileSystem
 {
-    using DeterministicAlarms.Configuration;
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using System.Xml.Linq;
 
     /// <summary>
     /// A object which maps a segment to directory

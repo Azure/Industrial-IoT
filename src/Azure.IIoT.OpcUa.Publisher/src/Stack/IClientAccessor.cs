@@ -5,8 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using System;
-
     /// <summary>
     /// Access to clients
     /// </summary>

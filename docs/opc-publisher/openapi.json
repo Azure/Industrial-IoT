@@ -1510,6 +1510,635 @@
                 }
             }
         },
+        "/v2/filesystem/list": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetFileSystems",
+                "description": "Gets all file systems of the server.",
+                "operationId": "GetFileSystems",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ConnectionModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/list/directories": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetDirectories",
+                "description": "Gets all directories in a directory or file system",
+                "operationId": "GetDirectories",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The directory or filesystem object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelIEnumerableServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/list/files": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetFiles",
+                "description": "Get files in a directory or file system on a server.",
+                "operationId": "GetFiles",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The directory or filesystem object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelIEnumerableServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/parent": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetParent",
+                "description": "Gets the parent directory or filesystem of a file or directory.",
+                "operationId": "GetParent",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file or directory object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/info/file": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetFileInfo",
+                "description": "Gets the file information for a file on the server.",
+                "operationId": "GetFileInfo",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileInfoModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/create/file/{name}": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "CreateFile",
+                "description": "Create a new file in a directory or file system on the server",
+                "operationId": "CreateFile",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "description": "The name of the file to create as child under the directory or filesystem provided",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file system or directory object to create the file in and the connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/create/directory/{name}": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "CreateDirectory",
+                "description": "Create a new directory in an existing file system or directory on the server.",
+                "operationId": "CreateDirectory",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "description": "The name of the directory to create as child under the parent directory provided",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file system or directory object to create the directory in and the connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/delete": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "DeleteFileSystemObject",
+                "description": "Delete a file or directory in an existing file system on the server.",
+                "operationId": "DeleteFileSystemObject",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file or directory object to delete and the connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/ServiceResultModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/delete/{fileOrDirectoryNodeId}": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "DeleteFileOrDirectory",
+                "description": "Delete a file or directory in the specified directory or file system.",
+                "operationId": "DeleteFileOrDirectory",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "fileOrDirectoryNodeId",
+                        "description": "The node id of the file or directory to delete",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The filesystem or directory object in which to delete the specified file or directory and the connection to use for the operation.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/ServiceResultModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/download": {
+            "get": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "Download",
+                "description": "Download a file from the server",
+                "operationId": "Download",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "x-ms-connection",
+                        "description": "The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header \"x-ms-connection\"",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "x-ms-target",
+                        "description": "The file object to upload. This is passed as json serialized via the header \"x-ms-target\"",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/upload": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "Upload",
+                "description": "Upload a file to the server.",
+                "operationId": "Upload",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "x-ms-connection",
+                        "description": "The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header \"x-ms-connection\"",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "x-ms-target",
+                        "description": "The file object to upload. This is passed as json serialized via the header \"x-ms-target\"",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "x-ms-mode",
+                        "description": "The file write mode to use passed as header \"x-ms-mode\"",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
         "/v2/capabilities": {
             "post": {
                 "tags": [
@@ -5742,6 +6371,126 @@
                 "modelAsString": false
             }
         },
+        "FileInfoModel": {
+            "description": "File info",
+            "type": "object",
+            "properties": {
+                "size": {
+                    "format": "int64",
+                    "description": "The size of the file in Bytes. When a file is\r\ncurrently opened for write, the size might not be\r\naccurate or available.",
+                    "type": "integer"
+                },
+                "writable": {
+                    "description": "Whether the file is writable.",
+                    "type": "boolean"
+                },
+                "openCount": {
+                    "format": "int32",
+                    "description": "The number of currently valid file handles on\r\nthe file.",
+                    "type": "integer"
+                },
+                "mimeType": {
+                    "description": "The media type of the file based on RFC 2046.",
+                    "type": "string"
+                },
+                "maxBufferSize": {
+                    "format": "int64",
+                    "description": "The maximum number of bytes of\r\nthe read and write buffers.",
+                    "type": "integer"
+                },
+                "lastModified": {
+                    "format": "date-time",
+                    "description": "The time the file was last modified.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileInfoModelServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/FileInfoModel"
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModel": {
+            "description": "File system object model",
+            "type": "object",
+            "properties": {
+                "nodeId": {
+                    "description": "The node id of the filesystem object",
+                    "type": "string"
+                },
+                "browsePath": {
+                    "description": "The browse path to the filesystem object",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "The name of the filesystem object",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelIEnumerableServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "description": "Result",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/FileSystemObjectModel"
+                    }
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelRequestEnvelope": {
+            "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
+            "required": [
+                "connection"
+            ],
+            "type": "object",
+            "properties": {
+                "connection": {
+                    "$ref": "#/definitions/ConnectionModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/FileSystemObjectModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/FileSystemObjectModel"
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelServiceResponseIAsyncEnumerable": {
+            "type": "object",
+            "additionalProperties": false
+        },
         "FilterOperandModel": {
             "description": "Filter operand",
             "type": "object",
@@ -9542,6 +10291,10 @@
         {
             "name": "Discovery",
             "description": "\r\n\r\n            OPC UA and network discovery related API.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
+        },
+        {
+            "name": "FileSystem",
+            "description": "\r\n\r\n            This section lists the file transfer API provided by OPC Publisher providing\r\n            access to file transfer services to move files in and out of a server\r\n            using the File transfer specification.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "General",

@@ -14,13 +14,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Primitives;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.Serialization;
-    using Microsoft.Extensions.Primitives;
 
     /// <summary>
     /// <para>
@@ -436,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Upload
         /// </summary>
         /// <remarks>
-        /// Upload a file to the server
+        /// Upload a file to the server.
         /// </remarks>
         /// <param name="connectionJson">The connection information identifying the server
         /// to connect to perform the operation on. This is passed as json serialized via

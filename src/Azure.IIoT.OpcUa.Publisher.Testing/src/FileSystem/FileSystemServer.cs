@@ -7,7 +7,6 @@ namespace FileSystem
 {
     using Opc.Ua;
     using Opc.Ua.Server;
-    using Opc.Ua.Test;
 
     /// <inheritdoc/>
     public class FileSystemServer : INodeManagerFactory

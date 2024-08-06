@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Avro.File;
     using Furly.Exceptions;
     using Opc.Ua;
     using System;
