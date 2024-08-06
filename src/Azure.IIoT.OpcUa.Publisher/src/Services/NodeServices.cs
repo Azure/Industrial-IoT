@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.IO;
     using System.Runtime.CompilerServices;
     using System.Xml.Linq;
+    using static Azure.Core.HttpHeader;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -1457,7 +1458,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                        header, fileSystemOrDirectory, context.Ct).ConfigureAwait(false);
                 if (argInfo != null)
                 {
-                    new ServiceResponse<IEnumerable<FileSystemObjectModel>> { ErrorInfo = argInfo };
+                    return new ServiceResponse<IEnumerable<FileSystemObjectModel>>
+                    {
+                        ErrorInfo = argInfo
+                    };
                 }
                 var (references, errorInfo) = await context.Session.FindAsync(
                     header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
@@ -1495,7 +1499,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                        header, fileSystemOrDirectory, context.Ct).ConfigureAwait(false);
                 if (argInfo != null)
                 {
-                    new ServiceResponse<IEnumerable<FileSystemObjectModel>> { ErrorInfo = argInfo };
+                    return new ServiceResponse<IEnumerable<FileSystemObjectModel>>
+                    {
+                        ErrorInfo = argInfo
+                    };
                 }
 
                 var (references, errorInfo) = await context.Session.FindAsync(
@@ -1662,6 +1669,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public async Task<ServiceResponse<FileSystemObjectModel>> GetParentAsync(T endpoint,
+            FileSystemObjectModel fileOrDirectoryObject, CancellationToken ct)
+        {
+            using var trace = _activitySource.StartActivity("GetParent");
+            var header = new RequestHeaderModel();
+            return await _client.ExecuteAsync(endpoint, async context =>
+            {
+                var (nodeId, argInfo) = await GetFileSystemNodeIdAsync(context.Session,
+                     header, fileOrDirectoryObject, context.Ct).ConfigureAwait(false);
+                if (argInfo != null)
+                {
+                    return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo };
+                }
+
+                // Find parent
+                var (parents, argInfo2) = await context.Session.FindAsync(
+                    header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
+                    ReferenceTypeIds.HasComponent, isInverse: true,
+                    maxResults: 1, ct: context.Ct).ConfigureAwait(false);
+                if (argInfo2 != null)
+                {
+                    return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo2 };
+                }
+                var result = parents.Count > 0 ? parents[0] : default;
+                nodeId = result.Node;
+                if (NodeId.IsNull(nodeId) ||
+                    result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)
+                {
+                    return new ServiceResponse<FileSystemObjectModel>
+                    {
+                        ErrorInfo = new ServiceResultModel
+                        {
+                            StatusCode = StatusCodes.BadNodeIdInvalid,
+                            ErrorMessage = "Could not find a file directory object parent."
+                        }
+                    };
+                }
+                return new ServiceResponse<FileSystemObjectModel>
+                {
+                    Result = new FileSystemObjectModel
+                    {
+                        NodeId = AsString(nodeId, context.Session.MessageContext, header),
+                        Name = result.Name.Name
+                    }
+                };
+            }, header, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<ServiceResultModel> DeleteFileSystemObjectAsync(T endpoint,
             FileSystemObjectModel fileOrDirectoryObject, FileSystemObjectModel? parentFileSystemOrDirectory,
             CancellationToken ct)
@@ -1698,7 +1754,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         return argInfo2;
                     }
-                    var result = parents.FirstOrDefault();
+                    var result = parents.Count > 0 ? parents[0] : default;
                     nodeId = result.Node;
                     if (NodeId.IsNull(nodeId) ||
                         result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)

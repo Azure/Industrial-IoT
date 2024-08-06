@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
                 {
                     NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;Bad" }
+                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", "nsu=FileSystem;Bad" }
                 }, "testdir", ct).ConfigureAwait(false);
 
                 Assert.NotNull(directory.ErrorInfo);
@@ -356,7 +356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
                 {
                     NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;Bad" }
+                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", "nsu=FileSystem;Bad" }
                 }, "testfile", ct).ConfigureAwait(false);
 
                 Assert.NotNull(file.ErrorInfo);
@@ -595,7 +595,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     new FileSystemObjectModel
                     {
                         NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
-                        BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", $"nsu=FileSystem;Notexisting" }
+                        BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", "nsu=FileSystem;Notexisting" }
                     }, ct: ct).ConfigureAwait(false);
 
                 Assert.NotNull(result);

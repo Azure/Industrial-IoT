@@ -51,6 +51,16 @@ namespace Azure.IIoT.OpcUa.Publisher
             CancellationToken ct = default);
 
         /// <summary>
+        /// Get parent directory or filesystem
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="fileOrDirectoryObject"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<ServiceResponse<FileSystemObjectModel>> GetParentAsync(T endpoint,
+            FileSystemObjectModel fileOrDirectoryObject, CancellationToken ct = default);
+
+        /// <summary>
         /// Get file information for a file
         /// </summary>
         /// <param name="endpoint"></param>

@@ -122,7 +122,7 @@ namespace FileSystem
             buffer.Append(parentId);
 
             // check if the parent is another component.
-            var index = parentId.IndexOf('?');
+            var index = parentId.IndexOf('?', System.StringComparison.InvariantCulture);
 
             if (index < 0)
             {

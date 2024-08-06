@@ -26,6 +26,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
+        public async Task WriteFileTest0Async(CancellationToken ct = default)
+        {
+            var services = _services();
+
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(path);
+            try
+            {
+                var file = CreateFile(path, "testfile", 8 * 1024);
+
+                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+                var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, FileWriteMode.Create, ct).ConfigureAwait(false);
+
+                Assert.Null(stream.ErrorInfo);
+                Assert.NotNull(stream.Result);
+                await using (var _ = stream.Result.ConfigureAwait(false))
+                {
+                    // Now write file
+                    var buffer = Enumerable.Range(0, 1024).Select(b => (byte)b).ToArray();
+                    await stream.Result.WriteAsync(buffer, ct).ConfigureAwait(false);
+                }
+                {
+                    var buffer = await File.ReadAllBytesAsync(file, ct).ConfigureAwait(false);
+                    Assert.Equal(1024, buffer.Length);
+                    for (var i = 0; i < buffer.Length; i++)
+                    {
+                        Assert.Equal((byte)i, buffer[i]);
+                    }
+                }
+            }
+            finally
+            {
+                Directory.Delete(path, true);
+            }
+        }
+
         public async Task WriteFileTest1Async(CancellationToken ct = default)
         {
             var services = _services();
@@ -166,6 +205,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }
         }
 
+        public async Task AppendFileTest0Async(CancellationToken ct = default)
+        {
+            var services = _services();
+
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(path);
+            try
+            {
+                var file = CreateFile(path, "testfile", 8 * 1024);
+
+                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+                var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, FileWriteMode.Append, ct).ConfigureAwait(false);
+
+                Assert.Null(stream.ErrorInfo);
+                Assert.NotNull(stream.Result);
+                await using (var _ = stream.Result.ConfigureAwait(false))
+                {
+                    // Now write file
+                    var buffer = Enumerable.Range(8 * 1024, 2 * 1024).Select(b => (byte)b).ToArray();
+                    await stream.Result.WriteAsync(buffer, ct).ConfigureAwait(false);
+                }
+                {
+                    var buffer = await File.ReadAllBytesAsync(file, ct).ConfigureAwait(false);
+                    Assert.Equal(10 * 1024, buffer.Length);
+                    for (var i = 0; i < buffer.Length; i++)
+                    {
+                        Assert.Equal((byte)i, buffer[i]);
+                    }
+                }
+            }
+            finally
+            {
+                Directory.Delete(path, true);
+            }
+        }
+
+
         public async Task AppendFileTest1Async(CancellationToken ct = default)
         {
             var services = _services();
@@ -275,7 +354,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.True(fi.Result.Writable);
                     Assert.Equal(10 * 130000, fi.Result.Size);
 
-                    using var fs = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    var fs = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    await using var _ = fs.ConfigureAwait(false);
                     for (var i = 0; i < 10; i++)
                     {
                         fs.Seek(i * 130000, SeekOrigin.Begin);
@@ -288,7 +368,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Directory.Delete(path, true);
             }
         }
-
 
         private static string CreateFile(string path, string name, long length)
         {

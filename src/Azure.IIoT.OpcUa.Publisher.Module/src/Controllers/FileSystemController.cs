@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Collections.Generic;
@@ -21,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Threading;
     using System.Threading.Tasks;
     using System.Runtime.Serialization;
+    using Microsoft.Extensions.Primitives;
 
     /// <summary>
     /// <para>
@@ -52,10 +52,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Create controller with service
         /// </summary>
         /// <param name="files"></param>
-        public FileSystemController(IFileSystemServices<ConnectionModel> files)
+        /// <param name="serializer"></param>
+        public FileSystemController(IFileSystemServices<ConnectionModel> files,
+            IJsonSerializer serializer)
         {
-            _files = files ??
-                throw new ArgumentNullException(nameof(files));
+            _files = files ?? throw new ArgumentNullException(nameof(files));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <summary>
@@ -79,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("browse")]
+        [HttpPost("list")]
         public IAsyncEnumerable<ServiceResponse<FileSystemObjectModel>> GetFileSystemsAsync(
             [FromBody][Required] ConnectionModel connection,
             CancellationToken ct = default)
@@ -110,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("browse/directories")]
+        [HttpPost("list/directories")]
         public async Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetDirectoriesAsync(
             [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
             CancellationToken ct = default)
@@ -144,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("browse/files")]
+        [HttpPost("list/files")]
         public async Task<ServiceResponse<IEnumerable<FileSystemObjectModel>>> GetFilesAsync(
             [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
             CancellationToken ct = default)
@@ -153,6 +155,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
             return await _files.GetFilesAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// GetParent
+        /// </summary>
+        /// <remarks>
+        /// Gets the parent directory or filesystem of a file or directory.
+        /// </remarks>
+        /// <param name="request">The file or directory object and connection information
+        /// identifying the server to connect to perform the operation on.</param>
+        /// <param name="ct"></param>
+        /// <returns>The parent directory or filesystem.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("parent")]
+        public async Task<ServiceResponse<FileSystemObjectModel>> GetParentAsync(
+            [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _files.GetParentAsync(request.Connection,
                 request.Request, ct).ConfigureAwait(false);
         }
 
@@ -177,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("getinfo/file")]
+        [HttpPost("info/file")]
         public async Task<ServiceResponse<FileInfoModel>> GetFileInfoAsync(
             [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
             CancellationToken ct = default)
@@ -221,6 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(name);
             return await _files.CreateFileAsync(request.Connection,
                 request.Request, name, ct).ConfigureAwait(false);
         }
@@ -257,6 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Connection);
             ArgumentNullException.ThrowIfNull(request.Request);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(name);
             return await _files.CreateDirectoryAsync(request.Connection,
                 request.Request, name, ct).ConfigureAwait(false);
         }
@@ -296,17 +333,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// DeleteFileOrDirectory
+        /// </summary>
+        /// <remarks>
+        /// Delete a file or directory in the specified directory or file system.
+        /// </remarks>
+        /// <param name="request">The filesystem or directory object in which to
+        /// delete the specified file or directory and the connection to use for
+        /// the operation.</param>
+        /// <param name="fileOrDirectoryNodeId">The node id of the file or
+        /// directory to delete</param>
+        /// <param name="ct"></param>
+        /// <returns>The new file.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("delete/{fileOrDirectoryNodeId}")]
+        public async Task<ServiceResultModel> DeleteFileOrDirectoryAsync(
+            [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
+            string fileOrDirectoryNodeId, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(fileOrDirectoryNodeId);
+            return await _files.DeleteFileSystemObjectAsync(request.Connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = fileOrDirectoryNodeId
+                }, request.Request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Download
         /// </summary>
         /// <remarks>
         /// Download a file from the server
         /// </remarks>
-        /// <param name="request">The file object to download and the connection
-        /// information identifying the server to connect to perform the
-        /// operation on.</param>
+        /// <param name="connectionJson">The connection information identifying the server
+        /// to connect to perform the operation on. This is passed as json serialized via
+        /// the header "x-ms-connection"</param>
+        /// <param name="fileObjectJson">The file object to upload. This is passed as json
+        /// serialized via the header "x-ms-target"</param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// <exception cref="ArgumentNullException"><paramref name="connectionJson"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="fileObjectJson"/>
         /// is <c>null</c>.</exception>
         /// <exception cref="NotSupportedException">The operation is not supported
         /// over the transport chosen</exception>
@@ -319,14 +400,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("file/download")]
+        [HttpGet("download")]
         public async Task DownloadAsync(
-            [FromBody][Required] RequestEnvelope<FileSystemObjectModel> request,
+            [FromHeader(Name = "x-ms-connection")][Required] string connectionJson,
+            [FromHeader(Name = "x-ms-target")][Required] string fileObjectJson,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(request.Connection);
-            ArgumentNullException.ThrowIfNull(request.Request);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionJson);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
+
+            var connection = _serializer.Deserialize<ConnectionModel>(connectionJson);
+            var fileObject = _serializer.Deserialize<FileSystemObjectModel>(fileObjectJson);
+
+            ArgumentNullException.ThrowIfNull(connection);
+            ArgumentNullException.ThrowIfNull(fileObject);
 
             if (HttpContext == null)
             {
@@ -334,13 +421,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             }
             var response = HttpContext.Response;
             await response.StartAsync(ct).ConfigureAwait(false);
-            var result = await _files.CopyToAsync(request.Connection,
-                request.Request, response.Body, ct).ConfigureAwait(false);
-            if (result != null)
+            var result = await _files.CopyToAsync(connection,
+                fileObject, response.Body, ct).ConfigureAwait(false);
+            if (result?.StatusCode != 0)
             {
-                response.StatusCode = 500;
-                await response.WriteAsJsonAsync(result,
-                    cancellationToken: ct).ConfigureAwait(false);
+                HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                HttpContext.Response.Headers.Append("errorInfo",
+                    new StringValues(_serializer.SerializeObjectToString(result)));
             }
             await response.CompleteAsync().ConfigureAwait(false);
         }
@@ -351,12 +438,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <remarks>
         /// Upload a file to the server
         /// </remarks>
-        /// <param name="request">The file object to upload and the connection
-        /// information identifying the server to connect to perform the
-        /// operation on.</param>
+        /// <param name="connectionJson">The connection information identifying the server
+        /// to connect to perform the operation on. This is passed as json serialized via
+        /// the header "x-ms-connection"</param>
+        /// <param name="fileObjectJson">The file object to upload. This is passed as json
+        /// serialized via the header "x-ms-target"</param>
+        /// <param name="modeJson">The file write mode to use passed as header "x-ms-mode"
+        /// </param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// <exception cref="ArgumentNullException"><paramref name="connectionJson"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="fileObjectJson"/>
+        /// is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="modeJson"/>
         /// is <c>null</c>.</exception>
         /// <exception cref="NotSupportedException">The operation is not supported
         /// over the transport chosen</exception>
@@ -369,29 +464,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPut("file/upload")]
-        public async Task<ServiceResultModel> UploadAsync(
-            [FromBody][Required] RequestEnvelopeWithFile<FileSystemObjectModel> request,
+        [HttpPost("upload")]
+        public async Task UploadAsync(
+            [FromHeader(Name = "x-ms-connection")][Required] string connectionJson,
+            [FromHeader(Name = "x-ms-target")][Required] string fileObjectJson,
+            [FromHeader(Name = "x-ms-mode")][Required] string modeJson,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(request.Connection);
-            ArgumentNullException.ThrowIfNull(request.Request);
-            ArgumentNullException.ThrowIfNull(request.File);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionJson);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(modeJson);
+
+            var connection = _serializer.Deserialize<ConnectionModel>(connectionJson);
+            var fileObject = _serializer.Deserialize<FileSystemObjectModel>(fileObjectJson);
+            var mode = _serializer.Deserialize<FileWriteMode>(modeJson);
+
+            ArgumentNullException.ThrowIfNull(connection);
+            ArgumentNullException.ThrowIfNull(fileObject);
 
             if (HttpContext == null)
             {
                 throw new NotSupportedException("Upload not supported");
             }
 
-            var readStream = request.File.OpenReadStream();
-            await using (var _ = readStream.ConfigureAwait(false))
+            await using (var _ = HttpContext.Request.Body.ConfigureAwait(false))
             {
-                return await _files.CopyFromAsync(request.Connection,
-                    request.Request, readStream, ct: ct).ConfigureAwait(false);
+                var result = await _files.CopyFromAsync(connection,
+                    fileObject, HttpContext.Request.Body, mode, ct).ConfigureAwait(false);
+
+                if (result?.StatusCode != 0)
+                {
+                    HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    HttpContext.Response.Headers.Append("errorInfo",
+                        new StringValues(_serializer.SerializeObjectToString(result)));
+                }
             }
         }
         private readonly IFileSystemServices<ConnectionModel> _files;
+        private readonly IJsonSerializer _serializer;
     }
 
     /// <summary>

@@ -27,6 +27,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _connection = connection;
         }
 
+        public async Task ReadFileTest0Async(CancellationToken ct = default)
+        {
+            var services = _services();
+
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(path);
+            try
+            {
+                var file = CreateFile(path, "testfile", 1 * 1024 * 1024);
+
+                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+                var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, ct).ConfigureAwait(false);
+
+                Assert.Null(stream.ErrorInfo);
+                Assert.NotNull(stream.Result);
+                await using (var _ = stream.Result.ConfigureAwait(false))
+                {
+                    var buffer = new byte[256 * 1024];
+                    await stream.Result.ReadExactlyAsync(buffer, ct).ConfigureAwait(false);
+                    for (var i = 0; i < buffer.Length; i++)
+                    {
+                        Assert.Equal((byte)i, buffer[i]);
+                    }
+
+                    await stream.Result.ReadExactlyAsync(buffer, ct).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                Directory.Delete(path, true);
+            }
+        }
+
         public async Task ReadFileTest1Async(CancellationToken ct = default)
         {
             var services = _services();
