@@ -154,7 +154,7 @@ namespace FileSystem
             else
             {
                 // look for next directory.
-                if (_stage == Stage.Directories && _directories != null && _directories.Count > 0)
+                if (_stage == Stage.Directories && _directories?.Count > 0)
                 {
                     var name = _directories[0];
                     _directories = _directories[1..];
@@ -162,7 +162,7 @@ namespace FileSystem
                 }
 
                 // look for next file.
-                else if (_stage == Stage.Files && _files != null && _files.Count > 0)
+                else if (_stage == Stage.Files && _files?.Count > 0)
                 {
                     var name = _files[0];
                     _files = _files[1..];

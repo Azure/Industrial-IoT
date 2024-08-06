@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// <summary>
         /// Write stream wraps a request content body
         /// </summary>
-        internal class UploadStream : Stream
+        internal sealed class UploadStream : Stream
         {
             /// <inheritdoc/>
             public override bool CanRead => false;

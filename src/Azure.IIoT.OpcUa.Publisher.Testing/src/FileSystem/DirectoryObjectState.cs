@@ -116,9 +116,7 @@ namespace FileSystem
                 {
                     if (createCopy)
                     {
-                        return ServiceResult.Create(StatusCodes.BadNotSupported,
-                            "Not supported");
-                        // System.IO.Directory.Copy(path, dst);
+                        CopyDirectory(path, dst);
                     }
                     else
                     {
@@ -282,6 +280,18 @@ namespace FileSystem
                     browser.Add(ReferenceTypeIds.HasComponent, true,
                         ModelUtils.ConstructIdForDirectory(parent, NodeId.NamespaceIndex));
                 }
+            }
+        }
+
+        private static void CopyDirectory(string sourcePath, string targetPath)
+        {
+            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath, StringComparison.InvariantCulture));
+            }
+            foreach (string newPath in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
+            {
+                File.Copy(newPath, newPath.Replace(sourcePath, targetPath, StringComparison.InvariantCulture), true);
             }
         }
     }
