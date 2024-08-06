@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.FileSystem.MsgPack
         {
             return new OperationsTests<ConnectionModel>(
               _client.Resolve<IFileSystemServices<ConnectionModel>>,
-              _server.GetConnection());
+              _server.GetConnection(), _server.TempPath);
         }
 
         private readonly FileSystemServer _server;

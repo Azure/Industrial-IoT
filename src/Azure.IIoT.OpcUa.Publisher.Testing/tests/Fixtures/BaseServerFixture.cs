@@ -75,6 +75,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public TimeService TimeService => _timeService.Object;
 
         /// <summary>
+        /// Temporary path
+        /// </summary>
+        public string TempPath { get; } = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        /// <summary>
         /// Filter parser
         /// </summary>
         public IFilterParser Parser => _container.Resolve<IFilterParser>();
@@ -277,6 +282,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         Try.Op(() => Directory.Delete(pkiPath, true));
                     }
                     logger.LogInformation("Disposing Server took {Elapsed}...", sw.Elapsed);
+
+                    if (Directory.Exists(TempPath))
+                    {
+                        Try.Op(() => Directory.Delete(TempPath, true));
+                    }
                 }
                 _disposedValue = true;
             }

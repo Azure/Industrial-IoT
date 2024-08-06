@@ -20,407 +20,320 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
-        public OperationsTests(Func<IFileSystemServices<T>> services, T connection)
+        /// <param name="tempPath"></param>
+        public OperationsTests(Func<IFileSystemServices<T>> services, T connection, string tempPath)
         {
             _services = services;
             _connection = connection;
+            _tempPath = tempPath;
         }
 
         public async Task CreateDirectoryTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
             {
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, "testdirectory", ct).ConfigureAwait(false);
+                NodeId = directoryNodeId
+            }, "testdirectory", ct).ConfigureAwait(false);
 
-                Assert.Null(directory.ErrorInfo);
-                Assert.True(Directory.Exists(Path.Combine(path, "testdirectory")));
+            Assert.Null(directory.ErrorInfo);
+            Assert.True(Directory.Exists(Path.Combine(path, "testdirectory")));
 
-                var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(directories.ErrorInfo);
-                Assert.NotNull(directories.Result);
-                var item = Assert.Single(directories.Result);
-                Assert.Equal(item, directory.Result);
-            }
-            finally
+            var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(directories.ErrorInfo);
+            Assert.NotNull(directories.Result);
+            var item = Assert.Single(directories.Result);
+            Assert.Equal(item, directory.Result);
         }
 
         public async Task CreateDirectoryTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(path, "testdirectory"));
+            Directory.CreateDirectory(Path.Combine(path, "testdirectory"));
 
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, "testdirectory", ct).ConfigureAwait(false);
-
-                Assert.NotNull(directory.ErrorInfo);
-                Assert.Equal(Opc.Ua.StatusCodes.BadBrowseNameDuplicated, directory.ErrorInfo.StatusCode);
-            }
-            finally
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = directoryNodeId
+            }, "testdirectory", ct).ConfigureAwait(false);
+
+            Assert.NotNull(directory.ErrorInfo);
+            Assert.Equal(Opc.Ua.StatusCodes.BadBrowseNameDuplicated, directory.ErrorInfo.StatusCode);
         }
 
         public async Task CreateDirectoryTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var p3 = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2, p3);
             Directory.CreateDirectory(path);
-            try
-            {
-                Assert.Empty(Directory.GetDirectories(path));
+            Assert.Empty(Directory.GetDirectories(path));
 
-                var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
-                }, "testdir", ct).ConfigureAwait(false);
-
-                Assert.Null(directory.ErrorInfo);
-                Assert.NotEmpty(Directory.GetDirectories(path));
-                Assert.True(Directory.Exists(Path.Combine(path, "testdir")));
-            }
-            finally
+            var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = $"nsu=FileSystem;s=1:{root}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
+            }, "testdir", ct).ConfigureAwait(false);
+
+            Assert.Null(directory.ErrorInfo);
+            Assert.NotEmpty(Directory.GetDirectories(path));
+            Assert.True(Directory.Exists(Path.Combine(path, "testdir")));
         }
 
         public async Task CreateDirectoryTest4Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var p3 = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2, p3);
             Directory.CreateDirectory(path);
-            try
-            {
-                Assert.Empty(Directory.GetDirectories(path));
+            Assert.Empty(Directory.GetDirectories(path));
 
-                var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", "nsu=FileSystem;Bad" }
-                }, "testdir", ct).ConfigureAwait(false);
-
-                Assert.NotNull(directory.ErrorInfo);
-                Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, directory.ErrorInfo.StatusCode);
-                Assert.Empty(Directory.GetDirectories(path));
-            }
-            finally
+            var directory = await services.CreateDirectoryAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = $"nsu=FileSystem;s=1:{root}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", "nsu=FileSystem;Bad" }
+            }, "testdir", ct).ConfigureAwait(false);
+
+            Assert.NotNull(directory.ErrorInfo);
+            Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, directory.ErrorInfo.StatusCode);
+            Assert.Empty(Directory.GetDirectories(path));
         }
 
         public async Task DeleteDirectoryTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var path2 = Path.Combine(path, "testDirectory");
-                Directory.CreateDirectory(Path.Combine(path, "testDirectory"));
+            var path2 = Path.Combine(path, "testDirectory");
+            Directory.CreateDirectory(Path.Combine(path, "testDirectory"));
 
-                var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
+            var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
 
-                Assert.NotEmpty(Directory.GetDirectories(path));
+            Assert.NotEmpty(Directory.GetDirectories(path));
 
-                var nodeToDelete = $"nsu=FileSystem;s=1:{path2}";
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = nodeToDelete
-                    },
-                    new FileSystemObjectModel
-                    {
-                        NodeId = parentDirectoryId
-                    }, ct).ConfigureAwait(false);
+            var nodeToDelete = $"nsu=FileSystem;s=1:{path2}";
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = nodeToDelete
+                },
+                new FileSystemObjectModel
+                {
+                    NodeId = parentDirectoryId
+                }, ct).ConfigureAwait(false);
 
-                Assert.NotNull(result);
-                Assert.Equal(0u, result.StatusCode);
-                Assert.Empty(Directory.GetDirectories(path));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(0u, result.StatusCode);
+            Assert.Empty(Directory.GetDirectories(path));
         }
 
         public async Task DeleteDirectoryTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var path2 = Path.Combine(path, "testDirectory");
-                Directory.CreateDirectory(Path.Combine(path, "testDirectory"));
+            var path2 = Path.Combine(path, "testDirectory");
+            Directory.CreateDirectory(Path.Combine(path, "testDirectory"));
 
-                Assert.NotEmpty(Directory.GetDirectories(path));
+            Assert.NotEmpty(Directory.GetDirectories(path));
 
-                var nodeToDelete = $"nsu=FileSystem;s=1:{path2}";
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = nodeToDelete
-                    }, ct: ct).ConfigureAwait(false);
+            var nodeToDelete = $"nsu=FileSystem;s=1:{path2}";
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = nodeToDelete
+                }, ct: ct).ConfigureAwait(false);
 
-                Assert.NotNull(result);
-                Assert.Equal(0u, result.StatusCode);
-                Assert.Empty(Directory.GetDirectories(path));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(0u, result.StatusCode);
+            Assert.Empty(Directory.GetDirectories(path));
         }
 
         public async Task DeleteDirectoryTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
+            var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
 
-                var fileToDeleteId = $"nsu=FileSystem;s=1:{Path.Combine(path, "wrong")}";
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = fileToDeleteId
-                    },
-                    new FileSystemObjectModel
-                    {
-                        NodeId = parentDirectoryId
-                    }, ct).ConfigureAwait(false);
+            var fileToDeleteId = $"nsu=FileSystem;s=1:{Path.Combine(path, "wrong")}";
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = fileToDeleteId
+                },
+                new FileSystemObjectModel
+                {
+                    NodeId = parentDirectoryId
+                }, ct).ConfigureAwait(false);
 
-                Assert.NotNull(result);
-                Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, result.StatusCode);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, result.StatusCode);
         }
 
         public async Task CreateFileTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
             {
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, "testfile", ct).ConfigureAwait(false);
+                NodeId = directoryNodeId
+            }, "testfile", ct).ConfigureAwait(false);
 
-                Assert.Null(file.ErrorInfo);
-                Assert.True(File.Exists(Path.Combine(path, "testfile")));
+            Assert.Null(file.ErrorInfo);
+            Assert.True(File.Exists(Path.Combine(path, "testfile")));
 
-                var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                var item = Assert.Single(files.Result);
-                Assert.Equal(item, file.Result);
-            }
-            finally
+            var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            var item = Assert.Single(files.Result);
+            Assert.Equal(item, file.Result);
         }
 
         public async Task CreateFileTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
             {
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, "testfile", ct).ConfigureAwait(false);
+                NodeId = directoryNodeId
+            }, "testfile", ct).ConfigureAwait(false);
 
-                Assert.Null(file.ErrorInfo);
-                Assert.True(File.Exists(Path.Combine(path, "testfile")));
+            Assert.Null(file.ErrorInfo);
+            Assert.True(File.Exists(Path.Combine(path, "testfile")));
 
-                var file2 = await services.CreateFileAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, "testfile", ct).ConfigureAwait(false);
-
-                Assert.Null(file2.Result);
-                Assert.NotNull(file2.ErrorInfo);
-                Assert.Equal(Opc.Ua.StatusCodes.BadBrowseNameDuplicated, file2.ErrorInfo.StatusCode);
-            }
-            finally
+            var file2 = await services.CreateFileAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = directoryNodeId
+            }, "testfile", ct).ConfigureAwait(false);
+
+            Assert.Null(file2.Result);
+            Assert.NotNull(file2.ErrorInfo);
+            Assert.Equal(Opc.Ua.StatusCodes.BadBrowseNameDuplicated, file2.ErrorInfo.StatusCode);
         }
 
         public async Task CreateFileTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var f = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);
-            try
-            {
-                Assert.Empty(Directory.GetFiles(path));
 
-                var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}" }
-                }, "testfile", ct).ConfigureAwait(false);
+            Assert.Empty(Directory.GetFiles(path));
 
-                Assert.Null(file.ErrorInfo);
-                Assert.True(File.Exists(Path.Combine(path, "testfile")));
-            }
-            finally
+            var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = $"nsu=FileSystem;s=1:{root}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}" }
+            }, "testfile", ct).ConfigureAwait(false);
+
+            Assert.Null(file.ErrorInfo);
+            Assert.True(File.Exists(Path.Combine(path, "testfile")));
         }
 
         public async Task CreateFileTest4Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var f = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);
-            try
-            {
-                Assert.Empty(Directory.GetFiles(path));
 
-                var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", "nsu=FileSystem;Bad" }
-                }, "testfile", ct).ConfigureAwait(false);
+            Assert.Empty(Directory.GetFiles(path));
 
-                Assert.NotNull(file.ErrorInfo);
-            }
-            finally
+            var file = await services.CreateFileAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = $"nsu=FileSystem;s=1:{root}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", "nsu=FileSystem;Bad" }
+            }, "testfile", ct).ConfigureAwait(false);
+
+            Assert.NotNull(file.ErrorInfo);
         }
 
         public async Task GetFileInfoTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             var path2 = CreateFile(path, "testfile", 1024);
-            try
+            var fileNodeId = $"nsu=FileSystem;s=2:{path2}";
+            var fileInfo = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
             {
-                var fileNodeId = $"nsu=FileSystem;s=2:{path2}";
-                var fileInfo = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = fileNodeId
-                }, ct).ConfigureAwait(false);
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(fileInfo.ErrorInfo);
-                Assert.NotNull(fileInfo.Result);
-                Assert.Equal(1024, fileInfo.Result.Size);
-                Assert.True(fileInfo.Result.Writable);
-                Assert.Equal(0, fileInfo.Result.OpenCount);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(fileInfo.ErrorInfo);
+            Assert.NotNull(fileInfo.Result);
+            Assert.Equal(1024, fileInfo.Result.Size);
+            Assert.True(fileInfo.Result.Writable);
+            Assert.Equal(0, fileInfo.Result.OpenCount);
         }
 
         public async Task GetFileInfoTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var fileNodeId = $"nsu=FileSystem;s=2:{Path.Combine(path, "bad")}";
+            var fileInfo = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
             {
-                var fileNodeId = $"nsu=FileSystem;s=2:{Path.Combine(path, "bad")}";
-                var fileInfo = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = fileNodeId
-                }, ct).ConfigureAwait(false);
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
 
-                Assert.NotNull(fileInfo.ErrorInfo);
-                Assert.Null(fileInfo.Result);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.NotNull(fileInfo.ErrorInfo);
+            Assert.Null(fileInfo.Result);
         }
 
         public async Task GetFileInfoTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var f = Path.GetRandomFileName();
@@ -428,124 +341,98 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);
             CreateFile(path, f, 100);
-            try
+            var fileInfo = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
             {
-                var fileInfo = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{f}" }
-                }, ct).ConfigureAwait(false);
+                NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{f}" }
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(fileInfo.ErrorInfo);
-                Assert.NotNull(fileInfo.Result);
-                Assert.Equal(100, fileInfo.Result.Size);
-                Assert.True(fileInfo.Result.Writable);
-                Assert.Equal(0, fileInfo.Result.OpenCount);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(fileInfo.ErrorInfo);
+            Assert.NotNull(fileInfo.Result);
+            Assert.Equal(100, fileInfo.Result.Size);
+            Assert.True(fileInfo.Result.Writable);
+            Assert.Equal(0, fileInfo.Result.OpenCount);
         }
 
         public async Task DeleteFileTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             var path2 = CreateFile(path, "testfile", 1024);
-            try
-            {
-                var fileToDeleteId = $"nsu=FileSystem;s=2:{path2}";
+            var fileToDeleteId = $"nsu=FileSystem;s=2:{path2}";
 
-                Assert.NotEmpty(Directory.GetFiles(path));
+            Assert.NotEmpty(Directory.GetFiles(path));
 
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = fileToDeleteId
-                    }, ct: ct).ConfigureAwait(false);
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = fileToDeleteId
+                }, ct: ct).ConfigureAwait(false);
 
-                Assert.NotNull(result);
-                Assert.Equal(0u, result.StatusCode);
-                Assert.Empty(Directory.GetFiles(path));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(0u, result.StatusCode);
+            Assert.Empty(Directory.GetFiles(path));
         }
 
         public async Task DeleteFileTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
             var path2 = CreateFile(path, "testfile", 1024);
-            try
-            {
-                Assert.NotEmpty(Directory.GetFiles(path));
 
-                var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
+            Assert.NotEmpty(Directory.GetFiles(path));
 
-                var fileToDeleteId = $"nsu=FileSystem;s=2:{path2}";
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = fileToDeleteId
-                    },
-                    new FileSystemObjectModel
-                    {
-                        NodeId = parentDirectoryId
-                    }, ct).ConfigureAwait(false);
+            var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
 
-                Assert.NotNull(result);
-                Assert.Equal(0u, result.StatusCode);
-                Assert.Empty(Directory.GetFiles(path));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            var fileToDeleteId = $"nsu=FileSystem;s=2:{path2}";
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = fileToDeleteId
+                },
+                new FileSystemObjectModel
+                {
+                    NodeId = parentDirectoryId
+                }, ct).ConfigureAwait(false);
+
+            Assert.NotNull(result);
+            Assert.Equal(0u, result.StatusCode);
+            Assert.Empty(Directory.GetFiles(path));
         }
 
         public async Task DeleteFileTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
 
-                var fileToDeleteId = $"nsu=FileSystem;s=2:{Path.Combine(path, "wrong")}";
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = fileToDeleteId
-                    },
-                    new FileSystemObjectModel
-                    {
-                        NodeId = parentDirectoryId
-                    }, ct).ConfigureAwait(false);
+            var parentDirectoryId = $"nsu=FileSystem;s=1:{path}";
 
-                Assert.NotNull(result);
-                Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, result.StatusCode);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            var fileToDeleteId = $"nsu=FileSystem;s=2:{Path.Combine(path, "wrong")}";
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = fileToDeleteId
+                },
+                new FileSystemObjectModel
+                {
+                    NodeId = parentDirectoryId
+                }, ct).ConfigureAwait(false);
+
+            Assert.NotNull(result);
+            Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, result.StatusCode);
         }
 
         public async Task DeleteFileTest4Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var f = Path.GetRandomFileName();
@@ -553,32 +440,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);
             CreateFile(path, f, 100);
-            try
-            {
-                Assert.NotEmpty(Directory.GetFiles(path));
 
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
-                        BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{f}" }
-                    }, ct: ct).ConfigureAwait(false);
+            Assert.NotEmpty(Directory.GetFiles(path));
 
-                Assert.NotNull(result);
-                Assert.Equal(0u, result.StatusCode);
-                Assert.Empty(Directory.GetFiles(path));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
+                    BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{f}" }
+                }, ct: ct).ConfigureAwait(false);
+
+            Assert.NotNull(result);
+            Assert.Equal(0u, result.StatusCode);
+            Assert.Empty(Directory.GetFiles(path));
         }
 
         public async Task DeleteFileTest5Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var f = Path.GetRandomFileName();
@@ -586,24 +467,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);
             CreateFile(path, f, 100);
-            try
-            {
-                Assert.NotEmpty(Directory.GetFiles(path));
+            Assert.NotEmpty(Directory.GetFiles(path));
 
-                var result = await services.DeleteFileSystemObjectAsync(_connection,
-                    new FileSystemObjectModel
-                    {
-                        NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
-                        BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", "nsu=FileSystem;Notexisting" }
-                    }, ct: ct).ConfigureAwait(false);
+            var result = await services.DeleteFileSystemObjectAsync(_connection,
+                new FileSystemObjectModel
+                {
+                    NodeId = $"nsu=FileSystem;s=1:{Path.Combine(root, p1)}",
+                    BrowsePath = new List<string> { $"nsu=FileSystem;{p2}", "nsu=FileSystem;Notexisting" }
+                }, ct: ct).ConfigureAwait(false);
 
-                Assert.NotNull(result);
-                Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, result.StatusCode);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(Opc.Ua.StatusCodes.BadNotFound, result.StatusCode);
         }
 
         private static string CreateFile(string path, string name, long length)
@@ -620,6 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
+        private readonly string _tempPath;
         private readonly Func<IFileSystemServices<T>> _services;
     }
 }

@@ -22,10 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
-        public BrowseTests(Func<IFileSystemServices<T>> services, T connection)
+        /// <param name="tempPath"></param>
+        public BrowseTests(Func<IFileSystemServices<T>> services, T connection, string tempPath)
         {
             _services = services;
             _connection = connection;
+            _tempPath = tempPath;
         }
 
         public async Task GetFileSystemsTest1Async(CancellationToken ct = default)
@@ -50,121 +52,93 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
             {
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-                Assert.Null(directories.ErrorInfo);
-                Assert.NotNull(directories.Result);
-                Assert.Empty(directories.Result);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+            Assert.Null(directories.ErrorInfo);
+            Assert.NotNull(directories.Result);
+            Assert.Empty(directories.Result);
         }
 
         public async Task GetDirectoriesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var path2 = Path.Combine(path, Path.GetRandomFileName());
+            Directory.CreateDirectory(path2);
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
             {
-                var path2 = Path.Combine(path, Path.GetRandomFileName());
-                Directory.CreateDirectory(path2);
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(directories.ErrorInfo);
-                Assert.NotNull(directories.Result);
-                var item = Assert.Single(directories.Result);
-                Assert.NotNull(item);
-                Assert.Equal(Path.GetFileName(path2), item.Name);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(directories.ErrorInfo);
+            Assert.NotNull(directories.Result);
+            var item = Assert.Single(directories.Result);
+            Assert.NotNull(item);
+            Assert.Equal(Path.GetFileName(path2), item.Name);
         }
 
         public async Task GetDirectoriesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            for (var i = 0; i < 10; i++)
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
-                    Directory.CreateDirectory(path2);
-                }
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
+                var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
+                Directory.CreateDirectory(path2);
+            }
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(directories.ErrorInfo);
-                Assert.NotNull(directories.Result);
-                var result = directories.Result.ToList();
-                Assert.Equal(10, result.Count);
-                Assert.All(result, item => Assert.NotNull(item.Name));
-                Assert.All(result.Select(r => r.Name).Order(),
-                    (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(directories.ErrorInfo);
+            Assert.NotNull(directories.Result);
+            var result = directories.Result.ToList();
+            Assert.Equal(10, result.Count);
+            Assert.All(result, item => Assert.NotNull(item.Name));
+            Assert.All(result.Select(r => r.Name).Order(),
+                (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
         }
 
         public async Task GetDirectoriesTest4Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            for (var i = 0; i < 10; i++)
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
-                }
-
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-
-                var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(directories.ErrorInfo);
-                Assert.NotNull(directories.Result);
-                Assert.Empty(directories.Result);
+                CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
             }
-            finally
+
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+
+            var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(directories.ErrorInfo);
+            Assert.NotNull(directories.Result);
+            Assert.Empty(directories.Result);
         }
 
         public async Task GetDirectoriesTest5Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
 
             var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
@@ -182,223 +156,189 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var p3 = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2, p3);
             Directory.CreateDirectory(path);
-            try
-            {
-                var path2 = Path.Combine(path, Path.GetRandomFileName());
-                Directory.CreateDirectory(path2);
+            var path2 = Path.Combine(path, Path.GetRandomFileName());
+            Directory.CreateDirectory(path2);
 
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(directories.ErrorInfo);
-                Assert.NotNull(directories.Result);
-                var item = Assert.Single(directories.Result);
-                Assert.NotNull(item);
-                Assert.Equal(Path.GetFileName(path2), item.Name);
-            }
-            finally
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
-            }
+                NodeId = $"nsu=FileSystem;s=1:{root}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(directories.ErrorInfo);
+            Assert.NotNull(directories.Result);
+            var item = Assert.Single(directories.Result);
+            Assert.NotNull(item);
+            Assert.Equal(Path.GetFileName(path2), item.Name);
         }
 
         public async Task GetFilesTest1Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            for (var i = 10; i < 20; i++)
             {
-                for (var i = 10; i < 20; i++)
-                {
-                    var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
-                    Directory.CreateDirectory(path2);
-                }
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
+                var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
+                Directory.CreateDirectory(path2);
+            }
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                Assert.Empty(files.Result);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            Assert.Empty(files.Result);
         }
 
         public async Task GetFilesTest2Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                for (var i = 0; i < 10; i++)
-                {
-                    CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
-                }
 
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                var result = files.Result.ToList();
-                Assert.Equal(10, result.Count);
-                Assert.All(result, item => Assert.NotNull(item.Name));
-                Assert.All(result.Select(r => r.Name).Order(),
-                    (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
-            }
-            finally
+            for (var i = 0; i < 10; i++)
             {
-                Directory.Delete(path, true);
+                CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
             }
+
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            var result = files.Result.ToList();
+            Assert.Equal(10, result.Count);
+            Assert.All(result, item => Assert.NotNull(item.Name));
+            Assert.All(result.Select(r => r.Name).Order(),
+                (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
         }
 
         public async Task GetFilesTest3Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            for (var i = 0; i < 10; i++)
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
-                }
-                for (var i = 10; i < 20; i++)
-                {
-                    var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
-                    Directory.CreateDirectory(path2);
-                }
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-                var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
+                CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
+            }
+            for (var i = 10; i < 20; i++)
+            {
+                var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
+                Directory.CreateDirectory(path2);
+            }
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+            var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                var result = files.Result.ToList();
-                Assert.Equal(10, result.Count);
-                Assert.All(result, item => Assert.NotNull(item.Name));
-                Assert.All(result.Select(r => r.Name).Order(),
-                    (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            var result = files.Result.ToList();
+            Assert.Equal(10, result.Count);
+            Assert.All(result, item => Assert.NotNull(item.Name));
+            Assert.All(result.Select(r => r.Name).Order(),
+                (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
         }
 
         public async Task GetFilesTest4Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            for (var i = 0; i < 5; i++)
             {
-                for (var i = 0; i < 5; i++)
-                {
-                    CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
-                }
-                var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
-
-                var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                var result = files.Result.ToList();
-                Assert.Equal(5, result.Count);
-                Assert.All(result, item => Assert.NotNull(item.Name));
-                Assert.All(result.Select(r => r.Name).Order(),
-                    (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
-
-                for (var i = 5; i < 10; i++)
-                {
-                    CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
-                }
-
-                files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                result = files.Result.ToList();
-                Assert.Equal(10, result.Count);
-                Assert.All(result, item => Assert.NotNull(item.Name));
-                Assert.All(result.Select(r => r.Name).Order(),
-                    (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
-
-                for (var i = 0; i < 6; i++)
-                {
-                    var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
-                    File.Delete(path2);
-                }
-
-                files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                result = files.Result.ToList();
-                Assert.Equal(4, result.Count);
-                Assert.All(result, item => Assert.NotNull(item.Name));
-                Assert.All(result.Select(r => r.Name).Order(),
-                    (item, i) => Assert.Equal((i + 6).ToString(CultureInfo.InvariantCulture), item));
-
-                foreach (var file in Directory.GetFiles(path))
-                {
-                    File.Delete(file);
-                }
-                files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = directoryNodeId
-                }, ct).ConfigureAwait(false);
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                Assert.Empty(files.Result);
+                CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
             }
-            finally
+            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
+
+            var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
             {
-                Directory.Delete(path, true);
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            var result = files.Result.ToList();
+            Assert.Equal(5, result.Count);
+            Assert.All(result, item => Assert.NotNull(item.Name));
+            Assert.All(result.Select(r => r.Name).Order(),
+                (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
+
+            for (var i = 5; i < 10; i++)
+            {
+                CreateFile(path, i.ToString(CultureInfo.InvariantCulture), 1024);
             }
+
+            files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            result = files.Result.ToList();
+            Assert.Equal(10, result.Count);
+            Assert.All(result, item => Assert.NotNull(item.Name));
+            Assert.All(result.Select(r => r.Name).Order(),
+                (item, i) => Assert.Equal(i.ToString(CultureInfo.InvariantCulture), item));
+
+            for (var i = 0; i < 6; i++)
+            {
+                var path2 = Path.Combine(path, i.ToString(CultureInfo.InvariantCulture));
+                File.Delete(path2);
+            }
+
+            files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            result = files.Result.ToList();
+            Assert.Equal(4, result.Count);
+            Assert.All(result, item => Assert.NotNull(item.Name));
+            Assert.All(result.Select(r => r.Name).Order(),
+                (item, i) => Assert.Equal((i + 6).ToString(CultureInfo.InvariantCulture), item));
+
+            foreach (var file in Directory.GetFiles(path))
+            {
+                File.Delete(file);
+            }
+            files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = directoryNodeId
+            }, ct).ConfigureAwait(false);
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            Assert.Empty(files.Result);
         }
 
         public async Task GetFilesTest5Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
 
             var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
@@ -416,31 +356,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var root = Path.GetTempPath();
+            var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
             var p3 = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2, p3);
             Directory.CreateDirectory(path);
-            try
+            CreateFile(path, "test", 1000);
+            var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
             {
-                CreateFile(path, "test", 1000);
-                var files = await services.GetFilesAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = $"nsu=FileSystem;s=1:{root}",
-                    BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
-                }, ct).ConfigureAwait(false);
+                NodeId = $"nsu=FileSystem;s=1:{root}",
+                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
+            }, ct).ConfigureAwait(false);
 
-                Assert.Null(files.ErrorInfo);
-                Assert.NotNull(files.Result);
-                var item = Assert.Single(files.Result);
-                Assert.Equal("test", item.Name);
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
+            Assert.Null(files.ErrorInfo);
+            Assert.NotNull(files.Result);
+            var item = Assert.Single(files.Result);
+            Assert.Equal("test", item.Name);
         }
 
         private static string CreateFile(string path, string name, long length)
@@ -457,6 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
+        private readonly string _tempPath;
         private readonly Func<IFileSystemServices<T>> _services;
     }
 }

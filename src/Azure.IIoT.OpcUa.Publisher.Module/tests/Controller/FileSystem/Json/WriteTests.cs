@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.FileSystem.Json
         {
             return new WriteTests<ConnectionModel>(
                 _client.Resolve<IFileSystemServices<ConnectionModel>>,
-                _server.GetConnection());
+                _server.GetConnection(), _server.TempPath);
         }
 
         private readonly FileSystemServer _server;

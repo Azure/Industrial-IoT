@@ -19,45 +19,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
-        public ReadTests(Func<IFileSystemServices<T>> services, T connection)
+        /// <param name="tempPath"></param>
+        public ReadTests(Func<IFileSystemServices<T>> services, T connection, string tempPath)
         {
             _services = services;
             _connection = connection;
+            _tempPath = tempPath;
         }
 
         public async Task ReadFileTest0Async(CancellationToken ct = default)
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
+            var file = CreateFile(path, "testfile", 1 * 1024 * 1024);
+
+            var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+            var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
             {
-                var file = CreateFile(path, "testfile", 1 * 1024 * 1024);
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
 
-                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
-                var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            Assert.Null(stream.ErrorInfo);
+            Assert.NotNull(stream.Result);
+            await using (var _ = stream.Result.ConfigureAwait(false))
+            {
+                var buffer = new byte[256 * 1024];
+                await stream.Result.ReadExactlyAsync(buffer, ct).ConfigureAwait(false);
+                for (var i = 0; i < buffer.Length; i++)
                 {
-                    NodeId = fileNodeId
-                }, ct).ConfigureAwait(false);
-
-                Assert.Null(stream.ErrorInfo);
-                Assert.NotNull(stream.Result);
-                await using (var _ = stream.Result.ConfigureAwait(false))
-                {
-                    var buffer = new byte[256 * 1024];
-                    await stream.Result.ReadExactlyAsync(buffer, ct).ConfigureAwait(false);
-                    for (var i = 0; i < buffer.Length; i++)
-                    {
-                        Assert.Equal((byte)i, buffer[i]);
-                    }
-
-                    await stream.Result.ReadExactlyAsync(buffer, ct).ConfigureAwait(false);
+                    Assert.Equal((byte)i, buffer[i]);
                 }
-            }
-            finally
-            {
-                Directory.Delete(path, true);
+
+                await stream.Result.ReadExactlyAsync(buffer, ct).ConfigureAwait(false);
             }
         }
 
@@ -65,58 +60,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var file = CreateFile(path, "testfile", 1024);
+            var file = CreateFile(path, "testfile", 1024);
 
-                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
-                var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+            var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(stream.ErrorInfo);
+            Assert.NotNull(stream.Result);
+            await using (var _ = stream.Result.ConfigureAwait(false))
+            {
+                var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
                 {
                     NodeId = fileNodeId
                 }, ct).ConfigureAwait(false);
 
-                Assert.Null(stream.ErrorInfo);
-                Assert.NotNull(stream.Result);
-                await using (var _ = stream.Result.ConfigureAwait(false))
+                Assert.NotNull(fi.Result);
+                Assert.Equal(1024, fi.Result.Size);
+                Assert.Equal(1, fi.Result.OpenCount);
+                Assert.False(fi.Result.Writable);
+
+                var buffer = new byte[1024];
+                var read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
+                Assert.Equal(read, buffer.Length);
+                for (var i = 0; i < buffer.Length; i++)
                 {
-                    var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                    {
-                        NodeId = fileNodeId
-                    }, ct).ConfigureAwait(false);
-
-                    Assert.NotNull(fi.Result);
-                    Assert.Equal(1024, fi.Result.Size);
-                    Assert.Equal(1, fi.Result.OpenCount);
-                    Assert.False(fi.Result.Writable);
-
-                    var buffer = new byte[1024];
-                    var read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
-                    Assert.Equal(read, buffer.Length);
-                    for (var i = 0; i < buffer.Length; i++)
-                    {
-                        Assert.Equal((byte)i, buffer[i]);
-                    }
-
-                    read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
-                    Assert.Equal(0, read);
+                    Assert.Equal((byte)i, buffer[i]);
                 }
-                {
-                    // Now check it is closed
-                    var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                    {
-                        NodeId = fileNodeId
-                    }, ct).ConfigureAwait(false);
 
-                    Assert.NotNull(fi.Result);
-                    Assert.Equal(0, fi.Result.OpenCount);
-                    Assert.True(fi.Result.Writable);
-                }
+                read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
+                Assert.Equal(0, read);
             }
-            finally
             {
-                Directory.Delete(path, true);
+                // Now check it is closed
+                var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, ct).ConfigureAwait(false);
+
+                Assert.NotNull(fi.Result);
+                Assert.Equal(0, fi.Result.OpenCount);
+                Assert.True(fi.Result.Writable);
             }
         }
 
@@ -124,58 +112,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var file = CreateFile(path, "testfile", 1 * 1024 * 1024);
+            var file = CreateFile(path, "testfile", 1 * 1024 * 1024);
 
-                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
-                var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+            var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(stream.ErrorInfo);
+            Assert.NotNull(stream.Result);
+            await using (var _ = stream.Result.ConfigureAwait(false))
+            {
+                var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
                 {
                     NodeId = fileNodeId
                 }, ct).ConfigureAwait(false);
 
-                Assert.Null(stream.ErrorInfo);
-                Assert.NotNull(stream.Result);
-                await using (var _ = stream.Result.ConfigureAwait(false))
+                Assert.NotNull(fi.Result);
+                Assert.Equal(1 * 1024 * 1024, fi.Result.Size);
+                Assert.Equal(1, fi.Result.OpenCount);
+                Assert.False(fi.Result.Writable);
+
+                var buffer = new byte[256 * 1024];
+                var read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
+                Assert.Equal(read, buffer.Length);
+                for (var i = 0; i < buffer.Length; i++)
                 {
-                    var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                    {
-                        NodeId = fileNodeId
-                    }, ct).ConfigureAwait(false);
-
-                    Assert.NotNull(fi.Result);
-                    Assert.Equal(1 * 1024 * 1024, fi.Result.Size);
-                    Assert.Equal(1, fi.Result.OpenCount);
-                    Assert.False(fi.Result.Writable);
-
-                    var buffer = new byte[256 * 1024];
-                    var read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
-                    Assert.Equal(read, buffer.Length);
-                    for (var i = 0; i < buffer.Length; i++)
-                    {
-                        Assert.Equal((byte)i, buffer[i]);
-                    }
-
-                    read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
-                    Assert.Equal(buffer.Length, read);
+                    Assert.Equal((byte)i, buffer[i]);
                 }
-                {
-                    // Now check it is closed
-                    var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                    {
-                        NodeId = fileNodeId
-                    }, ct).ConfigureAwait(false);
 
-                    Assert.NotNull(fi.Result);
-                    Assert.Equal(0, fi.Result.OpenCount);
-                    Assert.True(fi.Result.Writable);
-                }
+                read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
+                Assert.Equal(buffer.Length, read);
             }
-            finally
             {
-                Directory.Delete(path, true);
+                // Now check it is closed
+                var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, ct).ConfigureAwait(false);
+
+                Assert.NotNull(fi.Result);
+                Assert.Equal(0, fi.Result.OpenCount);
+                Assert.True(fi.Result.Writable);
             }
         }
 
@@ -183,13 +164,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
             Directory.CreateDirectory(path);
-            try
-            {
-                var file = CreateFile(path, "testfile", 1024);
+            var file = CreateFile(path, "testfile", 1024);
 
-                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+            var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+            var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
+
+            Assert.Null(stream.ErrorInfo);
+            Assert.NotNull(stream.Result);
+            await using (var _ = stream.Result.ConfigureAwait(false))
+            {
+                var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, ct).ConfigureAwait(false);
+
+                Assert.NotNull(fi.Result);
+                Assert.Equal(1024, fi.Result.Size);
+                Assert.Equal(1, fi.Result.OpenCount);
+                Assert.False(fi.Result.Writable);
+
+                var buffer = new byte[2 * 1024];
+                var read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
+                Assert.Equal(1024, read);
+                for (var i = 0; i < read; i++)
+                {
+                    Assert.Equal((byte)i, buffer[i]);
+                }
+
+                read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
+                Assert.Equal(0, read);
+            }
+            {
+                // Now check it is closed
+                var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
+                {
+                    NodeId = fileNodeId
+                }, ct).ConfigureAwait(false);
+
+                Assert.NotNull(fi.Result);
+                Assert.Equal(0, fi.Result.OpenCount);
+                Assert.True(fi.Result.Writable);
+            }
+        }
+
+        public async Task ReadFileTest4Async(CancellationToken ct = default)
+        {
+            var services = _services();
+
+            var path = Path.Combine(_tempPath, Path.GetRandomFileName());
+            Directory.CreateDirectory(path);
+            var file = CreateFile(path, "testfile", 1024);
+
+            var fileNodeId = $"nsu=FileSystem;s=2:{file}";
+            var stream1 = await services.OpenReadAsync(_connection, new FileSystemObjectModel
+            {
+                NodeId = fileNodeId
+            }, ct).ConfigureAwait(false);
+            Assert.Null(stream1.ErrorInfo);
+            Assert.NotNull(stream1.Result);
+            await using (var __ = stream1.Result.ConfigureAwait(false))
+            {
                 var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
                 {
                     NodeId = fileNodeId
@@ -206,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.NotNull(fi.Result);
                     Assert.Equal(1024, fi.Result.Size);
-                    Assert.Equal(1, fi.Result.OpenCount);
+                    Assert.Equal(2, fi.Result.OpenCount);
                     Assert.False(fi.Result.Writable);
 
                     var buffer = new byte[2 * 1024];
@@ -228,81 +267,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }, ct).ConfigureAwait(false);
 
                     Assert.NotNull(fi.Result);
-                    Assert.Equal(0, fi.Result.OpenCount);
-                    Assert.True(fi.Result.Writable);
+                    Assert.Equal(1, fi.Result.OpenCount);
+                    Assert.False(fi.Result.Writable);
                 }
-            }
-            finally
-            {
-                Directory.Delete(path, true);
-            }
-        }
-
-        public async Task ReadFileTest4Async(CancellationToken ct = default)
-        {
-            var services = _services();
-
-            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(path);
-            try
-            {
-                var file = CreateFile(path, "testfile", 1024);
-
-                var fileNodeId = $"nsu=FileSystem;s=2:{file}";
-                var stream1 = await services.OpenReadAsync(_connection, new FileSystemObjectModel
-                {
-                    NodeId = fileNodeId
-                }, ct).ConfigureAwait(false);
-                Assert.Null(stream1.ErrorInfo);
-                Assert.NotNull(stream1.Result);
-                await using (var __ = stream1.Result.ConfigureAwait(false))
-                {
-                    var stream = await services.OpenReadAsync(_connection, new FileSystemObjectModel
-                    {
-                        NodeId = fileNodeId
-                    }, ct).ConfigureAwait(false);
-
-                    Assert.Null(stream.ErrorInfo);
-                    Assert.NotNull(stream.Result);
-                    await using (var _ = stream.Result.ConfigureAwait(false))
-                    {
-                        var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                        {
-                            NodeId = fileNodeId
-                        }, ct).ConfigureAwait(false);
-
-                        Assert.NotNull(fi.Result);
-                        Assert.Equal(1024, fi.Result.Size);
-                        Assert.Equal(2, fi.Result.OpenCount);
-                        Assert.False(fi.Result.Writable);
-
-                        var buffer = new byte[2 * 1024];
-                        var read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
-                        Assert.Equal(1024, read);
-                        for (var i = 0; i < read; i++)
-                        {
-                            Assert.Equal((byte)i, buffer[i]);
-                        }
-
-                        read = await stream.Result.ReadAsync(buffer, ct).ConfigureAwait(false);
-                        Assert.Equal(0, read);
-                    }
-                    {
-                        // Now check it is closed
-                        var fi = await services.GetFileInfoAsync(_connection, new FileSystemObjectModel
-                        {
-                            NodeId = fileNodeId
-                        }, ct).ConfigureAwait(false);
-
-                        Assert.NotNull(fi.Result);
-                        Assert.Equal(1, fi.Result.OpenCount);
-                        Assert.False(fi.Result.Writable);
-                    }
-                }
-            }
-            finally
-            {
-                Directory.Delete(path, true);
             }
         }
 
@@ -320,6 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
+        private readonly string _tempPath;
         private readonly Func<IFileSystemServices<T>> _services;
     }
 }
