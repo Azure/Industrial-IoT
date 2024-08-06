@@ -75,7 +75,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.FileSystem.Json
         [Fact]
         public Task AppendFileTest2Async()
         {
-            Skip.If(true);
             return GetTests().AppendFileTest2Async();
         }
     }
