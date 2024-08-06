@@ -230,6 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             {
                 var uri = new Uri($"{outer._serviceUri}/v2/filesystem/download");
                 var httpClient = outer._httpClient.CreateClient();
+                httpClient.Timeout = TimeSpan.FromMinutes(2);
 
                 var _serializer = new NewtonsoftJsonSerializer();
                 using var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -363,6 +364,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             {
                 var uri = new Uri($"{outer._serviceUri}/v2/filesystem/upload");
                 var httpClient = outer._httpClient.CreateClient();
+                httpClient.Timeout = TimeSpan.FromMinutes(2);
                 var request = new HttpRequestMessage(HttpMethod.Post, uri);
 
                 var serializer = new NewtonsoftJsonSerializer();
