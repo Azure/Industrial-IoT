@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNull(file);
-            return await ReadStream.CreateAsync(this, endpoint, file, ct).ConfigureAwait(false);
+            return await DownloadStream.CreateAsync(this, endpoint, file, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNull(file);
 
-            return Task.FromResult(WriteStream.Create(this, endpoint, file, mode, ct));
+            return Task.FromResult(UploadStream.Create(this, endpoint, file, mode, ct));
         }
 
         /// <inheritdoc/>
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// <summary>
         /// File stream wraps a body of a response
         /// </summary>
-        internal sealed class ReadStream : Stream
+        internal sealed class DownloadStream : Stream
         {
             /// <inheritdoc/>
             public override bool CanRead => _body.CanRead;
@@ -212,12 +212,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             }
 
             /// <summary>
-            /// Create read stream wrapper
+            /// Create download stream
             /// </summary>
             /// <param name="httpClient"></param>
             /// <param name="request"></param>
             /// <param name="body"></param>
-            private ReadStream(HttpClient httpClient, HttpRequestMessage request, Stream body)
+            private DownloadStream(HttpClient httpClient, HttpRequestMessage request, Stream body)
             {
                 _httpClient = httpClient;
                 _request = request;
@@ -263,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                     httpClient = null;
                     return new ServiceResponse<Stream>
                     {
-                        Result = new ReadStream(client, request, stream)
+                        Result = new DownloadStream(client, request, stream)
                     };
                 }
                 finally
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// <summary>
         /// Write stream wraps a request content body
         /// </summary>
-        internal class WriteStream : Stream
+        internal class UploadStream : Stream
         {
             /// <inheritdoc/>
             public override bool CanRead => false;
@@ -341,16 +341,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             public ServiceResponse<Stream> Result { get; private set; }
 
             /// <summary>
-            /// Create write stream
+            /// Create upload stream
             /// </summary>
-            /// <param name="outer"></param>
             /// <param name="httpClient"></param>
             /// <param name="request"></param>
+            /// <param name="serializer"></param>
             /// <param name="ct"></param>
-            public WriteStream(FileSystemServicesRestClient outer, HttpClient httpClient,
+            public UploadStream(HttpClient httpClient,
                 HttpRequestMessage request, IJsonSerializer serializer, CancellationToken ct)
             {
-                _outer = outer;
                 _httpClient = httpClient;
                 _request = request;
                 _serializer = serializer;
@@ -371,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 request.Headers.Add("x-ms-connection", serializer.SerializeObjectToString(endpoint));
                 request.Headers.Add("x-ms-mode", serializer.SerializeObjectToString(mode));
 
-                var stream = new WriteStream(outer, httpClient, request, serializer, ct);
+                var stream = new UploadStream(httpClient, request, serializer, ct);
                 return new ServiceResponse<Stream>
                 {
                     Result = stream
@@ -473,7 +472,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 }
             }
 
-            private readonly FileSystemServicesRestClient _outer;
             private readonly HttpClient _httpClient;
             private readonly HttpRequestMessage _request;
             private readonly Pipe _pipe = new();

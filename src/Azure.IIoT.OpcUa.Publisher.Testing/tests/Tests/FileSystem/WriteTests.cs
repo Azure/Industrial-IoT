@@ -244,7 +244,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }
         }
 
-
         public async Task AppendFileTest1Async(CancellationToken ct = default)
         {
             var services = _services();
