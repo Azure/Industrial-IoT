@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Filters;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
@@ -276,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// ValueWrite
+        /// [ValueWrite](./directmethods.md#valuewrite_v1)
         /// </summary>
         /// <remarks>
         /// Write the value of a variable node. This uses the service detailed in
@@ -303,11 +303,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             [FromBody][Required] RequestEnvelope<ValueWriteRequestModel> request,
             CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(request);
-            ArgumentNullException.ThrowIfNull(request.Connection);
-            ArgumentNullException.ThrowIfNull(request.Request);
-            return await _nodes.ValueWriteAsync(request.Connection,
-                request.Request, ct).ConfigureAwait(false);
+            try
+            {
+                ArgumentNullException.ThrowIfNull(request);
+                ArgumentNullException.ThrowIfNull(request.Connection);
+                ArgumentNullException.ThrowIfNull(request.Request);
+                return await _nodes.ValueWriteAsync(request.Connection,
+                    request.Request, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new ValueWriteResponseModel
+                {
+                    ErrorInfo = new ServiceResultModel
+                    {
+                        ErrorMessage = ex.Message
+                    }
+                };
+            }
         }
 
         /// <summary>

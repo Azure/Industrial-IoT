@@ -141,8 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Write nodes
         /// </summary>
-        /// <param name="request"></param>
-        Task WriteNodesAsync(WrittenNodesEntryModel request);
+        Task WriteNodesAsync();
 
         /// <summary>
         /// Replace all configured endpoints with the new set.
