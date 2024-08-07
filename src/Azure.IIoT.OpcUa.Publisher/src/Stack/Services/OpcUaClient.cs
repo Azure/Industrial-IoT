@@ -1140,6 +1140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 })).ConfigureAwait(false);
 
+                session.UpdateOperationTimeout(false);
                 UpdatePublishRequestCounts();
 
                 if (numberOfSubscriptions > 1)
@@ -1778,6 +1779,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
+                    session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 
                     _logger.LogDebug("{Client}: Successfully closed session {Session}.",

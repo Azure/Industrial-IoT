@@ -201,14 +201,18 @@ namespace FileSystem
                         if (File.Exists(path))
                         {
                             File.Delete(path);
+                            break;
                         }
-                        break;
+                        return ServiceResult.Create(StatusCodes.BadNotFound,
+                            $"File sytem object {path} not found");
                     case ModelUtils.Directory:
                         if (Directory.Exists(path))
                         {
                             Directory.Delete(path, true);
+                            break;
                         }
-                        break;
+                        return ServiceResult.Create(StatusCodes.BadNotFound,
+                            $"File sytem object {path} not found");
                     case ModelUtils.Volume:
                         return ServiceResult.Create(StatusCodes.BadUserAccessDenied,
                             "Cannot delete root of filesystem");

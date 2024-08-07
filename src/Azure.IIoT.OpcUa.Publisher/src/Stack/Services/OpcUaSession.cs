@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.Devices.Shared;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -722,6 +723,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             KeepAliveInterval = keepAliveInterval;
             OperationTimeout = operationTimeout;
+            _defaultOperationTimeout = operationTimeout;
         }
 
         /// <summary>
@@ -1235,6 +1237,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Set appropriate operation timeouts
+        /// </summary>
+        /// <param name="closing"></param>
+        internal void UpdateOperationTimeout(bool closing)
+        {
+            //
+            // The OperationTimeout while publishing should be twice the
+            // value for PublishingInterval * KeepAliveCount
+            //
+            if (closing)
+            {
+                OperationTimeout = 2000; // Update to 2 seconds for closing
+                return;
+            }
+            var timeout = Subscriptions
+                .Select(s => s.CurrentPublishingInterval * s.CurrentKeepAliveCount)
+                .DefaultIfEmpty(0)
+                .Max() * 2;
+            if (timeout < _defaultOperationTimeout)
+            {
+                timeout = _defaultOperationTimeout;
+            }
+            if (timeout > kMaxOperationTimeout.TotalMilliseconds)
+            {
+                timeout = kMaxOperationTimeout.TotalMilliseconds;
+            }
+            if (OperationTimeout != timeout)
+            {
+                OperationTimeout = (int)timeout;
+                _logger.LogInformation("Operation timeout updated to {Timeout}.",
+                    TimeSpan.FromMilliseconds(timeout));
+            }
+        }
+
+        /// <summary>
         /// Load complex type system
         /// </summary>
         /// <returns></returns>
@@ -1392,6 +1429,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private Task<ComplexTypeSystem>? _complexTypeSystem;
         private bool _disposed;
         private bool? _diagnosticsEnabled;
+        private int _defaultOperationTimeout;
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;
@@ -1400,5 +1438,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);
     }
 }
