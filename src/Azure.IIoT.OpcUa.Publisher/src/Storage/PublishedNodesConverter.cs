@@ -134,6 +134,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetSamplingInterval = null,
                             DataSetSamplingIntervalTimespan =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultSamplingInterval,
+                            DefaultHeartbeatInterval = null,
+                            DefaultHeartbeatIntervalTimespan =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultHeartbeatInterval,
+                            DefaultHeartbeatBehavior =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultHeartbeatBehavior,
                             Priority =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
                             MaxKeepAliveCount =
@@ -467,14 +472,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 WatchdogBehavior = b.Header.DataSetWriterWatchdogBehavior,
                                                 Priority = b.Header.Priority,
                                                 ResolveDisplayName = b.Header.DataSetFetchDisplayNames,
+                                                DefaultHeartbeatBehavior = b.Header.DefaultHeartbeatBehavior,
+                                                DefaultHeartbeatInterval = b.Header.GetNormalizedDefaultHeartbeatInterval(),
+                                                DefaultSamplingInterval = b.Header.GetNormalizedDataSetSamplingInterval(),
+                                                PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval(),
                                                 MaxNotificationsPerPublish = null,
                                                 EnableImmediatePublishing = null,
                                                 AsyncMetaDataLoadThreshold = null,
                                                 EnableSequentialPublishing = null,
                                                 LifeTimeCount = null,
-                                                UseDeferredAcknoledgements = null,
-                                                DefaultSamplingInterval = b.Header.GetNormalizedDataSetSamplingInterval(),
-                                                PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
+                                                UseDeferredAcknoledgements = null
                                                 // ...
                                             },
                                             PublishedVariables = ToPublishedDataItems(nodes.Where(n => n != kDummyEntry), false),
@@ -529,13 +536,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 DataSetClassFieldId = node.DataSetClassFieldId,
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatIntervalTimespan = node
-                                    .GetNormalizedHeartbeatInterval(),
                                 // The publishing interval item wins over dataset over global default
                                 OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
                                     ?? item.GetNormalizedDataSetPublishingInterval(),
-                                OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval()
-                                    ?? item.GetNormalizedDataSetSamplingInterval(),
+                                OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval(),
+                                HeartbeatIntervalTimespan = node.GetNormalizedHeartbeatInterval(),
                                 QueueSize = node.QueueSize,
                                 DiscardNew = node.DiscardNew,
                                 BrowsePath = node.BrowsePath,
@@ -569,13 +574,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     DataSetFieldId = node.DataSetFieldId,
                                     DataSetClassFieldId = node.DataSetClassFieldId,
                                     ExpandedNodeId = node.ExpandedNodeId,
-                                    HeartbeatIntervalTimespan = node
-                                        .GetNormalizedHeartbeatInterval(),
+                                    HeartbeatIntervalTimespan = node.GetNormalizedHeartbeatInterval(),
                                     // The publishing interval item wins over dataset over global default
                                     OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
                                         ?? item.GetNormalizedDataSetPublishingInterval(),
-                                    OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval()
-                                        ?? item.GetNormalizedDataSetSamplingInterval(),
+                                    OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval(),
                                     QueueSize = node.QueueSize,
                                     SkipFirst = node.SkipFirst,
                                     DataChangeTrigger = node.DataChangeTrigger,

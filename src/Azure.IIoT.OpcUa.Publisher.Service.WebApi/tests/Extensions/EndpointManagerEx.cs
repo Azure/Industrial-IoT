@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
         /// <typeparam name="T"></typeparam>
         /// <param name="manager"></param>
         /// <param name="endpoint"></param>
+        /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<string> RegisterEndpointAsync<T>(this IEndpointManager<T> manager,

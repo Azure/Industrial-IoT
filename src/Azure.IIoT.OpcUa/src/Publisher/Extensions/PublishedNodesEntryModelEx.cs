@@ -316,6 +316,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(samplingInterval.Value.TotalMilliseconds);
             }
+            var heartbeatInterval = model.GetNormalizedDefaultHeartbeatInterval();
+            if (heartbeatInterval != null)
+            {
+                id.Append(heartbeatInterval.Value.TotalMilliseconds);
+            }
+            if (model.DefaultHeartbeatBehavior != null)
+            {
+                id.Append(model.DefaultHeartbeatBehavior.Value);
+            }
             if (model.QualityOfService != null)
             {
                 id.Append(model.QualityOfService.Value);
@@ -476,6 +485,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+            if (model.GetNormalizedDefaultHeartbeatInterval() !=
+                that.GetNormalizedDefaultHeartbeatInterval())
+            {
+                return false;
+            }
+            if (model.DefaultHeartbeatBehavior != that.DefaultHeartbeatBehavior)
+            {
+                return false;
+            }
             if (model.QualityOfService != that.QualityOfService)
             {
                 return false;
@@ -558,6 +576,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         {
             return model.DataSetSamplingIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.DataSetSamplingInterval);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a PublishedNodesEntryModel's DefaultHeartbeatInterval
+        /// </summary>
+        /// <param name="model"></param>
+        public static TimeSpan? GetNormalizedDefaultHeartbeatInterval(
+            this PublishedNodesEntryModel model)
+        {
+            return model.DefaultHeartbeatIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.DefaultHeartbeatInterval);
         }
 
         /// <summary>

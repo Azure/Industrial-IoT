@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Clients
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Google.Api;
 
     /// <summary>
     /// Registry services adapter to run dependent services outside of cloud.

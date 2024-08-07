@@ -1160,6 +1160,454 @@ Start server registration. The results of the registration are published as even
 * `application/x-msgpack`
 
 
+<a name="filesystem_resource"></a>
+### FileSystem
+This section lists the file transfer API provided by OPC Publisher providing
+            access to file transfer services to move files in and out of a server
+            using the File transfer specification.
+            
+
+
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
+
+
+<a name="createdirectory"></a>
+#### CreateDirectory
+```
+POST /v2/filesystem/create/directory/{name}
+```
+
+
+##### Description
+Create a new directory in an existing file system or directory on the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**name**  <br>*required*|The name of the directory to create as child under the parent directory provided|string|
+|**Body**|**body**  <br>*required*|The file system or directory object to create the directory in and the connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponse](definitions.md#filesystemobjectmodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="createfile"></a>
+#### CreateFile
+```
+POST /v2/filesystem/create/file/{name}
+```
+
+
+##### Description
+Create a new file in a directory or file system on the server
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**name**  <br>*required*|The name of the file to create as child under the directory or filesystem provided|string|
+|**Body**|**body**  <br>*required*|The file system or directory object to create the file in and the connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponse](definitions.md#filesystemobjectmodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="deletefilesystemobject"></a>
+#### DeleteFileSystemObject
+```
+POST /v2/filesystem/delete
+```
+
+
+##### Description
+Delete a file or directory in an existing file system on the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The file or directory object to delete and the connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="deletefileordirectory"></a>
+#### DeleteFileOrDirectory
+```
+POST /v2/filesystem/delete/{fileOrDirectoryNodeId}
+```
+
+
+##### Description
+Delete a file or directory in the specified directory or file system.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**fileOrDirectoryNodeId**  <br>*required*|The node id of the file or directory to delete|string|
+|**Body**|**body**  <br>*required*|The filesystem or directory object in which to delete the specified file or directory and the connection to use for the operation.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="download"></a>
+#### Download
+```
+GET /v2/filesystem/download
+```
+
+
+##### Description
+Download a file from the server
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Header**|**x-ms-connection**  <br>*required*|The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header "x-ms-connection"|string|
+|**Header**|**x-ms-target**  <br>*required*|The file object to upload. This is passed as json serialized via the header "x-ms-target"|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getfileinfo"></a>
+#### GetFileInfo
+```
+POST /v2/filesystem/info/file
+```
+
+
+##### Description
+Gets the file information for a file on the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The file object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileInfoModelServiceResponse](definitions.md#fileinfomodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getfilesystems"></a>
+#### GetFileSystems
+```
+POST /v2/filesystem/list
+```
+
+
+##### Description
+Gets all file systems of the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The connection information identifying the server to connect to perform the operation on.|[ConnectionModel](definitions.md#connectionmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponseIAsyncEnumerable](definitions.md#filesystemobjectmodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getdirectories"></a>
+#### GetDirectories
+```
+POST /v2/filesystem/list/directories
+```
+
+
+##### Description
+Gets all directories in a directory or file system
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The directory or filesystem object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelIEnumerableServiceResponse](definitions.md#filesystemobjectmodelienumerableserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getfiles"></a>
+#### GetFiles
+```
+POST /v2/filesystem/list/files
+```
+
+
+##### Description
+Get files in a directory or file system on a server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The directory or filesystem object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelIEnumerableServiceResponse](definitions.md#filesystemobjectmodelienumerableserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getparent"></a>
+#### GetParent
+```
+POST /v2/filesystem/parent
+```
+
+
+##### Description
+Gets the parent directory or filesystem of a file or directory.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The file or directory object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponse](definitions.md#filesystemobjectmodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="upload"></a>
+#### Upload
+```
+POST /v2/filesystem/upload
+```
+
+
+##### Description
+Upload a file to the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Header**|**x-ms-connection**  <br>*required*|The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header "x-ms-connection"|string|
+|**Header**|**x-ms-mode**  <br>*required*|The file write mode to use passed as header "x-ms-mode"|string|
+|**Header**|**x-ms-target**  <br>*required*|The file object to upload. This is passed as json serialized via the header "x-ms-target"|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
 <a name="general_resource"></a>
 ### General
 This section lists the general APi provided by OPC Publisher providing

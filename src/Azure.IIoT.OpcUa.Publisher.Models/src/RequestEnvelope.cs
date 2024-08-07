@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [DataContract]
-    public sealed record class RequestEnvelope<T>
+    public record class RequestEnvelope<T>
     {
         /// <summary>
         /// Connection the request is targeting

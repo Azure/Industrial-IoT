@@ -325,6 +325,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public async Task<ISessionHandle> AcquireSessionAsync(ConnectionModel connection,
+            RequestHeaderModel? header, CancellationToken ct)
+        {
+            connection = UpdateConnectionFromHeader(connection, header);
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Missing endpoint url", nameof(connection));
+            }
+            using var client = GetOrAddClient(connection);
+            return await client.AcquireAsync(header?.ConnectTimeout,
+                header?.ServiceCallTimeout, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (!_disposed)

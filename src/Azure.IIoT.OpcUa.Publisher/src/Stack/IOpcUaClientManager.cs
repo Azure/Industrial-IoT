@@ -41,6 +41,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         event EventHandler<EndpointConnectivityStateEventArgs> OnConnectionStateChange;
 
         /// <summary>
+        /// Acquire a session which will be usable until disposed.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="header"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<ISessionHandle> AcquireSessionAsync(T connection,
+            RequestHeaderModel? header = null, CancellationToken ct = default);
+
+        /// <summary>
         /// Execute the service on the provided session and
         /// return the result.
         /// </summary>

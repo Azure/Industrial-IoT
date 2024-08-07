@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using Opc.Ua.Client;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -24,11 +25,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Net;
     using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Opc.Ua.Extensions;
-    using System.Text.Json;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -443,6 +443,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _lastState = EndpointConnectivityState.Disconnected;
 
+                if (_diagnosticsDumper != null)
+                {
+                    await _diagnosticsDumper.ConfigureAwait(false);
+                }
+
                 _logger.LogInformation("{Client}: Successfully closed.", this);
             }
             catch (Exception ex)
@@ -451,7 +456,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
+                _channelMonitor.Dispose();
                 _cts.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Acquire a session
+        /// </summary>
+        /// <param name="connectTimeout"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ConnectionException"></exception>
+        /// <exception cref="TimeoutException"></exception>
+        internal async Task<ISessionHandle> AcquireAsync(int? connectTimeout,
+            int? serviceCallTimeout, CancellationToken cancellationToken)
+        {
+            var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var ct = cts.Token;
+            cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
+            while (true)
+            {
+                if (_disposed)
+                {
+                    throw new ConnectionException($"Session {_sessionName} was closed.");
+                }
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
+                    try
+                    {
+                        if (_session != null)
+                        {
+                            if (!DisableComplexTypeLoading && !_session.IsTypeSystemLoaded)
+                            {
+                                // Ensure type system is loaded
+                                cts.CancelAfter(timeout);
+                                await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                            }
+
+                            //
+                            // Now clients can continue the operation with the session handle
+                            // which encapsulates the release of the reader lock as well as
+                            // the ref count to the client.
+                            //
+                            var sessionLock = readerlock;
+                            readerlock = null; // Do not dispose below but when handle is disposed
+                            return new ServiceCallContext(_session, GetServiceCallTimeout(
+                                serviceCallTimeout), this, sessionLock, cancellationToken);
+                        }
+                    }
+                    finally
+                    {
+                        readerlock?.Dispose();
+                    }
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    throw new TimeoutException("Connecting to the endpoint timed out.");
+                }
             }
         }
 
@@ -493,8 +559,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
-                        var context = new ServiceCallContext(_session, ct);
-                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
+                        var serviceTimeout = GetServiceCallTimeout(serviceCallTimeout);
+                        using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
+                        cts.CancelAfter(serviceTimeout);
                         var result = await service(context).ConfigureAwait(false);
 
                         //
@@ -580,8 +647,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
-                        var context = new ServiceCallContext(_session, ct);
-                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
+                        var serviceTimeout = GetServiceCallTimeout(serviceCallTimeout);
+                        using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
+                        cts.CancelAfter(serviceTimeout);
                         results = await stack.Peek()(context).ConfigureAwait(false);
 
                         // Success
@@ -1072,6 +1140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 })).ConfigureAwait(false);
 
+                session.UpdateOperationTimeout(false);
                 UpdatePublishRequestCounts();
 
                 if (numberOfSubscriptions > 1)
@@ -1710,6 +1779,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
+                    session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 
                     _logger.LogDebug("{Client}: Successfully closed session {Session}.",

@@ -946,7 +946,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (samplingInterval > 0)
                 {
                     queueSize = Math.Max(queueSize, (uint)Math.Ceiling(
-                        (double)publishingInterval / SamplingInterval));
+                        (double)publishingInterval / SamplingInterval)) + 1;
                     if (queueSize != QueueSize && item.QueueSize != queueSize)
                     {
                         _logger.LogDebug("Auto-set queue size for {Item} to '{QueueSize}'.",

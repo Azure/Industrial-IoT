@@ -1089,6 +1089,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
+        public async Task UpdateConfiguredEndpointsWithBrowsePaths()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 101)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = null,
+                    BrowsePath = new[]
+                    {
+                        "Objects",
+                        "Telemetry",
+                        $"FastUInt{i}"
+                    },
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+            var items = Enumerable.Range(1, 100).Select(i => GenerateEndpoint(i, opcNodes, false)).ToList();
+            await configService.SetConfiguredEndpointsAsync(items);
+
+            var results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(100);
+
+            await configService.UnpublishAllNodesAsync(results[50]);
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(99);
+
+            // purge
+            await configService.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Should().BeEmpty();
+        }
+
+        [Fact]
         public async Task Legacy25PublishedNodesFileError()
         {
             Utils.CopyContent("Publisher/pn_2.5_legacy_error.json", _tempFile);

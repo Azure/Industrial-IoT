@@ -687,6 +687,84 @@ Exception deviation type
 *Type* : enum (AbsoluteValue, PercentOfValue, PercentOfRange, PercentOfEURange)
 
 
+<a name="fileinfomodel"></a>
+### FileInfoModel
+File info
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**lastModified**  <br>*optional*|The time the file was last modified.|string (date-time)|
+|**maxBufferSize**  <br>*optional*|The maximum number of bytes of<br>the read and write buffers.|integer (int64)|
+|**mimeType**  <br>*optional*|The media type of the file based on RFC 2046.|string|
+|**openCount**  <br>*optional*|The number of currently valid file handles on<br>the file.|integer (int32)|
+|**size**  <br>*optional*|The size of the file in Bytes. When a file is<br>currently opened for write, the size might not be<br>accurate or available.|integer (int64)|
+|**writable**  <br>*optional*|Whether the file is writable.|boolean|
+
+
+<a name="fileinfomodelserviceresponse"></a>
+### FileInfoModelServiceResponse
+Response envelope
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|[FileInfoModel](definitions.md#fileinfomodel)|
+
+
+<a name="filesystemobjectmodel"></a>
+### FileSystemObjectModel
+File system object model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|The browse path to the filesystem object|< string > array|
+|**name**  <br>*optional*|The name of the filesystem object|string|
+|**nodeId**  <br>*optional*|The node id of the filesystem object|string|
+
+
+<a name="filesystemobjectmodelienumerableserviceresponse"></a>
+### FileSystemObjectModelIEnumerableServiceResponse
+Response envelope
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|Result|< [FileSystemObjectModel](definitions.md#filesystemobjectmodel) > array|
+
+
+<a name="filesystemobjectmodelrequestenvelope"></a>
+### FileSystemObjectModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*optional*|[FileSystemObjectModel](definitions.md#filesystemobjectmodel)|
+
+
+<a name="filesystemobjectmodelserviceresponse"></a>
+### FileSystemObjectModelServiceResponse
+Response envelope
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|[FileSystemObjectModel](definitions.md#filesystemobjectmodel)|
+
+
+<a name="filesystemobjectmodelserviceresponseiasyncenumerable"></a>
+### FileSystemObjectModelServiceResponseIAsyncEnumerable
+*Type* : object
+
+
 <a name="filteroperandmodel"></a>
 ### FilterOperandModel
 Filter operand

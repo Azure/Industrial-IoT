@@ -7,8 +7,8 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.60" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.60" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.61" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.61" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
@@ -26,6 +26,7 @@
   <ItemGroup>
     <None Remove="Profiles\BrowsePath.json" />
     <None Remove="Profiles\Empty.json" />
+    <None Remove="Profiles\Heartbeat3.json" />
     <None Remove="Profiles\SlowSample.json" />
   </ItemGroup>
 </Project>
