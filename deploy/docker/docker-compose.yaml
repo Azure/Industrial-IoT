@@ -9,7 +9,7 @@ services:
       - "50000:50000"
     command: [
       "--sph=True",
-      "--spf=/shared/pn.json",
+      "--spf=/shared/opcplc.json",
       "--pn=50000",
       "--alm=True",
       "--ses=True",
@@ -39,17 +39,16 @@ services:
       "--di=60",
       "--cl=5",
       "--cto=30",
-      "--mr=5000",
+      "--sto=1200",
       "--rs",
       "--dm=True",
-      "--sqp",
       "--cfa",
       "--lfm=syslog",
       "--pki=/shared/pki",
-      "--pf=/shared/pn.json",
       "--npd=${NODES_PER_DATASET:-5000}"
       ]
     environment:
+      PublishedNodesFile: /shared/opcplc.json
       ADDITIONAL_CONFIGURATION: /run/secrets/publisher-secrets
     secrets:
       - publisher-secrets

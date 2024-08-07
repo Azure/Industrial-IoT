@@ -370,7 +370,7 @@ The simplest way to configure OPC Publisher is via a file. A basic configuration
 ]
 ```
 
-Example configuration files are [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
+Example configuration files are [here](publishednodes_2.5.json?raw=1) and [here](publishednodes_2.8.json?raw=1).
 
 ### Configuration Schema
 

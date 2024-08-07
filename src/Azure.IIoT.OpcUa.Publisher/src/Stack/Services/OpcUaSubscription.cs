@@ -1075,18 +1075,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Sampling);
             _notAppliedItems = set
                 .Count(r => r.Status?.MonitoringMode != r.MonitoringMode);
+            _heartbeatItems = set
+                .Count(r => r is OpcUaMonitoredItem.Heartbeat);
+            _conditionItems = set
+                .Count(r => r is OpcUaMonitoredItem.Condition);
+            var heartbeatsEnabled = set
+                .Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);
+            var conditionsEnabled = set
+                .Count(r => r is OpcUaMonitoredItem.Condition h && h.TimerEnabled);
 
             _logger.LogInformation(@"{Subscription} - Now monitoring {Count} nodes:
-# Good/Bad:     {Good}/{Bad}
-# Reporting:    {Reporting}
-# Sampling:     {Sampling}
-# Disabled:     {Disabled}
-# Not applied:  {NotApplied}
-# Removed:      {Disposed}",
+# Good/Bad:      {Good}/{Bad}
+# Reporting:     {Reporting}
+# Sampling:      {Sampling}
+# Heartbeat/ing: {Heartbeat}/{EnabledHeartbeats}
+# Condition/ing: {Conditions}/{EnabledConditions}
+# Disabled:      {Disabled}
+# Not applied:   {NotApplied}
+# Removed:       {Disposed}",
                 this, set.Count,
                 _goodMonitoredItems, _badMonitoredItems,
                 _reportingItems,
                 _samplingItems,
+                _heartbeatItems, heartbeatsEnabled,
+                _conditionItems, conditionsEnabled,
                 _disabledItems,
                 _notAppliedItems,
                 dispose.Count);
@@ -1188,7 +1200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _forceRecreate = false;
                 _logger.LogInformation(
-                    "Closing subscription {Subscription} and then re-creating...", this);
+                    "========  Closing subscription {Subscription} and re-creating =========", this);
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 Debug.Assert(Session == null);
@@ -2043,8 +2055,21 @@ Actual (revised) state/desired state:
 
             var msg = $"Performed watchdog action {action} for subscription {this} " +
                 $"because it has {_lateMonitoredItems} late monitored items.";
+            RunWatchdogAction(action, msg);
+        }
+
+        /// <summary>
+        /// Run watchdog action
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="msg"></param>
+        private void RunWatchdogAction(SubscriptionWatchdogBehavior action, string msg)
+        {
             switch (action)
             {
+                case SubscriptionWatchdogBehavior.Diagnostic:
+                    _logger.LogCritical("{Message}", msg);
+                    break;
                 case SubscriptionWatchdogBehavior.Reset:
                     ResetMonitoredItemWatchdogTimer(false);
                     _forceRecreate = true;
@@ -2086,13 +2111,13 @@ Actual (revised) state/desired state:
 
                 if (_continuouslyMissingKeepAlives == CurrentLifetimeCount + 1)
                 {
+                    var action = _template.Configuration?.WatchdogBehavior ?? SubscriptionWatchdogBehavior.Reset;
                     _logger.LogCritical(
-                        "#{Count}/{Lifetimecount}: Keep alive count exceeded. Resetting {Subscription}...",
-                        _continuouslyMissingKeepAlives, CurrentLifetimeCount, this);
+                        "#{Count}/{Lifetimecount}: Keep alive count exceeded. Perform {Action} for {Subscription}...",
+                        _continuouslyMissingKeepAlives, CurrentLifetimeCount, action, this);
 
-                    // TODO: option to fail fast here
-                    _forceRecreate = true;
-                    OnSubscriptionManagementTriggered(this);
+                    RunWatchdogAction(action, $"Subscription {this}: Keep alives exceeded " +
+                        $"({_continuouslyMissingKeepAlives}/{CurrentLifetimeCount}).");
                 }
                 else
                 {
@@ -2146,15 +2171,17 @@ Actual (revised) state/desired state:
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Timeout))
             {
-                _logger.LogWarning("Subscription {Subscription} timed out! Re-creating...", this);
+                var action = _template.Configuration?.WatchdogBehavior
+                    ?? SubscriptionWatchdogBehavior.Reset;
+                _logger.LogInformation("Subscription {Subscription} TIMEOUT! ---- " +
+                    "Server closed subscription - performing recovery action {Action}...",
+                    this, action);
 
                 //
                 // Timed out on server - this means that the subscription is gone and
-                // needs to be recreated.
+                // needs to be recreated. This is the default watchdog behavior.
                 //
-                _forceRecreate = true;
-                _publishingStopped = true;
-                OnSubscriptionManagementTriggered(this);
+                RunWatchdogAction(action, $"Subscription {this} timed out!");
             }
         }
 
@@ -2560,7 +2587,12 @@ Actual (revised) state/desired state:
             private readonly OpcUaSubscription _subscription;
         }
 
-        private long TotalMonitoredItems => _additionallyMonitored.Count + MonitoredItemCount;
+        private long TotalMonitoredItems
+            => _additionallyMonitored.Count + MonitoredItemCount;
+        private int HeartbeatsEnabled
+            => MonitoredItems.Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);
+        private int ConditionsEnabled
+            => MonitoredItems.Count(r => r is OpcUaMonitoredItem.Condition h && h.TimerEnabled);
 
         /// <summary>
         /// Create observable metrics
@@ -2591,6 +2623,18 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_sampling_nodes",
                 () => new Measurement<long>(_samplingItems, _metrics.TagList),
                 description: "Monitored items with sampling enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_heartbeat_enabled_nodes",
+                () => new Measurement<long>(HeartbeatsEnabled, _metrics.TagList),
+                description: "Monitored items with heartbeats enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_heartbeat_nodes",
+                () => new Measurement<long>(_heartbeatItems, _metrics.TagList),
+                description: "Monitored items with heartbeats configured.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_condition_enabled_nodes",
+                () => new Measurement<long>(ConditionsEnabled, _metrics.TagList),
+                description: "Monitored items with condition monitoring enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_condition_nodes",
+                () => new Measurement<long>(_conditionItems, _metrics.TagList),
+                description: "Monitored items with condition monitoring configured.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_disabled_nodes",
                 () => new Measurement<long>(_disabledItems, _metrics.TagList),
                 description: "Monitored items with monitoring mode disabled.");
@@ -2665,6 +2709,8 @@ Actual (revised) state/desired state:
         private int _disabledItems;
         private int _samplingItems;
         private int _notAppliedItems;
+        private int _heartbeatItems;
+        private int _conditionItems;
         private int _badMonitoredItems;
         private int _missingKeepAlives;
         private int _continuouslyMissingKeepAlives;

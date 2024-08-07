@@ -1,0 +1,14 @@
+services:
+  publisher:
+    environment:
+      PublishedNodesFile: /shared/pn.json
+      UseFileChangePolling: True
+    volumes:
+      - shared:/shared:rw
+volumes:
+  shared:
+    driver: local
+    driver_opts:
+      type: none
+      device: c:\Shared
+      o: bind

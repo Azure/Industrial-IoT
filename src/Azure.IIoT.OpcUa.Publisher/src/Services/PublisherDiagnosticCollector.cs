@@ -270,6 +270,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         MonitoredOpcNodesFailedCount = MonitoredOpcNodesFailedCount +
                             writers.Sum(w => w.MonitoredOpcNodesFailedCount),
+                        ActiveConditionCount = ActiveConditionCount +
+                            writers.Sum(w => w.ActiveConditionCount),
+                        ActiveHeartbeatCount = ActiveHeartbeatCount +
+                            writers.Sum(w => w.ActiveHeartbeatCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
                         MonitoredOpcNodesLateCount = MonitoredOpcNodesLateCount +
@@ -337,6 +341,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.BadPublishRequestsRatio = (double)i,
                 ["iiot_edge_publisher_min_publish_requests_per_subscription"] =
                     (d, i) => d.MinPublishRequestsRatio = (double)i,
+                ["iiot_edge_publisher_heartbeat_enabled_nodes"] =
+                    (d, i) => d.ActiveHeartbeatCount = (long)i,
+                ["iiot_edge_publisher_condition_enabled_nodes"] =
+                    (d, i) => d.ActiveConditionCount = (long)i,
 
                 ["iiot_edge_publisher_unassigned_notification_count"] =
                     (d, i) => d.IngressUnassignedChanges = (long)i,

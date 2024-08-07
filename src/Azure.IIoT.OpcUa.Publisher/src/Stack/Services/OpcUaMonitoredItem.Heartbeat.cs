@@ -40,6 +40,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal sealed class Heartbeat : DataChange
         {
             /// <summary>
+            /// Whether timer is enabled
+            /// </summary>
+            public bool TimerEnabled { get; set; }
+
+            /// <summary>
             /// Create data item with heartbeat
             /// </summary>
             /// <param name="dataTemplate"></param>
@@ -68,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _heartbeatInterval = item._heartbeatInterval;
                 _heartbeatBehavior = item._heartbeatBehavior;
                 _callback = item._callback;
-                if (item._timerEnabled)
+                if (item.TimerEnabled)
                 {
                     EnableHeartbeatTimer();
                 }
@@ -364,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _heartbeatTimer.Interval = _heartbeatInterval;
                         _logger.LogDebug("Re-configured heartbeat timer");
                     }
-                    _timerEnabled = true;
+                    TimerEnabled = true;
                 }
             }
 
@@ -382,13 +387,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _heartbeatTimer = null;
                         _logger.LogDebug("Disabled heartbeat timer");
                     }
-                    _timerEnabled = false;
+                    TimerEnabled = false;
                 }
             }
 
             private TimerEx? _heartbeatTimer;
             private HeartbeatBehavior _heartbeatBehavior;
-            private bool _timerEnabled;
             private TimeSpan _heartbeatInterval;
             private Callback? _callback;
             private StatusCode? _lastStatusCode;

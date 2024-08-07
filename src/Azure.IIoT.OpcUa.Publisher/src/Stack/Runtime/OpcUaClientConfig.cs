@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool RejectSha1SignedCertificatesDefault = false;
         public const bool AddAppCertToTrustedStoreDefault = true;
         public const bool RejectUnknownRevocationStatusDefault = true;
-        public const bool ActivePublishErrorHandlingDefault = true;
+        public const bool ActivePublishErrorHandlingDefault = false;
         public const int MinPublishRequestsDefault = 2;
         public const int MaxPublishRequestsDefault = 10;
         public const int PublishRequestsPerSubscriptionPercentDefault = 100;

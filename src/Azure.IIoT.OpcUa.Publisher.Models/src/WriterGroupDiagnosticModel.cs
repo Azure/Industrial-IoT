@@ -455,5 +455,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MonitoredOpcNodesLateCount", Order = 67,
             EmitDefaultValue = true)]
         public long MonitoredOpcNodesLateCount { get; set; }
+
+        /// <summary>
+        /// Nodes with active heartbeat timer
+        /// </summary>
+        [DataMember(Name = "ActiveHeartbeatCount", Order = 68,
+            EmitDefaultValue = true)]
+        public long ActiveHeartbeatCount { get; set; }
+
+        /// <summary>
+        /// Nodes with active condition snapshot timer
+        /// </summary>
+        [DataMember(Name = "ActiveConditionCount", Order = 69,
+            EmitDefaultValue = true)]
+        public long ActiveConditionCount { get; set; }
     }
 }

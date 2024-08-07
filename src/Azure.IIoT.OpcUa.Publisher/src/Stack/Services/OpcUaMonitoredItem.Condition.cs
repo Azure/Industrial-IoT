@@ -31,6 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [KnownType(typeof(AggregateFilter))]
         internal class Condition : Event
         {
+            public bool TimerEnabled => _conditionTimer?.Enabled ?? false;
+
             /// <summary>
             /// Create condition item
             /// </summary>
