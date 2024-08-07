@@ -127,7 +127,8 @@ namespace FileSystem
                 }
                 else
                 {
-                    return ServiceResult.Create(StatusCodes.BadNotFound, "");
+                    return ServiceResult.Create(StatusCodes.BadNotFound,
+                        $"File sytem object {path} not found");
                 }
                 return ServiceResult.Good;
             }
@@ -194,25 +195,26 @@ namespace FileSystem
             var path = objectToDelete2.RootId;
             try
             {
-                if (objectToDelete2.RootType == ModelUtils.File &&
-                    File.Exists(path))
+                switch (objectToDelete2.RootType)
                 {
-                    File.Delete(path);
-                }
-                else if (objectToDelete2.RootType == ModelUtils.Directory &&
-                    Directory.Exists(path))
-                {
-                    Directory.Delete(path, true);
-                }
-                else if (objectToDelete2.RootType == ModelUtils.Volume)
-                {
-                    return ServiceResult.Create(StatusCodes.BadUserAccessDenied,
-                        "Cannot delete root of filesystem");
-                }
-                else
-                {
-                    return ServiceResult.Create(StatusCodes.BadNotFound,
-                        "FileSystem object not found");
+                    case ModelUtils.File:
+                        if (File.Exists(path))
+                        {
+                            File.Delete(path);
+                        }
+                        break;
+                    case ModelUtils.Directory:
+                        if (Directory.Exists(path))
+                        {
+                            Directory.Delete(path, true);
+                        }
+                        break;
+                    case ModelUtils.Volume:
+                        return ServiceResult.Create(StatusCodes.BadUserAccessDenied,
+                            "Cannot delete root of filesystem");
+                    default:
+                        return ServiceResult.Create(StatusCodes.BadInvalidState,
+                            "Not a fileSystem object.");
                 }
             }
             catch (Exception ex)
