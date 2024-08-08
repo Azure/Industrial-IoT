@@ -195,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
-        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(60);
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

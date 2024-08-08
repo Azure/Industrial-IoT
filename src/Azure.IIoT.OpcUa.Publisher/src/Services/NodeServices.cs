@@ -1924,7 +1924,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception ex) when (ex is not OperationCanceledException)
                         {
                             _logger.LogInformation(ex, "Failed to obtain child information");
                         }
