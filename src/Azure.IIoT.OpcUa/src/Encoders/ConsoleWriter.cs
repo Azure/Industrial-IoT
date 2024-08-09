@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     break;
             }
 
-            ReadOnlyMemory<byte> GetIndentedJson(ReadOnlySequence<byte> buffer)
+            static ReadOnlyMemory<byte> GetIndentedJson(ReadOnlySequence<byte> buffer)
             {
                 var reader = new Utf8JsonReader(buffer);
                 var json = JsonSerializer.Deserialize<JsonElement>(ref reader);
