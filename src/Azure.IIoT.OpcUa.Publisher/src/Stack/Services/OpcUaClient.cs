@@ -1414,7 +1414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            if (session.Connected)
+            if (session == _session && session.Connected)
             {
                 _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
                     this, e.Status, ActivePublishErrorHandling);
@@ -1424,6 +1424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogDebug(
                     "{Client}: Disconnected - publish error: {Error} (Actively handled: {Active})...",
                     this, e.Status, ActivePublishErrorHandling);
+                return;
             }
 
             if (!ActivePublishErrorHandling)

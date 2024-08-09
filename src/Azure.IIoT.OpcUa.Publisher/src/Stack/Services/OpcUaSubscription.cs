@@ -1477,8 +1477,16 @@ Actual (revised) state/desired state:
             // Execute creation/update on the session management thread inside the client
             Debug.Assert(_client != null);
 
-            _logger.LogInformation("Trigger management of subscription {Subscription}...",
-                this);
+            if (IsOnline)
+            {
+                _logger.LogInformation("Trigger management of subscription {Subscription}...",
+                    this);
+            }
+            else
+            {
+                _logger.LogDebug("Trigger management of offline subscription {Subscription}...",
+                    this);
+            }
 
             _client.ManageSubscription(this, _closed);
         }
