@@ -66,6 +66,50 @@ When a `DataSetWriter` already exists, the nodes are incrementally added to the 
 
 More information can be found in the [API documentation](./api.md#handler-for-publishnodes-direct-method)
 
+## ValueWrite_V1
+
+ValueWrite enables a client to write the value of a node.
+
+
+  _Request_: follows strictly the request [payload schema](./definitions.md#valuewriterequestmodelrequestenvelope), the `connection` attribute being mandatory.
+
+  _Response_: when successful Status 200 and an empty json (`{}`) as payload
+
+  _Exceptions_: an exception is thrown when method call returns status other than 200
+
+  _Example_:
+
+  > _Method Name_: `ValueWrite_V1`
+  >
+  > _Request_:
+  >
+  > ```json
+  > {
+  >    "connection": {
+  >        "endpoint": {
+  >            "url": "opc.tcp://opcplc:50000",
+  >            "securityMode": 3
+  >        }
+  >    },
+  >    "request": {
+  >        "nodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+  >        "value": 5000,
+  >        "dataType": "UInt16"
+  >    }
+  > }
+  > ```
+  >
+  > _Response_:
+  >
+  > ```json
+  > {
+  >    "status": 200,
+  >    "payload": {}
+  > }
+  > ```
+
+More information can be found in the [API documentation](./api.md#valuewrite)
+
 ## AddOrUpdateEndpoints_V1
 
 This method allows updating multiple endpoints (`DataSetWriter`s) without effecting others. Unlike `PublishNodes_V1` method, `AddOrUpdateEndpoints_V1` replaces the nodes of an endpoint (`DataSetWriter`) with the one provided in the method's request payload. By providing an empty list of nodes in a request, a endpoint (`DataSetWriter`) can be removed from a `DataSetWriterGroup`. Removing the last from a group removes the group.
