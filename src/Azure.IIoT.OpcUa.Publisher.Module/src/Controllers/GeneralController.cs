@@ -303,25 +303,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             [FromBody][Required] RequestEnvelope<ValueWriteRequestModel> request,
             CancellationToken ct = default)
         {
-            try
-            {
-                ArgumentNullException.ThrowIfNull(request);
-                ArgumentNullException.ThrowIfNull(request.Connection);
-                ArgumentNullException.ThrowIfNull(request.Request);
-                return await _nodes.ValueWriteAsync(request.Connection,
-                    request.Request, ct).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return new ValueWriteResponseModel
-                {
-                    ErrorInfo = new ServiceResultModel
-                    {
-                        ErrorMessage = ex.Message
-                    }
-                };
-            }
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Connection);
+            ArgumentNullException.ThrowIfNull(request.Request);
+            return await _nodes.ValueWriteAsync(request.Connection,
+                request.Request, ct).ConfigureAwait(false);
         }
 
         /// <summary>
