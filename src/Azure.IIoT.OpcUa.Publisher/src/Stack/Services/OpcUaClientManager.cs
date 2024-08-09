@@ -615,7 +615,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
 
                     DisableComplexTypePreloading = _options.Value.DisableComplexTypePreloading ?? false,
-                    ActivePublishErrorHandling = _options.Value.ActivePublishErrorHandling ?? false,
                     MinReconnectDelay = _options.Value.MinReconnectDelayDuration,
                     CreateSessionTimeout = _options.Value.CreateSessionTimeoutDuration,
                     KeepAliveInterval = _options.Value.KeepAliveIntervalDuration,

@@ -102,11 +102,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool DisableComplexTypePreloading { get; set; }
 
         /// <summary>
-        /// Do active error handling on the publish path
-        /// </summary>
-        public bool ActivePublishErrorHandling { get; set; }
-
-        /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
         internal OperationLimits? LimitOverrides { get; set; }
@@ -165,7 +160,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _session?.MinPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
-        public int ReconnectCount => _numberOfConnectRetries;
+        public int ReconnectCount => _numberOfConnectionRetries;
+
+        /// <inheritdoc/>
+        public int ConnectCount => _numberofSuccessfulConnections;
 
         /// <summary>
         /// Disconnected state
@@ -411,6 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Close client
         /// </summary>
+        /// <param name="shutdown"></param>
         /// <returns></returns>
         internal async ValueTask CloseAsync(bool shutdown = false)
         {
@@ -995,7 +994,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             {
                                                 // Case 3)
                                                 _logger.LogInformation("{Client}: Client RECONNECTED!", this);
-                                                _numberOfConnectRetries++;
+                                                _numberOfConnectionRetries++;
                                             }
 
                                             // If not already ready, signal we are ready again and ...
@@ -1043,7 +1042,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     // if not already disconnected, aquire writer lock
                                     _disconnectLock ??= await _lock.WriterLockAsync(ct);
 
-                                    _numberOfConnectRetries = 0;
                                     reconnectPeriod = 0;
                                     if (_session != null)
                                     {
@@ -1213,7 +1211,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private const int kMinPublishRequestCount = 2;
         private const int kMaxPublishRequestCount = 10;
-        private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
         /// Ensure min publish requests are configured correctly
@@ -1396,7 +1393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (Exception ex)
                 {
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
-                    _numberOfConnectRetries++;
+                    _numberOfConnectionRetries++;
                     _logger.LogInformation(
                         "#{Attempt} - {Client}: Failed to connect to {EndpointUrl}: {Message}...",
                         ++attempt, this, endpointUrl, ex.Message);
@@ -1410,51 +1407,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-#pragma warning disable IDE0060 // Remove unused parameter
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (session == _session && session.Connected)
             {
-                _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
-                    this, e.Status, ActivePublishErrorHandling);
+                switch (e.Status.Code)
+                {
+                    case StatusCodes.BadSessionIdInvalid:
+                    case StatusCodes.BadSecureChannelClosed:
+                    case StatusCodes.BadSessionClosed:
+                    case StatusCodes.BadConnectionClosed:
+                    case StatusCodes.BadNoCommunication:
+                        TriggerReconnect(e.Status, "Publish");
+                        return;
+                    default:
+                        _logger.LogInformation("{Client}: Publish error: {Error}...",
+                            this, e.Status);
+                        break;
+                }
             }
-            else
-            {
-                _logger.LogDebug(
-                    "{Client}: Disconnected - publish error: {Error} (Actively handled: {Active})...",
-                    this, e.Status, ActivePublishErrorHandling);
-                return;
-            }
-
-            if (!ActivePublishErrorHandling)
-            {
-                return;
-            }
-
-            switch (e.Status.Code)
-            {
-                case StatusCodes.BadSessionIdInvalid:
-                case StatusCodes.BadSecureChannelClosed:
-                case StatusCodes.BadSessionClosed:
-                case StatusCodes.BadConnectionClosed:
-                case StatusCodes.BadNoCommunication:
-                    TriggerReconnect(e.Status);
-                    break;
-                case StatusCodes.BadRequestTimeout:
-                case StatusCodes.BadTimeout:
-                    var threshold = MinPublishRequestCount * kPublishTimeoutsMultiplier;
-                    if (Interlocked.Increment(ref _publishTimeoutCounter) > threshold)
-                    {
-                        _logger.LogError(
-                            "{Client}: {Count} Timeouts (> {Threshold}) during publishing. Reconnecting...",
-                            this, _publishTimeoutCounter, threshold);
-                        TriggerReconnect(e.Status);
-                    }
-                    return;
-            }
-            // Reset timeout counter - we only care about subsequent timeouts
-            _publishTimeoutCounter = 0;
         }
 
         /// <summary>
@@ -1529,17 +1500,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-
                 // start reconnect sequence on communication error.
                 Interlocked.Increment(ref _keepAliveCounter);
                 if (ServiceResult.IsBad(e.Status))
                 {
                     _keepAliveCounter = 0;
-                    TriggerReconnect(e.Status);
-
-                    _logger.LogInformation(
-                        "{Client}: Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
-                        this, e.Status, e.CurrentTime, e.Status);
+                    TriggerReconnect(e.Status, "Keep alive");
                 }
                 else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
                 {
@@ -1556,10 +1522,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Trigger reconnect
         /// </summary>
         /// <param name="sr"></param>
-        void TriggerReconnect(ServiceResult sr)
+        /// <param name="action"></param>
+        void TriggerReconnect(ServiceResult sr, string action)
         {
             if (Interlocked.Increment(ref _reconnectRequired) == 1)
             {
+                _logger.LogError(
+                    "{Client}: Error {Error} during {Action} - triggering reconnect...",
+                    this, sr, action);
+
                 // Ensure we reconnect
                 TriggerConnectionEvent(ConnectionEvent.StartReconnect, sr);
             }
@@ -1598,7 +1569,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await CloseSessionAsync().ConfigureAwait(false);
                 _session = (OpcUaSession)session;
                 isNewSession = true;
+
                 kSessions.Add(1, _metrics.TagList);
+                _numberofSuccessfulConnections++;
             }
 
             UpdatePublishRequestCounts();
@@ -1760,6 +1733,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Unset and dispose existing session
         /// </summary>
+        /// <param name="shutdown"></param>
+        /// <returns></returns>
         private async ValueTask CloseSessionAsync(bool shutdown = false)
         {
             if (_reconnectingSession != null)
@@ -2176,6 +2151,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public int ReconnectCount
                 => 0;
             /// <inheritdoc/>
+            public int ConnectCount
+                => 0;
+            /// <inheritdoc/>
             public int MinPublishRequestCount
                 => 0;
         }
@@ -2204,8 +2182,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 () => new Measurement<int>(_browsers.Count, _metrics.TagList),
                 description: "Number of active browsers.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_retry_count",
-                () => new Measurement<int>(_numberOfConnectRetries, _metrics.TagList),
+                () => new Measurement<int>(_numberOfConnectionRetries, _metrics.TagList),
                 description: "Number of connectivity retries on this connection.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_count",
+                () => new Measurement<int>(_numberofSuccessfulConnections, _metrics.TagList),
+                description: "Number of sessions established as a total for the client.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_ref_count",
                 () => new Measurement<int>(_refCount, _metrics.TagList),
                 description: "Number of references to this client.");
@@ -2236,7 +2217,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private EndpointConnectivityState _lastState;
-        private int _numberOfConnectRetries;
+        private int _numberOfConnectionRetries;
+        private int _numberofSuccessfulConnections;
         private bool _disposed;
         private int _refCount;
         private int _publishTimeoutCounter;
