@@ -8,14 +8,7 @@
           "type": "docker",
           "settings": {
             "minDockerVersion": "v1.25",
-            "loggingOptions": "",
-            "registryCredentials": {
-              "crhenkeliot001": {
-                "username": "crhenkeliot001",
-                "password": "<crhenkeliot001-password>",
-                "address": "crhenkeliot001.azurecr.io"
-              }
-            }
+            "loggingOptions": ""
           }
         },
         "systemModules": {
@@ -43,7 +36,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "<opc-publisher-image>",
+              "image": "localhost:5000/opc-publisher",
               "createOptions": "{\"Cmd\": [\"-c\", \"--dr\"]}"
             }
           }
