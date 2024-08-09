@@ -85,16 +85,16 @@ ValueWrite enables a client to write the value of a node.
   >
   > ```json
   > {
-  >    "connection": {
-  >        "endpoint": {
-  >            "url": "opc.tcp://opcplc:50000",
-  >            "securityMode": 3
+  >    "Connection": {
+  >        "Endpoint": {
+  >            "Url": "opc.tcp://opcplc:50000",
+  >            "SecurityMode": 3
   >        }
   >    },
-  >    "request": {
-  >        "nodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
-  >        "value": 5000,
-  >        "dataType": "UInt16"
+  >    "Request": {
+  >        "NodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+  >        "Value": 5000,
+  >        "DataType": "UInt16"
   >    }
   > }
   > ```
