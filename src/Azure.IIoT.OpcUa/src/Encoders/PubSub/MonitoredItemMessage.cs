@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -144,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             valuePayload.StatusCode : Opc.Ua.StatusCodes.Good :
                        (Opc.Ua.StatusCode?)Opc.Ua.StatusCodes.BadNoData;
                 }
-                encoder.WriteString(nameof(Status), Opc.Ua.StatusCode.LookupSymbolicId(status.Value.Code));
+                encoder.WriteString(nameof(Status), status.Value.AsString());
             }
 
             // Create a copy of the data value and update the timestamps and status

@@ -412,7 +412,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Close client
         /// </summary>
         /// <returns></returns>
-        internal async ValueTask CloseAsync()
+        internal async ValueTask CloseAsync(bool shutdown = false)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             try
@@ -439,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _browsers.Clear();
 
-                await CloseSessionAsync().ConfigureAwait(false);
+                await CloseSessionAsync(shutdown).ConfigureAwait(false);
 
                 _lastState = EndpointConnectivityState.Disconnected;
 
@@ -1759,7 +1759,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Unset and dispose existing session
         /// </summary>
-        private async ValueTask CloseSessionAsync()
+        private async ValueTask CloseSessionAsync(bool shutdown = false)
         {
             if (_reconnectingSession != null)
             {
@@ -1779,6 +1779,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
+                    if (shutdown)
+                    {
+                        // When shutting down, delete all subscriptions
+                        session.DeleteSubscriptionsOnClose = true;
+                    }
                     session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 

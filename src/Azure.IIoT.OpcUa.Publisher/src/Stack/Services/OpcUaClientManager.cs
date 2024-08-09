@@ -367,7 +367,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    await client.Value.CloseAsync().ConfigureAwait(false);
+                    await client.Value.CloseAsync(true).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)

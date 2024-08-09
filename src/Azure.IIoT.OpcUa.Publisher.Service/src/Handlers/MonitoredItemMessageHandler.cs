@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                         DataType = type == BuiltInType.Null
                             ? null : type.ToString(),
                         Status = (message.Value?.StatusCode.Code == StatusCodes.Good)
-                            ? null : StatusCode.LookupSymbolicId(message.Value?.StatusCode.Code ?? 0),
+                            ? null : (message.Value?.StatusCode).AsString(),
                         SourceTimestamp = (message.Value?.SourceTimestamp == DateTime.MinValue)
                             ? null : message.Value?.SourceTimestamp,
                         SourcePicoseconds = (message.Value?.SourcePicoseconds == 0)
