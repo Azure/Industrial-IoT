@@ -123,6 +123,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public uint? DefaultQueueSize { get; set; }
 
         /// <summary>
+        /// Automatically calculate queue sizes based on the
+        /// publishing interval and sampling interval as
+        /// max(1, roundup(subscription pi / si)).
+        /// </summary>
+        public bool? AutoSetQueueSizes { get; set; }
+
+        /// <summary>
         /// Use deferred acnkoledgement (experimental)
         /// </summary>
         public bool? UseDeferredAcknoledgements { get; set; }
@@ -149,6 +156,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// create a seperate session.
         /// </summary>
         public bool? DisableSessionPerWriterGroup { get; set; }
+
+        /// <summary>
+        /// Create a new session for every subscription that is created.
+        /// </summary>
+        public bool? EnableSessionPerDataSetWriterId { get; set; }
 
         /// <summary>
         /// Retrieve paths from root folder to enable automatic

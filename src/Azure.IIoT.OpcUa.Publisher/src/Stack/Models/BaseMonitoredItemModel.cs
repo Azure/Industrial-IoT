@@ -77,6 +77,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public uint QueueSize { get; init; }
 
         /// <summary>
+        /// Auto calculate queue size using publishing interval
+        /// </summary>
+        public bool AutoSetQueueSize { get; init; }
+
+        /// <summary>
         /// Discard new values if queue is full
         /// </summary>
         public bool? DiscardNew { get; init; }

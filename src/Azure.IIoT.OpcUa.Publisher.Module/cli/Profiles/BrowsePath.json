@@ -1,0 +1,46 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "OpcNodes": [
+            {
+                "BrowsePath": [
+                    "Objects",
+                    "Server",
+                    "ServerStatus",
+                    "CurrentTime"
+                ],
+                "DisplayName": "ServerTime"
+            },
+            {
+                "BrowsePath": [
+                    "Objects",
+                    "Server",
+                    "ServerStatus",
+                    "State"
+                ],
+                "DisplayName": "ServerState"
+            },
+            {
+                "BrowsePath": [
+                    "Objects",
+                    "17:OpcPlc",
+                    "17:Telemetry",
+                    "17:Fast",
+                    "17:FastUIntScalar1"
+                ],
+                "DisplayName": "FastUIntScalar1"
+            },
+            {
+                "BrowsePath": [
+                    "Objects",
+                    "nsu=http://opcfoundation.org/UA/Plc/Applications;OpcPlc",
+                    "nsu=http://opcfoundation.org/UA/Plc/Applications;Telemetry",
+                    "nsu=http://opcfoundation.org/UA/Plc/Applications;Fast",
+                    "nsu=http://opcfoundation.org/UA/Plc/Applications;FastUIntScalar2"
+                ],
+                "DisplayName": "FastUIntScalar2"
+            }
+        ]
+    }
+]

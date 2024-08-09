@@ -47,10 +47,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? _snapshotInterval;
                 _lastSentPendingConditions = timeProvider.GetUtcNow();
                 _conditionHandlingState = new ConditionHandlingState();
-                _conditionTimer = new TimerEx(timeProvider);
-                _conditionTimer.Elapsed += OnConditionTimerElapsed;
-                _conditionTimer.AutoReset = false;
-                _conditionTimer.Enabled = true;
             }
 
             /// <summary>
@@ -68,10 +64,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _conditionHandlingState = item._conditionHandlingState;
                 _lastSentPendingConditions = item._lastSentPendingConditions;
                 _callback = item._callback;
-                _conditionTimer = item.CloneTimer();
-                if (_conditionTimer != null)
+
+                if (_callback != null)
                 {
-                    _conditionTimer.Elapsed += OnConditionTimerElapsed;
+                    EnableConditionTimer();
                 }
             }
 
@@ -101,9 +97,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override string ToString()
             {
-                return
-                    $"Condition Item '{Template.StartNodeId}' with server id {RemoteId}" +
-                    $" - {(Status?.Created == true ? "" : "not ")}created";
+                var str = $"Condition Item '{Template.StartNodeId}'";
+                if (RemoteId.HasValue)
+                {
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                }
+                return str;
             }
 
             /// <inheritdoc/>
@@ -111,8 +110,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (disposing)
                 {
-                    var timer = CloneTimer();
-                    timer?.Dispose();
+                    lock (_timerLock)
+                    {
+                        _disposed = true;
+                        if (_conditionTimer != null)
+                        {
+                            _conditionTimer.Elapsed -= OnConditionTimerElapsed;
+                            _conditionTimer.Dispose();
+                            _conditionTimer = null;
+                        }
+                    }
                 }
                 base.Dispose(disposing);
             }
@@ -124,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
-                if (_conditionTimer == null)
+                if (_disposed)
                 {
                     return false;
                 }
@@ -144,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (eventType == ObjectTypeIds.RefreshStartEventType)
                     {
                         // stop the timers during condition refresh
-                        _conditionTimer.Enabled = false;
+                        DisableConditionTimer();
                         state.Active.Clear();
                         _logger.LogDebug("{Item}: Stopped pending alarm handling " +
                             "during condition refresh.", this);
@@ -153,8 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     else if (eventType == ObjectTypeIds.RefreshEndEventType)
                     {
                         // restart the timers once condition refresh is done.
-                        _conditionTimer.Interval = TimeSpan.FromSeconds(1);
-                        _conditionTimer.Enabled = true;
+                        EnableConditionTimer();
                         _logger.LogDebug("{Item}: Restarted pending alarm handling " +
                             "after condition refresh.", this);
                         return true;
@@ -266,20 +272,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ref bool applyChanges, Callback cb)
             {
                 var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
-                if (_conditionTimer == null)
-                {
-                    return false;
-                }
                 if (!AttachedToSubscription || !result)
                 {
+                    DisableConditionTimer();
                     _callback = null;
-                    _conditionTimer.Enabled = false;
                 }
                 else
                 {
                     _callback = cb;
-                    _conditionTimer.Interval = TimeSpan.FromSeconds(1);
-                    _conditionTimer.Enabled = true;
+                    EnableConditionTimer();
                 }
                 return result;
             }
@@ -302,11 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 UpdateFieldNames(session, eventFilter, internalSelectClauses);
 
                 _conditionHandlingState = conditionHandlingState;
-                if (_conditionTimer != null)
-                {
-                    _conditionTimer.Interval = TimeSpan.FromSeconds(1);
-                    _conditionTimer.Enabled = true;
-                }
+                EnableConditionTimer();
 
                 return eventFilter;
             }
@@ -399,11 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 finally
                 {
-                    if (_conditionTimer != null)
-                    {
-                        _conditionTimer.Interval = TimeSpan.FromSeconds(1);
-                        _conditionTimer.Enabled = true;
-                    }
+                    EnableConditionTimer();
                 }
             }
 
@@ -435,18 +428,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <summary>
-            /// Clone the timer
+            /// Enable timer
             /// </summary>
-            /// <returns></returns>
-            private TimerEx? CloneTimer()
+            private void EnableConditionTimer()
             {
-                var timer = _conditionTimer;
-                _conditionTimer = null;
-                if (timer != null)
+                lock (_timerLock)
                 {
-                    timer.Elapsed -= OnConditionTimerElapsed;
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    if (_conditionTimer == null)
+                    {
+                        _conditionTimer = new TimerEx(TimeProvider);
+                        _conditionTimer.AutoReset = false;
+                        _conditionTimer.Elapsed += OnConditionTimerElapsed;
+                        _logger.LogDebug("Re-enabled condition timer.");
+                    }
+                    _conditionTimer.Interval = TimeSpan.FromSeconds(1);
+                    _conditionTimer.Enabled = true;
                 }
-                return timer;
+            }
+
+            /// <summary>
+            /// Disable timer
+            /// </summary>
+            private void DisableConditionTimer()
+            {
+                lock (_timerLock)
+                {
+                    if (_conditionTimer != null)
+                    {
+                        _conditionTimer.Elapsed -= OnConditionTimerElapsed;
+                        _conditionTimer.Dispose();
+                        _conditionTimer = null;
+                        _logger.LogDebug("Disabled condition timer.");
+                    }
+                }
             }
 
             private sealed class ConditionHandlingState
@@ -479,6 +497,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _snapshotInterval;
             private int _updateInterval;
             private TimerEx? _conditionTimer;
+            private object _timerLock = new();
+            private bool _disposed;
         }
     }
 }

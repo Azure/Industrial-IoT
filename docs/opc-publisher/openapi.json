@@ -1140,9 +1140,9 @@
                 "tags": [
                     "Diagnostics"
                 ],
-                "summary": "ResetAllClients",
+                "summary": "ResetAllConnections",
                 "description": "Can be used to reset all established connections causing a full reconnect and recreate of all subscriptions.",
-                "operationId": "ResetAllClients",
+                "operationId": "ResetAllConnections",
                 "produces": [
                     "application/json",
                     "application/x-msgpack"
@@ -1166,14 +1166,14 @@
                 }
             }
         },
-        "/v2/diagnostics/connections": {
+        "/v2/connections": {
             "get": {
                 "tags": [
                     "Diagnostics"
                 ],
-                "summary": "GetConnectionDiagnostic",
-                "description": "Get connection diagnostic information for all connections. The first set of diagnostics are the diagnostics active for all connections, continue reading to get updates.",
-                "operationId": "GetConnectionDiagnostic",
+                "summary": "GetActiveConnections",
+                "description": "Get all active connections the publisher is currently managing.",
+                "operationId": "GetActiveConnections",
                 "produces": [
                     "application/json",
                     "application/x-msgpack"
@@ -1182,7 +1182,103 @@
                     "200": {
                         "description": "The operation was successful.",
                         "schema": {
-                            "$ref": "#/definitions/ConnectionDiagnosticModelIAsyncEnumerable"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ConnectionModel"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/diagnostics/connections": {
+            "get": {
+                "tags": [
+                    "Diagnostics"
+                ],
+                "summary": "GetConnectionDiagnostics",
+                "description": "Get diagnostics for all active clients including server and client session diagnostics.",
+                "operationId": "GetConnectionDiagnostics",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful.",
+                        "schema": {
+                            "$ref": "#/definitions/ConnectionDiagnosticsModelIAsyncEnumerable"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/diagnostics/channels": {
+            "get": {
+                "tags": [
+                    "Diagnostics"
+                ],
+                "summary": "GetChannelDiagnostics",
+                "description": "Get channel diagnostic information for all connections.",
+                "operationId": "GetChannelDiagnostics",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ChannelDiagnosticModel"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/diagnostics/channels/watch": {
+            "get": {
+                "tags": [
+                    "Diagnostics"
+                ],
+                "summary": "WatchChannelDiagnostics",
+                "description": "Get channel diagnostic information for all connections. The first set of diagnostics are the diagnostics active for all connections, continue reading to get updates.",
+                "operationId": "WatchChannelDiagnostics",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful.",
+                        "schema": {
+                            "$ref": "#/definitions/ChannelDiagnosticModelIAsyncEnumerable"
                         }
                     },
                     "500": {
@@ -3920,6 +4016,13 @@
                         "description": "The data set writer identifer of the entry",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "force",
+                        "description": "Force delete all writers even if more than one were found. Does not error when none were found.",
+                        "type": "boolean",
+                        "default": false
                     }
                 ],
                 "responses": {
@@ -4904,6 +5007,115 @@
             },
             "additionalProperties": false
         },
+        "ChannelDiagnosticModel": {
+            "description": "Channel diagnostics model",
+            "required": [
+                "connection",
+                "timeStamp"
+            ],
+            "type": "object",
+            "properties": {
+                "timeStamp": {
+                    "format": "date-time",
+                    "description": "Timestamp of the diagnostic information",
+                    "type": "string"
+                },
+                "sessionId": {
+                    "description": "The session id if connected. Empty if disconnected.",
+                    "type": "string"
+                },
+                "sessionCreated": {
+                    "format": "date-time",
+                    "description": "When the session was created.",
+                    "type": "string"
+                },
+                "connection": {
+                    "$ref": "#/definitions/ConnectionModel"
+                },
+                "remoteIpAddress": {
+                    "description": "Effective remote ip address used for the\r\nconnection if connected. Empty if disconnected.",
+                    "type": "string"
+                },
+                "remotePort": {
+                    "format": "int32",
+                    "description": "The effective remote port used when connected,\r\nnull if disconnected.",
+                    "type": "integer"
+                },
+                "localIpAddress": {
+                    "description": "Effective local ip address used for the connection\r\nif connected. Empty if disconnected.",
+                    "type": "string"
+                },
+                "localPort": {
+                    "format": "int32",
+                    "description": "The effective local port used when connected,\r\nnull if disconnected.",
+                    "type": "integer"
+                },
+                "channelId": {
+                    "format": "int64",
+                    "description": "The id assigned to the channel that the token\r\nbelongs to.",
+                    "type": "integer"
+                },
+                "tokenId": {
+                    "format": "int64",
+                    "description": "The id assigned to the token.",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "format": "date-time",
+                    "description": "When the token was created by the server\r\n(refers to the server's clock).",
+                    "type": "string"
+                },
+                "lifetime": {
+                    "format": "date-span",
+                    "description": "The lifetime of the token",
+                    "type": "string"
+                },
+                "client": {
+                    "$ref": "#/definitions/ChannelKeyModel"
+                },
+                "server": {
+                    "$ref": "#/definitions/ChannelKeyModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "ChannelDiagnosticModelIAsyncEnumerable": {
+            "type": "object",
+            "additionalProperties": false
+        },
+        "ChannelKeyModel": {
+            "description": "Channel token key model.",
+            "required": [
+                "iv",
+                "key",
+                "sigLen"
+            ],
+            "type": "object",
+            "properties": {
+                "iv": {
+                    "description": "Iv",
+                    "type": "array",
+                    "items": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "key": {
+                    "description": "Key",
+                    "type": "array",
+                    "items": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "sigLen": {
+                    "format": "int32",
+                    "description": "Signature length",
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": false
+        },
         "ConditionHandlingOptionsModel": {
             "description": "Condition handling options model",
             "type": "object",
@@ -4921,7 +5133,7 @@
             },
             "additionalProperties": false
         },
-        "ConnectionDiagnosticModelIAsyncEnumerable": {
+        "ConnectionDiagnosticsModelIAsyncEnumerable": {
             "type": "object",
             "additionalProperties": false
         },

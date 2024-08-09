@@ -19,8 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.10 (.NET 8.0.6/win-x64/OPC Stack 1.5.374.70)
-
+                                                 2.9.10 (.NET 8.0.7/win-x64/OPC Stack 1.5.374.78)
 General
 -------
 
@@ -397,15 +396,15 @@ Transport settings
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
                                `9071` port is used.
+      --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
+                             If set a new tls certificate is created during
+                               startup updating any previously created ones.
+                               Default: `false`.
       --useopenapiv3, --UseOpenApiV3[=VALUE]
                              If enabled exposes the open api schema of OPC
                                Publisher using v3 schema (yaml).
                                Only valid if Open API endpoint is not disabled.
                                Default: `v2` (json).
-      --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
-                             If set a new tls certificate is created during
-                               startup updating any previously created ones.
-                               Default: `false`.
 
 Routing configuration
 ---------------------
@@ -555,6 +554,8 @@ Subscription settings
                                interval setting of a subscription created with
                                an OPC UA server. This value is used if an
                                explicit publishing interval was not configured.
+                               When setting `--op=0` the server decides the
+                               lowest publishing interval it can support.
                                Default: `1000`.
                                Also can be set using `DefaultPublishingInterval`
                                 environment variable in the form of a duration
@@ -571,13 +572,13 @@ Subscription settings
                              Specifies the default number of publishing
                                intervals before a keep alive is returned with
                                the next queued publishing response.
-                               Default: `10`.
+                               Default: `0`.
       --slt, --lifetimecount, --DefaultLifetimeCount=VALUE
                              Default subscription lifetime count which is a
                                multiple of the keep alive counter and when
                                reached instructs the server to declare the
                                subscription invalid.
-                               Default: `100`.
+                               Default: `0`.
       --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
                              Fetches the displayname for the monitored items
                                subscribed if a display name was not specified
@@ -595,6 +596,15 @@ Subscription settings
                                queue size was not specified in the
                                configuration.
                                Default: `1` (for backwards compatibility).
+      --aq, --autosetqueuesize, --AutoSetQueueSizes[=VALUE]
+                             (Experimental) Automatically calculate queue sizes
+                               for monitored items using the subscription
+                               publishing interval and the item's sampling rate
+                               as max(configured queue size, roundup(
+                               publishinginterval / samplinginterval)).
+                               Note that the server might revise the queue size
+                               down if it cannot handle the calculated size.
+                               Default: `false` (disabled).
       --ndo, --nodiscardold, --DiscardNew[=VALUE]
                              The publisher is using this as default value for
                                the discard old setting of monitored item queue
@@ -717,6 +727,20 @@ Subscription settings
                                group. Instead sessions are re-used across
                                writer groups.
                                Default: `False`.
+      --spw, --enablesessionperwriter, --EnableSessionPerSubscription[=VALUE]
+                             Enable creating a separate session per data set
+                               writer instead of the default behavior to create
+                               one per writer group.
+                               This setting overrides the `--dsg` option.
+                               Default: `False`.
+      --ipi, --ignorepublishingintervals, --IgnoreConfiguredPublishingIntervals[=VALUE]
+                             Always use the publishing interval provided via
+                               command line argument `--op` and ignore all
+                               publishing interval settings in the
+                               configuration.
+                               Combine with `--op=0` to let the server use the
+                               lowest publishing interval it can support.
+                               Default: `False` (disabled).
 
 OPC UA Client configuration
 ---------------------------

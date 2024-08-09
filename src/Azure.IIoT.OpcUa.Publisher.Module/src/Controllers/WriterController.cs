@@ -387,6 +387,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </remarks>
         /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
         /// <param name="dataSetWriterId">The data set writer identifer of the entry</param>
+        /// <param name="force">Force delete all writers even if more than one were
+        /// found. Does not error when none were found.</param>
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
         /// is <c>null</c>.</exception>
@@ -401,13 +403,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [HttpDelete("{dataSetWriterGroup}/{dataSetWriterId}")]
-        public async Task RemoveDataSetWriterEntryAsync(
-            string dataSetWriterGroup, string dataSetWriterId, CancellationToken ct = default)
+        public async Task RemoveDataSetWriterEntryAsync(string dataSetWriterGroup,
+            string dataSetWriterId, [FromQuery] bool force = false, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             await _configServices.RemoveDataSetWriterEntryAsync(dataSetWriterGroup,
-                dataSetWriterId, ct).ConfigureAwait(false);
+                dataSetWriterId, force, ct).ConfigureAwait(false);
         }
 
         private readonly IConfigurationServices _configServices;

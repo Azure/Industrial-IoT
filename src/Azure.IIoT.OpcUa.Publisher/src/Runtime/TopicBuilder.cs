@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 ?? _options.TopicTemplates.Events);
 
         /// <summary>
-        /// Diagnostics topic
+        /// ChannelDiagnostics topic
         /// </summary>
         public string DiagnosticsTopic
             => Format(nameof(DiagnosticsTopic), _templates.Diagnostics

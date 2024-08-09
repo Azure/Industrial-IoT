@@ -343,6 +343,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Should()
                 .ThrowAsync<ResourceNotFoundException>()
                 .WithMessage("Could not find entry with provided writer id and writer group.");
+
+            // Remove force
+            await configService.RemoveDataSetWriterEntryAsync(writer2.DataSetWriterGroup!,
+                writer2.DataSetWriterId!, true);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
         }
 
         [Fact]
@@ -394,6 +400,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Should()
                 .ThrowAsync<ResourceNotFoundException>()
                 .WithMessage("Could not find entry with provided writer id and writer group.");
+
+            // No failure when forcing
+            await configService.RemoveDataSetWriterEntryAsync(
+                writer.DataSetWriterGroup!, writer.DataSetWriterId!, true);
+            writers = await configService.GetConfiguredEndpointsAsync();
+            writers.Should().BeEmpty();
         }
 
         [Fact]
@@ -827,6 +839,163 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Should()
                 .ThrowAsync<BadRequestException>()
                 .WithMessage("Field ids must be unique.");
+        }
+
+        [Fact]
+        public async Task StartStopTest1()
+        {
+            await using var configService = InitPublisherConfigService();
+
+            await configService.PublishStartAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = "opc.tcp://testendpoint1"
+                }
+            }, new PublishStartRequestModel
+            {
+                Item = new PublishedItemModel
+                {
+                    HeartbeatInterval = TimeSpan.FromMinutes(1),
+                    PublishingInterval = TimeSpan.FromSeconds(2),
+                    NodeId = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
+                    DisplayName = "test",
+                    SamplingInterval = TimeSpan.FromSeconds(3),
+                }
+            });
+
+            var entries = await configService.GetConfiguredEndpointsAsync(true);
+            entries.Count.Should().Be(1);
+            entries[0].EndpointUrl.Should().Be("opc.tcp://testendpoint1");
+            entries[0].UseSecurity.Should().BeFalse();
+            entries[0].OpcNodes.Count.Should().Be(1);
+            entries[0].MessageEncoding.Should().Be(MessageEncoding.Json);
+            entries[0].MessagingMode.Should().Be(MessagingMode.FullSamples);
+            var node = entries[0].OpcNodes[0];
+            node.Id.Should().Be("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0");
+            node.HeartbeatInterval.Should().BeNull();
+            node.OpcPublishingInterval.Should().BeNull();
+            node.OpcSamplingInterval.Should().BeNull();
+            node.HeartbeatIntervalTimespan.Should().Be(TimeSpan.FromMinutes(1));
+            node.OpcPublishingIntervalTimespan.Should().Be(TimeSpan.FromSeconds(2));
+            node.OpcSamplingIntervalTimespan.Should().Be(TimeSpan.FromSeconds(3));
+
+            var list = await configService.PublishListAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = "opc.tcp://testendpoint1"
+                }
+            }, new PublishedItemListRequestModel());
+
+            list.Items.Count.Should().Be(1);
+            list.Items[0].HeartbeatInterval.Should().Be(node.HeartbeatIntervalTimespan);
+            list.Items[0].PublishingInterval.Should().Be(node.OpcPublishingIntervalTimespan);
+            list.Items[0].SamplingInterval.Should().Be(node.OpcSamplingIntervalTimespan);
+
+            await configService.PublishStopAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = "opc.tcp://testendpoint1"
+                }
+            }, new PublishStopRequestModel
+            {
+                NodeId = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0"
+            });
+
+            entries = await configService.GetConfiguredEndpointsAsync(true);
+            entries.Count.Should().Be(1);
+            entries[0].OpcNodes.Should().BeEmpty();
+
+            list = await configService.PublishListAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = "opc.tcp://testendpoint1"
+                }
+            }, new PublishedItemListRequestModel());
+            list.Items.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task StartStopTest2()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 101)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+            var items = Enumerable.Range(1, 100).Select(i => GenerateEndpoint(i, opcNodes, true) with
+            {
+                DataSetWriterGroup = null,
+                MessageEncoding = MessageEncoding.Json,
+                MessagingMode = MessagingMode.FullSamples,
+                DataSetWriterId = null,
+                DataSetPublishingInterval = null
+            }).ToList();
+            await configService.SetConfiguredEndpointsAsync(items);
+
+            var results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(100);
+
+            var list = await configService.PublishListAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = results[0].EndpointUrl
+                }
+            }, new PublishedItemListRequestModel());
+            list.Items.Count.Should().Be(2);
+
+            var updated = list.Items[0] with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(1),
+            };
+            // Update
+            await configService.PublishStartAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = results[0].EndpointUrl
+                }
+            }, new PublishStartRequestModel
+            {
+                Item = updated
+            });
+
+            var entries = await configService.GetConfiguredEndpointsAsync(true);
+            entries.Count.Should().Be(100);
+            var entry = entries.FirstOrDefault(e => e.EndpointUrl == results[0].EndpointUrl);
+            entry.Should().NotBeNull();
+            entry.MessageEncoding.Should().Be(MessageEncoding.Json);
+            entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
+            entry.OpcNodes.Count.Should().Be(2);
+            var node = entry.OpcNodes[0];
+            node.Id.Should().Be("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0");
+            node.HeartbeatInterval.Should().BeNull();
+            node.HeartbeatIntervalTimespan.Should().Be(TimeSpan.FromMinutes(1));
+
+            await configService.PublishStopAsync(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = results[0].EndpointUrl
+                }
+            }, new PublishStopRequestModel
+            {
+                NodeId = updated.NodeId
+            });
+
+            entries = await configService.GetConfiguredEndpointsAsync(true);
+            entries.Count.Should().Be(100);
+            entry = entries.FirstOrDefault(e => e.EndpointUrl == results[0].EndpointUrl);
+            entry.MessageEncoding.Should().Be(MessageEncoding.Json);
+            entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
+            entry.OpcNodes.Count.Should().Be(1);
         }
 
         [Fact]
@@ -1388,11 +1557,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 });
         }
 
-        [Theory]
-        [InlineData("Publisher/pn_assets_with_optional_fields.json")]
-        public async Task OptionalFieldsPublishedNodesFile(string publishedNodesFile)
+        [Fact]
+        public async Task OptionalFieldsPublishedNodesFile()
         {
-            Utils.CopyContent(publishedNodesFile, _tempFile);
+            Utils.CopyContent("Publisher/pn_assets_with_optional_fields.json", _tempFile);
             await using (var configService = InitPublisherConfigService())
             {
                 var endpoints = await configService.GetConfiguredEndpointsAsync();

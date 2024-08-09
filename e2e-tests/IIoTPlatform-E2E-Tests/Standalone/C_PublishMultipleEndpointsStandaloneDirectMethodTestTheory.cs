@@ -642,8 +642,8 @@ namespace IIoTPlatformE2ETests.Standalone
                     Assert.Equal(endpointsCount - 1 - index, configuredEndpointsResponse.Endpoints.Count);
 
                     var removedEndpointUrl = currentNodes[index].EndpointUrl;
-                    Assert.Empty(configuredEndpointsResponse.Endpoints
-                        .Where(endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl, StringComparison.Ordinal)));
+                    Assert.DoesNotContain(configuredEndpointsResponse.Endpoints,
+                        endpoint => endpoint.EndpointUrl.Equals(removedEndpointUrl, StringComparison.Ordinal));
 
                     await Task.Delay(2_000);
                 }

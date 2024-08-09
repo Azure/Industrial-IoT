@@ -63,7 +63,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 _client = item._client;
-                _sampler = item.CloneSampler();
+                if (item._sampling)
+                {
+                    EnsureSamplerRunning();
+                }
             }
 
             /// <inheritdoc/>
@@ -77,7 +80,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override void Dispose(bool disposing)
             {
                 // Cleanup
-                var sampler = CloneSampler();
+                var sampler = _sampler;
+                lock (_lock)
+                {
+                    _disposed = true;
+                    _sampler = null;
+                }
                 sampler?.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 base.Dispose(disposing);
             }
@@ -138,29 +146,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!AttachedToSubscription)
                 {
                     // Disabling sampling
-                    if (_sampler != null)
-                    {
-                        await _sampler.DisposeAsync().ConfigureAwait(false);
-                        _sampler = null;
-
-                        _logger.LogDebug("Item {Item} unregistered from sampler.", this);
-                    }
+                    await StopSamplerAsync().ConfigureAwait(false);
                 }
-                else if (_sampler == null)
+                else
                 {
                     Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
-                    _sampler = _client.Sample(TimeSpan.FromMilliseconds(SamplingInterval),
-                        new ReadValueId
-                        {
-                            AttributeId = AttributeId,
-                            IndexRange = IndexRange,
-                            NodeId = ResolvedNodeId
-                        },
-                        Subscription.DisplayName, ClientHandle);
-                    _logger.LogDebug("Item {Item} successfully registered with sampler.",
-                        this);
+                    EnsureSamplerRunning();
                 }
             };
+
+            /// <summary>
+            /// Ensure sampler is started
+            /// </summary>
+            private void EnsureSamplerRunning()
+            {
+                Debug.Assert(AttachedToSubscription);
+                lock (_lock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    if (_sampler == null)
+                    {
+                        _sampling = true;
+                        _sampler = _client.Sample(TimeSpan.FromMilliseconds(SamplingInterval),
+                            new ReadValueId
+                            {
+                                AttributeId = AttributeId,
+                                IndexRange = IndexRange,
+                                NodeId = ResolvedNodeId
+                            },
+                            Subscription.DisplayName, ClientHandle);
+                        _logger.LogDebug("Item {Item} successfully registered with sampler.",
+                            this);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Stop sampling
+            /// </summary>
+            /// <returns></returns>
+            private async Task StopSamplerAsync()
+            {
+                var sampler = _sampler;
+                lock (_lock)
+                {
+                    _sampler = null;
+                    _sampling = false;
+                }
+                if (sampler != null)
+                {
+                    await sampler.DisposeAsync().ConfigureAwait(false);
+                    _logger.LogDebug("Item {Item} unregistered from sampler.", this);
+                }
+            }
 
             /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset timestamp,
@@ -178,19 +219,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return true;
             }
 
-            /// <summary>
-            /// Clone the sampler
-            /// </summary>
-            /// <returns></returns>
-            private IAsyncDisposable? CloneSampler()
-            {
-                var sampler = _sampler;
-                _sampler = null;
-                return sampler;
-            }
-
             private readonly IOpcUaClient _client;
             private IAsyncDisposable? _sampler;
+            private bool _sampling;
+            private readonly object _lock = new object();
+            private bool _disposed;
         }
     }
 }

@@ -191,8 +191,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override string ToString()
             {
-                return $"Data Item '{Template.StartNodeId}' with server id {RemoteId} - " +
-                    $"{(Status?.Created == true ? "" : "not ")}created";
+                var str = $"Data Item '{Template.StartNodeId}'";
+                if (RemoteId.HasValue)
+                {
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                }
+                return str;
             }
 
             /// <inheritdoc/>
@@ -241,9 +245,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 StartNodeId = nodeId;
                 MonitoringMode = Template.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
-                QueueSize = Template.QueueSize;
                 SamplingInterval = (int)Template.SamplingInterval.
                     GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                UpdateQueueSize(subscription, Template);
                 Filter = Template.DataChangeFilter.ToStackModel() ??
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
                         session.MessageContext);
@@ -349,6 +353,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // No change, just updated internal state
                 }
                 return itemChange;
+            }
+
+            /// <inheritdoc/>
+            protected override bool OnSamplingIntervalOrQueueSizeRevised(
+                bool samplingIntervalChanged, bool queueSizeChanged)
+            {
+                Debug.Assert(Subscription != null);
+                var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
+                    samplingIntervalChanged, queueSizeChanged);
+                if (samplingIntervalChanged)
+                {
+                    applyChanges |= UpdateQueueSize(Subscription, Template);
+                }
+                return applyChanges;
             }
 
             /// <inheritdoc/>

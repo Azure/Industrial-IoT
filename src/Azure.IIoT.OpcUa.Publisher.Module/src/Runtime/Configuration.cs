@@ -92,6 +92,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 .AsImplementedInterfaces();
             builder.RegisterType<CertificatesController>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<DiagnosticsController>()
+                .AsImplementedInterfaces();
         }
 
         /// <summary>
@@ -534,44 +536,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         internal sealed class Kestrel : ConfigureOptionBase<KestrelServerOptions>
         {
             /// <summary>
-            /// Running in container
-            /// </summary>
-            static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
-                Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
-                    ?? string.Empty, "true");
-
-            /// <summary>
-            /// Configuration
-            /// </summary>
-            public const string HttpServerPortKey = "HttpServerPort";
-            public const string UnsecureHttpServerPortKey = "UnsecureHttpServerPort";
-
-            public static readonly int HttpPortDefault = IsContainer ? 80 : 9071;
-            public static readonly int HttpsPortDefault = IsContainer ? 443 : 9072;
-
-            /// <summary>
             /// Create kestrel configuration
             /// </summary>
             /// <param name="certificates"></param>
+            /// <param name="options"></param>
             /// <param name="configuration"></param>
-            public Kestrel(ISslCertProvider certificates, IConfiguration configuration)
+            public Kestrel(ISslCertProvider certificates, IOptions<PublisherOptions> options,
+                IConfiguration configuration)
                 : base(configuration)
             {
                 _certificates = certificates;
+                _options = options;
             }
 
             /// <inheritdoc/>
             public override void Configure(string? name, KestrelServerOptions options)
             {
-                var httpPort = GetIntOrNull(UnsecureHttpServerPortKey);
-                options.ListenAnyIP(httpPort ?? HttpPortDefault);
+                if (_options.Value.UnsecureHttpServerPort != null)
+                {
+                    options.ListenAnyIP(_options.Value.UnsecureHttpServerPort.Value);
+                }
 
-                var httpsPort = GetIntOrNull(HttpServerPortKey);
-                options.Listen(IPAddress.Any, httpsPort ?? HttpsPortDefault, listenOptions
-                    => listenOptions.UseHttps(httpsOptions => httpsOptions
-                        .ServerCertificateSelector = (_, _) => _certificates.Certificate));
+                if (_options.Value.HttpServerPort != null)
+                {
+                    options.Listen(IPAddress.Any, _options.Value.HttpServerPort.Value,
+                        listenOptions => listenOptions.UseHttps(httpsOptions => httpsOptions
+                            .ServerCertificateSelector = (_, _) => _certificates.Certificate));
+                }
             }
 
+            private readonly IOptions<PublisherOptions> _options;
             private readonly ISslCertProvider _certificates;
         }
 

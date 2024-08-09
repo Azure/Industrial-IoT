@@ -17,18 +17,37 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IClientDiagnostics
     {
         /// <summary>
+        /// Get all active connections
+        /// </summary>
+        IReadOnlyList<ConnectionModel> ActiveConnections { get; }
+
+        /// <summary>
+        /// Get diagnostic information of all channels.
+        /// </summary>
+        /// <returns></returns>
+        IReadOnlyList<ChannelDiagnosticModel> ChannelDiagnostics { get; }
+
+        /// <summary>
         /// Reset all connections that are currently running
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ResetAllClientsAsync(CancellationToken ct = default);
+        Task ResetAllConnectionsAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Watch diagnostic information of all connections.
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        IAsyncEnumerable<ConnectionDiagnosticModel> GetConnectionDiagnosticAsync(
+        IAsyncEnumerable<ChannelDiagnosticModel> WatchChannelDiagnosticsAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get connection diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        IAsyncEnumerable<ConnectionDiagnosticsModel> GetConnectionDiagnosticsAsync(
             CancellationToken ct = default);
     }
 }

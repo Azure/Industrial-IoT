@@ -1,0 +1,71 @@
+{
+    "$edgeAgent": {
+        "properties.desired": {
+            "schemaVersion": "1.1",
+            "runtime": {
+                "type": "docker",
+                "settings": {
+                    "minDockerVersion": "v1.25",
+                    "loggingOptions": "",
+                    "registryCredentials": {}
+                }
+            },
+            "systemModules": {
+                "edgeAgent": {
+                    "type": "docker",
+                    "settings": {
+                        "image": "mcr.microsoft.com/azureiotedge-agent:1.4",
+                        "createOptions": ""
+                    }
+                },
+                "edgeHub": {
+                    "type": "docker",
+                    "status": "running",
+                    "restartPolicy": "always",
+                    "settings": {
+                        "image": "mcr.microsoft.com/azureiotedge-hub:1.4",
+                        "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}], \"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+                    },
+                    "env": {
+                        "SslProtocols": {
+                            "value": "tls1.2"
+                        }
+                    }
+                }
+            },
+            "modules": {
+                "publisher": {
+                    "version": "1.0",
+                    "type": "docker",
+                    "status": "running",
+                    "restartPolicy": "always",
+                    "settings": {
+                        "image": "mcr.microsoft.com/iotedge/opc-publisher:latest",
+                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"],\"PortBindings\":{\"443/tcp\":[{\"HostPort\":\"8081\"}]}},\"User\":\"root\",\"Cmd\":[\"--strict\",\"--pf=/mount/pn.json\",\"--pki=/mount/pki\",\"--cf\",\"--mm=PubSub\",\"--me=Json\",\"--cl=5\",\"--sl\",\"--aa\"]}"
+                    }
+                },
+                "opcplc": {
+                    "version": "1.0",
+                    "type": "docker",
+                    "status": "running",
+                    "restartPolicy": "always",
+                    "settings": {
+                        "image": "mcr.microsoft.com/iotedge/opc-plc:latest",
+                        "createOptions": "{\"HostConfig\":{\"Binds\": [\"/tmp/host:/mount\"]},\"User\":\"root\",\"Cmd\":[\"--sph=True\",\"--spf=/mount/plc.json\",\"--vf1k=0\",\"--vfbs=0\",\"--gn=0\",\"--nd=True\",\"--np=True\",\"--nn=True\",\"--pn=50000\",\"--alm=True\",\"--ses=True\",\"--sn=10\",\"--fn=10\",\"--aa=True\"]}"
+                    }
+                }
+            }
+        }
+    },
+    "$edgeHub": {
+        "properties.desired": {
+            "schemaVersion": "1.1",
+            "routes": {
+                "publisherToUpstream": "FROM /messages/modules/publisher/* INTO $upstream"
+            },
+            "storeAndForwardConfiguration": {
+                "timeToLiveSecs": 7200
+            }
+        }
+    }
+}

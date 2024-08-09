@@ -862,22 +862,22 @@ This section lists the diagnostics APi provided by OPC Publisher providing
             name.
 
 
-<a name="getconnectiondiagnostic"></a>
-#### GetConnectionDiagnostic
+<a name="getactiveconnections"></a>
+#### GetActiveConnections
 ```
-GET /v2/diagnostics/connections
+GET /v2/connections
 ```
 
 
 ##### Description
-Get connection diagnostic information for all connections. The first set of diagnostics are the diagnostics active for all connections, continue reading to get updates.
+Get all active connections the publisher is currently managing.
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|The operation was successful.|[ConnectionDiagnosticModelIAsyncEnumerable](definitions.md#connectiondiagnosticmodeliasyncenumerable)|
+|**200**|The operation was successful.|< [ConnectionModel](definitions.md#connectionmodel) > array|
 |**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -887,8 +887,84 @@ Get connection diagnostic information for all connections. The first set of diag
 * `application/x-msgpack`
 
 
-<a name="resetallclients"></a>
-#### ResetAllClients
+<a name="getchanneldiagnostics"></a>
+#### GetChannelDiagnostics
+```
+GET /v2/diagnostics/channels
+```
+
+
+##### Description
+Get channel diagnostic information for all connections.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|< [ChannelDiagnosticModel](definitions.md#channeldiagnosticmodel) > array|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="watchchanneldiagnostics"></a>
+#### WatchChannelDiagnostics
+```
+GET /v2/diagnostics/channels/watch
+```
+
+
+##### Description
+Get channel diagnostic information for all connections. The first set of diagnostics are the diagnostics active for all connections, continue reading to get updates.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|[ChannelDiagnosticModelIAsyncEnumerable](definitions.md#channeldiagnosticmodeliasyncenumerable)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getconnectiondiagnostics"></a>
+#### GetConnectionDiagnostics
+```
+GET /v2/diagnostics/connections
+```
+
+
+##### Description
+Get diagnostics for all active clients including server and client session diagnostics.
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful.|[ConnectionDiagnosticsModelIAsyncEnumerable](definitions.md#connectiondiagnosticsmodeliasyncenumerable)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="resetallconnections"></a>
+#### ResetAllConnections
 ```
 GET /v2/reset
 ```
@@ -2935,10 +3011,11 @@ Remove the published nodes entry for a specific data set writer in a writer grou
 
 ##### Parameters
 
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string|
-|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string|
+|Type|Name|Description|Schema|Default|
+|---|---|---|---|---|
+|**Path**|**dataSetWriterGroup**  <br>*required*|The writer group name of the entry|string||
+|**Path**|**dataSetWriterId**  <br>*required*|The data set writer identifer of the entry|string||
+|**Query**|**force**  <br>*optional*|Force delete all writers even if more than one were found. Does not error when none were found.|boolean|`"false"`|
 
 
 ##### Responses

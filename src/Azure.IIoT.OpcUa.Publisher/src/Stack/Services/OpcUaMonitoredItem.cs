@@ -391,6 +391,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return true;
             }
 
+            Debug.Assert(subscription == Subscription);
+
             if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
                 _logger.LogDebug("{Item}: Item is disabled while trying to complete.", this);
@@ -408,36 +410,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return false;
             }
 
+            if (OnSamplingIntervalOrQueueSizeRevised(
+                SamplingInterval != Status.SamplingInterval, QueueSize != Status.QueueSize))
+            {
+                applyChanges = true;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Log revised sampling rate and queue size
+        /// </summary>
+        public void LogRevisedSamplingRateAndQueueSize()
+        {
+            if (!AttachedToSubscription || SamplingInterval < 0)
+            {
+                return;
+            }
+            Debug.Assert(Subscription != null);
             if (SamplingInterval != Status.SamplingInterval &&
                 QueueSize != Status.QueueSize)
             {
-                _logger.LogInformation("#{SubscriptionId}|{Item}('{Name}') - Server revised " +
-                    "SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
-                    "QueueSize from {QueueSize} to {CurrentQueueSize}.",
-                    subscription.Id, StartNodeId, DisplayName,
-                    SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize);
+                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
+                    "to {CurrentSamplingInterval} and QueueSize from {QueueSize} " +
+                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                    SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
+                    Subscription.Id, StartNodeId, DisplayName);
             }
             else if (SamplingInterval != Status.SamplingInterval)
             {
-                _logger.LogInformation("#{SubscriptionId}|{Item}('{Name}') - Server revised " +
-                    "SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval}.",
-                    subscription.Id, StartNodeId, DisplayName,
-                    SamplingInterval, Status.SamplingInterval);
+                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
+                    "to {CurrentSamplingInterval} for #{SubscriptionId}|{Item}('{Name}').",
+                    SamplingInterval, Status.SamplingInterval,
+                    Subscription.Id, StartNodeId, DisplayName);
             }
             else if (QueueSize != Status.QueueSize)
             {
-                _logger.LogInformation("#{SubscriptionId}|{Item}('{Name}') - Server revised " +
-                    "QueueSize from {QueueSize} to {CurrentQueueSize}.",
-                    subscription.Id, StartNodeId, DisplayName,
-                    QueueSize, Status.QueueSize);
+                _logger.LogInformation("Server revised QueueSize from {QueueSize} " +
+                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                    QueueSize, Status.QueueSize,
+                    Subscription.Id, StartNodeId, DisplayName);
             }
             else
             {
-                _logger.LogDebug("#{SubscriptionId}|{Item}('{Name}') - Server accepted " +
-                    "configuration unchanged.",
-                    subscription.Id, StartNodeId, DisplayName);
+                _logger.LogDebug("Server accepted configuration " +
+                    "unchanged for #{SubscriptionId}|{Item}('{Name}').",
+                    Subscription.Id, StartNodeId, DisplayName);
             }
-            return true;
+
+            _logger.LogDebug("SamplingInterval set to {SamplingInterval} and QueueSize " +
+                "to {QueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                Status.SamplingInterval, Status.QueueSize,
+                Subscription.Id, StartNodeId, DisplayName);
         }
 
         /// <summary>
@@ -541,6 +565,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IList<MonitoredItemNotificationModel> notifications);
 
         /// <summary>
+        /// Notify queue size or sampling interval changed
+        /// </summary>
+        /// <param name="samplingIntervalChanged"></param>
+        /// <param name="queueSizeChanged"></param>
+        /// <returns></returns>
+        protected virtual bool OnSamplingIntervalOrQueueSizeRevised(
+            bool samplingIntervalChanged, bool queueSizeChanged)
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Merge item
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -561,8 +597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var itemChange = false;
-            if ((updated.DiscardNew ?? false) !=
-                    desired.DiscardNew.GetValueOrDefault())
+            if ((updated.DiscardNew ?? false) != (desired.DiscardNew ?? false))
             {
                 _logger.LogDebug("{Item}: Changing discard new mode from {Old} to {New}",
                     this, updated.DiscardNew ?? false,
@@ -571,14 +606,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscardOldest = !(updated.DiscardNew ?? false);
                 itemChange = true;
             }
-            if (updated.QueueSize != desired.QueueSize)
+            if (updated.QueueSize != desired.QueueSize ||
+                updated.AutoSetQueueSize != desired.AutoSetQueueSize)
             {
-                _logger.LogDebug("{Item}: Changing queue size from {Old} to {New}",
-                    this, updated.QueueSize,
-                    desired.QueueSize);
-                updated = updated with { QueueSize = desired.QueueSize };
-                QueueSize = updated.QueueSize;
-                itemChange = true;
+                _logger.LogDebug(
+                    "{Item}: Changing queue size from {Old} ({OldAuto}) to {New} ({NewAuto})",
+                    this, updated.QueueSize, updated.AutoSetQueueSize,
+                    desired.QueueSize, desired.AutoSetQueueSize);
+                updated = updated with
+                {
+                    QueueSize = desired.QueueSize,
+                    AutoSetQueueSize = desired.AutoSetQueueSize
+                };
+                if (Subscription != null)
+                {
+                    itemChange = UpdateQueueSize(Subscription, updated);
+                }
             }
             if ((updated.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting) !=
                 (desired.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting))
@@ -878,6 +921,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Update queue size using sampling rate and publishing interval
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="item"></param>
+        protected bool UpdateQueueSize(Subscription subscription, BaseMonitoredItemModel item)
+        {
+            var queueSize = item.QueueSize;
+            if (item.AutoSetQueueSize)
+            {
+                var publishingInterval = subscription.CurrentPublishingInterval;
+                if (publishingInterval == 0)
+                {
+                    publishingInterval = subscription.PublishingInterval;
+                }
+                var samplingInterval = Status.SamplingInterval;
+                if (samplingInterval == 0)
+                {
+                    samplingInterval = SamplingInterval;
+                }
+                if (samplingInterval > 0)
+                {
+                    queueSize = Math.Max(queueSize, (uint)Math.Ceiling(
+                        (double)publishingInterval / SamplingInterval));
+                    if (queueSize != QueueSize && item.QueueSize != queueSize)
+                    {
+                        _logger.LogDebug("Auto-set queue size for {Item} to '{QueueSize}'.",
+                            this, queueSize);
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug(
+                        "No sampling interval set - cannot calculate queue size for {Item}.",
+                        this);
+                }
+            }
+            var itemChanged = QueueSize != queueSize;
+            QueueSize = queueSize;
+            return itemChanged;
         }
 
         /// <summary>
