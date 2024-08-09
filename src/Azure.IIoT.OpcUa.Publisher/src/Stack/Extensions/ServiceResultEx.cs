@@ -28,8 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Locale = sr.LocalizedText?.Locale,
                 AdditionalInfo = sr.AdditionalInfo,
                 NamespaceUri = sr.NamespaceUri,
-                SymbolicId = sr.SymbolicId ??
-                    StatusCode.LookupSymbolicId(sr.Code),
+                SymbolicId = sr.SymbolicId ?? sr.StatusCode.AsString(),
                 Inner = sr.InnerResult == null ||
                     sr.InnerResult.StatusCode == StatusCodes.Good ?
                         null : sr.InnerResult.ToServiceResultModel()
@@ -59,12 +58,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 default:
                     return Create(StatusCodes.Bad, e.Message);
             }
-            static ServiceResultModel Create(uint code, string message) =>
+            static ServiceResultModel Create(StatusCode code, string message) =>
                 new ServiceResultModel
                 {
                     ErrorMessage = message,
-                    SymbolicId = StatusCode.LookupSymbolicId(code),
-                    StatusCode = code
+                    SymbolicId = code.AsString(),
+                    StatusCode = code.Code
                 };
         }
 
@@ -83,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // The last operation result is the one that caused the service to fail.
                 StatusCode = statusCode.Code,
                 SymbolicId = stringTable?.GetStringFromTable(diagnostics?.SymbolicId) ??
-                    StatusCode.LookupSymbolicId(statusCode.Code),
+                    statusCode.AsString(),
                 ErrorMessage = stringTable?.GetStringFromTable(diagnostics?.LocalizedText),
                 NamespaceUri = stringTable?.GetStringFromTable(diagnostics?.NamespaceUri),
                 Locale = stringTable?.GetStringFromTable(diagnostics?.Locale),

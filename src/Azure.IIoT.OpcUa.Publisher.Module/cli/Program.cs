@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     switch (args[i])
                     {
-                        case "--dumpprofiles":
+                        case "--dump-profiles":
                             Console.WriteLine();
                             Console.WriteLine();
                             Console.WriteLine("The following messaging profiles are supported (selected with --mm and --me):");

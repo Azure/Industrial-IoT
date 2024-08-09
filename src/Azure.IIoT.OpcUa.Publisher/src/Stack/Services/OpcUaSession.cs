@@ -696,8 +696,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void Initialize()
         {
             SessionFactory = _client;
-            DeleteSubscriptionsOnClose = false;
             TransferSubscriptionsOnReconnect = !_client.DisableTransferSubscriptionOnReconnect;
+            DeleteSubscriptionsOnClose = !TransferSubscriptionsOnReconnect;
 
             PublishError +=
                 _client.Session_HandlePublishError;

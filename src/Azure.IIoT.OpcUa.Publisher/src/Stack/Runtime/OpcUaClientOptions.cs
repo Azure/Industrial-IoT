@@ -165,12 +165,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Limit max nodes to browse in a batch operation
         /// </summary>
         public int? MaxNodesPerBrowseOverride { get; set; }
-
-        /// <summary>
-        /// Manage the connectivity of the session and state
-        /// actively when publishing errors occur that are
-        /// related to session connectivity.
-        /// </summary>
-        public bool? ActivePublishErrorHandling { get; set; }
     }
 }

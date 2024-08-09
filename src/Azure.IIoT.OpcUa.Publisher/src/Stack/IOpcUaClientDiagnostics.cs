@@ -38,9 +38,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         EndpointConnectivityState State { get; }
 
         /// <summary>
-        /// Connection attempts
+        /// Total connection attempts
         /// </summary>
         int ReconnectCount { get; }
+
+        /// <summary>
+        /// Total successful connections
+        /// </summary>
+        int ConnectCount { get; }
 
         /// <summary>
         /// Current min publish request count

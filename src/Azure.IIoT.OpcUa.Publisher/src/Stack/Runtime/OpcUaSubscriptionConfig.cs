@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const bool DefaultSkipFirstDefault = false;
         public const bool DefaultRepublishAfterTransferDefault = false;
-        public const bool EnableSequentialPublishingDefault = false;
+        public const bool EnableSequentialPublishingDefault = true;
         public const bool UseDeferredAcknoledgementsDefault = false;
         public const bool DefaultDiscardNewDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;

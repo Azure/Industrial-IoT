@@ -108,9 +108,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
             return _reverse.TryGetValue(value, out id);
         }
 
-        private readonly SortedDictionary<uint, string> _forward =
-            new();
-        private readonly SortedDictionary<string, uint> _reverse =
-            new();
+        private readonly SortedDictionary<uint, string> _forward = new();
+        private readonly SortedDictionary<string, uint> _reverse = new();
     }
 }

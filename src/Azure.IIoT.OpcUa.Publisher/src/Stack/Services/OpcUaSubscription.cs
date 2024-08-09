@@ -149,8 +149,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _unassignedNotifications = subscription._unassignedNotifications;
 
             _additionallyMonitored = subscription._additionallyMonitored;
-            _currentSequenceNumber = subscription._currentSequenceNumber;
-            _previousSequenceNumber = subscription._previousSequenceNumber;
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
             _closed = subscription._closed;
 
@@ -1477,8 +1475,16 @@ Actual (revised) state/desired state:
             // Execute creation/update on the session management thread inside the client
             Debug.Assert(_client != null);
 
-            _logger.LogInformation("Trigger management of subscription {Subscription}...",
-                this);
+            if (IsOnline)
+            {
+                _logger.LogInformation("Trigger management of subscription {Subscription}...",
+                    this);
+            }
+            else
+            {
+                _logger.LogDebug("Trigger management of offline subscription {Subscription}...",
+                    this);
+            }
 
             _client.ManageSubscription(this, _closed);
         }
