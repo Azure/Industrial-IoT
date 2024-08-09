@@ -1135,20 +1135,6 @@
                 }
             }
         },
-        "/v2/configuration/nodes/write": {
-            "post": {
-                "tags": [
-                    "Write"
-                ],
-                "summary": "[WriteNodes](./directmethods.md#writenodes_v1)",
-                "description": "Get the list of diagnostics info for all dataset writers in the OPC Publisher at the point the call is received. Further information is provided in the OPC Publisher documentation.",
-                "operationId": "GetDiagnosticInfo",
-                "produces": [
-                    "application/json",
-                    "application/x-msgpack"
-                ]
-            }
-        },
         "/v2/reset": {
             "get": {
                 "tags": [
