@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
-    public sealed class PublisherConfigurationService : IConfigurationServices,
+    public sealed class PublisherConfigurationService : IPublisherConfiguration,
         IAwaitable<PublisherConfigurationService>, IAsyncDisposable, IDisposable
     {
         /// <summary>

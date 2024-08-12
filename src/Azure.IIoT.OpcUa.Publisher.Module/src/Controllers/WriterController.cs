@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Create writer configuration methods controller
         /// </summary>
         /// <param name="configServices"></param>
-        public WriterController(IConfigurationServices configServices)
+        public WriterController(IPublisherConfiguration configServices)
         {
             _configServices = configServices;
         }
@@ -412,6 +412,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
                 dataSetWriterId, force, ct).ConfigureAwait(false);
         }
 
-        private readonly IConfigurationServices _configServices;
+        private readonly IPublisherConfiguration _configServices;
     }
 }

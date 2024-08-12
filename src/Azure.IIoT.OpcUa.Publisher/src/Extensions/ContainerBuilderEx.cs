@@ -49,6 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HistoryServices<ConnectionModel>>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<FileSystemServices<ConnectionModel>>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ServerDiscovery>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<NetworkDiscovery>()

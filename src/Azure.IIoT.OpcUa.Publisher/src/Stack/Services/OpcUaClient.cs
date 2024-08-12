@@ -606,15 +606,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// disconnected during an operation.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="stack"></param>
+        /// <param name="operation"></param>
         /// <param name="connectTimeout"></param>
         /// <param name="serviceCallTimeout"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         /// <exception cref="TimeoutException"></exception>
-        internal async IAsyncEnumerable<T> RunAsync<T>(
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
+        internal async IAsyncEnumerable<T> RunAsync<T>(AsyncEnumerableBase<T> operation,
             int? connectTimeout, int? serviceCallTimeout,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -622,7 +621,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var ct = cts.Token;
             cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
-            while (stack.Count > 0)
+            operation.Reset();
+            while (operation.HasMore)
             {
                 if (_disposed)
                 {
@@ -649,10 +649,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var serviceTimeout = GetServiceCallTimeout(serviceCallTimeout);
                         using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
                         cts.CancelAfter(serviceTimeout);
-                        results = await stack.Peek()(context).ConfigureAwait(false);
+                        results = await operation.ExecuteAsync(context).ConfigureAwait(false);
 
                         // Success
-                        stack.Pop();
+                        operation.Complete();
                     }
                     else
                     {

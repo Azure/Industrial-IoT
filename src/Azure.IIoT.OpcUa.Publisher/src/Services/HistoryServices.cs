@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Implments history services on top of core services
@@ -28,12 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create service
         /// </summary>
+        /// <param name="options"></param>
         /// <param name="services"></param>
         /// <param name="timeProvider"></param>
-        public HistoryServices(INodeServicesInternal<T> services,
-            TimeProvider? timeProvider = null)
+        public HistoryServices(IOptions<PublisherOptions> options,
+            INodeServicesInternal<T> services, TimeProvider? timeProvider = null)
         {
             _services = services;
+            _options = options;
             _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
@@ -222,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // TODO: Should be async!
                     var capabilities = session.GetHistoryCapabilitiesAsync(
-                        _services.GetNamespaceFormat(request.Header), ct).AsTask().Result;
+                        request.Header.GetNamespaceFormat(_options), ct).AsTask().Result;
                     if (capabilities?.AggregateFunctions != null &&
                         capabilities.AggregateFunctions.TryGetValue(aggregateType, out var id))
                     {
@@ -678,6 +681,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly INodeServicesInternal<T> _services;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly TimeProvider _timeProvider;
     }
 }

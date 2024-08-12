@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Create publisher methods controller
         /// </summary>
         /// <param name="configServices"></param>
-        public ConfigurationController(IConfigurationServices configServices)
+        public ConfigurationController(IPublisherConfiguration configServices)
         {
             _configServices = configServices;
         }
@@ -422,6 +422,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             return await _configServices.GetDiagnosticInfoAsync(ct).ConfigureAwait(false);
         }
 
-        private readonly IConfigurationServices _configServices;
+        private readonly IPublisherConfiguration _configServices;
     }
 }

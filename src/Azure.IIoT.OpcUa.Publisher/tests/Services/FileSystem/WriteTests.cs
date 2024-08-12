@@ -26,8 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         private WriteTests<ConnectionModel> GetTests()
         {
             return new WriteTests<ConnectionModel>(
-                () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
-                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level),
+                () => new FileSystemServices<ConnectionModel>(_server.Client,
                     new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions()),
                 _server.GetConnection(), _server.TempPath);
         }

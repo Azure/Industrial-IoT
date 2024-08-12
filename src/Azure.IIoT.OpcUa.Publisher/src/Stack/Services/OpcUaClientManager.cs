@@ -301,8 +301,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
-            RequestHeaderModel? header, CancellationToken ct)
+            AsyncEnumerableBase<T> operation, RequestHeaderModel? header,
+            CancellationToken ct)
         {
             connection = UpdateConnectionFromHeader(connection, header);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
@@ -315,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 [EnumeratorCancellation] CancellationToken ct)
             {
                 using var client = GetOrAddClient(connection);
-                await foreach (var result in client.RunAsync(stack,
+                await foreach (var result in client.RunAsync(operation,
                     header?.ConnectTimeout, header?.ServiceCallTimeout,
                     ct).ConfigureAwait(false))
                 {
