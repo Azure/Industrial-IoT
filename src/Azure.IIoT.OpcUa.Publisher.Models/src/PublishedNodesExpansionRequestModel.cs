@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "expand", Order = 1,
             EmitDefaultValue = false)]
-        public uint? LevelsToExpand { get; init; }
+        public int? LevelsToExpand { get; init; }
 
         /// <summary>
         /// Do not consider subtypes of an object type

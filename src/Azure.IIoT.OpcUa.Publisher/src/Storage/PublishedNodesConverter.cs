@@ -441,28 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Routing = b.Header.DataSetRouting,
                                         DataSetSource = new PublishedDataSetSourceModel
                                         {
-                                            Connection = new ConnectionModel
-                                            {
-                                                Options =
-                                                    (b.Header.UseReverseConnect == true ?
-                                                         ConnectionOptions.UseReverseConnect : ConnectionOptions.None) |
-                                                    (b.Header.DisableSubscriptionTransfer == true ?
-                                                         ConnectionOptions.NoSubscriptionTransfer : ConnectionOptions.None) |
-                                                    (b.Header.DumpConnectionDiagnostics == true ?
-                                                         ConnectionOptions.DumpDiagnostics : ConnectionOptions.None),
-                                                Endpoint = new EndpointModel
-                                                {
-                                                    Url = b.Header.EndpointUrl,
-                                                    SecurityPolicy = b.Header.EndpointSecurityPolicy,
-                                                    SecurityMode = b.Header.EndpointSecurityMode ??
-                                                        ((b.Header.UseSecurity ?? false) ? // Default for backcompat is no security
-                                                            SecurityMode.NotNone : SecurityMode.None)
-                                                },
-                                                User =
-                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
-                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
-                                                        ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
-                                            },
+                                            Connection = b.Header.ToConnectionModel(ToCredential),
                                             SubscriptionSettings = new PublishedDataSetSettingsModel
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
@@ -814,10 +793,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         }
 
         /// <summary>
-        /// Convert to credential model
+        /// Convert to credential model and take into account backwards compatibility
+        /// by using the crypto provider to decrypt encrypted credentials.
         /// </summary>
         /// <param name="entry"></param>
-        private async Task<CredentialModel> ToCredentialAsync(PublishedNodesEntryModel entry)
+        private CredentialModel ToCredential(PublishedNodesEntryModel entry)
         {
             switch (entry.OpcAuthenticationMode)
             {
@@ -832,8 +812,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         {
                             if (_cryptoProvider != null)
                             {
-                                var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                                    Convert.FromBase64String(entry.EncryptedAuthUsername)).ConfigureAwait(false);
+                                var userBytes = _cryptoProvider.DecryptAsync(kInitializationVector,
+                                    Convert.FromBase64String(entry.EncryptedAuthUsername))
+                                        .AsTask().GetAwaiter().GetResult();
                                 user = Encoding.UTF8.GetString(userBytes.Span);
                             }
                             else
@@ -852,8 +833,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         {
                             if (_cryptoProvider != null)
                             {
-                                var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                                    Convert.FromBase64String(entry.EncryptedAuthPassword)).ConfigureAwait(false);
+                                var passwordBytes = _cryptoProvider.DecryptAsync(kInitializationVector,
+                                    Convert.FromBase64String(entry.EncryptedAuthPassword))
+                                        .AsTask().GetAwaiter().GetResult();
                                 password = Encoding.UTF8.GetString(passwordBytes.Span);
                             }
                             else

@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -269,13 +268,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("GetMetadata");
             return await _client.ExecuteAsync(endpoint, async context =>
             {
-                var nodeId = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (request.BrowsePath?.Count > 0)
-                {
-                    nodeId = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        nodeId, request.BrowsePath.ToArray(), nameof(request.BrowsePath),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var nodeId = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
+                    request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
+                    context.Ct).ConfigureAwait(false);
                 if (NodeId.IsNull(nodeId))
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
@@ -497,14 +492,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("GetMethodMetadata");
             return await _client.ExecuteAsync(endpoint, async context =>
             {
-                var methodId = request.MethodId.ToNodeId(context.Session.MessageContext);
-                if (request.MethodBrowsePath?.Count > 0)
-                {
-                    // Browse from object id to method if possible
-                    methodId = await NodeServices<T>.ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        methodId, request.MethodBrowsePath.ToArray(), nameof(request.MethodBrowsePath),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var methodId = await context.Session.ResolveNodeIdAsync(request.Header, request.MethodId,
+                    request.MethodBrowsePath, nameof(request.MethodBrowsePath), _timeProvider,
+                    context.Ct).ConfigureAwait(false);
+
                 if (NodeId.IsNull(methodId))
                 {
                     throw new ArgumentException(nameof(request.MethodId));
@@ -632,13 +623,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // * Like previously, but specify methodId and method browse path from it to a
                 //   real method node.
                 //
-                var objectId = request.ObjectId.ToNodeId(context.Session.MessageContext);
-                if (request.ObjectBrowsePath?.Count > 0)
-                {
-                    objectId = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        objectId, request.ObjectBrowsePath.ToArray(), nameof(request.ObjectBrowsePath),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var objectId = await context.Session.ResolveNodeIdAsync(request.Header, request.ObjectId,
+                    request.ObjectBrowsePath, nameof(request.ObjectBrowsePath), _timeProvider,
+                    context.Ct).ConfigureAwait(false);
                 if (NodeId.IsNull(objectId))
                 {
                     throw new ArgumentException("Object id missing", nameof(request));
@@ -654,7 +641,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             throw new ArgumentException("Method id and object id missing",
                                 nameof(request));
                     }
-                    methodId = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
+                    methodId = await context.Session.ResolveBrowsePathToNodeAsync(request.Header,
                         methodId, request.MethodBrowsePath.ToArray(), nameof(request.MethodBrowsePath),
                         _timeProvider, context.Ct).ConfigureAwait(false);
                 }
@@ -830,13 +817,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("ValueRead");
             return await _client.ExecuteAsync(endpoint, async context =>
             {
-                var readNode = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (request.BrowsePath?.Count > 0)
-                {
-                    readNode = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        readNode, request.BrowsePath.ToArray(), nameof(request.BrowsePath),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var readNode = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
+                    request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
+                    context.Ct).ConfigureAwait(false);
                 if (NodeId.IsNull(readNode))
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
@@ -907,13 +890,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("ValueWrite");
             return await _client.ExecuteAsync(endpoint, async context =>
             {
-                var writeNode = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (request.BrowsePath?.Count > 0)
-                {
-                    writeNode = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        writeNode, request.BrowsePath.ToArray(), nameof(request.BrowsePath),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var writeNode = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
+                    request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
+                    context.Ct).ConfigureAwait(false);
                 if (NodeId.IsNull(writeNode))
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
@@ -1273,13 +1252,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("HistoryRead");
             return await _client.ExecuteAsync(connectionId, async context =>
             {
-                var nodeId = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (request.BrowsePath?.Count > 0)
-                {
-                    nodeId = await ResolveBrowsePathToNodeAsync(context.Session,
-                        request.Header, nodeId, request.BrowsePath.ToArray(),
-                        nameof(request.BrowsePath), _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var nodeId = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
+                    request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
+                    context.Ct).ConfigureAwait(false);
                 if (NodeId.IsNull(nodeId))
                 {
                     throw new ArgumentException("Bad node id", nameof(request));
@@ -1398,26 +1373,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("HistoryUpdate");
             return await _client.ExecuteAsync(connectionId, async context =>
             {
-                var nodeId = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (request.BrowsePath?.Count > 0)
-                {
-                    nodeId = await ResolveBrowsePathToNodeAsync(context.Session, request.Header,
-                        nodeId, request.BrowsePath.ToArray(), nameof(request.BrowsePath),
-                        _timeProvider, context.Ct).ConfigureAwait(false);
-                }
+                var nodeId = await context.Session.ResolveNodeIdAsync(request.Header,
+                    request.NodeId, request.BrowsePath, nameof(request.BrowsePath),
+                    _timeProvider, context.Ct).ConfigureAwait(false);
                 // Update the node id to target based on the request
                 if (NodeId.IsNull(nodeId))
                 {
                     throw new ArgumentException("Missing node id", nameof(request));
                 }
-                var details = await decode(nodeId, request.Details, context.Session).ConfigureAwait(false);
+                var details = await decode(nodeId, request.Details,
+                    context.Session).ConfigureAwait(false);
                 if (details == null)
                 {
                     throw new ArgumentException("Bad details", nameof(request));
                 }
                 var updates = new ExtensionObjectCollection { details };
                 var response = await context.Session.Services.HistoryUpdateAsync(
-                    request.Header.ToRequestHeader(_timeProvider), updates, context.Ct).ConfigureAwait(false);
+                    request.Header.ToRequestHeader(_timeProvider), updates,
+                    context.Ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, updates);
                 if (results.ErrorInfo != null)
@@ -1588,60 +1561,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Resolve provided path to node.
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="header"></param>
-        /// <param name="rootId"></param>
-        /// <param name="paths"></param>
-        /// <param name="paramName"></param>
-        /// <param name="timeProvider"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        /// <exception cref="ResourceNotFoundException"></exception>
-        /// <exception cref="ResourceConflictException"></exception>
-        private static async Task<NodeId> ResolveBrowsePathToNodeAsync(
-            IOpcUaSession session, RequestHeaderModel? header, NodeId rootId,
-            string[] paths, string paramName, TimeProvider timeProvider, CancellationToken ct)
-        {
-            if (paths == null || paths.Length == 0)
-            {
-                return rootId;
-            }
-            if (NodeId.IsNull(rootId))
-            {
-                rootId = ObjectIds.RootFolder;
-            }
-            var browsepaths = new BrowsePathCollection
-            {
-                new BrowsePath
-                {
-                    StartingNode = rootId,
-                    RelativePath = paths.ToRelativePath(session.MessageContext)
-                }
-            };
-            var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
-                header.ToRequestHeader(timeProvider), browsepaths,
-                ct).ConfigureAwait(false);
-            Debug.Assert(response != null);
-            var results = response.Validate(response.Results, r => r.StatusCode,
-                response.DiagnosticInfos, browsepaths);
-            var count = results[0].Result.Targets?.Count ?? 0;
-            if (count == 0)
-            {
-                throw new ResourceNotFoundException(
-                    $"{paramName} did not resolve to any node.");
-            }
-            if (count != 1)
-            {
-                throw new ResourceConflictException(
-                    $"{paramName} resolved to {count} nodes.");
-            }
-            return results[0].Result.Targets[0].TargetId
-                .ToNodeId(session.MessageContext.NamespaceUris);
         }
 
         /// <summary>

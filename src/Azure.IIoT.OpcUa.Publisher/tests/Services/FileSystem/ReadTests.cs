@@ -17,10 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     [Collection(FileCollection.Name)]
     public class ReadTests
     {
-        public ReadTests(FileSystemServer server, ITestOutputHelper output)
+        public ReadTests(FileSystemServer server)
         {
             _server = server;
-            _output = output;
         }
 
         private ReadTests<ConnectionModel> GetTests()
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         }
 
         private readonly FileSystemServer _server;
-        private readonly ITestOutputHelper _output;
 
         [Fact]
         public Task ReadFileTest0Async()

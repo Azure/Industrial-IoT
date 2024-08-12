@@ -17,10 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     [Collection(FileCollection.Name)]
     public class OperationsTests
     {
-        public OperationsTests(FileSystemServer server, ITestOutputHelper output)
+        public OperationsTests(FileSystemServer server)
         {
             _server = server;
-            _output = output;
         }
 
         private OperationsTests<ConnectionModel> GetTests()
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         }
 
         private readonly FileSystemServer _server;
-        private readonly ITestOutputHelper _output;
 
         [Fact]
         public Task CreateDirectoryTest1Async()

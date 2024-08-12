@@ -17,10 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     [Collection(FileCollection.Name)]
     public class WriteTests
     {
-        public WriteTests(FileSystemServer server, ITestOutputHelper output)
+        public WriteTests(FileSystemServer server)
         {
             _server = server;
-            _output = output;
         }
 
         private WriteTests<ConnectionModel> GetTests()
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         }
 
         private readonly FileSystemServer _server;
-        private readonly ITestOutputHelper _output;
 
         [Fact]
         public Task WriteFileTest0Async()

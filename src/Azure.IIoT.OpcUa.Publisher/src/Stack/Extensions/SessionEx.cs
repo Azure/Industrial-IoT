@@ -31,16 +31,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="session"></param>
         /// <param name="header"></param>
-        /// <param name="nodeIds"></param>
+        /// <param name="nodeId"></param>
         /// <param name="attributeId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(T?, ServiceResultModel?)> ReadAttributeAsync<T>(
-            this IOpcUaSession session, RequestHeader header, NodeId nodeIds,
+            this IOpcUaSession session, RequestHeader header, NodeId nodeId,
             uint attributeId, CancellationToken ct = default)
         {
             var attributes = await session.ReadAttributeAsync<T>(header,
-                nodeIds.YieldReturn(), attributeId, ct).ConfigureAwait(false);
+                nodeId.YieldReturn(), attributeId, ct).ConfigureAwait(false);
             return attributes.SingleOrDefault();
         }
 
@@ -1222,9 +1222,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="Name"></param>
         /// <param name="Node"></param>
         /// <param name="TypeDefinition"></param>
+        /// <param name="NodeClass"></param>
         /// <param name="ErrorInfo"></param>
         internal record struct FindResult(QualifiedName Name, NodeId Node,
-            ExpandedNodeId TypeDefinition, ServiceResultModel? ErrorInfo = null);
+            ExpandedNodeId TypeDefinition, Opc.Ua.NodeClass NodeClass,
+            ServiceResultModel? ErrorInfo = null);
 
         /// <summary>
         /// Finds the targets for the specified reference.
@@ -1257,6 +1259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     NodeClassMask = nodeClassMask,
                     ResultMask =
                         (uint)BrowseResultMask.BrowseName |
+                        (uint)BrowseResultMask.NodeClass |
                         (uint)BrowseResultMask.TypeDefinition
                 }));
 
@@ -1279,7 +1282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     if (result.ErrorInfo != null)
                     {
                         targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
-                            ExpandedNodeId.Null, result.ErrorInfo));
+                            ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified, result.ErrorInfo));
                         continue;
                     }
                     // check for continuation point.
@@ -1311,7 +1314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         if (result.ErrorInfo != null)
                         {
                             targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
-                                ExpandedNodeId.Null, result.ErrorInfo));
+                                ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified, result.ErrorInfo));
                             continue;
                         }
                         // check for continuation point.
@@ -1350,12 +1353,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         reference.NodeId.IsAbsolute)
                     {
                         targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null, ExpandedNodeId.Null,
+                            Opc.Ua.NodeClass.Unspecified,
                             new ServiceResultModel { ErrorMessage = "Target node is null or absolute" }));
                         continue;
                     }
-                    targetIds.Add(new FindResult(reference.BrowseName,
-                         (NodeId)reference.NodeId,
-                         reference.TypeDefinition));
+                    targetIds.Add(new FindResult(reference.BrowseName, (NodeId)reference.NodeId,
+                         reference.TypeDefinition, reference.NodeClass));
                 }
                 return true;
             }

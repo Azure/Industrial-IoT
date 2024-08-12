@@ -56,15 +56,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<ServiceResponse<FileSystemObjectModel>> GetFileSystemsAsync(
-            T endpoint, [EnumeratorCancellation] CancellationToken ct)
+        public IAsyncEnumerable<ServiceResponse<FileSystemObjectModel>> GetFileSystemsAsync(
+            T endpoint, CancellationToken ct)
         {
             using var trace = _activitySource.StartActivity("GetFileSystems");
             var header = new RequestHeaderModel();
 
-            await Task.Delay(0, ct).ConfigureAwait(false);
-            yield break;
-            throw new NotImplementedException();
+            var browser = new FileSystemBrowser(header, _options, _timeProvider);
+            return _client.ExecuteAsync(endpoint, browser, header, ct);
         }
 
         /// <inheritdoc/>
@@ -453,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 try
                 {
-                    nodeId = await ResolveBrowsePathToNodeAsync(session, header,
+                    nodeId = await session.ResolveBrowsePathToNodeAsync(header,
                         nodeId, fileSystemObject.BrowsePath.Select(b => "<HasComponent>" + b).ToArray(),
                         nameof(fileSystemObject.BrowsePath), _timeProvider, ct).ConfigureAwait(false);
                 }
@@ -474,63 +473,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Resolve provided path to node.
+        /// File system object browser browses from root all objects of file directory type.
+        /// The browse operation stops at the first found and returns the result.
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="header"></param>
-        /// <param name="rootId"></param>
-        /// <param name="paths"></param>
-        /// <param name="paramName"></param>
-        /// <param name="timeProvider"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        /// <exception cref="ResourceNotFoundException"></exception>
-        /// <exception cref="ResourceConflictException"></exception>
-        private static async Task<NodeId> ResolveBrowsePathToNodeAsync(
-            IOpcUaSession session, RequestHeaderModel? header, NodeId rootId,
-            string[] paths, string paramName, TimeProvider timeProvider, CancellationToken ct)
+        private sealed class FileSystemBrowser : ObjectBrowser<ServiceResponse<FileSystemObjectModel>>
         {
-            if (paths == null || paths.Length == 0)
+            /// <inheritdoc/>
+            public FileSystemBrowser(RequestHeaderModel? header, IOptions<PublisherOptions> options,
+                TimeProvider timeProvider) : base(header, options, ObjectIds.ObjectsFolder,
+                    ObjectTypeIds.FileDirectoryType, true, timeProvider: timeProvider)
             {
-                return rootId;
             }
-            if (NodeId.IsNull(rootId))
+
+            /// <inheritdoc/>
+            protected override IEnumerable<ServiceResponse<FileSystemObjectModel>> HandleError(
+                ServiceCallContext context, ServiceResultModel errorInfo)
             {
-                rootId = ObjectIds.RootFolder;
-            }
-            var browsepaths = new BrowsePathCollection
-            {
-                new BrowsePath
+                yield return new ServiceResponse<FileSystemObjectModel>
                 {
-                    StartingNode = rootId,
-                    RelativePath = paths.ToRelativePath(session.MessageContext)
+                    ErrorInfo = errorInfo
+                };
+            }
+
+            /// <inheritdoc/>
+            protected override IEnumerable<ServiceResponse<FileSystemObjectModel>> HandleMatching(
+                ServiceCallContext context, IReadOnlyList<ReferenceDescription> matching)
+            {
+                foreach (var match in matching)
+                {
+                    yield return new ServiceResponse<FileSystemObjectModel>
+                    {
+                        Result = new FileSystemObjectModel
+                        {
+                            NodeId = Header.AsString(match.NodeId,
+                                context.Session.MessageContext, Options),
+                            Name = match.BrowseName.Name
+                        }
+                    };
                 }
-            };
-            var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
-                header.ToRequestHeader(timeProvider), browsepaths,
-                ct).ConfigureAwait(false);
-            Debug.Assert(response != null);
-            var results = response.Validate(response.Results, r => r.StatusCode,
-                response.DiagnosticInfos, browsepaths);
-            var count = results[0].Result.Targets?.Count ?? 0;
-            if (count == 0)
-            {
-                throw new ResourceNotFoundException(
-                    $"{paramName} did not resolve to any node.");
             }
-            if (count != 1)
-            {
-                throw new ResourceConflictException(
-                    $"{paramName} resolved to {count} nodes.");
-            }
-            return results[0].Result.Targets[0].TargetId
-                .ToNodeId(session.MessageContext.NamespaceUris);
         }
 
         /// <summary>
         /// File transfer stream
         /// </summary>
-        private class FileTransferStream : Stream
+        private sealed class FileTransferStream : Stream
         {
             /// <inheritdoc/>
             public override bool CanRead

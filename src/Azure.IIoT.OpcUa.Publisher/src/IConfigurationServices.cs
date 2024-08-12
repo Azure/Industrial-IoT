@@ -19,7 +19,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Create one or more writer entries by expanding the provided
         /// entry into the configuration. As items are expanded they are
-        /// returned one by one.
+        /// returned one by one with the error items last. The items are
+        /// also added to the configuration unless noUpdate is set to true.
+        /// If noUpdate is set to true, the configuration is not updated
+        /// but the resulting entries without error info can be added in
+        /// a later call to the publisher configuration api.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="noUpdate"></param>

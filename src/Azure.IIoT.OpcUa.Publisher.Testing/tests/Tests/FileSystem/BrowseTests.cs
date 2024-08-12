@@ -38,14 +38,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var found = new HashSet<string>();
             await foreach (var fs in services.GetFileSystemsAsync(_connection, ct))
             {
-                Assert.NotNull(fs.ErrorInfo);
-                Assert.Equal(0u, fs.ErrorInfo.StatusCode);
+                Assert.Null(fs.ErrorInfo);
                 Assert.NotNull(fs.Result);
                 Assert.NotNull(fs.Result.Name);
                 Assert.Contains(drives, d => d.RootDirectory.FullName == fs.Result?.Name);
                 found.Add(fs.Result.Name);
             }
-            // TODO: Assert.True(drives.Count <= found.Count);
+            Assert.Equal(drives.Count, found.Count);
         }
 
         public async Task GetDirectoriesTest1Async(CancellationToken ct = default)

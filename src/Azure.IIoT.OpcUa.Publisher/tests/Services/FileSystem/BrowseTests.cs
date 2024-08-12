@@ -17,10 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     [Collection(FileCollection.Name)]
     public class BrowseTests
     {
-        public BrowseTests(FileSystemServer server, ITestOutputHelper output)
+        public BrowseTests(FileSystemServer server)
         {
             _server = server;
-            _output = output;
         }
 
         private BrowseTests<ConnectionModel> GetTests()
@@ -32,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
         }
 
         private readonly FileSystemServer _server;
-        private readonly ITestOutputHelper _output;
 
         [Fact]
         public Task GetFileSystemsTest1Async()
