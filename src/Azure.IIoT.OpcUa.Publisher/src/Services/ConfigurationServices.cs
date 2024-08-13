@@ -105,8 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public ConfigBrowser(PublishedNodeExpansionRequestModel request,
                 IOptions<PublisherOptions> options, IPublisherConfiguration? configuration,
-                TimeProvider? timeProvider = null) : base(request.Header, options, null, null, false,
-                      request.LevelsToExpand ?? int.MaxValue, request.NoSubtypes, timeProvider)
+                TimeProvider? timeProvider = null) : base(request.Header, options,
+                      noSubtypes: request.NoSubtypes, timeProvider: timeProvider)
             {
                 _request = request;
                 _configuration = configuration;
@@ -243,12 +243,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var entries = new List<ServiceResponse<PublishedNodesEntryModel>>();
                 foreach (var obj in _expanded[_nodeIndex].Objects)
                 {
+                    // TODO: Instead use collect instance info
                     var results = await context.Session.FindAsync(
                         _request.Header.ToRequestHeader(TimeProvider),
                         obj.ObjectToExpand.NodeId
                             .ToNodeId(context.Session.MessageContext.NamespaceUris)
                             .YieldReturn(),
                         ReferenceTypeIds.HasComponent, true,
+                        // maxResults: (uint?)_request.LevelsToExpand,
                         nodeClassMask: (uint)Opc.Ua.NodeClass.Variable, // Only return variables
                         ct: context.Ct).ConfigureAwait(false);
 
@@ -401,14 +403,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         DisplayName = LocalizedText.Null,
                                         TypeDefinition = NodeId.Null // TODO: Could retrieve type
                                     }));
+
+                                if (_request.MaxDepth == 0)
+                                {
+                                    // We are done and just return the root object
+                                    continue;
+                                }
                             }
-                            Restart(_request.LevelsToExpand, _expanded[_nodeIndex].NodeId!);
+                            var depth = (_request.MaxDepth ?? 0) == 0 ? int.MaxValue : _request.MaxDepth;
+                            Restart(depth, _expanded[_nodeIndex].NodeId!, null, false);
                             return true;
                         case (uint)Opc.Ua.NodeClass.ObjectType:
                             // Resolve all objects of this type
                             Debug.Assert(!NodeId.IsNull(_expanded[_nodeIndex].NodeId));
-                            Restart(_request.LevelsToExpand, ObjectIds.ObjectsFolder,
-                                _expanded[_nodeIndex].NodeId); // Find all objects of the type
+                            var depth2 = (_request.MaxDepth ?? 0) == 0 ? int.MaxValue : _request.MaxDepth;
+                            Restart(depth2, ObjectIds.ObjectsFolder, _expanded[_nodeIndex].NodeId,
+                                _request.StopAtFirstFoundObject); // Find all objects of the type
                             return true;
                         case (uint)Opc.Ua.NodeClass.Variable:
                             // Done - already a variable - stays in the original entry

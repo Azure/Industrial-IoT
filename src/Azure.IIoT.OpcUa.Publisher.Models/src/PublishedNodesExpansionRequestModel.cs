@@ -25,12 +25,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public required PublishedNodesEntryModel Entry { get; init; }
 
         /// <summary>
-        /// Levels to expand. Default value is 1.
-        /// 0 means infinite recursion.
+        /// Optional request header to use for all operations
+        /// against the server.
         /// </summary>
-        [DataMember(Name = "expand", Order = 1,
+        [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
-        public int? LevelsToExpand { get; init; }
+        public RequestHeaderModel? Header { get; init; }
 
         /// <summary>
         /// By default the api will create a new distinct
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Do not consider subtypes of an object type
         /// when expanding a node object
         /// </summary>
-        [DataMember(Name = "noSubtypes", Order = 3,
+        [DataMember(Name = "noSubtypes", Order = 4,
             EmitDefaultValue = false)]
         public bool NoSubtypes { get; init; }
 
@@ -57,23 +57,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// If the node is an object do not include it
         /// but only the objects underneath it.
         /// </summary>
-        [DataMember(Name = "excludeRootObject", Order = 4,
+        [DataMember(Name = "excludeRootObject", Order = 5,
             EmitDefaultValue = false)]
         public bool ExcludeRootObject { get; init; }
+
+        /// <summary>
+        /// Max depth to browse for objects. Default is
+        /// using a configured value. Set this to 0 to
+        /// only include the root object and no sub objects.
+        /// </summary>
+        [DataMember(Name = "maxDepth", Order = 6,
+            EmitDefaultValue = false)]
+        public int? MaxDepth { get; init; }
+
+        /// <summary>
+        /// If the depth is not limited and the node is an
+        /// object type set this flag to true to find only
+        /// the first object from the object root.
+        /// is expanded.
+        /// </summary>
+        [DataMember(Name = "stopAtFirstFoundObject", Order = 7,
+            EmitDefaultValue = false)]
+        public bool StopAtFirstFoundObject { get; init; }
 
         /// <summary>
         /// Errors are silently discarded and only
         /// successfully expanded nodes are returned.
         /// </summary>
-        [DataMember(Name = "discardErrors", Order = 5,
+        [DataMember(Name = "discardErrors", Order = 8,
             EmitDefaultValue = false)]
         public bool DiscardErrors { get; init; }
-
-        /// <summary>
-        /// Optional request header
-        /// </summary>
-        [DataMember(Name = "header", Order = 6,
-            EmitDefaultValue = false)]
-        public RequestHeaderModel? Header { get; init; }
     }
 }

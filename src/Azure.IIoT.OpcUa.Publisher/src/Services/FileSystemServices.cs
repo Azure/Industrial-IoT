@@ -10,22 +10,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using BrowseDirection = Models.BrowseDirection;
-    using NodeClass = Models.NodeClass;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 

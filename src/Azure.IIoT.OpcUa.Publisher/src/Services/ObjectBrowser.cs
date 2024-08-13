@@ -8,14 +8,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -69,6 +67,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Restart();
         }
 
+        /// <summary>
+        /// Override to disable starting browsing
+        /// </summary>
         protected virtual void Restart()
         {
             // Initialize
@@ -83,10 +84,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="depth"></param>
         /// <param name="rootFolder"></param>
         /// <param name="objectType"></param>
-        protected void Restart(int? depth, NodeId rootFolder, NodeId? objectType = null)
+        /// <param name="stopWhenFound"></param>
+        protected void Restart(int? depth, NodeId rootFolder, NodeId? objectType = null,
+            bool stopWhenFound = false)
         {
             _rootFolder = rootFolder;
             _objectType = objectType;
+            _stopWhenFound = stopWhenFound;
             _currentDepth = depth ?? _depth;
             if (_currentDepth < 1)
             {
@@ -300,11 +304,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private const int kDefaultDepth = 10;
         private int _currentDepth;
+        private bool _stopWhenFound;
         private NodeId _rootFolder;
         private NodeId? _objectType;
         private readonly Stack<NodeId> _browseStack = new();
         private readonly HashSet<NodeId> _visited = new();
-        private readonly bool _stopWhenFound;
         private readonly bool _noSubtypes;
         private readonly int _depth;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();

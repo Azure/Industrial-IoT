@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Shared;
 
     /// <summary>
     /// OPC UA session extends the SDK session

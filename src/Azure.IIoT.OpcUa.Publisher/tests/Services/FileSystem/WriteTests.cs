@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     using Microsoft.Extensions.Configuration;
     using System.Threading.Tasks;
     using Xunit;
-    using Xunit.Abstractions;
 
     [Collection(FileCollection.Name)]
     public class WriteTests

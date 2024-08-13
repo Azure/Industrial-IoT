@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.Core;
 
     /// <summary>
     /// This class provides access to a servers address space providing node
@@ -1756,8 +1755,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 _view ??= _request.View.ToStackModel(context.Session.MessageContext);
-                var browseDescriptions = new BrowseDescriptionCollection {
-                    new BrowseDescription {
+                var browseDescriptions = new BrowseDescriptionCollection
+                {
+                    new BrowseDescription
+                    {
                         BrowseDirection = (_request.Direction ?? BrowseDirection.Both)
                             .ToStackType(),
                         IncludeSubtypes = !(_request.NoSubtypes ?? false),
@@ -1790,6 +1791,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (continuation.Length > 0)
                 {
                     Push(context => BrowseNextAsync(context, sourceId, continuation));
+                }
+                else
+                {
+                    // Read another node from the browse stack
+                    Push(ReadNodeAsync);
                 }
                 return refs;
             }
@@ -1830,6 +1836,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (continuation.Length > 0)
                 {
                     Push(session => BrowseNextAsync(session, sourceId, continuation));
+                }
+                else
+                {
+                    // Read another node from the browse stack
+                    Push(ReadNodeAsync);
                 }
                 return refs;
             }

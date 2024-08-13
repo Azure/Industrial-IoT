@@ -5,14 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
-    using Avro.File;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// PublishedNodesEntryModel extensions

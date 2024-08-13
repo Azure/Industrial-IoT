@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -18,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Implments history services on top of core services

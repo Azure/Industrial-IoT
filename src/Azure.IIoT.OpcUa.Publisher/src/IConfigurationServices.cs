@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration services using node services to explore and expand

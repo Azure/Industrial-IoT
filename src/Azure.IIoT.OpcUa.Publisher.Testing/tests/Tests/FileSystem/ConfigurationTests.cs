@@ -7,21 +7,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
-    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
 
-    public class ExpandTests
+    public class ConfigurationTests
     {
         /// <summary>
-        /// Create configuration tests
+        /// Create node configuration tests
         /// </summary>
         /// <param name="services"></param>
         /// <param name="connection"></param>
-        public ExpandTests(IConfigurationServices services, ConnectionModel connection)
+        public ConfigurationTests(IConfigurationServices services, ConnectionModel connection)
         {
             _service = services;
             _connection = connection;
@@ -30,14 +29,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task ExpandTest1Async(CancellationToken ct = default)
         {
             var entry = _connection.ToPublishedNodesEntry();
-            entry.OpcNodes = new []
+            entry.OpcNodes = new[]
             {
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157",
-                    BrowsePath = new[] {
-                        "http://test.org/UA/Data/#Static"
-                    }
+                    Id = Opc.Ua.ObjectTypeIds.FileDirectoryType.ToString()
                 }
             };
             var results = await _service.ExpandAsync(
@@ -46,13 +42,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     ExcludeRootObject = false,
-                    LevelsToExpand = null,
+                    StopAtFirstFoundObject = true,
+                    MaxDepth = null,
                     NoSubtypes = false,
                     CreateSingleWriter = false
                 },
                 false, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(24, results.Count);
+            Assert.Equal(DriveInfo.GetDrives().Length, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -69,10 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157",
-                    BrowsePath = new[] {
-                        "http://test.org/UA/Data/#Static"
-                    }
+                    Id = Opc.Ua.ObjectTypeIds.FileDirectoryType.ToString()
                 }
             };
             var results = await _service.ExpandAsync(
@@ -81,7 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     ExcludeRootObject = false,
-                    LevelsToExpand = null,
+                    StopAtFirstFoundObject = true,
+                    MaxDepth = null,
                     NoSubtypes = false,
                     CreateSingleWriter = true
                 },
@@ -91,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(258, result.Result.OpcNodes.Count);
+            Assert.Equal(DriveInfo.GetDrives().Length, result.Result.OpcNodes.Count);
         }
 
         private readonly ConnectionModel _connection;

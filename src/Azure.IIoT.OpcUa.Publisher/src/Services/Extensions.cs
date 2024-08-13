@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;

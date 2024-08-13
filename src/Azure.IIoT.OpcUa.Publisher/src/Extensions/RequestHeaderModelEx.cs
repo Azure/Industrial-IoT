@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Extensions;

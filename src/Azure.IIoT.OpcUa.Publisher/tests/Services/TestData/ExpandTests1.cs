@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
@@ -15,17 +14,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
     using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class NodeExpandTests
+    public class ExpandTests1
     {
-        public NodeExpandTests(TestDataServer server, ITestOutputHelper output)
+        public ExpandTests1(TestDataServer server, ITestOutputHelper output)
         {
             _server = server;
             _output = output;
         }
 
-        private ExpandTests GetTests()
+        private ConfigurationTests1 GetTests()
         {
-            return new ExpandTests(new ConfigurationServices(null!, _server.Client,
+            return new ConfigurationTests1(new ConfigurationServices(null!, _server.Client,
                 new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions(),
                 _output.BuildLoggerFor<ConfigurationServices>(Logging.Level)),
                 _server.GetConnection());
@@ -44,6 +43,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         public Task ExpandTest2Async()
         {
             return GetTests().ExpandTest2Async();
+        }
+
+        [Fact]
+        public Task ExpandTest3Async()
+        {
+            return GetTests().ExpandTest3Async();
+        }
+
+        [Fact]
+        public Task ExpandTest4Async()
+        {
+            return GetTests().ExpandTest4Async();
+        }
+
+        [Fact]
+        public Task ExpandTest5Async()
+        {
+            return GetTests().ExpandTest5Async();
+        }
+
+        [Fact]
+        public Task ExpandTest6Async()
+        {
+            return GetTests().ExpandTest6Async();
+        }
+
+        [Fact]
+        public Task ExpandTest7Async()
+        {
+            return GetTests().ExpandTest7Async();
+        }
+
+        [Fact]
+        public Task ExpandTest8Async()
+        {
+            return GetTests().ExpandTest8Async();
+        }
+        [Fact]
+        public Task ExpandTest9Async()
+        {
+            return GetTests().ExpandTest9Async();
         }
     }
 }
