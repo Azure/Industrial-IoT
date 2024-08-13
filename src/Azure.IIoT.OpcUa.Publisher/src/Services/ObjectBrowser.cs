@@ -37,19 +37,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="rootFolder"></param>
         /// <param name="objectType"></param>
         /// <param name="stopWhenFound"></param>
-        /// <param name="depth"></param>
         /// <param name="noSubtypes"></param>
         /// <param name="timeProvider"></param>
         protected ObjectBrowser(RequestHeaderModel? header, IOptions<PublisherOptions> options,
             NodeId? rootFolder = null, NodeId? objectType = null, bool stopWhenFound = false,
-            int depth = 0, bool noSubtypes = false, TimeProvider? timeProvider = null)
+            bool noSubtypes = false, TimeProvider? timeProvider = null)
         {
             Header = header;
             _rootFolder = rootFolder ?? ObjectIds.ObjectsFolder;
             _objectType = objectType;
             _stopWhenFound = stopWhenFound;
             _noSubtypes = noSubtypes;
-            _depth = depth < 1 ? kDefaultDepth : depth;
             TimeProvider = timeProvider ?? TimeProvider.System;
             Options = options;
         }
@@ -74,28 +72,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             // Initialize
             _browseStack.Push(_rootFolder);
-            _currentDepth = _depth;
             Push(context => BrowseAsync(context));
         }
 
         /// <summary>
         /// Set new root folder
         /// </summary>
-        /// <param name="depth"></param>
         /// <param name="rootFolder"></param>
         /// <param name="objectType"></param>
         /// <param name="stopWhenFound"></param>
-        protected void Restart(int? depth, NodeId rootFolder, NodeId? objectType = null,
+        protected void Restart(NodeId rootFolder, NodeId? objectType = null,
             bool stopWhenFound = false)
         {
             _rootFolder = rootFolder;
             _objectType = objectType;
             _stopWhenFound = stopWhenFound;
-            _currentDepth = depth ?? _depth;
-            if (_currentDepth < 1)
-            {
-                _currentDepth = _depth;
-            }
+
             _browseStack.Push(_rootFolder);
             Push(context => BrowseAsync(context));
         }
@@ -138,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("Browse");
 
             var nodeId = PopNode();
-            if (nodeId == null || _currentDepth-- == 0)
+            if (nodeId == null)
             {
                 return HandleCompletion(context);
             }
@@ -302,15 +294,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return HandleMatching(context, matching);
         }
 
-        private const int kDefaultDepth = 10;
-        private int _currentDepth;
         private bool _stopWhenFound;
         private NodeId _rootFolder;
         private NodeId? _objectType;
         private readonly Stack<NodeId> _browseStack = new();
         private readonly HashSet<NodeId> _visited = new();
         private readonly bool _noSubtypes;
-        private readonly int _depth;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

@@ -403,21 +403,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         DisplayName = LocalizedText.Null,
                                         TypeDefinition = NodeId.Null // TODO: Could retrieve type
                                     }));
-
-                                if (_request.MaxDepth == 0)
-                                {
-                                    // We are done and just return the root object
-                                    continue;
-                                }
                             }
-                            var depth = (_request.MaxDepth ?? 0) == 0 ? int.MaxValue : _request.MaxDepth;
-                            Restart(depth, _expanded[_nodeIndex].NodeId!, null, false);
+                            Restart(_expanded[_nodeIndex].NodeId!, null, false);
                             return true;
                         case (uint)Opc.Ua.NodeClass.ObjectType:
                             // Resolve all objects of this type
                             Debug.Assert(!NodeId.IsNull(_expanded[_nodeIndex].NodeId));
-                            var depth2 = (_request.MaxDepth ?? 0) == 0 ? int.MaxValue : _request.MaxDepth;
-                            Restart(depth2, ObjectIds.ObjectsFolder, _expanded[_nodeIndex].NodeId,
+                            Restart(ObjectIds.ObjectsFolder, _expanded[_nodeIndex].NodeId,
                                 _request.StopAtFirstFoundObject); // Find all objects of the type
                             return true;
                         case (uint)Opc.Ua.NodeClass.Variable:

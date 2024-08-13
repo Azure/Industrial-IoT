@@ -45,7 +45,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootObject = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     NoSubtypes = false,
                     CreateSingleWriter = false
                 },
@@ -81,7 +80,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootObject = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     NoSubtypes = false,
                     CreateSingleWriter = true
                 },
@@ -111,7 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootObject = true,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     NoSubtypes = false,
                     CreateSingleWriter = false
                 },
@@ -143,7 +140,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     ExcludeRootObject = true,
                     NoSubtypes = false,
                     CreateSingleWriter = true
@@ -173,7 +169,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     ExcludeRootObject = true,
                     NoSubtypes = false,
                     CreateSingleWriter = false
@@ -206,7 +201,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
@@ -239,10 +233,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = 1,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
-                    CreateSingleWriter = false
+                    CreateSingleWriter = true
                 },
                 false, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -250,9 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            var node = Assert.Single(result.Result.OpcNodes);
-            Assert.Equal(Opc.Ua.VariableIds.Server_ServerStatus.ToString(), node.Id);
-            Assert.Equal("i=2253/ServerStatus/0", node.DataSetFieldId);
+            Assert.Equal(1172, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandTest8Async(CancellationToken ct = default)
@@ -271,7 +262,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
@@ -315,7 +305,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Entry = entry,
                     DiscardErrors = false,
                     StopAtFirstFoundObject = false,
-                    MaxDepth = null,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false

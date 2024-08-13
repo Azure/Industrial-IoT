@@ -62,15 +62,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool ExcludeRootObject { get; init; }
 
         /// <summary>
-        /// Max depth to browse for objects. Default is
-        /// using a configured value. Set this to 0 to
-        /// only include the root object and no sub objects.
-        /// </summary>
-        [DataMember(Name = "maxDepth", Order = 6,
-            EmitDefaultValue = false)]
-        public int? MaxDepth { get; init; }
-
-        /// <summary>
         /// If the depth is not limited and the node is an
         /// object type set this flag to true to find only
         /// the first object from the object root.
