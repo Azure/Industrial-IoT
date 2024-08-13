@@ -26,15 +26,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         }
 
         /// <inheritdoc/>
-        public override ValueTask<IEnumerable<T>> ExecuteAsync(ServiceCallContext context)
+        public override async ValueTask<IEnumerable<T>> ExecuteAsync(ServiceCallContext context)
         {
-            return _ops.Peek().Invoke(context);
-        }
-
-        /// <inheritdoc/>
-        public override void Complete()
-        {
-            _ops.Pop();
+            var func = _ops.Pop();
+            var cur = _ops.Count;
+            try
+            {
+                return await func.Invoke(context).ConfigureAwait(false);
+            }
+            catch
+            {
+                if (_ops.Count == cur)
+                {
+                    _ops.Push(func);
+                }
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -68,21 +75,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         }
 
         /// <inheritdoc/>
-        public override void Complete()
-        {
-            _ops.Pop();
-        }
-
-        /// <inheritdoc/>
         protected void Push(Func<ServiceCallContext, ValueTask<T>> value)
         {
             _ops.Push(value);
         }
 
         /// <inheritdoc/>
-        protected override ValueTask<T> RunAsync(ServiceCallContext context)
+        protected override async ValueTask<T> RunAsync(ServiceCallContext context)
         {
-            return _ops.Peek().Invoke(context);
+            var func = _ops.Pop();
+            var cur = _ops.Count;
+            try
+            {
+                return await func.Invoke(context).ConfigureAwait(false);
+            }
+            catch
+            {
+                if (_ops.Count == cur)
+                {
+                    _ops.Push(func);
+                }
+                throw;
+            }
         }
 
         private readonly Stack<Func<ServiceCallContext, ValueTask<T>>> _ops = new();

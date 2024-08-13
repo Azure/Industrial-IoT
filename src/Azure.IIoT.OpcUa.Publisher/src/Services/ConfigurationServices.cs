@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -19,14 +20,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Runtime.CompilerServices;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Configuration services uses the address space and services of a
-    /// connected server to configure the publisher. The configuration
-    /// services allow interactive expansion of published nodes.
+    /// Configuration services uses the address space and services of a connected server to
+    /// configure the publisher. The configuration services allow interactive expansion of
+    /// published nodes.
     /// </summary>
     public sealed class ConfigurationServices : IConfigurationServices
     {
@@ -53,23 +54,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandAsync(
             PublishedNodeExpansionRequestModel request, bool noUpdate, CancellationToken ct)
         {
-            var browser = new ConfigBrowser(request, _options,
-                noUpdate ? null : _configuration, _timeProvider);
-            return _client.ExecuteAsync(request.Entry.ToConnectionModel(),
-                browser, request.Header, ct);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.OpcNodes);
+            ValidateNodes(request.Entry.OpcNodes);
+
+            var browser = new ConfigBrowser(request, _options, noUpdate ? null : _configuration,
+                _timeProvider);
+            return _client.ExecuteAsync(request.Entry.ToConnectionModel(), browser,
+                request.Header, ct);
         }
 
         /// <summary>
-        /// Browse nodes
+        /// Validate nodes are valid
+        /// </summary>
+        /// <param name="opcNodes"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
+        private static IList<OpcNodeModel> ValidateNodes(IList<OpcNodeModel> opcNodes)
+        {
+            var set = new HashSet<string>();
+            foreach (var node in opcNodes)
+            {
+                if (!node.TryGetId(out var id))
+                {
+                    throw new BadRequestException("Node must contain a node ID");
+                }
+                node.DataSetFieldId ??= id;
+                set.Add(node.DataSetFieldId);
+                if (node.OpcPublishingInterval != null ||
+                    node.OpcPublishingIntervalTimespan != null)
+                {
+                    throw new BadRequestException(
+                        "Publishing interval not allowed on node level. " +
+                        "Must be set at writer level.");
+                }
+            }
+            if (set.Count != opcNodes.Count)
+            {
+                throw new BadRequestException("Field ids must be present and unique.");
+            }
+            return opcNodes;
+        }
+
+        /// <summary>
+        /// Configuration browser
         /// </summary>
         internal sealed class ConfigBrowser : ObjectBrowser<ServiceResponse<PublishedNodesEntryModel>>
         {
             /// <inheritdoc/>
             public ConfigBrowser(PublishedNodeExpansionRequestModel request,
                 IOptions<PublisherOptions> options, IPublisherConfiguration? configuration,
-                TimeProvider? timeProvider = null)
-                : base(request.Header, options, null, null, false,
-                      request.LevelsToExpand ?? int.MaxValue, timeProvider)
+                TimeProvider? timeProvider = null) : base(request.Header, options, null, null, false,
+                      request.LevelsToExpand ?? int.MaxValue, request.NoSubtypes, timeProvider)
             {
                 _request = request;
                 _configuration = configuration;
@@ -78,16 +115,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public override void Reset()
             {
-                Push(context => BeginAsync(context));
-                // First resolve the root folder and then browse - the reset is called again after begin
                 base.Reset();
+
+                _nodeIndex = -1;
+                _expanded.Clear();
+
+                Push(context => BeginAsync(context));
+            }
+
+            /// <inheritdoc/>
+            protected override void Restart()
+            {
+                // We handle our own
             }
 
             /// <inheritdoc/>
             protected override IEnumerable<ServiceResponse<PublishedNodesEntryModel>> HandleError(
                 ServiceCallContext context, ServiceResultModel errorInfo)
             {
-                _resolved[_nodeIndex].ErrorInfo.Add(errorInfo);
+                _expanded[_nodeIndex].ErrorInfos.Add(errorInfo);
                 return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
             }
 
@@ -96,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ServiceCallContext context, IReadOnlyList<ReferenceDescription> matching)
             {
                 // Add items
-                _resolved[_nodeIndex].Objects.AddRange(matching);
+                _expanded[_nodeIndex].Objects.AddRange(matching.Select(r => new ExpandedObject(r)));
                 return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
             }
 
@@ -115,48 +161,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="context"></param>
             /// <returns></returns>
             /// <exception cref="NotImplementedException"></exception>
-            private async Task<IEnumerable<ServiceResponse<PublishedNodesEntryModel>>> EndAsync(
+            private async ValueTask<IEnumerable<ServiceResponse<PublishedNodesEntryModel>>> EndAsync(
                 ServiceCallContext context)
             {
-                var remaining = _resolved.Where(r => !r.EntryAlreadyReturned).ToList();
                 var results = new List<ServiceResponse<PublishedNodesEntryModel>>();
-                if (remaining.Count > 0)
+                var goodNodes = _expanded
+                    .Where(e => e.ErrorInfos.Count == 0)
+                    .SelectMany(r => r.Remaining)
+                    .ToList();
+                if (goodNodes.Count > 0)
                 {
-                    var goodEntry = _request.Entry with
+                    var entry = new ServiceResponse<PublishedNodesEntryModel>
                     {
-                        OpcNodes = remaining
-                            .Where(r => r.ErrorInfo.Count == 0)
-                            .Where(r => r.NodeClass == (uint)Opc.Ua.NodeClass.Variable)
-                            .Select(r => r.opcNode).ToList()
-                    };
-                    if (goodEntry.OpcNodes.Count > 1)
-                    {
-                        if (_configuration != null)
+                        Result = _request.Entry with
                         {
-                            await _configuration.CreateOrUpdateDataSetWriterEntryAsync(goodEntry,
-                                context.Ct).ConfigureAwait(false);
+                            OpcNodes = goodNodes
                         }
-
+                    };
+                    await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
+                    if (!_request.DiscardErrors || entry.ErrorInfo == null)
+                    {
                         // Add good entry
-                        results.Add(new ServiceResponse<PublishedNodesEntryModel>
-                        {
-                            Result = goodEntry
-                        });
+                        results.Add(entry);
                     }
-                    foreach (var entry in remaining.Where(r => r.ErrorInfo.Count > 0))
+                }
+                if (!_request.DiscardErrors)
+                {
+                    var badNodes = _expanded
+                        .Where(e => e.ErrorInfos.Count > 0)
+                        .SelectMany(e => e.ErrorInfos
+                            .Select(error => (error, e.Remaining.ToList())))
+                        .GroupBy(e => e.error)
+                        .SelectMany(r => r.Select(r => r))
+                        .ToList();
+                    foreach (var entry in badNodes)
                     {
                         // Return bad entries
                         results.Add(new ServiceResponse<PublishedNodesEntryModel>
                         {
-                            ErrorInfo = entry.ErrorInfo.FirstOrDefault(), // TODO
+                            ErrorInfo = entry.error,
                             Result = _request.Entry with
                             {
-                                OpcNodes = new List<OpcNodeModel> { entry.opcNode }
+                                OpcNodes = entry.Item2
                             }
                         });
                     }
                 }
-                _resolved.Clear();
+                _expanded.Clear();
                 return results;
             }
 
@@ -168,11 +219,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private async ValueTask<IEnumerable<ServiceResponse<PublishedNodesEntryModel>>> CompleteAsync(
                 ServiceCallContext context)
             {
-                if (_resolved[_nodeIndex].Objects.Count == 0)
+                Debug.Assert(_nodeIndex < _expanded.Count);
+                if (_expanded[_nodeIndex].Objects.Count == 0)
                 {
-                    if (_resolved[_nodeIndex].ErrorInfo.Count == 0)
+                    if (_expanded[_nodeIndex].ErrorInfos.Count == 0)
                     {
-                        _resolved[_nodeIndex].ErrorInfo.Add(new ServiceResultModel
+                        _expanded[_nodeIndex].ErrorInfos.Add(new ServiceResultModel
                         {
                             ErrorMessage = "No objects resolved.",
                             StatusCode = StatusCodes.BadNotFound
@@ -186,63 +238,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
                 }
-                // Now resolve all variables under the object
+
+                // Now resolve all variables under the objects and create new entries
                 var entries = new List<ServiceResponse<PublishedNodesEntryModel>>();
-                foreach (var obj in _resolved[_nodeIndex].Objects)
+                foreach (var obj in _expanded[_nodeIndex].Objects)
                 {
                     var results = await context.Session.FindAsync(
                         _request.Header.ToRequestHeader(TimeProvider),
-                        obj.NodeId.ToNodeId(context.Session.MessageContext.NamespaceUris)
+                        obj.ObjectToExpand.NodeId
+                            .ToNodeId(context.Session.MessageContext.NamespaceUris)
                             .YieldReturn(),
-                        ReferenceTypeIds.HasComponent, ct: context.Ct).ConfigureAwait(false);
+                        ReferenceTypeIds.HasComponent, true,
+                        nodeClassMask: (uint)Opc.Ua.NodeClass.Variable, // Only return variables
+                        ct: context.Ct).ConfigureAwait(false);
 
                     if (results.Item2 != null)
                     {
-                        _resolved[_nodeIndex].ErrorInfo.Add(results.Item2);
+                        _expanded[_nodeIndex].ErrorInfos.Add(results.Item2);
+                        continue;
                     }
-                    else
+
+                    var objId = _request.Header.AsString(obj.ObjectToExpand.NodeId,
+                        context.Session.MessageContext, Options);
+                    foreach (var result in results.Item1)
                     {
-                        var nodes = new List<OpcNodeModel>();
-                        var index = 0;
-                        foreach (var result in results.Item1)
+                        if (result.ErrorInfo != null)
                         {
-                            if (result.ErrorInfo != null)
+                            _expanded[_nodeIndex].ErrorInfos.Add(result.ErrorInfo);
+                            continue;
+                        }
+                        if (NodeId.IsNull(result.Node) ||
+                            result.NodeClass != Opc.Ua.NodeClass.Variable)
+                        {
+                            // TODO: Should we add an error here also?
+                            continue;
+                        }
+                        var node = _expanded[_nodeIndex].NodeToExpand;
+                        var name = _request.Header.AsString(result.Name,
+                            context.Session.MessageContext, Options);
+                        obj.Nodes.Add(node with
+                        {
+                            Id = _request.Header.AsString(result.Node,
+                                context.Session.MessageContext, Options),
+                            AttributeId = null,
+                            DataSetFieldId = objId + "/" + name + "/" + obj.Nodes.Count
+                        });
+                    }
+
+                    if (_expanded[_nodeIndex].ErrorInfos.Count == 0 && obj.Nodes.Count > 0
+                        && !_request.CreateSingleWriter)
+                    {
+                        // Create a new writer entry for the object
+                        var entry = new ServiceResponse<PublishedNodesEntryModel>
+                        {
+                            Result = _request.Entry with
                             {
-                                _resolved[_nodeIndex].ErrorInfo.Add(result.ErrorInfo);
-                                continue; // Stop
+                                DataSetName = objId,
+                                DataSetWriterId = CreateSingleWriterId(objId),
+                                OpcNodes = obj.Nodes.ToList()
                             }
-                            if (NodeId.IsNull(result.Node) ||
-                                result.NodeClass != Opc.Ua.NodeClass.Variable)
-                            {
-                                // Not a variable
-                                continue;
-                            }
-                            var node = _resolved[_nodeIndex].opcNode;
-                            nodes.Add(node with
-                            {
-                                Id = _request.Header.AsString(result.Node,
-                                    context.Session.MessageContext, Options),
-                                DataSetFieldId = node.DataSetFieldId + "/" + index++
-                            });
+                        };
+                        await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
+
+                        if (!_request.DiscardErrors || entry.ErrorInfo == null)
+                        {
+                            // Add good entry to return _now_
+                            entries.Add(entry);
+                            obj.Nodes.Clear();
+                            obj.EntriesAlreadyReturned = true;
                         }
 
-                        if (_resolved[_nodeIndex].ErrorInfo.Count == 0)
+                        string CreateSingleWriterId(string objId)
                         {
-                            var entry = new ServiceResponse<PublishedNodesEntryModel>
+                            var sb = new StringBuilder();
+                            if (_request.Entry.DataSetWriterId != null)
                             {
-                                Result = _request.Entry with
-                                {
-                                    OpcNodes = nodes
-                                }
-                            };
-                            entries.Add(entry);
-                            if (_configuration != null)
-                            {
-                                // Update configuration
-                                await _configuration.CreateOrUpdateDataSetWriterEntryAsync(entry.Result,
-                                    context.Ct).ConfigureAwait(false);
+                                sb = sb
+                                    .Append(_request.Entry.DataSetWriterId)
+                                    .Append('|');
                             }
-                            _resolved[_nodeIndex].EntryAlreadyReturned = true;
+                            if (_expanded[_nodeIndex].NodeToExpand.DataSetFieldId != null)
+                            {
+                                sb = sb
+                                    .Append(_expanded[_nodeIndex].NodeToExpand.DataSetFieldId)
+                                    .Append('|');
+                            }
+                            return sb.Append(objId).ToString();
                         }
                     }
                 }
@@ -262,27 +343,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private async ValueTask<IEnumerable<ServiceResponse<PublishedNodesEntryModel>>> BeginAsync(
                 ServiceCallContext context)
             {
-                if (_request.Entry.OpcNodes != null)
+                if (_request.Entry.OpcNodes?.Count > 0)
                 {
+                    // TODO: Could be done in one request for better efficiency
                     foreach (var node in _request.Entry.OpcNodes)
                     {
                         var nodeId = await context.Session.ResolveNodeIdAsync(_request.Header,
                             node.Id, node.BrowsePath, nameof(node.BrowsePath), TimeProvider,
                             context.Ct).ConfigureAwait(false);
-                        _resolved.Add(new Node(node, nodeId));
+                        _expanded.Add(new ExpandedNode(node, nodeId));
                     }
+
                     // Resolve node classes
-                    var results = await context.Session.ReadAttributeAsync<uint>(
+                    var results = await context.Session.ReadAttributeAsync<int>(
                         _request.Header.ToRequestHeader(TimeProvider),
-                        _resolved.Select(r => r.nodeId ?? NodeId.Null),
+                        _expanded.Select(r => r.NodeId ?? NodeId.Null),
                         (uint)NodeAttribute.NodeClass, context.Ct).ConfigureAwait(false);
-                    foreach (var result in results.Zip(_resolved))
+                    foreach (var result in results.Zip(_expanded))
                     {
                         if (result.First.Item2 != null)
                         {
-                            result.Second.ErrorInfo.Add(result.First.Item2);
+                            result.Second.ErrorInfos.Add(result.First.Item2);
                         }
-                        result.Second.NodeClass = result.First.Item1;
+                        result.Second.NodeClass = (uint)result.First.Item1;
                     }
                     if (!TryMoveToNextNode())
                     {
@@ -299,38 +382,109 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             private bool TryMoveToNextNode()
             {
-                // Now browse the objects
-                for (; _nodeIndex < _resolved.Count; _nodeIndex++)
+                _nodeIndex++;
+                for (; _nodeIndex < _expanded.Count; _nodeIndex++)
                 {
-                    if (_resolved[_nodeIndex].NodeClass == (uint)Opc.Ua.NodeClass.Object)
+                    switch (_expanded[_nodeIndex].NodeClass)
                     {
-                        Restart(_request.LevelsToExpand, _resolved[_nodeIndex].nodeId!);
-                        return true;
-                    }
-                    else if (_resolved[_nodeIndex].NodeClass == (uint)Opc.Ua.NodeClass.ObjectType)
-                    {
-                        Restart(_request.LevelsToExpand, ObjectIds.ObjectsFolder,
-                            _resolved[_nodeIndex].nodeId); // Find all objects of the type
-                        return true;
-                    }
-                    else
-                    {
-                        continue;
+                        case (uint)Opc.Ua.NodeClass.Object:
+                            // Resolve all objects under this object
+                            Debug.Assert(!NodeId.IsNull(_expanded[_nodeIndex].NodeId));
+                            if (!_request.ExcludeRootObject)
+                            {
+                                _expanded[_nodeIndex].Objects.Add(new ExpandedObject(
+                                    new ReferenceDescription
+                                    {
+                                        NodeClass = Opc.Ua.NodeClass.Object,
+                                        NodeId = _expanded[_nodeIndex].NodeId,
+                                        BrowseName = QualifiedName.Null,
+                                        DisplayName = LocalizedText.Null,
+                                        TypeDefinition = NodeId.Null // TODO: Could retrieve type
+                                    }));
+                            }
+                            Restart(_request.LevelsToExpand, _expanded[_nodeIndex].NodeId!);
+                            return true;
+                        case (uint)Opc.Ua.NodeClass.ObjectType:
+                            // Resolve all objects of this type
+                            Debug.Assert(!NodeId.IsNull(_expanded[_nodeIndex].NodeId));
+                            Restart(_request.LevelsToExpand, ObjectIds.ObjectsFolder,
+                                _expanded[_nodeIndex].NodeId); // Find all objects of the type
+                            return true;
+                        case (uint)Opc.Ua.NodeClass.Variable:
+                            // Done - already a variable - stays in the original entry
+                            break;
+                        default:
+                            _expanded[_nodeIndex].ErrorInfos.Add(new ServiceResultModel
+                            {
+                                ErrorMessage =
+                                    $"Node class {_expanded[_nodeIndex].NodeClass} not supported.",
+                                StatusCode = StatusCodes.BadNotSupported
+                            });
+                            break;
                     }
                 }
                 return false;
             }
 
-            private record class Node(OpcNodeModel opcNode, NodeId? nodeId)
+            /// <summary>
+            /// Save entry if update is enabled
+            /// </summary>
+            /// <param name="entry"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async ValueTask SaveEntryAsync(ServiceResponse<PublishedNodesEntryModel> entry,
+                CancellationToken ct)
             {
-                public uint NodeClass { get; set; }
-                public List<ReferenceDescription> Objects { get; } = new ();
-                public List<ServiceResultModel> ErrorInfo { get; } = new ();
-                public bool EntryAlreadyReturned { get; internal set; }
+                if (_configuration == null)
+                {
+                    return;
+                }
+                Debug.Assert(entry.Result != null);
+                Debug.Assert(entry.ErrorInfo == null);
+                try
+                {
+                    await _configuration.CreateOrUpdateDataSetWriterEntryAsync(entry.Result,
+                        ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    entry.ErrorInfo = ex.ToServiceResultModel();
+                }
             }
 
-            private int _nodeIndex;
-            private readonly List<Node> _resolved = new();
+            private record class ExpandedNode(OpcNodeModel NodeToExpand, NodeId? NodeId)
+            {
+                public uint NodeClass { get; internal set; }
+                public List<ExpandedObject> Objects { get; } = new();
+                public List<ServiceResultModel> ErrorInfos { get; } = new();
+                public IEnumerable<OpcNodeModel> Remaining
+                {
+                    get
+                    {
+                        switch (NodeClass)
+                        {
+                            case (uint)Opc.Ua.NodeClass.Variable:
+                                return new[] { NodeToExpand };
+                            case (uint)Opc.Ua.NodeClass.Object:
+                            case (uint)Opc.Ua.NodeClass.ObjectType:
+                                return Objects
+                                     .Where(o => !o.EntriesAlreadyReturned)
+                                     .SelectMany(o => o.Nodes);
+                            default:
+                                return Enumerable.Empty<OpcNodeModel>();
+                        }
+                    }
+                }
+            }
+
+            private record class ExpandedObject(ReferenceDescription ObjectToExpand)
+            {
+                public List<OpcNodeModel> Nodes { get; } = new();
+                public bool EntriesAlreadyReturned { get; internal set; }
+            }
+
+            private int _nodeIndex = -1;
+            private readonly List<ExpandedNode> _expanded = new();
             private readonly PublishedNodeExpansionRequestModel _request;
             private readonly IPublisherConfiguration? _configuration;
         }

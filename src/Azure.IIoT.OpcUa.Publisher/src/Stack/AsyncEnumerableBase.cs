@@ -44,10 +44,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="context"></param>
         /// <returns></returns>
         protected abstract ValueTask<TResult> RunAsync(ServiceCallContext context);
-
-        /// <summary>
-        /// Complete last operation
-        /// </summary>
-        public abstract void Complete();
     }
 }

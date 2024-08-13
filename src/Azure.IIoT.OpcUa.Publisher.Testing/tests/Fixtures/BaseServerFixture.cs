@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         _serverHost, pkiPath, sw.Elapsed);
 
                     // Clean up all created certificates
-                    if (!string.IsNullOrEmpty(pkiPath))
+                    if (!string.IsNullOrEmpty(pkiPath) && Directory.Exists(pkiPath))
                     {
                         Try.Op(() => Directory.Delete(pkiPath, true));
                     }

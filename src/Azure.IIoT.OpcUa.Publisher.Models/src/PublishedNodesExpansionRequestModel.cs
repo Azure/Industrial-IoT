@@ -33,14 +33,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public int? LevelsToExpand { get; init; }
 
         /// <summary>
-        /// Do not consider subtypes of an object type
-        /// when expanding a node object
-        /// </summary>
-        [DataMember(Name = "noSubtypes", Order = 3,
-            EmitDefaultValue = false)]
-        public bool NoSubtypes { get; init; }
-
-        /// <summary>
         /// By default the api will create a new distinct
         /// writer per expanded object. Objects that cannot
         /// be expanded are part of the originally provided
@@ -49,14 +41,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// If true, all variables of all expanded nodes are
         /// added to the originally provided entry.
         /// </summary>
-        [DataMember(Name = "singleWriter", Order = 4,
+        [DataMember(Name = "createSingleWriter", Order = 2,
             EmitDefaultValue = false)]
-        public bool SingleWriter { get; init; }
+        public bool CreateSingleWriter { get; init; }
+
+        /// <summary>
+        /// Do not consider subtypes of an object type
+        /// when expanding a node object
+        /// </summary>
+        [DataMember(Name = "noSubtypes", Order = 3,
+            EmitDefaultValue = false)]
+        public bool NoSubtypes { get; init; }
+
+        /// <summary>
+        /// If the node is an object do not include it
+        /// but only the objects underneath it.
+        /// </summary>
+        [DataMember(Name = "excludeRootObject", Order = 4,
+            EmitDefaultValue = false)]
+        public bool ExcludeRootObject { get; init; }
+
+        /// <summary>
+        /// Errors are silently discarded and only
+        /// successfully expanded nodes are returned.
+        /// </summary>
+        [DataMember(Name = "discardErrors", Order = 5,
+            EmitDefaultValue = false)]
+        public bool DiscardErrors { get; init; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header", Order = 5,
+        [DataMember(Name = "header", Order = 6,
             EmitDefaultValue = false)]
         public RequestHeaderModel? Header { get; init; }
     }

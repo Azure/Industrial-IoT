@@ -650,9 +650,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
                         cts.CancelAfter(serviceTimeout);
                         results = await operation.ExecuteAsync(context).ConfigureAwait(false);
-
-                        // Success
-                        operation.Complete();
                     }
                     else
                     {

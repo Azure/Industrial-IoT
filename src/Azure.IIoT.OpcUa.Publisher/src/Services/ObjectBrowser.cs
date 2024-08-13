@@ -40,15 +40,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="objectType"></param>
         /// <param name="stopWhenFound"></param>
         /// <param name="depth"></param>
+        /// <param name="noSubtypes"></param>
         /// <param name="timeProvider"></param>
         protected ObjectBrowser(RequestHeaderModel? header, IOptions<PublisherOptions> options,
             NodeId? rootFolder = null, NodeId? objectType = null, bool stopWhenFound = false,
-            int depth = 0, TimeProvider? timeProvider = null)
+            int depth = 0, bool noSubtypes = false, TimeProvider? timeProvider = null)
         {
             Header = header;
             _rootFolder = rootFolder ?? ObjectIds.ObjectsFolder;
             _objectType = objectType;
             _stopWhenFound = stopWhenFound;
+            _noSubtypes = noSubtypes;
             _depth = depth < 1 ? kDefaultDepth : depth;
             TimeProvider = timeProvider ?? TimeProvider.System;
             Options = options;
@@ -64,7 +66,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public override void Reset()
         {
             base.Reset();
+            Restart();
+        }
 
+        protected virtual void Restart()
+        {
             // Initialize
             _browseStack.Push(_rootFolder);
             _currentDepth = _depth;
@@ -79,7 +85,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="objectType"></param>
         protected void Restart(int? depth, NodeId rootFolder, NodeId? objectType = null)
         {
-            base.Reset();
             _rootFolder = rootFolder;
             _objectType = objectType;
             _currentDepth = depth ?? _depth;
@@ -87,6 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 _currentDepth = _depth;
             }
+            _browseStack.Push(_rootFolder);
             Push(context => BrowseAsync(context));
         }
 
@@ -258,8 +264,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var matching = refs
                 .Where(reference => reference.NodeClass == Opc.Ua.NodeClass.Object)
                 .Where(reference => _objectType == null ||
-                    reference.TypeDefinition == _objectType ||
-                        context.Session.TypeTree.IsTypeOf(reference.TypeDefinition, _objectType))
+                    reference.TypeDefinition == _objectType || (!_noSubtypes
+                        && context.Session.TypeTree.IsTypeOf(reference.TypeDefinition, _objectType)))
                 .ToList();
 
             if (_stopWhenFound && matching.Count != 0)
@@ -276,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             else
             {
-                // Browse all deeper
+                // Browse deeper in if possible
                 foreach (var reference in refs)
                 {
                     PushNode(reference.NodeId);
@@ -299,6 +305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Stack<NodeId> _browseStack = new();
         private readonly HashSet<NodeId> _visited = new();
         private readonly bool _stopWhenFound;
+        private readonly bool _noSubtypes;
         private readonly int _depth;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }

@@ -36,6 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .SingleInstance();
             builder.RegisterType<PublisherConfigurationService>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ConfigurationServices>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherDiagnosticCollector>()
