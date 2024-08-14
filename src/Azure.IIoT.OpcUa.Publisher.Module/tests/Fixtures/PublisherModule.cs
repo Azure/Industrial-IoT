@@ -375,6 +375,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .AsImplementedInterfaces();
             builder.RegisterType<FileSystemServicesRestClient>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<ConfigurationServicesRestClient>()
+                .AsImplementedInterfaces();
 
             switch (serializerType)
             {

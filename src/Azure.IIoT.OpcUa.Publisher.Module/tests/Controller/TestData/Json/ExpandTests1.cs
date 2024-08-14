@@ -3,35 +3,42 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.Json
 {
+    using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Options;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
 
     [Collection(ReadCollection.Name)]
-    public class ExpandTests1
+    public sealed class ExpandTests1 : IClassFixture<PublisherModuleFixture>, IDisposable
     {
-        public ExpandTests1(TestDataServer server, ITestOutputHelper output)
+        public ExpandTests1(TestDataServer server, PublisherModuleFixture module, ITestOutputHelper output)
         {
             _server = server;
-            _output = output;
+            _client = module.CreateRestClientContainer(output, TestSerializerType.Json);
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
         }
 
         private ConfigurationTests1 GetTests()
         {
-            return new ConfigurationTests1(new ConfigurationServices(null!, _server.Client,
-                new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions(),
-                _output.BuildLoggerFor<ConfigurationServices>(Logging.Level)),
+            return new ConfigurationTests1(_client.Resolve<IConfigurationServices>(),
                 _server.GetConnection());
         }
 
         private readonly TestDataServer _server;
-        private readonly ITestOutputHelper _output;
+        private readonly IContainer _client;
 
         [Fact]
         public Task ExpandTest1Async()

@@ -469,12 +469,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// File system object browser browses from root all objects of file directory type.
         /// The browse operation stops at the first found and returns the result.
         /// </summary>
-        private sealed class FileSystemBrowser : ObjectBrowser<ServiceResponse<FileSystemObjectModel>>
+        private sealed class FileSystemBrowser : AsyncEnumerableBrowser<ServiceResponse<FileSystemObjectModel>>
         {
             /// <inheritdoc/>
             public FileSystemBrowser(RequestHeaderModel? header, IOptions<PublisherOptions> options,
-                TimeProvider timeProvider) : base(header, options, ObjectIds.ObjectsFolder,
-                    ObjectTypeIds.FileDirectoryType, true, timeProvider: timeProvider)
+                TimeProvider timeProvider) : base(header, options, timeProvider,
+                    ObjectIds.ObjectsFolder, ObjectTypeIds.FileDirectoryType, stopWhenFound: true)
             {
             }
 
@@ -490,7 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             /// <inheritdoc/>
             protected override IEnumerable<ServiceResponse<FileSystemObjectModel>> HandleMatching(
-                ServiceCallContext context, IReadOnlyList<ReferenceDescription> matching)
+                ServiceCallContext context, IReadOnlyList<BrowseFrame> matching)
             {
                 foreach (var match in matching)
                 {
@@ -500,7 +500,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             NodeId = Header.AsString(match.NodeId,
                                 context.Session.MessageContext, Options),
-                            Name = match.BrowseName.Name
+                            Name = match.BrowseName?.Name
                         }
                     };
                 }

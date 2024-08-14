@@ -31,15 +31,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Xunit.Abstractions;
 
     /// <summary>
-    /// Tests the PublisherConfigService class
+    /// Tests the publisher configuration services
     /// </summary>
-    public class PublisherConfigServicesTests : TempFileProviderBase
+    public class PublishedNodesJsonServicesTests : TempFileProviderBase
     {
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
         /// <param name="output"></param>
-        public PublisherConfigServicesTests(ITestOutputHelper output)
+        public PublishedNodesJsonServicesTests(ITestOutputHelper output)
         {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output, Logging.Config);
@@ -87,12 +87,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private PublisherConfigurationService InitPublisherConfigService()
+        private PublishedNodesJsonServices InitPublisherConfigService()
         {
-            var configService = new PublisherConfigurationService(
+            var configService = new PublishedNodesJsonServices(
                 _publishedNodesJobConverter,
                 _publisher,
-                _loggerFactory.CreateLogger<PublisherConfigurationService>(),
+                _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
@@ -1492,7 +1492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             // Helper method.
             async Task AssertGetConfiguredNodesOnEndpointThrows(
-                PublisherConfigurationService publisherConfigurationService,
+                PublishedNodesJsonServices publisherConfigurationService,
                 PublishedNodesEntryModel endpoint
             )
             {

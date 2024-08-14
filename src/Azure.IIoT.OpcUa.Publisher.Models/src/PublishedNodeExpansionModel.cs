@@ -16,14 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// the data set field id configured as data set class id.
     /// </summary>
     [DataContract]
-    public sealed record class PublishedNodeExpansionRequestModel
+    public sealed record class PublishedNodeExpansionModel
     {
-        /// <summary>
-        /// The entry to expand
-        /// </summary>
-        [DataMember(Name = "entry", Order = 0)]
-        public required PublishedNodesEntryModel Entry { get; init; }
-
         /// <summary>
         /// Optional request header to use for all operations
         /// against the server.
@@ -46,6 +40,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool CreateSingleWriter { get; init; }
 
         /// <summary>
+        /// Max number of levels to expand the found objects
+        /// or variables to. 0 expands all levels.
+        /// </summary>
+        [DataMember(Name = "maxLevelsToExpand", Order = 3,
+            EmitDefaultValue = false)]
+        public uint MaxLevelsToExpand { get; init; }
+
+        /// <summary>
         /// Do not consider subtypes of an object type
         /// when expanding a node object
         /// </summary>
@@ -62,14 +64,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool ExcludeRootObject { get; init; }
 
         /// <summary>
-        /// If the depth is not limited and the node is an
-        /// object type set this flag to true to find only
-        /// the first object from the object root.
-        /// is expanded.
+        /// Max browse depth for object search operation.
+        /// To only expand an object to its variables set
+        /// this value to 0. The depth of expansion can be
+        /// controlled via the <see cref="MaxLevelsToExpand"/>"
+        /// property. If the root object is excluded a value
+        /// of 0 is equivalent to a value of 1 to get the
+        /// first level of objects contained in the object
+        /// but not the object itself, e.g. a folder object.
         /// </summary>
-        [DataMember(Name = "stopAtFirstFoundObject", Order = 7,
+        [DataMember(Name = "maxDepth", Order = 6,
             EmitDefaultValue = false)]
-        public bool StopAtFirstFoundObject { get; init; }
+        public uint? MaxDepth { get; init; }
+
+        /// <summary>
+        /// If the depth is not limited and the node is a
+        /// type definition id set this flag to true to find
+        /// only the first instance of this type from the
+        /// object root.
+        /// </summary>
+        [DataMember(Name = "stopAtFirstFoundInstance", Order = 7,
+            EmitDefaultValue = false)]
+        public bool StopAtFirstFoundInstance { get; init; }
 
         /// <summary>
         /// Errors are silently discarded and only

@@ -38,19 +38,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
                     ExcludeRootObject = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(24, results.Count);
+            Assert.Equal(12, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -68,28 +66,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new OpcNodeModel
                 {
                     Id = "http://test.org/UA/Data/#i=10157",
-                    BrowsePath = new[] {
+                    BrowsePath = new[]
+                    {
                         "http://test.org/UA/Data/#Static"
                     }
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
                     ExcludeRootObject = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     NoSubtypes = false,
                     CreateSingleWriter = true
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             var result = Assert.Single(results);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(258, result.Result.OpcNodes.Count);
+            Assert.Equal(300, result.Result.OpcNodes.Count);
+            Assert.All(result.Result.OpcNodes, result =>
+            {
+                Assert.NotNull(result.DataSetFieldId);
+                Assert.NotNull(result.Id);
+            });
         }
 
         public async Task ExpandTest3Async(CancellationToken ct = default)
@@ -102,19 +104,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = "http://test.org/UA/Data/#i=10157"
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
                     ExcludeRootObject = true,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(110, results.Count);
+            Assert.Equal(25, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -134,23 +134,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = "http://test.org/UA/Data/#i=10157"
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     ExcludeRootObject = true,
                     NoSubtypes = false,
                     CreateSingleWriter = true
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             var result = Assert.Single(results);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(1100, result.Result.OpcNodes.Count);
+            Assert.Equal(623, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandTest5Async(CancellationToken ct = default)
@@ -163,19 +161,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     ExcludeRootObject = true,
                     NoSubtypes = false,
                     CreateSingleWriter = false
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(163, results.Count);
+            Assert.Equal(73, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -195,19 +191,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(164, results.Count);
+            Assert.Equal(74, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -227,23 +221,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = true
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             var result = Assert.Single(results);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(1172, result.Result.OpcNodes.Count);
+            Assert.Equal(920, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandTest8Async(CancellationToken ct = default)
@@ -256,19 +248,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectTypeIds.BaseObjectType.ToString()
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(324, results.Count);
+            Assert.Equal(77, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -299,19 +289,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DataSetFieldId = "data"
                 }
             };
-            var results = await _service.ExpandAsync(
-                new PublishedNodeExpansionRequestModel
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
                 {
-                    Entry = entry,
                     DiscardErrors = false,
-                    StopAtFirstFoundObject = false,
+                    StopAtFirstFoundInstance = false,
                     ExcludeRootObject = false,
                     NoSubtypes = false,
                     CreateSingleWriter = false
-                },
-                false, ct).ToListAsync(ct).ConfigureAwait(false);
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(324 + 164 + 110, results.Count);
+            Assert.Equal(77 + 74 + 25, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -319,6 +307,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.NotNull(r.Result.OpcNodes);
                 Assert.True(r.Result.OpcNodes.Count > 0);
             });
+        }
+
+        public async Task ExpandTest10Async(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Opc.Ua.ObjectIds.Server.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    StopAtFirstFoundInstance = false,
+                    ExcludeRootObject = false,
+                    MaxDepth = 1,
+                    NoSubtypes = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(8, results.Count);
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
+        public async Task ExpandTest11Async(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Opc.Ua.ObjectIds.Server.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    StopAtFirstFoundInstance = false,
+                    ExcludeRootObject = false,
+                    MaxDepth = 0,
+                    MaxLevelsToExpand = 1,
+                    NoSubtypes = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            var result = Assert.Single(results);
+            Assert.Null(result.ErrorInfo);
+            Assert.NotNull(result.Result);
+            Assert.NotNull(result.Result.OpcNodes);
+            Assert.Equal(7, result.Result.OpcNodes.Count);
         }
 
         private readonly ConnectionModel _connection;
