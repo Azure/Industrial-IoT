@@ -811,7 +811,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        await foreach (var (trigger, context) in _channel.Reader.ReadAllAsync(ct))
+                        await foreach (var (trigger, context) in
+                            _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                         {
                             _logger.LogDebug("{Client}: Processing event {Event} in State {State}...",
                                 this, trigger, currentSessionState);

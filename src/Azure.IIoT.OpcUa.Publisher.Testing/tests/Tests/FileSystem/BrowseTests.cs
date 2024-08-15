@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
 
             var drives = DriveInfo.GetDrives().Select(d => d.Name).ToHashSet();
-            await foreach (var fs in services.GetFileSystemsAsync(_connection, ct))
+            await foreach (var fs in services.GetFileSystemsAsync(_connection, ct).ConfigureAwait(false))
             {
                 Assert.Null(fs.ErrorInfo);
                 Assert.NotNull(fs.Result);

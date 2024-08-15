@@ -121,7 +121,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
+#pragma warning disable CA1822 // Mark members as static
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+#pragma warning restore CA1822 // Mark members as static
         {
             app.UseRouting();
 

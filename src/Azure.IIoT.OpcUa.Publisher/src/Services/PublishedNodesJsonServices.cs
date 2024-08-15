@@ -980,7 +980,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _publishedNodesProvider.Changed += OnChanged;
 
                 var retryCount = 0;
-                await foreach (var clear in _fileChanges.Reader.ReadAllAsync())
+                await foreach (var clear in _fileChanges.Reader.ReadAllAsync().ConfigureAwait(false))
                 {
                     await _file.WaitAsync().ConfigureAwait(false);
                     try

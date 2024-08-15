@@ -247,9 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
             while (searchContext.Count != 0)
             {
-                var results = session.BrowseAsync(requestHeader, null,
-                    new BrowseDescriptionCollection(searchContext.Keys), ct).ConfigureAwait(false);
-                await foreach (var result in results)
+                await foreach (var result in session.BrowseAsync(requestHeader, null,
+                    new BrowseDescriptionCollection(searchContext.Keys), ct).ConfigureAwait(false))
                 {
                     if (result.Description == null)
                     {
@@ -536,9 +535,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 foreach (var batch in objectsToBrowse.Batch(limits.GetMaxNodesPerBrowse()))
                 {
                     // Browse folders with objects and variables in it
-                    var browseResults = session.BrowseAsync(requestHeader, null,
-                        new BrowseDescriptionCollection(batch), ct).ConfigureAwait(false);
-                    await foreach (var (description, references, errorInfo) in browseResults)
+                    await foreach (var (description, references, errorInfo) in session.BrowseAsync(
+                        requestHeader, null, new BrowseDescriptionCollection(batch),
+                        ct).ConfigureAwait(false))
                     {
                         var obj = (BaseObjectState?)description?.Handle;
                         if (obj == null || references == null)
@@ -700,8 +699,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     ResultMask = (uint)BrowseResultMask.All
                 }
             };
-            var browseresults = session.BrowseAsync(requestHeader, null, nodeToBrowse, ct);
-            await foreach (var result in browseresults.ConfigureAwait(false))
+            await foreach (var result in session.BrowseAsync(requestHeader, null,
+                nodeToBrowse, ct).ConfigureAwait(false))
             {
                 if (result.ErrorInfo != null)
                 {
