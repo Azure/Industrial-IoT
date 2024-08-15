@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -44,5 +45,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="context"></param>
         /// <returns></returns>
         protected abstract ValueTask<TResult> RunAsync(ServiceCallContext context);
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public virtual void Dispose()
+        {
+        }
     }
 }

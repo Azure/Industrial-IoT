@@ -34,69 +34,141 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         private readonly ITestOutputHelper _output;
 
         [Fact]
-        public Task ExpandTest1Async()
+        public Task ExpandObjectWithBrowsePathTest1Async()
         {
-            return GetTests().ExpandTest1Async();
+            return GetTests().ExpandObjectWithBrowsePathTest1Async();
         }
 
         [Fact]
-        public Task ExpandTest2Async()
+        public Task ExpandObjectWithBrowsePathTest2Async()
         {
-            return GetTests().ExpandTest2Async();
+            return GetTests().ExpandObjectWithBrowsePathTest2Async();
         }
 
         [Fact]
-        public Task ExpandTest3Async()
+        public Task ExpandObjectTest1Async()
         {
-            return GetTests().ExpandTest3Async();
+            return GetTests().ExpandObjectTest1Async();
         }
 
         [Fact]
-        public Task ExpandTest4Async()
+        public Task ExpandObjectTest2Async()
         {
-            return GetTests().ExpandTest4Async();
+            return GetTests().ExpandObjectTest2Async();
         }
 
         [Fact]
-        public Task ExpandTest5Async()
+        public Task ExpandServerObjectTest1Async()
         {
-            return GetTests().ExpandTest5Async();
+            return GetTests().ExpandServerObjectTest1Async();
         }
 
         [Fact]
-        public Task ExpandTest6Async()
+        public Task ExpandServerObjectTest2Async()
         {
-            return GetTests().ExpandTest6Async();
+            return GetTests().ExpandServerObjectTest2Async();
         }
 
         [Fact]
-        public Task ExpandTest7Async()
+        public Task ExpandServerObjectTest3Async()
         {
-            return GetTests().ExpandTest7Async();
+            return GetTests().ExpandServerObjectTest3Async();
         }
 
         [Fact]
-        public Task ExpandTest8Async()
+        public Task ExpandServerObjectTest4Async()
         {
-            return GetTests().ExpandTest8Async();
+            return GetTests().ExpandServerObjectTest4Async();
         }
 
         [Fact]
-        public Task ExpandTest9Async()
+        public Task ExpandServerObjectTest5Async()
         {
-            return GetTests().ExpandTest9Async();
+            return GetTests().ExpandServerObjectTest5Async();
         }
 
         [Fact]
-        public Task ExpandTest10Async()
+        public Task ExpandBaseObjectTypeTest1Async()
         {
-            return GetTests().ExpandTest10Async();
+            return GetTests().ExpandBaseObjectTypeTest1Async();
         }
 
         [Fact]
-        public Task ExpandTest11Async()
+        public Task ExpandBaseObjectsAndObjectTypesTestAsync()
         {
-            return GetTests().ExpandTest11Async();
+            return GetTests().ExpandBaseObjectsAndObjectTypesTestAsync();
+        }
+
+        [Fact]
+        public Task ExpandVariablesTest1Async()
+        {
+            return GetTests().ExpandVariablesTest1Async();
+        }
+
+        [Fact]
+        public Task ExpandVariablesAndObjectsTest1Async()
+        {
+            return GetTests().ExpandVariablesAndObjectsTest1Async();
+        }
+
+        [Fact]
+        public Task ExpandVariableTypesTest1Async()
+        {
+            return GetTests().ExpandVariableTypesTest1Async();
+        }
+
+        [Fact]
+        public Task ExpandVariableTypesTest2Async()
+        {
+            return GetTests().ExpandVariableTypesTest2Async();
+        }
+
+        [Fact]
+        public Task ExpandVariableTypesTest3Async()
+        {
+            return GetTests().ExpandVariableTypesTest3Async();
+        }
+
+        [Fact]
+        public Task ExpandObjectWithNoObjectsTest1Async()
+        {
+            return GetTests().ExpandObjectWithNoObjectsTest1Async();
+        }
+
+        [Fact]
+        public Task ExpandObjectWithNoObjectsTest2Async()
+        {
+            return GetTests().ExpandObjectWithNoObjectsTest2Async();
+        }
+
+        [Fact]
+        public Task ExpandEmptyEntryTest1Async()
+        {
+            return GetTests().ExpandEmptyEntryTest1Async();
+        }
+
+        [Fact]
+        public Task ExpandEmptyEntryTest2Async()
+        {
+            return GetTests().ExpandEmptyEntryTest2Async();
+        }
+
+        [Fact]
+        public Task ExpandBadNodeIdTest1Async()
+        {
+            return GetTests().ExpandBadNodeIdTest1Async();
+        }
+
+        [Fact]
+        public Task ExpandBadNodeIdTest2Async()
+        {
+            return GetTests().ExpandBadNodeIdTest2Async();
+        }
+
+        [Fact]
+        public Task ExpandBadNodeIdTest3Async()
+        {
+            return GetTests().ExpandBadNodeIdTest3Async();
         }
     }
 }

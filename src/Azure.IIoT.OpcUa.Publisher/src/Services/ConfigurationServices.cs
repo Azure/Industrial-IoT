@@ -96,12 +96,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new BadRequestException("Node must contain a node ID");
                 }
                 node.DataSetFieldId ??= id;
-#if DEBUG
-                if (set.Contains(node.DataSetFieldId))
-                {
-                    Debug.Fail($"{node.DataSetFieldId} already exists");
-                }
-#endif
                 set.Add(node.DataSetFieldId);
                 if (node.OpcPublishingInterval != null ||
                     node.OpcPublishingIntervalTimespan != null)
@@ -171,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 else
                 {
                     // collect matching object instances
-                    CurrentNode.AddObjects(matching);
+                    CurrentNode.AddObjectsOrVariables(matching);
                 }
                 return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
             }
@@ -193,43 +187,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ServiceCallContext context)
             {
                 var entries = new List<ServiceResponse<PublishedNodesEntryModel>>();
-                if (_currentObject != null)
+                var currentObject = _currentObject;
+                if (currentObject != null)
                 {
-                    if (_currentObject.ContainsVariables &&
-                        !_request.CreateSingleWriter && !_currentObject.OriginalNode.HasErrors)
-                    {
-                        // Create a new writer entry for the object
-                        var entry = new ServiceResponse<PublishedNodesEntryModel>
-                        {
-                            Result = _entry with
-                            {
-                                DataSetName = _currentObject.CreateDataSetName(
-                                    context.Session.MessageContext),
-                                DataSetWriterId = _currentObject.CreateWriterId(
-                                    context.Session.MessageContext),
-                                OpcNodes = _currentObject
-                                    .GetOpcNodeModels(
-                                        _currentObject.OriginalNode.NodeFromConfiguration,
-                                        context.Session.MessageContext)
-                                    .ToList()
-                            }
-                        };
-
-                        await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
-                        if (!_request.DiscardErrors || entry.ErrorInfo == null)
-                        {
-                            // Add good entry to return _now_
-                            entries.Add(entry);
-                            _currentObject.EntriesAlreadyReturned = true;
-                        }
-                    }
+                    // Process current object
+                    await ProcessAsync(currentObject, context, entries).ConfigureAwait(false);
 
                     if (TryMoveToNextObject())
                     {
-                        // Kicked off the next variable expansion
+                        // Kicked off the next expansion
                         return entries;
                     }
                     Debug.Assert(_currentObject == null);
+                }
+
+                else if (CurrentNode.Variables.ContainsVariables)
+                {
+                    // Process variables
+                    await ProcessAsync(CurrentNode.Variables, context, entries).ConfigureAwait(false);
                 }
 
                 // Completing a browse for objects
@@ -247,6 +222,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     entries.AddRange(await EndAsync(context).ConfigureAwait(false));
                 }
                 return entries;
+
+                async Task ProcessAsync(ObjectToExpand currentObject, ServiceCallContext context,
+                    List<ServiceResponse<PublishedNodesEntryModel>> entries)
+                {
+                    if (currentObject.ContainsVariables &&
+                        !_request.CreateSingleWriter && !currentObject.OriginalNode.HasErrors)
+                    {
+                        // Create a new writer entry for the object
+                        var entry = new ServiceResponse<PublishedNodesEntryModel>
+                        {
+                            Result = _entry with
+                            {
+                                DataSetName = currentObject.CreateDataSetName(
+                                    context.Session.MessageContext),
+                                DataSetWriterId = currentObject.CreateWriterId(
+                                    context.Session.MessageContext),
+                                OpcNodes = currentObject
+                                    .GetOpcNodeModels(
+                                        currentObject.OriginalNode.NodeFromConfiguration,
+                                        context.Session.MessageContext)
+                                    .ToList()
+                            }
+                        };
+
+                        await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
+                        if (!_request.DiscardErrors || entry.ErrorInfo == null)
+                        {
+                            // Add good entry to return _now_
+                            entries.Add(entry);
+                            currentObject.EntriesAlreadyReturned = true;
+                        }
+                    }
+                }
             }
 
             /// <summary>
@@ -321,7 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Where(e => e.HasErrors)
                         .SelectMany(e => e.ErrorInfos
                             .Select(error => (error, e
-                                .GetAllOpcNodeModels(context.Session.MessageContext, ids)
+                                .GetAllOpcNodeModels(context.Session.MessageContext, ids, true)
                                 .ToList())))
                         .GroupBy(e => e.error)
                         .SelectMany(r => r.Select(r => r))
@@ -356,9 +364,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         case (uint)Opc.Ua.NodeClass.Object:
                             // Resolve all objects under this object
                             Debug.Assert(!NodeId.IsNull(CurrentNode.NodeId));
-                            if (!_request.ExcludeRootObject)
+                            if (!_request.ExcludeRootIfInstanceNode)
                             {
-                                CurrentNode.AddObjects(
+                                // Add root
+                                CurrentNode.AddObjectsOrVariables(
                                     new BrowseFrame(CurrentNode.NodeId!, null, null).YieldReturn());
 
                                 if (_request.MaxDepth == 0)
@@ -389,11 +398,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Restart(ObjectIds.ObjectsFolder, maxDepth: _request.MaxDepth,
                                 typeDefinitionId: CurrentNode.NodeId,
                                 stopWhenFound: _request.StopAtFirstFoundInstance,
-                                referenceTypeId: referenceTypeId, nodeClass: instanceClass);
+                                referenceTypeId: referenceTypeId, matchClass: instanceClass);
                             return true;
                         case (uint)Opc.Ua.NodeClass.Variable:
-                            // Done - already a variable - stays in the original entry
-                            break;
+                            if (!_request.ExcludeRootIfInstanceNode)
+                            {
+                                // Add root
+                                CurrentNode.AddObjectsOrVariables(
+                                    new BrowseFrame(CurrentNode.NodeId!, null, null).YieldReturn());
+
+                                if (_request.MaxLevelsToExpand == 0)
+                                {
+                                    // Done - already a variable - stays in the original entry
+                                    break;
+                                }
+                            }
+                            // Now we expand the variable here
+                            Restart(CurrentNode.NodeId,
+                                _request.MaxLevelsToExpand == 0 ? 1 : _request.MaxLevelsToExpand,
+                                referenceTypeId: ReferenceTypeIds.Aggregates,
+                                nodeClass: Opc.Ua.NodeClass.Variable);
+                            return true;
+                        case (uint)Opc.Ua.NodeClass.Unspecified:
+                            // There should already be an error here
+                            if (CurrentNode.HasErrors)
+                            {
+                                break;
+                            }
+                            goto default;
                         default:
                             CurrentNode.AddErrorInfo(StatusCodes.BadNotSupported,
                                 $"Node class {CurrentNode.NodeClass} not supported.");
@@ -466,57 +498,106 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Node that should be expanded
             /// </summary>
-            /// <param name="NodeFromConfiguration"></param>
-            /// <param name="NodeId"></param>
-            private record class NodeToExpand(OpcNodeModel NodeFromConfiguration, NodeId? NodeId)
+            private record class NodeToExpand
             {
-                public uint NodeClass { get; internal set; }
-
                 public IEnumerable<ServiceResultModel> ErrorInfos => _errorInfos;
 
                 public bool HasErrors => _errorInfos.Count > 0;
 
                 public bool ContainsObjects => _objects.Count > 0;
 
+                public ObjectToExpand Variables { get; }
+
+                /// <summary>
+                /// Original node from configuration
+                /// </summary>
+                public OpcNodeModel NodeFromConfiguration { get; }
+
+                /// <summary>
+                /// Node id that should be expanded
+                /// </summary>
+                public NodeId? NodeId { get; }
+
+                /// <summary>
+                /// Node class of the node
+                /// </summary>
+                public uint NodeClass { get; internal set; }
+
+                /// <summary>
+                /// Create node to expand
+                /// </summary>
+                /// <param name="nodeFromConfiguration"></param>
+                /// <param name="nodeId"></param>
+                public NodeToExpand(OpcNodeModel nodeFromConfiguration, NodeId? nodeId)
+                {
+                    NodeFromConfiguration = nodeFromConfiguration;
+                    NodeId = nodeId;
+
+                    // Hold variables resolved from a variable or variable type
+                    Variables = new ObjectToExpand(
+                        new BrowseFrame(nodeId ?? NodeId.Null, "Variables", "Variables"), this);
+                }
+
                 /// <summary>
                 /// Opc node model configurations over all objects
                 /// </summary>
                 /// <param name="context"></param>
                 /// <param name="ids"></param>
+                /// <param name="error"></param>
                 /// <returns></returns>
                 public IEnumerable<OpcNodeModel> GetAllOpcNodeModels(IServiceMessageContext context,
-                    HashSet<string?>? ids = null)
+                    HashSet<string?>? ids = null, bool error = false)
                 {
                     switch (NodeClass)
                     {
+                        case (uint)Opc.Ua.NodeClass.VariableType:
                         case (uint)Opc.Ua.NodeClass.Variable:
-                            if (ids?.Contains(NodeFromConfiguration.DataSetFieldId) == true)
+                            if (Variables.EntriesAlreadyReturned)
                             {
-                                // TODO: Add error info
-                                return Enumerable.Empty<OpcNodeModel>();
+                                break;
                             }
-                            return new[] { NodeFromConfiguration };
+                            var variables = Variables.GetOpcNodeModels(NodeFromConfiguration,
+                                    context, ids, true);
+                            if ((!error && NodeClass == (uint)Opc.Ua.NodeClass.VariableType) ||
+                                ids?.Contains(NodeFromConfiguration.DataSetFieldId) == true)
+                            {
+                                // Only variables, not the root variable
+                                return variables;
+                            }
+                            return variables.Prepend(NodeFromConfiguration);
                         case (uint)Opc.Ua.NodeClass.Object:
                         case (uint)Opc.Ua.NodeClass.ObjectType:
-                        case (uint)Opc.Ua.NodeClass.VariableType:
-                            return _objects
+                            var objects = _objects
                                 .Where(o => !o.EntriesAlreadyReturned)
                                 .SelectMany(o => o.GetOpcNodeModels(
                                     NodeFromConfiguration, context, ids, true));
-                        default:
-                            return Enumerable.Empty<OpcNodeModel>();
+                            if (!error)
+                            {
+                                return objects;
+                            }
+                            return objects.Prepend(NodeFromConfiguration);
                     }
+                    return error ? new[] { NodeFromConfiguration } : Array.Empty<OpcNodeModel>();
                 }
 
                 /// <summary>
-                /// Add objects
+                /// Add objects or variables depending on the node class that is expanded
                 /// </summary>
                 /// <param name="frames"></param>
-                public void AddObjects(IEnumerable<BrowseFrame> frames)
+                public void AddObjectsOrVariables(IEnumerable<BrowseFrame> frames)
                 {
-                    _objects.AddRange(frames
-                        .Where(f => !NodeId.IsNull(f.NodeId) && _knownObjects.Add(f.NodeId))
-                        .Select(f => new ObjectToExpand(f, this)));
+                    if (NodeClass == (uint)Opc.Ua.NodeClass.VariableType ||
+                        NodeClass == (uint)Opc.Ua.NodeClass.Variable)
+                    {
+                        Variables.AddVariables(frames
+                            .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId)));
+                    }
+                    else
+                    {
+                        _objects.AddRange(frames
+                            .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId))
+                            .Select(f => new ObjectToExpand(f, this)));
+                    }
                 }
 
                 /// <summary>
@@ -564,7 +645,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 private readonly List<ServiceResultModel> _errorInfos = new();
                 private readonly List<ObjectToExpand> _objects = new();
-                private readonly HashSet<NodeId> _knownObjects = new();
+                private readonly HashSet<NodeId> _knownIds = new();
                 private int _objectIndex;
             }
 

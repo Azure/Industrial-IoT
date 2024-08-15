@@ -42,12 +42,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="nodeClass"></param>
         /// <param name="referenceTypeId"></param>
         /// <param name="includeReferenceTypeSubtypes"></param>
+        /// <param name="matchClass"></param>
         protected AsyncEnumerableBrowser(RequestHeaderModel? header,
             IOptions<PublisherOptions> options, TimeProvider? timeProvider = null,
             NodeId? root = null, NodeId? typeDefinitionId = null,
             bool includeTypeDefinitionSubtypes = true, bool stopWhenFound = false,
             uint? maxDepth = null, Opc.Ua.NodeClass nodeClass = Opc.Ua.NodeClass.Object,
-            NodeId? referenceTypeId = null, bool includeReferenceTypeSubtypes = true)
+            NodeId? referenceTypeId = null, bool includeReferenceTypeSubtypes = true,
+            Opc.Ua.NodeClass? matchClass = null)
         {
             Header = header;
             Options = options;
@@ -55,13 +57,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             _root = null!;
             _referenceTypeId = null!;
+
             Initialize(maxDepth, root, nodeClass, typeDefinitionId,
                 includeTypeDefinitionSubtypes, referenceTypeId,
-                includeReferenceTypeSubtypes, stopWhenFound);
+                includeReferenceTypeSubtypes, stopWhenFound, matchClass);
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public override void Dispose()
         {
             _activitySource.Dispose();
         }
@@ -92,15 +95,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="referenceTypeId"></param>
         /// <param name="includeReferenceTypeSubtypes"></param>
         /// <param name="nodeClass"></param>
+        /// <param name="matchClass"></param>
         protected void Restart(NodeId? root = null, uint? maxDepth = null,
             NodeId? typeDefinitionId = null, bool includeTypeDefinitionSubtypes = true,
             bool stopWhenFound = false,
             NodeId? referenceTypeId = null, bool includeReferenceTypeSubtypes = true,
-            Opc.Ua.NodeClass nodeClass = Opc.Ua.NodeClass.Object)
+            Opc.Ua.NodeClass nodeClass = Opc.Ua.NodeClass.Object,
+            Opc.Ua.NodeClass? matchClass = null)
         {
             Initialize(maxDepth, root, nodeClass, typeDefinitionId,
                 includeTypeDefinitionSubtypes, referenceTypeId,
-                includeReferenceTypeSubtypes, stopWhenFound);
+                includeReferenceTypeSubtypes, stopWhenFound, matchClass);
             Start();
         }
 
@@ -152,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 new BrowseDescription
                 {
                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
-                    NodeClassMask = (uint)_nodeClass,
+                    NodeClassMask = (uint)_nodeClass | (uint)_matchClass,
                     NodeId = frame.NodeId,
                     ReferenceTypeId = _referenceTypeId,
                     IncludeSubtypes = _includeReferenceTypeSubtypes,
@@ -241,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var matching = refs
-                .Where(reference => reference.NodeClass == _nodeClass
+                .Where(reference => reference.NodeClass == _matchClass
                     && (reference.NodeId?.ServerIndex ?? 1u) == 0)
                 .Where(reference => _typeDefinitionId == null ||
                     reference.TypeDefinition == _typeDefinitionId || (_includeTypeDefinitionSubtypes
@@ -389,12 +394,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="referenceTypeId"></param>
         /// <param name="includeReferenceTypeSubtypes"></param>
         /// <param name="stopWhenFound"></param>
+        /// <param name="matchClass"></param>
         private void Initialize(uint? maxDepth, NodeId? root, Opc.Ua.NodeClass nodeClass,
             NodeId? typeDefinitionId, bool includeTypeDefinitionSubtypes,
-            NodeId? referenceTypeId, bool includeReferenceTypeSubtypes, bool stopWhenFound)
+            NodeId? referenceTypeId, bool includeReferenceTypeSubtypes,
+            bool stopWhenFound, Opc.Ua.NodeClass? matchClass)
         {
             _stopWhenFound = stopWhenFound;
             _nodeClass = nodeClass;
+            _matchClass = matchClass ?? nodeClass;
             _maxDepth = maxDepth;
             _root = root ?? ObjectIds.ObjectsFolder;
 
@@ -410,6 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private bool _stopWhenFound;
         private Opc.Ua.NodeClass _nodeClass;
+        private Opc.Ua.NodeClass _matchClass;
         private uint? _maxDepth;
         private NodeId _root;
         private NodeId _referenceTypeId;
