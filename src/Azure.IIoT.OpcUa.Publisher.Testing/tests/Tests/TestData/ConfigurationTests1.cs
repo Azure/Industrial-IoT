@@ -383,7 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10216" },
                 new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10217" },
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10218" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10218" }
             };
             var results = await _service.ExpandAsync(entry,
                 new PublishedNodeExpansionModel
@@ -515,7 +515,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(r.ErrorInfo);
                 Assert.NotNull(r.Result);
                 Assert.NotNull(r.Result.OpcNodes);
-                Assert.EndsWith("/Variables", r.Result.DataSetWriterId);
+                Assert.EndsWith("/Variables", r.Result.DataSetWriterId, StringComparison.InvariantCulture);
                 total += r.Result.OpcNodes.Count;
             });
             Assert.Equal(96 + 675, total);
@@ -564,7 +564,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = true,
                     StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
-                    CreateSingleWriter = false,
+                    CreateSingleWriter = false
 
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 

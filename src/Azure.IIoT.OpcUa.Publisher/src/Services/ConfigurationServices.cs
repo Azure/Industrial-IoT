@@ -200,22 +200,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     Debug.Assert(_currentObject == null);
                 }
-
                 else if (CurrentNode.Variables.ContainsVariables)
                 {
-                    // Process variables
+                    // Completing a browse for variables
                     await ProcessAsync(CurrentNode.Variables, context, entries).ConfigureAwait(false);
                 }
-
-                // Completing a browse for objects
                 else if (!CurrentNode.ContainsObjects)
                 {
+                    // Completing a browse for objects
                     if (!CurrentNode.HasErrors)
                     {
                         CurrentNode.AddErrorInfo(StatusCodes.BadNotFound, "No objects resolved.");
                     }
                 }
-
                 if (!TryMoveToNextNode())
                 {
                     // Complete
