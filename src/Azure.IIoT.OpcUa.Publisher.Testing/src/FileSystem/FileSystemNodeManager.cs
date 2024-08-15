@@ -92,7 +92,7 @@ namespace FileSystem
                     }
 
                     // construct the NodeId of a segment.
-                    var fsId = ModelUtils.ConstructIdForVolume(fs.RootDirectory.FullName, _namespaceIndex);
+                    var fsId = ModelUtils.ConstructIdForVolume(fs.Name, _namespaceIndex);
 
                     // add an organizes reference from the server to the volume.
                     references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, fsId));
@@ -210,7 +210,7 @@ namespace FileSystem
                 // Validate drive
                 if (parsedNodeId.RootType == ModelUtils.Volume)
                 {
-                    var volume = DriveInfo.GetDrives().FirstOrDefault(d => d.RootDirectory.FullName == parsedNodeId.RootId);
+                    var volume = DriveInfo.GetDrives().FirstOrDefault(d => d.Name == parsedNodeId.RootId);
 
                     // volume does not exist.
                     if (volume == null)
@@ -218,11 +218,11 @@ namespace FileSystem
                         return null;
                     }
 
-                    var rootId = ModelUtils.ConstructIdForVolume(volume.RootDirectory.FullName, _namespaceIndex);
+                    var rootId = ModelUtils.ConstructIdForVolume(volume.Name, _namespaceIndex);
 
                     // create a temporary object to use for the operation.
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                    root = new DirectoryObjectState(context, rootId, volume.RootDirectory.FullName, true);
+                    root = new DirectoryObjectState(context, rootId, volume.Name, true);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 

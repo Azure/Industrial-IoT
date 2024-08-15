@@ -34,17 +34,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var services = _services();
 
-            var drives = DriveInfo.GetDrives().ToHashSet();
-            var found = new HashSet<string>();
+            var drives = DriveInfo.GetDrives().Select(d => d.Name).ToHashSet();
             await foreach (var fs in services.GetFileSystemsAsync(_connection, ct))
             {
                 Assert.Null(fs.ErrorInfo);
                 Assert.NotNull(fs.Result);
                 Assert.NotNull(fs.Result.Name);
-                Assert.Contains(drives, d => d.RootDirectory.FullName == fs.Result?.Name);
-                found.Add(fs.Result.Name);
+                Assert.True(drives.Remove(fs.Result.Name),
+                    $"{fs.Result.Name} not found in {string.Join(',', drives)}");
             }
-            Assert.Equal(drives.Count, found.Count);
+            Assert.Empty(drives);
         }
 
         public async Task GetDirectoriesTest1Async(CancellationToken ct = default)
