@@ -527,6 +527,8 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 
 # IDE0270: Use coalesce expression
 dotnet_diagnostic.IDE0270.severity = silent
+# IDE0130: Namespace does not correspond to file location
+dotnet_diagnostic.IDE0130.severity = silent
 dotnet_diagnostic.CA1031.severity = silent
 dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_explicit_tuple_names = true:suggestion

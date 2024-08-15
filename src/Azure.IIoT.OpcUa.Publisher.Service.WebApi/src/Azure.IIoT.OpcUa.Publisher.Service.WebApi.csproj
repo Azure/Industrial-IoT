@@ -32,7 +32,7 @@
     <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.63" />
     <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.63" />
     <PackageReference Include="Azure.Identity" Version="1.12.0" />
-    <PackageReference Include="Azure.Core" Version="1.41.0" />
+    <PackageReference Include="Azure.Core" Version="1.42.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>
