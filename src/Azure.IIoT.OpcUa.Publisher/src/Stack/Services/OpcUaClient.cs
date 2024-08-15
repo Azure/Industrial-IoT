@@ -1306,7 +1306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
 
                     var endpointDescription = await SelectEndpointAsync(endpointUrl,
-                        connection, securityMode, securityProfile).ConfigureAwait(false);
+                        connection, securityMode, securityProfile, ct: ct).ConfigureAwait(false);
                     if (endpointDescription == null)
                     {
                         _logger.LogWarning(
@@ -1834,10 +1834,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="securityMode"></param>
         /// <param name="securityPolicy"></param>
         /// <param name="endpointUrl"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         internal async Task<EndpointDescription?> SelectEndpointAsync(Uri? discoveryUrl,
             ITransportWaitingConnection? connection, SecurityMode securityMode,
-            string? securityPolicy, string? endpointUrl = null)
+            string? securityPolicy, string? endpointUrl = null, CancellationToken ct = default)
         {
             var endpointConfiguration = EndpointConfiguration.Create();
             endpointConfiguration.OperationTimeout =
@@ -1866,7 +1867,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
             {
                 var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-                var endpoints = await client.GetEndpointsAsync(null).ConfigureAwait(false);
+                var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
                 discoveryUrl ??= uri;
 
                 _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +

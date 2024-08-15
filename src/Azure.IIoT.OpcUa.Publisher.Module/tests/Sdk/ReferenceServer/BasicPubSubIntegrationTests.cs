@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Assert
             Assert.NotEmpty(messages);
             var payload1 = messages[0].Message.GetProperty("Messages")[0].GetProperty("Payload");
-            _output.WriteLine(payload1.ToString());
+            _output.WriteLine(payload1.ToJsonString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetProperty("Value").GetString(), out _));
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal("Objects", payload1.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
 
             var payload2 = messages[1].Message.GetProperty("Messages")[0].GetProperty("Payload");
-            _output.WriteLine(payload2.ToString());
+            _output.WriteLine(payload2.ToJsonString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload2.GetProperty("EventId").GetProperty("Value").GetString(), out _));
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",
@@ -407,11 +407,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             // Assert
             Assert.NotEmpty(messages);
-            var evt = Assert.Single(messages).Message;
-            _output.WriteLine(evt.ToJsonString());
+            var message = Assert.Single(messages).Message;
+            _output.WriteLine(message.ToJsonString());
 
-            Assert.Equal(JsonValueKind.Object, evt.ValueKind);
-            Assert.True(evt.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
+            Assert.Equal(JsonValueKind.Object, message.ValueKind);
+            Assert.True(message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
 
             Assert.NotNull(metadata);
         }
