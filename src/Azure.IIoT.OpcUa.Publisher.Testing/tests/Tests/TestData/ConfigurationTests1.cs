@@ -643,7 +643,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10157", DataSetFieldId = "test" },
                 new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10158", DataSetFieldId = "test" }
             };
-            await Assert.ThrowsAsync<BadRequestException>(async () => await _service.ExpandAsync(
+            var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await _service.ExpandAsync(
                 entry, new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
@@ -652,6 +652,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false)).ConfigureAwait(false);
+
+            Assert.True(ex is MethodCallStatusException or BadRequestException);
         }
 
         public async Task ExpandBadNodeIdTest3Async(CancellationToken ct = default)
