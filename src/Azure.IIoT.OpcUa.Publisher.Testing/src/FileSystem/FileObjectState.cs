@@ -283,7 +283,7 @@ namespace FileSystem
                 }
                 var buffer = new Span<byte>(new byte[length]);
                 var read = stream.Read(buffer);
-                data = buffer.Slice(0, read).ToArray();
+                data = buffer[..read].ToArray();
             }
             return result;
         }

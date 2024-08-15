@@ -1219,12 +1219,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// Find results
         /// </summary>
         /// <param name="Name"></param>
+        /// <param name="DisplayName"></param>
         /// <param name="Node"></param>
         /// <param name="TypeDefinition"></param>
         /// <param name="NodeClass"></param>
         /// <param name="ErrorInfo"></param>
-        internal record struct FindResult(QualifiedName Name, NodeId Node,
-            ExpandedNodeId TypeDefinition, Opc.Ua.NodeClass NodeClass,
+        internal record struct FindResult(QualifiedName Name, string? DisplayName,
+            NodeId Node, ExpandedNodeId TypeDefinition, Opc.Ua.NodeClass NodeClass,
             ServiceResultModel? ErrorInfo = null);
 
         /// <summary>
@@ -1258,6 +1259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     NodeClassMask = nodeClassMask,
                     ResultMask =
                         (uint)BrowseResultMask.BrowseName |
+                        (uint)BrowseResultMask.DisplayName |
                         (uint)BrowseResultMask.NodeClass |
                         (uint)BrowseResultMask.TypeDefinition
                 }));
@@ -1280,7 +1282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     // check for error.
                     if (result.ErrorInfo != null)
                     {
-                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
+                        targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,
                             ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified, result.ErrorInfo));
                         continue;
                     }
@@ -1312,7 +1314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         // check for error.
                         if (result.ErrorInfo != null)
                         {
-                            targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
+                            targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,
                                 ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified, result.ErrorInfo));
                             continue;
                         }
@@ -1351,13 +1353,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     if (NodeId.IsNull(reference.NodeId) ||
                         reference.NodeId.IsAbsolute)
                     {
-                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null, ExpandedNodeId.Null,
-                            Opc.Ua.NodeClass.Unspecified,
+                        targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,
+                            ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified,
                             new ServiceResultModel { ErrorMessage = "Target node is null or absolute" }));
                         continue;
                     }
-                    targetIds.Add(new FindResult(reference.BrowseName, (NodeId)reference.NodeId,
-                         reference.TypeDefinition, reference.NodeClass));
+                    targetIds.Add(new FindResult(reference.BrowseName, reference.DisplayName?.Text,
+                        (NodeId)reference.NodeId, reference.TypeDefinition, reference.NodeClass));
                 }
                 return true;
             }

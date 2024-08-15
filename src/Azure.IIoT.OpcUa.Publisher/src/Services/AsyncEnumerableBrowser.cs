@@ -246,7 +246,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 .Where(reference => _typeDefinitionId == null ||
                     reference.TypeDefinition == _typeDefinitionId || (_includeTypeDefinitionSubtypes
                         && context.Session.TypeTree.IsTypeOf(reference.TypeDefinition, _typeDefinitionId)))
-                .Select(reference => new BrowseFrame((NodeId)reference.NodeId, reference.BrowseName, frame))
+                .Select(reference => new BrowseFrame((NodeId)reference.NodeId,
+                    reference.BrowseName, reference.DisplayName?.Text, frame))
                 .ToList();
 
             if (_stopWhenFound && matching.Count != 0)
@@ -257,7 +258,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     if (!stop.Contains((NodeId)reference.NodeId))
                     {
-                        Push(reference.NodeId, reference.BrowseName, frame);
+                        Push(reference.NodeId, reference.BrowseName,
+                            reference.DisplayName?.Text, frame);
                     }
                 }
             }
@@ -266,7 +268,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Browse deeper in if possible
                 foreach (var reference in refs)
                 {
-                    Push(reference.NodeId, reference.BrowseName, frame);
+                    Push(reference.NodeId, reference.BrowseName,
+                        reference.DisplayName?.Text, frame);
                 }
             }
 
@@ -286,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             // Initialize
             _visited.Clear();
-            _browseStack.Push(new BrowseFrame(_root, null));
+            _browseStack.Push(new BrowseFrame(_root, null, null));
             Push(context => BrowseAsync(context));
         }
 
@@ -295,9 +298,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="browseName"></param>
+        /// <param name="displayName"></param>
         /// <param name="parent"></param>
         private void Push(ExpandedNodeId nodeId, QualifiedName? browseName,
-            BrowseFrame? parent)
+            string? displayName, BrowseFrame? parent)
         {
             if ((nodeId?.ServerIndex ?? 1u) != 0)
             {
@@ -306,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var local = (NodeId)nodeId;
             if (!NodeId.IsNull(local) && !_visited.Contains(local))
             {
-                var frame = new BrowseFrame(local, browseName, parent);
+                var frame = new BrowseFrame(local, browseName, displayName, parent);
                 if (_maxDepth.HasValue && frame.Depth >= _maxDepth.Value)
                 {
                     return;
@@ -336,9 +340,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="NodeId"></param>
         /// <param name="BrowseName"></param>
+        /// <param name="DisplayName"></param>
         /// <param name="Parent"></param>
         protected record class BrowseFrame(NodeId NodeId, QualifiedName? BrowseName,
-            BrowseFrame? Parent = null)
+            string? DisplayName, BrowseFrame? Parent = null)
         {
             /// <summary>
             /// Current depth of this frame

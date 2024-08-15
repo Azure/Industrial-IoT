@@ -43,8 +43,9 @@ namespace FileSystem
             TypeDefinitionId = ObjectTypeIds.FileDirectoryType;
             SymbolicName = path;
             NodeId = nodeId;
-            BrowseName = new QualifiedName(ModelUtils.GetName(path), nodeId.NamespaceIndex);
-            DisplayName = new LocalizedText(ModelUtils.GetName(path));
+            BrowseName = new QualifiedName(isVolume ? path : ModelUtils.GetName(path),
+                nodeId.NamespaceIndex);
+            DisplayName = new LocalizedText(isVolume ? path : ModelUtils.GetName(path));
             Description = null;
             WriteMask = 0;
             UserWriteMask = 0;

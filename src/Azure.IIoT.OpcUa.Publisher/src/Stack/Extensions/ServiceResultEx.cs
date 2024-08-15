@@ -58,13 +58,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 default:
                     return Create(StatusCodes.Bad, e.Message);
             }
-            static ServiceResultModel Create(StatusCode code, string message) =>
-                new ServiceResultModel
-                {
-                    ErrorMessage = message,
-                    SymbolicId = code.AsString(),
-                    StatusCode = code.Code
-                };
+            static ServiceResultModel Create(StatusCode code, string message) => new ()
+            {
+                ErrorMessage = message,
+                SymbolicId = code.AsString(),
+                StatusCode = code.Code
+            };
         }
 
         /// <summary>

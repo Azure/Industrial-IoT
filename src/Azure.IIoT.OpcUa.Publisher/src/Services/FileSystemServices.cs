@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Select(f => new FileSystemObjectModel
                         {
                             NodeId = header.AsString(f.Node, context.Session.MessageContext, _options),
-                            Name = f.Name.Name
+                            Name = f.DisplayName
                         })
                 };
             }, header, ct).ConfigureAwait(false);
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Select(f => new FileSystemObjectModel
                         {
                             NodeId = header.AsString(f.Node, context.Session.MessageContext, _options),
-                            Name = f.Name.Name
+                            Name = f.DisplayName
                         })
                 };
             }, header, ct).ConfigureAwait(false);
@@ -325,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Result = new FileSystemObjectModel
                     {
                         NodeId = header.AsString(nodeId, context.Session.MessageContext, _options),
-                        Name = result.Name.Name
+                        Name = result.DisplayName
                     }
                 };
             }, header, ct).ConfigureAwait(false);
@@ -439,10 +439,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var nodeId = fileSystemObject.NodeId.ToNodeId(session.MessageContext);
             if (fileSystemObject.BrowsePath?.Count > 0)
             {
-                if (nodeId is null)
-                {
-                    nodeId = ObjectIds.RootFolder;
-                }
+                nodeId ??= ObjectIds.RootFolder;
                 try
                 {
                     nodeId = await session.ResolveBrowsePathToNodeAsync(header,
@@ -500,7 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             NodeId = Header.AsString(match.NodeId,
                                 context.Session.MessageContext, Options),
-                            Name = match.BrowseName?.Name
+                            Name = match.DisplayName
                         }
                     };
                 }
@@ -730,7 +727,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         break;
                     }
-                    buffer = buffer.Slice(readCount);
+                    buffer = buffer[readCount..];
                 }
                 return total;
             }
@@ -761,7 +758,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     var errorInfo = await _handle.Session.WriteAsync(
                         _header.ToRequestHeader(_outer._timeProvider), _nodeId,
-                        _fileHandle.Value, buffer.Slice(0, writeCount).ToArray(),
+                        _fileHandle.Value, buffer[..writeCount].ToArray(),
                         cancellationToken).ConfigureAwait(false);
                     if (errorInfo != null)
                     {
@@ -774,7 +771,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         break;
                     }
-                    buffer = buffer.Slice(writeCount);
+                    buffer = buffer[writeCount..];
                 }
             }
 
@@ -804,7 +801,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 static async Task Core(Stream source, Stream destination,
                     int bufferSize, CancellationToken cancellationToken)
                 {
-                    byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                    var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
                     try
                     {
                         int bytesRead;

@@ -360,8 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (!_request.ExcludeRootObject)
                             {
                                 CurrentNode.AddObjects(
-                                    new BrowseFrame(CurrentNode.NodeId!, null)
-                                        .YieldReturn());
+                                    new BrowseFrame(CurrentNode.NodeId!, null, null).YieldReturn());
 
                                 if (_request.MaxDepth == 0)
                                 {
@@ -372,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var depth = _request.MaxDepth == 0 ? 1 : _request.MaxDepth;
                             var refTypeId = _request.StopAtFirstFoundInstance ?
                                ReferenceTypeIds.Organizes : ReferenceTypeIds.HierarchicalReferences;
-                            Restart(CurrentNode.NodeId!, maxDepth: depth, referenceTypeId: refTypeId);
+                            Restart(CurrentNode.NodeId, maxDepth: depth, referenceTypeId: refTypeId);
                             return true;
                         case (uint)Opc.Ua.NodeClass.VariableType:
                         case (uint)Opc.Ua.NodeClass.ObjectType:

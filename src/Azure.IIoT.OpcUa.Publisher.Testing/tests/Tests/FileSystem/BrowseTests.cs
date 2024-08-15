@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.NotNull(fs.Result);
                 Assert.NotNull(fs.Result.Name);
                 Assert.True(drives.Remove(fs.Result.Name),
-                    $"{fs.Result.Name} not found in {string.Join(',', drives)}");
+                    $"{fs.Result.Name} not found in {string.Join('\n', drives)}");
             }
             Assert.Empty(drives);
         }
