@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.11](#azure-industrial-iot-opc-publisher-2911)
+  - [Changes in 2.9.11](#changes-in-2911)
 - [Azure Industrial IoT OPC Publisher 2.9.10](#azure-industrial-iot-opc-publisher-2910)
   - [Changes in 2.9.10](#changes-in-2910)
 - [Azure Industrial IoT OPC Publisher 2.9.9](#azure-industrial-iot-opc-publisher-299)
@@ -52,6 +54,21 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.11
+
+We are pleased to announce the release of version 2.9.11 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+
+### Changes in 2.9.11
+
+- Fixes an issue when using amqp as transport combined with batching, some batches are not sent successfully (#2321)
+- Dependency updates to fix critical vulnerabilities as well as bugs such as proper support for cgroup v2 is used bug (#2261)
+- Resiliency and fixes of critical bugs in reconnect scenarios:
+  - Fix for "Item was disposed or moved to another subscription" (#2317)
+  - Fix for heartbeat and condition timers stopping and not recovering
+  - Subscriptions behavior now extends to subscriptions whose lifetime counter has expired (default: reset) (#2301)
+- Fix an issue with a runaway Heartbeat timer causing publishing wrong values at wrong time (#2313)
+- API addition allowing selecting which OPC Publisher to use for discovery feature request (#2302)
 
 ## Azure Industrial IoT OPC Publisher 2.9.10
 
