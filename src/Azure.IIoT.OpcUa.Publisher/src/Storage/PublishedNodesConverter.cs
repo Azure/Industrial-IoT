@@ -878,7 +878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             };
         }
 
-        private static readonly OpcNodeModel kDummyEntry = new ();
+        private static readonly OpcNodeModel kDummyEntry = new();
         private readonly bool _forceCredentialEncryption;
         private readonly int _scaleTestCount;
         private readonly int _maxNodesPerDataSet;

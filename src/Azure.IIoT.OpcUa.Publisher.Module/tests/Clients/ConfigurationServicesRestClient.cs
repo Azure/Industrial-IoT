@@ -11,15 +11,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Pipelines;
-    using System.Linq;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Implementation of file system services over http

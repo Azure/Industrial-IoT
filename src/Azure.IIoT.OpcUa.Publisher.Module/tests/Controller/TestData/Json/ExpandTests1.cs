@@ -7,11 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.Json
 {
     using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Options;
     using System;
     using System.Threading.Tasks;
     using Xunit;
