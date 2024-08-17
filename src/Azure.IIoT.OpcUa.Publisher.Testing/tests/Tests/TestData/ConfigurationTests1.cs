@@ -395,14 +395,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(1, results.Count);
-            Assert.All(results, r =>
-            {
-                Assert.Null(r.ErrorInfo);
-                Assert.NotNull(r.Result);
-                Assert.NotNull(r.Result.OpcNodes);
-                Assert.True(r.Result.OpcNodes.Count > 0);
-            });
+            var result = Assert.Single(results);
+            Assert.Null(result.ErrorInfo);
+            Assert.NotNull(result.Result);
+            Assert.NotNull(result.Result.OpcNodes);
+            Assert.Equal(6, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandVariablesAndObjectsTest1Async(CancellationToken ct = default)
@@ -455,12 +452,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            var r = Assert.Single(results);
-            Assert.Null(r.ErrorInfo);
-            Assert.NotNull(r.Result);
-            Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType + "/Variables", r.Result.DataSetWriterId);
-            Assert.NotNull(r.Result.OpcNodes);
-            Assert.Equal(675, r.Result.OpcNodes.Count);
+            var result = Assert.Single(results);
+            Assert.Null(result.ErrorInfo);
+            Assert.NotNull(result.Result);
+            Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType + "/Variables", result.Result.DataSetWriterId);
+            Assert.NotNull(result.Result.OpcNodes);
+            Assert.Equal(675, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandVariableTypesTest2Async(CancellationToken ct = default)
@@ -481,12 +478,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            var r = Assert.Single(results);
-            Assert.Null(r.ErrorInfo);
-            Assert.NotNull(r.Result);
-            Assert.Equal(Opc.Ua.VariableTypeIds.DataItemType + "/Variables", r.Result.DataSetWriterId);
-            Assert.NotNull(r.Result.OpcNodes);
-            Assert.Equal(96, r.Result.OpcNodes.Count);
+            var result = Assert.Single(results);
+            Assert.Null(result.ErrorInfo);
+            Assert.NotNull(result.Result);
+            Assert.Equal(Opc.Ua.VariableTypeIds.DataItemType + "/Variables", result.Result.DataSetWriterId);
+            Assert.NotNull(result.Result.OpcNodes);
+            Assert.Equal(96, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandVariableTypesTest3Async(CancellationToken ct = default)
