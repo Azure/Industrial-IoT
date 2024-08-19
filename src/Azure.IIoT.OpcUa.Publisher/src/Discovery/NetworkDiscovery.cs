@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             _logger.LogInformation("Starting discovery processor...");
             // Process all discovery requests
-            await foreach (var request in _channel.Reader.ReadAllAsync(ct))
+            await foreach (var request in _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
             {
                 try
                 {

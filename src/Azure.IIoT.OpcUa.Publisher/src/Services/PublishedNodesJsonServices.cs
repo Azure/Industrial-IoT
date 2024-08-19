@@ -29,8 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// Provides configuration services for publisher using either published nodes
     /// configuration update or api services.
     /// </summary>
-    public sealed class PublisherConfigurationService : IConfigurationServices,
-        IAwaitable<PublisherConfigurationService>, IAsyncDisposable, IDisposable
+    public sealed class PublishedNodesJsonServices : IPublishedNodesServices,
+        IAwaitable<PublishedNodesJsonServices>, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Create publisher configuration services
@@ -42,8 +42,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
         /// <param name="timeProvider"></param>
-        public PublisherConfigurationService(PublishedNodesConverter publishedNodesJobConverter,
-            IPublisher publisherHost, ILogger<PublisherConfigurationService> logger,
+        public PublishedNodesJsonServices(PublishedNodesConverter publishedNodesJobConverter,
+            IPublisher publisherHost, ILogger<PublishedNodesJsonServices> logger,
             IStorageProvider publishedNodesProvider, IJsonSerializer jsonSerializer,
             IDiagnosticCollector? diagnostics = null, TimeProvider? timeProvider = null)
         {
@@ -918,7 +918,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public IAwaiter<PublisherConfigurationService> GetAwaiter()
+        public IAwaiter<PublishedNodesJsonServices> GetAwaiter()
         {
             return (_started?.Task ?? Task.CompletedTask).AsAwaiter(this);
         }
@@ -980,7 +980,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _publishedNodesProvider.Changed += OnChanged;
 
                 var retryCount = 0;
-                await foreach (var clear in _fileChanges.Reader.ReadAllAsync())
+                await foreach (var clear in _fileChanges.Reader.ReadAllAsync().ConfigureAwait(false))
                 {
                     await _file.WaitAsync().ConfigureAwait(false);
                     try

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -28,12 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create service
         /// </summary>
+        /// <param name="options"></param>
         /// <param name="services"></param>
         /// <param name="timeProvider"></param>
-        public HistoryServices(INodeServicesInternal<T> services,
-            TimeProvider? timeProvider = null)
+        public HistoryServices(IOptions<PublisherOptions> options,
+            INodeServicesInternal<T> services, TimeProvider? timeProvider = null)
         {
             _services = services;
+            _options = options;
             _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
@@ -222,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // TODO: Should be async!
                     var capabilities = session.GetHistoryCapabilitiesAsync(
-                        _services.GetNamespaceFormat(request.Header), ct).AsTask().Result;
+                        request.Header.GetNamespaceFormat(_options), ct).AsTask().Result;
                     if (capabilities?.AggregateFunctions != null &&
                         capabilities.AggregateFunctions.TryGetValue(aggregateType, out var id))
                     {
@@ -678,6 +681,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly INodeServicesInternal<T> _services;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly TimeProvider _timeProvider;
     }
 }

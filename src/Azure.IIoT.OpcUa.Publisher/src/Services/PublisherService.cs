@@ -149,7 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                await foreach (var (task, changes) in _changeFeed.Reader.ReadAllAsync(default))
+                await foreach (var (task, changes) in
+                    _changeFeed.Reader.ReadAllAsync(default).ConfigureAwait(false))
                 {
                     if (ct.IsCancellationRequested)
                     {

@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Shared;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -798,9 +797,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             List<SubscriptionDiagnosticsModel>? subscriptions = null;
-            var subscriptionDiagnosticsArray = response.Results[1].Value as ExtensionObject[];
             if (!ServiceResult.IsBad(response.Results[1].StatusCode) &&
-                subscriptionDiagnosticsArray != null)
+                response.Results[1].Value is ExtensionObject[] subscriptionDiagnosticsArray)
             {
                 subscriptions = subscriptionDiagnosticsArray
                     .Select(o => o.Body)

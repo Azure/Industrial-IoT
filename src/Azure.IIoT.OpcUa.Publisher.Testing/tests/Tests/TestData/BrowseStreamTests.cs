@@ -767,9 +767,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
             {
                 NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                NodeClassFilter = new List<NodeClass> {
-                        NodeClass.Method
-                    },
+                NodeClassFilter = new List<NodeClass>
+                {
+                    NodeClass.Method
+                },
                 Direction = BrowseDirection.Forward
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
@@ -780,7 +781,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("http://test.org/UA/Data/#i=10159", node.SourceId);
-
                     Assert.Equal("http://test.org/UA/Data/#i=10159", node.Attributes.NodeId);
                     Assert.Equal("Scalar", node.Attributes.DisplayName);
                     Assert.Equal(NodeClass.Object, node.Attributes.NodeClass);
@@ -799,7 +799,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("http://test.org/UA/Data/#i=9385", node.SourceId);
-
                     Assert.Equal("http://test.org/UA/Data/#i=9385", node.Attributes.NodeId);
                     Assert.Equal("GenerateValues", node.Attributes.DisplayName);
                     Assert.Equal(NodeClass.Method, node.Attributes.NodeClass);
@@ -809,7 +808,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("i=47", node.SourceId);
-
                     Assert.Equal("i=47", node.Attributes.NodeId);
                     Assert.Equal("HasComponent", node.Attributes.DisplayName);
                     Assert.Equal(NodeClass.ReferenceType, node.Attributes.NodeClass);
@@ -819,7 +817,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("http://test.org/UA/Data/#i=10161", node.SourceId);
-
                     Assert.Equal("http://test.org/UA/Data/#i=10161", node.Attributes.NodeId);
                     Assert.Equal("GenerateValues", node.Attributes.DisplayName);
                     Assert.Equal(NodeClass.Method, node.Attributes.NodeClass);
@@ -834,9 +831,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
             {
                 NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                NodeClassFilter = new List<NodeClass> {
-                        NodeClass.Method
-                    },
+                NodeClassFilter = new List<NodeClass>
+                {
+                    NodeClass.Method
+                },
                 Direction = BrowseDirection.Both
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
@@ -901,10 +899,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
             {
                 NodeIds = new[] { "http://test.org/UA/Data/#i=10159" },
-                NodeClassFilter = new List<NodeClass> {
-                        NodeClass.Method,
-                        NodeClass.Object
-                    }
+                NodeClassFilter = new List<NodeClass>
+                {
+                    NodeClass.Method,
+                    NodeClass.Object
+                }
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.Equal(2409, results.Count);

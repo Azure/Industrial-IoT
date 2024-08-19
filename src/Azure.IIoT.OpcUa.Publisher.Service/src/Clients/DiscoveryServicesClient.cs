@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public async Task CancelAsync(DiscoveryCancelRequestModel request, string? context, CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("CancelDiscovery");
-            await foreach (var publisher in EnumeratePublishersAsync(context, ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         {
             using var activity = _activitySource.StartActivity("FindServer");
             var exceptions = new List<Exception>();
-            await foreach (var publisher in EnumeratePublishersAsync(context, ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -109,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         public async Task DiscoverAsync(DiscoveryRequestModel request, string? context, CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("Discover");
-            await foreach (var publisher in EnumeratePublishersAsync(context, ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -136,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("RegisterServer");
-            await foreach (var publisher in EnumeratePublishersAsync(context, ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {

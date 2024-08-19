@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     using Autofac;
     using System;
-    using System.IO;
     using Xunit.Abstractions;
 
     public sealed class PublisherModuleMqttv5Fixture : IDisposable

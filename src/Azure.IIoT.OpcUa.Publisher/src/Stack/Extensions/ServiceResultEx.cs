@@ -54,17 +54,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 case ResourceNotFoundException:
                     return Create(StatusCodes.BadNotFound, e.Message);
                 case ResourceConflictException:
-                    return Create(StatusCodes.BadDuplicateReferenceNotAllowed, e.Message);
+                    return Create(StatusCodes.BadEntryExists, e.Message);
+                case ArgumentNullException:
+                    return Create(StatusCodes.BadArgumentsMissing, e.Message);
+                case ArgumentException:
+                    return Create(StatusCodes.BadInvalidArgument, e.Message);
                 default:
                     return Create(StatusCodes.Bad, e.Message);
             }
-            static ServiceResultModel Create(StatusCode code, string message) =>
-                new ServiceResultModel
-                {
-                    ErrorMessage = message,
-                    SymbolicId = code.AsString(),
-                    StatusCode = code.Code
-                };
+            static ServiceResultModel Create(StatusCode code, string message) => new()
+            {
+                ErrorMessage = message,
+                SymbolicId = code.AsString(),
+                StatusCode = code.Code
+            };
         }
 
         /// <summary>

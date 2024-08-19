@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var sw = Stopwatch.StartNew();
                 try
                 {
-                    await foreach (var result in _channel.Reader.ReadAllAsync(ct))
+                    await foreach (var result in _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                     {
                         if (!result)
                         {

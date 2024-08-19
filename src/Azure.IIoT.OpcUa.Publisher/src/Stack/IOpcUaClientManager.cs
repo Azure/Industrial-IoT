@@ -70,12 +70,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="connection"></param>
-        /// <param name="stack"></param>
+        /// <param name="operation"></param>
         /// <param name="header"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         IAsyncEnumerable<TResult> ExecuteAsync<TResult>(T connection,
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<TResult>>>> stack,
-            RequestHeaderModel? header = null, CancellationToken ct = default);
+            AsyncEnumerableBase<TResult> operation, RequestHeaderModel? header = null,
+            CancellationToken ct = default);
     }
 }

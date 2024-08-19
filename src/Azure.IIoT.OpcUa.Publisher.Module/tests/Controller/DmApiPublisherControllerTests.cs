@@ -87,12 +87,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private PublisherConfigurationService InitPublisherConfigService()
+        private PublishedNodesJsonServices InitPublisherConfigService()
         {
-            var configService = new PublisherConfigurationService(
+            var configService = new PublishedNodesJsonServices(
                 _publishedNodesJobConverter,
                 _publisher,
-                _loggerFactory.CreateLogger<PublisherConfigurationService>(),
+                _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer,
                 _diagnostic.Object
@@ -481,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         /// </summary>
         /// <param name="publishedNodesFile"></param>
         /// <param name="predicate"></param>
-        private async Task<(PublisherConfigurationService, ConfigurationController)> PublishNodeAsync(string publishedNodesFile,
+        private async Task<(PublishedNodesJsonServices, ConfigurationController)> PublishNodeAsync(string publishedNodesFile,
             Func<PublishedNodesEntryModel, bool> predicate = null)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);

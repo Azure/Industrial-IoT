@@ -51,12 +51,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     public class WriterController : ControllerBase, IMethodController
     {
         /// <summary>
-        /// Create writer configuration methods controller
+        /// Create publisher methods controller
         /// </summary>
-        /// <param name="configServices"></param>
-        public WriterController(IConfigurationServices configServices)
+        /// <param name="publisher"></param>
+        /// <param name="configuration"></param>
+        public WriterController(IPublishedNodesServices publisher,
+            IConfigurationServices configuration)
         {
-            _configServices = configServices;
+            _publisher = publisher;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -65,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <remarks>
         /// Create a published nodes entry for a specific writer group and dataset writer.
         /// The entry must specify a unique writer group and dataset writer id. A null value
-        /// is treated as empty string. If the entry is found it is updated, if it is not
+        /// is treated as empty string. If the entry is found it is replaced, if it is not
         /// found, it is created. If more than one entry is found with the same writer group
         /// and writer id an error is returned. The writer entry provided must include at
         /// least one node which will be the initial set. All nodes must specify a unique
@@ -89,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterEntry);
-            await _configServices.CreateOrUpdateDataSetWriterEntryAsync(
+            await _publisher.CreateOrUpdateDataSetWriterEntryAsync(
                 dataSetWriterEntry, ct).ConfigureAwait(false);
         }
 
@@ -124,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            return await _configServices.GetDataSetWriterEntryAsync(
+            return await _publisher.GetDataSetWriterEntryAsync(
                 dataSetWriterGroup, dataSetWriterId, ct).ConfigureAwait(false);
         }
 
@@ -166,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(opcNodes);
-            await _configServices.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 opcNodes, insertAfterFieldId, ct).ConfigureAwait(false);
         }
 
@@ -208,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(opcNode);
-            await _configServices.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 new[] { opcNode }, insertAfterFieldId, ct).ConfigureAwait(false);
         }
 
@@ -246,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldIds);
-            await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 dataSetFieldIds, ct).ConfigureAwait(false);
         }
 
@@ -282,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldId);
-            await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 new[] { dataSetFieldId }, ct).ConfigureAwait(false);
         }
 
@@ -321,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldId);
-            return await _configServices.GetNodeAsync(
+            return await _publisher.GetNodeAsync(
                 dataSetWriterGroup, dataSetWriterId, dataSetFieldId, ct).ConfigureAwait(false);
         }
 
@@ -374,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
                         CultureInfo.InvariantCulture);
                 }
             }
-            return await _configServices.GetNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            return await _publisher.GetNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 lastDataSetFieldId, pageSize, ct).ConfigureAwait(false);
         }
 
@@ -408,10 +411,86 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            await _configServices.RemoveDataSetWriterEntryAsync(dataSetWriterGroup,
+            await _publisher.RemoveDataSetWriterEntryAsync(dataSetWriterGroup,
                 dataSetWriterId, force, ct).ConfigureAwait(false);
         }
 
-        private readonly IConfigurationServices _configServices;
+        /// <summary>
+        /// ExpandWriter
+        /// </summary>
+        /// <remarks>
+        /// Expands the provided nodes in the entry to a series of published node entries.
+        /// The provided entry is used template. The entry is expanded using expansion
+        /// configuration provided. Expanded entries are returned one by one with error
+        /// information if any. The configuration is not updated but the resulting entries
+        /// can be modified and later saved in the configuration using the configuration
+        /// API. The server must be online and accessible
+        /// for the expansion to work.
+        /// </remarks>
+        /// <param name="request">The entry to expand and the node expansion configuration
+        /// to use. If no configuration is provided a default configuration is used which
+        /// and no error entries are returned.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to update.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("expand")]
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandWriterAsync(
+            [FromBody][Required] PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            var expansion = request.Request ?? new PublishedNodeExpansionModel { DiscardErrors = true };
+            return _configuration.ExpandAsync(request.Entry, expansion, ct);
+        }
+
+        /// <summary>
+        /// ExpandAndCreateOrUpdateDataSetWriterEntries
+        /// </summary>
+        /// <remarks>
+        /// Create a series of published nodes entries using the provided entry as template.
+        /// The entry is expanded using expansion configuration provided. Expanded entries
+        /// are returned one by one with error information if any. The configuration is also
+        /// saved in the local configuration store. The server must be online and accessible
+        /// for the expansion to work.
+        /// </remarks>
+        /// <param name="request">The entry to create for the writer and node expansion
+        /// configuration to use</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to update.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost]
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandAndCreateOrUpdateDataSetWriterEntriesAsync(
+            [FromBody][Required] PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            var expansion = request.Request ?? new PublishedNodeExpansionModel { DiscardErrors = false };
+            return _configuration.CreateOrUpdateAsync(request.Entry, expansion, ct);
+        }
+
+        private readonly IPublishedNodesServices _publisher;
+        private readonly IConfigurationServices _configuration;
     }
 }

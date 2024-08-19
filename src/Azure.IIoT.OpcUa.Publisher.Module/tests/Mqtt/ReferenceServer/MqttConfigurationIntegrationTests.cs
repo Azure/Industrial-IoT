@@ -139,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition);
-                _output.WriteLine(messages.ToString());
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
                 var evt = Assert.Single(messages).Message;
                 Assert.Equal(JsonValueKind.Object, evt.ValueKind);
@@ -254,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition);
-                _output.WriteLine(messages.ToString());
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 var evt = Assert.Single(messages).Message;
 
                 Assert.Equal(JsonValueKind.Object, evt.ValueKind);
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                     message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
                         && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind
                             == JsonValueKind.String ? message : default);
-                _output.WriteLine(messages.ToString());
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
                 var message = Assert.Single(messages);
                 Assert.Equal("i=2253", message.Message.GetProperty("NodeId").GetString());

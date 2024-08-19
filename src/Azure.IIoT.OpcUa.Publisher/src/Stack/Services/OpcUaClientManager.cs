@@ -301,12 +301,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
-            RequestHeaderModel? header, CancellationToken ct)
+            AsyncEnumerableBase<T> operation, RequestHeaderModel? header,
+            CancellationToken ct)
         {
             connection = UpdateConnectionFromHeader(connection, header);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
+                operation.Dispose();
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
             return ExecuteAsyncCore(ct);
@@ -314,12 +315,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             async IAsyncEnumerable<T> ExecuteAsyncCore(
                 [EnumeratorCancellation] CancellationToken ct)
             {
-                using var client = GetOrAddClient(connection);
-                await foreach (var result in client.RunAsync(stack,
-                    header?.ConnectTimeout, header?.ServiceCallTimeout,
-                    ct).ConfigureAwait(false))
+                try
                 {
-                    yield return result;
+                    using var client = GetOrAddClient(connection);
+                    await foreach (var result in client.RunAsync(operation,
+                        header?.ConnectTimeout, header?.ServiceCallTimeout,
+                        ct).ConfigureAwait(false))
+                    {
+                        yield return result;
+                    }
+                }
+                finally
+                {
+                    operation.Dispose();
                 }
             }
         }

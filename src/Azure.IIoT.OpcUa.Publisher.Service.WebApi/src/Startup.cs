@@ -44,12 +44,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// <summary>
         /// Service name
         /// </summary>
-        public string Name => "Opc-Publisher-Service";
+        public static string Name => "Opc-Publisher-Service";
 
         /// <summary>
         /// Description
         /// </summary>
-        public string Description => "Azure Industrial IoT OPC UA Publisher Service";
+        public static string Description => "Azure Industrial IoT OPC UA Publisher Service";
 
         /// <summary>
         /// Create startup
@@ -70,7 +70,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
+#pragma warning disable CA1822 // Mark members as static
         public void ConfigureServices(IServiceCollection services)
+#pragma warning restore CA1822 // Mark members as static
         {
             services.AddLogging(options => options
                 .AddConsole()
@@ -126,7 +128,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
+#pragma warning disable CA1822 // Mark members as static
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+#pragma warning restore CA1822 // Mark members as static
         {
             app.UsePathBase();
             app.UseHeaderForwarding();

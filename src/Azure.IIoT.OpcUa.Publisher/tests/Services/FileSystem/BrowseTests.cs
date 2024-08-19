@@ -12,28 +12,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.FileSystem
     using Microsoft.Extensions.Configuration;
     using System.Threading.Tasks;
     using Xunit;
-    using Xunit.Abstractions;
 
     [Collection(FileCollection.Name)]
     public class BrowseTests
     {
-        public BrowseTests(FileSystemServer server, ITestOutputHelper output)
+        public BrowseTests(FileSystemServer server)
         {
             _server = server;
-            _output = output;
         }
 
         private BrowseTests<ConnectionModel> GetTests()
         {
             return new BrowseTests<ConnectionModel>(
-                () => new NodeServices<ConnectionModel>(_server.Client, _server.Parser,
-                    _output.BuildLoggerFor<NodeServices<ConnectionModel>>(Logging.Level),
+                () => new FileSystemServices<ConnectionModel>(_server.Client,
                     new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions()),
                 _server.GetConnection(), _server.TempPath);
         }
 
         private readonly FileSystemServer _server;
-        private readonly ITestOutputHelper _output;
 
         [Fact]
         public Task GetFileSystemsTest1Async()

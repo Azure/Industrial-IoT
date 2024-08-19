@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task SendProgressAsync()
         {
-            await foreach (var progress in _channel.Reader.ReadAllAsync())
+            await foreach (var progress in _channel.Reader.ReadAllAsync().ConfigureAwait(false))
             {
                 try
                 {

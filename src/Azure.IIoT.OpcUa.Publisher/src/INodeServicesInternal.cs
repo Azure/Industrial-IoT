@@ -64,12 +64,5 @@ namespace Azure.IIoT.OpcUa.Publisher
             T connectionId, HistoryUpdateRequestModel<TInput> request,
             Func<NodeId, TInput, IOpcUaSession, Task<ExtensionObject>> decode,
             CancellationToken ct = default) where TInput : class;
-
-        /// <summary>
-        /// Get namespace format from header or underlying configuration.
-        /// </summary>
-        /// <param name="header"></param>
-        /// <returns></returns>
-        NamespaceFormat GetNamespaceFormat(RequestHeaderModel? header);
     }
 }

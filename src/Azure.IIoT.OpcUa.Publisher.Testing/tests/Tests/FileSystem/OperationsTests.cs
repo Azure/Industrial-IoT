@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO;

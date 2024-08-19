@@ -915,7 +915,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                     GetPublisherId(options), new GetConfiguredEndpointsRequestModel
                     {
                         IncludeNodes = options.IsProvidedOrNull("-n", "--nodes")
-                    }))
+                    }).ConfigureAwait(false))
                 {
                     if (!empty)
                     {

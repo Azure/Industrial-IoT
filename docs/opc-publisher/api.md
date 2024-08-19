@@ -3329,6 +3329,47 @@ This section contains the API to configure data set writers and writer
             name.
 
 
+<a name="expandandcreateorupdatedatasetwriterentries"></a>
+#### ExpandAndCreateOrUpdateDataSetWriterEntries
+```
+POST /v2/writer
+```
+
+
+##### Description
+Create a series of published nodes entries using the provided entry as template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is also saved in the local configuration store. The server must be online and accessible for the expansion to work.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to create for the writer and node expansion configuration to use|[PublishedNodeExpansionModelPublishedNodesEntryRequestModel](definitions.md#publishednodeexpansionmodelpublishednodesentryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was created|[PublishedNodesEntryModelServiceResponseIAsyncEnumerable](definitions.md#publishednodesentrymodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
 <a name="createorupdatedatasetwriterentry"></a>
 #### CreateOrUpdateDataSetWriterEntry
 ```
@@ -3337,7 +3378,7 @@ PUT /v2/writer
 
 
 ##### Description
-Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is updated, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
+Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is replaced, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
 
 
 ##### Parameters
@@ -3354,6 +3395,47 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 |**200**|The item was created|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
 |**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="expandwriter"></a>
+#### ExpandWriter
+```
+POST /v2/writer/expand
+```
+
+
+##### Description
+Expands the provided nodes in the entry to a series of published node entries. The provided entry is used template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is not updated but the resulting entries can be modified and later saved in the configuration using the configuration API. The server must be online and accessible for the expansion to work.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to expand and the node expansion configuration to use. If no configuration is provided a default configuration is used which and no error entries are returned.|[PublishedNodeExpansionModelPublishedNodesEntryRequestModel](definitions.md#publishednodeexpansionmodelpublishednodesentryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was created|[PublishedNodesEntryModelServiceResponseIAsyncEnumerable](definitions.md#publishednodesentrymodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes

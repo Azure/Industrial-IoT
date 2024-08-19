@@ -606,15 +606,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// disconnected during an operation.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="stack"></param>
+        /// <param name="operation"></param>
         /// <param name="connectTimeout"></param>
         /// <param name="serviceCallTimeout"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         /// <exception cref="TimeoutException"></exception>
-        internal async IAsyncEnumerable<T> RunAsync<T>(
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
+        internal async IAsyncEnumerable<T> RunAsync<T>(AsyncEnumerableBase<T> operation,
             int? connectTimeout, int? serviceCallTimeout,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -622,7 +621,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var ct = cts.Token;
             cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
-            while (stack.Count > 0)
+            operation.Reset();
+            while (operation.HasMore)
             {
                 if (_disposed)
                 {
@@ -649,10 +649,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var serviceTimeout = GetServiceCallTimeout(serviceCallTimeout);
                         using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
                         cts.CancelAfter(serviceTimeout);
-                        results = await stack.Peek()(context).ConfigureAwait(false);
-
-                        // Success
-                        stack.Pop();
+                        results = await operation.ExecuteAsync(context).ConfigureAwait(false);
                     }
                     else
                     {
@@ -814,7 +811,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        await foreach (var (trigger, context) in _channel.Reader.ReadAllAsync(ct))
+                        await foreach (var (trigger, context) in
+                            _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                         {
                             _logger.LogDebug("{Client}: Processing event {Event} in State {State}...",
                                 this, trigger, currentSessionState);
@@ -1309,7 +1307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
 
                     var endpointDescription = await SelectEndpointAsync(endpointUrl,
-                        connection, securityMode, securityProfile).ConfigureAwait(false);
+                        connection, securityMode, securityProfile, ct: ct).ConfigureAwait(false);
                     if (endpointDescription == null)
                     {
                         _logger.LogWarning(
@@ -1837,10 +1835,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="securityMode"></param>
         /// <param name="securityPolicy"></param>
         /// <param name="endpointUrl"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         internal async Task<EndpointDescription?> SelectEndpointAsync(Uri? discoveryUrl,
             ITransportWaitingConnection? connection, SecurityMode securityMode,
-            string? securityPolicy, string? endpointUrl = null)
+            string? securityPolicy, string? endpointUrl = null, CancellationToken ct = default)
         {
             var endpointConfiguration = EndpointConfiguration.Create();
             endpointConfiguration.OperationTimeout =
@@ -1869,7 +1868,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
             {
                 var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-                var endpoints = await client.GetEndpointsAsync(null).ConfigureAwait(false);
+                var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
                 discoveryUrl ??= uri;
 
                 _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +

@@ -31,16 +31,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <typeparam name="T"></typeparam>
         /// <param name="session"></param>
         /// <param name="header"></param>
-        /// <param name="nodeIds"></param>
+        /// <param name="nodeId"></param>
         /// <param name="attributeId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal static async Task<(T?, ServiceResultModel?)> ReadAttributeAsync<T>(
-            this IOpcUaSession session, RequestHeader header, NodeId nodeIds,
+            this IOpcUaSession session, RequestHeader header, NodeId nodeId,
             uint attributeId, CancellationToken ct = default)
         {
             var attributes = await session.ReadAttributeAsync<T>(header,
-                nodeIds.YieldReturn(), attributeId, ct).ConfigureAwait(false);
+                nodeId.YieldReturn(), attributeId, ct).ConfigureAwait(false);
             return attributes.SingleOrDefault();
         }
 
@@ -247,9 +247,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
             while (searchContext.Count != 0)
             {
-                var results = session.BrowseAsync(requestHeader, null,
-                    new BrowseDescriptionCollection(searchContext.Keys), ct).ConfigureAwait(false);
-                await foreach (var result in results)
+                await foreach (var result in session.BrowseAsync(requestHeader, null,
+                    new BrowseDescriptionCollection(searchContext.Keys), ct).ConfigureAwait(false))
                 {
                     if (result.Description == null)
                     {
@@ -536,9 +535,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 foreach (var batch in objectsToBrowse.Batch(limits.GetMaxNodesPerBrowse()))
                 {
                     // Browse folders with objects and variables in it
-                    var browseResults = session.BrowseAsync(requestHeader, null,
-                        new BrowseDescriptionCollection(batch), ct).ConfigureAwait(false);
-                    await foreach (var (description, references, errorInfo) in browseResults)
+                    await foreach (var (description, references, errorInfo) in session.BrowseAsync(
+                        requestHeader, null, new BrowseDescriptionCollection(batch),
+                        ct).ConfigureAwait(false))
                     {
                         var obj = (BaseObjectState?)description?.Handle;
                         if (obj == null || references == null)
@@ -700,8 +699,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     ResultMask = (uint)BrowseResultMask.All
                 }
             };
-            var browseresults = session.BrowseAsync(requestHeader, null, nodeToBrowse, ct);
-            await foreach (var result in browseresults.ConfigureAwait(false))
+            await foreach (var result in session.BrowseAsync(requestHeader, null,
+                nodeToBrowse, ct).ConfigureAwait(false))
             {
                 if (result.ErrorInfo != null)
                 {
@@ -1220,11 +1219,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// Find results
         /// </summary>
         /// <param name="Name"></param>
+        /// <param name="DisplayName"></param>
         /// <param name="Node"></param>
         /// <param name="TypeDefinition"></param>
+        /// <param name="NodeClass"></param>
         /// <param name="ErrorInfo"></param>
-        internal record struct FindResult(QualifiedName Name, NodeId Node,
-            ExpandedNodeId TypeDefinition, ServiceResultModel? ErrorInfo = null);
+        internal record struct FindResult(QualifiedName Name, string? DisplayName,
+            NodeId Node, ExpandedNodeId TypeDefinition, Opc.Ua.NodeClass NodeClass,
+            ServiceResultModel? ErrorInfo = null);
 
         /// <summary>
         /// Finds the targets for the specified reference.
@@ -1257,6 +1259,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     NodeClassMask = nodeClassMask,
                     ResultMask =
                         (uint)BrowseResultMask.BrowseName |
+                        (uint)BrowseResultMask.DisplayName |
+                        (uint)BrowseResultMask.NodeClass |
                         (uint)BrowseResultMask.TypeDefinition
                 }));
 
@@ -1278,8 +1282,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     // check for error.
                     if (result.ErrorInfo != null)
                     {
-                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
-                            ExpandedNodeId.Null, result.ErrorInfo));
+                        targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,
+                            ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified, result.ErrorInfo));
                         continue;
                     }
                     // check for continuation point.
@@ -1310,8 +1314,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         // check for error.
                         if (result.ErrorInfo != null)
                         {
-                            targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null,
-                                ExpandedNodeId.Null, result.ErrorInfo));
+                            targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,
+                                ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified, result.ErrorInfo));
                             continue;
                         }
                         // check for continuation point.
@@ -1349,13 +1353,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     if (NodeId.IsNull(reference.NodeId) ||
                         reference.NodeId.IsAbsolute)
                     {
-                        targetIds.Add(new FindResult(QualifiedName.Null, NodeId.Null, ExpandedNodeId.Null,
+                        targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,
+                            ExpandedNodeId.Null, Opc.Ua.NodeClass.Unspecified,
                             new ServiceResultModel { ErrorMessage = "Target node is null or absolute" }));
                         continue;
                     }
-                    targetIds.Add(new FindResult(reference.BrowseName,
-                         (NodeId)reference.NodeId,
-                         reference.TypeDefinition));
+                    targetIds.Add(new FindResult(reference.BrowseName, reference.DisplayName?.Text,
+                        (NodeId)reference.NodeId, reference.TypeDefinition, reference.NodeClass));
                 }
                 return true;
             }
