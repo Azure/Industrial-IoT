@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <remarks>
         /// Create a published nodes entry for a specific writer group and dataset writer.
         /// The entry must specify a unique writer group and dataset writer id. A null value
-        /// is treated as empty string. If the entry is found it is updated, if it is not
+        /// is treated as empty string. If the entry is found it is replaced, if it is not
         /// found, it is created. If more than one entry is found with the same writer group
         /// and writer id an error is returned. The writer entry provided must include at
         /// least one node which will be the initial set. All nodes must specify a unique

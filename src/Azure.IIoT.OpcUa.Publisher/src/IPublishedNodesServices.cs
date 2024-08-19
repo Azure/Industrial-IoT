@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Create a published nodes entry for a specific writer group
         /// and dataset writer. The entry must specify a unique writer
         /// group and dataset writer id. If the entry is found it is
-        /// updated, if it is not found, it is created. If more than
+        /// replaced, if it is not found, it is created. If more than
         /// one entry is found an error is returned. The entry can
         /// include nodes which will be the initial set. The entries
         /// must all specify a unique dataSetFieldId.

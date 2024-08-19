@@ -682,16 +682,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         //
         //  7. Object and maxdepth 0 -> max depth 1
         //  7b.Object and stop first found -> organizes is used
-        //
         //  8. Object type with stop first found set uses organizes
         //
-        //
-        //  Case config:
-        //  Mock configuration writer "CreateOrUpdateDataSetWriterEntryAsync"
-        //
-        //  1. Duplicate writer will override
-        //  2. Save error will return error for entry
-        //  3. Only good entries passed.
 
         private readonly ConnectionModel _connection;
         private readonly IConfigurationServices _service;

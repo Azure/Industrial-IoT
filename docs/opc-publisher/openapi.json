@@ -4455,7 +4455,7 @@
                     "Writer"
                 ],
                 "summary": "CreateOrUpdateDataSetWriterEntry",
-                "description": "Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is updated, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
+                "description": "Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is replaced, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
                 "operationId": "CreateOrUpdateDataSetWriterEntry",
                 "consumes": [
                     "application/json",
@@ -4488,6 +4488,65 @@
                     },
                     "403": {
                         "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "ExpandAndCreateOrUpdateDataSetWriterEntries",
+                "description": "Create a series of published nodes entries using the provided entry as template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is also saved in the local configuration store. The server must be online and accessible for the expansion to work.",
+                "operationId": "ExpandAndCreateOrUpdateDataSetWriterEntries",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to create for the writer and node expansion configuration to use",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodeExpansionModelPublishedNodesEntryRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was created",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -5016,6 +5075,67 @@
                 },
                 "x-ms-pageable": {
                     "nextLinkName": "lastDataSetFieldId"
+                }
+            }
+        },
+        "/v2/writer/expand": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "ExpandWriter",
+                "description": "Expands the provided nodes in the entry to a series of published node entries. The provided entry is used template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is not updated but the resulting entries can be modified and later saved in the configuration using the configuration API. The server must be online and accessible for the expansion to work.",
+                "operationId": "ExpandWriter",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to expand and the node expansion configuration to use. If no configuration is provided a default configuration is used which and no error entries are returned.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodeExpansionModelPublishedNodesEntryRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was created",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
                 }
             }
         }
@@ -8471,6 +8591,62 @@
             },
             "additionalProperties": false
         },
+        "PublishedNodeExpansionModel": {
+            "description": "\r\n\r\n            Node expansion configuration. Configures how an entry should\r\n            be expanded into configuration. If a node is an object it is\r\n            expanded to all contained variables.\r\n            \r\n\r\n\r\n            If a node is an object type, all objects of that type are\r\n            searched from the object root node. These found objects are\r\n            then expanded into their variables.\r\n            \r\n\r\n\r\n            If the node is a variable, the variable is expanded to include\r\n            all contained variables or properties. All entries will have\r\n            the data set field id configured as data set class id.\r\n            \r\n\r\n\r\n            If a node is a variable type, then all variables of this type\r\n            are found and added to a single writer entry. Note: That by\r\n            themselves these variables are no further expanded.\r\n            ",
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/definitions/RequestHeaderModel"
+                },
+                "createSingleWriter": {
+                    "description": "By default the api will create a new distinct\r\nwriter per expanded object. Objects that cannot\r\nbe expanded are part of the originally provided\r\nwriter. The writer id is then post fixed with\r\nthe data set field id of the object node field.\r\nIf true, all variables of all expanded nodes are\r\nadded to the originally provided entry.",
+                    "type": "boolean"
+                },
+                "maxLevelsToExpand": {
+                    "format": "int64",
+                    "description": "Max number of levels to expand an instance node\r\nsuch as an object or variable into resulting\r\nvariables.\r\nIf the node is a variable instance to start with\r\nbut the Azure.IIoT.OpcUa.Publisher.Models.PublishedNodeExpansionModel.ExcludeRootIfInstanceNode\r\nproperty is set to excluded it, then setting this\r\nvalue to 0 is equivalent to a value of 1 to get\r\nthe first level of variables contained in the\r\nvariable, but not the variable itself. Otherwise\r\nonly the variable itelf is returned. If the node\r\nis an object instance, 0 is equivalent to\r\ninfinite and all levels are expanded.",
+                    "type": "integer"
+                },
+                "noSubTypesOfTypeNodes": {
+                    "description": "Do not consider subtypes of an object type when\r\nsearching for instances of the type.",
+                    "type": "boolean"
+                },
+                "excludeRootIfInstanceNode": {
+                    "description": "If the node is an object or variable instance do\r\nnot include it but only the instances underneath\r\nthem.",
+                    "type": "boolean"
+                },
+                "maxDepth": {
+                    "format": "int64",
+                    "description": "Max browse depth for object search operation or\r\nwhen searching for an instance of a type.\r\nTo only expand an object to its variables set\r\nthis value to 0. The depth of expansion of a\r\nvariable itself can be controlled via the\r\nAzure.IIoT.OpcUa.Publisher.Models.PublishedNodeExpansionModel.MaxLevelsToExpand\" property.\r\nIf the root object is excluded a value of 0 is\r\nequivalent to a value of 1 to get the first level\r\nof objects contained in the object but not the\r\nobject itself, e.g. a folder object.",
+                    "type": "integer"
+                },
+                "stopAtFirstFoundInstance": {
+                    "description": "If the depth is not limited and the node is a\r\ntype definition id set this flag to true to find\r\nonly the first instance of this type from the\r\nobject root.",
+                    "type": "boolean"
+                },
+                "discardErrors": {
+                    "description": "Errors are silently discarded and only\r\nsuccessfully expanded nodes are returned.",
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PublishedNodeExpansionModelPublishedNodesEntryRequestModel": {
+            "description": "Wraps a request and a published nodes entry to bind to a\r\nbody more easily for api that requires an entry and additional\r\nconfiguration",
+            "required": [
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/PublishedNodeExpansionModel"
+                }
+            },
+            "additionalProperties": false
+        },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
             "required": [
@@ -8656,7 +8832,7 @@
                     "description": "Disable subscription transfer on reconnect",
                     "type": "boolean"
                 },
-                "republishAfterTransfer": {
+                "RepublishAfterTransfer": {
                     "description": "Republish after transferring the subscription during\r\nreconnect handling unless subscription transfer was disabled.",
                     "type": "boolean"
                 },
@@ -8703,6 +8879,19 @@
                     "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
                     "type": "boolean"
                 },
+                "DefaultHeartbeatInterval": {
+                    "format": "int32",
+                    "description": "Default heartbeat interval in milliseconds",
+                    "type": "integer"
+                },
+                "DefaultHeartbeatIntervalTimespan": {
+                    "format": "date-span",
+                    "description": "Default heartbeat interval for all nodes as duration. Takes\r\nprecedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DefaultHeartbeatInterval if\r\ndefined.",
+                    "type": "string"
+                },
+                "DefaultHeartbeatBehavior": {
+                    "$ref": "#/definitions/HeartbeatBehavior"
+                },
                 "DumpConnectionDiagnostics": {
                     "description": "Dump server diagnostics for the connection to enable\r\nadvanced troubleshooting scenarios.",
                     "type": "boolean"
@@ -8711,6 +8900,10 @@
                     "$ref": "#/definitions/NodeIdModel"
                 }
             },
+            "additionalProperties": false
+        },
+        "PublishedNodesEntryModelServiceResponseIAsyncEnumerable": {
+            "type": "object",
             "additionalProperties": false
         },
         "PublishedNodesResponseModel": {

@@ -244,11 +244,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         };
 
                         await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
+
+                        currentObject.EntriesAlreadyReturned = true;
                         if (!_request.DiscardErrors || entry.ErrorInfo == null)
                         {
                             // Add good entry to return _now_
                             entries.Add(entry);
-                            currentObject.EntriesAlreadyReturned = true;
                         }
                     }
                 }

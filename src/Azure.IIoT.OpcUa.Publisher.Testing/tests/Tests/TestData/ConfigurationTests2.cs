@@ -36,6 +36,114 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 .Returns(Task.CompletedTask);
         }
 
+        public async Task ConfigureFromObjectErrorTest1Async(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = "http://test.org/UA/Data/#i=10157"
+                }
+            };
+
+            // Save error will return error for entry
+            var createCall = _publishedNodesServices.Setup(s => s.CreateOrUpdateDataSetWriterEntryAsync(
+                It.IsAny<PublishedNodesEntryModel>(), It.IsAny<CancellationToken>()))
+                .Throws<BadRequestException>();
+            createCall.Verifiable(Times.Exactly(25));
+            var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = true,
+                    StopAtFirstFoundInstance = false,
+                    NoSubTypesOfTypeNodes = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(25, results.Count);
+            Assert.All(results, r =>
+            {
+                Assert.NotNull(r.ErrorInfo);
+                Assert.Equal(StatusCodes.BadInvalidArgument, r.ErrorInfo.StatusCode);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+            _publishedNodesServices.Verify();
+            _publishedNodesServices.VerifyNoOtherCalls();
+        }
+
+        public async Task ConfigureFromObjectErrorTest2Async(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = "http://test.org/UA/Data/#i=10157"
+                }
+            };
+
+            // Save error will return error for entry
+            var createCall = _publishedNodesServices.Setup(s => s.CreateOrUpdateDataSetWriterEntryAsync(
+                It.IsAny<PublishedNodesEntryModel>(), It.IsAny<CancellationToken>()))
+                .Throws<BadRequestException>();
+            createCall.Verifiable(Times.Exactly(25));
+            var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = true,
+                    ExcludeRootIfInstanceNode = true,
+                    StopAtFirstFoundInstance = false,
+                    NoSubTypesOfTypeNodes = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Empty(results);
+            _publishedNodesServices.Verify();
+            _publishedNodesServices.VerifyNoOtherCalls();
+        }
+
+        public async Task ConfigureFromObjectErrorTest3Async(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = "http://test.org/UA/Data/#i=10157"
+                }
+            };
+
+            // Save error will return error for entry
+            var createCall = _publishedNodesServices.Setup(s => s.CreateOrUpdateDataSetWriterEntryAsync(
+                It.IsAny<PublishedNodesEntryModel>(), It.IsAny<CancellationToken>()))
+                .Throws<BadRequestException>();
+            createCall.Verifiable(Times.Once);
+            var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = true,
+                    StopAtFirstFoundInstance = false,
+                    NoSubTypesOfTypeNodes = false,
+                    CreateSingleWriter = true
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            var result = Assert.Single(results);
+
+            Assert.NotNull(result.ErrorInfo);
+            Assert.Equal(StatusCodes.BadInvalidArgument, result.ErrorInfo.StatusCode);
+            Assert.NotNull(result.Result);
+            Assert.NotNull(result.Result.OpcNodes);
+            Assert.Equal(623, result.Result.OpcNodes.Count);
+
+            _publishedNodesServices.Verify();
+            _publishedNodesServices.VerifyNoOtherCalls();
+        }
+
         public async Task ConfigureFromObjectWithBrowsePathTest1Async(CancellationToken ct = default)
         {
             var entry = _connection.ToPublishedNodesEntry();
@@ -753,20 +861,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
         }
-
-        //
-        //  7. Object and maxdepth 0 -> max depth 1
-        //  7b.Object and stop first found -> organizes is used
-        //
-        //  8. Object type with stop first found set uses organizes
-        //
-        //
-        //  Case config:
-        //  Mock configuration writer "CreateOrUpdateDataSetWriterEntryAsync"
-        //
-        //  1. Duplicate writer will override
-        //  2. Save error will return error for entry
-        //  3. Only good entries passed.
 
         private readonly ConnectionModel _connection;
         private readonly Mock<IPublishedNodesServices> _publishedNodesServices;

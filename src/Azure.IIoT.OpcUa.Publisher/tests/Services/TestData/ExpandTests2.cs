@@ -34,6 +34,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         private readonly ITestOutputHelper _output;
 
         [Fact]
+        public Task ConfigureFromObjectErrorTest1Async()
+        {
+            return GetTests().ConfigureFromObjectErrorTest1Async();
+        }
+
+        [Fact]
+        public Task ConfigureFromObjectErrorTest2Async()
+        {
+            return GetTests().ConfigureFromObjectErrorTest2Async();
+        }
+
+        [Fact]
+        public Task ConfigureFromObjectErrorTest3Async()
+        {
+            return GetTests().ConfigureFromObjectErrorTest3Async();
+        }
+
+        [Fact]
         public Task ConfigureFromObjectWithBrowsePathTest1Async()
         {
             return GetTests().ConfigureFromObjectWithBrowsePathTest1Async();
