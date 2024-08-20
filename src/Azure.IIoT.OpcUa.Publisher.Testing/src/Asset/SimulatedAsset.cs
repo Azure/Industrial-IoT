@@ -58,6 +58,6 @@ namespace Asset
             // Nothing to do
         }
 
-        private readonly ConcurrentDictionary<string, float> _values = new ();
+        private readonly ConcurrentDictionary<Uri, float> _values = new ();
     }
 }

@@ -38,15 +38,41 @@ namespace Asset
     using System.Diagnostics.CodeAnalysis;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Asset interface
+    /// </summary>
     public interface IAsset : IDisposable
     {
+        /// <summary>
+        /// Read from the asset tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         ServiceResult Read(AssetTag tag, ref object? value);
+
+        /// <summary>
+        /// Write to the asset tag
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         ServiceResult Write(AssetTag tag, ref object value);
     }
 
+    /// <summary>
+    /// Creates assets
+    /// </summary>
     public interface IAssetFactory
     {
-        public abstract static bool TryConnect(Uri tdBase, ILogger logger,
-            [NotNullWhen(true)] out IAsset? asset);
+        /// <summary>
+        /// Try connect
+        /// </summary>
+        /// <param name="tdBase"></param>
+        /// <param name="logger"></param>
+        /// <param name="asset"></param>
+        /// <returns></returns>
+        public abstract static bool TryConnect(Uri tdBase,
+            ILogger logger, [NotNullWhen(true)] out IAsset? asset);
     }
 }

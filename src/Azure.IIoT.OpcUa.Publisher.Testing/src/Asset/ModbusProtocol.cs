@@ -41,7 +41,7 @@ namespace Asset
     internal static class ModbusProtocol
     {
         /// <summary>
-        /// Encapsulate mbap header
+        /// Encapsulate MODBUS Application Protocol header
         /// </summary>
         /// <param name="TransactionId"></param>
         /// <param name="UnitId"></param>
@@ -232,6 +232,7 @@ namespace Asset
             ref ReadOnlySequence<byte> reader, ushort outputAddress, ReadOnlySpan<byte> outputValue,
             ref ServiceResult error)
         {
+            Debug.Assert(writer != null);
             ArgumentOutOfRangeException.ThrowIfLessThan(outputValue.Length, 1);
             var onOff = outputValue[0] != 0 ? (ushort)0xFF00 : (ushort)0x0;
             return TryReadEchoResponse(ModbusFunction.WriteSingleCoil, ref reader,
@@ -254,6 +255,7 @@ namespace Asset
             ref ReadOnlySequence<byte> response, ushort outputAddress, ushort quantityOfOutputs,
             ref ServiceResult error)
         {
+            Debug.Assert(writer != null);
             return TryReadEchoResponse(ModbusFunction.WriteMultipleCoils, ref response,
                 outputAddress, quantityOfOutputs, ref error);
         }
@@ -287,6 +289,7 @@ namespace Asset
             ref ReadOnlySequence<byte> response, ushort outputAddress, ReadOnlySpan<byte> outputValue,
             ref ServiceResult error)
         {
+            Debug.Assert(writer != null);
             var value = BitConverter.ToUInt16(outputValue);
             return TryReadEchoResponse(ModbusFunction.WriteSingleHoldingRegister, ref response,
                 outputAddress, value, ref error);
@@ -324,6 +327,7 @@ namespace Asset
             ref ReadOnlySequence<byte> response, ushort outputAddress, ushort quantityOfRegisters,
             ref ServiceResult error)
         {
+            Debug.Assert(writer != null);
             return TryReadEchoResponse(ModbusFunction.WriteMultipleHoldingRegisters, ref response,
                 outputAddress, quantityOfRegisters, ref error);
         }
@@ -424,18 +428,20 @@ namespace Asset
         /// <param name="function"></param>
         /// <param name="mbap"></param>
         /// <param name="startingAddress"></param>
-        /// <param name="quantity"></param>
+        /// <param name="quantityOrOutputValue"></param>
         /// <param name="writer"></param>
         private static void EncodeSimpleRequest(ModbusFunction function,
-            Mbap mbap, ushort startingAddress, ushort quantity,
+            Mbap mbap, ushort startingAddress, ushort quantityOrOutputValue,
             IBufferWriter<byte> writer)
         {
             const int length = Mbap.Length + 5;
             Span<byte> adu = writer.GetSpan(length);
 
-            var request = adu[Mbap.Length..5];
+            var request = adu.Slice(Mbap.Length, 5);
             WriteMbap(mbap, request.Length, adu);
-            WriteRequestHeader(function, startingAddress, quantity, request);
+            WriteRequestHeader(function, startingAddress, quantityOrOutputValue,
+                request);
+
             writer.Advance(length);
         }
 
@@ -446,19 +452,19 @@ namespace Asset
         /// <param name="mbap"></param>
         /// <param name="startingAddress"></param>
         /// <param name="quantity"></param>
-        /// <param name="bits"></param>
+        /// <param name="bitBuffer"></param>
         /// <param name="writer"></param>
         private static void EncodeWriteBitRequest(ModbusFunction function,
-            Mbap mbap, ushort startingAddress, ushort quantity, ReadOnlySpan<byte> bits,
-            IBufferWriter<byte> writer)
+            Mbap mbap, ushort startingAddress, ushort quantity,
+            ReadOnlySpan<byte> bitBuffer, IBufferWriter<byte> writer)
         {
-            var length = Mbap.Length + 6 + bits.Length;
+            var length = Mbap.Length + 6 + bitBuffer.Length;
             Span<byte> adu = writer.GetSpan(length);
 
-            var request = adu[Mbap.Length..(length - Mbap.Length)];
+            var request = adu.Slice(Mbap.Length, length - Mbap.Length);
             WriteRequestHeader(function, startingAddress, quantity, request);
-            request[5] = (byte)bits.Length;
-            bits.CopyTo(request[6..]);
+            request[5] = (byte)bitBuffer.Length;
+            bitBuffer.CopyTo(request[6..]);
             WriteMbap(mbap, request.Length, adu);
             writer.Advance(length);
         }
@@ -479,7 +485,7 @@ namespace Asset
             var length = Mbap.Length + 6 + words.Length;
             Span<byte> adu = writer.GetSpan(length);
 
-            var request = adu[Mbap.Length..(length - Mbap.Length)];
+            var request = adu.Slice(Mbap.Length, length - Mbap.Length);
             WriteRequestHeader(function, startingAddress, quantity, request);
             request[5] = (byte)words.Length;
 
@@ -634,7 +640,8 @@ namespace Asset
             Debug.Assert(buffer.Length >= Mbap.Length);
             BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(0, 2), mbap.TransactionId);
             BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(2, 2), mbap.ProtocolId);
-            BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(4, 2), (ushort)length);
+            // length is the number of bytes following this field which includes unitid
+            BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(4, 2), (ushort)(length + 1));
             buffer[6] = mbap.UnitId;
         }
 

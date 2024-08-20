@@ -68,17 +68,6 @@ namespace Asset
                 "http://opcfoundation.org/UA/EdgeTranslator/"
             };
 
-            // log into UA Cloud Library and download available namespaces
-            _uacloudLibraryUrl = Environment.GetEnvironmentVariable("UACLURL");
-            _uacloudLibraryClient = new UACloudLibraryClient(_logger);
-
-            if (_uacloudLibraryUrl != null)
-            {
-                _uacloudLibraryClient.Login(_uacloudLibraryUrl,
-                    Environment.GetEnvironmentVariable("UACLUsername"),
-                    Environment.GetEnvironmentVariable("UACLPassword"));
-            }
-
             LoadNamespaceUrisFromEmbeddedNodesetXml(namespaceUris);
 
             // add a seperate namespace for each asset from the WoT TD files
@@ -125,7 +114,6 @@ namespace Asset
 
                     _fileManagers.Clear();
                     _assetManagement.Dispose();
-                    _uacloudLibraryClient.Dispose();
                 }
             }
             base.Dispose(disposing);
@@ -145,9 +133,11 @@ namespace Asset
                 // in the create address space call, we add all our nodes
 
                 IList<IReference>? objectsFolderReferences = null;
-                if (!externalReferences.TryGetValue(Opc.Ua.ObjectIds.ObjectsFolder, out objectsFolderReferences))
+                if (!externalReferences.TryGetValue(Opc.Ua.ObjectIds.ObjectsFolder,
+                    out objectsFolderReferences))
                 {
-                    externalReferences[Opc.Ua.ObjectIds.ObjectsFolder] = objectsFolderReferences = new List<IReference>();
+                    externalReferences[Opc.Ua.ObjectIds.ObjectsFolder]
+                        = objectsFolderReferences = new List<IReference>();
                 }
 
                 AddNodesFromNodesetXml("Opc.Ua.WotCon.NodeSet2.xml");
@@ -164,7 +154,8 @@ namespace Asset
 #pragma warning disable CA2000 // Dispose objects before losing scope
                         if (!CreateAssetNode(fileName, out var assetNode))
                         {
-                            throw ServiceResultException.Create(StatusCodes.BadConfigurationError, "Asset already exists");
+                            throw ServiceResultException.Create(
+                                StatusCodes.BadConfigurationError, "Asset already exists");
                         }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -185,46 +176,65 @@ namespace Asset
         private void AddNodesForAssetManagement(IList<IReference> objectsFolderReferences)
         {
             var WoTConNamespaceIndex = (ushort)Server.NamespaceUris.GetIndex(Namespaces.WoT_Con);
-
-            var assetManagementPassiveNode = (BaseObjectState)FindPredefinedNode(new NodeId(Objects.WoTAssetConnectionManagement, WoTConNamespaceIndex), typeof(BaseObjectState));
+            var assetManagementPassiveNode = (BaseObjectState)FindPredefinedNode(
+                new NodeId(Objects.WoTAssetConnectionManagement, WoTConNamespaceIndex),
+                typeof(BaseObjectState));
             _assetManagement.Create(SystemContext, assetManagementPassiveNode);
 
-            var createAssetPassiveNode = (MethodState)FindPredefinedNode(new NodeId(Methods.WoTAssetConnectionManagement_CreateAsset, WoTConNamespaceIndex), typeof(MethodState));
+            var createAssetPassiveNode = (MethodState)FindPredefinedNode(
+                new NodeId(Methods.WoTAssetConnectionManagement_CreateAsset,
+                WoTConNamespaceIndex), typeof(MethodState));
             _assetManagement.CreateAsset = new(null);
             _assetManagement.CreateAsset.Create(SystemContext, createAssetPassiveNode);
-            _assetManagement.CreateAsset.OnCall = new CreateAssetMethodStateMethodCallHandler(OnCreateAsset);
+            _assetManagement.CreateAsset.OnCall =
+                new CreateAssetMethodStateMethodCallHandler(OnCreateAsset);
 
-            var createAssetInputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(new NodeId(Variables.WoTAssetConnectionManagementType_CreateAsset_InputArguments, WoTConNamespaceIndex), typeof(BaseVariableState));
+            var createAssetInputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(
+                new NodeId(Variables.WoTAssetConnectionManagementType_CreateAsset_InputArguments,
+                WoTConNamespaceIndex), typeof(BaseVariableState));
             _assetManagement.CreateAsset.InputArguments = new(null);
-            _assetManagement.CreateAsset.InputArguments.Create(SystemContext, createAssetInputArgumentsPassiveNode);
+            _assetManagement.CreateAsset.InputArguments.Create(SystemContext,
+                createAssetInputArgumentsPassiveNode);
 
-            var createAssetOutputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(new NodeId(Variables.WoTAssetConnectionManagementType_CreateAsset_OutputArguments, WoTConNamespaceIndex), typeof(BaseVariableState));
+            var createAssetOutputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(
+                new NodeId(Variables.WoTAssetConnectionManagementType_CreateAsset_OutputArguments,
+                WoTConNamespaceIndex), typeof(BaseVariableState));
             _assetManagement.CreateAsset.OutputArguments = new(null);
-            _assetManagement.CreateAsset.OutputArguments.Create(SystemContext, createAssetOutputArgumentsPassiveNode);
+            _assetManagement.CreateAsset.OutputArguments.Create(SystemContext,
+                createAssetOutputArgumentsPassiveNode);
 
-            var deleteAssetPassiveNode = (MethodState)FindPredefinedNode(new NodeId(Methods.WoTAssetConnectionManagement_DeleteAsset, WoTConNamespaceIndex), typeof(MethodState));
+            var deleteAssetPassiveNode = (MethodState)FindPredefinedNode(
+                new NodeId(Methods.WoTAssetConnectionManagement_DeleteAsset,
+                WoTConNamespaceIndex), typeof(MethodState));
             _assetManagement.DeleteAsset = new(null);
             _assetManagement.DeleteAsset.Create(SystemContext, deleteAssetPassiveNode);
-            _assetManagement.DeleteAsset.OnCall = new DeleteAssetMethodStateMethodCallHandler(OnDeleteAsset);
+            _assetManagement.DeleteAsset.OnCall =
+                new DeleteAssetMethodStateMethodCallHandler(OnDeleteAsset);
 
-            var deleteAssetInputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(new NodeId(Variables.WoTAssetConnectionManagementType_DeleteAsset_InputArguments, WoTConNamespaceIndex), typeof(BaseVariableState));
+            var deleteAssetInputArgumentsPassiveNode = (BaseVariableState)FindPredefinedNode(
+                new NodeId(Variables.WoTAssetConnectionManagementType_DeleteAsset_InputArguments,
+                WoTConNamespaceIndex), typeof(BaseVariableState));
             _assetManagement.DeleteAsset.InputArguments = new(null);
-            _assetManagement.DeleteAsset.InputArguments.Create(SystemContext, deleteAssetInputArgumentsPassiveNode);
+            _assetManagement.DeleteAsset.InputArguments.Create(SystemContext,
+                deleteAssetInputArgumentsPassiveNode);
 
             // create a variable listing our supported WoT protocol bindings
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            CreateVariable(_assetManagement, "SupportedWoTBindings", new ExpandedNodeId(DataTypes.UriString), WoTConNamespaceIndex, new [] {
-                "https://www.w3.org/2019/wot/modbus",
-                "https://www.w3.org/2019/wot/opcua",
-                "https://www.w3.org/2019/wot/s7",
-                "https://www.w3.org/2019/wot/mcp",
-                "https://www.w3.org/2019/wot/eip",
-                "https://www.w3.org/2019/wot/ads"
-            });
+            CreateVariable(_assetManagement, "SupportedWoTBindings",
+                new ExpandedNodeId(DataTypes.UriString), WoTConNamespaceIndex, new []
+                {
+                    "https://www.w3.org/2019/wot/modbus",
+                    "https://www.w3.org/2019/wot/opcua",
+                    "https://www.w3.org/2019/wot/s7",
+                    "https://www.w3.org/2019/wot/mcp",
+                    "https://www.w3.org/2019/wot/eip",
+                    "https://www.w3.org/2019/wot/ads"
+                });
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
             // add everything to our server namespace
-            objectsFolderReferences.Add(new NodeStateReference(Opc.Ua.ReferenceTypes.Organizes, false, _assetManagement.NodeId));
+            objectsFolderReferences.Add(new NodeStateReference(Opc.Ua.ReferenceTypes.Organizes,
+                false, _assetManagement.NodeId));
             AddPredefinedNode(SystemContext, _assetManagement);
         }
 
@@ -251,8 +261,10 @@ namespace Asset
                 {
                     // support local Nodesets
                     if (!opcuaCompanionSpecUrl.IsAbsoluteUri ||
-                            (!opcuaCompanionSpecUrl.AbsoluteUri.Contains("http://", StringComparison.InvariantCulture) &&
-                             !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://", StringComparison.InvariantCulture)))
+                            (!opcuaCompanionSpecUrl.AbsoluteUri.Contains("http://",
+                                StringComparison.InvariantCulture) &&
+                             !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://",
+                                StringComparison.InvariantCulture)))
                     {
                         var nodesetFile = string.Empty;
                         if (Path.IsPathFullyQualified(opcuaCompanionSpecUrl.OriginalString))
@@ -263,36 +275,12 @@ namespace Asset
                         else
                         {
                             // relative file path
-                            nodesetFile = Path.Combine(Directory.GetCurrentDirectory(), opcuaCompanionSpecUrl.OriginalString);
+                            nodesetFile = Path.Combine(Directory.GetCurrentDirectory(),
+                                opcuaCompanionSpecUrl.OriginalString);
                         }
 
                         _logger.LogInformation("Loading nodeset from local file {File}", nodesetFile);
                         LoadNamespaceUrisFromNodesetXml(namespaceUris, nodesetFile);
-                    }
-                    else if (_uacloudLibraryUrl != null)
-                    {
-                        if (_uacloudLibraryClient.DownloadNamespace(_uacloudLibraryUrl, opcuaCompanionSpecUrl.OriginalString))
-                        {
-                            _logger.LogInformation("Loaded nodeset from Cloud Library {Url}: ", opcuaCompanionSpecUrl);
-
-                            foreach (var nodesetFile in _uacloudLibraryClient.NodeSetFilenames)
-                            {
-                                LoadNamespaceUrisFromNodesetXml(namespaceUris, nodesetFile);
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Could not load nodeset {NodeSet}", opcuaCompanionSpecUrl.OriginalString);
-                        }
-                    }
-                }
-
-                if (_uacloudLibraryUrl != null)
-                {
-                    var validationError = _uacloudLibraryClient.ValidateNamespacesAndModels(_uacloudLibraryUrl, true);
-                    if (!string.IsNullOrEmpty(validationError))
-                    {
-                        _logger.LogError("{Error}", validationError);
                     }
                 }
             }
@@ -301,14 +289,6 @@ namespace Asset
         private void AddNodesFromCompanionSpecs(ThingDescription td)
         {
             ArgumentNullException.ThrowIfNull(td.Context);
-            // we need as many passes as we have nodesetfiles to make sure all references can be resolved
-            for (var i = 0; i < _uacloudLibraryClient.NodeSetFilenames.Count; i++)
-            {
-                foreach (var nodesetFile in _uacloudLibraryClient.NodeSetFilenames)
-                {
-                    AddNodesFromNodesetXml(nodesetFile);
-                }
-            }
 
             foreach (var ns in td.Context)
             {
@@ -328,8 +308,10 @@ namespace Asset
                 {
                     // support local Nodesets
                     if (!opcuaCompanionSpecUrl.IsAbsoluteUri
-                        || (!opcuaCompanionSpecUrl.AbsoluteUri.Contains("http://", StringComparison.InvariantCulture) &&
-                            !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://", StringComparison.InvariantCulture)))
+                        || (!opcuaCompanionSpecUrl.AbsoluteUri.Contains("http://",
+                                StringComparison.InvariantCulture) &&
+                            !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://",
+                                StringComparison.InvariantCulture)))
                     {
                         var nodesetFile = string.Empty;
                         if (Path.IsPathFullyQualified(opcuaCompanionSpecUrl.OriginalString))
@@ -340,7 +322,8 @@ namespace Asset
                         else
                         {
                             // relative file path
-                            nodesetFile = Path.Combine(Directory.GetCurrentDirectory(), opcuaCompanionSpecUrl.OriginalString);
+                            nodesetFile = Path.Combine(Directory.GetCurrentDirectory(),
+                                opcuaCompanionSpecUrl.OriginalString);
                         }
 
                         _logger.LogInformation("Adding node set from local nodeset file");
@@ -350,7 +333,8 @@ namespace Asset
             }
         }
 
-        private static void LoadNamespaceUrisFromNodesetXml(List<string> namespaceUris, string nodesetFile)
+        private static void LoadNamespaceUrisFromNodesetXml(List<string> namespaceUris,
+            string nodesetFile)
         {
             using (FileStream stream = new(nodesetFile, FileMode.Open, FileAccess.Read))
             {
@@ -372,7 +356,8 @@ namespace Asset
         private void LoadNamespaceUrisFromEmbeddedNodesetXml(List<string> namespaceUris)
         {
             var type = GetType().GetTypeInfo();
-            var resourcePath = $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespace}.NodeSet2.xml";
+            var resourcePath =
+$"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespace}.NodeSet2.xml";
             Stream? istrm = type.Assembly.GetManifestResourceStream(resourcePath);
             if (istrm != null)
             {
@@ -427,16 +412,13 @@ namespace Asset
             }
         }
 
-        private ServiceResult OnCreateAsset(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            string assetName,
-            ref NodeId assetId)
+        private ServiceResult OnCreateAsset(ISystemContext _context, MethodState _method,
+            NodeId _objectId, string assetName, ref NodeId assetId)
         {
             if (string.IsNullOrEmpty(assetName))
             {
-                return ServiceResult.Create(StatusCodes.BadInvalidArgument, "Argument invalid");
+                return ServiceResult.Create(StatusCodes.BadInvalidArgument,
+                    "Argument invalid");
             }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -456,16 +438,8 @@ namespace Asset
             lock (Lock)
             {
                 // check if the asset node already exists
-                var browser = _assetManagement.CreateBrowser(
-                    SystemContext,
-                    null,
-                    null,
-                    false,
-                    BrowseDirection.Forward,
-                    null,
-                    null,
-                    true);
-
+                var browser = _assetManagement.CreateBrowser(SystemContext, null,
+                    null, false, BrowseDirection.Forward, null, null, true);
                 var reference = browser.Next();
                 while ((reference != null) && (reference is NodeStateReference))
                 {
@@ -483,7 +457,6 @@ namespace Asset
                 asset.Create(SystemContext, new NodeId(), new QualifiedName(assetName), null, true);
 
                 _assetManagement.AddChild(asset);
-
                 _fileManagers.Add(asset.NodeId, new FileManager(this, asset.WoTFile, _logger));
 
                 AddPredefinedNode(SystemContext, asset);
@@ -493,11 +466,8 @@ namespace Asset
             }
         }
 
-        private ServiceResult OnDeleteAsset(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            NodeId assetId)
+        private ServiceResult OnDeleteAsset(ISystemContext _context, MethodState _method,
+            NodeId _objectId, NodeId assetId)
         {
             lock (Lock)
             {
@@ -598,13 +568,15 @@ namespace Asset
                             var formString = form?.ToString();
                             if (formString != null)
                             {
-                                AddNodeForWoTForm(parent, td, property, formString, assetId);
+                                AddNodeForWoTForm(parent, td, property,
+                                    formString, assetId);
                             }
                         }
                     }
                 }
             }
-            _logger.LogInformation("Successfully parsed WoT file for asset: {AssetId}", assetId);
+            _logger.LogInformation("Successfully parsed WoT file for asset: {AssetId}",
+                assetId);
         }
 
         private void AddNodeForWoTForm(NodeState assetFolder, ThingDescription td,
@@ -657,14 +629,14 @@ namespace Asset
             {
                 // create an asset tag and add to our list
                 var modbusForm = JsonConvert.DeserializeObject<ModbusForm>(form);
-                if (modbusForm?.Href != null && Uri.TryCreate(modbusForm.Href, UriKind.Absolute, out var address))
+                if (modbusForm?.Href != null &&
+                    Uri.TryCreate(modbusForm.Href, UriKind.Absolute, out var address))
                 {
                     var tag = new AssetTag<ModbusForm>()
                     {
                         Form = modbusForm,
                         Name = variableId,
                         Address = address,
-                        Type = modbusForm.PayloadType.ToString(),
                         MappedUAExpandedNodeID = NodeId.ToExpandedNodeId(
                             _uaVariables[variableId].NodeId, Server.NamespaceUris).ToString(),
                         MappedUAFieldPath = fieldPath
@@ -679,14 +651,14 @@ namespace Asset
             {
                 // create an asset tag and add to our list
                 var genform = JsonConvert.DeserializeObject<GenericForm>(form);
-                if (genform?.Href != null && Uri.TryCreate(genform.Href, UriKind.Absolute, out var address))
+                if (genform?.Href != null &&
+                    Uri.TryCreate(genform.Href, UriKind.Absolute, out var address))
                 {
                     var tag = new AssetTag<GenericForm>()
                     {
                         Form = genform,
                         Name = variableId,
                         Address = address,
-                        Type = "Float",
                         MappedUAExpandedNodeID = NodeId.ToExpandedNodeId(
                             _uaVariables[variableId].NodeId, Server.NamespaceUris).ToString(),
                         MappedUAFieldPath = fieldPath
@@ -774,7 +746,8 @@ namespace Asset
             return variable;
         }
 
-        private ServiceResult OnSimpleReadValue(ISystemContext context, NodeState node, ref object? value)
+        private ServiceResult OnSimpleReadValue(ISystemContext context, NodeState node,
+            ref object? value)
         {
             if (!TryGetBinding(node, out var assetInterface, out var assetTag))
             {
@@ -783,7 +756,8 @@ namespace Asset
             return assetInterface.Read(assetTag, ref value);
         }
 
-        private ServiceResult OnSimpleWriteValue(ISystemContext context, NodeState node, ref object value)
+        private ServiceResult OnSimpleWriteValue(ISystemContext context, NodeState node,
+            ref object value)
         {
             if (!TryGetBinding(node, out var assetInterface, out var assetTag))
             {
@@ -812,8 +786,6 @@ namespace Asset
         private readonly Dictionary<string, BaseDataVariableState> _uaVariables = new();
         private readonly Dictionary<string, IAsset> _assets = new();
         private readonly Dictionary<string, Dictionary<string, AssetTag>> _tags = new();
-        private readonly string? _uacloudLibraryUrl;
-        private readonly UACloudLibraryClient _uacloudLibraryClient;
         private readonly Dictionary<NodeId, FileManager> _fileManagers = new();
         private readonly ILogger _logger;
         private readonly string _folder;

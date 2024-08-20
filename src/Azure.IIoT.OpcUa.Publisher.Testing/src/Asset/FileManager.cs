@@ -61,13 +61,20 @@ namespace Asset
                 _file.MaxByteStringLength.Value = UInt16.MaxValue;
             }
 
-            _file.Open.OnCall = new OpenMethodStateMethodCallHandler(OnOpen);
-            _file.Close.OnCall = new CloseMethodStateMethodCallHandler(OnClose);
-            _file.Read.OnCall = new ReadMethodStateMethodCallHandler(OnRead);
-            _file.Write.OnCall = new WriteMethodStateMethodCallHandler(OnWrite);
-            _file.GetPosition.OnCall = new GetPositionMethodStateMethodCallHandler(OnGetPosition);
-            _file.SetPosition.OnCall = new SetPositionMethodStateMethodCallHandler(OnSetPosition);
-            _file.CloseAndUpdate.OnCall = new CloseAndUpdateMethodStateMethodCallHandler(OnCloseAndUpdate);
+            _file.Open.OnCall =
+                new OpenMethodStateMethodCallHandler(OnOpen);
+            _file.Close.OnCall =
+                new CloseMethodStateMethodCallHandler(OnClose);
+            _file.Read.OnCall =
+                new ReadMethodStateMethodCallHandler(OnRead);
+            _file.Write.OnCall =
+                new WriteMethodStateMethodCallHandler(OnWrite);
+            _file.GetPosition.OnCall =
+                new GetPositionMethodStateMethodCallHandler(OnGetPosition);
+            _file.SetPosition.OnCall =
+                new SetPositionMethodStateMethodCallHandler(OnSetPosition);
+            _file.CloseAndUpdate.OnCall =
+                new CloseAndUpdateMethodStateMethodCallHandler(OnCloseAndUpdate);
         }
 
         public void Dispose()
@@ -90,22 +97,21 @@ namespace Asset
             {
                 if (!_handles.TryGetValue(fileHandle, out var handle))
                 {
-                    throw new ServiceResultException(StatusCodes.BadInvalidArgument);
+                    throw new ServiceResultException(
+                        StatusCodes.BadInvalidArgument);
                 }
 
                 if (handle.SessionId != _context.SessionId)
                 {
-                    throw new ServiceResultException(StatusCodes.BadUserAccessDenied);
+                    throw new ServiceResultException(
+                        StatusCodes.BadUserAccessDenied);
                 }
                 return handle;
             }
         }
 
-        private ServiceResult OnOpen(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            byte mode,
+        private ServiceResult OnOpen(ISystemContext _context,
+            MethodState _method, NodeId _objectId, byte mode,
             ref uint fileHandle)
         {
             if (mode != 1 && mode != 6)
@@ -125,7 +131,8 @@ namespace Asset
                     return StatusCodes.BadInvalidState;
                 }
 
-                var handle = new Handle(_context.SessionId, new MemoryStream(), mode == 6);
+                var handle = new Handle(_context.SessionId,
+                    new MemoryStream(), mode == 6);
 
                 if (mode == 6)
                 {
@@ -142,11 +149,8 @@ namespace Asset
             return ServiceResult.Good;
         }
 
-        private ServiceResult OnGetPosition(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            uint fileHandle,
+        private ServiceResult OnGetPosition(ISystemContext _context,
+            MethodState _method, NodeId _objectId, uint fileHandle,
             ref ulong position)
         {
             var handle = Find(_context, fileHandle);
@@ -154,11 +158,8 @@ namespace Asset
             return ServiceResult.Good;
         }
 
-        private ServiceResult OnSetPosition(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            uint fileHandle,
+        private ServiceResult OnSetPosition(ISystemContext _context,
+            MethodState _method, NodeId _objectId, uint fileHandle,
             ulong position)
         {
             var handle = Find(_context, fileHandle);
@@ -166,13 +167,9 @@ namespace Asset
             return ServiceResult.Good;
         }
 
-        private ServiceResult OnRead(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            uint fileHandle,
-            int length,
-            ref byte[] data)
+        private ServiceResult OnRead(ISystemContext _context,
+            MethodState _method, NodeId _objectId, uint fileHandle,
+            int length, ref byte[] data)
         {
             lock (_handles)
             {
@@ -235,12 +232,14 @@ namespace Asset
             {
                 if (!_handles.TryGetValue(fileHandle, out handle))
                 {
-                    return ServiceResult.Create(StatusCodes.BadInvalidArgument, "Bad file handle");
+                    return ServiceResult.Create(StatusCodes.BadInvalidArgument,
+                        "Bad file handle");
                 }
 
                 if (handle.SessionId != _context.SessionId)
                 {
-                    return ServiceResult.Create(StatusCodes.BadUserAccessDenied, "Bad sessionid");
+                    return ServiceResult.Create(StatusCodes.BadUserAccessDenied,
+                        "Bad sessionid");
                 }
 
                 _writing = false;
@@ -254,11 +253,8 @@ namespace Asset
             return ServiceResult.Good;
         }
 
-        private ServiceResult OnCloseAndUpdate(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            uint fileHandle)
+        private ServiceResult OnCloseAndUpdate(ISystemContext _context,
+            MethodState _method, NodeId _objectId, uint fileHandle)
         {
             Handle? handle;
 
@@ -301,7 +297,8 @@ namespace Asset
                 handle.Stream.Dispose();
             }
         }
-        private sealed record class Handle(NodeId SessionId, MemoryStream Stream, bool Writing)
+        private sealed record class Handle(NodeId SessionId,
+            MemoryStream Stream, bool Writing)
         {
             public uint Position { get; set; }
         }

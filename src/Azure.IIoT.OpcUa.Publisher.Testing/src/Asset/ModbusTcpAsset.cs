@@ -128,7 +128,7 @@ namespace Asset
             {
                 var tagBytes = ReadAsync(function, registerAddress, quantity, timeout)
                     .GetAwaiter().GetResult();
-                return ToObject(tagBytes, form, ref value);
+                return form.ToObject(tagBytes, ref value);
             }
             catch (ServiceResultException sre)
             {
@@ -189,65 +189,12 @@ namespace Asset
             try
             {
                 WriteAsync(function.Value, registerAddress, quantity, timeout,
-                    ToBuffer(value, form)).GetAwaiter().GetResult();
+                    form.ToBuffer(value)).GetAwaiter().GetResult();
                 return ServiceResult.Good;
             }
             catch (ServiceResultException sre)
             {
                 return sre.Result;
-            }
-        }
-
-        private static ReadOnlyMemory<byte> ToBuffer(object value, ModbusForm form)
-        {
-            switch (form.PayloadType)
-            {
-                case ModbusType.Xsdfloat:
-                    return BitConverter.GetBytes((float)value);
-                case ModbusType.Xsdinteger:
-                case ModbusType.Xsdboolean:
-                case ModbusType.Xsdstring:
-                case ModbusType.Xsddecimal:
-                case ModbusType.Xsdbyte:
-                case ModbusType.Xsdshort:
-                case ModbusType.Xsdint:
-                case ModbusType.Xsdlong:
-                case ModbusType.XsdunsignedByte:
-                case ModbusType.XsdunsignedShort:
-                case ModbusType.XsdunsignedInt:
-                case ModbusType.XsdunsignedLong:
-                case ModbusType.Xsddouble:
-                case ModbusType.XsdhexBinary:
-                default:
-                    throw ServiceResultException.Create(StatusCodes.BadNotReadable,
-                        "Invalid data type");
-            }
-        }
-
-        private static ServiceResult ToObject(ReadOnlyMemory<byte> buffer,
-            ModbusForm form,ref object? value)
-        {
-            switch (form.PayloadType)
-            {
-                case ModbusType.Xsdfloat:
-                    value = BitConverter.ToSingle(buffer.Span);
-                    return ServiceResult.Good;
-                case ModbusType.Xsdinteger:
-                case ModbusType.Xsdboolean:
-                case ModbusType.Xsdstring:
-                case ModbusType.Xsddecimal:
-                case ModbusType.Xsdbyte:
-                case ModbusType.Xsdshort:
-                case ModbusType.Xsdint:
-                case ModbusType.Xsdlong:
-                case ModbusType.XsdunsignedByte:
-                case ModbusType.XsdunsignedShort:
-                case ModbusType.XsdunsignedInt:
-                case ModbusType.XsdunsignedLong:
-                case ModbusType.Xsddouble:
-                case ModbusType.XsdhexBinary:
-                default:
-                    return ServiceResult.Create(StatusCodes.BadNotReadable, "Invalid data type");
             }
         }
 
@@ -384,16 +331,15 @@ namespace Asset
             Debug.Assert(_lock.CurrentCount == 1,
                 "Reconnect should not be called concurrently");
             _tcpClient?.Dispose();
-            _tcpClient = new TcpClient(_address.IdnHost, _address.Port);
+            var port = _address.Port == 0 ? kIanaPort : _address.Port;
+            _tcpClient = new TcpClient(_address.IdnHost, port);
             var stream = _tcpClient.GetStream();
             _writer = PipeWriter.Create(stream);
             _reader = PipeReader.Create(stream);
         }
 
-        /// <summary>
-        /// Modbus uses long timeouts (10 seconds minimum)
-        /// </summary>
         private const int kDefaultQuantity = 1;
+        private const int kIanaPort = 502;
         // private const bool kDefaultZeroBaseAddressing = false;
         // private const bool kDefaultMostSignificantByte = true;
         // private const bool kDefaultMostSignificantWord = true;
@@ -401,8 +347,8 @@ namespace Asset
         private ushort _transactionID;
         private readonly byte _unitId;
         private readonly ILogger _logger;
-        private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly Uri _address;
+        private readonly SemaphoreSlim _lock = new(1, 1);
         private TcpClient? _tcpClient;
         private PipeReader? _reader;
         private PipeWriter? _writer;
