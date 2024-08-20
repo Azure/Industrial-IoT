@@ -5,42 +5,45 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
+    using Furly.Extensions.Logging;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
     using Opc.Ua.Test;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Sample server fixture
+    /// Asset server fixture
     /// </summary>
-    public class FileSystemServer : BaseServerFixture
+    public class AssetServer : BaseServerFixture
     {
         /// <summary>
         /// Sample server nodes
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="timeservice"></param>
-        public static IEnumerable<INodeManagerFactory> FileSystem(
+        public static IEnumerable<INodeManagerFactory> Asset(
             ILoggerFactory? factory, TimeService timeservice)
         {
-            yield return new FileSystem.FileSystemServer();
+            var logger = (factory ?? Log.ConsoleFactory())
+                .CreateLogger<Asset.AssetServer>();
+            yield return new Asset.AssetServer(logger);
         }
 
         /// <inheritdoc/>
-        public FileSystemServer() : base(FileSystem)
+        public AssetServer() : base(Asset)
         {
         }
 
         /// <inheritdoc/>
-        private FileSystemServer(ILoggerFactory loggerFactory)
-            : base(FileSystem, loggerFactory)
+        private AssetServer(ILoggerFactory loggerFactory)
+            : base(Asset, loggerFactory)
         {
         }
 
         /// <inheritdoc/>
-        public static FileSystemServer Create(ILoggerFactory loggerFactory)
+        public static AssetServer Create(ILoggerFactory loggerFactory)
         {
-            return new FileSystemServer(loggerFactory);
+            return new AssetServer(loggerFactory);
         }
     }
 }

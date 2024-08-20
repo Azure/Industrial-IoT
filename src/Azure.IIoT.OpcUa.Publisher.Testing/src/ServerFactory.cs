@@ -97,7 +97,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
                 new Plc.PlcServer(new TimeService(), logger, scaleunits),
-                new FileSystem.FileSystemServer()
+                new FileSystem.FileSystemServer(),
+                new Asset.AssetServer(logger)
                 // new PerfTest.PerfTestServer(),
             })
         {
