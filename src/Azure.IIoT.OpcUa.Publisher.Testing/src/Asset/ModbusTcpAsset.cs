@@ -9,16 +9,13 @@ namespace Asset
 {
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
-    using Opc.Ua.Security.Certificates;
     using System;
     using System.Buffers;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
-    using System.IO;
     using System.IO.Pipelines;
     using System.Net.Sockets;
-    using System.Reflection.PortableExecutable;
     using System.Threading;
     using System.Threading.Tasks;
 

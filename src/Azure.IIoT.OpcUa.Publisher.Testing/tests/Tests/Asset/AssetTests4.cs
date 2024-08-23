@@ -8,11 +8,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Moq;
-    using Moq.Language.Flow;
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;

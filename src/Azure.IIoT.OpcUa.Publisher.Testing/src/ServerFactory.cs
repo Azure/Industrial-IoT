@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;

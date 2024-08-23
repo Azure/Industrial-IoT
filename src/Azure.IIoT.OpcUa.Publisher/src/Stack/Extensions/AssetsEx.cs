@@ -9,14 +9,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
-    using Opc.Ua.Extensions;
     using System;
-    using System.Buffers;
-    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac.Features.Indexed;
 
     /// <summary>
     /// Asset and Web of things connectivity
@@ -194,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 };
             }
             return await session.CloseAsync(header, fileNodeId, new NodeId(
-                AssetFileType_CloseAndUpdate, (ushort)nsIndex), fileHandle, ct) .ConfigureAwait(false);
+                AssetFileType_CloseAndUpdate, (ushort)nsIndex), fileHandle, ct).ConfigureAwait(false);
         }
 
         /// <summary>

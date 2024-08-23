@@ -29,7 +29,6 @@
 
 namespace Asset
 {
-    using Alarms;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Server;

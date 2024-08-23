@@ -34,6 +34,7 @@ namespace Asset
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Opc.Ua;
+    using UANodeSet = Opc.Ua.Export.UANodeSet;
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
@@ -41,7 +42,6 @@ namespace Asset
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using UANodeSet = Opc.Ua.Export.UANodeSet;
 
     public class AssetNodeManager : CustomNodeManager2
     {

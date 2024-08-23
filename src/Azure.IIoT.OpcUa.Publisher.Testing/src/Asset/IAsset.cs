@@ -10,9 +10,7 @@ namespace Asset
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.Threading.Tasks;
 
     public delegate void OnAssetTagChange(AssetTag tag,
         object? value, StatusCode statusCode, DateTime timestamp);

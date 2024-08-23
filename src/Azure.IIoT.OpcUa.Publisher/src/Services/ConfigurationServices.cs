@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -23,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Reflection.PortableExecutable;
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading;

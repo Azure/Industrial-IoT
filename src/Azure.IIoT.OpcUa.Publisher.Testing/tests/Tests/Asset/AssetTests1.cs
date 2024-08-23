@@ -7,12 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Exceptions;
     using Moq;
     using Moq.Language.Flow;
-    using Opc.Ua;
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;

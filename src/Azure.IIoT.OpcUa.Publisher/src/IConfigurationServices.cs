@@ -6,9 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Threading;
 
     /// <summary>

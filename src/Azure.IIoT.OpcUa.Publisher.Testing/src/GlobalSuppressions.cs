@@ -880,3 +880,5 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Roslynator", "RCS1141:Add 'param' element to documentation comment", Justification = "<Pending>", Scope = "type", Target = "~T:Asset.CreateAssetMethodStateMethodCallHandler")]
 [assembly: SuppressMessage("Roslynator", "RCS1139:Add summary element to documentation comment", Justification = "<Pending>", Scope = "type", Target = "~T:Asset.DeleteAssetMethodStateMethodCallHandler")]
 [assembly: SuppressMessage("Roslynator", "RCS1141:Add 'param' element to documentation comment", Justification = "<Pending>", Scope = "type", Target = "~T:Asset.DeleteAssetMethodStateMethodCallHandler")]
+[assembly: SuppressMessage("Roslynator", "RCS1139:Add summary element to documentation comment", Justification = "<Pending>", Scope = "type", Target = "~T:Asset.Namespaces")]
+[assembly: SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "<Pending>", Scope = "member", Target = "~F:Asset.Namespaces.WoT_Con")]

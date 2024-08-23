@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.IO;
 
     /// <summary>
     /// <para>

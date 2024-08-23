@@ -8,11 +8,8 @@
 namespace Asset
 {
     using Opc.Ua;
-    using Opc.Ua.Server;
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading;
     using System.Xml;
     using TestData;

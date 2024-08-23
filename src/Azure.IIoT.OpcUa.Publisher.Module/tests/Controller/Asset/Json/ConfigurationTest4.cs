@@ -5,13 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Asset.Json
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
-    using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
-    using Microsoft.Extensions.Configuration;
+    using Autofac;
     using System;
     using System.IO;
     using System.Threading.Tasks;
