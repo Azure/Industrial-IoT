@@ -1,0 +1,287 @@
+{
+    "@context": [
+        "https://www.w3.org/2022/wot/td/v1.1"
+    ],
+    "id": "urn:sim3264",
+    "securityDefinitions": {
+        "nosec_sc": {
+            "scheme": "nosec"
+        }
+    },
+    "security": [
+        "nosec_sc"
+    ],
+    "@type": [
+        "Thing"
+    ],
+    "name": "sim-3264",
+    "base": "sim://simserver1:443",
+    "title": "Simulated Asset",
+    "properties": {
+        "VoltageL1-N": {
+            "type": "number",
+            "opcua:nodeId": "s=VoltageL-N",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "1",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "VoltageL2-N": {
+            "type": "number",
+            "opcua:nodeId": "s=VoltageL-N",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "3",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "VoltageL3-N": {
+            "type": "number",
+            "opcua:nodeId": "s=VoltageL-N",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "5",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "VoltageL1-L2": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "7",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "VoltageL2-L3": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "9",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "VoltageL3-L1": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "11",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "CurrentL1": {
+            "type": "number",
+            "opcua:nodeId": "s=Current",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "13",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "CurrentL2": {
+            "type": "number",
+            "opcua:nodeId": "s=Current",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "15",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "CurrentL3": {
+            "type": "number",
+            "opcua:nodeId": "s=Current",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "17",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "PowerFactorL1": {
+            "type": "number",
+            "opcua:nodeId": "s=PowerFactor",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "19",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "PowerFactorL2": {
+            "type": "number",
+            "opcua:nodeId": "s=PowerFactor",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "139",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "PowerFactorL3": {
+            "type": "number",
+            "opcua:nodeId": "s=PowerFactor",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "141",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "TotalApparentPower": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "63",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "TotalActivePower": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "65",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "TotalReactivePower": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "67",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        },
+        "TotalPowerFactor": {
+            "type": "number",
+            "readOnly": true,
+            "observable": true,
+            "forms": [
+                {
+                    "href": "69",
+                    "op": [
+                        "readproperty",
+                        "observeproperty"
+                    ],
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
+                }
+            ]
+        }
+    }
+}

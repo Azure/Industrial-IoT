@@ -159,12 +159,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async Task<ServiceResponse<Stream>> OpenWriteAsync(T endpoint,
-            FileSystemObjectModel file, FileWriteMode mode, CancellationToken ct)
+            FileSystemObjectModel file, FileOpenWriteOptionsModel? options, CancellationToken ct)
         {
             using var trace = _activitySource.StartActivity("OpenWrite");
             var header = new RequestHeaderModel();
             var (stream, errorInfo) = await FileTransferStream.OpenAsync(this,
-                endpoint, header, file, mode, ct).ConfigureAwait(false);
+                endpoint, header, file, options ?? new FileOpenWriteOptionsModel(),
+                ct).ConfigureAwait(false);
             return new ServiceResponse<Stream>
             {
                 ErrorInfo = errorInfo,
@@ -511,11 +512,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             /// <inheritdoc/>
             public override bool CanRead
-                => !_mode.HasValue && _fileHandle.HasValue;
+                => _options == null && _fileHandle.HasValue;
 
             /// <inheritdoc/>
             public override bool CanWrite
-                => _mode.HasValue && _fileHandle.HasValue;
+                => _options != null && _fileHandle.HasValue;
 
             /// <inheritdoc/>
             public override long Length
@@ -554,11 +555,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="fileHandle"></param>
             /// <param name="fileInfo"></param>
             /// <param name="bufferSize"></param>
-            /// <param name="mode"></param>
+            /// <param name="options"></param>
             public FileTransferStream(FileSystemServices<T> outer,
                 ISessionHandle handle, RequestHeaderModel header,
                 NodeId nodeId, uint fileHandle, FileInfoModel? fileInfo,
-                uint bufferSize, FileWriteMode? mode = null)
+                uint bufferSize, FileOpenWriteOptionsModel? options = null)
             {
                 _handle = handle;
                 _nodeId = nodeId;
@@ -567,9 +568,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _header = header;
                 _fileInfo = fileInfo;
                 _bufferSize = bufferSize;
-                _mode = mode;
+                _options = options;
 
-                if (mode == FileWriteMode.Append)
+                if (options?.Mode == FileWriteMode.Append)
                 {
                     Position = Length;
                 }
@@ -588,12 +589,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="endpoint"></param>
             /// <param name="header"></param>
             /// <param name="file"></param>
-            /// <param name="mode"></param>
+            /// <param name="options"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
             public static async Task<(Stream?, ServiceResultModel?)> OpenAsync(
                 FileSystemServices<T> outer, T endpoint, RequestHeaderModel header,
-                FileSystemObjectModel file, FileWriteMode? mode = null,
+                FileSystemObjectModel file, FileOpenWriteOptionsModel? options = null,
                 CancellationToken ct = default)
             {
                 var handle = await outer._client.AcquireSessionAsync(endpoint, header,
@@ -618,7 +619,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // There should be file info
                         return (null, errorInfo);
                     }
-                    if (mode != null && fileInfo?.Writable == false)
+                    if (options != null && fileInfo?.Writable == false)
                     {
                         return (null, new ServiceResultModel
                         {
@@ -628,15 +629,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
 
                     var bufferSize = fileInfo?.MaxBufferSize;
-                    if (bufferSize == null)
+                    if (bufferSize == null || bufferSize == 0)
                     {
-                        var caps = await handle.Session.GetServerCapabilitiesAsync(
-                            NamespaceFormat.Index, ct).ConfigureAwait(false);
-                        bufferSize = caps.OperationLimits.MaxByteStringLength;
+                        var caps = await handle.Session.GetOperationLimitsAsync(
+                            ct).ConfigureAwait(false);
+                        bufferSize = caps.MaxByteStringLength;
+                        if (bufferSize == null || bufferSize == 0)
+                        {
+                            bufferSize = 4096;
+                        }
                     }
 
                     var (fileHandle, errorInfo2) = await handle.Session.OpenAsync(
-                        header.ToRequestHeader(outer._timeProvider), nodeId, mode switch
+                        header.ToRequestHeader(outer._timeProvider), nodeId, options?.Mode switch
                         {
                             FileWriteMode.Create => 0x2 | 0x4, // Write bit plus erase
                             FileWriteMode.Append => 0x2 | 0x8, // Write bit plus append
@@ -651,7 +656,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Debug.Assert(fileHandle.HasValue);
                     closeHandle = null;
                     return (new FileTransferStream(outer, handle, header, nodeId,
-                        fileHandle.Value, fileInfo, bufferSize ?? 4096, mode), null);
+                        fileHandle.Value, fileInfo, bufferSize.Value, options), null);
                 }
                 finally
                 {
@@ -827,17 +832,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public async ValueTask CloseAsync(CancellationToken cancellationToken)
+            public ValueTask CloseAsync(CancellationToken cancellationToken)
+            {
+                var alt = _options?.CloseAndCommitMethodId?
+                    .ToNodeId(_handle.Session.MessageContext);
+                return CloseAsync(alt, cancellationToken);
+            }
+
+            /// <summary>
+            /// Close with alternative method
+            /// </summary>
+            /// <param name="alt"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            /// <exception cref="IOException"></exception>
+            private async ValueTask CloseAsync(NodeId? alt, CancellationToken ct)
             {
                 ObjectDisposedException.ThrowIf(!_fileHandle.HasValue, this);
                 var errorInfo = await _handle.Session.CloseAsync(
-                    _header.ToRequestHeader(_outer._timeProvider), _nodeId,
-                    _fileHandle.Value, cancellationToken).ConfigureAwait(false);
+                    _header.ToRequestHeader(_outer._timeProvider), _nodeId, alt,
+                    _fileHandle.Value, ct).ConfigureAwait(false);
                 if (errorInfo != null)
                 {
                     throw new IOException(errorInfo.ErrorMessage);
                 }
-
                 // Closed - now release handle
                 _handle.Dispose();
                 _fileHandle = null;
@@ -850,7 +868,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        await CloseAsync(default).ConfigureAwait(false);
+                        await CloseAsync(null, default).ConfigureAwait(false);
                     }
                     catch { } // Best effort closing
                     finally
@@ -881,7 +899,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly FileSystemServices<T> _outer;
             private readonly FileInfoModel? _fileInfo;
             private readonly uint _bufferSize;
-            private readonly FileWriteMode? _mode;
+            private readonly FileOpenWriteOptionsModel? _options;
             private bool _isEoS;
             private uint? _fileHandle;
         }

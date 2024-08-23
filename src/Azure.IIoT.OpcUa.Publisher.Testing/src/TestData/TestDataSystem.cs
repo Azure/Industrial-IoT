@@ -468,7 +468,8 @@ namespace TestData
             return new ExtensionObject(array.TypeId, array);
         }
 
-        public void StartMonitoringValue(uint monitoredItemId, double samplingInterval, BaseVariableState variable)
+        public void StartMonitoringValue(uint monitoredItemId,
+            double samplingInterval, BaseVariableState variable)
         {
             lock (_lock)
             {

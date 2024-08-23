@@ -55,11 +55,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <param name="publisher"></param>
         /// <param name="configuration"></param>
+        /// <param name="assets"></param>
         public WriterController(IPublishedNodesServices publisher,
-            IConfigurationServices configuration)
+            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets)
         {
             _publisher = publisher;
             _configuration = configuration;
+            _assets = assets;
         }
 
         /// <summary>
@@ -490,7 +492,115 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             return _configuration.CreateOrUpdateAsync(request.Entry, expansion, ct);
         }
 
+        /// <summary>
+        /// CreateOrUpdateAsset
+        /// </summary>
+        /// <remarks>
+        /// Creates an asset from the entry in the request and the configuration provided
+        /// in the Web of Things Asset configuration file. The entry must contain a data
+        /// set name which will be used as the asset name. The writer can stay empty. It
+        /// will be set to the asset id on successful return. The server must support the
+        /// WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/>.
+        /// The asset will be created and the configuration updated to reference it. A
+        /// wait time can be provided as optional query parameter to wait until the server
+        /// has settled after uploading the configuration.
+        /// </remarks>
+        /// <param name="request">The contains the entry and WoT file to configure the
+        /// server to expose the asset.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The asset was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets/create")]
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            [FromBody][Required] PublishedNodeCreateAssetRequestModel<byte[]> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            return await _assets.CreateOrUpdateAssetAsync(request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// GetAllAssets
+        /// </summary>
+        /// <remarks>
+        /// Get a list of entries representing the assets in the server. This will not touch
+        /// the configuration, it will obtain the list from the server. If the server does not
+        /// support <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/> the
+        /// result will be empty.
+        /// </remarks>
+        /// <param name="request">The entry to use to list the assets with the optional
+        /// header information used when invoking services on the server.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">Successfully completed the listing</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets/list")]
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
+            [FromBody][Required] PublishedNodesEntryRequestModel<RequestHeaderModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            return _assets.GetAllAssetsAsync(request.Entry, request.Request, ct);
+        }
+
+        /// <summary>
+        /// DeleteAsset
+        /// </summary>
+        /// <remarks>
+        /// Delete the asset referenced by the entry in the request. The entry must contain
+        /// the asset id to delete. The asset id is the data set writer id. The entry must
+        /// also contain the writer group id or deletion of the asset in the configuration
+        /// will fail before the asset is deleted. The server must support WoT connectivity
+        /// profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/>.
+        /// First the entry in the configuration will be deleted and then the asset on the
+        /// server. If deletion of the asset in the configuration fails it will not be
+        /// deleted in the server. An optional request option force can be used to force
+        /// the deletion of the asset in the server regardless of the failure to delete the
+        /// entry in the configuration.
+        /// </remarks>
+        /// <param name="request">Request that contains the entry of the asset that
+        /// should be deleted.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The asset was deleted successfully</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets/delete")]
+        public async Task<ServiceResultModel> DeleteAssetAsync(
+            [FromBody][Required] PublishedNodeDeleteAssetRequestModel request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            return await _assets.DeleteAssetAsync(request, ct).ConfigureAwait(false);
+        }
+
         private readonly IPublishedNodesServices _publisher;
         private readonly IConfigurationServices _configuration;
+        private readonly IAssetConfiguration<byte[]> _assets;
     }
 }

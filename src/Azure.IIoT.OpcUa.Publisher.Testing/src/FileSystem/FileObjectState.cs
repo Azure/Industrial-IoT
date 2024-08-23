@@ -94,45 +94,57 @@ namespace FileSystem
             LastModifiedTime.Create(context, VariableIds.FileType_LastModifiedTime,
                 BrowseNames.LastModifiedTime, BrowseNames.LastModifiedTime, true);
 
-            Open = new OpenMethodState(this);
-            Open.OnCall = new OpenMethodStateMethodCallHandler(OnOpen);
-            Open.Executable = true;
-            Open.UserExecutable = true;
+            Open = new OpenMethodState(this)
+            {
+                OnCall = new OpenMethodStateMethodCallHandler(OnOpen),
+                Executable = true,
+                UserExecutable = true
+            };
             Open.Create(context, MethodIds.FileType_Open,
                 BrowseNames.Open, BrowseNames.Open, false);
 
-            Write = new WriteMethodState(this);
-            Write.OnCall = new WriteMethodStateMethodCallHandler(OnWrite);
-            Write.Executable = true;
-            Write.UserExecutable = true;
+            Write = new WriteMethodState(this)
+            {
+                OnCall = new WriteMethodStateMethodCallHandler(OnWrite),
+                Executable = true,
+                UserExecutable = true
+            };
             Write.Create(context, MethodIds.FileType_Write,
                 BrowseNames.Write, BrowseNames.Write, false);
 
-            Read = new ReadMethodState(this);
-            Read.OnCall = new ReadMethodStateMethodCallHandler(OnRead);
-            Read.Executable = true;
-            Read.UserExecutable = true;
+            Read = new ReadMethodState(this)
+            {
+                OnCall = new ReadMethodStateMethodCallHandler(OnRead),
+                Executable = true,
+                UserExecutable = true
+            };
             Read.Create(context, MethodIds.FileType_Read,
                 BrowseNames.Read, BrowseNames.Read, false);
 
-            Close = new CloseMethodState(this);
-            Close.OnCall = new CloseMethodStateMethodCallHandler(OnClose);
-            Close.Executable = true;
-            Close.UserExecutable = true;
+            Close = new CloseMethodState(this)
+            {
+                OnCall = new CloseMethodStateMethodCallHandler(OnClose),
+                Executable = true,
+                UserExecutable = true
+            };
             Close.Create(context, MethodIds.FileType_Close,
                 BrowseNames.Close, BrowseNames.Close, false);
 
-            GetPosition = new GetPositionMethodState(this);
-            GetPosition.OnCall = new GetPositionMethodStateMethodCallHandler(OnGetPosition);
-            GetPosition.Executable = true;
-            GetPosition.UserExecutable = true;
+            GetPosition = new GetPositionMethodState(this)
+            {
+                OnCall = new GetPositionMethodStateMethodCallHandler(OnGetPosition),
+                Executable = true,
+                UserExecutable = true
+            };
             GetPosition.Create(context, MethodIds.FileType_GetPosition,
                 BrowseNames.GetPosition, BrowseNames.GetPosition, false);
 
-            SetPosition = new SetPositionMethodState(this);
-            SetPosition.OnCall = new SetPositionMethodStateMethodCallHandler(OnSetPosition);
-            SetPosition.Executable = true;
-            SetPosition.UserExecutable = true;
+            SetPosition = new SetPositionMethodState(this)
+            {
+                OnCall = new SetPositionMethodStateMethodCallHandler(OnSetPosition),
+                Executable = true,
+                UserExecutable = true
+            };
             SetPosition.Create(context, MethodIds.FileType_SetPosition,
                 BrowseNames.SetPosition, BrowseNames.SetPosition, false);
         }

@@ -1588,7 +1588,7 @@ Upload a file to the server.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Header**|**x-ms-connection**  <br>*required*|The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header "x-ms-connection"|string|
-|**Header**|**x-ms-mode**  <br>*required*|The file write mode to use passed as header "x-ms-mode"|string|
+|**Header**|**x-ms-options**  <br>*required*|The file write options to use passed as header "x-ms-mode"|string|
 |**Header**|**x-ms-target**  <br>*required*|The file object to upload. This is passed as json serialized via the header "x-ms-target"|string|
 
 
@@ -3395,6 +3395,129 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 |**200**|The item was created|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
 |**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="createorupdateasset"></a>
+#### CreateOrUpdateAsset
+```
+POST /v2/writer/assets/create
+```
+
+
+##### Description
+Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset configuration file. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The contains the entry and WoT file to configure the server to expose the asset.|[ByteArrayPublishedNodeCreateAssetRequestModel](definitions.md#bytearraypublishednodecreateassetrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The asset was created|[PublishedNodesEntryModelServiceResponse](definitions.md#publishednodesentrymodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="deleteasset"></a>
+#### DeleteAsset
+```
+POST /v2/writer/assets/delete
+```
+
+
+##### Description
+Delete the asset referenced by the entry in the request. The entry must contain the asset id to delete. The asset id is the data set writer id. The entry must also contain the writer group id or deletion of the asset in the configuration will fail before the asset is deleted. The server must support WoT connectivity profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. First the entry in the configuration will be deleted and then the asset on the server. If deletion of the asset in the configuration fails it will not be deleted in the server. An optional request option force can be used to force the deletion of the asset in the server regardless of the failure to delete the entry in the configuration.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|Request that contains the entry of the asset that should be deleted.|[PublishedNodeDeleteAssetRequestModel](definitions.md#publishednodedeleteassetrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The asset was deleted successfully|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getallassets"></a>
+#### GetAllAssets
+```
+POST /v2/writer/assets/list
+```
+
+
+##### Description
+Get a list of entries representing the assets in the server. This will not touch the configuration, it will obtain the list from the server. If the server does not support <see href="https://reference.opcfoundation.org/WoT/v100/docs/" /> the result will be empty.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to use to list the assets with the optional header information used when invoking services on the server.|[RequestHeaderModelPublishedNodesEntryRequestModel](definitions.md#requestheadermodelpublishednodesentryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Successfully completed the listing|[PublishedNodesEntryModelServiceResponseIAsyncEnumerable](definitions.md#publishednodesentrymodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes

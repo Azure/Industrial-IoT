@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using DeterministicAlarms.Configuration;
     using Furly.Exceptions;
     using Moq;
     using Moq.Language.Flow;
@@ -28,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public ConfigurationTests2(Func<IPublishedNodesServices, IConfigurationServices> services,
             ConnectionModel connection)
         {
-            _service= services;
+            _service = services;
             _connection = connection;
             _publishedNodesServices = new Mock<IPublishedNodesServices>();
             _createCall = _publishedNodesServices.Setup(s => s.CreateOrUpdateDataSetWriterEntryAsync(
@@ -728,7 +727,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
-
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             // Discard errors -> no errors

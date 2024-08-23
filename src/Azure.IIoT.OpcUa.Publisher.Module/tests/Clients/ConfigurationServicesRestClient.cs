@@ -12,13 +12,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Net.Http;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Implementation of file system services over http
     /// </summary>
-    public sealed class ConfigurationServicesRestClient : IConfigurationServices
+    public sealed class ConfigurationServicesRestClient : IConfigurationServices,
+        IAssetConfiguration<Stream>, IAssetConfiguration<byte[]>
     {
         /// <summary>
         /// Create service client
@@ -69,6 +72,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             var uri = new Uri($"{_serviceUri}/v2/writer");
             return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
                 RequestBody(entry, request), _serializer, ct: ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            PublishedNodeCreateAssetRequestModel<Stream> request, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetName);
+            ArgumentNullException.ThrowIfNull(request.Configuration);
+            var uri = new Uri($"{_serviceUri}/v2/writer/assets/create");
+            var buffer = request.Configuration.ReadAsBuffer();
+            var requestWithBuffer = new PublishedNodeCreateAssetRequestModel<byte[]>
+            {
+                Entry = request.Entry,
+                Header = request.Header,
+                WaitTime = request.WaitTime,
+                Configuration = buffer.ToArray()
+            };
+            return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
+                requestWithBuffer, _serializer, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
+            PublishedNodesEntryModel entry, RequestHeaderModel header, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(entry);
+            var uri = new Uri($"{_serviceUri}/v2/writer/assets/list");
+            return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
+                RequestBody(entry, header), _serializer, ct: ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            PublishedNodeCreateAssetRequestModel<byte[]> request, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetName);
+            ArgumentNullException.ThrowIfNull(request.Configuration);
+            var uri = new Uri($"{_serviceUri}/v2/writer/assets/create");
+            return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServiceResultModel> DeleteAssetAsync(
+            PublishedNodeDeleteAssetRequestModel request, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterId);
+            var uri = new Uri($"{_serviceUri}/v2/writer/assets/delete");
+            return await _httpClient.PostAsync<ServiceResultModel>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>

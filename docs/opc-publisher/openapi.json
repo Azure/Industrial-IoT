@@ -2108,8 +2108,8 @@
                     },
                     {
                         "in": "header",
-                        "name": "x-ms-mode",
-                        "description": "The file write mode to use passed as header \"x-ms-mode\"",
+                        "name": "x-ms-options",
+                        "description": "The file write options to use passed as header \"x-ms-mode\"",
                         "required": true,
                         "type": "string"
                     }
@@ -5138,6 +5138,189 @@
                     }
                 }
             }
+        },
+        "/v2/writer/assets/create": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "CreateOrUpdateAsset",
+                "description": "Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset configuration file. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href=\"https://reference.opcfoundation.org/WoT/v100/docs/\" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.",
+                "operationId": "CreateOrUpdateAsset",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The contains the entry and WoT file to configure the server to expose the asset.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ByteArrayPublishedNodeCreateAssetRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The asset was created",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/writer/assets/list": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "GetAllAssets",
+                "description": "Get a list of entries representing the assets in the server. This will not touch the configuration, it will obtain the list from the server. If the server does not support <see href=\"https://reference.opcfoundation.org/WoT/v100/docs/\" /> the result will be empty.",
+                "operationId": "GetAllAssets",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to use to list the assets with the optional header information used when invoking services on the server.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RequestHeaderModelPublishedNodesEntryRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully completed the listing",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/writer/assets/delete": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "DeleteAsset",
+                "description": "Delete the asset referenced by the entry in the request. The entry must contain the asset id to delete. The asset id is the data set writer id. The entry must also contain the writer group id or deletion of the asset in the configuration will fail before the asset is deleted. The server must support WoT connectivity profile per <see href=\"https://reference.opcfoundation.org/WoT/v100/docs/\" />. First the entry in the configuration will be deleted and then the asset on the server. If deletion of the asset in the configuration fails it will not be deleted in the server. An optional request option force can be used to force the deletion of the asset in the server regardless of the failure to delete the entry in the configuration.",
+                "operationId": "DeleteAsset",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Request that contains the entry of the asset that should be deleted.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodeDeleteAssetRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The asset was deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/ServiceResultModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -5751,6 +5934,33 @@
                 "timestamp": {
                     "format": "date-time",
                     "description": "Browses at or before this timestamp.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "ByteArrayPublishedNodeCreateAssetRequestModel": {
+            "description": "Request to create an asset in the configuration api",
+            "required": [
+                "configuration",
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/definitions/RequestHeaderModel"
+                },
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "configuration": {
+                    "format": "byte",
+                    "description": "The asset configuration to use when creating the asset.",
+                    "type": "string"
+                },
+                "waitTime": {
+                    "format": "date-span",
+                    "description": "Time to wait after the configuration is applied to perform\r\nthe configuration of the asset in the configuration api.\r\nThis is to let the server settle.",
                     "type": "string"
                 }
             },
@@ -8591,6 +8801,26 @@
             },
             "additionalProperties": false
         },
+        "PublishedNodeDeleteAssetRequestModel": {
+            "description": "Contains entry in the published nodes configuration representing\r\nthe asset as well as an optional request header.",
+            "required": [
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/definitions/RequestHeaderModel"
+                },
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "force": {
+                    "description": "The asset on the server is deleted no matter whether\r\nthe removal in the publisher configuration was successful\r\nor not.",
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
         "PublishedNodeExpansionModel": {
             "description": "\r\n\r\n            Node expansion configuration. Configures how an entry should\r\n            be expanded into configuration. If a node is an object it is\r\n            expanded to all contained variables.\r\n            \r\n\r\n\r\n            If a node is an object type, all objects of that type are\r\n            searched from the object root node. These found objects are\r\n            then expanded into their variables.\r\n            \r\n\r\n\r\n            If the node is a variable, the variable is expanded to include\r\n            all contained variables or properties. All entries will have\r\n            the data set field id configured as data set class id.\r\n            \r\n\r\n\r\n            If a node is a variable type, then all variables of this type\r\n            are found and added to a single writer entry. Note: That by\r\n            themselves these variables are no further expanded.\r\n            ",
             "type": "object",
@@ -8898,6 +9128,19 @@
                 },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PublishedNodesEntryModelServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
                 }
             },
             "additionalProperties": false
@@ -9457,6 +9700,22 @@
                     "format": "int32",
                     "description": "Connect timeout in ms. As opposed to the service call\r\ntimeout this terminates the entire transaction if\r\nit takes longer than the timeout to connect a session\r\nA connect and reconnect during the service call\r\nresets the timeout therefore the overall time for\r\nthe call to complete can be longer than specified.",
                     "type": "integer"
+                }
+            },
+            "additionalProperties": false
+        },
+        "RequestHeaderModelPublishedNodesEntryRequestModel": {
+            "description": "Wraps a request and a published nodes entry to bind to a\r\nbody more easily for api that requires an entry and additional\r\nconfiguration",
+            "required": [
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/RequestHeaderModel"
                 }
             },
             "additionalProperties": false

@@ -20,20 +20,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="timeservice"></param>
-        public static IEnumerable<INodeManagerFactory> TestData(
+        public static IEnumerable<INodeManagerFactory> FileSystem(
             ILoggerFactory? factory, TimeService timeservice)
         {
             yield return new FileSystem.FileSystemServer();
         }
 
         /// <inheritdoc/>
-        public FileSystemServer() : base(TestData)
+        public FileSystemServer() : base(FileSystem)
         {
         }
 
         /// <inheritdoc/>
         private FileSystemServer(ILoggerFactory loggerFactory)
-            : base(TestData, loggerFactory)
+            : base(FileSystem, loggerFactory)
         {
         }
 

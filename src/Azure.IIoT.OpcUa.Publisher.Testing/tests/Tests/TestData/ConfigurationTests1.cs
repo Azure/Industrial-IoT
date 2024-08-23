@@ -7,9 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using DeterministicAlarms.Configuration;
     using Furly.Exceptions;
-    using Moq;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -562,7 +560,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
-
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             // Discard errors -> no errors

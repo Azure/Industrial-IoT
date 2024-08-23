@@ -363,8 +363,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (_heartbeatTimer == null)
                     {
-                        _heartbeatTimer = new(TimeProvider);
-                        _heartbeatTimer.AutoReset = true;
+                        _heartbeatTimer = new(TimeProvider)
+                        {
+                            AutoReset = true
+                        };
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
                         _logger.LogDebug("Re-enable heartbeat timer");
                     }
