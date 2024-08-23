@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="nodeId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<uint?> GetBufferSizeAsync(this IOpcUaSession session,
+        public static async Task<int> GetBufferSizeAsync(this IOpcUaSession session,
             RequestHeader header, NodeId nodeId, CancellationToken ct = default)
         {
             try
@@ -116,17 +116,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 var (fileInfo, errorInfo) = await session.GetFileInfoAsync(
                     header, nodeId, ct).ConfigureAwait(false);
                 var bufferSize = fileInfo?.MaxBufferSize;
-                if (errorInfo == null && fileInfo?.MaxBufferSize != null)
+                if (errorInfo == null &&
+                    bufferSize > 0 && bufferSize < int.MaxValue)
                 {
-                    return fileInfo.MaxBufferSize;
+                    return (int)bufferSize.Value;
                 }
-                var caps = await session.GetServerCapabilitiesAsync(
-                    NamespaceFormat.Index, ct).ConfigureAwait(false);
-                return caps.OperationLimits.MaxByteStringLength;
+                var caps = await session.GetOperationLimitsAsync(
+                    ct).ConfigureAwait(false);
+                bufferSize = caps.MaxByteStringLength;
+                if (bufferSize > 0 && bufferSize < int.MaxValue)
+                {
+                    return (int)bufferSize.Value;
+                }
+                return 4096;
             }
             catch
             {
-                return null;
+                return 4096;
             }
         }
 
@@ -190,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<ServiceResultModel?> WriteAsync(this IOpcUaSession session,
-            RequestHeader header, NodeId nodeId, uint fileHandle, byte[] buffer,
+            RequestHeader header, NodeId nodeId, uint fileHandle, ReadOnlyMemory<byte> buffer,
             CancellationToken ct)
         {
             try
@@ -202,7 +208,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     {
                         ObjectId = nodeId,
                         MethodId = MethodIds.FileType_Write,
-                        InputArguments = new [] { new Variant(fileHandle), new Variant(buffer) }
+                        InputArguments = new []
+                        {
+                            new Variant(fileHandle),
+                            new Variant(buffer.ToArray())
+                        }
                     }
                 };
                 var response = await session.Services.CallAsync(header, request, ct).ConfigureAwait(false);
@@ -232,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         {
             try
             {
-                // Call write method
+                // Call read method
                 var request = new CallMethodRequestCollection
                 {
                     new CallMethodRequest
@@ -269,13 +279,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="session"></param>
         /// <param name="header"></param>
         /// <param name="nodeId"></param>
+        /// <param name="alternativeCloseMethod"></param>
         /// <param name="fileHandle"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<ServiceResultModel?> CloseAsync(this IOpcUaSession session,
-            RequestHeader header, NodeId nodeId, uint fileHandle, CancellationToken ct)
+            RequestHeader header, NodeId nodeId, NodeId? alternativeCloseMethod,
+            uint fileHandle, CancellationToken ct)
         {
-            // Call open method
+            // Call close method
             try
             {
                 var request = new CallMethodRequestCollection
@@ -283,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     new CallMethodRequest
                     {
                         ObjectId = nodeId,
-                        MethodId = MethodIds.FileType_Close,
+                        MethodId = alternativeCloseMethod ?? MethodIds.FileType_Close,
                         InputArguments = new [] { new Variant(fileHandle) }
                     }
                 };

@@ -1,31 +1,7 @@
-﻿/* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
- *
- * OPC Foundation MIT License 1.00
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * The complete license agreement can be found here:
- * http://opcfoundation.org/License/MIT/1.00/
- * ======================================================================*/
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 #nullable enable
 
@@ -42,6 +18,7 @@ namespace Asset
         /// </summary>
         /// <param name="form"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         public static NodeId GetDataTypeId(this ModbusForm form)
         {
             switch (form.PayloadType)
@@ -83,10 +60,10 @@ namespace Asset
         }
 
         /// <summary>
-        /// Convert value to buffer to write
+        /// Convert value to buffer (little endian) to write
         /// </summary>
-        /// <param name="value"></param>
         /// <param name="form"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         public static ReadOnlyMemory<byte> ToBuffer(this ModbusForm form, object value)
@@ -104,7 +81,7 @@ namespace Asset
                 case ModbusType.Xsddecimal:
                     return GetBytes((decimal)value);
                 case ModbusType.Xsdbyte:
-                    return new[] { (byte)((sbyte)value) };
+                    return new[] { (byte)(sbyte)value };
                 case ModbusType.Xsdshort:
                     return BitConverter.GetBytes((short)value);
                 case ModbusType.Xsdint:
@@ -130,7 +107,7 @@ namespace Asset
         }
 
         /// <summary>
-        /// Convert value to object based on modbus type
+        /// Convert (little endian) value to object based on modbus type
         /// </summary>
         /// <param name="form"></param>
         /// <param name="buffer"></param>
@@ -196,10 +173,10 @@ namespace Asset
         private static decimal ToDecimal(ReadOnlySpan<byte> bytes)
         {
             int[] bits = new int[4];
-            bits[0] = ((bytes[0] | (bytes[1] << 8)) | (bytes[2] << 0x10)) | (bytes[3] << 0x18); //lo
-            bits[1] = ((bytes[4] | (bytes[5] << 8)) | (bytes[6] << 0x10)) | (bytes[7] << 0x18); //mid
-            bits[2] = ((bytes[8] | (bytes[9] << 8)) | (bytes[10] << 0x10)) | (bytes[11] << 0x18); //hi
-            bits[3] = ((bytes[12] | (bytes[13] << 8)) | (bytes[14] << 0x10)) | (bytes[15] << 0x18); //flags
+            bits[0] = bytes[0] | (bytes[1] << 8) | (bytes[2] << 0x10) | (bytes[3] << 0x18); //lo
+            bits[1] = bytes[4] | (bytes[5] << 8) | (bytes[6] << 0x10) | (bytes[7] << 0x18); //mid
+            bits[2] = bytes[8] | (bytes[9] << 8) | (bytes[10] << 0x10) | (bytes[11] << 0x18); //hi
+            bits[3] = bytes[12] | (bytes[13] << 8) | (bytes[14] << 0x10) | (bytes[15] << 0x18); //flags
             return new decimal(bits);
         }
 

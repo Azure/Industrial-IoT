@@ -6,7 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Threading;
 
     /// <summary>
@@ -16,8 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher
     public interface IConfigurationServices
     {
         /// <summary>
-        /// Expand the provided entry into configuration entries and return them
-        /// one by one with the error items last. The configuration is not updated but
+        /// Expand the provided entry into configuration entries and return them one
+        /// by one with the error items last. The configuration is not updated but
         /// the resulting entries without error info can be added in a later call to
         /// the publisher configuration api.
         /// </summary>
@@ -30,8 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             CancellationToken ct = default);
 
         /// <summary>
-        /// Create one or more writer entries by expanding the provided entry into
-        /// the configuration. The expanded items are added to the configuration.
+        /// Create one or more writer entries by expanding the provided entry into the
+        /// configuration. The expanded items are added to the configuration.
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="request"></param>

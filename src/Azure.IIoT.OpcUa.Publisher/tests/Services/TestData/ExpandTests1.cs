@@ -24,10 +24,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
 
         private ConfigurationTests1 GetTests()
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             return new ConfigurationTests1(new ConfigurationServices(null!, _server.Client,
                 new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions(),
                 _output.BuildLoggerFor<ConfigurationServices>(Logging.Level)),
                 _server.GetConnection());
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         private readonly TestDataServer _server;

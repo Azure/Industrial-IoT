@@ -1,13 +1,8 @@
 {
     "@context": [
-        "https://www.w3.org/2022/wot/td/v1.1",
-        {
-            "opcua": [
-                "http://opcfoundation.org/UA/PNEM/"
-            ]
-        }
+        "https://www.w3.org/2022/wot/td/v1.1"
     ],
-    "id": "urn:pac4200",
+    "id": "urn:sim3264",
     "securityDefinitions": {
         "nosec_sc": {
             "scheme": "nosec"
@@ -17,69 +12,60 @@
         "nosec_sc"
     ],
     "@type": [
-        "tm:ThingModel"
+        "Thing"
     ],
-    "name": "modbus-pac4200-{{serialnumber}}",
-    "base": "modbus+tcp://{{address}}:{{port}}/1",
-    "title": "Siemens SENTRON PAC4200",
+    "name": "sim-3264",
+    "base": "sim://simserver1:443",
+    "title": "Simulated Asset",
     "properties": {
         "VoltageL1-N": {
             "type": "number",
             "opcua:nodeId": "s=VoltageL-N",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "A",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "1?quantity=2",
+                    "href": "1",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "VoltageL2-N": {
             "type": "number",
             "opcua:nodeId": "s=VoltageL-N",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "B",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "3?quantity=2",
+                    "href": "3",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "VoltageL3-N": {
             "type": "number",
             "opcua:nodeId": "s=VoltageL-N",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "C",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "5?quantity=2",
+                    "href": "5",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -89,14 +75,13 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "7?quantity=2",
+                    "href": "7",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -106,14 +91,13 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "9?quantity=2",
+                    "href": "9",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -123,134 +107,115 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "11?quantity=2",
+                    "href": "11",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "CurrentL1": {
             "type": "number",
             "opcua:nodeId": "s=Current",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "A",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "13?quantity=2",
+                    "href": "13",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "CurrentL2": {
             "type": "number",
             "opcua:nodeId": "s=Current",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "B",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "15?quantity=2",
+                    "href": "15",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "CurrentL3": {
             "type": "number",
             "opcua:nodeId": "s=Current",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "C",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "17?quantity=2",
+                    "href": "17",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "PowerFactorL1": {
             "type": "number",
             "opcua:nodeId": "s=PowerFactor",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "A",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "37?quantity=2",
+                    "href": "19",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "PowerFactorL2": {
             "type": "number",
             "opcua:nodeId": "s=PowerFactor",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "B",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "39?quantity=2",
+                    "href": "139",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
         "PowerFactorL3": {
             "type": "number",
             "opcua:nodeId": "s=PowerFactor",
-            "opcua:type": "nsu=http://opcfoundation.org/UA/PNEM/;i=3005",
-            "opcua:fieldPath": "C",
             "readOnly": true,
             "observable": true,
             "forms": [
                 {
-                    "href": "41?quantity=2",
+                    "href": "141",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -260,14 +225,13 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "63?quantity=2",
+                    "href": "63",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -277,14 +241,13 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "65?quantity=2",
+                    "href": "65",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -294,14 +257,13 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "67?quantity=2",
+                    "href": "67",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         },
@@ -311,14 +273,13 @@
             "observable": true,
             "forms": [
                 {
-                    "href": "69?quantity=2",
+                    "href": "69",
                     "op": [
                         "readproperty",
                         "observeproperty"
                     ],
-                    "modv:type": "xsd:float",
-                    "modv:entity": "HoldingRegister",
-                    "modv:pollingTime": 2000
+                    "sim:type": "Double",
+                    "sim:pollingTime": 120
                 }
             ]
         }

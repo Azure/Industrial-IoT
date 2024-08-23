@@ -831,7 +831,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 ObjectDisposedException.ThrowIf(!_fileHandle.HasValue, this);
                 var errorInfo = await _handle.Session.CloseAsync(
-                    _header.ToRequestHeader(_outer._timeProvider), _nodeId,
+                    _header.ToRequestHeader(_outer._timeProvider), _nodeId, null,
                     _fileHandle.Value, cancellationToken).ConfigureAwait(false);
                 if (errorInfo != null)
                 {

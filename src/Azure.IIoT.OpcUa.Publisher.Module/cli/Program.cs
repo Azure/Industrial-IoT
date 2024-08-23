@@ -696,7 +696,8 @@ Options:
                     try
                     {
                         using (var server = new ServerConsoleHost(
-                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>(), scaleunits)
+                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>(),
+                                Directory.GetCurrentDirectory(), scaleunits)
                             {
                                 LogStatus = false,
                                 EnableDiagnostics = true

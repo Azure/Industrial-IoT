@@ -29,6 +29,7 @@
 
 namespace Asset
 {
+    using Alarms;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Server;
@@ -41,9 +42,10 @@ namespace Asset
         {
             get
             {
-                return new StringCollection {
-                    Namespaces.WoT_Con,
-                    "http://opcfoundation.org/UA/EdgeTranslator/"
+                return new StringCollection
+                {
+                    Namespaces.AssetServer,
+                    Namespaces.WoT_Con
                 };
             }
         }

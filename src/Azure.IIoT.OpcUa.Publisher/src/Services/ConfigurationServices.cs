@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -17,9 +18,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
+    using System.Reflection.PortableExecutable;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -29,7 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// configure the publisher. The configuration services allow interactive expansion of
     /// published nodes.
     /// </summary>
-    public sealed class ConfigurationServices : IConfigurationServices
+    public sealed class ConfigurationServices : IConfigurationServices,
+        IAssetConfiguration<Stream>, IAssetConfiguration<byte[]>, IDisposable
     {
         /// <summary>
         /// Create configuration services
@@ -47,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _client = client;
             _options = options;
             _logger = logger;
-            _timeProvider = timeProvider;
+            _timeProvider = timeProvider ?? TimeProvider.System;
         }
 
         /// <inheritdoc/>
@@ -67,8 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAsync(
-            PublishedNodesEntryModel entry, PublishedNodeExpansionModel request,
-            CancellationToken ct)
+            PublishedNodesEntryModel entry, PublishedNodeExpansionModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(entry);
@@ -78,6 +83,316 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var browser = new ConfigBrowser(entry, request, _options, _configuration,
                 _logger, _timeProvider);
             return _client.ExecuteAsync(entry.ToConnectionModel(), browser, request.Header, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            PublishedNodeCreateAssetRequestModel<byte[]> request, CancellationToken ct)
+        {
+            var stream = new MemoryStream(request.Configuration);
+            await using (var _ = stream.ConfigureAwait(false))
+            {
+                var requestWithStream = new PublishedNodeCreateAssetRequestModel<Stream>
+                {
+                    Configuration = stream,
+                    Entry = request.Entry,
+                    Header = request.Header,
+                    WaitTime = request.WaitTime
+                };
+                return await CreateOrUpdateAssetAsync(requestWithStream,
+                    ct).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
+            PublishedNodesEntryModel entry, RequestHeaderModel? header, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(entry);
+            return CoreAsync(ct);
+
+            async IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> CoreAsync(
+                [EnumeratorCancellation] CancellationToken ct)
+            {
+                // Expand the wot node one level and expand each level
+                var expansion = new PublishedNodeExpansionModel
+                {
+                    ExcludeRootIfInstanceNode = true,
+                    MaxDepth = 1, // There is one asset level underneath the root connection node
+                    Header = header
+                };
+                var browser = new ConfigBrowser(entry with
+                {
+                    // Named object in the address space of the server.
+                    OpcNodes = new List<OpcNodeModel> { new OpcNodeModel { Id = AssetsEx.Root } }
+                }, expansion, _options, null, _logger, _timeProvider, true);
+
+                // Browse and swap the data set writer id and data set name to make an asset entry.
+                await foreach (var result in _client.ExecuteAsync(entry.ToConnectionModel(),
+                    browser, header, ct).ConfigureAwait(false))
+                {
+                    yield return result with
+                    {
+                        Result = result.Result == null ? null : result.Result with
+                        {
+                            DataSetWriterGroup = entry.DataSetWriterGroup,
+                            DataSetWriterId = result.Result.DataSetName,
+                            DataSetName = result.Result.DataSetWriterId?.TrimStart('/')
+                        }
+                    };
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            PublishedNodeCreateAssetRequestModel<Stream> request, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Configuration);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetName); // Asset name
+
+            using var trace = _activitySource.StartActivity("CreateAsset");
+
+            var entry = request.Entry;
+            var connection = entry.ToConnectionModel();
+            ServiceResultModel? errorInfo;
+            (entry, errorInfo) = await _client.ExecuteAsync(connection, async context =>
+            {
+                // 1) Create asset and get asset file object
+                var (nodeId, errorInfo) = await context.Session.CreateAssetAsync(
+                    request.Header.ToRequestHeader(_timeProvider),
+                    request.Entry.DataSetName, context.Ct).ConfigureAwait(false);
+                if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
+                {
+                    // TOOD errorInfo?.StatusCode ==
+                    //  Opc.Ua.StatusCodes.BadBrowseNameDuplicated
+                    errorInfo ??= new ServiceResultModel
+                    {
+                        StatusCode = StatusCodes.BadNodeIdInvalid,
+                        ErrorMessage = "Failed to create asset."
+                    };
+                    return (entry with { DataSetWriterId = null }, errorInfo);
+                }
+                var assetId = nodeId.AsString(context.Session.MessageContext,
+                    NamespaceFormat.Expanded);
+
+                entry = entry with
+                {
+                    DataSetWriterId = assetId,
+                    OpcNodes = new List<OpcNodeModel>
+                    {
+                        new OpcNodeModel
+                        {
+                            Id = assetId,
+                            DataSetFieldId = entry.DataSetName
+                        }
+                    }
+                };
+
+                // Find the created asset file
+                (nodeId, errorInfo) = await context.Session.GetAssetFileAsync(
+                    request.Header.ToRequestHeader(_timeProvider), nodeId!,
+                    context.Ct).ConfigureAwait(false);
+                if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
+                {
+                    errorInfo ??= new ServiceResultModel
+                    {
+                        StatusCode = StatusCodes.BadNotFound,
+                        ErrorMessage = "Asset did not have a file component."
+                    };
+                    return (entry, errorInfo);
+                }
+
+                // 2) upload asset file
+                var bufferSize = await context.Session.GetBufferSizeAsync(
+                    request.Header.ToRequestHeader(_timeProvider), nodeId,
+                    context.Ct).ConfigureAwait(false);
+                var (fileHandle, openError) = await context.Session.OpenAsync(
+                    request.Header.ToRequestHeader(_timeProvider), nodeId, 0x2 | 0x4,
+                    context.Ct).ConfigureAwait(false);
+                if (openError != null || !fileHandle.HasValue || NodeId.IsNull(nodeId))
+                {
+                    openError ??= new ServiceResultModel
+                    {
+                        StatusCode = StatusCodes.BadUserAccessDenied,
+                        ErrorMessage = "Asset file could not be opened for write."
+                    };
+                    return (entry, openError);
+                }
+                while (true)
+                {
+                    // Copy buffers to server
+                    var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                    try
+                    {
+                        var read = await request.Configuration.ReadAsync(
+                            buffer.AsMemory(), context.Ct).ConfigureAwait(false);
+                        if (read == 0)
+                        {
+                            break;
+                        }
+                        errorInfo = await context.Session.WriteAsync(
+                            request.Header.ToRequestHeader(_timeProvider), nodeId,
+                            fileHandle.Value, buffer.AsMemory().Slice(0, read),
+                            context.Ct).ConfigureAwait(false);
+                        if (errorInfo != null)
+                        {
+                            return (entry, errorInfo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return (entry, ex.ToServiceResultModel());
+                    }
+                    finally
+                    {
+                        ArrayPool<byte>.Shared.Return(buffer);
+                    }
+                }
+
+                errorInfo = await context.Session.CloseAndUpdateAsync(
+                    request.Header.ToRequestHeader(_timeProvider), nodeId,
+                    fileHandle.Value, context.Ct).ConfigureAwait(false);
+                return (entry, errorInfo);
+            }, request.Header, ct).ConfigureAwait(false);
+
+            // From now on we need to revert by deleting the asset
+            if (errorInfo != null && errorInfo.StatusCode != 0)
+            {
+                if (entry.DataSetWriterId != null)
+                {
+                    // Delete the asset for good house keeping sake
+                    await DeleteAssetAsync(request.Header, entry, ct).ConfigureAwait(false);
+                }
+                return new ServiceResponse<PublishedNodesEntryModel>
+                {
+                    Result = entry,
+                    ErrorInfo = errorInfo
+                };
+            }
+            try
+            {
+                if (request.WaitTime.HasValue)
+                {
+                    //
+                    // The asset is uploaded the nodes are being created, potentially
+                    // the session is disconnected now and the server is restarting.
+                    // We wait a bit here to ensure all of this has happened correctly.
+                    //
+                    await _timeProvider.Delay(request.WaitTime.Value, ct).ConfigureAwait(false);
+                }
+
+                // 3) Collect all created tags under the asset
+                var browser = new ConfigBrowser(entry, new PublishedNodeExpansionModel
+                {
+                    CreateSingleWriter = true,
+                    MaxDepth = 0,
+                    Header = request.Header
+                }, _options, _configuration, _logger, _timeProvider);
+
+                var results = new List<ServiceResponse<PublishedNodesEntryModel>>();
+                await foreach (var configurationResult in _client.ExecuteAsync(
+                    entry.ToConnectionModel(), browser, request.Header,
+                    ct).ConfigureAwait(false))
+                {
+                    results.Add(configurationResult);
+                }
+                // We only expect a single writer here, else it is a failure.
+                if (results.Count != 1 ||
+                    (results[0].ErrorInfo != null && results[0].ErrorInfo!.StatusCode != 0))
+                {
+                    // Could not create tags - delete the asset
+                    errorInfo = results.Select(r => r.ErrorInfo)
+                        .FirstOrDefault(r => r != null);
+                    errorInfo ??= new ServiceResultModel
+                    {
+                        StatusCode = StatusCodes.BadUnexpectedError,
+                        ErrorMessage = "Failed to find any tags for the asset."
+                    };
+                    await DeleteAssetAsync(request.Header, entry, ct).ConfigureAwait(false);
+                    return new ServiceResponse<PublishedNodesEntryModel>
+                    {
+                        Result = entry,
+                        ErrorInfo = errorInfo
+                    };
+                }
+                return results[0];
+            }
+            catch (Exception ex)
+            {
+                await DeleteAssetAsync(request.Header, entry, ct).ConfigureAwait(false);
+                return new ServiceResponse<PublishedNodesEntryModel>
+                {
+                    Result = entry,
+                    ErrorInfo = ex.ToServiceResultModel()
+                };
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<ServiceResultModel> DeleteAssetAsync(
+            PublishedNodeDeleteAssetRequestModel request, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterId);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
+
+            using var trace = _activitySource.StartActivity("DeleteAsset");
+
+            // First remove the entry
+            try
+            {
+                await _configuration.RemoveDataSetWriterEntryAsync(
+                    request.Entry.DataSetWriterGroup, request.Entry.DataSetWriterId,
+                    ct: ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                if (!request.Force)
+                {
+                    return ex.ToServiceResultModel();
+                }
+                _logger.LogInformation(ex, "Discard error because force was set.");
+            }
+            var errorInfo = await DeleteAssetAsync(request.Header, request.Entry,
+                ct).ConfigureAwait(false);
+            return errorInfo ?? new ServiceResultModel();
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _activitySource.Dispose();
+        }
+
+        /// <summary>
+        /// Delete the asset
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="entry"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<ServiceResultModel?> DeleteAssetAsync(RequestHeaderModel? header,
+            PublishedNodesEntryModel entry, CancellationToken ct)
+        {
+            return await _client.ExecuteAsync(entry.ToConnectionModel(), async context =>
+            {
+                var assetId = entry.DataSetWriterId.ToNodeId(context.Session.MessageContext);
+                if (NodeId.IsNull(assetId))
+                {
+                    return new ServiceResultModel
+                    {
+                        StatusCode = StatusCodes.BadNodeIdInvalid,
+                        ErrorMessage = "Invalid node id and browse path in file system object"
+                    };
+                }
+                return await context.Session.DeleteAssetAsync(header.ToRequestHeader(_timeProvider),
+                    assetId, ct).ConfigureAwait(false);
+            }, header, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -120,12 +435,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public ConfigBrowser(PublishedNodesEntryModel entry, PublishedNodeExpansionModel request,
                 IOptions<PublisherOptions> options, IPublishedNodesServices? configuration, ILogger logger,
-                TimeProvider? timeProvider = null) : base(request.Header, options, timeProvider)
+                TimeProvider? timeProvider = null, bool allowNoResolution = false)
+                : base(request.Header, options, timeProvider)
             {
                 _entry = entry;
                 _request = request;
                 _configuration = configuration;
                 _logger = logger;
+                _allowNoResolution = allowNoResolution;
             }
 
             /// <inheritdoc/>
@@ -149,7 +466,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             protected override IEnumerable<ServiceResponse<PublishedNodesEntryModel>> HandleError(
                 ServiceCallContext context, ServiceResultModel errorInfo)
             {
-                CurrentNode.AddErrorInfo(errorInfo);
+                var node = _currentObject != null ? _currentObject.OriginalNode : CurrentNode;
+                node.AddErrorInfo(errorInfo);
+                _logger.LogDebug("Error expanding node {Node}: {Error}", node, errorInfo);
                 return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
             }
 
@@ -160,7 +479,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_currentObject != null)
                 {
                     // collect matching variables under the current object instance
-                    _currentObject.AddVariables(matching);
+                    if (_currentObject.AddVariables(matching))
+                    {
+                        _logger.LogDebug("Dropped duplicate variables found.");
+                    }
                 }
                 else
                 {
@@ -186,29 +508,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private async ValueTask<IEnumerable<ServiceResponse<PublishedNodesEntryModel>>> CompleteAsync(
                 ServiceCallContext context)
             {
-                var entries = new List<ServiceResponse<PublishedNodesEntryModel>>();
+                var results = new List<ServiceResponse<PublishedNodesEntryModel>>();
                 var currentObject = _currentObject;
                 if (currentObject != null)
                 {
                     // Process current object
-                    await ProcessAsync(currentObject, context, entries).ConfigureAwait(false);
+                    await ProcessAsync(currentObject, context, results).ConfigureAwait(false);
 
                     if (TryMoveToNextObject())
                     {
                         // Kicked off the next expansion
-                        return entries;
+                        return results;
                     }
                     Debug.Assert(_currentObject == null);
                 }
                 else if (CurrentNode.Variables.ContainsVariables)
                 {
                     // Completing a browse for variables
-                    await ProcessAsync(CurrentNode.Variables, context, entries).ConfigureAwait(false);
+                    await ProcessAsync(CurrentNode.Variables, context, results).ConfigureAwait(false);
                 }
                 else if (!CurrentNode.ContainsObjects)
                 {
                     // Completing a browse for objects
-                    if (!CurrentNode.HasErrors)
+                    if (!CurrentNode.HasErrors && !_allowNoResolution)
                     {
                         CurrentNode.AddErrorInfo(StatusCodes.BadNotFound, "No objects resolved.");
                     }
@@ -216,18 +538,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (!TryMoveToNextNode())
                 {
                     // Complete
-                    entries.AddRange(await EndAsync(context).ConfigureAwait(false));
+                    results.AddRange(await EndAsync(context).ConfigureAwait(false));
                 }
-                return entries;
+                return results;
 
                 async Task ProcessAsync(ObjectToExpand currentObject, ServiceCallContext context,
-                    List<ServiceResponse<PublishedNodesEntryModel>> entries)
+                    List<ServiceResponse<PublishedNodesEntryModel>> results)
                 {
                     if (currentObject.ContainsVariables &&
                         !_request.CreateSingleWriter && !currentObject.OriginalNode.HasErrors)
                     {
                         // Create a new writer entry for the object
-                        var entry = new ServiceResponse<PublishedNodesEntryModel>
+                        var result = await SaveEntryAsync(new ServiceResponse<PublishedNodesEntryModel>
                         {
                             Result = _entry with
                             {
@@ -241,15 +563,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         context.Session.MessageContext)
                                     .ToList()
                             }
-                        };
-
-                        await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
+                        }, context.Ct).ConfigureAwait(false);
 
                         currentObject.EntriesAlreadyReturned = true;
-                        if (!_request.DiscardErrors || entry.ErrorInfo == null)
+                        if (!_request.DiscardErrors || result.ErrorInfo == null)
                         {
                             // Add good entry to return _now_
-                            entries.Add(entry);
+                            results.Add(result);
                         }
                     }
                 }
@@ -310,15 +630,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .ToList();
                 if (goodNodes.Count > 0)
                 {
-                    var entry = new ServiceResponse<PublishedNodesEntryModel>
+                    var result = await SaveEntryAsync(new ServiceResponse<PublishedNodesEntryModel>
                     {
                         Result = _entry with { OpcNodes = goodNodes }
-                    };
-                    await SaveEntryAsync(entry, context.Ct).ConfigureAwait(false);
-                    if (!_request.DiscardErrors || entry.ErrorInfo == null)
+                    }, context.Ct).ConfigureAwait(false);
+                    if (!_request.DiscardErrors || result.ErrorInfo == null)
                     {
                         // Add good entry
-                        results.Add(entry);
+                        results.Add(result);
                     }
                 }
                 if (!_request.DiscardErrors)
@@ -460,8 +779,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="entry"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask SaveEntryAsync(ServiceResponse<PublishedNodesEntryModel> entry,
-                CancellationToken ct)
+            private async ValueTask<ServiceResponse<PublishedNodesEntryModel>> SaveEntryAsync(
+                ServiceResponse<PublishedNodesEntryModel> entry, CancellationToken ct)
             {
                 Debug.Assert(entry.Result != null);
                 Debug.Assert(entry.Result.OpcNodes != null);
@@ -474,10 +793,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         await _configuration.CreateOrUpdateDataSetWriterEntryAsync(entry.Result,
                             ct).ConfigureAwait(false);
                     }
+                    return entry;
                 }
                 catch (Exception ex)
                 {
-                    entry.ErrorInfo = ex.ToServiceResultModel();
+                    return entry with { ErrorInfo = ex.ToServiceResultModel() };
                 }
             }
 
@@ -662,15 +982,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// Add variables
                 /// </summary>
                 /// <param name="frames"></param>
-                public void AddVariables(IEnumerable<BrowseFrame> frames)
+                /// <returns></returns>
+                public bool AddVariables(IEnumerable<BrowseFrame> frames)
                 {
+                    var duplicates = false;
                     foreach (var frame in frames)
                     {
-                        var added = _variables.Add(frame);
-#if DEBUG
-                        Debug.Assert(added, $"Variable {frame} already exists");
-#endif
+                        duplicates |= _variables.Add(frame);
                     }
+                    return duplicates;
                 }
 
                 /// <summary>
@@ -750,12 +1070,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly PublishedNodeExpansionModel _request;
             private readonly IPublishedNodesServices? _configuration;
             private readonly ILogger _logger;
+            private readonly bool _allowNoResolution;
         }
 
         private readonly IPublishedNodesServices _configuration;
         private readonly IOptions<PublisherOptions> _options;
         private readonly IOpcUaClientManager<ConnectionModel> _client;
         private readonly ILogger<ConfigurationServices> _logger;
-        private readonly TimeProvider? _timeProvider;
+        private readonly TimeProvider _timeProvider;
+        private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

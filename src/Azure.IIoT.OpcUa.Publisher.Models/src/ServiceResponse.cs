@@ -19,13 +19,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "result", Order = 0,
             EmitDefaultValue = false)]
-        public T? Result { get; set; }
+        public T? Result { get; init; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
         [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
-        public ServiceResultModel? ErrorInfo { get; set; }
+        public ServiceResultModel? ErrorInfo { get; init; }
     }
 }

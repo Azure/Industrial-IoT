@@ -77,7 +77,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Temporary path
         /// </summary>
-        public string TempPath { get; } = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        public string TempPath { get; }
+            = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
         /// <summary>
         /// Filter parser
@@ -157,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 try
                 {
                     serverHost = new ServerConsoleHost(new ServerFactory(
-                        _container.Resolve<ILogger<ServerFactory>>(), nodes)
+                        _container.Resolve<ILogger<ServerFactory>>(), TempPath, nodes)
                     {
                         LogStatus = false
                     }, _container.Resolve<ILogger<ServerConsoleHost>>())

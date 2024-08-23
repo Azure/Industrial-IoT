@@ -32,19 +32,20 @@
 namespace Asset
 {
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public sealed class FileManager : IDisposable
     {
         public FileManager(AssetNodeManager nodeManager, WoTAssetFileTypeState file,
-            ILogger logger)
+            string folder, ILogger logger)
         {
             _nodeManager = nodeManager;
+            _folder = folder;
             _file = file;
             _logger = logger;
             _file.Size.Value = 0;
@@ -83,10 +84,8 @@ namespace Asset
             {
                 foreach (var handle in _handles.Values)
                 {
-                    handle.Stream.Close();
-                    handle.Stream.Dispose();
+                    handle.Dispose();
                 }
-
                 _handles.Clear();
             }
         }
@@ -110,9 +109,8 @@ namespace Asset
             }
         }
 
-        private ServiceResult OnOpen(ISystemContext _context,
-            MethodState _method, NodeId _objectId, byte mode,
-            ref uint fileHandle)
+        private ServiceResult OnOpen(ISystemContext _context, MethodState _method,
+            NodeId _objectId, byte mode, ref uint fileHandle)
         {
             if (mode != 1 && mode != 6)
             {
@@ -121,29 +119,42 @@ namespace Asset
 
             lock (_handles)
             {
-                if (_handles.Count >= 10)
+                try
                 {
-                    return StatusCodes.BadTooManyOperations;
-                }
+                    if (_handles.Count >= 10)
+                    {
+                        return StatusCodes.BadTooManyOperations;
+                    }
 
-                if (_writing && mode != 1)
-                {
-                    return StatusCodes.BadInvalidState;
-                }
+                    if (_writing && mode != 1)
+                    {
+                        return ServiceResult.Create(StatusCodes.BadInvalidState, "Writing already");
+                    }
 
-                var handle = new Handle(_context.SessionId,
-                    new MemoryStream(), mode == 6);
-
-                if (mode == 6)
-                {
-                    _writing = true;
-                }
-
-                lock (_handles)
-                {
+                    Handle handle;
+                    if (mode == 6)
+                    {
+                        // Writing
+                        handle = new Handle(_context.SessionId);
+                        _writing = true;
+                    }
+                    else if (mode == 1)
+                    {
+                        // Reading
+                        var path = Path.Combine(_folder, _file.Parent.DisplayName.Text + ".jsonld");
+                        handle = new Handle(_context.SessionId, File.Open(path, FileMode.Open));
+                    }
+                    else
+                    {
+                        return ServiceResult.Create(StatusCodes.BadNotSupported, "Unsupported mode");
+                    }
                     fileHandle = ++_nextHandle;
                     _handles.Add(fileHandle, handle);
                     _file.OpenCount.Value = (ushort)_handles.Count;
+                }
+                catch (Exception ex)
+                {
+                    return ServiceResult.Create(ex, StatusCodes.BadUserAccessDenied, ex.Message);
                 }
             }
             return ServiceResult.Good;
@@ -195,12 +206,8 @@ namespace Asset
             return ServiceResult.Good;
         }
 
-        private ServiceResult OnWrite(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            uint fileHandle,
-            byte[] data)
+        private ServiceResult OnWrite(ISystemContext _context,
+            MethodState _method, NodeId _objectId, uint fileHandle, byte[] data)
         {
             lock (_handles)
             {
@@ -220,17 +227,12 @@ namespace Asset
             return ServiceResult.Good;
         }
 
-        private ServiceResult OnClose(
-            ISystemContext _context,
-            MethodState _method,
-            NodeId _objectId,
-            uint fileHandle)
+        private ServiceResult OnClose(ISystemContext _context, MethodState _method,
+            NodeId _objectId, uint fileHandle)
         {
-            Handle? handle;
-
             lock (_handles)
             {
-                if (!_handles.TryGetValue(fileHandle, out handle))
+                if (!_handles.TryGetValue(fileHandle, out var handle))
                 {
                     return ServiceResult.Create(StatusCodes.BadInvalidArgument,
                         "Bad file handle");
@@ -244,68 +246,117 @@ namespace Asset
 
                 _writing = false;
                 _handles.Remove(fileHandle);
+                handle.Dispose();
                 _file.OpenCount.Value = (ushort)_handles.Count;
+                return ServiceResult.Good;
             }
-
-            handle.Stream.Close();
-            handle.Stream.Dispose();
-
-            return ServiceResult.Good;
         }
 
         private ServiceResult OnCloseAndUpdate(ISystemContext _context,
             MethodState _method, NodeId _objectId, uint fileHandle)
         {
-            Handle? handle;
-
-            lock (_handles)
+            if (!TryGetHandle(_context, fileHandle, out var handle, out var sr))
             {
-                if (!_handles.TryGetValue(fileHandle, out handle))
-                {
-                    return StatusCodes.BadInvalidArgument;
-                }
-
-                if (handle.SessionId != _context.SessionId)
-                {
-                    return StatusCodes.BadUserAccessDenied;
-                }
-
-                _writing = false;
-                _handles.Remove(fileHandle);
-                _file.OpenCount.Value = (ushort)_handles.Count;
+                return sr;
             }
             try
             {
-                handle.Stream.Close();
+                // Reset
+                handle.Stream.Position = 0;
 
-                var contents = Encoding.UTF8.GetString(handle.Stream.ToArray());
+                var jsonSerializer = JsonSerializer.CreateDefault();
+                using var text = new StreamReader(handle.Stream);
+                using var reader = new JsonTextReader(text);
 
-                _nodeManager.AddNodesForWoTProperties(_file.Parent, contents);
-
-                File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(),
-                    "settings", _file.Parent.DisplayName.Text + ".jsonld"), contents);
+                var td = jsonSerializer.Deserialize<ThingDescription>(reader);
+                if (td?.Context == null)
+                {
+                    throw new FormatException("Missing context");
+                }
+                _nodeManager.AddNodesForThingDescription(_file.Parent, td);
+                File.WriteAllText(Path.Combine(_folder,
+                    _file.Parent.DisplayName.Text + ".jsonld"), JsonConvert.SerializeObject(td));
 
                 return ServiceResult.Good;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error");
                 return new ServiceResult(StatusCodes.BadDecodingError, ex);
             }
             finally
             {
-                handle.Stream.Dispose();
+                handle.Dispose();
+            }
+
+            bool TryGetHandle(ISystemContext _context, uint fileHandle,
+                [NotNullWhen(true)] out Handle? handle,
+                [NotNullWhen(false)] out ServiceResult? sr)
+            {
+                lock (_handles)
+                {
+                    if (!_handles.TryGetValue(fileHandle, out handle))
+                    {
+                        sr = StatusCodes.BadInvalidArgument;
+                        return false;
+                    }
+
+                    if (handle.SessionId != _context.SessionId)
+                    {
+                        sr = StatusCodes.BadUserAccessDenied;
+                        return false;
+                    }
+
+                    _writing = false;
+                    _handles.Remove(fileHandle);
+                    _file.OpenCount.Value = (ushort)_handles.Count;
+                    sr = null;
+                    return true;
+                }
             }
         }
-        private sealed record class Handle(NodeId SessionId,
-            MemoryStream Stream, bool Writing)
+
+        public void Delete()
         {
-            public uint Position { get; set; }
+            try
+            {
+                File.Delete(Path.Combine(_folder,
+                    _file.Parent.DisplayName.Text + ".jsonld"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error");
+            }
+        }
+
+        private sealed record class Handle : IDisposable
+        {
+            public NodeId SessionId { get; }
+            public Stream Stream { get; }
+            public bool Writing { get; }
+
+            public Handle(NodeId sessionId)
+            {
+                SessionId = sessionId;
+                Writing = true;
+                Stream = new MemoryStream();
+            }
+
+            public Handle(NodeId sessionId, Stream stream)
+            {
+                SessionId = sessionId;
+                Stream = stream;
+            }
+
+            public void Dispose()
+            {
+                Stream.Dispose();
+            }
         }
 
         private readonly AssetNodeManager _nodeManager;
         private readonly WoTAssetFileTypeState _file;
         private readonly ILogger _logger;
+        private readonly string _folder;
         private readonly Dictionary<uint, Handle> _handles = new();
         private bool _writing;
         private uint _nextHandle = 1u;

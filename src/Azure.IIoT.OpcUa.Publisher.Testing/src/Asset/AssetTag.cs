@@ -35,13 +35,15 @@ namespace Asset
 
     public abstract class AssetTag
     {
+        /// <summary>
+        /// Tag name
+        /// </summary>
         public required string Name { get; init; }
 
+        /// <summary>
+        /// Tag address
+        /// </summary>
         public required Uri Address { get; init; }
-
-        public string? MappedUAExpandedNodeID { get; set; }
-
-        public string? MappedUAFieldPath { get; set; }
     }
 
     public class AssetTag<T> : AssetTag
