@@ -53,7 +53,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Download files |-|X|Experimental|
 | | Upload files to directory |-|X|Experimental|
 | | Delete files and directories |-|X|Experimental|
-| | Substitutable Close method |-|-|#2322|
+| | Substitutable Close method |-|X|Experimental|
 | | Temporary file transfer |-|-||
 | Subscribe to [value changes](./readme.md#configuration-schema) |||||
 | | Value change subscriptions |X|X||
@@ -114,8 +114,13 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | v2.9 |-|X||
 | | JSON schema validation |X|-||
 | | Bootstrapped from Azure Storage blob |-|-|#2284|
+| API to configure and subscribe to Objects, Types and Assets |||||
+| | All variables under an object as writers |-|X|Experimental|
+| | All variables of objects of a certain object type or subtype |-|X|Experimental|
+| | All variables of a variable type or subtype |-|X|Experimental|
+| | Asset configuration using Web of Things Description per [Part 10100-1](https://reference.opcfoundation.org/WoT/v100/docs/)|-|X|Experimental|
+| | Asset admin shell support per [Part 30270](https://reference.opcfoundation.org/I4AAS/v100/docs/)|-|-||
 | OPC UA Pub/Sub configuration API ([Part 14](https://reference.opcfoundation.org/Core/Part14/v105/docs/))||-|-||
-| Asset WoT configuration API ([Part 10100-1](https://reference.opcfoundation.org/WoT/v100/docs/))||-|-||
 | Data contextualization |||||
 | | Add Endpoint/Dataset name to message header (Routing) |X|X||
 | | [Enrichment](./readme.md#key-frames-delta-frames-and-extension-fields) |-|X||
