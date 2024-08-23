@@ -51,31 +51,39 @@ namespace FileSystem
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
 
-            DeleteFileSystemObject = new DeleteFileMethodState(this);
-            DeleteFileSystemObject.OnCall = new DeleteFileMethodStateMethodCallHandler(OnDeleteFileSystemObject);
-            DeleteFileSystemObject.Executable = true;
-            DeleteFileSystemObject.UserExecutable = true;
+            DeleteFileSystemObject = new DeleteFileMethodState(this)
+            {
+                OnCall = new DeleteFileMethodStateMethodCallHandler(OnDeleteFileSystemObject),
+                Executable = true,
+                UserExecutable = true
+            };
             DeleteFileSystemObject.Create(context, MethodIds.FileDirectoryType_DeleteFileSystemObject,
                 BrowseNames.DeleteFileSystemObject, BrowseNames.DeleteFileSystemObject, false);
 
-            CreateFile = new CreateFileMethodState(this);
-            CreateFile.OnCall = new CreateFileMethodStateMethodCallHandler(OnCreateFile);
-            CreateFile.Executable = true;
-            CreateFile.UserExecutable = true;
+            CreateFile = new CreateFileMethodState(this)
+            {
+                OnCall = new CreateFileMethodStateMethodCallHandler(OnCreateFile),
+                Executable = true,
+                UserExecutable = true
+            };
             CreateFile.Create(context, MethodIds.FileDirectoryType_CreateFile,
                 BrowseNames.CreateFile, BrowseNames.CreateFile, false);
 
-            CreateDirectory = new CreateDirectoryMethodState(this);
-            CreateDirectory.OnCall = new CreateDirectoryMethodStateMethodCallHandler(OnCreateDirectory);
-            CreateDirectory.Executable = true;
-            CreateDirectory.UserExecutable = true;
+            CreateDirectory = new CreateDirectoryMethodState(this)
+            {
+                OnCall = new CreateDirectoryMethodStateMethodCallHandler(OnCreateDirectory),
+                Executable = true,
+                UserExecutable = true
+            };
             CreateDirectory.Create(context, MethodIds.FileDirectoryType_CreateDirectory,
                 BrowseNames.CreateDirectory, BrowseNames.CreateDirectory, false);
 
-            MoveOrCopy = new MoveOrCopyMethodState(this);
-            MoveOrCopy.OnCall = new MoveOrCopyMethodStateMethodCallHandler(OnMoveOrCopy);
-            MoveOrCopy.Executable = true;
-            MoveOrCopy.UserExecutable = true;
+            MoveOrCopy = new MoveOrCopyMethodState(this)
+            {
+                OnCall = new MoveOrCopyMethodStateMethodCallHandler(OnMoveOrCopy),
+                Executable = true,
+                UserExecutable = true
+            };
             MoveOrCopy.Create(context, MethodIds.FileDirectoryType_MoveOrCopy,
                 BrowseNames.MoveOrCopy, BrowseNames.MoveOrCopy, false);
         }

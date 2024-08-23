@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly IOpcUaClient _client;
             private IAsyncDisposable? _sampler;
             private bool _sampling;
-            private readonly object _lock = new object();
+            private readonly object _lock = new ();
             private bool _disposed;
         }
     }

@@ -172,7 +172,7 @@ namespace Asset
 
         private static decimal ToDecimal(ReadOnlySpan<byte> bytes)
         {
-            int[] bits = new int[4];
+            var bits = new int[4];
             bits[0] = bytes[0] | (bytes[1] << 8) | (bytes[2] << 0x10) | (bytes[3] << 0x18); //lo
             bits[1] = bytes[4] | (bytes[5] << 8) | (bytes[6] << 0x10) | (bytes[7] << 0x18); //mid
             bits[2] = bytes[8] | (bytes[9] << 8) | (bytes[10] << 0x10) | (bytes[11] << 0x18); //hi
@@ -182,13 +182,13 @@ namespace Asset
 
         private static byte[] GetBytes(decimal d)
         {
-            byte[] bytes = new byte[16];
+            var bytes = new byte[16];
 
-            int[] bits = decimal.GetBits(d);
-            int lo = bits[0];
-            int mid = bits[1];
-            int hi = bits[2];
-            int flags = bits[3];
+            var bits = decimal.GetBits(d);
+            var lo = bits[0];
+            var mid = bits[1];
+            var hi = bits[2];
+            var flags = bits[3];
 
             bytes[0] = (byte)lo;
             bytes[1] = (byte)(lo >> 8);

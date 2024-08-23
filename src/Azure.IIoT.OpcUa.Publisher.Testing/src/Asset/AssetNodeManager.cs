@@ -860,10 +860,9 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                 WriteMask = AttributeWriteMask.None,
                 UserWriteMask = AttributeWriteMask.None,
                 AccessLevel = AccessLevels.CurrentRead,
-                DataType = ExpandedNodeId.ToNodeId(type, Server.NamespaceUris)
+                DataType = ExpandedNodeId.ToNodeId(type, Server.NamespaceUris),
+                OnSimpleReadValue = new NodeValueSimpleEventHandler(OnSimpleReadValue)
             };
-
-            variable.OnSimpleReadValue = new NodeValueSimpleEventHandler(OnSimpleReadValue);
             if (writeable)
             {
                 variable.AccessLevel = AccessLevels.CurrentReadOrWrite;

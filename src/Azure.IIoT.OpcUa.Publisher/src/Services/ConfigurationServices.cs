@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     DataSetWriterId = assetId,
                     OpcNodes = new List<OpcNodeModel>
                     {
-                        new OpcNodeModel
+                        new ()
                         {
                             Id = assetId,
                             DataSetFieldId = entry.DataSetName

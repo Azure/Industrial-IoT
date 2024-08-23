@@ -59,7 +59,7 @@ namespace Asset
             _file.OpenCount.Value = 0;
             if (_file.MaxByteStringLength != null)
             {
-                _file.MaxByteStringLength.Value = UInt16.MaxValue;
+                _file.MaxByteStringLength.Value = ushort.MaxValue;
             }
 
             _file.Open.OnCall =

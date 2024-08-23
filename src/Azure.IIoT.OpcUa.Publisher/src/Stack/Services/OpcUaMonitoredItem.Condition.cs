@@ -442,8 +442,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (_conditionTimer == null)
                     {
-                        _conditionTimer = new(TimeProvider);
-                        _conditionTimer.AutoReset = false;
+                        _conditionTimer = new(TimeProvider)
+                        {
+                            AutoReset = false
+                        };
                         _conditionTimer.Elapsed += OnConditionTimerElapsed;
                         _logger.LogDebug("Re-enabled condition timer.");
                     }

@@ -411,7 +411,7 @@ namespace Asset
             IBufferWriter<byte> writer)
         {
             const int length = Mbap.Length + 5;
-            Span<byte> adu = writer.GetSpan(length);
+            var adu = writer.GetSpan(length);
 
             var request = adu.Slice(Mbap.Length, 5);
             WriteMbap(mbap, request.Length, adu);
@@ -435,7 +435,7 @@ namespace Asset
             ReadOnlySpan<byte> bitBuffer, IBufferWriter<byte> writer)
         {
             var length = Mbap.Length + 6 + bitBuffer.Length;
-            Span<byte> adu = writer.GetSpan(length);
+            var adu = writer.GetSpan(length);
 
             var request = adu.Slice(Mbap.Length, length - Mbap.Length);
             WriteRequestHeader(function, startingAddress, quantity, request);
@@ -459,7 +459,7 @@ namespace Asset
             IBufferWriter<byte> writer)
         {
             var length = Mbap.Length + 6 + words.Length;
-            Span<byte> adu = writer.GetSpan(length);
+            var adu = writer.GetSpan(length);
 
             var request = adu.Slice(Mbap.Length, length - Mbap.Length);
             WriteRequestHeader(function, startingAddress, quantity, request);
