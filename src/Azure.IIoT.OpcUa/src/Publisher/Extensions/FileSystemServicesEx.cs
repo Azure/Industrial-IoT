@@ -51,14 +51,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="endpoint"></param>
         /// <param name="file"></param>
         /// <param name="stream"></param>
-        /// <param name="mode"></param>
+        /// <param name="options"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<ServiceResultModel> CopyFromAsync<T>(this IFileSystemServices<T> service,
-            T endpoint, FileSystemObjectModel file, Stream stream, FileWriteMode mode = FileWriteMode.Create,
+            T endpoint, FileSystemObjectModel file, Stream stream, FileOpenWriteOptionsModel? options = null,
             CancellationToken ct = default)
         {
-            var open = await service.OpenWriteAsync(endpoint, file, mode, ct).ConfigureAwait(false);
+            var open = await service.OpenWriteAsync(endpoint, file, options, ct).ConfigureAwait(false);
             if (open.ErrorInfo != null)
             {
                 Debug.Assert(open.Result == null);

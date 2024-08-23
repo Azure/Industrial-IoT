@@ -443,15 +443,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// the header "x-ms-connection"</param>
         /// <param name="fileObjectJson">The file object to upload. This is passed as json
         /// serialized via the header "x-ms-target"</param>
-        /// <param name="modeJson">The file write mode to use passed as header "x-ms-mode"
-        /// </param>
+        /// <param name="writeOptionsJson">The file write options to use passed as
+        /// header "x-ms-mode"</param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="connectionJson"/>
         /// is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="fileObjectJson"/>
         /// is <c>null</c>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="modeJson"/>
+        /// <exception cref="ArgumentNullException"><paramref name="writeOptionsJson"/>
         /// is <c>null</c>.</exception>
         /// <exception cref="NotSupportedException">The operation is not supported
         /// over the transport chosen</exception>
@@ -468,16 +468,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         public async Task UploadAsync(
             [FromHeader(Name = "x-ms-connection")][Required] string connectionJson,
             [FromHeader(Name = "x-ms-target")][Required] string fileObjectJson,
-            [FromHeader(Name = "x-ms-mode")][Required] string modeJson,
+            [FromHeader(Name = "x-ms-options")][Required] string writeOptionsJson,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionJson);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(modeJson);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(writeOptionsJson);
 
             var connection = _serializer.Deserialize<ConnectionModel>(connectionJson);
             var fileObject = _serializer.Deserialize<FileSystemObjectModel>(fileObjectJson);
-            var mode = _serializer.Deserialize<FileWriteMode>(modeJson);
+            var options = _serializer.Deserialize<FileOpenWriteOptionsModel?>(writeOptionsJson);
 
             ArgumentNullException.ThrowIfNull(connection);
             ArgumentNullException.ThrowIfNull(fileObject);
@@ -490,7 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             await using (var _ = HttpContext.Request.Body.ConfigureAwait(false))
             {
                 var result = await _files.CopyFromAsync(connection,
-                    fileObject, HttpContext.Request.Body, mode, ct).ConfigureAwait(false);
+                    fileObject, HttpContext.Request.Body, options, ct).ConfigureAwait(false);
 
                 if (result?.StatusCode != 0)
                 {

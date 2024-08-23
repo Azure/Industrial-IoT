@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
+    using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
@@ -122,12 +123,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 
         /// <inheritdoc/>
         public Task<ServiceResponse<Stream>> OpenWriteAsync(ConnectionModel endpoint,
-            FileSystemObjectModel file, FileWriteMode mode, CancellationToken ct)
+            FileSystemObjectModel file, FileOpenWriteOptionsModel options, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNull(file);
 
-            return Task.FromResult(UploadStream.Create(this, endpoint, file, mode, ct));
+            return Task.FromResult(UploadStream.Create(this, endpoint, file, options, ct));
         }
 
         /// <inheritdoc/>
@@ -360,7 +361,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 
             /// <inheritdoc/>
             public static ServiceResponse<Stream> Create(FileSystemServicesRestClient outer,
-                ConnectionModel endpoint, FileSystemObjectModel file, FileWriteMode mode, CancellationToken ct)
+                ConnectionModel endpoint, FileSystemObjectModel file, FileOpenWriteOptionsModel options,
+                CancellationToken ct)
             {
                 var uri = new Uri($"{outer._serviceUri}/v2/filesystem/upload");
                 var httpClient = outer._httpClient.CreateClient();
@@ -370,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 var serializer = new NewtonsoftJsonSerializer();
                 request.Headers.Add("x-ms-target", serializer.SerializeObjectToString(file));
                 request.Headers.Add("x-ms-connection", serializer.SerializeObjectToString(endpoint));
-                request.Headers.Add("x-ms-mode", serializer.SerializeObjectToString(mode));
+                request.Headers.Add("x-ms-options", serializer.SerializeObjectToString(options));
 
                 var stream = new UploadStream(httpClient, request, serializer, ct);
                 return new ServiceResponse<Stream>

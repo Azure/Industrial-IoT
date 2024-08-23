@@ -81,14 +81,16 @@ namespace Azure.IIoT.OpcUa.Publisher
 
         /// <summary>
         /// Opens the file for writing, closing the stream will close the file.
+        /// Optionally options can be provided to control the write mode and
+        /// alternative close methods to use.
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="file"></param>
-        /// <param name="mode"></param>
+        /// <param name="options"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ServiceResponse<Stream>> OpenWriteAsync(T endpoint, FileSystemObjectModel file,
-            FileWriteMode mode = FileWriteMode.Create, CancellationToken ct = default);
+            FileOpenWriteOptionsModel? options = null, CancellationToken ct = default);
 
         /// <summary>
         /// Create parent directory under a file system or directory.

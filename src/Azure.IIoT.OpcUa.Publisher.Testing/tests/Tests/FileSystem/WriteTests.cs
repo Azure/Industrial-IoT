@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
             {
                 NodeId = fileNodeId
-            }, FileWriteMode.Create, ct).ConfigureAwait(false);
+            }, ct: ct).ConfigureAwait(false);
 
             Assert.Null(stream.ErrorInfo);
             Assert.NotNull(stream.Result);
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
             {
                 NodeId = fileNodeId
-            }, FileWriteMode.Create, ct).ConfigureAwait(false);
+            }, ct: ct).ConfigureAwait(false);
 
             Assert.Null(stream.ErrorInfo);
             Assert.NotNull(stream.Result);
@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
             {
                 NodeId = fileNodeId
-            }, FileWriteMode.Write, ct).ConfigureAwait(false);
+            }, new FileOpenWriteOptionsModel { Mode = FileWriteMode.Write }, ct).ConfigureAwait(false);
 
             Assert.Null(stream.ErrorInfo);
             Assert.NotNull(stream.Result);
@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
             {
                 NodeId = fileNodeId
-            }, FileWriteMode.Append, ct).ConfigureAwait(false);
+            }, new FileOpenWriteOptionsModel { Mode = FileWriteMode.Append }, ct).ConfigureAwait(false);
 
             Assert.Null(stream.ErrorInfo);
             Assert.NotNull(stream.Result);
@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
             {
                 NodeId = fileNodeId
-            }, FileWriteMode.Append, ct).ConfigureAwait(false);
+            }, new FileOpenWriteOptionsModel { Mode = FileWriteMode.Append }, ct).ConfigureAwait(false);
 
             Assert.Null(stream.ErrorInfo);
             Assert.NotNull(stream.Result);
@@ -294,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 var stream = await services.OpenWriteAsync(_connection, new FileSystemObjectModel
                 {
                     NodeId = fileNodeId
-                }, FileWriteMode.Append, ct).ConfigureAwait(false);
+                }, new FileOpenWriteOptionsModel { Mode = FileWriteMode.Append }, ct).ConfigureAwait(false);
 
                 Assert.Null(stream.ErrorInfo);
                 Assert.NotNull(stream.Result);

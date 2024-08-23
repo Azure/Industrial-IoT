@@ -303,6 +303,19 @@ View to browse
 |**viewId**  <br>*required*|Node of the view to browse  <br>**Minimum length** : `1`|string|
 
 
+<a name="bytearraypublishednodecreateassetrequestmodel"></a>
+### ByteArrayPublishedNodeCreateAssetRequestModel
+Request to create an asset in the configuration api
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**configuration**  <br>*required*|The asset configuration to use when creating the asset.|string (byte)|
+|**entry**  <br>*required*||[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**waitTime**  <br>*optional*|Time to wait after the configuration is applied to perform<br>the configuration of the asset in the configuration api.<br>This is to let the server settle.|string (date-span)|
+
+
 <a name="channeldiagnosticmodel"></a>
 ### ChannelDiagnosticModel
 Channel diagnostics model
@@ -1674,6 +1687,19 @@ A monitored and published item
 |**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
 
 
+<a name="publishednodedeleteassetrequestmodel"></a>
+### PublishedNodeDeleteAssetRequestModel
+Contains entry in the published nodes configuration representing
+the asset as well as an optional request header.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**entry**  <br>*required*||[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**force**  <br>*optional*|The asset on the server is deleted no matter whether<br>the removal in the publisher configuration was successful<br>or not.|boolean|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
 <a name="publishednodeexpansionmodel"></a>
 ### PublishedNodeExpansionModel
 Node expansion configuration. Configures how an entry should
@@ -1788,6 +1814,17 @@ Contains the nodes which should be published
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
+
+
+<a name="publishednodesentrymodelserviceresponse"></a>
+### PublishedNodesEntryModelServiceResponse
+Response envelope
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 <a name="publishednodesentrymodelserviceresponseiasyncenumerable"></a>
@@ -2102,6 +2139,19 @@ Request header model
 |**namespaceFormat**  <br>*optional*||[NamespaceFormat](definitions.md#namespaceformat)|
 |**operationTimeout**  <br>*optional*|Operation timeout in ms. This applies to every<br>operation that is invoked, not to the entire<br>transaction and overrides the configured operation<br>timeout.|integer (int32)|
 |**serviceCallTimeout**  <br>*optional*|Service call timeout in ms. As opposed to the<br>operation timeout this terminates the entire<br>transaction if it takes longer than the timeout to<br>complete. Note that a connect and reconnect during<br>the service call is gated by the connect timeout<br>setting. If a connect timeout is not specified<br>this timeout is used also for connect timeout.|integer (int32)|
+
+
+<a name="requestheadermodelpublishednodesentryrequestmodel"></a>
+### RequestHeaderModelPublishedNodesEntryRequestModel
+Wraps a request and a published nodes entry to bind to a
+body more easily for api that requires an entry and additional
+configuration
+
+
+|Name|Schema|
+|---|---|
+|**entry**  <br>*required*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**request**  <br>*optional*|[RequestHeaderModel](definitions.md#requestheadermodel)|
 
 
 <a name="requestheadermodelrequestenvelope"></a>

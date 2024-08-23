@@ -14,16 +14,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public enum FileWriteMode
     {
         /// <summary>
-        /// The file is opened for writing.
-        /// </summary>
-        [EnumMember(Value = "Write")]
-        Write,
-
-        /// <summary>
         /// The existing content of the file is erased.
         /// </summary>
         [EnumMember(Value = "Create")]
         Create,
+
+        /// <summary>
+        /// The file is opened for writing.
+        /// </summary>
+        [EnumMember(Value = "Write")]
+        Write,
 
         /// <summary>
         /// The file is opened and positioned
