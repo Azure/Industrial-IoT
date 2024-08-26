@@ -1,0 +1,26 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "DefaultHeartbeatInterval": 60000,
+        "DataSetPublishingInterval": 1000,
+        "DataSetSamplingInterval": 1000,
+        "DataSetFetchDisplayNames": true,
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2"
+            },
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3"
+            }
+        ]
+    }
+]

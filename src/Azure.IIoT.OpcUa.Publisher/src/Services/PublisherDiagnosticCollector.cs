@@ -270,11 +270,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         MonitoredOpcNodesFailedCount = MonitoredOpcNodesFailedCount +
                             writers.Sum(w => w.MonitoredOpcNodesFailedCount),
+                        ActiveConditionCount = ActiveConditionCount +
+                            writers.Sum(w => w.ActiveConditionCount),
+                        ActiveHeartbeatCount = ActiveHeartbeatCount +
+                            writers.Sum(w => w.ActiveHeartbeatCount),
                         MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
                             writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
                         MonitoredOpcNodesLateCount = MonitoredOpcNodesLateCount +
                             writers.Sum(w => w.MonitoredOpcNodesLateCount),
                         OpcEndpointConnected = NumberOfConnectedEndpoints != 0,
+                        ConnectionCount = ConnectionCount +
+                            writers.Sum(w => w.ConnectionCount),
+                        ConnectionRetries = ConnectionRetries +
+                            writers.Sum(w => w.ConnectionRetries),
                         PublishRequestsRatio = PublishRequestsRatio +
                             writers.Sum(w => w.PublishRequestsRatio),
                         BadPublishRequestsRatio = BadPublishRequestsRatio +
@@ -327,6 +335,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.NumberOfDisconnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_connection_retries"] =
                     (d, i) => d.ConnectionRetries = (long)i,
+                ["iiot_edge_publisher_connections"] =
+                    (d, i) => d.ConnectionCount = (long)i,
                 ["iiot_edge_publisher_subscriptions"] =
                     (d, i) => d.NumberOfSubscriptions = (long)i,
                 ["iiot_edge_publisher_publish_requests_per_subscription"] =
@@ -337,6 +347,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.BadPublishRequestsRatio = (double)i,
                 ["iiot_edge_publisher_min_publish_requests_per_subscription"] =
                     (d, i) => d.MinPublishRequestsRatio = (double)i,
+                ["iiot_edge_publisher_heartbeat_enabled_nodes"] =
+                    (d, i) => d.ActiveHeartbeatCount = (long)i,
+                ["iiot_edge_publisher_condition_enabled_nodes"] =
+                    (d, i) => d.ActiveConditionCount = (long)i,
 
                 ["iiot_edge_publisher_unassigned_notification_count"] =
                     (d, i) => d.IngressUnassignedChanges = (long)i,

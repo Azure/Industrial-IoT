@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     /// <summary>
     /// Server discovery on top of OPC UA endpoint discovery
     /// </summary>
-    public sealed class ServerDiscovery : IServerDiscovery
+    public sealed class ServerDiscovery : IServerDiscovery<object>
     {
         /// <summary>
         /// Create services
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel query, CancellationToken ct)
+            ServerEndpointQueryModel query, object? context, CancellationToken ct)
         {
             if (query?.DiscoveryUrl == null)
             {

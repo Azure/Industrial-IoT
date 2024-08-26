@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" });
 
             // Assert
-            _output.WriteLine(messages.ToString());
+            messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
             var doubleValues = messages
                 .Where(message => message.Message.GetProperty("DisplayName").GetString() == "DoubleValues" &&
                     message.Message.GetProperty("Value").TryGetProperty("Value", out _));
@@ -291,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 "./Resources/PendingAlarms.json", GetAlarmCondition);
 
             // Assert
-            _output.WriteLine(messages.ToString());
+            messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
             var evt = Assert.Single(messages).Message;
 
             Assert.Equal(JsonValueKind.Object, evt.ValueKind);
@@ -396,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition);
-                _output.WriteLine(messages.ToString());
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
                 var evt = Assert.Single(messages).Message;
                 Assert.Equal(JsonValueKind.Object, evt.ValueKind);
@@ -507,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition);
-                messages.ToList().ForEach(m => _output.WriteLine(m.ToString()));
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
                 var evt = Assert.Single(messages).Message;
 
                 Assert.Equal(JsonValueKind.Object, evt.ValueKind);
@@ -539,7 +539,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
                         && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind
                             == JsonValueKind.String ? message : default);
-                _output.WriteLine(messages.ToString());
+                messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
                 var message = Assert.Single(messages).Message;
                 Assert.Equal("i=2253", message.GetProperty("NodeId").GetString());

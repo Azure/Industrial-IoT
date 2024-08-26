@@ -75,7 +75,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string ReverseConnectPortKey = "ReverseConnectPort";
         public const string DisableComplexTypePreloadingKey = "DisableComplexTypePreloading";
         public const string PublishRequestsPerSubscriptionPercentKey = "PublishRequestsPerSubscriptionPercent";
-        public const string ActivePublishErrorHandlingKey = "ActivePublishErrorHandling";
         public const string MinPublishRequestsKey = "MinPublishRequests";
         public const string MaxPublishRequestsKey = "MaxPublishRequests";
         public const string MaxNodesPerBrowseOverrideKey = "MaxNodesPerBrowseOverride";
@@ -114,7 +113,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool RejectSha1SignedCertificatesDefault = false;
         public const bool AddAppCertToTrustedStoreDefault = true;
         public const bool RejectUnknownRevocationStatusDefault = true;
-        public const bool ActivePublishErrorHandlingDefault = true;
         public const int MinPublishRequestsDefault = 2;
         public const int MaxPublishRequestsDefault = 10;
         public const int PublishRequestsPerSubscriptionPercentDefault = 100;
@@ -274,9 +272,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             options.PublishRequestsPerSubscriptionPercent ??= GetIntOrNull(
                     PublishRequestsPerSubscriptionPercentKey);
-
-            options.ActivePublishErrorHandling ??= GetBoolOrDefault(
-                    ActivePublishErrorHandlingKey, ActivePublishErrorHandlingDefault);
 
             options.MaxNodesPerReadOverride ??= GetIntOrNull(MaxNodesPerReadOverrideKey);
             options.MaxNodesPerBrowseOverride ??= GetIntOrNull(MaxNodesPerBrowseOverrideKey);

@@ -20,7 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
     /// <summary>
     /// Implement the discovery services through all registered publishers
     /// </summary>
-    public sealed class DiscoveryServicesClient : INetworkDiscovery, IServerDiscovery, IDisposable
+    public sealed class DiscoveryServicesClient : INetworkDiscovery<string>,
+        IServerDiscovery<string>, IDisposable
     {
         /// <summary>
         /// Create endpoint registry
@@ -45,10 +46,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
+        public async Task CancelAsync(DiscoveryCancelRequestModel request, string? context, CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("CancelDiscovery");
-            await foreach (var publisher in EnumeratePublishersAsync(ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -71,11 +72,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
 
         /// <inheritdoc/>
         public async Task<ApplicationRegistrationModel> FindServerAsync(ServerEndpointQueryModel query,
-            CancellationToken ct)
+            string? context, CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("FindServer");
             var exceptions = new List<Exception>();
-            await foreach (var publisher in EnumeratePublishersAsync(ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -101,14 +102,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                     exceptions.Add(ex);
                 }
             }
-            throw new AggregateException("Failed to find server on any publisher.", exceptions);
+            throw new AggregateException("Failed to find server.", exceptions);
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
+        public async Task DiscoverAsync(DiscoveryRequestModel request, string? context, CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("Discover");
-            await foreach (var publisher in EnumeratePublishersAsync(ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -131,10 +132,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         }
 
         /// <inheritdoc/>
-        public async Task RegisterAsync(ServerRegistrationRequestModel request, CancellationToken ct)
+        public async Task RegisterAsync(ServerRegistrationRequestModel request, string? context,
+            CancellationToken ct)
         {
             using var activity = _activitySource.StartActivity("RegisterServer");
-            await foreach (var publisher in EnumeratePublishersAsync(ct))
+            await foreach (var publisher in EnumeratePublishersAsync(context, ct).ConfigureAwait(false))
             {
                 if (publisher.Id == null)
                 {
@@ -157,35 +159,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
         }
 
         /// <summary>
-        /// List all publishers
+        /// Get a dedicated publisher or list all publishers
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async IAsyncEnumerable<PublisherModel> EnumeratePublishersAsync(
+        private async IAsyncEnumerable<PublisherModel> EnumeratePublishersAsync(string? id = null,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
-            string? continuationToken = null;
-            do
+            if (id != null)
             {
-                var result = await _publishers.ListPublishersAsync(continuationToken, false,
-                    null, ct).ConfigureAwait(false);
-                if (result.Items != null)
-                {
-                    foreach (var item in result.Items)
-                    {
-                        yield return item;
-                    }
-                }
-                continuationToken = result.ContinuationToken;
+                yield return await _publishers.GetPublisherAsync(id, ct: ct).ConfigureAwait(false);
             }
-            while (continuationToken != null);
+            else
+            {
+                string? continuationToken = null;
+                do
+                {
+                    var result = await _publishers.ListPublishersAsync(continuationToken, false,
+                        null, ct).ConfigureAwait(false);
+                    if (result.Items != null)
+                    {
+                        foreach (var item in result.Items)
+                        {
+                            yield return item;
+                        }
+                    }
+                    continuationToken = result.ContinuationToken;
+                }
+                while (continuationToken != null);
+            }
         }
 
         private readonly IPublisherRegistry _publishers;
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
-        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(60);
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

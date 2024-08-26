@@ -345,7 +345,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Republish after transferring the subscription during
         /// reconnect handling unless subscription transfer was disabled.
         /// </summary>
-        [DataMember(Name = "republishAfterTransfer", Order = 41,
+        [DataMember(Name = "RepublishAfterTransfer", Order = 41,
             EmitDefaultValue = false)]
         public bool? RepublishAfterTransfer { get; set; }
 
@@ -431,6 +431,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MessageRetention", Order = 53,
             EmitDefaultValue = false)]
         public bool? MessageRetention { get; set; }
+
+        /// <summary>
+        /// Default heartbeat interval in milliseconds
+        /// </summary>
+        [DataMember(Name = "DefaultHeartbeatInterval", Order = 54,
+            EmitDefaultValue = false)]
+        public int? DefaultHeartbeatInterval { get; set; }
+
+        /// <summary>
+        /// Default heartbeat interval for all nodes as duration. Takes
+        /// precedence over <see cref="DefaultHeartbeatInterval"/> if
+        /// defined.
+        /// </summary>
+        [DataMember(Name = "DefaultHeartbeatIntervalTimespan", Order = 55,
+            EmitDefaultValue = false)]
+        public TimeSpan? DefaultHeartbeatIntervalTimespan { get; set; }
+
+        /// <summary>
+        /// Default heartbeat behavior for all nodes
+        /// </summary>
+        [DataMember(Name = "DefaultHeartbeatBehavior", Order = 56,
+            EmitDefaultValue = false)]
+        public HeartbeatBehavior? DefaultHeartbeatBehavior { get; set; }
+
+        /// <summary>
+        /// Dump server diagnostics for the connection to enable
+        /// advanced troubleshooting scenarios.
+        /// </summary>
+        [DataMember(Name = "DumpConnectionDiagnostics", Order = 98,
+            EmitDefaultValue = false)]
+        public bool? DumpConnectionDiagnostics { get; set; }
 
         /// <summary>
         /// The node to monitor in "ns=" syntax.

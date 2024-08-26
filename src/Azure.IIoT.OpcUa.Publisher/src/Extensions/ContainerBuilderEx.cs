@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublishedNodesConverter>()
                 .SingleInstance();
-            builder.RegisterType<PublisherConfigurationService>()
+            builder.RegisterType<PublishedNodesJsonServices>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherService>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -47,7 +47,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<NodeServices<ConnectionModel>>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<ConfigurationServices>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HistoryServices<ConnectionModel>>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<FileSystemServices<ConnectionModel>>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ServerDiscovery>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

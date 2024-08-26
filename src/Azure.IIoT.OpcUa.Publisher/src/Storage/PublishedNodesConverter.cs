@@ -134,6 +134,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetSamplingInterval = null,
                             DataSetSamplingIntervalTimespan =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultSamplingInterval,
+                            DefaultHeartbeatInterval = null,
+                            DefaultHeartbeatIntervalTimespan =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultHeartbeatInterval,
+                            DefaultHeartbeatBehavior =
+                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.DefaultHeartbeatBehavior,
                             Priority =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.Priority,
                             MaxKeepAliveCount =
@@ -170,6 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             UseSecurity = false,
                             UseReverseConnect = null,
                             DisableSubscriptionTransfer = null,
+                            DumpConnectionDiagnostics = null,
                             EndpointSecurityPolicy = null,
                             EndpointSecurityMode = null,
                             EncryptedAuthPassword = null,
@@ -435,26 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Routing = b.Header.DataSetRouting,
                                         DataSetSource = new PublishedDataSetSourceModel
                                         {
-                                            Connection = new ConnectionModel
-                                            {
-                                                Options =
-                                                    (b.Header.UseReverseConnect == true ?
-                                                         ConnectionOptions.UseReverseConnect : ConnectionOptions.None) |
-                                                    (b.Header.DisableSubscriptionTransfer == true ?
-                                                         ConnectionOptions.NoSubscriptionTransfer : ConnectionOptions.None),
-                                                Endpoint = new EndpointModel
-                                                {
-                                                    Url = b.Header.EndpointUrl,
-                                                    SecurityPolicy = b.Header.EndpointSecurityPolicy,
-                                                    SecurityMode = b.Header.EndpointSecurityMode ??
-                                                        ((b.Header.UseSecurity ?? false) ? // Default for backcompat is no security
-                                                            SecurityMode.NotNone : SecurityMode.None)
-                                                },
-                                                User =
-                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
-                                                    b.Header.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
-                                                        ToCredentialAsync(b.Header).GetAwaiter().GetResult() : null
-                                            },
+                                            Connection = b.Header.ToConnectionModel(ToCredential),
                                             SubscriptionSettings = new PublishedDataSetSettingsModel
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
@@ -464,14 +451,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 WatchdogBehavior = b.Header.DataSetWriterWatchdogBehavior,
                                                 Priority = b.Header.Priority,
                                                 ResolveDisplayName = b.Header.DataSetFetchDisplayNames,
+                                                DefaultHeartbeatBehavior = b.Header.DefaultHeartbeatBehavior,
+                                                DefaultHeartbeatInterval = b.Header.GetNormalizedDefaultHeartbeatInterval(),
+                                                DefaultSamplingInterval = b.Header.GetNormalizedDataSetSamplingInterval(),
+                                                PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval(),
                                                 MaxNotificationsPerPublish = null,
                                                 EnableImmediatePublishing = null,
                                                 AsyncMetaDataLoadThreshold = null,
                                                 EnableSequentialPublishing = null,
                                                 LifeTimeCount = null,
-                                                UseDeferredAcknoledgements = null,
-                                                DefaultSamplingInterval = b.Header.GetNormalizedDataSetSamplingInterval(),
-                                                PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval()
+                                                UseDeferredAcknoledgements = null
                                                 // ...
                                             },
                                             PublishedVariables = ToPublishedDataItems(nodes.Where(n => n != kDummyEntry), false),
@@ -526,13 +515,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 DataSetClassFieldId = node.DataSetClassFieldId,
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatIntervalTimespan = node
-                                    .GetNormalizedHeartbeatInterval(),
                                 // The publishing interval item wins over dataset over global default
                                 OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
                                     ?? item.GetNormalizedDataSetPublishingInterval(),
-                                OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval()
-                                    ?? item.GetNormalizedDataSetSamplingInterval(),
+                                OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval(),
+                                HeartbeatIntervalTimespan = node.GetNormalizedHeartbeatInterval(),
                                 QueueSize = node.QueueSize,
                                 DiscardNew = node.DiscardNew,
                                 BrowsePath = node.BrowsePath,
@@ -566,13 +553,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     DataSetFieldId = node.DataSetFieldId,
                                     DataSetClassFieldId = node.DataSetClassFieldId,
                                     ExpandedNodeId = node.ExpandedNodeId,
-                                    HeartbeatIntervalTimespan = node
-                                        .GetNormalizedHeartbeatInterval(),
+                                    HeartbeatIntervalTimespan = node.GetNormalizedHeartbeatInterval(),
                                     // The publishing interval item wins over dataset over global default
                                     OpcPublishingIntervalTimespan = node.GetNormalizedPublishingInterval()
                                         ?? item.GetNormalizedDataSetPublishingInterval(),
-                                    OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval()
-                                        ?? item.GetNormalizedDataSetSamplingInterval(),
+                                    OpcSamplingIntervalTimespan = node.GetNormalizedSamplingInterval(),
                                     QueueSize = node.QueueSize,
                                     SkipFirst = node.SkipFirst,
                                     DataChangeTrigger = node.DataChangeTrigger,
@@ -769,6 +754,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     connection.Options.HasFlag(ConnectionOptions.UseReverseConnect) ? true : null;
                 publishedNodesEntryModel.DisableSubscriptionTransfer =
                     connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null;
+                publishedNodesEntryModel.DumpConnectionDiagnostics =
+                    connection.Options.HasFlag(ConnectionOptions.DumpDiagnostics) ? true : null;
             }
             return publishedNodesEntryModel;
 
@@ -806,10 +793,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         }
 
         /// <summary>
-        /// Convert to credential model
+        /// Convert to credential model and take into account backwards compatibility
+        /// by using the crypto provider to decrypt encrypted credentials.
         /// </summary>
         /// <param name="entry"></param>
-        private async Task<CredentialModel> ToCredentialAsync(PublishedNodesEntryModel entry)
+        private CredentialModel ToCredential(PublishedNodesEntryModel entry)
         {
             switch (entry.OpcAuthenticationMode)
             {
@@ -824,8 +812,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         {
                             if (_cryptoProvider != null)
                             {
-                                var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                                    Convert.FromBase64String(entry.EncryptedAuthUsername)).ConfigureAwait(false);
+                                var userBytes = _cryptoProvider.DecryptAsync(kInitializationVector,
+                                    Convert.FromBase64String(entry.EncryptedAuthUsername))
+                                        .AsTask().GetAwaiter().GetResult();
                                 user = Encoding.UTF8.GetString(userBytes.Span);
                             }
                             else
@@ -844,8 +833,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         {
                             if (_cryptoProvider != null)
                             {
-                                var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                                    Convert.FromBase64String(entry.EncryptedAuthPassword)).ConfigureAwait(false);
+                                var passwordBytes = _cryptoProvider.DecryptAsync(kInitializationVector,
+                                    Convert.FromBase64String(entry.EncryptedAuthPassword))
+                                        .AsTask().GetAwaiter().GetResult();
                                 password = Encoding.UTF8.GetString(passwordBytes.Span);
                             }
                             else
@@ -888,7 +878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             };
         }
 
-        private static readonly OpcNodeModel kDummyEntry = new OpcNodeModel();
+        private static readonly OpcNodeModel kDummyEntry = new();
         private readonly bool _forceCredentialEncryption;
         private readonly int _scaleTestCount;
         private readonly int _maxNodesPerDataSet;

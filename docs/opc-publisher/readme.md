@@ -29,6 +29,7 @@ Here you find information about
       - [Timestamps](#timestamps)
       - [Legacy behavior](#legacy-behavior)
     - [Cyclic reading (Client side sampling)](#cyclic-reading-client-side-sampling)
+  - [Overcoming server limits and interop limitations](#overcoming-server-limits-and-interop-limitations)
   - [Configuring Security](#configuring-security)
   - [Using OPC UA reverse connect](#using-opc-ua-reverse-connect)
   - [Configuring event subscriptions](#configuring-event-subscriptions)
@@ -93,7 +94,7 @@ Use the Microsoft supported docker containers for OPC Publisher available in the
 docker pull mcr.microsoft.com/iotedge/opc-publisher:latest
 ```
 
-> We recommend to use a floating version tag ("2.9") when deploying the OPC Publisher container images instead of "latest". You can also use a fixed tag such as "2.9.9" but this will require you to manually update your edge deployment to keep up with the latest secure and supported version.
+> We recommend to use a floating version tag ("2.9") when deploying the OPC Publisher container images instead of "latest". You can also use a fixed tag such as "2.9.11" but this will require you to manually update your edge deployment to keep up with the latest secure and supported version.
 
 The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
 
@@ -369,7 +370,7 @@ The simplest way to configure OPC Publisher is via a file. A basic configuration
 ]
 ```
 
-Example configuration files are [`publishednodes_2.5.json`](publishednodes_2.5.json?raw=1) and [`publishednodes_2.8.json`](publishednodes_2.8.json?raw=1).
+Example configuration files are [here](publishednodes_2.5.json?raw=1) and [here](publishednodes_2.8.json?raw=1).
 
 ### Configuration Schema
 
@@ -574,7 +575,7 @@ A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSet
 
 > IMPORTANT: Just like the writer group configuration, it is important to set a unique `DataSetWriterId` name when configuring multiple writers with different settings (publishing interval excluded). Not doing so will yield unexpected behavior as all configurations with the same dataset writer name are collated into a single one with differing settings being clobbered.
 
-OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due to historic reasons, by default a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created. To minimize the number of sessions against a server, the default behavior can be overridden using the `--dsg, --disablesessionpergroup` command line option which results in a session per endpoint url across multiple writer groups.
+By default OPC Publisher will create a unique OPC UA subscription per `DataSetWriter`. Due to historic reasons, also by default a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created.
 
 ### Sampling and Publishing Interval configuration
 
@@ -582,7 +583,7 @@ The OPC UA reference specification provides a detailed overview of the OPC UA [m
 
 A `DataSetWriter` is a group of (variable or event notifier) nodes inside an OPC UA server that constitute a data set. Several parameters can be configured for each node that tell the Server how the node is to be sampled, evaluated and reported. These [attributes](#configuration-schema) include
 
-- Sampling interval (`OpcSamplingInterval` or `OpcSamplingIntervalTimespan`)
+- Sampling interval (`OpcSamplingInterval` or `OpcSamplingIntervalTimespan` or `DataSetSamplingIntervalTimespan` at the entry level)
 - Filter definition (`DeadbandValue`, `DeadbandType`, and `DataChangeTrigger` for variables, or [EventFilter](./definitions.md#eventfiltermodel) in case the monitored item is an event notifier)
 - Queue mode (`DiscardNew`) and
 - Queue length (`QueueSize`)
@@ -593,9 +594,9 @@ The following overview diagram courtesy of the OPC Foundation shows how the serv
 
 A subscription is created for each unique `DataSetWriter`. The publishing interval (configured using the `DataSetPublishingInterval` or `OpcPublishingInterval` values) is an attribute of the subscription (hence multiple writers are instantiated if there are multiple different publishing intervals). It defines the cyclic rate at which it collects values from the monitored item queues. Each time it attempts to send a Notification Message to OPC Publisher containing new values or events of its monitored items.
 
-A default OPC Publisher wide publishing interval can be provided using the [command line option](./commandline.md) (`--op`) which is used when the interval is not configured.  The default publishing interval used by OPC Publisher is 1 second.  It is also possible to override all publishing intervals configured in the OPC Publisher configuration using the `--ipi` command line option. In this case, if `--op` is not specified a publishing interval of `0` is used, which instructs the server to choose the fastest publishing interval cycle it can manage. This can be useful if you have existing configuration specifying multiple publishing intervals but would like to avoid separate subscriptions to be created for each interval, or just put the server in charge. Note though that the `--npd` command line will still split the data set writer into multiple subscriptions if more nodes than the configured amount are specified.
+A default OPC Publisher wide publishing interval can be provided using the [command line option](./commandline.md) (`--op`) which is used when the interval is not configured.  The default publishing interval used by OPC Publisher is 1 second.  It is also possible to override all publishing intervals configured in the OPC Publisher configuration using the `--ipi` command line option. Setting the publishing interval to `0` instructs the server to choose the fastest publishing interval cycle it can manage. This can be useful if you have existing configuration specifying multiple publishing intervals but would like to avoid separate subscriptions to be created for each interval, or just put the server in charge. Note though that the `--npd` command line will still split the data set writer into multiple subscriptions if more nodes than the configured amount are specified.
 
-The diagnostics output and metrics contain a `Server queue overflows` instrument which captures the number of data values with overflow bit set and indicates data changes were lost. Increase the `QueueSize` of frequently sampled items until the instrument stays `0`.
+The diagnostics output and metrics contain a `Server queue overflows` instrument which captures the number of data values with overflow bit set and indicates data changes were lost. Increase the `QueueSize` of frequently sampled items until the instrument stays `0`. You can also configure the publisher with the `--aq` command line option and let it calculate an appropriate queue size taking into account the (revised) publishing interval and sampling interval for a monitored item.
 
 Notifications received by the writers in the writer group inside OPC Publisher are batched and encoded and published to the chosen [transport sink](./transports.md).
 
@@ -704,6 +705,18 @@ Similar use cases require cyclic read based sampling using read service calls on
 The diagnostics output and metrics contain a `Server queue overflows` instrument. In the case of cyclic reads these are the number of skipped value reads because a cycle was missed due to delays reading from the server.  For example when configuring a 1 second sampling interval and the read operation takes 2.5 seconds, then 1 cycle will be missed and 1 overflow per value will be reported. Either set a less aggressive sampling interval (e.g., 3 seconds in the above case) or configure less items in the data set writer (if latency is due to the # of read operations in a single read request or the operation limits of the server).
 
 The OPC UA subscription/monitored items service due to its async model (server side sampling, queuing and publishing) is by far way more efficient than cyclically reading nodes from the server. Limits are reached relatively quickly compared to regular operation and heavily depend on the OPC UA server implementation and vendor.
+
+### Overcoming server limits and interop limitations
+
+OPC UA servers can limit the amount of sessions, subscriptions or publishing requests allowed at any point in time.  OPC Publisher has several options to overcome these limits that can be used to tune and overcome interoperability issues.
+
+- To minimize the number of sessions against a server, the default behavior of creating a session per writer group can be overridden using the `--dsg, --disablesessionpergroup` [command line](./commandline.md) option which results in a *session per endpoint* spanning multiple writer groups with the same endpoint url and configuration.
+
+- To further limit the number of subscriptions use a unique `DataSetWriterId` and endpoint configuration with as many items possible. Also avoid specifying different publishing intervals for items in the subscription as each publishing interval will result in its own subscription. You can use the `--ipi, --ignorepublishingintervals` command line option to *ignore publishing interval configuration* in the JSON configuration and use the publishing interval configured using the `--op` command line option (default: 1 second). In addition you can set the `--op=0` to let the server decide the smallest publishing interval it offers. You can also use the `--aq, --autosetqueuesize` option to let OPC Publisher calculate the best queue size for monitored items in the subscription to limit data loss. Note that the `--npd` command line option (default 1000) will still split the data set writer into multiple subscriptions if more nodes than the configured amount are specified.
+
+- Alternatively you can force OPC Publisher to create a unique *session per data set writer* using the `--spw, --enablesessionperwriter` command line option. This optimizes the number of subscriptions created on a single session at the expense of creating more sessions against a server. Depending on the server you are using (e.g. an aggregation server) this could be a good strategy to use. `--dsg` and `--spw` cannot be used together as they obviously opposite effects.
+
+- By default OPC Publisher tries to dispatch as many publishing requests to a server session as there are subscriptions in the session up to a maximum of `10`. The OPC UA stack tries to gradually lower the number based on feedback from the server (`BadTooManyPublishRequests`). This behavior is not tolerated by some servers. To set a lower maximum that OPC Publisher should never exceed use the `--xpr` command line option.
 
 ### Configuring Security
 
@@ -1066,10 +1079,10 @@ If the OPC Publisher has successfully started then this will produce e.g., outpu
 ```json
       ...
       "$version": 3,
-      "__apikey__": "6dee3fd4-0bb2-4fb1-9736-99bb4435f020",
+      "__apikey__": "...",
       "__certificate__": "...",
       "__type__": "OpcPublisher",
-      "__version__": "2.9.9"
+      "__version__": "2.9.11"
       ...
 ```
 

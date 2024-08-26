@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using Furly.Exceptions;
     using Opc.Ua;
     using System;
 
@@ -18,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="sr"></param>
         /// <returns></returns>
-        public static ServiceResultModel? ToServiceResultModel(this ServiceResult sr)
+        public static ServiceResultModel ToServiceResultModel(this ServiceResult sr)
         {
             return new ServiceResultModel
             {
@@ -27,8 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 Locale = sr.LocalizedText?.Locale,
                 AdditionalInfo = sr.AdditionalInfo,
                 NamespaceUri = sr.NamespaceUri,
-                SymbolicId = sr.SymbolicId ??
-                    StatusCode.LookupSymbolicId(sr.Code),
+                SymbolicId = sr.SymbolicId ?? sr.StatusCode.AsString(),
                 Inner = sr.InnerResult == null ||
                     sr.InnerResult.StatusCode == StatusCodes.Good ?
                         null : sr.InnerResult.ToServiceResultModel()
@@ -39,25 +39,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        public static ServiceResultModel? ToServiceResultModel(this Exception e)
+        public static ServiceResultModel ToServiceResultModel(this Exception e)
         {
             switch (e)
             {
-                case null:
-                    return null;
                 case ServiceResultException sre:
                     return sre.Result.ToServiceResultModel();
                 case TimeoutException:
+                    return Create(StatusCodes.BadTimeout, e.Message);
                 case OperationCanceledException:
-                    return null;
+                    return Create(StatusCodes.BadRequestCancelledByClient, e.Message);
+                case ResourceInvalidStateException:
+                    return Create(StatusCodes.BadInvalidState, e.Message);
+                case ResourceNotFoundException:
+                    return Create(StatusCodes.BadNotFound, e.Message);
+                case ResourceConflictException:
+                    return Create(StatusCodes.BadEntryExists, e.Message);
+                case ArgumentNullException:
+                    return Create(StatusCodes.BadArgumentsMissing, e.Message);
+                case ArgumentException:
+                    return Create(StatusCodes.BadInvalidArgument, e.Message);
                 default:
-                    return new ServiceResultModel
-                    {
-                        ErrorMessage = e.Message,
-                        SymbolicId = StatusCode.LookupSymbolicId(StatusCodes.Bad),
-                        StatusCode = StatusCodes.Bad
-                    };
+                    return Create(StatusCodes.Bad, e.Message);
             }
+            static ServiceResultModel Create(StatusCode code, string message) => new()
+            {
+                ErrorMessage = message,
+                SymbolicId = code.AsString(),
+                StatusCode = code.Code
+            };
         }
 
         /// <summary>
@@ -75,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // The last operation result is the one that caused the service to fail.
                 StatusCode = statusCode.Code,
                 SymbolicId = stringTable?.GetStringFromTable(diagnostics?.SymbolicId) ??
-                    StatusCode.LookupSymbolicId(statusCode.Code),
+                    statusCode.AsString(),
                 ErrorMessage = stringTable?.GetStringFromTable(diagnostics?.LocalizedText),
                 NamespaceUri = stringTable?.GetStringFromTable(diagnostics?.NamespaceUri),
                 Locale = stringTable?.GetStringFromTable(diagnostics?.Locale),

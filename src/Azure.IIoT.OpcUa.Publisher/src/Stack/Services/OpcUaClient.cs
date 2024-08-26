@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using Opc.Ua.Client;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -24,11 +25,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Net;
     using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -102,11 +103,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool DisableComplexTypePreloading { get; set; }
 
         /// <summary>
-        /// Do active error handling on the publish path
-        /// </summary>
-        public bool ActivePublishErrorHandling { get; set; }
-
-        /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
         internal OperationLimits? LimitOverrides { get; set; }
@@ -127,6 +123,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public bool DisableTransferSubscriptionOnReconnect
             => _connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer);
+
+        /// <summary>
+        /// Dump diagnostics for this client
+        /// </summary>
+        public bool DumpDiagnostics
+            => _connection.Options.HasFlag(ConnectionOptions.DumpDiagnostics);
 
         /// <summary>
         /// Client is connected
@@ -159,7 +161,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _session?.MinPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
-        public int ReconnectCount => _numberOfConnectRetries;
+        public int ReconnectCount => _numberOfConnectionRetries;
+
+        /// <inheritdoc/>
+        public int ConnectCount => _numberofSuccessfulConnections;
 
         /// <summary>
         /// Disconnected state
@@ -238,6 +243,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _disconnectLock = _lock.WriterLock(_cts.Token);
             _channelMonitor = _timeProvider.CreateTimer(_ => OnUpdateConnectionDiagnostics(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _diagnosticsDumper = !DumpDiagnostics ? null :
+                DumpDiagnosticsPeriodicallyAsync(_cts.Token);
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
         }
 
@@ -389,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal Task ResetAsync(CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            var tcs = new TaskCompletionSource();
+            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
                 ct.Register(() => tcs.TrySetCanceled());
@@ -422,8 +429,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Close client
         /// </summary>
+        /// <param name="shutdown"></param>
         /// <returns></returns>
-        internal async ValueTask CloseAsync()
+        internal async ValueTask CloseAsync(bool shutdown = false)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             try
@@ -450,9 +458,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _browsers.Clear();
 
-                await CloseSessionAsync().ConfigureAwait(false);
+                await CloseSessionAsync(shutdown).ConfigureAwait(false);
 
                 _lastState = EndpointConnectivityState.Disconnected;
+
+                if (_diagnosticsDumper != null)
+                {
+                    await _diagnosticsDumper.ConfigureAwait(false);
+                }
 
                 _logger.LogInformation("{Client}: Successfully closed.", this);
             }
@@ -462,7 +475,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
+                _channelMonitor.Dispose();
                 _cts.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Acquire a session
+        /// </summary>
+        /// <param name="connectTimeout"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ConnectionException"></exception>
+        /// <exception cref="TimeoutException"></exception>
+        internal async Task<ISessionHandle> AcquireAsync(int? connectTimeout,
+            int? serviceCallTimeout, CancellationToken cancellationToken)
+        {
+            var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var ct = cts.Token;
+            cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
+            while (true)
+            {
+                if (_disposed)
+                {
+                    throw new ConnectionException($"Session {_sessionName} was closed.");
+                }
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    var readerlock = await _lock.ReaderLockAsync(ct).ConfigureAwait(false);
+                    try
+                    {
+                        if (_session != null)
+                        {
+                            if (!DisableComplexTypeLoading && !_session.IsTypeSystemLoaded)
+                            {
+                                // Ensure type system is loaded
+                                cts.CancelAfter(timeout);
+                                await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                            }
+
+                            //
+                            // Now clients can continue the operation with the session handle
+                            // which encapsulates the release of the reader lock as well as
+                            // the ref count to the client.
+                            //
+                            var sessionLock = readerlock;
+                            readerlock = null; // Do not dispose below but when handle is disposed
+                            return new ServiceCallContext(_session, GetServiceCallTimeout(
+                                serviceCallTimeout), this, sessionLock, cancellationToken);
+                        }
+                    }
+                    finally
+                    {
+                        readerlock?.Dispose();
+                    }
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    throw new TimeoutException("Connecting to the endpoint timed out.");
+                }
             }
         }
 
@@ -504,8 +578,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
-                        var context = new ServiceCallContext(_session, ct);
-                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
+                        var serviceTimeout = GetServiceCallTimeout(serviceCallTimeout);
+                        using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
+                        cts.CancelAfter(serviceTimeout);
                         var result = await service(context).ConfigureAwait(false);
 
                         //
@@ -551,15 +626,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// disconnected during an operation.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="stack"></param>
+        /// <param name="operation"></param>
         /// <param name="connectTimeout"></param>
         /// <param name="serviceCallTimeout"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         /// <exception cref="TimeoutException"></exception>
-        internal async IAsyncEnumerable<T> RunAsync<T>(
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
+        internal async IAsyncEnumerable<T> RunAsync<T>(AsyncEnumerableBase<T> operation,
             int? connectTimeout, int? serviceCallTimeout,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -567,7 +641,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var ct = cts.Token;
             cts.CancelAfter(timeout); // wait max timeout on the reader lock/session
-            while (stack.Count > 0)
+            operation.Reset();
+            while (operation.HasMore)
             {
                 if (_disposed)
                 {
@@ -591,12 +666,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             await _session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                         }
 
-                        var context = new ServiceCallContext(_session, ct);
-                        cts.CancelAfter(GetServiceCallTimeout(serviceCallTimeout));
-                        results = await stack.Peek()(context).ConfigureAwait(false);
-
-                        // Success
-                        stack.Pop();
+                        var serviceTimeout = GetServiceCallTimeout(serviceCallTimeout);
+                        using var context = new ServiceCallContext(_session, serviceTimeout, ct: ct);
+                        cts.CancelAfter(serviceTimeout);
+                        results = await operation.ExecuteAsync(context).ConfigureAwait(false);
                     }
                     else
                     {
@@ -758,7 +831,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        await foreach (var (trigger, context) in _channel.Reader.ReadAllAsync(ct))
+                        await foreach (var (trigger, context) in
+                            _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                         {
                             _logger.LogDebug("{Client}: Processing event {Event} in State {State}...",
                                 this, trigger, currentSessionState);
@@ -766,19 +840,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             switch (trigger)
                             {
                                 case ConnectionEvent.Reset:
-                                    // If currently reconnecting, dispose the reconnect handler and stop timer
+                                    if (currentSessionState != SessionState.Connected)
+                                    {
+                                        (context as TaskCompletionSource)?.TrySetResult();
+                                        break;
+                                    }
+                                    // If currently reconnecting, dispose the reconnect handler
                                     _reconnectHandler.CancelReconnect();
-                                    NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
-                                    currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(true));
-
-                                    // Clean up
-                                    await CloseSessionAsync().ConfigureAwait(false);
-                                    Debug.Assert(_session == null);
-
-                                    currentSessionState = SessionState.Disconnected;
-                                    (context as TaskCompletionSource)?.TrySetResult();
-
-                                    goto case ConnectionEvent.Connect;
+                                    //
+                                    // Close bypassing everything but keep channel open then trigger a
+                                    // reconnect. The reconnect will recreate the session and subscriptions
+                                    //
+                                    Debug.Assert(_session != null);
+                                    await _session.CloseAsync(false, default).ConfigureAwait(false);
+                                    goto case ConnectionEvent.StartReconnect;
                                 case ConnectionEvent.Connect:
                                     if (currentSessionState == SessionState.Disconnected)
                                     {
@@ -812,6 +887,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             Debug.Assert(_session != null);
 
                                             // Allow access to session now
+                                            Debug.Assert(_disconnectLock != null);
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
 
@@ -872,9 +948,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             Debug.Assert(_disconnectLock == null);
                                             _disconnectLock = await _lock.WriterLockAsync(ct);
 
-                                            _logger.LogInformation(
-                                                "{Client}: Reconnecting session {Session} due to error {Error}...",
-                                                this, _sessionName, context as ServiceResult);
+                                            _logger.LogInformation("{Client}: Reconnecting session {Session} due to {Reason}...",
+                                                this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
                                             var state = _reconnectHandler.BeginReconnect(_session,
                                                 _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                                 {
@@ -893,6 +968,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             currentSessionState = SessionState.Reconnecting;
                                             _reconnectingSession?.SubscriptionHandles
                                                 .ForEach(h => h.NotifySessionConnectionState(true));
+                                            (context as TaskCompletionSource)?.TrySetResult();
                                             break;
                                         case SessionState.Connecting:
                                         case SessionState.Disconnected:
@@ -936,7 +1012,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             {
                                                 // Case 3)
                                                 _logger.LogInformation("{Client}: Client RECONNECTED!", this);
-                                                _numberOfConnectRetries++;
+                                                _numberOfConnectionRetries++;
                                             }
 
                                             // If not already ready, signal we are ready again and ...
@@ -984,7 +1060,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     // if not already disconnected, aquire writer lock
                                     _disconnectLock ??= await _lock.WriterLockAsync(ct);
 
-                                    _numberOfConnectRetries = 0;
                                     reconnectPeriod = 0;
                                     if (_session != null)
                                     {
@@ -1081,6 +1156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 })).ConfigureAwait(false);
 
+                session.UpdateOperationTimeout(false);
                 UpdatePublishRequestCounts();
 
                 if (numberOfSubscriptions > 1)
@@ -1153,7 +1229,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private const int kMinPublishRequestCount = 2;
         private const int kMaxPublishRequestCount = 10;
-        private const int kPublishTimeoutsMultiplier = 3;
 
         /// <summary>
         /// Ensure min publish requests are configured correctly
@@ -1252,7 +1327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
 
                     var endpointDescription = await SelectEndpointAsync(endpointUrl,
-                        connection, securityMode, securityProfile).ConfigureAwait(false);
+                        connection, securityMode, securityProfile, ct: ct).ConfigureAwait(false);
                     if (endpointDescription == null)
                     {
                         _logger.LogWarning(
@@ -1336,7 +1411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (Exception ex)
                 {
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
-                    _numberOfConnectRetries++;
+                    _numberOfConnectionRetries++;
                     _logger.LogInformation(
                         "#{Attempt} - {Client}: Failed to connect to {EndpointUrl}: {Message}...",
                         ++attempt, this, endpointUrl, ex.Message);
@@ -1350,50 +1425,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-#pragma warning disable IDE0060 // Remove unused parameter
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
-            if (session.Connected)
+            if (session == _session && session.Connected)
             {
-                _logger.LogInformation("{Client}: Publish error: {Error} (Actively handled: {Active})...",
-                    this, e.Status, ActivePublishErrorHandling);
+                switch (e.Status.Code)
+                {
+                    case StatusCodes.BadSessionIdInvalid:
+                    case StatusCodes.BadSecureChannelClosed:
+                    case StatusCodes.BadSessionClosed:
+                    case StatusCodes.BadConnectionClosed:
+                    case StatusCodes.BadNoCommunication:
+                        TriggerReconnect(e.Status, "Publish");
+                        return;
+                    default:
+                        _logger.LogInformation("{Client}: Publish error: {Error}...",
+                            this, e.Status);
+                        break;
+                }
             }
-            else
-            {
-                _logger.LogDebug(
-                    "{Client}: Disconnected - publish error: {Error} (Actively handled: {Active})...",
-                    this, e.Status, ActivePublishErrorHandling);
-            }
-
-            if (!ActivePublishErrorHandling)
-            {
-                return;
-            }
-
-            switch (e.Status.Code)
-            {
-                case StatusCodes.BadSessionIdInvalid:
-                case StatusCodes.BadSecureChannelClosed:
-                case StatusCodes.BadSessionClosed:
-                case StatusCodes.BadConnectionClosed:
-                case StatusCodes.BadNoCommunication:
-                    TriggerReconnect(e.Status);
-                    break;
-                case StatusCodes.BadRequestTimeout:
-                case StatusCodes.BadTimeout:
-                    var threshold = MinPublishRequestCount * kPublishTimeoutsMultiplier;
-                    if (Interlocked.Increment(ref _publishTimeoutCounter) > threshold)
-                    {
-                        _logger.LogError(
-                            "{Client}: {Count} Timeouts (> {Threshold}) during publishing. Reconnecting...",
-                            this, _publishTimeoutCounter, threshold);
-                        TriggerReconnect(e.Status);
-                    }
-                    return;
-            }
-            // Reset timeout counter - we only care about subsequent timeouts
-            _publishTimeoutCounter = 0;
         }
 
         /// <summary>
@@ -1468,17 +1518,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-
                 // start reconnect sequence on communication error.
                 Interlocked.Increment(ref _keepAliveCounter);
                 if (ServiceResult.IsBad(e.Status))
                 {
                     _keepAliveCounter = 0;
-                    TriggerReconnect(e.Status);
-
-                    _logger.LogInformation(
-                        "{Client}: Got Keep Alive error: {Error} ({TimeStamp}:{ServerState}",
-                        this, e.Status, e.CurrentTime, e.Status);
+                    TriggerReconnect(e.Status, "Keep alive");
                 }
                 else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
                 {
@@ -1495,10 +1540,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Trigger reconnect
         /// </summary>
         /// <param name="sr"></param>
-        void TriggerReconnect(ServiceResult sr)
+        /// <param name="action"></param>
+        void TriggerReconnect(ServiceResult sr, string action)
         {
             if (Interlocked.Increment(ref _reconnectRequired) == 1)
             {
+                _logger.LogError(
+                    "{Client}: Error {Error} during {Action} - triggering reconnect...",
+                    this, sr, action);
+
                 // Ensure we reconnect
                 TriggerConnectionEvent(ConnectionEvent.StartReconnect, sr);
             }
@@ -1537,7 +1587,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await CloseSessionAsync().ConfigureAwait(false);
                 _session = (OpcUaSession)session;
                 isNewSession = true;
+
                 kSessions.Add(1, _metrics.TagList);
+                _numberofSuccessfulConnections++;
             }
 
             UpdatePublishRequestCounts();
@@ -1606,10 +1658,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     lastDiagnostics.TokenId == token.TokenId &&
                     lastDiagnostics.CreatedAt == token.CreatedAt);
 
-                var lifetime = TimeSpan.FromMilliseconds(token.Lifetime);
+                var lifetime = TimeSpan.FromMilliseconds(Math.Min(token.Lifetime,
+                    _configuration.TransportQuotas.SecurityTokenLifetime));
                 if (channelChanged)
                 {
                     _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
+                    _logger.LogInformation(
+                        "Channel {Channel} got new token {TokenId} ({Created}).",
+                        token.ChannelId, token.TokenId, token.CreatedAt);
                 }
                 else
                 {
@@ -1672,7 +1728,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     token?.ServerEncryptingKey, token?.ServerSigningKey)
             };
             _diagnosticsCb(_lastDiagnostics);
-            _logger.LogDebug("{Client}: Diagnostics information updated.", this);
+
+            _logger.LogInformation("Channel diagnostics for session {SessionId} updated.",
+                sessionId);
 
             static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
             {
@@ -1693,7 +1751,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Unset and dispose existing session
         /// </summary>
-        private async ValueTask CloseSessionAsync()
+        /// <param name="shutdown"></param>
+        /// <returns></returns>
+        private async ValueTask CloseSessionAsync(bool shutdown = false)
         {
             if (_reconnectingSession != null)
             {
@@ -1713,6 +1773,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
+                    if (shutdown)
+                    {
+                        // When shutting down, delete all subscriptions
+                        session.DeleteSubscriptionsOnClose = true;
+                    }
+                    session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 
                     _logger.LogDebug("{Client}: Successfully closed session {Session}.",
@@ -1789,10 +1855,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="securityMode"></param>
         /// <param name="securityPolicy"></param>
         /// <param name="endpointUrl"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         internal async Task<EndpointDescription?> SelectEndpointAsync(Uri? discoveryUrl,
             ITransportWaitingConnection? connection, SecurityMode securityMode,
-            string? securityPolicy, string? endpointUrl = null)
+            string? securityPolicy, string? endpointUrl = null, CancellationToken ct = default)
         {
             var endpointConfiguration = EndpointConfiguration.Create();
             endpointConfiguration.OperationTimeout =
@@ -1821,7 +1888,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
             {
                 var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-                var endpoints = await client.GetEndpointsAsync(null).ConfigureAwait(false);
+                var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
                 discoveryUrl ??= uri;
 
                 _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
@@ -2030,6 +2097,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return ServiceCallTimeout ?? kDefaultConnectTimeout;
         }
 
+        /// <summary>
+        /// Dump diagnostics
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task DumpDiagnosticsPeriodicallyAsync(CancellationToken ct)
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await timer.WaitForNextTickAsync(ct).ConfigureAwait(false);
+                    if (_session != null)
+                    {
+                        var diagnostics = await _session.GetServerDiagnosticAsync(
+                            ct).ConfigureAwait(false);
+                        var str = JsonSerializer.Serialize(diagnostics, kIndented);
+                        Console.WriteLine(str);
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+        }
+        private readonly static JsonSerializerOptions kIndented = new()
+        {
+            WriteIndented = true
+        };
+
         private enum ConnectionEvent
         {
             Connect,
@@ -2074,6 +2170,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public int ReconnectCount
                 => 0;
             /// <inheritdoc/>
+            public int ConnectCount
+                => 0;
+            /// <inheritdoc/>
             public int MinPublishRequestCount
                 => 0;
         }
@@ -2102,8 +2201,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 () => new Measurement<int>(_browsers.Count, _metrics.TagList),
                 description: "Number of active browsers.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_retry_count",
-                () => new Measurement<int>(_numberOfConnectRetries, _metrics.TagList),
+                () => new Measurement<int>(_numberOfConnectionRetries, _metrics.TagList),
                 description: "Number of connectivity retries on this connection.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_count",
+                () => new Measurement<int>(_numberofSuccessfulConnections, _metrics.TagList),
+                description: "Number of sessions established as a total for the client.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_ref_count",
                 () => new Measurement<int>(_refCount, _metrics.TagList),
                 description: "Number of references to this client.");
@@ -2134,7 +2236,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private EndpointConnectivityState _lastState;
-        private int _numberOfConnectRetries;
+        private int _numberOfConnectionRetries;
+        private int _numberofSuccessfulConnections;
         private bool _disposed;
         private int _refCount;
         private int _publishTimeoutCounter;
@@ -2155,6 +2258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly object _channelLock = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ITimer _channelMonitor;
+        private readonly Task? _diagnosticsDumper;
         private readonly SessionReconnectHandler _reconnectHandler;
         private readonly CancellationTokenSource _cts;
 #pragma warning restore CA2213 // Disposable fields should be disposed

@@ -136,6 +136,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         }
 
         /// <summary>
+        /// Create connection from entry
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <param name="credential"></param>
+        /// <returns></returns>
+        public static ConnectionModel ToConnectionModel(this PublishedNodesEntryModel entry,
+            Func<PublishedNodesEntryModel, CredentialModel>? credential = null)
+        {
+            credential ??= e => e.ToCredentialModel();
+            return new ConnectionModel
+            {
+                Options =
+                    (entry.UseReverseConnect == true ?
+                            ConnectionOptions.UseReverseConnect : ConnectionOptions.None) |
+                    (entry.DisableSubscriptionTransfer == true ?
+                            ConnectionOptions.NoSubscriptionTransfer : ConnectionOptions.None) |
+                    (entry.DumpConnectionDiagnostics == true ?
+                            ConnectionOptions.DumpDiagnostics : ConnectionOptions.None),
+                Endpoint = new EndpointModel
+                {
+                    Url = entry.EndpointUrl,
+                    SecurityPolicy = entry.EndpointSecurityPolicy,
+                    SecurityMode = entry.EndpointSecurityMode ??
+                    ((entry.UseSecurity ?? false) ? // Default for backcompat is no security
+                        SecurityMode.NotNone : SecurityMode.None)
+                },
+                User =
+                    entry.OpcAuthenticationMode == OpcAuthenticationMode.UsernamePassword ||
+                    entry.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                        credential(entry) : null
+            };
+        }
+
+        /// <summary>
         /// Create a new published nodes entry model. This is used only for the legacy
         /// API to start, stop, bulk and list nodes. If the connection model uses the
         /// group field it is used as writer group identifier.
@@ -161,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 UseSecurity = useSecurity,
                 EndpointSecurityMode = !useSecurity.HasValue ? model.Endpoint?.SecurityMode : null,
                 EndpointSecurityPolicy = model.Endpoint?.SecurityPolicy,
-                OpcAuthenticationMode = ToAuthenticationModel(model.User?.Type),
+                OpcAuthenticationMode = ToOpcAuthenticationMode(model.User?.Type),
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),
                 DataSetWriterGroup = model.Group,
@@ -180,7 +214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal static OpcAuthenticationMode ToAuthenticationModel(this CredentialType? type)
+        internal static OpcAuthenticationMode ToOpcAuthenticationMode(this CredentialType? type)
         {
             switch (type)
             {
@@ -191,6 +225,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 default:
                     return OpcAuthenticationMode.Anonymous;
             }
+        }
+
+        /// <summary>
+        /// Convert to credential model
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <exception cref="NotSupportedException"></exception>
+        internal static CredentialModel ToCredentialModel(this PublishedNodesEntryModel entry)
+        {
+            switch (entry.OpcAuthenticationMode)
+            {
+                case OpcAuthenticationMode.UsernamePassword:
+                case OpcAuthenticationMode.Certificate:
+                    var user = entry.OpcAuthenticationUsername ?? string.Empty;
+                    var password = entry.OpcAuthenticationPassword ?? string.Empty;
+                    if ((!string.IsNullOrEmpty(entry.EncryptedAuthUsername) && string.IsNullOrEmpty(user)) ||
+                        (!string.IsNullOrEmpty(entry.EncryptedAuthPassword) && string.IsNullOrEmpty(password)))
+                    {
+                        throw new NotSupportedException("No crypto provider to decrypt encrypted username.");
+                    }
+                    return new CredentialModel
+                    {
+                        Type = entry.OpcAuthenticationMode == OpcAuthenticationMode.Certificate ?
+                            CredentialType.X509Certificate :
+                            CredentialType.UserName,
+                        Value = new UserIdentityModel { User = user, Password = password }
+                    };
+            }
+            return new CredentialModel
+            {
+                Type = CredentialType.None
+            };
         }
 
         /// <summary>
@@ -315,6 +381,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             if (samplingInterval != null)
             {
                 id.Append(samplingInterval.Value.TotalMilliseconds);
+            }
+            var heartbeatInterval = model.GetNormalizedDefaultHeartbeatInterval();
+            if (heartbeatInterval != null)
+            {
+                id.Append(heartbeatInterval.Value.TotalMilliseconds);
+            }
+            if (model.DefaultHeartbeatBehavior != null)
+            {
+                id.Append(model.DefaultHeartbeatBehavior.Value);
             }
             if (model.QualityOfService != null)
             {
@@ -476,6 +551,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+            if (model.GetNormalizedDefaultHeartbeatInterval() !=
+                that.GetNormalizedDefaultHeartbeatInterval())
+            {
+                return false;
+            }
+            if (model.DefaultHeartbeatBehavior != that.DefaultHeartbeatBehavior)
+            {
+                return false;
+            }
             if (model.QualityOfService != that.QualityOfService)
             {
                 return false;
@@ -558,6 +642,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         {
             return model.DataSetSamplingIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.DataSetSamplingInterval);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a PublishedNodesEntryModel's DefaultHeartbeatInterval
+        /// </summary>
+        /// <param name="model"></param>
+        public static TimeSpan? GetNormalizedDefaultHeartbeatInterval(
+            this PublishedNodesEntryModel model)
+        {
+            return model.DefaultHeartbeatIntervalTimespan
+                .GetTimeSpanFromMiliseconds(model.DefaultHeartbeatInterval);
         }
 
         /// <summary>

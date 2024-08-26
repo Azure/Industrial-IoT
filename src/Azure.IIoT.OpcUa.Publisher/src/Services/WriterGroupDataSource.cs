@@ -344,6 +344,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private int ReconnectCount => UsedClients
             .Sum(s => s.ReconnectCount);
 
+        private int ConnectCount => UsedClients
+            .Sum(s => s.ConnectCount);
+
         private int ConnectedClients => UsedClients
             .Count(s => s.State == EndpointConnectivityState.Ready);
 
@@ -454,7 +457,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "Number of Writers/Subscriptions in the writer group.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(ReconnectCount, _metrics.TagList),
-                description: "OPC UA connect retries.");
+                description: "OPC UA total connect retries.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connections",
+                () => new Measurement<long>(ConnectCount, _metrics.TagList),
+                description: "OPC UA total connection success count.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
                 () => new Measurement<int>(ConnectedClients, _metrics.TagList),
                 description: "OPC UA endpoints that are successfully connected.");

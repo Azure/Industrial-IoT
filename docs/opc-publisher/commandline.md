@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.10 (.NET 8.0.7/win-x64/OPC Stack 1.5.374.78)
+                                                 2.9.12 (.NET 8.0.8/win-x64/OPC Stack 1.5.374.78)
 General
 -------
 
@@ -703,9 +703,9 @@ Subscription settings
                                generating model change notifications.
                                Default: `12:00:00`.
       --sqp, --sequentialpublishing, --EnableSequentialPublishing[=VALUE]
-                             (Experimental) Explicitly disable or enable
-                               sequential publishing in the protocol stack.
-                               Default: `False` (disabled).
+                             Set to false to disable sequential publishing in
+                               the protocol stack.
+                               Default: `True` (enabled).
       --urc, --usereverseconnect, --DefaultUseReverseConnect[=VALUE]
                              (Experimental) Use reverse connect for all
                                endpoints that are part of the subscription
@@ -878,15 +878,6 @@ OPC UA Client configuration
                                want to ensure the complex types are never
                                loaded for an endpoint.
                                Default: `false`.
-      --peh, --activepublisherrorhandling, --ActivePublishErrorHandling[=VALUE]
-                             Actively handle reconnecting a session when
-                               publishing errors occur due to issues in the
-                               underlying connectivity rather than letting the
-                               stack and keep alive handling manage
-                               reconnecting.
-                               Note that the default will be `false` in future
-                               releases.
-                               Default: `True`.
       --otl, --opctokenlifetime, --SecurityTokenLifetime=VALUE
                              OPC UA Stack Transport Secure Channel - Security
                                token lifetime in milliseconds.

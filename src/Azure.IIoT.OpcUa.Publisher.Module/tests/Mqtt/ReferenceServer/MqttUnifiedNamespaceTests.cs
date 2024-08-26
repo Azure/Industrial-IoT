@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.NotEmpty(messages);
 
             var payload1 = messages[0].Message;
-            _output.WriteLine(payload1.ToString());
+            _output.WriteLine(payload1.ToJsonString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetString(), out _));
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/messages/<<UnknownWriterGroup>>", messages[0].Topic, StringComparison.Ordinal);
 
             var payload2 = messages[1].Message;
-            _output.WriteLine(payload2.ToString());
+            _output.WriteLine(payload2.ToJsonString());
             Assert.NotEqual(JsonValueKind.Null, payload1.ValueKind);
             Assert.True(Guid.TryParse(payload2.GetProperty("EventId").GetString(), out _));
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",

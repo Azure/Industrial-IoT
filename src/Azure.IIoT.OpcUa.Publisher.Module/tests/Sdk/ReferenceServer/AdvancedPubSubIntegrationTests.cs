@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Json.More;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -64,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     messageType: "ua-data");
 
                 message = Assert.Single(messages).Message;
-                _output.WriteLine(message.ToString());
+                _output.WriteLine(message.ToJsonString());
 
                 output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
@@ -129,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     predicate: WaitUntilOutput2, messageType: "ua-data");
 
                 message = Assert.Single(messages).Message;
-                _output.WriteLine(message.ToString());
+                _output.WriteLine(message.ToJsonString());
 
                 output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output2");
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
@@ -276,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     predicate: WaitUntilOutput2, messageType: "ua-data");
 
                 message = Assert.Single(messages).Message;
-                _output.WriteLine(message.ToString());
+                _output.WriteLine(message.ToJsonString());
 
                 output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output2");
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);

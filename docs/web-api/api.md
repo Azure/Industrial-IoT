@@ -22,6 +22,7 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
+|**Query**|**discovererId**  <br>*optional*|Scope the registration to a specific OPC Publisher using the publisher id|string|
 |**Body**|**body**  <br>*required*|Server registration request|[ServerRegistrationRequestModel](definitions.md#serverregistrationrequestmodel)|
 
 
@@ -31,6 +32,7 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -167,6 +169,7 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
+|**Query**|**discovererId**  <br>*optional*|Scope the discovery to a specific OPC Publisher using the publisher id|string|
 |**Body**|**body**  <br>*required*|Discovery request|[DiscoveryRequestModel](definitions.md#discoveryrequestmodel)|
 
 
@@ -176,6 +179,7 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -207,6 +211,7 @@ Cancels a discovery request using the request identifier.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**requestId**  <br>*required*|Discovery request|string|
+|**Query**|**discovererId**  <br>*optional*|Scope the cancellation to a specific OPC Publisher using the publisher id|string|
 
 
 ##### Responses
@@ -215,6 +220,7 @@ Cancels a discovery request using the request identifier.
 |---|---|---|
 |**200**|The operation was successful.|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 
@@ -749,6 +755,7 @@ Adds an endpoint. This will onboard the endpoint and the associated application 
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
+|**Query**|**discovererId**  <br>*optional*|Scope the registration to a specific OPC Publisher using the publisher id|string|
 |**Body**|**body**  <br>*optional*|Query for the endpoint to register. This must have at least the discovery url. If more information is specified it is used to validate that the application has such endpoint and if not the call will fail.|[ServerEndpointQueryModel](definitions.md#serverendpointquerymodel)|
 
 
@@ -758,6 +765,7 @@ Adds an endpoint. This will onboard the endpoint and the associated application 
 |---|---|---|
 |**200**|The operation was successful.|string|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**404**|The publisher specified was not found.|[ProblemDetails](definitions.md#problemdetails)|
 |**500**|An internal error ocurred.|[ProblemDetails](definitions.md#problemdetails)|
 
 

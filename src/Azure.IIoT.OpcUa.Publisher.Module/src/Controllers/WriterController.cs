@@ -51,12 +51,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     public class WriterController : ControllerBase, IMethodController
     {
         /// <summary>
-        /// Create writer configuration methods controller
+        /// Create publisher methods controller
         /// </summary>
-        /// <param name="configServices"></param>
-        public WriterController(IConfigurationServices configServices)
+        /// <param name="publisher"></param>
+        /// <param name="configuration"></param>
+        /// <param name="assets"></param>
+        public WriterController(IPublishedNodesServices publisher,
+            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets)
         {
-            _configServices = configServices;
+            _publisher = publisher;
+            _configuration = configuration;
+            _assets = assets;
         }
 
         /// <summary>
@@ -65,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <remarks>
         /// Create a published nodes entry for a specific writer group and dataset writer.
         /// The entry must specify a unique writer group and dataset writer id. A null value
-        /// is treated as empty string. If the entry is found it is updated, if it is not
+        /// is treated as empty string. If the entry is found it is replaced, if it is not
         /// found, it is created. If more than one entry is found with the same writer group
         /// and writer id an error is returned. The writer entry provided must include at
         /// least one node which will be the initial set. All nodes must specify a unique
@@ -89,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterEntry);
-            await _configServices.CreateOrUpdateDataSetWriterEntryAsync(
+            await _publisher.CreateOrUpdateDataSetWriterEntryAsync(
                 dataSetWriterEntry, ct).ConfigureAwait(false);
         }
 
@@ -124,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            return await _configServices.GetDataSetWriterEntryAsync(
+            return await _publisher.GetDataSetWriterEntryAsync(
                 dataSetWriterGroup, dataSetWriterId, ct).ConfigureAwait(false);
         }
 
@@ -166,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(opcNodes);
-            await _configServices.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 opcNodes, insertAfterFieldId, ct).ConfigureAwait(false);
         }
 
@@ -208,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(opcNode);
-            await _configServices.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.AddOrUpdateNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 new[] { opcNode }, insertAfterFieldId, ct).ConfigureAwait(false);
         }
 
@@ -246,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldIds);
-            await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 dataSetFieldIds, ct).ConfigureAwait(false);
         }
 
@@ -282,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldId);
-            await _configServices.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            await _publisher.RemoveNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 new[] { dataSetFieldId }, ct).ConfigureAwait(false);
         }
 
@@ -321,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
             ArgumentNullException.ThrowIfNull(dataSetFieldId);
-            return await _configServices.GetNodeAsync(
+            return await _publisher.GetNodeAsync(
                 dataSetWriterGroup, dataSetWriterId, dataSetFieldId, ct).ConfigureAwait(false);
         }
 
@@ -374,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
                         CultureInfo.InvariantCulture);
                 }
             }
-            return await _configServices.GetNodesAsync(dataSetWriterGroup, dataSetWriterId,
+            return await _publisher.GetNodesAsync(dataSetWriterGroup, dataSetWriterId,
                 lastDataSetFieldId, pageSize, ct).ConfigureAwait(false);
         }
 
@@ -408,10 +413,194 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(dataSetWriterId);
-            await _configServices.RemoveDataSetWriterEntryAsync(dataSetWriterGroup,
+            await _publisher.RemoveDataSetWriterEntryAsync(dataSetWriterGroup,
                 dataSetWriterId, force, ct).ConfigureAwait(false);
         }
 
-        private readonly IConfigurationServices _configServices;
+        /// <summary>
+        /// ExpandWriter
+        /// </summary>
+        /// <remarks>
+        /// Expands the provided nodes in the entry to a series of published node entries.
+        /// The provided entry is used template. The entry is expanded using expansion
+        /// configuration provided. Expanded entries are returned one by one with error
+        /// information if any. The configuration is not updated but the resulting entries
+        /// can be modified and later saved in the configuration using the configuration
+        /// API. The server must be online and accessible
+        /// for the expansion to work.
+        /// </remarks>
+        /// <param name="request">The entry to expand and the node expansion configuration
+        /// to use. If no configuration is provided a default configuration is used which
+        /// and no error entries are returned.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to update.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("expand")]
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandWriterAsync(
+            [FromBody][Required] PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            var expansion = request.Request ?? new PublishedNodeExpansionModel { DiscardErrors = true };
+            return _configuration.ExpandAsync(request.Entry, expansion, ct);
+        }
+
+        /// <summary>
+        /// ExpandAndCreateOrUpdateDataSetWriterEntries
+        /// </summary>
+        /// <remarks>
+        /// Create a series of published nodes entries using the provided entry as template.
+        /// The entry is expanded using expansion configuration provided. Expanded entries
+        /// are returned one by one with error information if any. The configuration is also
+        /// saved in the local configuration store. The server must be online and accessible
+        /// for the expansion to work.
+        /// </remarks>
+        /// <param name="request">The entry to create for the writer and node expansion
+        /// configuration to use</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="403">A unique item could not be found to update.</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost]
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> ExpandAndCreateOrUpdateDataSetWriterEntriesAsync(
+            [FromBody][Required] PublishedNodesEntryRequestModel<PublishedNodeExpansionModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            var expansion = request.Request ?? new PublishedNodeExpansionModel { DiscardErrors = false };
+            return _configuration.CreateOrUpdateAsync(request.Entry, expansion, ct);
+        }
+
+        /// <summary>
+        /// CreateOrUpdateAsset
+        /// </summary>
+        /// <remarks>
+        /// Creates an asset from the entry in the request and the configuration provided
+        /// in the Web of Things Asset configuration file. The entry must contain a data
+        /// set name which will be used as the asset name. The writer can stay empty. It
+        /// will be set to the asset id on successful return. The server must support the
+        /// WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/>.
+        /// The asset will be created and the configuration updated to reference it. A
+        /// wait time can be provided as optional query parameter to wait until the server
+        /// has settled after uploading the configuration.
+        /// </remarks>
+        /// <param name="request">The contains the entry and WoT file to configure the
+        /// server to expose the asset.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The asset was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets/create")]
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            [FromBody][Required] PublishedNodeCreateAssetRequestModel<byte[]> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            return await _assets.CreateOrUpdateAssetAsync(request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// GetAllAssets
+        /// </summary>
+        /// <remarks>
+        /// Get a list of entries representing the assets in the server. This will not touch
+        /// the configuration, it will obtain the list from the server. If the server does not
+        /// support <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/> the
+        /// result will be empty.
+        /// </remarks>
+        /// <param name="request">The entry to use to list the assets with the optional
+        /// header information used when invoking services on the server.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">Successfully completed the listing</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets/list")]
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
+            [FromBody][Required] PublishedNodesEntryRequestModel<RequestHeaderModel> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            return _assets.GetAllAssetsAsync(request.Entry, request.Request, ct);
+        }
+
+        /// <summary>
+        /// DeleteAsset
+        /// </summary>
+        /// <remarks>
+        /// Delete the asset referenced by the entry in the request. The entry must contain
+        /// the asset id to delete. The asset id is the data set writer id. The entry must
+        /// also contain the writer group id or deletion of the asset in the configuration
+        /// will fail before the asset is deleted. The server must support WoT connectivity
+        /// profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/>.
+        /// First the entry in the configuration will be deleted and then the asset on the
+        /// server. If deletion of the asset in the configuration fails it will not be
+        /// deleted in the server. An optional request option force can be used to force
+        /// the deletion of the asset in the server regardless of the failure to delete the
+        /// entry in the configuration.
+        /// </remarks>
+        /// <param name="request">Request that contains the entry of the asset that
+        /// should be deleted.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The asset was deleted successfully</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets/delete")]
+        public async Task<ServiceResultModel> DeleteAssetAsync(
+            [FromBody][Required] PublishedNodeDeleteAssetRequestModel request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            return await _assets.DeleteAssetAsync(request, ct).ConfigureAwait(false);
+        }
+
+        private readonly IPublishedNodesServices _publisher;
+        private readonly IConfigurationServices _configuration;
+        private readonly IAssetConfiguration<byte[]> _assets;
     }
 }

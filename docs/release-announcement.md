@@ -2,6 +2,10 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.11](#azure-industrial-iot-opc-publisher-2911)
+  - [Changes in 2.9.11](#changes-in-2911)
+- [Azure Industrial IoT OPC Publisher 2.9.10](#azure-industrial-iot-opc-publisher-2910)
+  - [Changes in 2.9.10](#changes-in-2910)
 - [Azure Industrial IoT OPC Publisher 2.9.9](#azure-industrial-iot-opc-publisher-299)
   - [Changes in 2.9.9](#changes-in-299)
 - [Azure Industrial IoT OPC Publisher 2.9.8](#azure-industrial-iot-opc-publisher-298)
@@ -50,6 +54,46 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.11
+
+We are pleased to announce the release of version 2.9.11 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+
+### Changes in 2.9.11
+
+- Fixes an issue when using amqp as transport combined with batching, some batches are not sent successfully (#2321)
+- Dependency updates to fix critical vulnerabilities as well as bugs such as proper support for cgroup v2 is used bug (#2261)
+- Resiliency and fixes of critical bugs in reconnect scenarios:
+  - Fix for "Item was disposed or moved to another subscription" (#2317)
+  - Fix for heartbeat and condition timers stopping and not recovering
+  - Subscriptions behavior now extends to subscriptions whose lifetime counter has expired (default: reset) (#2301)
+- Fix an issue with a runaway Heartbeat timer causing publishing wrong values at wrong time (#2313)
+- API addition allowing selecting which OPC Publisher to use for discovery feature request (#2302)
+
+## Azure Industrial IoT OPC Publisher 2.9.10
+
+We are pleased to announce the release of version 2.9.10 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+
+### Changes in 2.9.10
+
+- Update OPC UA .net stack to the latest 1.05 version and move forward other dependencies
+- API to get the server session, channel and subscription diagnostics for connections (#2303)
+- New --aq command line option to calculate queue sizes automatically from publishing interval and sampling interval (#2300)
+- New --ipi option to ignore publishing intervals in JSON configuration and use the default configured with --op (#2299)
+- New --spw option to configure creating a session per dataset writer (#2298)
+- Provide example and documentation for Browse Path definition. Allow browse path without node id in configuration (#2296)
+- New defaults for Keep alive counter and lifetime counters set to 0 to let server decide (#2294)
+- Updates and additions to writer API to manage writers and writer groups with data set fields (#2257, #2285, #2269, #2293, #2269)
+- Fix setting Heartbeat Interval with API is using milliseconds instead of seconds (#2292)
+- Fix issue that after calling reset API (/v2/reset) publisher stops receiving data changes (#2291)
+- Fix bug where ConditionHandling and Heartbeat timers stop working after reconnects (#2288)
+- Fix bug where Complex types are not decoded in initial messages (#2281)
+- Allow configuring message TTL on DatasetWriterGroup level (#2280)
+- Add ability to set Timestamp in UserProperties of message when using MQTT Transport (#2277)
+- JSON Configuration now provides the ability to set a (default) sampling interval for a writer (#2271)
+- Show log message when namespace table changes inside a client and between session reconnects (#2263)
+- Return ProblemDetails JSON for all error responses (#2201)
+- Fix incompatibility when generating SDK from openapi.json using Autorest (#2199)
 
 ## Azure Industrial IoT OPC Publisher 2.9.9
 

@@ -40,6 +40,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal sealed class Heartbeat : DataChange
         {
             /// <summary>
+            /// Whether timer is enabled
+            /// </summary>
+            public bool TimerEnabled { get; set; }
+
+            /// <summary>
             /// Create data item with heartbeat
             /// </summary>
             /// <param name="dataTemplate"></param>
@@ -68,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _heartbeatInterval = item._heartbeatInterval;
                 _heartbeatBehavior = item._heartbeatBehavior;
                 _callback = item._callback;
-                if (item._timerEnabled)
+                if (item.TimerEnabled)
                 {
                     EnableHeartbeatTimer();
                 }
@@ -212,6 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset publishTime,
                 IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
             {
+                _lastSequenceNumber = sequenceNumber;
                 if (!_disposed && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
                     EnableHeartbeatTimer();
@@ -281,6 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
 
+                var lastSequenceNumber = _lastSequenceNumber;
                 var lastNotification = LastReceivedValue as MonitoredItemNotification;
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                         == HeartbeatBehavior.WatchdogLKG &&
@@ -331,8 +338,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     PathFromRoot = TheResolvedRelativePath,
                     Value = lastValue,
                     Flags = MonitoredItemSourceFlags.Heartbeat,
-                    SequenceNumber = 0
+                    SequenceNumber = lastSequenceNumber
                 };
+                if (lastSequenceNumber != _lastSequenceNumber)
+                {
+                    // New value came in while running the timer callback - no need to send heartbeat
+                    return;
+                }
                 callback(MessageType.DeltaFrame, heartbeat.YieldReturn(),
                     diagnosticsOnly: (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
                         == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly);
@@ -351,20 +363,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (_heartbeatTimer == null)
                     {
-                        _heartbeatTimer = new TimerEx(TimeProvider);
-                        _heartbeatTimer.AutoReset = true;
+                        _heartbeatTimer = new(TimeProvider)
+                        {
+                            AutoReset = true
+                        };
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
-                        _heartbeatTimer.Enabled = true;
-                        _heartbeatTimer.Interval = _heartbeatInterval;
                         _logger.LogDebug("Re-enable heartbeat timer");
                     }
-                    else if (_heartbeatInterval != _heartbeatTimer.Interval)
-                    {
-                        Debug.Assert(_heartbeatTimer.Enabled);
-                        _heartbeatTimer.Interval = _heartbeatInterval;
-                        _logger.LogDebug("Re-configured heartbeat timer");
-                    }
-                    _timerEnabled = true;
+                    _heartbeatTimer.Interval = _heartbeatInterval;
+                    _heartbeatTimer.Enabled = true;
+                    TimerEnabled = true;
                 }
             }
 
@@ -382,17 +390,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _heartbeatTimer = null;
                         _logger.LogDebug("Disabled heartbeat timer");
                     }
-                    _timerEnabled = false;
+                    TimerEnabled = false;
                 }
             }
 
             private TimerEx? _heartbeatTimer;
             private HeartbeatBehavior _heartbeatBehavior;
-            private bool _timerEnabled;
             private TimeSpan _heartbeatInterval;
             private Callback? _callback;
             private StatusCode? _lastStatusCode;
-            private object _timerLock = new();
+            private uint _lastSequenceNumber;
+            private readonly object _timerLock = new();
             private bool _disposed;
         }
     }

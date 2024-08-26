@@ -298,12 +298,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public IAsyncEnumerable<T> ExecuteAsync<T>(ConnectionModel connection,
-            Stack<Func<ServiceCallContext, ValueTask<IEnumerable<T>>>> stack,
-            RequestHeaderModel? header, CancellationToken ct)
+            AsyncEnumerableBase<T> operation, RequestHeaderModel? header,
+            CancellationToken ct)
         {
             connection = UpdateConnectionFromHeader(connection, header);
             if (string.IsNullOrEmpty(connection.Endpoint?.Url))
             {
+                operation.Dispose();
                 throw new ArgumentException("Missing endpoint url", nameof(connection));
             }
             return ExecuteAsyncCore(ct);
@@ -311,14 +312,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             async IAsyncEnumerable<T> ExecuteAsyncCore(
                 [EnumeratorCancellation] CancellationToken ct)
             {
-                using var client = GetOrAddClient(connection);
-                await foreach (var result in client.RunAsync(stack,
-                    header?.ConnectTimeout, header?.ServiceCallTimeout,
-                    ct).ConfigureAwait(false))
+                try
                 {
-                    yield return result;
+                    using var client = GetOrAddClient(connection);
+                    await foreach (var result in client.RunAsync(operation,
+                        header?.ConnectTimeout, header?.ServiceCallTimeout,
+                        ct).ConfigureAwait(false))
+                    {
+                        yield return result;
+                    }
+                }
+                finally
+                {
+                    operation.Dispose();
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<ISessionHandle> AcquireSessionAsync(ConnectionModel connection,
+            RequestHeaderModel? header, CancellationToken ct)
+        {
+            connection = UpdateConnectionFromHeader(connection, header);
+            if (string.IsNullOrEmpty(connection.Endpoint?.Url))
+            {
+                throw new ArgumentException("Missing endpoint url", nameof(connection));
+            }
+            using var client = GetOrAddClient(connection);
+            return await client.AcquireAsync(header?.ConnectTimeout,
+                header?.ServiceCallTimeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -350,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    await client.Value.CloseAsync().ConfigureAwait(false);
+                    await client.Value.CloseAsync(true).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -598,7 +620,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
 
                     DisableComplexTypePreloading = _options.Value.DisableComplexTypePreloading ?? false,
-                    ActivePublishErrorHandling = _options.Value.ActivePublishErrorHandling ?? false,
                     MinReconnectDelay = _options.Value.MinReconnectDelayDuration,
                     CreateSessionTimeout = _options.Value.CreateSessionTimeoutDuration,
                     KeepAliveInterval = _options.Value.KeepAliveIntervalDuration,

@@ -9,6 +9,7 @@ using Microsoft.Azure.Devices.Shared;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -122,6 +123,28 @@ internal static partial class Extensions
             }
         }
         return assemblyVersion + branch;
+    }
+
+    /// <summary>
+    /// Fix file name
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static string FixFileName(string name)
+    {
+        return string.Join('_', name.Split(Path.GetInvalidFileNameChars(),
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    /// <summary>
+    /// Fix folder name
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static string FixFolderName(string name)
+    {
+        return string.Join('_', name.Split(Path.GetInvalidPathChars(),
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
     }
 
     /// <summary>

@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApproveRejected", "ApproveR
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManageWriter", "ManageWriter\ManageWriter.csproj", "{E143AD3D-AE31-4AAE-AEE5-1AA48D1EC6BA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetAndResetConnections", "ResetClients\GetAndResetConnections.csproj", "{4268F412-F656-48B6-98A8-35E88478D376}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{E143AD3D-AE31-4AAE-AEE5-1AA48D1EC6BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E143AD3D-AE31-4AAE-AEE5-1AA48D1EC6BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E143AD3D-AE31-4AAE-AEE5-1AA48D1EC6BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4268F412-F656-48B6-98A8-35E88478D376}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4268F412-F656-48B6-98A8-35E88478D376}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4268F412-F656-48B6-98A8-35E88478D376}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4268F412-F656-48B6-98A8-35E88478D376}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -40,6 +40,9 @@
     <EmbeddedResource Include="HistoricalAccess\Data\Sample\UInt64.txt" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Generated\Asset\Design\Asset.NodeSet2.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Instances.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Types.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\Vehicles\Design\Vehicles.Types.Types.bsd" />
@@ -55,7 +58,8 @@
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.0.59" />
+    <PackageReference Include="Furly.Extensions" Version="1.0.66" />
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.374.78" />

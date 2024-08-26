@@ -12,16 +12,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Service
     /// <summary>
     /// Server endpoint manager
     /// </summary>
-    public interface IEndpointManager
+    /// <typeparam name="T"></typeparam>
+    public interface IEndpointManager<T> where T : class
     {
         /// <summary>
         /// Find the endpoint and server application information that
         /// matches the endpoint query and register it in the registry.
         /// </summary>
         /// <param name="query"></param>
+        /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns>The endpoint id if succussful</returns>
         Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct = default);
+            T? context = null, CancellationToken ct = default);
     }
 }

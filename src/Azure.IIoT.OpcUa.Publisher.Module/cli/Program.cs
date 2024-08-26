@@ -24,10 +24,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net;
 
     /// <summary>
     /// Publisher module host process
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     switch (args[i])
                     {
-                        case "--dumpprofiles":
+                        case "--dump-profiles":
                             Console.WriteLine();
                             Console.WriteLine();
                             Console.WriteLine("The following messaging profiles are supported (selected with --mm and --me):");
@@ -696,7 +696,8 @@ Options:
                     try
                     {
                         using (var server = new ServerConsoleHost(
-                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>(), scaleunits)
+                            new ServerFactory(loggerFactory.CreateLogger<ServerFactory>(),
+                                Directory.GetCurrentDirectory(), scaleunits)
                             {
                                 LogStatus = false,
                                 EnableDiagnostics = true

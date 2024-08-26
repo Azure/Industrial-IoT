@@ -31,6 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [KnownType(typeof(AggregateFilter))]
         internal class Condition : Event
         {
+            public bool TimerEnabled => _conditionTimer?.Enabled ?? false;
+
             /// <summary>
             /// Create condition item
             /// </summary>
@@ -440,8 +442,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (_conditionTimer == null)
                     {
-                        _conditionTimer = new TimerEx(TimeProvider);
-                        _conditionTimer.AutoReset = false;
+                        _conditionTimer = new(TimeProvider)
+                        {
+                            AutoReset = false
+                        };
                         _conditionTimer.Elapsed += OnConditionTimerElapsed;
                         _logger.LogDebug("Re-enabled condition timer.");
                     }
@@ -497,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _snapshotInterval;
             private int _updateInterval;
             private TimerEx? _conditionTimer;
-            private object _timerLock = new();
+            private readonly object _timerLock = new();
             private bool _disposed;
         }
     }

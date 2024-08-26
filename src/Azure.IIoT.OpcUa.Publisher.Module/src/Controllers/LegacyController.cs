@@ -23,7 +23,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for GetInfo direct method
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
+#pragma warning disable CA1822 // Mark members as static
         public Task GetInfoAsync()
+#pragma warning restore CA1822 // Mark members as static
         {
             return Task.FromException(new NotSupportedException(
                 "GetInfo not supported"));
@@ -33,7 +35,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for GetDiagnosticLog direct method - not supported
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
+#pragma warning disable CA1822 // Mark members as static
         public Task GetDiagnosticLogAsync()
+#pragma warning restore CA1822 // Mark members as static
         {
             return Task.FromException(new NotSupportedException(
                 "GetDiagnosticLog not supported"));
@@ -43,7 +47,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Handler for GetDiagnosticStartupLog direct method - not supported
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
+#pragma warning disable CA1822 // Mark members as static
         public Task GetDiagnosticStartupLogAsync()
+#pragma warning restore CA1822 // Mark members as static
         {
             return Task.FromException(new NotSupportedException(
                 "GetDiagnosticStartupLog not supported"));

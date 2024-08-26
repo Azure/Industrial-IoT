@@ -36,6 +36,12 @@
                 ],
                 "parameters": [
                     {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the registration to a specific OPC Publisher using the publisher id",
+                        "type": "string"
+                    },
+                    {
                         "in": "body",
                         "name": "body",
                         "description": "Server registration request",
@@ -51,6 +57,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -297,6 +309,12 @@
                 ],
                 "parameters": [
                     {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the discovery to a specific OPC Publisher using the publisher id",
+                        "type": "string"
+                    },
+                    {
                         "in": "body",
                         "name": "body",
                         "description": "Discovery request",
@@ -312,6 +330,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -344,6 +368,12 @@
                         "description": "Discovery request",
                         "required": true,
                         "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the cancellation to a specific OPC Publisher using the publisher id",
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -352,6 +382,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -948,6 +984,12 @@
                 ],
                 "parameters": [
                     {
+                        "in": "query",
+                        "name": "discovererId",
+                        "description": "Scope the registration to a specific OPC Publisher using the publisher id",
+                        "type": "string"
+                    },
+                    {
                         "in": "body",
                         "name": "body",
                         "description": "Query for the endpoint to register. This must have at least the discovery url. If more information is specified it is used to validate that the application has such endpoint and if not the call will fail.",
@@ -965,6 +1007,12 @@
                     },
                     "400": {
                         "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "The publisher specified was not found.",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -8241,6 +8289,28 @@
                 },
                 "DataSetFetchDisplayNames": {
                     "description": "Whether to fetch the display name and use it as\r\ndata set id for all opc node items in the data set",
+                    "type": "boolean"
+                },
+                "WriterGroupMessageTtlTimepan": {
+                    "format": "date-span",
+                    "description": "Default time to live for messages sent through\r\nthe writer group if the transport supports it.",
+                    "type": "string"
+                },
+                "WriterGroupMessageRetention": {
+                    "description": "Default message retention setting for messages sent\r\nthrough the writer group if the transport supports it.",
+                    "type": "boolean"
+                },
+                "MessageTtlTimespan": {
+                    "format": "date-span",
+                    "description": "Message time to live for messages sent by the\r\nwriter if the transport supports it.",
+                    "type": "string"
+                },
+                "MessageRetention": {
+                    "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
+                    "type": "boolean"
+                },
+                "DumpConnectionDiagnostics": {
+                    "description": "Dump server diagnostics for the connection to enable\r\nadvanced troubleshooting scenarios.",
                     "type": "boolean"
                 },
                 "NodeId": {

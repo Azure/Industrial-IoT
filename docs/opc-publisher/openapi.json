@@ -1140,9 +1140,9 @@
                 "tags": [
                     "Diagnostics"
                 ],
-                "summary": "ResetAllClients",
+                "summary": "ResetAllConnections",
                 "description": "Can be used to reset all established connections causing a full reconnect and recreate of all subscriptions.",
-                "operationId": "ResetAllClients",
+                "operationId": "ResetAllConnections",
                 "produces": [
                     "application/json",
                     "application/x-msgpack"
@@ -1488,6 +1488,635 @@
                         "schema": {
                             "type": "boolean"
                         }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/list": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetFileSystems",
+                "description": "Gets all file systems of the server.",
+                "operationId": "GetFileSystems",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ConnectionModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/list/directories": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetDirectories",
+                "description": "Gets all directories in a directory or file system",
+                "operationId": "GetDirectories",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The directory or filesystem object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelIEnumerableServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/list/files": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetFiles",
+                "description": "Get files in a directory or file system on a server.",
+                "operationId": "GetFiles",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The directory or filesystem object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelIEnumerableServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/parent": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetParent",
+                "description": "Gets the parent directory or filesystem of a file or directory.",
+                "operationId": "GetParent",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file or directory object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/info/file": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "GetFileInfo",
+                "description": "Gets the file information for a file on the server.",
+                "operationId": "GetFileInfo",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file object and connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileInfoModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/create/file/{name}": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "CreateFile",
+                "description": "Create a new file in a directory or file system on the server",
+                "operationId": "CreateFile",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "description": "The name of the file to create as child under the directory or filesystem provided",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file system or directory object to create the file in and the connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/create/directory/{name}": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "CreateDirectory",
+                "description": "Create a new directory in an existing file system or directory on the server.",
+                "operationId": "CreateDirectory",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "name",
+                        "description": "The name of the directory to create as child under the parent directory provided",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file system or directory object to create the directory in and the connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/delete": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "DeleteFileSystemObject",
+                "description": "Delete a file or directory in an existing file system on the server.",
+                "operationId": "DeleteFileSystemObject",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The file or directory object to delete and the connection information identifying the server to connect to perform the operation on.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/ServiceResultModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/delete/{fileOrDirectoryNodeId}": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "DeleteFileOrDirectory",
+                "description": "Delete a file or directory in the specified directory or file system.",
+                "operationId": "DeleteFileOrDirectory",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "fileOrDirectoryNodeId",
+                        "description": "The node id of the file or directory to delete",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The filesystem or directory object in which to delete the specified file or directory and the connection to use for the operation.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FileSystemObjectModelRequestEnvelope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information.",
+                        "schema": {
+                            "$ref": "#/definitions/ServiceResultModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/download": {
+            "get": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "Download",
+                "description": "Download a file from the server",
+                "operationId": "Download",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "x-ms-connection",
+                        "description": "The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header \"x-ms-connection\"",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "x-ms-target",
+                        "description": "The file object to upload. This is passed as json serialized via the header \"x-ms-target\"",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information."
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/filesystem/upload": {
+            "post": {
+                "tags": [
+                    "FileSystem"
+                ],
+                "summary": "Upload",
+                "description": "Upload a file to the server.",
+                "operationId": "Upload",
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "x-ms-connection",
+                        "description": "The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header \"x-ms-connection\"",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "x-ms-target",
+                        "description": "The file object to upload. This is passed as json serialized via the header \"x-ms-target\"",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "x-ms-options",
+                        "description": "The file write options to use passed as header \"x-ms-mode\"",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The operation was successful or the response payload contains relevant error information."
                     },
                     "400": {
                         "description": "The passed in information is invalid",
@@ -3826,7 +4455,7 @@
                     "Writer"
                 ],
                 "summary": "CreateOrUpdateDataSetWriterEntry",
-                "description": "Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is updated, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
+                "description": "Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is replaced, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.",
                 "operationId": "CreateOrUpdateDataSetWriterEntry",
                 "consumes": [
                     "application/json",
@@ -3859,6 +4488,65 @@
                     },
                     "403": {
                         "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "ExpandAndCreateOrUpdateDataSetWriterEntries",
+                "description": "Create a series of published nodes entries using the provided entry as template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is also saved in the local configuration store. The server must be online and accessible for the expansion to work.",
+                "operationId": "ExpandAndCreateOrUpdateDataSetWriterEntries",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to create for the writer and node expansion configuration to use",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodeExpansionModelPublishedNodesEntryRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was created",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
                         }
@@ -4387,6 +5075,250 @@
                 },
                 "x-ms-pageable": {
                     "nextLinkName": "lastDataSetFieldId"
+                }
+            }
+        },
+        "/v2/writer/expand": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "ExpandWriter",
+                "description": "Expands the provided nodes in the entry to a series of published node entries. The provided entry is used template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is not updated but the resulting entries can be modified and later saved in the configuration using the configuration API. The server must be online and accessible for the expansion to work.",
+                "operationId": "ExpandWriter",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to expand and the node expansion configuration to use. If no configuration is provided a default configuration is used which and no error entries are returned.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodeExpansionModelPublishedNodesEntryRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The item was created",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "A unique item could not be found to update.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/writer/assets/create": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "CreateOrUpdateAsset",
+                "description": "Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset configuration file. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href=\"https://reference.opcfoundation.org/WoT/v100/docs/\" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.",
+                "operationId": "CreateOrUpdateAsset",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The contains the entry and WoT file to configure the server to expose the asset.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ByteArrayPublishedNodeCreateAssetRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The asset was created",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/writer/assets/list": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "GetAllAssets",
+                "description": "Get a list of entries representing the assets in the server. This will not touch the configuration, it will obtain the list from the server. If the server does not support <see href=\"https://reference.opcfoundation.org/WoT/v100/docs/\" /> the result will be empty.",
+                "operationId": "GetAllAssets",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "The entry to use to list the assets with the optional header information used when invoking services on the server.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/RequestHeaderModelPublishedNodesEntryRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully completed the listing",
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodesEntryModelServiceResponseIAsyncEnumerable"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/writer/assets/delete": {
+            "post": {
+                "tags": [
+                    "Writer"
+                ],
+                "summary": "DeleteAsset",
+                "description": "Delete the asset referenced by the entry in the request. The entry must contain the asset id to delete. The asset id is the data set writer id. The entry must also contain the writer group id or deletion of the asset in the configuration will fail before the asset is deleted. The server must support WoT connectivity profile per <see href=\"https://reference.opcfoundation.org/WoT/v100/docs/\" />. First the entry in the configuration will be deleted and then the asset on the server. If deletion of the asset in the configuration fails it will not be deleted in the server. An optional request option force can be used to force the deletion of the asset in the server regardless of the failure to delete the entry in the configuration.",
+                "operationId": "DeleteAsset",
+                "consumes": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/x-msgpack"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Request that contains the entry of the asset that should be deleted.",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PublishedNodeDeleteAssetRequestModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The asset was deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/ServiceResultModel"
+                        }
+                    },
+                    "400": {
+                        "description": "The passed in information is invalid",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "408": {
+                        "description": "The operation timed out.",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
                 }
             }
         }
@@ -5007,6 +5939,33 @@
             },
             "additionalProperties": false
         },
+        "ByteArrayPublishedNodeCreateAssetRequestModel": {
+            "description": "Request to create an asset in the configuration api",
+            "required": [
+                "configuration",
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/definitions/RequestHeaderModel"
+                },
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "configuration": {
+                    "format": "byte",
+                    "description": "The asset configuration to use when creating the asset.",
+                    "type": "string"
+                },
+                "waitTime": {
+                    "format": "date-span",
+                    "description": "Time to wait after the configuration is applied to perform\r\nthe configuration of the asset in the configuration api.\r\nThis is to let the server settle.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
         "ChannelDiagnosticModel": {
             "description": "Channel diagnostics model",
             "required": [
@@ -5173,7 +6132,8 @@
                 "None",
                 "UseReverseConnect",
                 "NoComplexTypeSystem",
-                "NoSubscriptionTransfer"
+                "NoSubscriptionTransfer",
+                "DumpDiagnostics"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -5740,6 +6700,126 @@
                 "name": "ExceptionDeviationType",
                 "modelAsString": false
             }
+        },
+        "FileInfoModel": {
+            "description": "File info",
+            "type": "object",
+            "properties": {
+                "size": {
+                    "format": "int64",
+                    "description": "The size of the file in Bytes. When a file is\r\ncurrently opened for write, the size might not be\r\naccurate or available.",
+                    "type": "integer"
+                },
+                "writable": {
+                    "description": "Whether the file is writable.",
+                    "type": "boolean"
+                },
+                "openCount": {
+                    "format": "int32",
+                    "description": "The number of currently valid file handles on\r\nthe file.",
+                    "type": "integer"
+                },
+                "mimeType": {
+                    "description": "The media type of the file based on RFC 2046.",
+                    "type": "string"
+                },
+                "maxBufferSize": {
+                    "format": "int64",
+                    "description": "The maximum number of bytes of\r\nthe read and write buffers.",
+                    "type": "integer"
+                },
+                "lastModified": {
+                    "format": "date-time",
+                    "description": "The time the file was last modified.",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileInfoModelServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/FileInfoModel"
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModel": {
+            "description": "File system object model",
+            "type": "object",
+            "properties": {
+                "nodeId": {
+                    "description": "The node id of the filesystem object",
+                    "type": "string"
+                },
+                "browsePath": {
+                    "description": "The browse path to the filesystem object",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "The name of the filesystem object",
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelIEnumerableServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "description": "Result",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/FileSystemObjectModel"
+                    }
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelRequestEnvelope": {
+            "description": "Wraps a request and a connection to bind to a\r\nbody more easily for api that requires a\r\nconnection endpoint",
+            "required": [
+                "connection"
+            ],
+            "type": "object",
+            "properties": {
+                "connection": {
+                    "$ref": "#/definitions/ConnectionModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/FileSystemObjectModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/FileSystemObjectModel"
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "FileSystemObjectModelServiceResponseIAsyncEnumerable": {
+            "type": "object",
+            "additionalProperties": false
         },
         "FilterOperandModel": {
             "description": "Filter operand",
@@ -7721,6 +8801,82 @@
             },
             "additionalProperties": false
         },
+        "PublishedNodeDeleteAssetRequestModel": {
+            "description": "Contains entry in the published nodes configuration representing\r\nthe asset as well as an optional request header.",
+            "required": [
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/definitions/RequestHeaderModel"
+                },
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "force": {
+                    "description": "The asset on the server is deleted no matter whether\r\nthe removal in the publisher configuration was successful\r\nor not.",
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PublishedNodeExpansionModel": {
+            "description": "\r\n\r\n            Node expansion configuration. Configures how an entry should\r\n            be expanded into configuration. If a node is an object it is\r\n            expanded to all contained variables.\r\n            \r\n\r\n\r\n            If a node is an object type, all objects of that type are\r\n            searched from the object root node. These found objects are\r\n            then expanded into their variables.\r\n            \r\n\r\n\r\n            If the node is a variable, the variable is expanded to include\r\n            all contained variables or properties. All entries will have\r\n            the data set field id configured as data set class id.\r\n            \r\n\r\n\r\n            If a node is a variable type, then all variables of this type\r\n            are found and added to a single writer entry. Note: That by\r\n            themselves these variables are no further expanded.\r\n            ",
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/definitions/RequestHeaderModel"
+                },
+                "createSingleWriter": {
+                    "description": "By default the api will create a new distinct\r\nwriter per expanded object. Objects that cannot\r\nbe expanded are part of the originally provided\r\nwriter. The writer id is then post fixed with\r\nthe data set field id of the object node field.\r\nIf true, all variables of all expanded nodes are\r\nadded to the originally provided entry.",
+                    "type": "boolean"
+                },
+                "maxLevelsToExpand": {
+                    "format": "int64",
+                    "description": "Max number of levels to expand an instance node\r\nsuch as an object or variable into resulting\r\nvariables.\r\nIf the node is a variable instance to start with\r\nbut the Azure.IIoT.OpcUa.Publisher.Models.PublishedNodeExpansionModel.ExcludeRootIfInstanceNode\r\nproperty is set to excluded it, then setting this\r\nvalue to 0 is equivalent to a value of 1 to get\r\nthe first level of variables contained in the\r\nvariable, but not the variable itself. Otherwise\r\nonly the variable itelf is returned. If the node\r\nis an object instance, 0 is equivalent to\r\ninfinite and all levels are expanded.",
+                    "type": "integer"
+                },
+                "noSubTypesOfTypeNodes": {
+                    "description": "Do not consider subtypes of an object type when\r\nsearching for instances of the type.",
+                    "type": "boolean"
+                },
+                "excludeRootIfInstanceNode": {
+                    "description": "If the node is an object or variable instance do\r\nnot include it but only the instances underneath\r\nthem.",
+                    "type": "boolean"
+                },
+                "maxDepth": {
+                    "format": "int64",
+                    "description": "Max browse depth for object search operation or\r\nwhen searching for an instance of a type.\r\nTo only expand an object to its variables set\r\nthis value to 0. The depth of expansion of a\r\nvariable itself can be controlled via the\r\nAzure.IIoT.OpcUa.Publisher.Models.PublishedNodeExpansionModel.MaxLevelsToExpand\" property.\r\nIf the root object is excluded a value of 0 is\r\nequivalent to a value of 1 to get the first level\r\nof objects contained in the object but not the\r\nobject itself, e.g. a folder object.",
+                    "type": "integer"
+                },
+                "stopAtFirstFoundInstance": {
+                    "description": "If the depth is not limited and the node is a\r\ntype definition id set this flag to true to find\r\nonly the first instance of this type from the\r\nobject root.",
+                    "type": "boolean"
+                },
+                "discardErrors": {
+                    "description": "Errors are silently discarded and only\r\nsuccessfully expanded nodes are returned.",
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PublishedNodeExpansionModelPublishedNodesEntryRequestModel": {
+            "description": "Wraps a request and a published nodes entry to bind to a\r\nbody more easily for api that requires an entry and additional\r\nconfiguration",
+            "required": [
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/PublishedNodeExpansionModel"
+                }
+            },
+            "additionalProperties": false
+        },
         "PublishedNodesEntryModel": {
             "description": "Contains the nodes which should be published",
             "required": [
@@ -7906,7 +9062,7 @@
                     "description": "Disable subscription transfer on reconnect",
                     "type": "boolean"
                 },
-                "republishAfterTransfer": {
+                "RepublishAfterTransfer": {
                     "description": "Republish after transferring the subscription during\r\nreconnect handling unless subscription transfer was disabled.",
                     "type": "boolean"
                 },
@@ -7953,10 +9109,44 @@
                     "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
                     "type": "boolean"
                 },
+                "DefaultHeartbeatInterval": {
+                    "format": "int32",
+                    "description": "Default heartbeat interval in milliseconds",
+                    "type": "integer"
+                },
+                "DefaultHeartbeatIntervalTimespan": {
+                    "format": "date-span",
+                    "description": "Default heartbeat interval for all nodes as duration. Takes\r\nprecedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DefaultHeartbeatInterval if\r\ndefined.",
+                    "type": "string"
+                },
+                "DefaultHeartbeatBehavior": {
+                    "$ref": "#/definitions/HeartbeatBehavior"
+                },
+                "DumpConnectionDiagnostics": {
+                    "description": "Dump server diagnostics for the connection to enable\r\nadvanced troubleshooting scenarios.",
+                    "type": "boolean"
+                },
                 "NodeId": {
                     "$ref": "#/definitions/NodeIdModel"
                 }
             },
+            "additionalProperties": false
+        },
+        "PublishedNodesEntryModelServiceResponse": {
+            "description": "Response envelope",
+            "type": "object",
+            "properties": {
+                "result": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "errorInfo": {
+                    "$ref": "#/definitions/ServiceResultModel"
+                }
+            },
+            "additionalProperties": false
+        },
+        "PublishedNodesEntryModelServiceResponseIAsyncEnumerable": {
+            "type": "object",
             "additionalProperties": false
         },
         "PublishedNodesResponseModel": {
@@ -8510,6 +9700,22 @@
                     "format": "int32",
                     "description": "Connect timeout in ms. As opposed to the service call\r\ntimeout this terminates the entire transaction if\r\nit takes longer than the timeout to connect a session\r\nA connect and reconnect during the service call\r\nresets the timeout therefore the overall time for\r\nthe call to complete can be longer than specified.",
                     "type": "integer"
+                }
+            },
+            "additionalProperties": false
+        },
+        "RequestHeaderModelPublishedNodesEntryRequestModel": {
+            "description": "Wraps a request and a published nodes entry to bind to a\r\nbody more easily for api that requires an entry and additional\r\nconfiguration",
+            "required": [
+                "entry"
+            ],
+            "type": "object",
+            "properties": {
+                "entry": {
+                    "$ref": "#/definitions/PublishedNodesEntryModel"
+                },
+                "request": {
+                    "$ref": "#/definitions/RequestHeaderModel"
                 }
             },
             "additionalProperties": false
@@ -9537,6 +10743,10 @@
         {
             "name": "Discovery",
             "description": "\r\n\r\n            OPC UA and network discovery related API.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            "
+        },
+        {
+            "name": "FileSystem",
+            "description": "\r\n\r\n            This section lists the file transfer API provided by OPC Publisher providing\r\n            access to file transfer services to move files in and out of a server\r\n            using the File transfer specification.\r\n            \r\n\r\n\r\n            The method name for all transports other than HTTP (which uses the shown\r\n            HTTP methods and resource uris) is the name of the subsection header.\r\n            To use the version specific method append \"_V1\" or \"_V2\" to the method\r\n            name.\r\n            "
         },
         {
             "name": "General",

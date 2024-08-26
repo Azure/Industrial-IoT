@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public override void Write<TState>(in LogEntry<TState> logEntry,
             IExternalScopeProvider? scopeProvider, TextWriter textWriter)
         {
-            string? message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
+            var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
             if (message is null)
             {
                 return;
@@ -63,10 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 messageBuilder.Append('[').Append(_serviceId);
                 scopeProvider.ForEachScope((scope, state) =>
-                {
-                    StringBuilder builder = state;
-                    builder.Append(' ').Append(scope);
-                }, messageBuilder);
+                    state.Append(' ').Append(scope), messageBuilder);
                 messageBuilder.Append("] ");
             }
             messageBuilder.Append("- ").AppendLine(message);

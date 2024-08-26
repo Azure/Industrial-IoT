@@ -65,8 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                             DataSetClassId = message.DataSetClassId.ToString(),
                             DataSetWriterId = dataSetMessage.DataSetWriterId.ToString(CultureInfo.InvariantCulture),
                             SequenceNumber = dataSetMessage.SequenceNumber,
-                            Status = dataSetMessage.Status == null ? null :
-                                StatusCode.LookupSymbolicId(dataSetMessage.Status.Value.Code),
+                            Status = dataSetMessage.Status.AsString(),
                             MetaDataVersion = $"{dataSetMessage.MetaDataVersion?.MajorVersion ?? 1}" +
                                 $".{dataSetMessage.MetaDataVersion?.MinorVersion ?? 0}",
                             Timestamp = dataSetMessage.Timestamp,
@@ -83,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                                 DataType = type == BuiltInType.Null
                                     ? null : type.ToString(),
                                 Status = (dataValue.StatusCode.Code == StatusCodes.Good)
-                                    ? null : StatusCode.LookupSymbolicId(dataValue.StatusCode.Code),
+                                    ? null : dataValue.StatusCode.AsString(),
                                 SourceTimestamp = (dataValue.SourceTimestamp == DateTime.MinValue)
                                     ? null : dataValue.SourceTimestamp,
                                 SourcePicoseconds = (dataValue.SourcePicoseconds == 0)

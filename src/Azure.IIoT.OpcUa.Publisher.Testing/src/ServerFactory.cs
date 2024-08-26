@@ -24,38 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     /// </summary>
     public sealed class ServerFactory : IServerFactory
     {
-        /// <inheritdoc/>
-        public static XmlElementCollection Extensions
-        {
-            get
-            {
-                var extensions = new List<object>
-                {
-                    new MemoryBuffer.MemoryBufferConfiguration
-                    {
-                        Buffers = new MemoryBuffer.MemoryBufferInstanceCollection
-                        {
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "UInt32",
-                                TagCount = 10000,
-                                DataType = "UInt32"
-                            },
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "Double",
-                                TagCount = 100,
-                                DataType = "Double"
-                            }
-                        }
-                    }
-                    /// ...
-                };
-                return new XmlElementCollection(
-                    extensions.Select(XmlElementEx.SerializeObject));
-            }
-        }
-
         /// <summary>
         /// Whether to log status
         /// </summary>
@@ -70,21 +38,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// Server factory
         /// </summary>
         /// <param name="logger"></param>
+        /// <param name="tempPath"></param>
         /// <param name="nodes"></param>
-        public ServerFactory(ILogger<ServerFactory> logger,
+        public ServerFactory(ILogger<ServerFactory> logger, string tempPath,
             IEnumerable<INodeManagerFactory> nodes)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
+            _tempPath = tempPath;
         }
 
         /// <summary>
         /// Full set of servers
         /// </summary>
         /// <param name="logger"></param>
+        /// <param name="tempPath"></param>
         /// <param name="scaleunits"></param>
-        public ServerFactory(ILogger<ServerFactory> logger, uint scaleunits = 0) :
-            this(logger, new List<INodeManagerFactory> {
+        public ServerFactory(ILogger<ServerFactory> logger, string tempPath,
+            uint scaleunits = 0) :
+            this(logger, tempPath, new List<INodeManagerFactory> {
                 new TestData.TestDataServer(),
                 new MemoryBuffer.MemoryBufferServer(),
                 new Boiler.BoilerServer(),
@@ -96,7 +68,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger, scaleunits)
+                new Plc.PlcServer(new TimeService(), logger, scaleunits),
+                new FileSystem.FileSystemServer(),
+                new Asset.AssetServer(logger)
                 // new PerfTest.PerfTestServer(),
             })
         {
@@ -108,7 +82,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports, pkiRootPath, EnableDiagnostics);
+            return Server.CreateServerConfiguration(_tempPath,
+                ports, pkiRootPath, EnableDiagnostics);
         }
 
         /// <inheritdoc/>
@@ -134,11 +109,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Create configuration
             /// </summary>
+            /// <param name="curDir"></param>
             /// <param name="ports"></param>
             /// <param name="pkiRootPath"></param>
             /// <param name="enableDiagnostics"></param>
             /// <returns></returns>
-            public static ApplicationConfiguration CreateServerConfiguration(
+            public static ApplicationConfiguration CreateServerConfiguration(string curDir,
                 IEnumerable<int> ports, string pkiRootPath, bool enableDiagnostics = false)
             {
                 var extensions = new List<object>
@@ -160,9 +136,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                                 DataType = "Double"
                             }
                         }
-                    }
+                    },
 
-                    /// ...
+                    // ...
+
+                    new FolderConfiguration
+                    {
+                        CurrentDirectory = curDir
+                    }
                 };
                 if (string.IsNullOrEmpty(pkiRootPath))
                 {
@@ -695,5 +676,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 
         private readonly ILogger _logger;
         private readonly IEnumerable<INodeManagerFactory> _nodes;
+        private readonly string _tempPath;
     }
 }

@@ -29,7 +29,7 @@
 
 param(
    [string] $IotHubName,
-   [string] $TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18",
+   [string] $TenantId,
    [string] $SubscriptionId,
    [string] $SharedFolderPath,
    [switch] $ProvisioningOnly,
@@ -44,6 +44,10 @@ $eflowMsiUri = "https://aka.ms/AzEFLOWMSI_1_4_LTS_X64"
 
 $ErrorActionPreference = "Stop"
 $path = Split-Path $script:MyInvocation.MyCommand.Path
+
+if ([string]::IsNullOrWhiteSpace($TenantId)) {
+   $TenantId = $env:AZURE_TENANT_ID
+}
 
 $setupPath = Join-Path $path "eflow-setup"
 if (!(Test-Path $setupPath)) {

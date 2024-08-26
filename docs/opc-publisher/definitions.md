@@ -303,6 +303,19 @@ View to browse
 |**viewId**  <br>*required*|Node of the view to browse  <br>**Minimum length** : `1`|string|
 
 
+<a name="bytearraypublishednodecreateassetrequestmodel"></a>
+### ByteArrayPublishedNodeCreateAssetRequestModel
+Request to create an asset in the configuration api
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**configuration**  <br>*required*|The asset configuration to use when creating the asset.|string (byte)|
+|**entry**  <br>*required*||[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**waitTime**  <br>*optional*|Time to wait after the configuration is applied to perform<br>the configuration of the asset in the configuration api.<br>This is to let the server settle.|string (date-span)|
+
+
 <a name="channeldiagnosticmodel"></a>
 ### ChannelDiagnosticModel
 Channel diagnostics model
@@ -378,7 +391,7 @@ Connection model
 ### ConnectionOptions
 Options that can be applied to a connection
 
-*Type* : enum (None, UseReverseConnect, NoComplexTypeSystem, NoSubscriptionTransfer)
+*Type* : enum (None, UseReverseConnect, NoComplexTypeSystem, NoSubscriptionTransfer, DumpDiagnostics)
 
 
 <a name="contentfilterelementmodel"></a>
@@ -685,6 +698,84 @@ Event filter
 Exception deviation type
 
 *Type* : enum (AbsoluteValue, PercentOfValue, PercentOfRange, PercentOfEURange)
+
+
+<a name="fileinfomodel"></a>
+### FileInfoModel
+File info
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**lastModified**  <br>*optional*|The time the file was last modified.|string (date-time)|
+|**maxBufferSize**  <br>*optional*|The maximum number of bytes of<br>the read and write buffers.|integer (int64)|
+|**mimeType**  <br>*optional*|The media type of the file based on RFC 2046.|string|
+|**openCount**  <br>*optional*|The number of currently valid file handles on<br>the file.|integer (int32)|
+|**size**  <br>*optional*|The size of the file in Bytes. When a file is<br>currently opened for write, the size might not be<br>accurate or available.|integer (int64)|
+|**writable**  <br>*optional*|Whether the file is writable.|boolean|
+
+
+<a name="fileinfomodelserviceresponse"></a>
+### FileInfoModelServiceResponse
+Response envelope
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|[FileInfoModel](definitions.md#fileinfomodel)|
+
+
+<a name="filesystemobjectmodel"></a>
+### FileSystemObjectModel
+File system object model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|The browse path to the filesystem object|< string > array|
+|**name**  <br>*optional*|The name of the filesystem object|string|
+|**nodeId**  <br>*optional*|The node id of the filesystem object|string|
+
+
+<a name="filesystemobjectmodelienumerableserviceresponse"></a>
+### FileSystemObjectModelIEnumerableServiceResponse
+Response envelope
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|Result|< [FileSystemObjectModel](definitions.md#filesystemobjectmodel) > array|
+
+
+<a name="filesystemobjectmodelrequestenvelope"></a>
+### FileSystemObjectModelRequestEnvelope
+Wraps a request and a connection to bind to a
+body more easily for api that requires a
+connection endpoint
+
+
+|Name|Schema|
+|---|---|
+|**connection**  <br>*required*|[ConnectionModel](definitions.md#connectionmodel)|
+|**request**  <br>*optional*|[FileSystemObjectModel](definitions.md#filesystemobjectmodel)|
+
+
+<a name="filesystemobjectmodelserviceresponse"></a>
+### FileSystemObjectModelServiceResponse
+Response envelope
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|[FileSystemObjectModel](definitions.md#filesystemobjectmodel)|
+
+
+<a name="filesystemobjectmodelserviceresponseiasyncenumerable"></a>
+### FileSystemObjectModelServiceResponseIAsyncEnumerable
+*Type* : object
 
 
 <a name="filteroperandmodel"></a>
@@ -1596,6 +1687,69 @@ A monitored and published item
 |**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
 
 
+<a name="publishednodedeleteassetrequestmodel"></a>
+### PublishedNodeDeleteAssetRequestModel
+Contains entry in the published nodes configuration representing
+the asset as well as an optional request header.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**entry**  <br>*required*||[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**force**  <br>*optional*|The asset on the server is deleted no matter whether<br>the removal in the publisher configuration was successful<br>or not.|boolean|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+
+
+<a name="publishednodeexpansionmodel"></a>
+### PublishedNodeExpansionModel
+Node expansion configuration. Configures how an entry should
+            be expanded into configuration. If a node is an object it is
+            expanded to all contained variables.
+            
+
+
+            If a node is an object type, all objects of that type are
+            searched from the object root node. These found objects are
+            then expanded into their variables.
+            
+
+
+            If the node is a variable, the variable is expanded to include
+            all contained variables or properties. All entries will have
+            the data set field id configured as data set class id.
+            
+
+
+            If a node is a variable type, then all variables of this type
+            are found and added to a single writer entry. Note: That by
+            themselves these variables are no further expanded.
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**createSingleWriter**  <br>*optional*|By default the api will create a new distinct<br>writer per expanded object. Objects that cannot<br>be expanded are part of the originally provided<br>writer. The writer id is then post fixed with<br>the data set field id of the object node field.<br>If true, all variables of all expanded nodes are<br>added to the originally provided entry.|boolean|
+|**discardErrors**  <br>*optional*|Errors are silently discarded and only<br>successfully expanded nodes are returned.|boolean|
+|**excludeRootIfInstanceNode**  <br>*optional*|If the node is an object or variable instance do<br>not include it but only the instances underneath<br>them.|boolean|
+|**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
+|**maxDepth**  <br>*optional*|Max browse depth for object search operation or<br>when searching for an instance of a type.<br>To only expand an object to its variables set<br>this value to 0. The depth of expansion of a<br>variable itself can be controlled via the<br>Azure.IIoT.OpcUa.Publisher.Models.PublishedNodeExpansionModel.MaxLevelsToExpand" property.<br>If the root object is excluded a value of 0 is<br>equivalent to a value of 1 to get the first level<br>of objects contained in the object but not the<br>object itself, e.g. a folder object.|integer (int64)|
+|**maxLevelsToExpand**  <br>*optional*|Max number of levels to expand an instance node<br>such as an object or variable into resulting<br>variables.<br>If the node is a variable instance to start with<br>but the Azure.IIoT.OpcUa.Publisher.Models.PublishedNodeExpansionModel.ExcludeRootIfInstanceNode<br>property is set to excluded it, then setting this<br>value to 0 is equivalent to a value of 1 to get<br>the first level of variables contained in the<br>variable, but not the variable itself. Otherwise<br>only the variable itelf is returned. If the node<br>is an object instance, 0 is equivalent to<br>infinite and all levels are expanded.|integer (int64)|
+|**noSubTypesOfTypeNodes**  <br>*optional*|Do not consider subtypes of an object type when<br>searching for instances of the type.|boolean|
+|**stopAtFirstFoundInstance**  <br>*optional*|If the depth is not limited and the node is a<br>type definition id set this flag to true to find<br>only the first instance of this type from the<br>object root.|boolean|
+
+
+<a name="publishednodeexpansionmodelpublishednodesentryrequestmodel"></a>
+### PublishedNodeExpansionModelPublishedNodesEntryRequestModel
+Wraps a request and a published nodes entry to bind to a
+body more easily for api that requires an entry and additional
+configuration
+
+
+|Name|Schema|
+|---|---|
+|**entry**  <br>*required*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**request**  <br>*optional*|[PublishedNodeExpansionModel](definitions.md#publishednodeexpansionmodel)|
+
+
 <a name="publishednodesentrymodel"></a>
 ### PublishedNodesEntryModel
 Contains the nodes which should be published
@@ -1620,7 +1774,11 @@ Contains the nodes which should be published
 |**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**DataSetWriterWatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
+|**DefaultHeartbeatBehavior**  <br>*optional*||[HeartbeatBehavior](definitions.md#heartbeatbehavior)|
+|**DefaultHeartbeatInterval**  <br>*optional*|Default heartbeat interval in milliseconds|integer (int32)|
+|**DefaultHeartbeatIntervalTimespan**  <br>*optional*|Default heartbeat interval for all nodes as duration. Takes<br>precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DefaultHeartbeatInterval if<br>defined.|string (date-span)|
 |**DisableSubscriptionTransfer**  <br>*optional*|Disable subscription transfer on reconnect|boolean|
+|**DumpConnectionDiagnostics**  <br>*optional*|Dump server diagnostics for the connection to enable<br>advanced troubleshooting scenarios.|boolean|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
 |**EncryptedAuthUsername**  <br>*optional*|encrypted username|string|
 |**EndpointSecurityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
@@ -1645,6 +1803,7 @@ Contains the nodes which should be published
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
 |**QualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**QueueName**  <br>*optional*|Writer queue overrides the writer group queue name.<br>Network messages are then split across queues with<br>Qos also accounted for.|string|
+|**RepublishAfterTransfer**  <br>*optional*|Republish after transferring the subscription during<br>reconnect handling unless subscription transfer was disabled.|boolean|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
@@ -1655,7 +1814,22 @@ Contains the nodes which should be published
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
-|**republishAfterTransfer**  <br>*optional*|Republish after transferring the subscription during<br>reconnect handling unless subscription transfer was disabled.|boolean|
+
+
+<a name="publishednodesentrymodelserviceresponse"></a>
+### PublishedNodesEntryModelServiceResponse
+Response envelope
+
+
+|Name|Schema|
+|---|---|
+|**errorInfo**  <br>*optional*|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**result**  <br>*optional*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+
+
+<a name="publishednodesentrymodelserviceresponseiasyncenumerable"></a>
+### PublishedNodesEntryModelServiceResponseIAsyncEnumerable
+*Type* : object
 
 
 <a name="publishednodesresponsemodel"></a>
@@ -1965,6 +2139,19 @@ Request header model
 |**namespaceFormat**  <br>*optional*||[NamespaceFormat](definitions.md#namespaceformat)|
 |**operationTimeout**  <br>*optional*|Operation timeout in ms. This applies to every<br>operation that is invoked, not to the entire<br>transaction and overrides the configured operation<br>timeout.|integer (int32)|
 |**serviceCallTimeout**  <br>*optional*|Service call timeout in ms. As opposed to the<br>operation timeout this terminates the entire<br>transaction if it takes longer than the timeout to<br>complete. Note that a connect and reconnect during<br>the service call is gated by the connect timeout<br>setting. If a connect timeout is not specified<br>this timeout is used also for connect timeout.|integer (int32)|
+
+
+<a name="requestheadermodelpublishednodesentryrequestmodel"></a>
+### RequestHeaderModelPublishedNodesEntryRequestModel
+Wraps a request and a published nodes entry to bind to a
+body more easily for api that requires an entry and additional
+configuration
+
+
+|Name|Schema|
+|---|---|
+|**entry**  <br>*required*|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**request**  <br>*optional*|[RequestHeaderModel](definitions.md#requestheadermodel)|
 
 
 <a name="requestheadermodelrequestenvelope"></a>

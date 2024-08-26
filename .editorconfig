@@ -489,6 +489,7 @@ csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental
 csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true:silent
 dotnet_diagnostic.RCS1055.severity = suggestion
 dotnet_diagnostic.RCS1039.severity = suggestion
+csharp_prefer_static_anonymous_function = true:suggestion
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:silent
@@ -500,6 +501,8 @@ tab_width = 4
 indent_size = 4
 end_of_line = crlf
 dotnet_style_object_initializer = true:suggestion
+dotnet_style_namespace_match_folder = false:silent
+
 dotnet_diagnostic.CA2007.severity = warning
 dotnet_diagnostic.CA1848.severity = silent
 dotnet_diagnostic.CA1036.severity = suggestion
@@ -524,6 +527,8 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 
 # IDE0270: Use coalesce expression
 dotnet_diagnostic.IDE0270.severity = silent
+# IDE0130: Namespace does not correspond to file location
+dotnet_diagnostic.IDE0130.severity = silent
 dotnet_diagnostic.CA1031.severity = silent
 dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_explicit_tuple_names = true:suggestion

@@ -229,38 +229,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task RegisterAsync(ServerRegistrationRequestModel request,
-            CancellationToken ct)
+            string? discovererId, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
             if (request.DiscoveryUrl == null)
             {
                 throw new ArgumentException("Discovery Url missing.", nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications");
-            await _httpClient.PostAsync(uri, request, _serializer,
+            var uri = new UriBuilder($"{_serviceUri}/v2/applications");
+            if (discovererId != null)
+            {
+                uri.Query = "discovererId=" + discovererId;
+            }
+            await _httpClient.PostAsync(uri.Uri, request, _serializer,
                 request => request.SetTimeout(TimeSpan.FromMinutes(3)),
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct)
+        public async Task DiscoverAsync(DiscoveryRequestModel request,
+            string? discovererId, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
-            var uri = new Uri($"{_serviceUri}/v2/applications/discover");
-            await _httpClient.PostAsync(uri, request, _serializer,
+            var uri = new UriBuilder($"{_serviceUri}/v2/applications/discover");
+            if (discovererId != null)
+            {
+                uri.Query = "discovererId=" + discovererId;
+            }
+            await _httpClient.PostAsync(uri.Uri, request, _serializer,
                 request => request.SetTimeout(TimeSpan.FromMinutes(3)),
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task CancelAsync(DiscoveryCancelRequestModel request, CancellationToken ct)
+        public async Task CancelAsync(DiscoveryCancelRequestModel request,
+            string? discovererId, CancellationToken ct)
         {
             if (request?.Id == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var uri = new Uri($"{_serviceUri}/v2/applications/discover/${Uri.EscapeDataString(request.Id)}");
-            await _httpClient.DeleteAsync(uri,
+            var uri = new UriBuilder(
+                $"{_serviceUri}/v2/applications/discover/${Uri.EscapeDataString(request.Id)}");
+            if (discovererId != null)
+            {
+                uri.Query = "discovererId=" + discovererId;
+            }
+            await _httpClient.DeleteAsync(uri.Uri,
                 authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 
@@ -408,10 +423,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<string> RegisterEndpointAsync(ServerEndpointQueryModel query,
-            CancellationToken ct)
+            string? discovererId, CancellationToken ct)
         {
-            var uri = new Uri($"{_serviceUri}/v2/endpoints");
-            return await _httpClient.PutAsync<string>(uri, query,
+            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints");
+            if (discovererId != null)
+            {
+                uri.Query = "discovererId=" + discovererId;
+            }
+            return await _httpClient.PutAsync<string>(uri.Uri, query,
                 _serializer, authorization: _authorization, ct: ct).ConfigureAwait(false);
         }
 

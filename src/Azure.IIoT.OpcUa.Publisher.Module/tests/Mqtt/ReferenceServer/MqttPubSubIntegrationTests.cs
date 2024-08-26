@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Furly.Extensions.Mqtt;
+    using Json.More;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -293,11 +294,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 arguments: new string[] { "--mm=PubSub", "--dm=False" }, version: MqttVersion.v311);
 
             // Assert
-            var evt = Assert.Single(messages);
-            _output.WriteLine(evt.ToString());
+            var message = Assert.Single(messages);
+            _output.WriteLine(message.Topic + message.Message.ToJsonString());
 
-            Assert.Equal(JsonValueKind.Object, evt.Message.ValueKind);
-            Assert.True(evt.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
+            Assert.Equal(JsonValueKind.Object, message.Message.ValueKind);
+            Assert.True(message.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
 
             Assert.NotNull(metadata);
         }

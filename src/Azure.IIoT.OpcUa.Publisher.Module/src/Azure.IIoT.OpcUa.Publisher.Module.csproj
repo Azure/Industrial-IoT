@@ -33,18 +33,19 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.0.59" />
-    <PackageReference Include="Furly.Extensions.Mqtt" Version="1.0.59" />
-    <PackageReference Include="Furly.Extensions.Dapr" Version="1.0.59" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.59" />
-    <PackageReference Include="Furly.Azure.EventHubs" Version="1.0.59" />
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.59" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.0.66" />
+    <PackageReference Include="Furly.Extensions.Mqtt" Version="1.0.66" />
+    <PackageReference Include="Furly.Extensions.Dapr" Version="1.0.66" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.66" />
+    <PackageReference Include="Furly.Azure.EventHubs" Version="1.0.66" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.66" />
     <PackageReference Include="Azure.Identity" Version="1.12.0" />
-    <PackageReference Include="Furly.Tunnel" Version="1.0.59" />
+    <PackageReference Include="Azure.Core" Version="1.42.0" />
+    <PackageReference Include="Furly.Tunnel" Version="1.0.66" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.8.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.9.0-beta.2" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />

@@ -5,17 +5,21 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using System;
+    using System.Diagnostics;
     using System.Threading;
 
     /// <summary>
-    /// Context for a service call invocation
+    /// Context for service call invocations
     /// </summary>
-    public sealed record class ServiceCallContext
+    public sealed record class ServiceCallContext : ISessionHandle
     {
-        /// <summary>
-        /// The session
-        /// </summary>
+        /// <inheritdoc/>
         public IOpcUaSession Session { get; }
+
+        /// <inheritdoc/>
+        public TimeSpan ServiceCallTimeout { get; }
 
         /// <summary>
         /// A continuation token to track after
@@ -38,12 +42,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Create context
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="serviceCallTimeout"></param>
         /// <param name="ct"></param>
-        internal ServiceCallContext(
-            IOpcUaSession session, CancellationToken ct)
+        internal ServiceCallContext(IOpcUaSession session,
+            TimeSpan serviceCallTimeout, CancellationToken ct = default)
         {
             Session = session;
+            ServiceCallTimeout = serviceCallTimeout;
             Ct = ct;
         }
+
+        /// <summary>
+        /// Create context
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="serviceCallTimeout"></param>
+        /// <param name="client"></param>
+        /// <param name="sessionLock"></param>
+        /// <param name="ct"></param>
+        internal ServiceCallContext(IOpcUaSession session,
+            TimeSpan serviceCallTimeout, OpcUaClient client,
+            IDisposable sessionLock, CancellationToken ct = default)
+            : this(session, serviceCallTimeout, ct)
+        {
+            client.AddRef();
+
+            _client = client;
+            _sessionLock = sessionLock;
+            // TODO: we could timeout and dispose to catch leaks
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            if (_client != null)
+            {
+                Debug.Assert(_sessionLock != null);
+                _sessionLock.Dispose();
+                _client.Release();
+                _client = null;
+            }
+        }
+
+        private OpcUaClient? _client;
+        private readonly IDisposable? _sessionLock;
     }
 }

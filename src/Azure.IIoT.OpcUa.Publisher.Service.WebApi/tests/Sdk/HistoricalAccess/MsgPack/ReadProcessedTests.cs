@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.HistoricalAccess.M
         private HistoryReadValuesProcessedTests<string> GetTests()
         {
             var client = _factory.CreateClient(); // Call to create server
-            var registry = _factory.Resolve<IEndpointManager>();
+            var registry = _factory.Resolve<IEndpointManager<string>>();
             var endpointId = registry.RegisterEndpointAsync(_server.GetConnection().Endpoint).Result;
             return new HistoryReadValuesProcessedTests<string>(_server, () => // Create an adapter over the api
                 new HistoryWebApiAdapter(_client.Resolve<IHistoryServiceApi>()), endpointId);

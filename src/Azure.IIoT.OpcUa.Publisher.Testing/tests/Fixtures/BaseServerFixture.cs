@@ -75,6 +75,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public TimeService TimeService => _timeService.Object;
 
         /// <summary>
+        /// Temporary path
+        /// </summary>
+        public string TempPath { get; }
+            = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        /// <summary>
         /// Filter parser
         /// </summary>
         public IFilterParser Parser => _container.Resolve<IFilterParser>();
@@ -152,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 try
                 {
                     serverHost = new ServerConsoleHost(new ServerFactory(
-                        _container.Resolve<ILogger<ServerFactory>>(), nodes)
+                        _container.Resolve<ILogger<ServerFactory>>(), TempPath, nodes)
                     {
                         LogStatus = false
                     }, _container.Resolve<ILogger<ServerConsoleHost>>())
@@ -272,11 +278,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         _serverHost, pkiPath, sw.Elapsed);
 
                     // Clean up all created certificates
-                    if (!string.IsNullOrEmpty(pkiPath))
+                    if (!string.IsNullOrEmpty(pkiPath) && Directory.Exists(pkiPath))
                     {
                         Try.Op(() => Directory.Delete(pkiPath, true));
                     }
                     logger.LogInformation("Disposing Server took {Elapsed}...", sw.Elapsed);
+
+                    if (Directory.Exists(TempPath))
+                    {
+                        Try.Op(() => Directory.Delete(TempPath, true));
+                    }
                 }
                 _disposedValue = true;
             }

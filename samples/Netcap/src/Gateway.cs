@@ -107,7 +107,7 @@ internal sealed record class Gateway
                     Console.WriteLine($"{index + 1}: {deployments[index]}");
                 }
                 var i = 0;
-                Console.WriteLine("Select index: ");
+                Console.WriteLine("Select publisher index: ");
                 while (true)
                 {
                     if (int.TryParse(Console.ReadLine(), out i)
@@ -122,7 +122,8 @@ internal sealed record class Gateway
             else if (!Extensions.IsRunningInContainer())
             {
                 Console.WriteLine("Found 1 publisher.");
-                Console.WriteLine($"Use {selected}? [Y/N]");
+                var action = netcapMonitored ? "Detach from" : "Attach to";
+                Console.WriteLine($"{action} {selected}? [Y/N]");
                 var key = Console.ReadKey();
                 Console.WriteLine();
                 if (key.Key != ConsoleKey.Y)
@@ -657,6 +658,10 @@ internal sealed record class Gateway
                 IsPushEnabled = true
             };
             quickBuild.ImageNames.Add(Name);
+            quickBuild.Arguments.Add(
+                new ContainerRegistryRunArgument("VERSION", GetType().Assembly.GetVersion()));
+            quickBuild.Arguments.Add(
+                new ContainerRegistryRunArgument("BRANCH", _branch));
             var taskName = Extensions.FixUpResourceName(kTaskName + DateTime.UtcNow.ToBinary());
             var buildResponse = await registryResponse.Value.GetContainerRegistryTaskRuns()
                 .CreateOrUpdateAsync(WaitUntil.Started, taskName, new ContainerRegistryTaskRunData
@@ -803,7 +808,7 @@ internal sealed record class Gateway
         }
 
         /// <summary>
-        /// Cleanup
+        /// Stop
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>

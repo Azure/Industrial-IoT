@@ -31,15 +31,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Xunit.Abstractions;
 
     /// <summary>
-    /// Tests the PublisherConfigService class
+    /// Tests the publisher configuration services
     /// </summary>
-    public class PublisherConfigServicesTests : TempFileProviderBase
+    public class PublishedNodesJsonServicesTests : TempFileProviderBase
     {
         /// <summary>
         /// Constructor that initializes common resources used by tests.
         /// </summary>
         /// <param name="output"></param>
-        public PublisherConfigServicesTests(ITestOutputHelper output)
+        public PublishedNodesJsonServicesTests(ITestOutputHelper output)
         {
             _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output, Logging.Config);
@@ -87,12 +87,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         /// <summary>
         /// This method should be called only after content of _tempFile is set.
         /// </summary>
-        private PublisherConfigurationService InitPublisherConfigService()
+        private PublishedNodesJsonServices InitPublisherConfigService()
         {
-            var configService = new PublisherConfigurationService(
+            var configService = new PublishedNodesJsonServices(
                 _publishedNodesJobConverter,
                 _publisher,
-                _loggerFactory.CreateLogger<PublisherConfigurationService>(),
+                _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
                 _publishedNodesProvider,
                 _newtonSoftJsonSerializer
             );
@@ -860,7 +860,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     PublishingInterval = TimeSpan.FromSeconds(2),
                     NodeId = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0",
                     DisplayName = "test",
-                    SamplingInterval = TimeSpan.FromSeconds(3),
+                    SamplingInterval = TimeSpan.FromSeconds(3)
                 }
             });
 
@@ -969,7 +969,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var entries = await configService.GetConfiguredEndpointsAsync(true);
             entries.Count.Should().Be(100);
-            var entry = entries.FirstOrDefault(e => e.EndpointUrl == results[0].EndpointUrl);
+            var entry = entries.Find(e => e.EndpointUrl == results[0].EndpointUrl);
             entry.Should().NotBeNull();
             entry.MessageEncoding.Should().Be(MessageEncoding.Json);
             entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
@@ -992,7 +992,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             entries = await configService.GetConfiguredEndpointsAsync(true);
             entries.Count.Should().Be(100);
-            entry = entries.FirstOrDefault(e => e.EndpointUrl == results[0].EndpointUrl);
+            entry = entries.Find(e => e.EndpointUrl == results[0].EndpointUrl);
             entry.MessageEncoding.Should().Be(MessageEncoding.Json);
             entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
             entry.OpcNodes.Count.Should().Be(1);
@@ -1069,6 +1069,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Select(i => new OpcNodeModel
                 {
                     Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+            var items = Enumerable.Range(1, 100).Select(i => GenerateEndpoint(i, opcNodes, false)).ToList();
+            await configService.SetConfiguredEndpointsAsync(items);
+
+            var results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(100);
+
+            await configService.UnpublishAllNodesAsync(results[50]);
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(99);
+
+            // purge
+            await configService.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task UpdateConfiguredEndpointsWithBrowsePaths()
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 101)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = null,
+                    BrowsePath = new[]
+                    {
+                        "Objects",
+                        "Telemetry",
+                        $"FastUInt{i}"
+                    },
                     DataSetFieldId = "alwaysthesameid"
                 })
                 .ToList();
@@ -1459,7 +1492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             // Helper method.
             async Task AssertGetConfiguredNodesOnEndpointThrows(
-                PublisherConfigurationService publisherConfigurationService,
+                PublishedNodesJsonServices publisherConfigurationService,
                 PublishedNodesEntryModel endpoint
             )
             {

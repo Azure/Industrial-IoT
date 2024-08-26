@@ -59,7 +59,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new PerfTest.PerfTestServer(),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger, 1)
+                new Plc.PlcServer(new TimeService(), logger, 1),
+                new FileSystem.FileSystemServer(),
+                new Asset.AssetServer(logger)
             })
         {
         }
@@ -70,7 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports, pkiRootPath, configure);
+            return Server.CreateServerConfiguration(
+                ports, pkiRootPath, configure);
         }
 
         /// <inheritdoc/>
@@ -121,7 +124,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                             }
                         }
                     }
-
                     /// ...
                 };
                 if (string.IsNullOrEmpty(pkiRootPath))

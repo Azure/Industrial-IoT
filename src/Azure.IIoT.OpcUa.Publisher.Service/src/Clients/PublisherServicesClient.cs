@@ -858,7 +858,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
                     // Setting an expiration will cause entries in the cache to be evicted
                     // if they're not accessed within the expiration time allotment.
                     //
-                    entry.SetSlidingExpiration(TimeSpan.FromSeconds(30));
+                    entry.SetSlidingExpiration(TimeSpan.FromSeconds(60));
                     return ep.Registration;
                 }
                 catch
@@ -870,7 +870,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients
             return found!;
         }
 
-        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan kTimeout = TimeSpan.FromSeconds(60);
         private readonly IEndpointRegistry _endpoints;
         private readonly IMethodClient _client;
         private readonly IJsonSerializer _serializer;

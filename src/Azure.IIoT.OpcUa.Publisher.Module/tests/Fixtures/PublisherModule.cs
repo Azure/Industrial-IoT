@@ -73,6 +73,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         public string Target { get; }
 
         /// <summary>
+        /// Current directory
+        /// </summary>
+        public string CurrentDirectory { get; }
+
+        /// <summary>
         /// ServerPkiRootPath
         /// </summary>
         public string ServerPkiRootPath { get; }
@@ -126,9 +131,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 _ = ClientContainer.Resolve<MqttServer>().GetAwaiter().GetResult();
             }
 
-            ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+            CurrentDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            if (!Directory.Exists(CurrentDirectory))
+            {
+                Directory.CreateDirectory(CurrentDirectory);
+            }
+
+            ServerPkiRootPath = Path.Combine(CurrentDirectory, "pki",
                 Guid.NewGuid().ToByteArray().ToBase16String());
-            ClientPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+            ClientPkiRootPath = Path.Combine(CurrentDirectory, "pki",
                 Guid.NewGuid().ToByteArray().ToBase16String());
 
             // Create a virtual connection betwenn publisher module and hub
@@ -162,6 +173,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             if (_useMqtt)
             {
                 arguments = arguments.Append("-t=Mqtt").ToArray();
+            }
+
+            if (!arguments.Any(a =>
+                a.StartsWith("-f=", StringComparison.Ordinal) ||
+                a.StartsWith("--pf=", StringComparison.Ordinal) ||
+                a.StartsWith("--publishfile=", StringComparison.Ordinal)))
+            {
+                arguments = arguments.Append("--cf").Append("--pf=" +
+                    Path.Combine(CurrentDirectory, "publishednodes.json")).ToArray();
             }
 
             var configBuilder = new ConfigurationBuilder()
@@ -294,9 +314,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     await _handler2.DisposeAsync();
                 }
-                if (Directory.Exists(ServerPkiRootPath))
+                if (Directory.Exists(CurrentDirectory))
                 {
-                    Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
+                    Try.Op(() => Directory.Delete(CurrentDirectory, true));
                 }
                 ClientContainer.Dispose();
             }
@@ -372,6 +392,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             builder.RegisterType<NodeServicesRestClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HistoryServicesRestClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<FileSystemServicesRestClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ConfigurationServicesRestClient>()
                 .AsImplementedInterfaces();
 
             switch (serializerType)

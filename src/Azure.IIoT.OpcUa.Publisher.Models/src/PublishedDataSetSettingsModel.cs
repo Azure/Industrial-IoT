@@ -126,5 +126,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "defaultSamplingInterval", Order = 15,
             EmitDefaultValue = false)]
         public TimeSpan? DefaultSamplingInterval { get; set; }
+
+        /// <summary>
+        /// Default heartbeat interval
+        /// </summary>
+        [DataMember(Name = "DefaultHeartbeatInterval", Order = 16,
+            EmitDefaultValue = false)]
+        public TimeSpan? DefaultHeartbeatInterval { get; set; }
+
+        /// <summary>
+        /// The default behavior of heartbeat
+        /// </summary>
+        [DataMember(Name = "DefaultHeartbeatBehavior", Order = 17,
+            EmitDefaultValue = false)]
+        public HeartbeatBehavior? DefaultHeartbeatBehavior { get; set; }
     }
 }

@@ -11,10 +11,11 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Secure channel transport and configuration ||X|X||
 | OPC UA HTTP transport and configuration ||-|-|#1997|
 | Secure channel over web socket transport and configuration ||-|-|#1997|
-| Secure channel certificate management API |||||
+| Secure channel certificate management [API](./api.md#certificates) |||||
 | | Client Cert |-|X||
 | | Using EST |-|-||
-| | GDS Push |-|-||
+| | GDS Pull from GDS server |-|-|#2081|
+| | GDS Server Push to OPC Publisher |-|-||
 | Session-reconnect handling across connection loss ||X|X||
 | | Using official .net stack implementation |-|X||
 | [Reverse Connect](./readme.md#using-opc-ua-reverse-connect) ||-|X|Preview|
@@ -28,7 +29,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Browse [API](./api.md#browse) ||-|X||
 | | Browse first/next |-|X||
 | | RegEx Browse filter |-|-||
-| | Streaming browse “Fast browsing” / Partial node set export |-|X|Preview|
+| | Streaming browse "Fast browsing" / Partial node set export |-|X|Preview|
 | | Publish model change feed change events |-|X|Experimental|
 | Translate browse path [API](./api.md) ||-|X||
 | Read [API](./api.md#valueread) |||||
@@ -45,6 +46,15 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Update |-|X|Preview|
 | | Upsert |-|X|Preview|
 | | Delete |-|X|Preview|
+| File Transfer [API](./api.md#filesystem) ([Part 20](https://reference.opcfoundation.org/Core/Part20/v105/docs/)) |||||
+| | List file systems |-|X|Experimental|
+| | Browse file systems on server |-|X|Experimental|
+| | Create files and directories |-|X|Experimental|
+| | Download files |-|X|Experimental|
+| | Upload files to directory |-|X|Experimental|
+| | Delete files and directories |-|X|Experimental|
+| | Substitutable Close method |-|X|Experimental|
+| | Temporary file transfer |-|-||
 | Subscribe to [value changes](./readme.md#configuration-schema) |||||
 | | Value change subscriptions |X|X||
 | | Data change filter support |-|X||
@@ -53,22 +63,32 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Status trigger |-|X||
 | | Set server queue size per value|-|X||
 | | Set server queue LIFO/FIFO behavior per value|-|X||
+| | Set queue size using publishing interval and sampling interval |-|X|Preview|
 | | Periodic read ([cyclic read](./readme.md#sampling-and-publishing-interval-configuration))|-|X|Preview|
 | | Heartbeat (Periodic resending of last known value) |X|X||
 | | Configurable heartbeat behavior (LKG, LKV) ||X||
 | | Heartbeat message timestamp source configuration ||X||
-| | Subscribe to all nodes under an Object node |-|-|#1320|
 | Subscribe to [events](./readme.md#configuring-event-subscriptions) |||||
 | | Using browse path to event notifier |-|X||
 | | Simple (get all events of a type from event notifier)|-|X||
 | | Event filter (filter events on server before sending)|-|X||
 | | Condition handling / Condition snapshots|-|X|Preview|
+| Subscribe to nodes that are not variables or event notifiers |||||
+| | All variables under and object |-|X|Preview|
+| | All Objects and variables of an object type |-|X|Preview|
+| | All Variables of a variable type |-|X|Preview|
 | Triggering |||||
 | | Using Server side triggering service (SetTriggering) |-|-||
 | | Client side sampling of values on event |-|-||
-| Re-evaluate subscriptions periodically |||||
+| Re-evaluate subscriptions |||||
 | | Periodically |-|X||
+| | While monitored items failed to be applied |-|X||
 | | On data model change events |-|-|#1209|
+| Subscription watchdog |||||
+| | When all monitored items are not reporting within an interval |-|X||
+| | When a monitored item is not reporting within an interval |-|X||
+| | When subscription is deleted on server |-|X||
+| | Configure whether to reset or terminate |-|X||
 | Registered Nodes |||||
 | | For periodic reads (registered read) |-|X|Preview|
 | | For monitored items |-|X|Preview|
@@ -93,7 +113,14 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | v2.8 |X|X||
 | | v2.9 |-|X||
 | | JSON schema validation |X|-||
-| OPC UA Pub/Sub configuration API (Part 14)||-|-||
+| | Bootstrapped from Azure Storage blob |-|-|#2284|
+| API to configure and subscribe to Objects, Types and Assets |||||
+| | All variables under an object as writers |-|X|Experimental|
+| | All variables of objects of a certain object type or subtype |-|X|Experimental|
+| | All variables of a variable type or subtype |-|X|Experimental|
+| | Asset configuration using Web of Things Description per [Part 10100-1](https://reference.opcfoundation.org/WoT/v100/docs/)|-|X|Experimental|
+| | Asset admin shell support per [Part 30270](https://reference.opcfoundation.org/I4AAS/v100/docs/)|-|-||
+| OPC UA Pub/Sub configuration API ([Part 14](https://reference.opcfoundation.org/Core/Part14/v105/docs/))||-|-||
 | Data contextualization |||||
 | | Add Endpoint/Dataset name to message header (Routing) |X|X||
 | | [Enrichment](./readme.md#key-frames-delta-frames-and-extension-fields) |-|X||
@@ -140,16 +167,16 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Configurable per writer group |-|X||
 | OPC UA Pub Sub message [encoding](./messageformats.md) |||||
 | | JSON Encoding |X|X||
-| | JSON Encoding per standard |-|X||
+| | JSON Encoding per [Part 6](https://reference.opcfoundation.org/Core/Part6/v105/docs/) |-|X||
 | | GZIP JSON Encoding |-|X||
 | | JSON Schema publishing for JSON encoding |-|X|Experimental|
-| | UADP Binary encoding |-|X|Preview|
+| | UADP Binary encoding per [Part 14](https://reference.opcfoundation.org/Core/Part14/v105/docs/)|-|X|Preview|
 | | Avro and Avro+Gzip encoding with Schema publishing |-|X|Experimental|
 | | [Reversible Encoding](./messageformats.md#reversible-encoding) |-|X|Preview|
 | | [Samples JSON encoding](./messageformats.md#samples-mode-encoding-legacy) – Legacy |X|X|Deprecated|
 | | Samples Binary encoding – Legacy |X|-||
 | | Configurable per writer group |-|X||
-| OPC UA Part 14 Pub Sub Message types |||||
+| OPC UA [Part 14](https://reference.opcfoundation.org/Core/Part14/v105/docs/) Pub Sub Message types |||||
 | | [Delta frame messages](./messageformats.md#data-value-change-messages) |-|X||
 | | [Key frame messages](./readme.md#key-frames-delta-frames-and-extension-fields) / Key frame count |-|X||
 | | [Event messages](./messageformats.md#event-messages) |-|X||

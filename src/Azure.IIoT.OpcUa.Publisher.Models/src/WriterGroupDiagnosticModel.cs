@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public long OutgressIoTMessageCount { get; set; }
 
         /// <summary>
-        /// ConnectionRetries
+        /// Connection Retries
         /// </summary>
         [DataMember(Name = "ConnectionRetries", Order = 23,
             EmitDefaultValue = true)]
@@ -455,5 +455,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MonitoredOpcNodesLateCount", Order = 67,
             EmitDefaultValue = true)]
         public long MonitoredOpcNodesLateCount { get; set; }
+
+        /// <summary>
+        /// Nodes with active heartbeat timer
+        /// </summary>
+        [DataMember(Name = "ActiveHeartbeatCount", Order = 68,
+            EmitDefaultValue = true)]
+        public long ActiveHeartbeatCount { get; set; }
+
+        /// <summary>
+        /// Nodes with active condition snapshot timer
+        /// </summary>
+        [DataMember(Name = "ActiveConditionCount", Order = 69,
+            EmitDefaultValue = true)]
+        public long ActiveConditionCount { get; set; }
+
+        /// <summary>
+        /// ConnectionCount
+        /// </summary>
+        [DataMember(Name = "ConnectionCount", Order = 70,
+            EmitDefaultValue = true)]
+        public long ConnectionCount { get; set; }
     }
 }

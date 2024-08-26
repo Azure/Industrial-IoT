@@ -628,7 +628,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var symbol = string.Empty;
                 if (!UseReversibleEncoding || UseAdvancedEncoding)
                 {
-                    symbol = StatusCode.LookupSymbolicId(value.CodeBits);
+                    symbol = value.AsString();
                 }
                 if (!UseReversibleEncoding || !string.IsNullOrEmpty(symbol))
                 {

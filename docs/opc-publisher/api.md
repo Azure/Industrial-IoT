@@ -963,8 +963,8 @@ Get diagnostics for all active clients including server and client session diagn
 * `application/x-msgpack`
 
 
-<a name="resetallclients"></a>
-#### ResetAllClients
+<a name="resetallconnections"></a>
+#### ResetAllConnections
 ```
 GET /v2/reset
 ```
@@ -1152,6 +1152,454 @@ Start server registration. The results of the registration are published as even
 
 * `application/json`
 * `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="filesystem_resource"></a>
+### FileSystem
+This section lists the file transfer API provided by OPC Publisher providing
+            access to file transfer services to move files in and out of a server
+            using the File transfer specification.
+            
+
+
+            The method name for all transports other than HTTP (which uses the shown
+            HTTP methods and resource uris) is the name of the subsection header.
+            To use the version specific method append "_V1" or "_V2" to the method
+            name.
+
+
+<a name="createdirectory"></a>
+#### CreateDirectory
+```
+POST /v2/filesystem/create/directory/{name}
+```
+
+
+##### Description
+Create a new directory in an existing file system or directory on the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**name**  <br>*required*|The name of the directory to create as child under the parent directory provided|string|
+|**Body**|**body**  <br>*required*|The file system or directory object to create the directory in and the connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponse](definitions.md#filesystemobjectmodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="createfile"></a>
+#### CreateFile
+```
+POST /v2/filesystem/create/file/{name}
+```
+
+
+##### Description
+Create a new file in a directory or file system on the server
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**name**  <br>*required*|The name of the file to create as child under the directory or filesystem provided|string|
+|**Body**|**body**  <br>*required*|The file system or directory object to create the file in and the connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponse](definitions.md#filesystemobjectmodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="deletefilesystemobject"></a>
+#### DeleteFileSystemObject
+```
+POST /v2/filesystem/delete
+```
+
+
+##### Description
+Delete a file or directory in an existing file system on the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The file or directory object to delete and the connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="deletefileordirectory"></a>
+#### DeleteFileOrDirectory
+```
+POST /v2/filesystem/delete/{fileOrDirectoryNodeId}
+```
+
+
+##### Description
+Delete a file or directory in the specified directory or file system.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**fileOrDirectoryNodeId**  <br>*required*|The node id of the file or directory to delete|string|
+|**Body**|**body**  <br>*required*|The filesystem or directory object in which to delete the specified file or directory and the connection to use for the operation.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="download"></a>
+#### Download
+```
+GET /v2/filesystem/download
+```
+
+
+##### Description
+Download a file from the server
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Header**|**x-ms-connection**  <br>*required*|The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header "x-ms-connection"|string|
+|**Header**|**x-ms-target**  <br>*required*|The file object to upload. This is passed as json serialized via the header "x-ms-target"|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getfileinfo"></a>
+#### GetFileInfo
+```
+POST /v2/filesystem/info/file
+```
+
+
+##### Description
+Gets the file information for a file on the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The file object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileInfoModelServiceResponse](definitions.md#fileinfomodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getfilesystems"></a>
+#### GetFileSystems
+```
+POST /v2/filesystem/list
+```
+
+
+##### Description
+Gets all file systems of the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The connection information identifying the server to connect to perform the operation on.|[ConnectionModel](definitions.md#connectionmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponseIAsyncEnumerable](definitions.md#filesystemobjectmodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getdirectories"></a>
+#### GetDirectories
+```
+POST /v2/filesystem/list/directories
+```
+
+
+##### Description
+Gets all directories in a directory or file system
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The directory or filesystem object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelIEnumerableServiceResponse](definitions.md#filesystemobjectmodelienumerableserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getfiles"></a>
+#### GetFiles
+```
+POST /v2/filesystem/list/files
+```
+
+
+##### Description
+Get files in a directory or file system on a server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The directory or filesystem object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelIEnumerableServiceResponse](definitions.md#filesystemobjectmodelienumerableserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getparent"></a>
+#### GetParent
+```
+POST /v2/filesystem/parent
+```
+
+
+##### Description
+Gets the parent directory or filesystem of a file or directory.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The file or directory object and connection information identifying the server to connect to perform the operation on.|[FileSystemObjectModelRequestEnvelope](definitions.md#filesystemobjectmodelrequestenvelope)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|[FileSystemObjectModelServiceResponse](definitions.md#filesystemobjectmodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="upload"></a>
+#### Upload
+```
+POST /v2/filesystem/upload
+```
+
+
+##### Description
+Upload a file to the server.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Header**|**x-ms-connection**  <br>*required*|The connection information identifying the server to connect to perform the operation on. This is passed as json serialized via the header "x-ms-connection"|string|
+|**Header**|**x-ms-options**  <br>*required*|The file write options to use passed as header "x-ms-mode"|string|
+|**Header**|**x-ms-target**  <br>*required*|The file object to upload. This is passed as json serialized via the header "x-ms-target"|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The operation was successful or the response payload contains relevant error information.|No Content|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Produces
@@ -2881,6 +3329,47 @@ This section contains the API to configure data set writers and writer
             name.
 
 
+<a name="expandandcreateorupdatedatasetwriterentries"></a>
+#### ExpandAndCreateOrUpdateDataSetWriterEntries
+```
+POST /v2/writer
+```
+
+
+##### Description
+Create a series of published nodes entries using the provided entry as template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is also saved in the local configuration store. The server must be online and accessible for the expansion to work.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to create for the writer and node expansion configuration to use|[PublishedNodeExpansionModelPublishedNodesEntryRequestModel](definitions.md#publishednodeexpansionmodelpublishednodesentryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was created|[PublishedNodesEntryModelServiceResponseIAsyncEnumerable](definitions.md#publishednodesentrymodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
 <a name="createorupdatedatasetwriterentry"></a>
 #### CreateOrUpdateDataSetWriterEntry
 ```
@@ -2889,7 +3378,7 @@ PUT /v2/writer
 
 
 ##### Description
-Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is updated, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
+Create a published nodes entry for a specific writer group and dataset writer. The entry must specify a unique writer group and dataset writer id. A null value is treated as empty string. If the entry is found it is replaced, if it is not found, it is created. If more than one entry is found with the same writer group and writer id an error is returned. The writer entry provided must include at least one node which will be the initial set. All nodes must specify a unique dataSetFieldId. A null value is treated as empty string. Publishing intervals at node level are also not supported and generate an error. Publishing intervals must be configured at the data set writer level.
 
 
 ##### Parameters
@@ -2906,6 +3395,170 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 |**200**|The item was created|No Content|
 |**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
 |**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="createorupdateasset"></a>
+#### CreateOrUpdateAsset
+```
+POST /v2/writer/assets/create
+```
+
+
+##### Description
+Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset configuration file. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The contains the entry and WoT file to configure the server to expose the asset.|[ByteArrayPublishedNodeCreateAssetRequestModel](definitions.md#bytearraypublishednodecreateassetrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The asset was created|[PublishedNodesEntryModelServiceResponse](definitions.md#publishednodesentrymodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="deleteasset"></a>
+#### DeleteAsset
+```
+POST /v2/writer/assets/delete
+```
+
+
+##### Description
+Delete the asset referenced by the entry in the request. The entry must contain the asset id to delete. The asset id is the data set writer id. The entry must also contain the writer group id or deletion of the asset in the configuration will fail before the asset is deleted. The server must support WoT connectivity profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. First the entry in the configuration will be deleted and then the asset on the server. If deletion of the asset in the configuration fails it will not be deleted in the server. An optional request option force can be used to force the deletion of the asset in the server regardless of the failure to delete the entry in the configuration.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|Request that contains the entry of the asset that should be deleted.|[PublishedNodeDeleteAssetRequestModel](definitions.md#publishednodedeleteassetrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The asset was deleted successfully|[ServiceResultModel](definitions.md#serviceresultmodel)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="getallassets"></a>
+#### GetAllAssets
+```
+POST /v2/writer/assets/list
+```
+
+
+##### Description
+Get a list of entries representing the assets in the server. This will not touch the configuration, it will obtain the list from the server. If the server does not support <see href="https://reference.opcfoundation.org/WoT/v100/docs/" /> the result will be empty.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to use to list the assets with the optional header information used when invoking services on the server.|[RequestHeaderModelPublishedNodesEntryRequestModel](definitions.md#requestheadermodelpublishednodesentryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Successfully completed the listing|[PublishedNodesEntryModelServiceResponseIAsyncEnumerable](definitions.md#publishednodesentrymodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="expandwriter"></a>
+#### ExpandWriter
+```
+POST /v2/writer/expand
+```
+
+
+##### Description
+Expands the provided nodes in the entry to a series of published node entries. The provided entry is used template. The entry is expanded using expansion configuration provided. Expanded entries are returned one by one with error information if any. The configuration is not updated but the resulting entries can be modified and later saved in the configuration using the configuration API. The server must be online and accessible for the expansion to work.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The entry to expand and the node expansion configuration to use. If no configuration is provided a default configuration is used which and no error entries are returned.|[PublishedNodeExpansionModelPublishedNodesEntryRequestModel](definitions.md#publishednodeexpansionmodelpublishednodesentryrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The item was created|[PublishedNodesEntryModelServiceResponseIAsyncEnumerable](definitions.md#publishednodesentrymodelserviceresponseiasyncenumerable)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|A unique item could not be found to update.|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
 
 
 ##### Consumes
