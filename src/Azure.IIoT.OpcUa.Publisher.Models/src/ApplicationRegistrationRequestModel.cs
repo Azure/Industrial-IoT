@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "applicationUri", Order = 0)]
         [Required]
-        public string? ApplicationUri { get; set; }
+        public required string ApplicationUri { get; set; }
 
         /// <summary>
         /// Type of application

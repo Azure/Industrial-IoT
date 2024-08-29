@@ -1083,7 +1083,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             results.Count.Should().Be(99);
 
             // purge
-            await configService.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+            await configService.UnpublishAllNodesAsync(null);
             results = await configService.GetConfiguredEndpointsAsync(false);
             results.Should().BeEmpty();
         }
@@ -1116,7 +1116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             results.Count.Should().Be(99);
 
             // purge
-            await configService.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+            await configService.UnpublishAllNodesAsync(new PublishedNodesEntryModel { EndpointUrl = null! });
             results = await configService.GetConfiguredEndpointsAsync(false);
             results.Should().BeEmpty();
         }

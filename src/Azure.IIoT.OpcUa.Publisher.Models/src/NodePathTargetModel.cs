@@ -18,13 +18,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The target browse path
         /// </summary>
         [DataMember(Name = "browsePath", Order = 0)]
-        public IReadOnlyList<string> BrowsePath { get; set; } = null!;
+        public required IReadOnlyList<string> BrowsePath { get; set; }
 
         /// <summary>
         /// Target node
         /// </summary>
         [DataMember(Name = "target", Order = 1)]
-        public NodeModel Target { get; set; } = null!;
+        public required NodeModel Target { get; set; }
 
         /// <summary>
         /// Remaining index in path

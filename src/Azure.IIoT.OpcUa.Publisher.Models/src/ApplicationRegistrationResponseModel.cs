@@ -17,6 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// New id application was registered under
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
-        public string Id { get; set; } = null!;
+        public required string Id { get; set; }
     }
 }

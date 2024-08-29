@@ -90,12 +90,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public DataChange(DataMonitoredItemModel template,
+            public DataChange(ISubscriber owner, DataMonitoredItemModel template,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(logger, template.StartNodeId, timeProvider)
+                base(owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
 
@@ -262,8 +263,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
-                DateTimeOffset publishTime, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(
+                DateTimeOffset publishTime, IEncodeable evt, MonitoredItemNotifications notifications)
             {
                 if (evt is not MonitoredItemNotification min)
                 {
@@ -271,11 +272,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, evt?.GetType().Name ?? "null");
                     return false;
                 }
-                if (!base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
+                if (!base.TryGetMonitoredItemNotifications(publishTime, evt, notifications))
                 {
                     return false;
                 }
-                return ProcessMonitoredItemNotification(sequenceNumber, publishTime, min, notifications);
+                return ProcessMonitoredItemNotification(publishTime, min, notifications);
             }
 
             /// <inheritdoc/>
@@ -370,50 +371,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
-                IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetLastMonitoredItemNotifications(
+                MonitoredItemNotifications notifications)
             {
                 SkipMonitoredItemNotification(); // Key frames should always be sent
-                return base.TryGetLastMonitoredItemNotifications(sequenceNumber,
-                    notifications);
+                return base.TryGetLastMonitoredItemNotifications(notifications);
             }
 
             /// <inheritdoc/>
             protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, IOpcUaClient? client = null)
+                ILoggerFactory factory, OpcUaClient client)
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
+                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                        factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
             /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
-                uint sequenceNumber, StatusCode statusCode,
-                IList<MonitoredItemNotificationModel> notifications)
+                StatusCode statusCode, MonitoredItemNotifications notifications)
             {
-                notifications.Add(ToMonitoredItemNotification(sequenceNumber,
-                    new DataValue(statusCode)));
+                notifications.Add(Owner, ToMonitoredItemNotification(new DataValue(statusCode)));
                 return true;
             }
 
             /// <summary>
             /// Process monitored item notification
             /// </summary>
-            /// <param name="sequenceNumber"></param>
             /// <param name="publishTime"></param>
             /// <param name="monitoredItemNotification"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
-            protected virtual bool ProcessMonitoredItemNotification(uint sequenceNumber,
-                DateTimeOffset publishTime, MonitoredItemNotification monitoredItemNotification,
-                IList<MonitoredItemNotificationModel> notifications)
+            protected virtual bool ProcessMonitoredItemNotification(DateTimeOffset publishTime,
+                MonitoredItemNotification monitoredItemNotification,
+                MonitoredItemNotifications notifications)
             {
                 if (!SkipMonitoredItemNotification())
                 {
-                    notifications.Add(ToMonitoredItemNotification(sequenceNumber,
+                    notifications.Add(Owner, ToMonitoredItemNotification(
                         monitoredItemNotification.Value));
                     return true;
                 }
@@ -423,12 +421,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
-            /// <param name="sequenceNumber"></param>
             /// <param name="dataValue"></param>
             /// <param name="overflow"></param>
             /// <returns></returns>
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
-                uint sequenceNumber, DataValue dataValue, int? overflow = null)
+                DataValue dataValue, int? overflow = null)
             {
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
@@ -444,7 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Value = dataValue,
                     Flags = 0,
                     Overflow = overflow ?? (dataValue.StatusCode.Overflow ? 1 : 0),
-                    SequenceNumber = sequenceNumber
+                    SequenceNumber = GetNextSequenceNumber()
                 };
             }
 

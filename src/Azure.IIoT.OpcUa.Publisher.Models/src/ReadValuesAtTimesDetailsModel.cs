@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
-        public IReadOnlyList<DateTime>? ReqTimes { get; set; }
+        public required IReadOnlyList<DateTime> ReqTimes { get; set; }
 
         /// <summary>
         /// Whether to use simple bounds

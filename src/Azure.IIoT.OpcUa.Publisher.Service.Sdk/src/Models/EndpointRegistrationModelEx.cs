@@ -24,15 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             {
                 return endpoint;
             }
-            endpoint ??= new EndpointRegistrationModel();
+            endpoint ??= new EndpointRegistrationModel { Id = update.Id };
             endpoint.AuthenticationMethods = update.AuthenticationMethods;
             endpoint.DiscovererId = update.DiscovererId;
             endpoint.EndpointUrl = update.EndpointUrl;
             endpoint.Id = update.Id;
             endpoint.SecurityLevel = update.SecurityLevel;
             endpoint.SiteId = update.SiteId;
-            endpoint.Endpoint = (update.Endpoint ?? new EndpointModel())
-                .Patch(endpoint.Endpoint);
+            endpoint.Endpoint = update.Endpoint.Patch(endpoint.Endpoint);
             return endpoint;
         }
     }

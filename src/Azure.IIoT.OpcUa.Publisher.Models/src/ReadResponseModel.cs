@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// All results of attribute reads
         /// </summary>
         [DataMember(Name = "results", Order = 0)]
-        public IReadOnlyList<AttributeReadResponseModel> Results { get; set; } = null!;
+        public required IReadOnlyList<AttributeReadResponseModel> Results { get; set; }
 
         /// <summary>
         /// Service result in case of error

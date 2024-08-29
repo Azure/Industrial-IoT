@@ -6,10 +6,12 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
+    using Moq;
     using Opc.Ua;
     using System;
     using System.Buffers;
@@ -104,13 +106,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return new NetworkMessage();
         }
 
-        public static IList<SubscriptionNotificationModel> GenerateSampleSubscriptionNotifications(
+        public static IList<OpcUaSubscriptionNotification> GenerateSampleSubscriptionNotifications(
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentFlags extraNetworkMessageMask = 0,
             bool isSampleMode = false, bool randomTopic = false)
         {
-            var messages = new List<SubscriptionNotificationModel>();
+            var messages = new List<OpcUaSubscriptionNotification>();
             const string publisherId = "Publisher";
             var writer = new DataSetWriterModel
             {
@@ -152,14 +154,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             };
             var seq = 1u;
 
+            var subscriber = new Mock<ISubscriber>();
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var dataItem = new OpcUaMonitoredItem.DataChange(new DataMonitoredItemModel
+            var dataItem = new OpcUaMonitoredItem.DataChange(subscriber.Object, new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258"
             }, Log.Console<OpcUaMonitoredItem.DataChange>(), TimeProvider.System);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var eventItem = new OpcUaMonitoredItem.Event(new EventMonitoredItemModel
+            var eventItem = new OpcUaMonitoredItem.Event(subscriber.Object, new EventMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel()
@@ -176,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             {
                 var suffix = $"-{i}";
 
-                var notifications = new List<MonitoredItemNotificationModel>();
+                var notifications = new OpcUaMonitoredItem.MonitoredItemNotifications();
 
                 for (uint k = 0; k < i + 1; k++)
                 {
@@ -206,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         eventItem.StartNodeId = new NodeId(nodeId, 0);
                         eventItem.Handle = eventItem;
                         eventItem.Valid = true;
-                        eventItem.TryGetMonitoredItemNotifications(seq, DateTimeOffset.UtcNow, eventFieldList, notifications);
+                        eventItem.TryGetMonitoredItemNotifications(DateTimeOffset.UtcNow, eventFieldList, notifications);
                     }
                     else
                     {
@@ -230,16 +233,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         dataItem.StartNodeId = new NodeId(nodeId, 0);
                         dataItem.Handle = dataItem;
                         dataItem.Valid = true;
-                        dataItem.TryGetMonitoredItemNotifications(seq, DateTimeOffset.UtcNow, monitoredItemNotification, notifications);
+                        dataItem.TryGetMonitoredItemNotifications(DateTimeOffset.UtcNow,
+                            monitoredItemNotification, notifications);
                     }
                 }
 
 #pragma warning disable CA5394 // Do not use insecure randomness
-                var message = new SubscriptionNotificationModel(DateTimeOffset.UtcNow, new ServiceMessageContext())
+                var message = new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow,
+                    notifications: notifications.Notifications[subscriber.Object])
                 {
-                    Context = new WriterGroupContext
+                    Context = new DataSetWriterContext
                     {
                         NextWriterSequenceNumber = () => i,
+                        DataSetWriterId = 1,
                         Qos = null,
                         Topic = randomTopic ? Guid.NewGuid().ToString() : string.Empty,
                         Retain = false,
@@ -247,13 +253,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         PublisherId = publisherId,
                         Schema = null,
                         Writer = writer,
+                        MetaData = null,
                         WriterGroup = writerGroup
                     },
                     PublishTimestamp = DateTimeOffset.UtcNow,
-                    MetaData = null,
                     MessageType = eventList ? Encoders.PubSub.MessageType.Event : Encoders.PubSub.MessageType.KeyFrame,
-                    Notifications = notifications,
-                    SubscriptionId = 22,
                     EndpointUrl = "EndpointUrl" + suffix,
                     ApplicationUri = "ApplicationUri" + suffix
                 };

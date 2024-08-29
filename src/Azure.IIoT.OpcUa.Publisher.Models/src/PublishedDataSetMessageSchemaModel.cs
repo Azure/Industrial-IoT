@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// <summary>
     /// Used to generate various message schemas for a data set message
     /// </summary>
+    [DataContract]
     public sealed record class PublishedDataSetMessageSchemaModel
     {
         /// <summary>

@@ -77,5 +77,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         IAsyncEnumerable<TResult> ExecuteAsync<TResult>(T connection,
             AsyncEnumerableBase<TResult> operation, RequestHeaderModel? header = null,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Create new subscription with the subscription configuration.
+        /// The callback will have been called with the new subscription
+        /// which then can be used to manage the subscription.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="subscription">The subscription template</param>
+        /// <param name="callback">Callbacks from the subscription</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<ISubscription> CreateSubscriptionAsync(T connection,
+            SubscriptionModel subscription, ISubscriber callback,
+            CancellationToken ct = default);
     }
 }

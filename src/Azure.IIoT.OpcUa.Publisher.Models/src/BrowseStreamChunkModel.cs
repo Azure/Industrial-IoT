@@ -16,9 +16,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Source node id
         /// </summary>
-        [DataMember(Name = "sourceId", Order = 0,
-            EmitDefaultValue = false)]
-        public string SourceId { get; init; } = null!;
+        [DataMember(Name = "sourceId", Order = 0)]
+        public required string SourceId { get; init; }
 
         /// <summary>
         /// Source node attributes if this chunk contains

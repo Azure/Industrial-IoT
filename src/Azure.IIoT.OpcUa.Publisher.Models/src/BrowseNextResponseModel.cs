@@ -15,11 +15,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class BrowseNextResponseModel
     {
         /// <summary>
-        /// References, if included, otherwise null.
+        /// References returned
         /// </summary>
-        [DataMember(Name = "references", Order = 0,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<NodeReferenceModel> References { get; set; } = null!;
+        [DataMember(Name = "references", Order = 0)]
+        public required IReadOnlyList<NodeReferenceModel> References { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.

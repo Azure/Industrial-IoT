@@ -26,13 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "query", Order = 1)]
         [Required]
-        public string? Query { get; init; }
+        public required string Query { get; init; }
 
         /// <summary>
         /// Query type
         /// </summary>
         [DataMember(Name = "queryType", Order = 2)]
-        [Required]
         public QueryType QueryType { get; init; }
     }
 }

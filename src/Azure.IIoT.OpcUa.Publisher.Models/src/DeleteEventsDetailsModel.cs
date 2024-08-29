@@ -20,6 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "eventIds", Order = 0)]
         [Required]
-        public IReadOnlyList<byte[]>? EventIds { get; set; }
+        public required IReadOnlyList<byte[]> EventIds { get; set; }
     }
 }

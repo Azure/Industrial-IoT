@@ -30,9 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Client manager
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
-        IOpcUaSubscriptionManager, IEndpointDiscovery, ICertificateServices<EndpointModel>,
-        IClientAccessor<ConnectionModel>, IConnectionServices<ConnectionModel>,
-        IClientDiagnostics, IDisposable
+        IEndpointDiscovery, ICertificateServices<EndpointModel>, IClientDiagnostics,
+        IConnectionServices<ConnectionModel>, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
@@ -80,25 +79,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void CreateSubscription(SubscriptionModel subscription,
-            ISubscriptionCallbacks callback, IMetricsContext metrics,
-            TimeProvider? timeProvider)
+        public async ValueTask<ISubscription> CreateSubscriptionAsync(
+            ConnectionModel connection, SubscriptionModel subscription,
+            ISubscriber callback, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            // Create subscription which will register with callback/kv
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            _ = new OpcUaSubscription(this, callback, subscription,
-                _options, _loggerFactory, new OpcUaClientTagList(
-                    subscription.Id.Connection, metrics ?? _metrics), timeProvider);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-        }
 
-        /// <inheritdoc/>
-        public IOpcUaClient GetOrCreateClient(ConnectionModel connection)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            connection.ThrowIfInvalid(nameof(connection));
-            return GetOrAddClient(connection);
+            using var client = GetOrAddClient(connection);
+            return await client.RegisterAsync(
+                subscription, callback, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -616,31 +605,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
                     _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
-                    reverseConnect ? _reverseConnectManager : null, OnClientConnectionDiagnosticChange,
-                    _options.Value.MaxReconnectDelayDuration)
-                {
-                    OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
-                        TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout),
-
-                    DisableComplexTypePreloading = _options.Value.DisableComplexTypePreloading ?? false,
-                    MinReconnectDelay = _options.Value.MinReconnectDelayDuration,
-                    CreateSessionTimeout = _options.Value.CreateSessionTimeoutDuration,
-                    KeepAliveInterval = _options.Value.KeepAliveIntervalDuration,
-                    ServiceCallTimeout = _options.Value.DefaultServiceCallTimeoutDuration,
-                    ConnectTimeout = _options.Value.DefaultConnectTimeoutDuration,
-                    SessionTimeout = _options.Value.DefaultSessionTimeoutDuration,
-                    LingerTimeout = _options.Value.LingerTimeoutDuration,
-                    LimitOverrides = new OperationLimits
-                    {
-                        MaxNodesPerRead = (uint)(_options.Value.MaxNodesPerReadOverride ?? 0),
-                        MaxNodesPerBrowse = (uint)(_options.Value.MaxNodesPerBrowseOverride ?? 0)
-                        // ...
-                    },
-                    MinPublishRequests = _options.Value.MinPublishRequests,
-                    MaxPublishRequests = _options.Value.MaxPublishRequests,
-                    PublishRequestsPerSubscriptionPercent =
-                        _options.Value.PublishRequestsPerSubscriptionPercent
-                };
+                    reverseConnect ? _reverseConnectManager : null,
+                    OnClientConnectionDiagnosticChange, _options);
                 _logger.LogInformation("New client {Client} created.", client);
                 return client;
             });

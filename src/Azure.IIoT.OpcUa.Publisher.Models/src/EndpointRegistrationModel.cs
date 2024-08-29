@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "id", Order = 0)]
         [Required]
-        public string? Id { get; set; }
+        public required string Id { get; set; }
 
         /// <summary>
         /// Original endpoint url of the endpoint

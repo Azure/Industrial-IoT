@@ -19,13 +19,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string? NodeId { get; set; }
+        public required string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to read or write
         /// </summary>
         [DataMember(Name = "attribute", Order = 1)]
         [Required]
-        public NodeAttribute Attribute { get; set; }
+        public required NodeAttribute Attribute { get; set; }
     }
 }

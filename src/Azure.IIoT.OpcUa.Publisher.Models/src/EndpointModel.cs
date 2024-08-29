@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Endpoint url to use to connect with
         /// </summary>
         [DataMember(Name = "url", Order = 0)]
-        public string? Url { get; set; }
+        [Required]
+        public required string Url { get; set; }
 
         /// <summary>
         /// Alternative endpoint urls that can be used for

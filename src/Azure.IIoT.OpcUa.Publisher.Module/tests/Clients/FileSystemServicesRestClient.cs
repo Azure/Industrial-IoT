@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;

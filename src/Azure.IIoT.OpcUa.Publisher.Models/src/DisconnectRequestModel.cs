@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "connectionHandle", Order = 0)]
         [Required]
-        public string? ConnectionHandle { get; set; }
+        public required string ConnectionHandle { get; set; }
 
         /// <summary>
         /// Optional request header

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -29,15 +30,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// id as well as the data set name which is the name of
         /// asset.
         /// </summary>
-        [DataMember(Name = "entry", Order = 2,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "entry", Order = 2)]
+        [Required]
         public required PublishedNodesEntryModel Entry { get; init; }
 
         /// <summary>
         /// The asset configuration to use when creating the asset.
         /// </summary>
-        [DataMember(Name = "configuration", Order = 3,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "configuration", Order = 3)]
+        [Required]
         public required T Configuration { get; init; }
 
         /// <summary>

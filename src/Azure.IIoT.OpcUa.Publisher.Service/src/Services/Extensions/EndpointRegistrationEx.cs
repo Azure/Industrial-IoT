@@ -307,7 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                 ApplicationId = registration.ApplicationId,
                 Registration = new EndpointRegistrationModel
                 {
-                    Id = registration.DeviceId,
+                    Id = registration.DeviceId ?? string.Empty,
                     SiteId = string.IsNullOrEmpty(registration.SiteId) ?
                         null : registration.SiteId,
                     DiscovererId = string.IsNullOrEmpty(registration.DiscovererId) ?
@@ -320,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
                     Endpoint = new EndpointModel
                     {
                         Url = string.IsNullOrEmpty(registration.EndpointUrl) ?
-                            registration.EndpointUrlLC : registration.EndpointUrl,
+                            (registration.EndpointUrlLC ?? string.Empty) : registration.EndpointUrl,
                         AlternativeUrls = registration.AlternativeUrls?.DecodeAsList().ToHashSetSafe(),
                         SecurityMode = registration.SecurityMode == SecurityMode.NotNone ?
                             null : registration.SecurityMode,

@@ -45,14 +45,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Callback
     /// </summary>
+    /// <param name="owner"></param>
     /// <param name="messageType"></param>
     /// <param name="notifications"></param>
     /// <param name="session"></param>
-    /// <param name="dataSetName"></param>
+    /// <param name="eventTypeName"></param>
     /// <param name="diagnosticsOnly"></param>
-    public delegate void Callback(MessageType messageType,
-        IEnumerable<MonitoredItemNotificationModel> notifications,
-        ISession? session = null, string? dataSetName = null,
+    public delegate void Callback(
+        ISubscriber owner, MessageType messageType,
+        IList<MonitoredItemNotificationModel> notifications,
+        ISession? session = null, string? eventTypeName = null,
         bool diagnosticsOnly = false);
 
     /// <summary>
@@ -77,9 +79,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool Valid { get; protected internal set; }
 
         /// <summary>
-        /// Data set name
+        /// Event name
         /// </summary>
-        public virtual string? DataSetName { get; }
+        public virtual string? EventTypeName { get; }
+
+        /// <summary>
+        /// The owner of the item that is to be notified of changes
+        /// </summary>
+        public ISubscriber Owner { get; }
 
         /// <summary>
         /// Whether the item is part of a subscription or not
@@ -138,12 +145,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create item
         /// </summary>
+        /// <param name="owner"></param>
         /// <param name="logger"></param>
         /// <param name="nodeId"></param>
         /// <param name="timeProvider"></param>
-        protected OpcUaMonitoredItem(ILogger logger, string nodeId,
-            TimeProvider timeProvider)
+        protected OpcUaMonitoredItem(ISubscriber owner,
+            ILogger logger, string nodeId, TimeProvider timeProvider)
         {
+            Owner = owner;
             NodeId = nodeId;
             TimeProvider = timeProvider;
             _logger = logger;
@@ -159,6 +168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             bool copyEventHandlers, bool copyClientHandle)
             : base(item, copyEventHandlers, copyClientHandle)
         {
+            Owner = item.Owner;
             NodeId = item.NodeId;
             TimeProvider = item.TimeProvider;
             _logger = item._logger;
@@ -181,16 +191,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create items
         /// </summary>
+        /// <param name="client"></param>
         /// <param name="items"></param>
         /// <param name="factory"></param>
         /// <param name="timeProvider"></param>
-        /// <param name="client"></param>
         /// <returns></returns>
-        public static IEnumerable<OpcUaMonitoredItem> Create(
-            IEnumerable<BaseMonitoredItemModel> items, ILoggerFactory factory,
-            TimeProvider timeProvider, IOpcUaClient? client = null)
+        public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client,
+            IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
+            ILoggerFactory factory, TimeProvider timeProvider)
         {
-            foreach (var item in items)
+            foreach (var (owner, item) in items)
             {
                 switch (item)
                 {
@@ -198,41 +208,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (dmi.SamplingUsingCyclicRead &&
                             client != null)
                         {
-                            yield return new CyclicRead(client, dmi,
+                            yield return new CyclicRead(owner, client, dmi,
                                 factory.CreateLogger<CyclicRead>(), timeProvider);
                         }
                         else if (dmi.HeartbeatInterval != null)
                         {
-                            yield return new Heartbeat(dmi,
+                            yield return new Heartbeat(owner, dmi,
                                 factory.CreateLogger<Heartbeat>(), timeProvider);
                         }
                         else
                         {
-                            yield return new DataChange(dmi,
+                            yield return new DataChange(owner, dmi,
                                 factory.CreateLogger<DataChange>(), timeProvider);
                         }
                         break;
                     case EventMonitoredItemModel emi:
                         if (emi.ConditionHandling?.SnapshotInterval != null)
                         {
-                            yield return new Condition(emi,
+                            yield return new Condition(owner, emi,
                                 factory.CreateLogger<Condition>(), timeProvider);
                         }
                         else
                         {
-                            yield return new Event(emi,
+                            yield return new Event(owner, emi,
                                 factory.CreateLogger<Event>(), timeProvider);
                         }
                         break;
                     case MonitoredAddressSpaceModel mam:
                         if (client != null)
                         {
-                            yield return new ModelChangeEventItem(mam, client,
+                            yield return new ModelChangeEventItem(owner, mam, client,
                                 factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
                     case ExtensionFieldItemModel efm:
-                        yield return new Field(efm,
+                        yield return new Field(owner, efm,
                             factory.CreateLogger<Field>(), timeProvider);
                         break;
                     default:
@@ -498,14 +508,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Try get monitored item notifications from
         /// the subscription's monitored item event payload.
         /// </summary>
-        /// <param name="sequenceNumber"></param>
         /// <param name="publishTime"></param>
         /// <param name="encodeablePayload"></param>
         /// <param name="notifications"></param>
         /// <returns></returns>
-        public virtual bool TryGetMonitoredItemNotifications(uint sequenceNumber,
+        public virtual bool TryGetMonitoredItemNotifications(
             DateTimeOffset publishTime, IEncodeable encodeablePayload,
-            IList<MonitoredItemNotificationModel> notifications)
+            MonitoredItemNotifications notifications)
         {
             if (!Valid)
             {
@@ -527,20 +536,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Get last monitored item notification saved
         /// </summary>
-        /// <param name="sequenceNumber"></param>
         /// <param name="notifications"></param>
         /// <returns></returns>
-        public virtual bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
-            IList<MonitoredItemNotificationModel> notifications)
+        public virtual bool TryGetLastMonitoredItemNotifications(
+            MonitoredItemNotifications notifications)
         {
             var lastValue = LastReceivedValue;
             if (lastValue == null || Status?.Error != null)
             {
-                return TryGetErrorMonitoredItemNotifications(sequenceNumber,
+                return TryGetErrorMonitoredItemNotifications(
                     Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
                     notifications);
             }
-            return TryGetMonitoredItemNotifications(sequenceNumber, TimeProvider.GetUtcNow(),
+            return TryGetMonitoredItemNotifications(TimeProvider.GetUtcNow(),
                 lastValue, notifications);
         }
 
@@ -551,18 +559,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="client"></param>
         /// <returns></returns>
         protected abstract IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-            ILoggerFactory factory, IOpcUaClient? client = null);
+            ILoggerFactory factory, OpcUaClient client);
 
         /// <summary>
         /// Add error to notification list
         /// </summary>
-        /// <param name="sequenceNumber"></param>
         /// <param name="statusCode"></param>
         /// <param name="notifications"></param>
         /// <returns></returns>
         protected abstract bool TryGetErrorMonitoredItemNotifications(
-            uint sequenceNumber, StatusCode statusCode,
-            IList<MonitoredItemNotificationModel> notifications);
+            StatusCode statusCode, MonitoredItemNotifications notifications);
 
         /// <summary>
         /// Notify queue size or sampling interval changed
@@ -574,6 +580,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             bool samplingIntervalChanged, bool queueSizeChanged)
         {
             return false;
+        }
+
+        /// <summary>
+        /// Get next sequence number
+        /// </summary>
+        /// <returns></returns>
+        protected uint GetNextSequenceNumber()
+        {
+            return SequenceNumber.Increment32(ref _sequenceNumber);
         }
 
         /// <summary>
@@ -965,9 +980,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return itemChanged;
         }
 
+        internal sealed class MonitoredItemNotifications
+        {
+            /// <summary>
+            /// Notifications collected
+            /// </summary>
+            public Dictionary<ISubscriber,
+                List<MonitoredItemNotificationModel>> Notifications
+            { get; } = new();
+
+            /// <summary>
+            /// Add notification
+            /// </summary>
+            /// <param name="callback"></param>
+            /// <param name="notification"></param>
+            public void Add(ISubscriber callback,
+                MonitoredItemNotificationModel notification)
+            {
+                if (!Notifications.TryGetValue(callback, out var list))
+                {
+                    list = new List<MonitoredItemNotificationModel>();
+                    Notifications.Add(callback, list);
+                }
+                list.Add(notification);
+            }
+        }
+
         /// <summary>
         /// Logger
         /// </summary>
         protected readonly ILogger _logger;
+        private uint _sequenceNumber;
     }
 }

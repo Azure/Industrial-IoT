@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "continuationToken", Order = 0)]
         [Required]
-        public string? ContinuationToken { get; set; }
+        public required string ContinuationToken { get; set; }
 
         /// <summary>
         /// Whether to abort browse and release.

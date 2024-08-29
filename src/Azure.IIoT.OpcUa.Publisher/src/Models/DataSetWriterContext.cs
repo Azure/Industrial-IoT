@@ -9,10 +9,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System;
 
     /// <summary>
-    /// Data set message emitted by writer in a writer group.
+    /// Context to add to notification to convey data required for
+    /// data set messages emitted by writer in a writer group.
     /// </summary>
-    public record class WriterGroupContext
+    public record class DataSetWriterContext
     {
+        /// <summary>
+        /// The allocated identifier of the writer
+        /// </summary>
+        public required ushort DataSetWriterId { get; init; }
+
         /// <summary>
         /// Topic for the message
         /// </summary>
@@ -42,6 +48,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Dataset writer model reference
         /// </summary>
         public required DataSetWriterModel Writer { get; init; }
+
+        /// <summary>
+        /// Metadata for the dataset
+        /// </summary>
+        public required PublishedDataSetMessageSchemaModel? MetaData { get; init; }
 
         /// <summary>
         /// Sequence number inside the writer

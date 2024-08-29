@@ -20,6 +20,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal sealed partial class OpcUaClient
     {
         /// <summary>
+        /// Create a browser to browse the address space and provide
+        /// the differences from last browsing operation.
+        /// </summary>
+        /// <param name="rebrowsePeriod"></param>
+        /// <param name="subscriptionName"></param>
+        /// <returns></returns>
+        internal IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, string subscriptionName)
+        {
+            return Browser.Register(this, rebrowsePeriod, subscriptionName);
+        }
+
+        /// <summary>
         /// Browser utility class
         /// </summary>
         private sealed class Browser : IAsyncDisposable, IOpcUaBrowser

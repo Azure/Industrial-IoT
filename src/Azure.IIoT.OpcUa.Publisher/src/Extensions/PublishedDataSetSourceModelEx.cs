@@ -26,12 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="fetchBrowsePathFromRootOverride"></param>
         /// <param name="ignoreConfiguredPublishingIntervals"></param>
         /// <returns></returns>
-        public static SubscriptionConfigurationModel ToSubscriptionConfigurationModel(
+        public static SubscriptionModel ToSubscriptionModel(
             this PublishedDataSetSourceModel dataSetSource, DataSetMetaDataModel? dataSetMetaData,
             OpcUaSubscriptionOptions options, bool? fetchBrowsePathFromRootOverride,
             bool? ignoreConfiguredPublishingIntervals)
         {
-            return new SubscriptionConfigurationModel
+            return new SubscriptionModel
             {
                 Priority = dataSetSource.SubscriptionSettings?.Priority,
                 MaxNotificationsPerPublish = dataSetSource.SubscriptionSettings?.MaxNotificationsPerPublish,
@@ -44,8 +44,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? options.DefaultPublishingInterval,
                 UseDeferredAcknoledgements = dataSetSource.SubscriptionSettings?.UseDeferredAcknoledgements
                     ?? options.UseDeferredAcknoledgements,
-                AsyncMetaDataLoadThreshold = dataSetSource.SubscriptionSettings?.AsyncMetaDataLoadThreshold
-                    ?? options.AsyncMetaDataLoadThreshold,
                 EnableImmediatePublishing = dataSetSource.SubscriptionSettings?.EnableImmediatePublishing
                     ?? options.EnableImmediatePublishing ?? false,
                 EnableSequentialPublishing = dataSetSource.SubscriptionSettings?.EnableSequentialPublishing
@@ -59,9 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 WatchdogBehavior = dataSetSource.SubscriptionSettings?.WatchdogBehavior
                     ?? options.DefaultWatchdogBehavior,
                 ResolveBrowsePathFromRoot = fetchBrowsePathFromRootOverride
-                    ?? options.FetchOpcBrowsePathFromRoot ?? false,
-                MetaData = options.DisableDataSetMetaData == true
-                    ? null : dataSetMetaData
+                    ?? options.FetchOpcBrowsePathFromRoot ?? false
             };
         }
 
@@ -233,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     SelectClauses = publishedEvent.SelectedFields?
                         .Select(s => s.Clone()!)
                         .Where(s => s != null)
-                        .ToList(),
+                        .ToArray(),
                     WhereClause = publishedEvent.Filter?.Clone(),
                     TypeDefinitionId = publishedEvent.TypeDefinitionId
                 },

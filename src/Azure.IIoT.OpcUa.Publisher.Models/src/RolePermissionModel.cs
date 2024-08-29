@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "roleId", Order = 0)]
         [Required]
-        public string RoleId { get; set; } = null!;
+        public required string RoleId { get; set; }
 
         /// <summary>
         /// Permissions assigned for the role.

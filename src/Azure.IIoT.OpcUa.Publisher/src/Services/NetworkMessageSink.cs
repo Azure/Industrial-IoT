@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Microsoft.Extensions.Logging;
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        private void OnMessageReceived(object? sender, IOpcUaSubscriptionNotification args)
+        private void OnMessageReceived(object? sender, OpcUaSubscriptionNotification args)
         {
             if (_dataFlowStartTime == 0)
             {
@@ -143,21 +143,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async ValueTask DisposeAsync()
         {
             await _cts.CancelAsync().ConfigureAwait(false);
-            try
-            {
-                Source.OnCounterReset -= OnReset;
-                Source.OnMessage -= OnMessageReceived;
+            Source.OnCounterReset -= OnReset;
+            Source.OnMessage -= OnMessageReceived;
 
-                await _queue.DisposeAsync().ConfigureAwait(false);
+            await _queue.DisposeAsync().ConfigureAwait(false);
 
-                _queue = new NullPublishQueue();
-                _transport = new TransportOptions();
-            }
-            finally
-            {
-                _diagnostics?.Dispose();
-                Source.Dispose();
-            }
+            _queue = new NullPublishQueue();
+            _transport = new TransportOptions();
         }
 
         /// <inheritdoc/>
@@ -196,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="args"></param>
             /// <returns></returns>
-            bool TryPublish(IOpcUaSubscriptionNotification args);
+            bool TryPublish(OpcUaSubscriptionNotification args);
         }
 
         /// <summary>
@@ -229,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public bool TryPublish(IOpcUaSubscriptionNotification args)
+            public bool TryPublish(OpcUaSubscriptionNotification args)
             {
                 return false;
             }
@@ -268,9 +260,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public bool TryPublish(IOpcUaSubscriptionNotification args)
+            public bool TryPublish(OpcUaSubscriptionNotification args)
             {
-                var hash = (args.Context as WriterGroupContext)?
+                var hash = (args.Context as DataSetWriterContext)?
                     .Topic?.GetHashCode(StringComparison.Ordinal) ?? 0;
                 return _partitions[(uint)hash % _partitions.Length].TryPublish(args);
             }
@@ -337,13 +329,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _batchTriggerIntervalTimer = _outer._timeProvider.CreateTimer(
                     BatchTriggerIntervalTimer_Elapsed, null,
                     Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                _notificationBufferBlock = new BatchBlock<IOpcUaSubscriptionNotification>(
+                _notificationBufferBlock = new BatchBlock<OpcUaSubscriptionNotification>(
                     Math.Max(1, _outer._transport.MaxNotificationsPerMessage), new GroupingDataflowBlockOptions
                     {
                         // BoundedCapacity = maxBufferBlockCap
                     });
                 _encodingBlock =
-                    new TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)>(
+                    new TransformManyBlock<OpcUaSubscriptionNotification[], (IEvent, Action)>(
                         EncodeSubscriptionNotifications, new ExecutionDataflowBlockOptions
                         {
                             // BoundedCapacity = maxEncodingBlockCap,
@@ -397,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public bool TryPublish(IOpcUaSubscriptionNotification args)
+            public bool TryPublish(OpcUaSubscriptionNotification args)
             {
                 if (!_started)
                 {
@@ -408,8 +400,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Timeout.InfiniteTimeSpan);
                     }
                     _logger.LogInformation(
-                        "Partition #{Partition}: Started data flow from subscription {Name} on {Endpoint}.",
-                        _índex, args.SubscriptionName, args.EndpointUrl);
+                        "Partition #{Partition}: Started data flow from server {Name} on {Endpoint}.",
+                        _índex, args.ApplicationUri, args.EndpointUrl);
                 }
 
                 if (_sendBlock.InputCount >= _outer._transport.MaxPublishQueueSize)
@@ -530,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="input"></param>
             /// <returns></returns>
             private IEnumerable<(IEvent, Action)> EncodeSubscriptionNotifications(
-                IOpcUaSubscriptionNotification[] input)
+                OpcUaSubscriptionNotification[] input)
             {
                 try
                 {
@@ -569,8 +561,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly NetworkMessageSink _outer;
             private readonly int _índex;
             private readonly ITimer _batchTriggerIntervalTimer;
-            private readonly BatchBlock<IOpcUaSubscriptionNotification> _notificationBufferBlock;
-            private readonly TransformManyBlock<IOpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
+            private readonly BatchBlock<OpcUaSubscriptionNotification> _notificationBufferBlock;
+            private readonly TransformManyBlock<OpcUaSubscriptionNotification[], (IEvent, Action)> _encodingBlock;
             private readonly ActionBlock<(IEvent, Action)> _sendBlock;
             private readonly CancellationTokenSource _cts = new();
         }
@@ -597,13 +589,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="args"></param>
         /// <param name="dropped"></param>
-        private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped = false)
+        private void LogNotification(OpcUaSubscriptionNotification args, bool dropped = false)
         {
             // Filter fields to log
             if (_logNotificationsFilter != null)
             {
-                var matched = args.SubscriptionName != null &&
-                    _logNotificationsFilter.IsMatch(args.SubscriptionName);
+                var matched = args.EndpointUrl != null &&
+                    _logNotificationsFilter.IsMatch(args.EndpointUrl);
 
                 for (var i = 0; i < args.Notifications.Count && !matched; i++)
                 {
@@ -626,10 +618,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!string.IsNullOrEmpty(notifications))
             {
                 _logger.LogInformation(
-                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
+                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}",
                     dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
                     args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
-                    args.SubscriptionName, notifications);
+                    args.EndpointUrl, notifications);
             }
 
             static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)

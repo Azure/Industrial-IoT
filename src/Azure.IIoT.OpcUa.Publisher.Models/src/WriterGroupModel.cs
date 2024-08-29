@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -18,8 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Writer group identifier
         /// </summary>
-        [DataMember(Name = "id", Order = 0,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "id", Order = 0)]
+        [Required]
         public required string Id { get; set; }
 
         /// <summary>

@@ -330,9 +330,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var result = await HistoryReadValuesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History)
+            if (result.History != null)
             {
-                yield return item;
+                foreach (var item in result.History)
+                {
+                    yield return item;
+                }
             }
             await foreach (var item in HistoryStreamRemainingValuesAsync(
                 endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
@@ -348,10 +351,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var result = await HistoryReadModifiedValuesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History)
+            if (result.History != null)
             {
-                yield return item;
+                foreach (var item in result.History)
+                {
+                    yield return item;
+                }
             }
+
             await foreach (var item in HistoryStreamRemainingValuesAsync(
                 endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
@@ -366,10 +373,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var result = await HistoryReadValuesAtTimesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History)
+            if (result.History != null)
             {
-                yield return item;
+                foreach (var item in result.History)
+                {
+                    yield return item;
+                }
             }
+
             await foreach (var item in HistoryStreamRemainingValuesAsync(
                 endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
@@ -384,10 +395,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var result = await HistoryReadProcessedValuesAsync(endpoint, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History)
+            if (result.History != null)
             {
-                yield return item;
+                foreach (var item in result.History)
+                {
+                    yield return item;
+                }
             }
+
             await foreach (var item in HistoryStreamRemainingValuesAsync(
                 endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
@@ -402,10 +417,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var result = await HistoryReadEventsAsync(endpoint, request,
                 ct).ConfigureAwait(false);
-            foreach (var item in result.History)
+            if (result.History != null)
             {
-                yield return item;
+                foreach (var item in result.History)
+                {
+                    yield return item;
+                }
             }
+
             await foreach (var item in HistoryStreamRemainingEventsAsync(
                 endpoint, request.Header, result.ContinuationToken, ct).ConfigureAwait(false))
             {
@@ -434,9 +453,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Header = header
                     }, ct).ConfigureAwait(false);
                 continuationToken = response.ContinuationToken;
-                foreach (var item in response.History)
+                if (response.History != null)
                 {
-                    yield return item;
+                    foreach (var item in response.History)
+                    {
+                        yield return item;
+                    }
                 }
             }
         }
@@ -462,9 +484,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Header = header
                     }, ct).ConfigureAwait(false);
                 continuationToken = response.ContinuationToken;
-                foreach (var item in response.History)
+                if (response.History != null)
                 {
-                    yield return item;
+                    foreach (var item in response.History)
+                    {
+                        yield return item;
+                    }
                 }
             }
         }

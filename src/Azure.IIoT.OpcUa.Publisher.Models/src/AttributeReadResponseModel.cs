@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Attribute value
         /// </summary>
         [DataMember(Name = "value", Order = 0)]
-        public VariantValue Value { get; set; } = null!;
+        public required VariantValue Value { get; set; }
 
         /// <summary>
         /// Service result in case of error

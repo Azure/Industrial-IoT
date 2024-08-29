@@ -17,15 +17,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Target browse name with namespace
         /// </summary>
         [DataMember(Name = "TargetName", Order = 0)]
-        public string TargetName { get; init; } = null!;
+        public required string TargetName { get; init; }
 
         /// <summary>
         /// Reference type identifier.
         /// (default is hierarchical reference)
         /// </summary>
-        [DataMember(Name = "ReferenceTypeId", Order = 1,
-            EmitDefaultValue = false)]
-        public string ReferenceTypeId { get; init; } = null!;
+        [DataMember(Name = "ReferenceTypeId", Order = 1)]
+        public required string ReferenceTypeId { get; init; }
 
         /// <summary>
         /// Whether the reference is inverse

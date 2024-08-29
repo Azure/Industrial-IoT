@@ -155,7 +155,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new() {
+                        new()
+                        {
                             TypeDefinitionId = "i=2041",
                             BrowsePath = new []{ "EventId" }
                         }
@@ -232,19 +233,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 EventFilter = new EventFilterModel
                 {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new() {
+                        new()
+                        {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CycleId" }
                         },
-                        new() {
+                        new()
+                        {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
                         }
                     },
                     WhereClause = new ContentFilterModel
                     {
-                        Elements = new List<ContentFilterElementModel> {
-                            new() {
+                        Elements = new List<ContentFilterElementModel>
+                        {
+                            new()
+                            {
                                 FilterOperator = FilterOperatorType.OfType,
                                 FilterOperands = new List<FilterOperandModel> {
                                     new() {
@@ -281,23 +286,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel
                 {
-                    SelectClauses = new List<SimpleAttributeOperandModel> {
-                        new() {
+                    SelectClauses = new List<SimpleAttributeOperandModel>
+                    {
+                        new()
+                        {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CycleId" }
                         },
-                        new() {
+                        new()
+                        {
                             TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
                             BrowsePath = new []{ "2:CurrentStep" }
                         }
                     },
                     WhereClause = new ContentFilterModel
                     {
-                        Elements = new List<ContentFilterElementModel> {
-                            new() {
+                        Elements = new List<ContentFilterElementModel>
+                        {
+                            new()
+                            {
                                 FilterOperator = FilterOperatorType.OfType,
-                                FilterOperands = new List<FilterOperandModel> {
-                                    new() {
+                                FilterOperands = new List<FilterOperandModel>
+                                {
+                                    new()
+                                    {
                                         Value = "ns=2;i=235"
                                     }
                                 }

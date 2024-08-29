@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Endpoint info
         /// </summary>
         [DataMember(Name = "endpoint", Order = 2)]
-        public EndpointInfoModel Endpoint { get; set; } = null!;
+        public required EndpointInfoModel Endpoint { get; set; }
 
         /// <summary>
         /// Context

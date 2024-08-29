@@ -16,8 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class BrowsePathRequestModel
     {
         /// <summary>
-        /// Node to browse from.
-        /// (defaults to root folder).
+        /// Node to browse from (defaults to root folder).
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
@@ -29,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "browsePaths", Order = 1)]
         [Required]
-        public IReadOnlyList<IReadOnlyList<string>>? BrowsePaths { get; set; }
+        public required IReadOnlyList<IReadOnlyList<string>> BrowsePaths { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.

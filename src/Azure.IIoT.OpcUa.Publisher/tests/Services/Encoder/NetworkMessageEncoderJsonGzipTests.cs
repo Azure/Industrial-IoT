@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public void EmptyMessagesTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = new List<SubscriptionNotificationModel>();
+            var messages = new List<OpcUaSubscriptionNotification>();
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
@@ -58,7 +58,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public void EmptyDataSetMessageModelTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = new[] { new SubscriptionNotificationModel(DateTimeOffset.UtcNow, new ServiceMessageContext()) };
+            var messages = new[]
+            {
+                new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow)
+            };
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
@@ -189,23 +192,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.JsonGzip);
-            messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new PublishedDataSetMetaDataModel
+            messages[10] = messages[10] with
             {
-                DataSetMetaData = new DataSetMetaDataModel
+                // Emit metadata
+                MessageType = Encoders.PubSub.MessageType.Metadata,
+                Context = ((DataSetWriterContext)messages[10].Context) with
                 {
-                    Name = "test"
-                },
-                Fields = new[]
-                {
-                    new PublishedFieldMetaDataModel
+                    MetaData = new PublishedDataSetMessageSchemaModel
                     {
-                        Name = "test",
-                        BuiltInType = (byte)BuiltInType.UInt16
+                        DataSetFieldContentFlags = null,
+                        DataSetMessageContentFlags = null,
+                        MetaData = new PublishedDataSetMetaDataModel
+                        {
+                            DataSetMetaData = new DataSetMetaDataModel
+                            {
+                                Name = "test"
+                            },
+                            Fields = new[]
+                            {
+                                new PublishedFieldMetaDataModel
+                                {
+                                    Name = "test",
+                                    BuiltInType = (byte)BuiltInType.UInt16
+                                }
+                            }
+                        }
                     }
                 }
             };
-
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 

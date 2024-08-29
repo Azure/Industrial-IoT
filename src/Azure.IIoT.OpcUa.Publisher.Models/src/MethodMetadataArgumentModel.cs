@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Name of the argument
         /// </summary>
         [DataMember(Name = "name", Order = 0)]
-        public string Name { get; set; } = null!;
+        public required string Name { get; set; }
 
         /// <summary>
         /// Optional description of argument
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Data type node of the argument
         /// </summary>
         [DataMember(Name = "type", Order = 2)]
-        public NodeModel Type { get; set; } = null!;
+        public required NodeModel Type { get; set; }
 
         /// <summary>
         /// Default value for the argument

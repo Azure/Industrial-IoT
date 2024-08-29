@@ -369,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+                result = await PublisherApi.UnpublishAllNodesAsync();
                 Assert.NotNull(result);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -449,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel());
+                await PublisherApi.UnpublishAllNodesAsync();
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 

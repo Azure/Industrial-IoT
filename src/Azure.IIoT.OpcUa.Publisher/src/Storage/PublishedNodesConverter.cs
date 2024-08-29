@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             OpcAuthenticationMode = OpcAuthenticationMode.Anonymous,
                             OpcAuthenticationUsername = null,
                             OpcAuthenticationPassword = null,
-                            EndpointUrl = null,
+                            EndpointUrl = string.Empty,
                             UseSecurity = false,
                             UseReverseConnect = null,
                             DisableSubscriptionTransfer = null,
@@ -457,7 +457,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval(),
                                                 MaxNotificationsPerPublish = null,
                                                 EnableImmediatePublishing = null,
-                                                AsyncMetaDataLoadThreshold = null,
                                                 EnableSequentialPublishing = null,
                                                 LifeTimeCount = null,
                                                 UseDeferredAcknoledgements = null

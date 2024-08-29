@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string? NodeId { get; set; }
+        public required string NodeId { get; set; }
 
         /// <summary>
         /// Display name of the variable node monitored

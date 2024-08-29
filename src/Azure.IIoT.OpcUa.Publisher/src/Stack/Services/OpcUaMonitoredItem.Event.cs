@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ) : null;
 
             /// <inheritdoc/>
-            public override string? DataSetName => Template.DisplayName;
+            public override string? EventTypeName => Template.DisplayName;
 
             /// <summary>
             /// Relative path
@@ -84,12 +84,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Event(EventMonitoredItemModel template,
+            public Event(ISubscriber owner, EventMonitoredItemModel template,
                 ILogger<Event> logger, TimeProvider timeProvider) :
-                base(logger, template.StartNodeId, timeProvider)
+                base(owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
             }
@@ -309,33 +310,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
-                DateTimeOffset publishTime, IEncodeable evt,
-                IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(DateTimeOffset publishTime,
+                IEncodeable evt, MonitoredItemNotifications notifications)
             {
                 if (evt is EventFieldList eventFields &&
-                    base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
+                    base.TryGetMonitoredItemNotifications(publishTime, evt, notifications))
                 {
-                    return ProcessEventNotification(sequenceNumber, publishTime, eventFields, notifications);
+                    return ProcessEventNotification(publishTime, eventFields, notifications);
                 }
                 return false;
             }
 
             /// <inheritdoc/>
             protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, IOpcUaClient? client = null)
+                ILoggerFactory factory, OpcUaClient client)
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
+                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                        factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
             /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
-                uint sequenceNumber, StatusCode statusCode,
-                IList<MonitoredItemNotificationModel> notifications)
+                StatusCode statusCode, MonitoredItemNotifications notifications)
             {
                 foreach (var (Name, _) in Fields)
                 {
@@ -343,7 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         continue;
                     }
-                    notifications.Add(new MonitoredItemNotificationModel
+                    notifications.Add(Owner, new MonitoredItemNotificationModel
                     {
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
@@ -353,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         PathFromRoot = TheResolvedRelativePath,
                         Value = new DataValue(statusCode),
                         Flags = MonitoredItemSourceFlags.Error,
-                        SequenceNumber = sequenceNumber
+                        SequenceNumber = GetNextSequenceNumber()
                     });
                 }
                 return true;
@@ -362,19 +362,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Process event notifications
             /// </summary>
-            /// <param name="sequenceNumber"></param>
             /// <param name="timestamp"></param>
             /// <param name="eventFields"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
-            protected virtual bool ProcessEventNotification(uint sequenceNumber, DateTimeOffset timestamp,
-                EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
+            protected virtual bool ProcessEventNotification(DateTimeOffset timestamp,
+                EventFieldList eventFields, MonitoredItemNotifications notifications)
             {
                 // Send notifications as event
-                foreach (var n in ToMonitoredItemNotifications(sequenceNumber, eventFields)
+                foreach (var n in ToMonitoredItemNotifications(eventFields)
                     .Where(n => n.DataSetFieldName != null))
                 {
-                    notifications.Add(n);
+                    notifications.Add(Owner, n);
                 }
                 return true;
             }
@@ -382,11 +381,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
-            /// <param name="sequenceNumber"></param>
             /// <param name="eventFields"></param>
             /// <returns></returns>
             protected IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
-                uint sequenceNumber, EventFieldList eventFields)
+                EventFieldList eventFields)
             {
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
@@ -405,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             PathFromRoot = TheResolvedRelativePath,
                             Flags = 0,
                             Value = new DataValue(eventFields.EventFields[i]),
-                            SequenceNumber = sequenceNumber
+                            SequenceNumber = GetNextSequenceNumber()
                         };
                     }
                 }

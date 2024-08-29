@@ -141,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // Read root node
                     Node = node,
-                    References = excludeReferences ? null : references,
+                    References = excludeReferences ? Array.Empty<NodeReferenceModel>() : references,
                     ContinuationToken = context.TrackedToken,
                     ErrorInfo = errorInfo ?? nodeError
                 };
@@ -175,6 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new BrowseNextResponseModel
                     {
+                        References = references,
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -713,6 +714,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         return new MethodCallResponseModel
                         {
+                            Results = Array.Empty<MethodCallArgumentModel>(),
                             ErrorInfo = browseresults.ErrorInfo
                         };
                     }
@@ -765,6 +767,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new MethodCallResponseModel
                     {
+                        Results = Array.Empty<MethodCallArgumentModel>(),
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -965,6 +968,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new ReadResponseModel
                     {
+                        Results = Array.Empty<AttributeReadResponseModel>(),
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -1018,6 +1022,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new WriteResponseModel
                     {
+                        Results = Array.Empty<AttributeWriteResponseModel>(),
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -1278,6 +1283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new HistoryReadResponseModel<TResult>
                     {
+                        History = null,
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -1335,6 +1341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new HistoryReadNextResponseModel<TResult>
                     {
+                        History = null,
                         ErrorInfo = results.ErrorInfo
                     };
                 }
@@ -1780,6 +1787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var chunk = new BrowseStreamChunkModel
                     {
+                        SourceId = sourceId,
                         ErrorInfo = results.ErrorInfo
                     };
                     return chunk.YieldReturn();
@@ -1823,6 +1831,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var chunk = new BrowseStreamChunkModel
                     {
+                        SourceId = sourceId,
                         ErrorInfo = results.ErrorInfo
                     };
                     return chunk.YieldReturn();

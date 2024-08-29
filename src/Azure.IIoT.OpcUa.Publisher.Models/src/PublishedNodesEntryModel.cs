@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "EndpointUrl", Order = 13)]
         [Required]
-        public string? EndpointUrl { get; set; }
+        public required string EndpointUrl { get; set; }
 
         /// <summary>
         /// When the publishing timer has expired this number of

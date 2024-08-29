@@ -24,12 +24,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
             {
                 return endpoint;
             }
-            endpoint ??= new EndpointModel();
+            endpoint ??= new EndpointModel { Url = update.Url };
             endpoint.AlternativeUrls = update.AlternativeUrls;
             endpoint.Certificate = update.Certificate;
             endpoint.SecurityMode = update.SecurityMode;
-            endpoint.SecurityPolicy = update.SecurityPolicy;
             endpoint.Url = update.Url;
+            endpoint.SecurityPolicy = update.SecurityPolicy;
             return endpoint;
         }
     }

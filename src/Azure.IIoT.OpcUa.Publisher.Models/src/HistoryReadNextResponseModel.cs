@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// History as json encoded extension object
         /// </summary>
         [DataMember(Name = "history", Order = 0)]
-        public T History { get; set; } = null!;
+        public required T? History { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.

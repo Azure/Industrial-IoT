@@ -18,6 +18,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal sealed partial class OpcUaClient
     {
         /// <summary>
+        /// Registers a value to read with results pushed to the provided
+        /// subscription callback
+        /// </summary>
+        /// <param name="samplingRate"></param>
+        /// <param name="nodeToRead"></param>
+        /// <param name="subscriptionName"></param>
+        /// <param name="clientHandle"></param>
+        /// <returns></returns>
+        internal IAsyncDisposable Sample(TimeSpan samplingRate, ReadValueId nodeToRead,
+            string subscriptionName, uint clientHandle)
+        {
+            return Sampler.Register(this, samplingRate, nodeToRead, subscriptionName, clientHandle);
+        }
+
+        /// <summary>
         /// A set of client sampled values
         /// </summary>
         private sealed class Sampler : IAsyncDisposable

@@ -19,6 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The selected fields of the event
         /// </summary>
         [DataMember(Name = "eventFields", Order = 0)]
-        public IReadOnlyList<VariantValue> EventFields { get; set; } = null!;
+        public required IReadOnlyList<VariantValue> EventFields { get; set; }
     }
 }

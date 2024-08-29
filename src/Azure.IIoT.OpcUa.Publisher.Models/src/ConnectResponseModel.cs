@@ -18,6 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// connection ahead of expiration.
         /// </summary>
         [DataMember(Name = "connectionHandle", Order = 0)]
-        public string ConnectionHandle { get; set; } = null!;
+        public required string ConnectionHandle { get; set; }
     }
 }
