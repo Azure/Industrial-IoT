@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Routed topic
             /// </summary>
-            public string Topic => Writer.Publishing?.QueueName ?? string.Empty;
+            public string Topic => Writer.Publishing?.QueueName ?? "/";
 
             /// <summary>
             /// Quality of service to use
@@ -65,8 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Topic to route metadata to
             /// </summary>
-            public string MetadataTopic => Writer.MetaData?.QueueName
-                ?? Topic;
+            public string MetadataTopic => Writer.MetaData?.QueueName ?? "/";
 
             /// <summary>
             /// Quality of service to use
@@ -272,9 +271,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 .Create(PublisherConfig.DataSetFieldIdVariableName,
                                     TopicFilter.Escape(fieldId ?? string.Empty))));
 
+                    var telemetryTopic = builder.TelemetryTopic;
+                    var metadataTopic = builder.DataSetMetaDataTopic;
+                    if (string.IsNullOrWhiteSpace(metadataTopic))
+                    {
+                        metadataTopic = telemetryTopic;
+                    }
+
                     var publishing = new PublishingQueueSettingsModel
                     {
-                        QueueName = builder.TelemetryTopic,
+                        QueueName = telemetryTopic,
                         Ttl = settings?.Ttl
                             ?? dataSetWriter.Publishing?.Ttl
                             ?? group.Publishing?.Ttl,
@@ -288,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     var metadata = new PublishingQueueSettingsModel
                     {
-                        QueueName = builder.DataSetMetaDataTopic,
+                        QueueName = metadataTopic,
                         Ttl =
                                dataSetWriter.MetaData?.Ttl
                             ?? publishing.Ttl,
