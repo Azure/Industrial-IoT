@@ -2,7 +2,7 @@
     {
         "EndpointUrl": "{{EndpointUrl}}",
         "UseSecurity": true,
-        "DumpConnectionDiagnostics": true,
+        "DumpConnectionDiagnostics": false,
         "OpcNodes": [
             { "Id": "nsu=http://opcfoundation.org/UA/Plc;s=Plc" },
             { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp" },
