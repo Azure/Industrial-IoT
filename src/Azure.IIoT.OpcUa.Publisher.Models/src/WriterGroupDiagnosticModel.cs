@@ -246,41 +246,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public long IngressKeepAliveNotifications { get; set; }
 
         /// <summary>
-        /// Number Of Subscriptions in the writer group
-        /// </summary>
-        [DataMember(Name = "NumberOfSubscriptions", Order = 31,
-            EmitDefaultValue = true)]
-        public long NumberOfSubscriptions { get; set; }
-
-        /// <summary>
-        /// Publish requests ratio per group
-        /// </summary>
-        [DataMember(Name = "PublishRequestsRatio", Order = 32,
-            EmitDefaultValue = true)]
-        public double PublishRequestsRatio { get; set; }
-
-        /// <summary>
-        /// Good publish requests ratio per group
-        /// </summary>
-        [DataMember(Name = "GoodPublishRequestsRatio", Order = 33,
-            EmitDefaultValue = true)]
-        public double GoodPublishRequestsRatio { get; set; }
-
-        /// <summary>
-        /// Bad publish requests ratio per group
-        /// </summary>
-        [DataMember(Name = "BadPublishRequestsRatio", Order = 34,
-            EmitDefaultValue = true)]
-        public double BadPublishRequestsRatio { get; set; }
-
-        /// <summary>
-        /// Min publish requests assigned to the group
-        /// </summary>
-        [DataMember(Name = "MinPublishRequestsRatio", Order = 35,
-            EmitDefaultValue = true)]
-        public double MinPublishRequestsRatio { get; set; }
-
-        /// <summary>
         /// Number of endpoints connected
         /// </summary>
         [DataMember(Name = "NumberOfConnectedEndpoints", Order = 36,
@@ -293,14 +258,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "NumberOfDisconnectedEndpoints", Order = 37,
             EmitDefaultValue = true)]
         public int NumberOfDisconnectedEndpoints { get; set; }
-
-        /// <summary>
-        /// Number values or events that were not assignable to
-        /// the items in the subscription.
-        /// </summary>
-        [DataMember(Name = "IngressUnassignedChanges", Order = 38,
-            EmitDefaultValue = true)]
-        public long IngressUnassignedChanges { get; set; }
 
         /// <summary>
         /// Number of model changes generated
@@ -476,5 +433,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "ConnectionCount", Order = 70,
             EmitDefaultValue = true)]
         public long ConnectionCount { get; set; }
+
+        /// <summary>
+        /// Number of writers in the writer group
+        /// </summary>
+        [DataMember(Name = "NumberOfWriters", Order = 71,
+            EmitDefaultValue = true)]
+        public int NumberOfWriters { get; set; }
+
+        /// <summary>
+        /// Total Publish requests of all clients assigned to
+        /// the group.
+        /// </summary>
+        [DataMember(Name = "TotalPublishRequests", Order = 72,
+            EmitDefaultValue = true)]
+        public int TotalPublishRequests { get; set; }
+
+        /// <summary>
+        /// Total  Good publish requests of all clients assigned to
+        /// the group. They might not apply to the subscriptions
+        /// assigned to the group.
+        /// </summary>
+        [DataMember(Name = "TotalGoodPublishRequests", Order = 73,
+            EmitDefaultValue = true)]
+        public int TotalGoodPublishRequests { get; set; }
+
+        /// <summary>
+        /// Total bad publish requests of all clients assigned to
+        /// the group. They might not apply to the subscriptions
+        /// assigned to the group.
+        /// </summary>
+        [DataMember(Name = "TotalBadPublishRequests", Order = 74,
+            EmitDefaultValue = true)]
+        public int TotalBadPublishRequests { get; set; }
+
+        /// <summary>
+        /// Total min publish requests of all clients assigned to
+        /// the group.
+        /// </summary>
+        [DataMember(Name = "TotalMinPublishRequests", Order = 75,
+            EmitDefaultValue = true)]
+        public int TotalMinPublishRequests { get; set; }
+
+        /// <summary>
+        /// Total number of monitored nodes in the writer group.
+        /// </summary>
+        [DataMember(Name = "MonitoredOpcNodesCount", Order = 76,
+            EmitDefaultValue = true)]
+        public int MonitoredOpcNodesCount { get; set; }
     }
 }

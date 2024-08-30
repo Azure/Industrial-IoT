@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, isSampleMode: true);
             messages = new List<OpcUaSubscriptionNotification>
             {
-                new OpcUaSubscriptionNotification(messages[0], messages.SelectMany(n => n.Notifications).ToList())
+                new (messages[0], messages.SelectMany(n => n.Notifications).ToList())
             };
 
             using var encoder = GetEncoder();

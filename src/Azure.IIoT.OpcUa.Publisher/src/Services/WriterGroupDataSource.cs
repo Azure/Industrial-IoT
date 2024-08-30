@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
@@ -19,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -32,6 +32,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? OnCounterReset;
+
+        /// <summary>
+        /// Id of the group
+        /// </summary>
+        public string Id => _writerGroup.Id;
 
         /// <summary>
         /// Create trigger from writer group
@@ -70,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _overflows = new RollingAverage(_timeProvider);
 
             _writerGroup = Copy(writerGroup);
+
             InitializeMetrics();
         }
 
@@ -79,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                Debug.Assert(_dataSetWriters.Count == 0);
+                Debug.Assert(_writers.Count == 0);
                 if (_writerGroup.DataSetWriters == null)
                 {
                     return;
@@ -89,16 +95,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // be duplicate writer ids here, if there are we throw an exception.
                 //
                 var index = 0;
+                var writerNames = new HashSet<string>();
                 foreach (var writer in _writerGroup.DataSetWriters)
                 {
-                    // Create writer subscriptions
-                    var writerSubscription = await DataSetWriter.CreateAsync(this,
-                        writer, _loggerFactory, ct).ConfigureAwait(false);
-                    writerSubscription.Index = index++;
-                    if (!_dataSetWriters.TryAdd(writer.Id, writerSubscription))
+                    // Create writer partitions
+                    foreach (var key in DataSetWriter.GetDataSetWriters(this, writer))
                     {
-                        throw new ArgumentException(
-                            $"Group {_writerGroup.Id} contains duplicate writer {writer.Id}.");
+                        var writerSubscription = await DataSetWriterSubscription.CreateAsync(this,
+                            key, _loggerFactory, writerNames, ct).ConfigureAwait(false);
+                        writerSubscription.Index = index++;
+                        if (!_writers.TryAdd(key, writerSubscription))
+                        {
+                            throw new ArgumentException(
+                                $"Group {Id} contains duplicate writer {writer.Id}.");
+                        }
                     }
                 }
             }
@@ -122,14 +132,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // Fast path - just disopse it all.
 
-                    foreach (var subscription in _dataSetWriters.Values)
+                    foreach (var subscription in _writers.Values)
                     {
                         await subscription.DisposeAsync().ConfigureAwait(false);
                     }
                     _logger.LogInformation(
                         "Removed all subscriptions from writer group {WriterGroup}.",
                             writerGroup.Id);
-                    _dataSetWriters.Clear();
+                    _writers.Clear();
                     _writerGroup = writerGroup;
                     return;
                 }
@@ -138,22 +148,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // We manage writers in the writer group using id, there should not
                 // be duplicate writer ids here, if there are we throw an exception.
                 //
-                var dataSetWriterMap = new Dictionary<string, DataSetWriterModel>();
-                foreach (var writerEntry in writerGroup.DataSetWriters)
+                var writerKeySet = new HashSet<DataSetWriter>();
+                foreach (var processWriter in writerGroup.DataSetWriters)
                 {
-                    if (!dataSetWriterMap.TryAdd(writerEntry.Id, writerEntry))
+                    foreach (var key in DataSetWriter.GetDataSetWriters(this, processWriter))
                     {
-                        throw new ArgumentException(
-                            $"Group {writerGroup.Id} contains duplicate writer {writerEntry.Id}.");
+                        if (!writerKeySet.Add(key))
+                        {
+                            throw new ArgumentException(
+                                $"Group {writerGroup.Id} contains duplicate writer {key}.");
+                        }
                     }
                 }
 
                 // Update or removed ones that were updated or removed.
-                foreach (var id in _dataSetWriters.Keys.ToList())
+                var writerNames = _writers.Values.Select(w => w.Name).ToHashSet();
+                foreach (var key in _writers.Keys.ToList())
                 {
-                    if (!dataSetWriterMap.TryGetValue(id, out var writer))
+                    if (!writerKeySet.Contains(key))
                     {
-                        if (_dataSetWriters.Remove(id, out var s))
+                        if (_writers.Remove(key, out var s))
                         {
                             await s.DisposeAsync().ConfigureAwait(false);
                         }
@@ -161,36 +175,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     else
                     {
                         // Update
-                        if (_dataSetWriters.TryGetValue(id, out var s))
+                        if (_writers.TryGetValue(key, out var s))
                         {
-                            await s.UpdateAsync(writer, ct).ConfigureAwait(false);
+                            await s.UpdateAsync(key, writerNames, ct).ConfigureAwait(false);
                         }
                     }
                 }
 
                 // Create any newly added ones
-                foreach (var writer in dataSetWriterMap)
+                foreach (var key in writerKeySet)
                 {
-                    if (_dataSetWriters.ContainsKey(writer.Key))
+                    if (_writers.ContainsKey(key))
                     {
                         // Already processed
                         continue;
                     }
 
                     // Add
-                    var writerSubscription = await DataSetWriter.CreateAsync(this,
-                        writer.Value, _loggerFactory, ct).ConfigureAwait(false);
-
-                    if (!_dataSetWriters.TryAdd(writer.Key, writerSubscription))
+                    var writerSubscription = await DataSetWriterSubscription.CreateAsync(this,
+                        key, _loggerFactory, writerNames, ct).ConfigureAwait(false);
+                    if (!_writers.TryAdd(key, writerSubscription))
                     {
                         throw new ArgumentException(
-                            $"Group {_writerGroup.Id} contains duplicate writer {writer.Key}.");
+                            $"Group {Id} contains duplicate writer {key}.");
                     }
                 }
 
                 // Update indexes (even if they are moving around)
                 var index = 0;
-                foreach (var writer in _dataSetWriters.Values)
+                foreach (var writer in _writers.Values)
                 {
                     writer.Index = index++;
                 }
@@ -218,11 +231,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                foreach (var s in _dataSetWriters.Values)
+                foreach (var s in _writers.Values)
                 {
                     await s.DisposeAsync().ConfigureAwait(false);
                 }
-                _dataSetWriters.Clear();
+                _writers.Clear();
             }
             finally
             {
@@ -320,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
                             var input = new PublishedNetworkMessageSchemaModel
                             {
-                                DataSetMessages = _dataSetWriters.Values
+                                DataSetMessages = _writers.Values
                                     .Select(s => s.MetaData)
                                     .ToList(),
                                 NetworkMessageContentFlags =
@@ -364,28 +377,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         private double UpTime => _timeProvider.GetElapsedTime(_startTime).TotalSeconds;
 
-        private IEnumerable<IOpcUaClientDiagnostics> UsedClients => _dataSetWriters.Values
-            .Select(s => s.Subscription?.State!)
-            .Where(s => s != null)
-            .Distinct();
+        private IEnumerable<IOpcUaClientDiagnostics> UsedClients
+            => _writers.Values
+                .Select(s => s.Subscription?.ClientDiagnostics!)
+                .Where(s => s != null)
+                .Distinct();
 
+        private IEnumerable<ISubscriptionDiagnostics> UsedSubscriptions
+            => _writers.Values
+                .Select(s => s.Subscription?.Diagnostics!)
+                .Where(s => s != null)
+                .Distinct();
+
+        private int TotalItems => _writers.Values
+            .SelectMany(s => s.MonitoredItems).Count();
         private int ReconnectCount => UsedClients
             .Sum(s => s.ReconnectCount);
-
         private int ConnectCount => UsedClients
-            .Sum(s => s.ConnectCount);
-
+           .Sum(s => s.ConnectCount);
+        private int OutstandingRequestCount => UsedClients
+            .Sum(s => s.OutstandingRequestCount);
+        private int GoodPublishRequestCount => UsedClients
+            .Sum(s => s.GoodPublishRequestCount);
+        private int BadPublishRequestCount => UsedClients
+            .Sum(s => s.BadPublishRequestCount);
+        private int MinPublishRequestCount => UsedClients
+            .Sum(s => s.MinPublishRequestCount);
         private int ConnectedClients => UsedClients
             .Count(s => s.State == EndpointConnectivityState.Ready);
-
         private int DisconnectedClients => UsedClients
             .Count(s => s.State != EndpointConnectivityState.Ready);
+        private int GoodMonitoredItems => UsedSubscriptions
+            .Sum(s => s.GoodMonitoredItems);
+        private int BadMonitoredItems => UsedSubscriptions
+            .Sum(s => s.BadMonitoredItems);
+        private int LateMonitoredItems => UsedSubscriptions
+            .Sum(s => s.LateMonitoredItems);
+        private int HeartbeatsEnabled => UsedSubscriptions
+            .Sum(s => s.HeartbeatsEnabled);
+        private int ConditionsEnabled => UsedSubscriptions
+            .Sum(s => s.ConditionsEnabled);
 
         /// <summary>
         /// Create observable metrics
         /// </summary>
         private void InitializeMetrics()
         {
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_metadata_changes",
+                () => new Measurement<int>(_metadataChanges, _metrics.TagList),
+                description: "Number of metadata changes.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_metadata",
+                () => new Measurement<int>(_metadataLoadSuccess, _metrics.TagList),
+                description: "Number of successful metadata load operations.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_metadata",
+                () => new Measurement<int>(_metadataLoadFailures, _metrics.TagList),
+                description: "Number of failed metadata load operations.");
+
+            // --- collected by publisher collector:
+
             _meter.CreateObservableCounter("iiot_edge_publisher_heartbeats",
                 () => new Measurement<long>(_heartbeats.Count, _metrics.TagList),
                 description: "Total Heartbeats delivered for processing.");
@@ -480,9 +529,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 () => new Measurement<long>(_keepAliveCount, _metrics.TagList),
                 description: "Total Opc keep alive notifications delivered for processing.");
 
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
-                () => new Measurement<long>(_dataSetWriters.Count, _metrics.TagList),
-                description: "Number of Writers/Subscriptions in the writer group.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(ReconnectCount, _metrics.TagList),
                 description: "OPC UA total connect retries.");
@@ -495,10 +541,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
                 () => new Measurement<int>(DisconnectedClients, _metrics.TagList),
                 description: "OPC UA endpoints that are disconnected.");
+
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_count",
+                () => new Measurement<int>(_writers.Count, _metrics.TagList),
+                description: "Number of writers in the writer group.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_nodes",
+                () => new Measurement<int>(TotalItems, _metrics.TagList),
+                description: "Total monitored item count.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_good_nodes",
+                () => new Measurement<int>(GoodMonitoredItems, _metrics.TagList),
+                description: "Monitored items successfully created.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_bad_nodes",
+                () => new Measurement<int>(BadMonitoredItems, _metrics.TagList),
+                description: "Monitored items that were not successfully created.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_late_nodes",
+                () => new Measurement<int>(LateMonitoredItems, _metrics.TagList),
+                description: "Monitored items that are late reporting.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_heartbeat_enabled_nodes",
+                () => new Measurement<int>(HeartbeatsEnabled, _metrics.TagList),
+                description: "Monitored items with heartbeats enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_writer_condition_enabled_nodes",
+                () => new Measurement<int>(ConditionsEnabled, _metrics.TagList),
+                description: "Monitored items with condition monitoring enabled.");
+
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_client_totals",
+                () => new Measurement<int>(OutstandingRequestCount, _metrics.TagList),
+                description: "Total good publish requests used by all clients used by the writer group.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_publish_requests_client_totals",
+                () => new Measurement<int>(GoodPublishRequestCount, _metrics.TagList),
+                description: "Total good publish requests used by all clients used by the writer group.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_publish_requests_client_totals",
+                () => new Measurement<int>(BadPublishRequestCount, _metrics.TagList),
+                description: "Total bad publish requests used by all clients used by the writer group.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_min_publish_requests_client_totals",
+                () => new Measurement<int>(MinPublishRequestCount, _metrics.TagList),
+                description: "Total min publish requests queued by all clients used by the writer group.");
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
-        private readonly Dictionary<string, DataSetWriter> _dataSetWriters = new();
+        private readonly Dictionary<DataSetWriter, DataSetWriterSubscription> _writers = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
@@ -520,6 +601,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly RollingAverage _overflows;
         private WriterGroupModel _writerGroup;
         private long _keepAliveCount;
+        private int _metadataLoadSuccess;
+        private int _metadataLoadFailures;
         private int _metadataChanges;
         private int _lastMetadataChange = -1;
         private IEventSchema? _schema;

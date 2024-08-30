@@ -13,33 +13,373 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
-    using Opc.Ua;
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.Amqp;
-    using System.Diagnostics.Metrics;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using System.Diagnostics.CodeAnalysis;
+    using Avro.Generic;
 
     public sealed partial class WriterGroupDataSource
     {
         /// <summary>
-        /// Represents a data set writer inside a writer group
+        /// Represents a data set writer which acts as a partitioning mechanism
+        /// depending on how the writers should be set up from the configuration.
+        /// The partitioning uses the publishing interval - because we always did,
+        /// as well as the routing and topic configuration. The data set writer
+        /// key has the topics already resolved, so that comparison is straight
+        /// forward. This replaces the previously used SubscriptionIdentifier
+        /// and works in a similar way to manage a table of unique writers in
+        /// the writer group.
         /// </summary>
-        private sealed class DataSetWriter : ISubscriber, IMetricsContext, IAsyncDisposable
+        private sealed class DataSetWriter
         {
-            /// <inheritdoc/>
-            public TagList TagList { get; }
+            /// <summary>
+            /// Publishing interval which is used to split subscriptions for
+            /// supporting legacy behavior of writer per subscription.
+            /// </summary>
+            public TimeSpan? PublishingInterval { get; }
 
             /// <summary>
-            /// Name of the data set writer
+            /// Routed topic
             /// </summary>
-            public string? Name => _dataSetWriter.DataSetWriterName;
+            public string Topic => Writer.Publishing?.QueueName ?? string.Empty;
+
+            /// <summary>
+            /// Quality of service to use
+            /// </summary>
+            public QoS? Qos => Writer.Publishing?.RequestedDeliveryGuarantee;
+
+            /// <summary>
+            /// Message time to live
+            /// </summary>
+            public TimeSpan? Ttl => Writer.Publishing?.Ttl;
+
+            /// <summary>
+            /// Retain support
+            /// </summary>
+            public bool? Retain => Writer.Publishing?.Retain;
+
+            /// <summary>
+            /// Topic to route metadata to
+            /// </summary>
+            public string MetadataTopic => Writer.MetaData?.QueueName ?? Topic;
+
+            /// <summary>
+            /// Quality of service to use
+            /// </summary>
+            public QoS? MetadataQos => Writer.MetaData?.RequestedDeliveryGuarantee;
+
+            /// <summary>
+            /// Message time to live
+            /// </summary>
+            public TimeSpan? MetadataTtl => Writer.MetaData?.Ttl;
+
+            /// <summary>
+            /// Retain support
+            /// </summary>
+            public bool MetadataRetain => Writer.MetaData?.Retain ?? true;
+
+            /// <summary>
+            /// Resolved routing
+            /// </summary>
+            public DataSetRoutingMode Routing { get; }
+
+            /// <summary>
+            /// Full cloned configuration
+            /// </summary>
+            public DataSetWriterModel Writer { get; }
+
+            /// <summary>
+            /// Data set
+            /// </summary>
+            public PublishedDataSetModel DataSet => Writer.DataSet!;
+
+            /// <summary>
+            /// Data set source
+            /// </summary>
+            public PublishedDataSetSourceModel Source => DataSet.DataSetSource!;
+
+            /// <summary>
+            /// Split the writer in the group in its writer partitions depending on the publish
+            /// settings.
+            /// </summary>
+            /// <param name="group"></param>
+            /// <param name="dataSetWriter"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentException"></exception>
+            public static IEnumerable<DataSetWriter> GetDataSetWriters(WriterGroupDataSource group,
+                DataSetWriterModel dataSetWriter)
+            {
+                var options = group._options.Value;
+                if (dataSetWriter?.DataSet?.DataSetSource == null)
+                {
+                    throw new ArgumentException("DataSet source missing", nameof(dataSetWriter));
+                }
+
+                var dataset = dataSetWriter.DataSet;
+                var source = dataset.DataSetSource;
+                var routing = dataset.Routing ?? options.DefaultDataSetRouting
+                    ?? DataSetRoutingMode.None;
+
+                var dataSetClassId = dataset.DataSetMetaData?.DataSetClassId
+                    ?? Guid.Empty;
+                var escWriterName = TopicFilter.Escape(
+                    dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
+                var escWriterGroup = TopicFilter.Escape(
+                    group._writerGroup.Name ?? Constants.DefaultWriterGroupName);
+
+                var variables = new Dictionary<string, string>
+                {
+                    [PublisherConfig.DataSetWriterIdVariableName] = dataSetWriter.Id,
+                    [PublisherConfig.DataSetWriterVariableName] = escWriterName,
+                    [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
+                    [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
+                    [PublisherConfig.WriterGroupIdVariableName] = group.Id,
+                    [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
+                    [PublisherConfig.WriterGroupVariableName] = escWriterGroup
+                    // ...
+                };
+
+                // No auto routing - group variables and events by publish settings
+                var data = source.PublishedVariables?.PublishedData?
+                    .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
+                            d.Publishing, d.Id, variables));
+                if (data != null)
+                {
+                    if (routing == DataSetRoutingMode.None)
+                    {
+                        foreach (var items in data)
+                        {
+                            var id = dataSetWriter.Id;
+                            yield return CreateDataSetWriter(id, items.Key, items.ToList());
+                        }
+                    }
+                    else
+                    {
+                        foreach (var (p, item) in data.SelectMany(d => d.Select(i => (d.Key, i))))
+                        {
+                            var id = $"{dataSetWriter.Id}_{item.Id}";
+                            yield return CreateDataSetWriter(id, p, new[] { item });
+                        }
+                    }
+                }
+                var evts = source.PublishedEvents?.PublishedData?
+                    .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
+                            d.Publishing, d.Id, variables));
+                if (evts != null)
+                {
+                    if (routing == DataSetRoutingMode.None)
+                    {
+                        foreach (var items in evts)
+                        {
+                            var id = dataSetWriter.Id;
+                            yield return CreateEventWriter(id, items.Key, items.ToList());
+                        }
+                    }
+                    else
+                    {
+                        foreach (var (p, item) in evts.SelectMany(d => d.Select(i => (d.Key, i))))
+                        {
+                            var id = $"{dataSetWriter.Id}_{item.Id}";
+                            yield return CreateEventWriter(id, p, new[] { item });
+                        }
+                    }
+                }
+
+                DataSetWriter CreateDataSetWriter(string id,
+                    (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) publishSettings,
+                    IReadOnlyList<PublishedDataSetVariableModel> data)
+                {
+                    return new DataSetWriter(group, routing, dataSetWriter with
+                    {
+                        Id = id,
+                        MetaData = publishSettings.Item1,
+                        Publishing = publishSettings.Item2,
+                        DataSet = dataset with
+                        {
+                            DataSetMetaData = dataset.DataSetMetaData.Clone(),
+                            ExtensionFields = dataset.ExtensionFields?
+                                .ToDictionary(k => k.Key, v => v.Value),
+
+                            DataSetSource = source with
+                            {
+                                Connection = source.Connection.Clone(),
+                                SubscriptionSettings = source.SubscriptionSettings.Clone(),
+
+                                PublishedEvents = null,
+                                PublishedVariables = new PublishedDataItemsModel
+                                {
+                                    PublishedData = data
+                                }
+                            }
+                        }
+                    });
+                }
+
+                DataSetWriter CreateEventWriter(string id,
+                    (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) publishSettings,
+                    IReadOnlyList<PublishedDataSetEventModel> data)
+                {
+                    return new DataSetWriter(group, routing, dataSetWriter with
+                    {
+                        Id = id,
+                        MetaData = publishSettings.Item1,
+                        Publishing = publishSettings.Item2,
+                        DataSet = dataset with
+                        {
+                            DataSetMetaData = dataset.DataSetMetaData.Clone(),
+                            ExtensionFields = dataset.ExtensionFields?
+                                .ToDictionary(k => k.Key, v => v.Value),
+
+                            DataSetSource = source with
+                            {
+                                Connection = source.Connection.Clone(),
+                                SubscriptionSettings = source.SubscriptionSettings.Clone(),
+
+                                PublishedEvents = new PublishedEventItemsModel
+                                {
+                                    PublishedData = data
+                                },
+                                PublishedVariables = null
+                            }
+                        }
+                    });
+                }
+
+                // Resolve the publish queue settings with the data set writer provided settings.
+                static (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) Resolve(
+                    PublisherOptions options, WriterGroupModel group, DataSetWriterModel dataSetWriter,
+                    PublishingQueueSettingsModel? settings, string? fieldId,
+                    Dictionary<string, string> variables)
+                {
+                    var queueName = settings?.QueueName
+                        ?? dataSetWriter.Publishing?.QueueName
+                        ?? group.Publishing?.QueueName;
+                    if (string.IsNullOrEmpty(queueName))
+                    {
+                        return (null, null);
+                    }
+                    var builder = new TopicBuilder(options, group.MessageType,
+                        new TopicTemplatesOptions
+                        {
+                            Telemetry = settings?.QueueName
+                                ?? dataSetWriter.Publishing?.QueueName
+                                ?? group.Publishing?.QueueName,
+                            DataSetMetaData = dataSetWriter.MetaData?.QueueName
+                        },
+                        variables
+                            .Append(KeyValuePair
+                                .Create(PublisherConfig.DataSetFieldIdVariableName,
+                                    TopicFilter.Escape(fieldId ?? string.Empty))));
+
+                    var publishing = new PublishingQueueSettingsModel
+                    {
+                        QueueName = builder.TelemetryTopic,
+                        Ttl = settings?.Ttl
+                            ?? dataSetWriter.Publishing?.Ttl
+                            ?? group.Publishing?.Ttl,
+                        RequestedDeliveryGuarantee = settings?.RequestedDeliveryGuarantee
+                            ?? dataSetWriter.Publishing?.RequestedDeliveryGuarantee
+                            ?? group.Publishing?.RequestedDeliveryGuarantee,
+                        Retain = settings?.Retain
+                            ?? dataSetWriter.Publishing?.Retain
+                            ?? group.Publishing?.Retain
+                    };
+
+                    var metadata = new PublishingQueueSettingsModel
+                    {
+                        QueueName = builder.MethodTopic,
+                        Ttl =
+                               dataSetWriter.MetaData?.Ttl
+                            ?? publishing.Ttl,
+                        RequestedDeliveryGuarantee =
+                               dataSetWriter.MetaData?.RequestedDeliveryGuarantee
+                            ?? publishing.RequestedDeliveryGuarantee,
+                        Retain =
+                               dataSetWriter.MetaData?.Retain
+                            ?? publishing.Retain
+                    };
+                    return (metadata, publishing);
+                }
+            }
+
+            /// <summary>
+            /// Create id from a DataSetWriterModel template
+            /// </summary>
+            /// <param name="group"></param>
+            /// <param name="routing"></param>
+            /// <param name="dataSetWriter"></param>
+            private DataSetWriter(WriterGroupDataSource group, DataSetRoutingMode routing,
+                DataSetWriterModel dataSetWriter)
+            {
+                Writer = dataSetWriter;
+                Routing = routing;
+
+                PublishingInterval =
+                    group._options.Value.IgnoreConfiguredPublishingIntervals == true
+                    ? null : Source.SubscriptionSettings?.PublishingInterval;
+            }
+
+            /// <inheritdoc/>
+            public override bool Equals(object? obj)
+            {
+                if (obj is DataSetWriter writer &&
+                    writer.Writer.Id == Writer.Id &&
+                    writer.PublishingInterval == PublishingInterval &&
+                    writer.Topic == Topic &&
+                    writer.Qos == Qos &&
+                    writer.Ttl == Ttl &&
+                    writer.Retain == Retain &&
+                    writer.MetadataTopic == MetadataTopic &&
+                    writer.MetadataQos == MetadataQos &&
+                    writer.MetadataTtl == MetadataTtl &&
+                    writer.MetadataRetain == MetadataRetain &&
+                    writer.Routing == Routing)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            /// <inheritdoc/>
+            public override int GetHashCode()
+            {
+                //
+                // By default we partition on publishing interval and the
+                // output configuration binding.
+                //
+                return HashCode.Combine(Writer.Id, PublishingInterval,
+                    Topic,
+                    HashCode.Combine(Qos, Ttl, Retain),
+                    MetadataTopic,
+                    HashCode.Combine(MetadataQos, MetadataTtl, MetadataRetain),
+                    Routing);
+            }
+
+            /// <inheritdoc/>
+            public override string? ToString()
+            {
+                return $"Writer {Writer.Id}->{Topic}@{PublishingInterval}";
+            }
+        }
+
+        /// <summary>
+        /// A data set writer subscription binding inside a writer group
+        /// </summary>
+        private sealed class DataSetWriterSubscription : ISubscriber, IAsyncDisposable
+        {
+            /// <summary>
+            /// Name of the data set writer in the writer group (unique)
+            /// </summary>
+            public string Name { get; private set; }
+
+            /// <summary>
+            /// Writer id
+            /// </summary>
+            public string Id => _writer.Writer.Id;
 
             /// <summary>
             /// Index of the data set writer in the group
@@ -66,101 +406,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Create subscription from a DataSetWriterModel template
             /// </summary>
             /// <param name="group"></param>
-            /// <param name="dataSetWriter"></param>
+            /// <param name="writer"></param>
+            /// <param name="writerNames"></param>
             /// <param name="logger"></param>
-            private DataSetWriter(WriterGroupDataSource group,
-                DataSetWriterModel dataSetWriter, ILogger<DataSetWriter> logger)
+            private DataSetWriterSubscription(WriterGroupDataSource group, DataSetWriter writer,
+                HashSet<string> writerNames, ILogger<DataSetWriterSubscription> logger)
             {
                 _group = group;
+                _writer = writer;
                 _logger = logger;
                 _metaDataLoader = new Lazy<MetaDataLoader>(() => new MetaDataLoader(this), true);
 
-                // Set the writer configuration
-                _dataSetWriter = CloneWithUniqueName(dataSetWriter);
-                if (_dataSetWriter?.DataSet?.DataSetSource == null)
-                {
-                    throw new ArgumentException("DataSet source missing", nameof(dataSetWriter));
-                }
-
-                // Not yet in subscription array and should not have a null name here
-                Debug.Assert(_dataSetWriter.DataSetWriterName != null);
-                Debug.Assert(!_group._dataSetWriters.ContainsKey(_dataSetWriter.DataSetWriterName));
+                Name = CreateUniqueWriterName(writer.Writer.DataSetWriterName, writerNames);
 
                 _logger.LogDebug("Creating new writer {Writer} in writer group {WriterGroup}...",
-                    _dataSetWriter.DataSetWriterName, _group._writerGroup.Id);
+                    Name, _group.Id);
 
                 // Create monitored items
-                MonitoredItems = _dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(
-                    _group._subscriptionConfig.Value, CreateMonitoredItemContext,
-                    _dataSetWriter.DataSet.ExtensionFields);
-
-                _routing = _dataSetWriter.DataSet.Routing ??
-                    _group._options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-                _template = _dataSetWriter.DataSet.DataSetSource.ToSubscriptionModel(
-                    _dataSetWriter.DataSet.DataSetMetaData, _group._subscriptionConfig.Value,
-                    _routing != DataSetRoutingMode.None,
+                MonitoredItems = _writer.Source.ToMonitoredItems(
+                    _group._subscriptionConfig.Value, _writer.DataSet.ExtensionFields);
+                _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
+                    _group._subscriptionConfig.Value, _writer.Routing != DataSetRoutingMode.None,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
-                _connection = _dataSetWriter.GetConnection(_group._writerGroup.Id,
-                    _group._options.Value);
-
-                var dataSetClassId = dataSetWriter.DataSet?.DataSetMetaData?.DataSetClassId
-                    ?? Guid.Empty;
-                var escWriterName = TopicFilter.Escape(
-                    _dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
-                var escWriterGroup = TopicFilter.Escape(
-                    _group._writerGroup.Name ?? Constants.DefaultWriterGroupName);
-
-                _variables = new Dictionary<string, string>
-                {
-                    [PublisherConfig.DataSetWriterIdVariableName] = _dataSetWriter.Id,
-                    [PublisherConfig.DataSetWriterVariableName] = escWriterName,
-                    [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
-                    [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
-                    [PublisherConfig.WriterGroupIdVariableName] = _group._writerGroup.Id,
-                    [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
-                    [PublisherConfig.WriterGroupVariableName] = escWriterGroup
-                    // ...
-                };
-
-                var builder = new TopicBuilder(_group._options.Value, _group._writerGroup.MessageType,
-                    new TopicTemplatesOptions
-                    {
-                        Telemetry = _dataSetWriter.Publishing?.QueueName
-                            ?? _group._writerGroup.Publishing?.QueueName,
-                        DataSetMetaData = _dataSetWriter.MetaData?.QueueName
-                    }, _variables);
-
-                _topic = builder.TelemetryTopic;
-
-                _qos = _dataSetWriter.Publishing?.RequestedDeliveryGuarantee
-                    ?? _group._writerGroup.Publishing?.RequestedDeliveryGuarantee
-                    ?? _group._options.Value.DefaultQualityOfService;
-                _ttl = _dataSetWriter.Publishing?.Ttl
-                    ?? _group._writerGroup.Publishing?.Ttl
-                    ?? _group._options.Value.DefaultMessageTimeToLive;
-                _retain = _dataSetWriter.Publishing?.Retain
-                    ?? _group._writerGroup.Publishing?.Retain
-                    ?? _group._options.Value.DefaultMessageRetention;
-
-                _metadataTopic = builder.DataSetMetaDataTopic;
-                if (string.IsNullOrWhiteSpace(_metadataTopic))
-                {
-                    _metadataTopic = _topic;
-                }
-
-                // TODO:    _contextSelector = _routing == DataSetRoutingMode.None
-                // TODO:        ? n => n.Context
-                // TODO:        : n => n.PathFromRoot == null || n.Context != null ? n.Context : new TopicContext(
-                // TODO:            _topic, n.PathFromRoot, _qos, _retain, _ttl,
-                // TODO:            _routing != DataSetRoutingMode.UseBrowseNames);
-
-                TagList = new TagList(_group._metrics.TagList.ToArray().AsSpan())
-                {
-                    new KeyValuePair<string, object?>(Constants.DataSetWriterIdTag,
-                        dataSetWriter.Id),
-                    new KeyValuePair<string, object?>(Constants.DataSetWriterNameTag,
-                        dataSetWriter.DataSetWriterName)
-                };
+                _connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
             }
 
             /// <summary>
@@ -169,13 +437,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="group"></param>
             /// <param name="dataSetWriter"></param>
             /// <param name="loggerFactory"></param>
+            /// <param name="writerNames"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async static ValueTask<DataSetWriter> CreateAsync(WriterGroupDataSource group,
-                DataSetWriterModel dataSetWriter, ILoggerFactory loggerFactory, CancellationToken ct)
+            public async static ValueTask<DataSetWriterSubscription> CreateAsync(WriterGroupDataSource group,
+                DataSetWriter dataSetWriter, ILoggerFactory loggerFactory, HashSet<string> writerNames,
+                CancellationToken ct)
             {
-                var writer = new DataSetWriter(group, dataSetWriter,
-                    loggerFactory.CreateLogger<DataSetWriter>());
+                var writer = new DataSetWriterSubscription(group, dataSetWriter, writerNames,
+                    loggerFactory.CreateLogger<DataSetWriterSubscription>());
 
                 writer.Subscription = await group._clients.CreateSubscriptionAsync(
                     writer._connection.Connection, writer._template, writer, ct).ConfigureAwait(false);
@@ -183,8 +453,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 writer.InitializeMetaDataTrigger();
                 writer.InitializeKeepAlive();
 
-                group._logger.LogInformation("New writer in writer group {WriterGroup} opened.",
-                    group._writerGroup.Id);
+                group._logger.LogInformation("New writer {Id} in writer group {WriterGroup} opened.",
+                    writer.Id, group.Id);
 
                 return writer;
             }
@@ -193,33 +463,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Update subscription content
             /// </summary>
             /// <param name="dataSetWriter"></param>
+            /// <param name="writerNames"></param>
             /// <param name="ct"></param>
             /// <exception cref="ArgumentException"></exception>
-            public async ValueTask UpdateAsync(DataSetWriterModel dataSetWriter,
+            public async ValueTask UpdateAsync(DataSetWriter dataSetWriter, HashSet<string> writerNames,
                 CancellationToken ct)
             {
-                _logger.LogDebug("Updating writer in writer group {WriterGroup}...",
-                    _group._writerGroup.Id);
+                _logger.LogDebug("Updating writer {Id} in writer group {WriterGroup}...",
+                    Id, _group.Id);
 
-                _dataSetWriter = CloneWithUniqueName(dataSetWriter);
-                if (_dataSetWriter?.DataSet?.DataSetSource == null)
+                var previous = _writer;
+                _writer = dataSetWriter;
+
+                if (previous.Writer.DataSetWriterName != _writer.Writer.DataSetWriterName)
                 {
-                    throw new ArgumentException("DataSet source missing", nameof(dataSetWriter));
+                    writerNames.Remove(Name);
+                    Name = CreateUniqueWriterName(_writer.Writer.DataSetWriterName, writerNames);
                 }
 
-                _routing = _dataSetWriter.DataSet.Routing ??
-                    _group._options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-
-                MonitoredItems = _dataSetWriter.DataSet.DataSetSource.ToMonitoredItems(
-                    _group._subscriptionConfig.Value, CreateMonitoredItemContext,
-                    _dataSetWriter.DataSet.ExtensionFields);
-
-                var template = _dataSetWriter.DataSet.DataSetSource.ToSubscriptionModel(
-                    _dataSetWriter.DataSet.DataSetMetaData, _group._subscriptionConfig.Value,
-                    _routing != DataSetRoutingMode.None,
+                MonitoredItems = _writer.Source.ToMonitoredItems(
+                    _group._subscriptionConfig.Value, _writer.DataSet.ExtensionFields);
+                var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
+                    _group._subscriptionConfig.Value, _writer.Routing != DataSetRoutingMode.None,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
-                var connection = _dataSetWriter.GetConnection(_group._writerGroup.Id,
-                    _group._options.Value);
+                var connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
 
                 if (template != _template || connection != _connection || Subscription == null)
                 {
@@ -235,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     _logger.LogInformation(
                         "Recreated subscription in writer group {WriterGroup}...",
-                       _group._writerGroup.Id);
+                       _group.Id);
                 }
                 else
                 {
@@ -244,7 +511,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     _logger.LogInformation(
                         "Updated monitored items in writer group {WriterGroup}.",
-                        _group._writerGroup.Id);
+                        _group.Id);
                 }
 
                 _frameCount = 0;
@@ -305,7 +572,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 OpcUaSubscriptionNotification ProcessKeyFrame(OpcUaSubscriptionNotification notification)
                 {
-                    var keyFrameCount = _dataSetWriter.KeyFrameCount
+                    var keyFrameCount = _writer.Writer.KeyFrameCount
                         ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
                     if (keyFrameCount > 0)
                     {
@@ -420,72 +687,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Clones the writer configuration object and sets a unique name so that
-            /// there are no naming conflicts between writers in the writer group.
-            /// We keep the original name so we are not randomly assigning new names
-            /// for writers that already have a unique name.
-            /// </summary>
-            /// <param name="dataSetWriter"></param>
-            /// <returns></returns>
-            private DataSetWriterModel CloneWithUniqueName(DataSetWriterModel dataSetWriter)
-            {
-                string uniqueName;
-                if (_dataSetWriter != null &&
-                    _originalWriterName == dataSetWriter.DataSetWriterName)
-                {
-                    //
-                    // The name has not changed, the original is the same as previously so
-                    // keep current unique name which is in the current writer configuration.
-                    //
-                    uniqueName = _dataSetWriter.DataSetWriterName ?? string.Empty;
-                }
-                else
-                {
-                    var originalName = uniqueName =
-                        dataSetWriter.DataSetWriterName ?? string.Empty;
-
-                    //
-                    // Select a unique name inside the writer group even if there are more
-                    // writers in this group with same names which the control plane allows.
-                    //
-                    for (var index = 1; ; index++)
-                    {
-                        if (!_group._dataSetWriters.Values.Any(e => e.Name == uniqueName))
-                        {
-                            break;
-                        }
-                        uniqueName = $"{originalName}{index}";
-                    }
-                }
-
-                // Store origina writer name for later comparison
-                _originalWriterName = dataSetWriter.DataSetWriterName;
-
-                return dataSetWriter with
-                {
-                    DataSetWriterName = uniqueName,
-                    DataSet = dataSetWriter.DataSet.Clone(),
-                    MessageSettings = dataSetWriter.MessageSettings == null ? null :
-                        dataSetWriter.MessageSettings with { }
-                };
-            }
-
-            /// <summary>
-            /// Create monitored item context
-            /// </summary>
-            /// <param name="settings"></param>
-            /// <returns></returns>
-            private object? CreateMonitoredItemContext(PublishingQueueSettingsModel? settings)
-            {
-                return settings?.QueueName == null ? null : new LazilyEvaluatedContext(this, settings);
-            }
-
-            /// <summary>
             /// Initialize sending of keep alive messages
             /// </summary>
             private void InitializeKeepAlive()
             {
-                _sendKeepAlives = _dataSetWriter.DataSet?.SendKeepAlive
+                _sendKeepAlives = _writer.DataSet?.SendKeepAlive
                     ?? _group._options.Value.EnableDataSetKeepAlives == true;
             }
 
@@ -494,7 +700,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             private void InitializeMetaDataTrigger()
             {
-                var metaDataSendInterval = _dataSetWriter.MetaDataUpdateTime ?? TimeSpan.Zero;
+                var metaDataSendInterval = _writer.Writer.MetaDataUpdateTime ?? TimeSpan.Zero;
                 if (metaDataSendInterval > TimeSpan.Zero &&
                     _group._options.Value.DisableDataSetMetaData != true)
                 {
@@ -568,8 +774,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     lock (_lock)
                     {
-                        var itemContext = notification.Context as MonitoredItemContext;
-
                         var metadata = MetaData;
                         if (metadata == null && _group._options.Value.DisableDataSetMetaData != true)
                         {
@@ -599,8 +803,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     MessageType = MessageType.Metadata,
                                     EventTypeName = null,
-                                    Context = CreateMessageContext(_metadataTopic, QoS.AtLeastOnce, true,
-                                        _metadataTimer?.Interval ?? _dataSetWriter.MetaDataUpdateTime,
+                                    Context = CreateMessageContext(_writer.MetadataTopic, QoS.AtLeastOnce, true,
+                                        _metadataTimer?.Interval ?? _writer.Writer.MetaDataUpdateTime,
                                         () => Interlocked.Increment(ref _metadataSequenceNumber), metadata)
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -612,8 +816,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (!sourceIsMetaDataTimer)
                         {
                             Debug.Assert(notification.Notifications != null);
-                            notification.Context = CreateMessageContext(_topic, _qos, _retain, _ttl,
-                                () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata, itemContext);
+                            notification.Context = CreateMessageContext(_writer.Topic, _writer.Qos,
+                                _writer.Retain, _writer.Ttl,
+                                () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata);
                             _logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
                             _group.OnMessage?.Invoke(this, notification);
@@ -626,8 +831,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 DataSetWriterContext CreateMessageContext(string topic, QoS? qos, bool? retain,
-                    TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata,
-                    MonitoredItemContext? item = null)
+                    TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata)
                 {
                     _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     return new DataSetWriterContext
@@ -635,162 +839,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         PublisherId = _group._options.Value.PublisherId ?? Constants.DefaultPublisherId,
                         DataSetWriterId = (ushort)Index,
                         MetaData = metadata,
-                        Writer = _dataSetWriter,
+                        Writer = _writer.Writer,
+                        WriterName = Name,
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = writerGroup,
                         Schema = networkMessageSchema,
-                        Retain = item?.Retain ?? retain,
-                        Ttl = item?.Ttl ?? ttl,
-                        Topic = item?.Topic ?? topic,
-                        Qos = item?.Qos ?? qos
+                        Retain = retain,
+                        Ttl = ttl,
+                        Topic = topic,
+                        Qos = qos
                     };
                 }
             }
 
             /// <summary>
-            /// Context used to split monitored item notification
+            /// Make unique writer name
             /// </summary>
-            private abstract class MonitoredItemContext
+            /// <param name="str"></param>
+            /// <param name="strings"></param>
+            /// <returns></returns>
+            private static string CreateUniqueWriterName(string? str, HashSet<string> strings)
             {
-                /// <summary>
-                /// Topic for the message if not metadata message
-                /// </summary>
-                public abstract string Topic { get; }
-
-                /// <summary>
-                /// Topic for the message if not metadata message
-                /// </summary>
-                public abstract QoS? Qos { get; }
-
-                /// <summary>
-                /// Time to live
-                /// </summary>
-                public abstract TimeSpan? Ttl { get; }
-
-                /// <summary>
-                /// Retain
-                /// </summary>
-                public abstract bool? Retain { get; }
-            }
-
-            /// <summary>
-            /// Topic context
-            /// </summary>
-            private sealed class TopicContext : MonitoredItemContext
-            {
-                /// <inheritdoc/>
-                public override string Topic { get; }
-                /// <inheritdoc/>
-                public override QoS? Qos { get; }
-                /// <inheritdoc/>
-                public override TimeSpan? Ttl { get; }
-                /// <inheritdoc/>
-                public override bool? Retain { get; }
-
-                /// <summary>
-                /// Create
-                /// </summary>
-                /// <param name="root"></param>
-                /// <param name="subpath"></param>
-                /// <param name="qos"></param>
-                /// <param name="retain"></param>
-                /// <param name="ttl"></param>
-                /// <param name="includeNamespaceIndex"></param>
-                public TopicContext(string root, RelativePath subpath, QoS? qos,
-                    bool? retain, TimeSpan? ttl, bool includeNamespaceIndex)
+                var originalName = str ?? Constants.DefaultDataSetWriterName;
+                for (var index = 1; ; index++)
                 {
-                    var sb = new StringBuilder().Append(root);
-                    foreach (var path in subpath.Elements)
+                    var uniqueName = originalName;
+                    if (strings.Add(uniqueName))
                     {
-                        sb.Append('/');
-                        if (path.TargetName.NamespaceIndex != 0 && includeNamespaceIndex)
-                        {
-                            sb.Append(path.TargetName.NamespaceIndex).Append(':');
-                        }
-                        sb.Append(TopicFilter.Escape(path.TargetName.Name));
+                        return uniqueName;
                     }
-                    Topic = sb.ToString();
-                    Ttl = ttl;
-                    Retain = retain;
-                    Qos = qos;
+                    uniqueName = $"{originalName}{index}";
                 }
-
-                /// <inheritdoc/>
-                public override bool Equals(object? obj)
-                {
-                    return obj is TopicContext context &&
-                        Topic == context.Topic && Qos == context.Qos;
-                }
-
-                /// <inheritdoc/>
-                public override int GetHashCode()
-                {
-                    return HashCode.Combine(Topic, Qos);
-                }
-            }
-
-            /// <summary>
-            /// Lazy context
-            /// </summary>
-            private sealed class LazilyEvaluatedContext : MonitoredItemContext
-            {
-                /// <inheritdoc/>
-                public override string Topic => _topic.Value;
-                /// <inheritdoc/>
-                public override QoS? Qos => _settings.RequestedDeliveryGuarantee;
-                /// <inheritdoc/>
-                public override TimeSpan? Ttl => _settings.Ttl;
-                /// <inheritdoc/>
-                public override bool? Retain => _settings.Retain;
-
-                /// <summary>
-                /// Create context
-                /// </summary>
-                /// <param name="subscription"></param>
-                /// <param name="settings"></param>
-                public LazilyEvaluatedContext(DataSetWriter subscription,
-                    PublishingQueueSettingsModel settings)
-                {
-                    Debug.Assert(settings.QueueName != null);
-                    _settings = settings;
-                    _topic = new Lazy<string>(() =>
-                    {
-                        return new TopicBuilder(subscription._group._options.Value,
-                            subscription._group._writerGroup.MessageType,
-                            new TopicTemplatesOptions
-                            {
-                                Telemetry = settings.QueueName
-                            }, subscription._variables).TelemetryTopic;
-                    });
-                }
-
-                /// <inheritdoc/>
-                public override bool Equals(object? obj)
-                {
-                    return obj is LazilyEvaluatedContext context && _settings == context._settings;
-                }
-
-                /// <inheritdoc/>
-                public override int GetHashCode()
-                {
-                    return _settings.GetHashCode();
-                }
-
-                private readonly Lazy<string> _topic;
-                private readonly PublishingQueueSettingsModel _settings;
-            }
-
-            /// <summary>
-            /// Create observable metrics
-            /// </summary>
-            private void InitializeMetrics()
-            {
-                _group._meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_metadata",
-                    () => new Measurement<long>(_metadataLoadSuccess, _group._metrics.TagList),
-                    description: "Number of successful metadata load operations.");
-                _group._meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_metadata",
-                    () => new Measurement<long>(_metadataLoadFailures, _group._metrics.TagList),
-                    description: "Number of failed metadata load operations.");
             }
 
             /// <summary>
@@ -808,7 +887,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// Create loader
                 /// </summary>
                 /// <param name="subscription"></param>
-                public MetaDataLoader(DataSetWriter subscription)
+                public MetaDataLoader(DataSetWriterSubscription subscription)
                 {
                     _writer = subscription;
                     _loader = StartAsync(_cts.Token);
@@ -870,7 +949,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             await UpdateMetaDataAsync(ct).ConfigureAwait(false);
                             _tcs.TrySetResult();
-                            Interlocked.Increment(ref _writer._metadataLoadSuccess);
+                            Interlocked.Increment(ref _writer._group._metadataLoadSuccess);
                         }
                         catch (OperationCanceledException)
                         {
@@ -883,7 +962,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 this, ex.Message);
 
                             _tcs.TrySetException(ex);
-                            Interlocked.Increment(ref _writer._metadataLoadFailures);
+                            Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
                         Interlocked.Exchange(ref _tcs, new TaskCompletionSource());
                     }
@@ -896,7 +975,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <returns></returns>
                 internal async Task UpdateMetaDataAsync(CancellationToken ct = default)
                 {
-                    var dataSetMetaData = _writer._dataSetWriter.DataSet?.DataSetMetaData;
+                    var dataSetMetaData = _writer._writer.DataSet?.DataSetMetaData;
                     var subscription = _writer.Subscription;
                     if (dataSetMetaData == null || subscription == null)
                     {
@@ -916,14 +995,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     var sw = Stopwatch.StartNew();
                     _writer._logger.LogDebug("Loading Metadata {Major}.{Minor} for {Writer}...",
-                        dataSetMetaData.MajorVersion ?? 1, minor, _writer._dataSetWriter.Id);
+                        dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
 
                     var metaData = await subscription.CollectMetaDataAsync(_writer,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
                     _writer._logger.LogInformation(
                         "Loading Metadata {Major}.{Minor} for {Writer} took {Duration}.",
-                        dataSetMetaData.MajorVersion ?? 1, minor, _writer._dataSetWriter.Id,
+                        dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id,
                         sw.Elapsed);
 
                     MetaData = new PublishedDataSetMessageSchemaModel
@@ -931,9 +1010,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         MetaData = metaData,
                         TypeName = null,
                         DataSetFieldContentFlags =
-                            _writer._dataSetWriter.DataSetFieldContentMask,
+                            _writer._writer.Writer.DataSetFieldContentMask,
                         DataSetMessageContentFlags =
-                            _writer._dataSetWriter.MessageSettings?.DataSetMessageContentMask
+                            _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask
                     };
                 }
 
@@ -941,34 +1020,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 private readonly Task _loader;
                 private readonly CancellationTokenSource _cts = new();
                 private readonly AsyncAutoResetEvent _trigger = new();
-                private readonly DataSetWriter _writer;
+                private readonly DataSetWriterSubscription _writer;
             }
 
             private readonly WriterGroupDataSource _group;
             private readonly ILogger _logger;
             private readonly object _lock = new();
             private volatile uint _frameCount;
-            private readonly string _topic;
-            private readonly QoS? _qos;
-            private readonly TimeSpan? _ttl;
-            private readonly bool? _retain;
-            private readonly string _metadataTopic;
-            private readonly Dictionary<string, string> _variables;
             private uint? _lastMajorVersion;
             private uint? _lastMinorVersion;
             private TimerEx? _metadataTimer;
-            private DataSetRoutingMode _routing;
             private SubscriptionModel _template;
             private ConnectionIdentifier _connection;
-            private string? _originalWriterName;
-            private DataSetWriterModel _dataSetWriter;
+            private DataSetWriter _writer;
             private readonly Lazy<MetaDataLoader> _metaDataLoader;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
             private bool _sendKeepAlives;
             private bool _disposed;
-            private int _metadataLoadSuccess;
-            private int _metadataLoadFailures;
         }
     }
 }

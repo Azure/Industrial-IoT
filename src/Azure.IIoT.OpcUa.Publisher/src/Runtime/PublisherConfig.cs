@@ -105,6 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
         public const string DataSetWriterVariableName = "DataSetWriter";
         public const string DataSetWriterIdVariableName = "DataSetWriterId";
+        public const string DataSetFieldIdVariableName = "DataSetFieldId";
         public const string DataSetClassIdVariableName = "DataSetClassId";
         public const string EncodingVariableName = "Encoding";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

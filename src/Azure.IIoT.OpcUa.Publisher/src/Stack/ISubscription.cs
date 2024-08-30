@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -22,7 +22,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// State of the underlying client
         /// </summary>
-        IOpcUaClientDiagnostics State { get; }
+        IOpcUaClientDiagnostics ClientDiagnostics { get; }
+
+        /// <summary>
+        /// State of the underlying client
+        /// </summary>
+        ISubscriptionDiagnostics Diagnostics { get; }
 
         /// <summary>
         /// Collect metadata

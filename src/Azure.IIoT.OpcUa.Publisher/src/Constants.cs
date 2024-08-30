@@ -16,16 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string ConnectionGroupTag = "connectionGroupId";
 
         /// <summary>
-        /// Dataset Writer name tag
-        /// </summary>
-        public const string DataSetWriterNameTag = "dataSetWriterName";
-
-        /// <summary>
-        /// Dataset Writer identifier tag
-        /// </summary>
-        public const string DataSetWriterIdTag = "dataSetWriterId";
-
-        /// <summary>
         /// Default dataset writer id
         /// </summary>
         public const string DefaultDataSetWriterName = "<<UnknownDataSet>>";

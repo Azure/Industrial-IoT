@@ -56,9 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             NamespaceTable namespaceUris = null)
         {
             var session = SetupMockedSession(namespaceUris).Object;
-            var client = new Mock<OpcUaClient>();
             var subscriber = new Mock<ISubscriber>();
-            var monitoredItemWrapper = OpcUaMonitoredItem.Create(client.Object,
+            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!,
                 (subscriber.Object, template).YieldReturn(),
                 Log.ConsoleFactory(), TimeProvider.System).Single();
             using var subscription = new Subscription();

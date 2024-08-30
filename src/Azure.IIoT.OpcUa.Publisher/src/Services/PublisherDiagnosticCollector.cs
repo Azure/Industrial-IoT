@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void ResetWriterGroup(string writerGroupId)
         {
-            var diag = new AggregateDiagnosticModel
+            var diag = new WriterGroupDiagnosticModel
             {
                 PublisherVersion = PublisherConfig.Version,
                 IngestionStart = _timeProvider.GetUtcNow()
@@ -75,15 +75,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // return the aggregate model
                 //
                 _meterListener.RecordObservableInstruments();
-                var duration = _timeProvider.GetUtcNow() - value.AggregateModel.IngestionStart;
+                var duration = _timeProvider.GetUtcNow() - value.IngestionStart;
 
                 if (_resources != null)
                 {
                     var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
 
-                    diagnostic = value.AggregateModel with
+                    diagnostic = value with
                     {
                         IngestionDuration = duration,
+                        OpcEndpointConnected = value.NumberOfConnectedEndpoints != 0,
+
                         MemoryUsedPercentage =
                             resources.MemoryUsedPercentage,
                         MemoryUsedInBytes =
@@ -102,9 +104,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 else
                 {
-                    diagnostic = value.AggregateModel with
+                    diagnostic = value with
                     {
-                        IngestionDuration = duration
+                        IngestionDuration = duration,
+                        OpcEndpointConnected = value.NumberOfConnectedEndpoints != 0,
                     };
                 }
                 return true;
@@ -119,8 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var now = _timeProvider.GetUtcNow();
             _meterListener.RecordObservableInstruments();
 
-            foreach (var (writerGroupId, info) in _diagnostics
-                 .Select(kv => (kv.Key, kv.Value.AggregateModel)))
+            foreach (var (writerGroupId, info) in _diagnostics)
             {
                 var duration = now - info.IngestionStart;
 
@@ -129,7 +131,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     yield return (writerGroupId, info with
                     {
                         Timestamp = now,
-                        IngestionDuration = duration
+                        IngestionDuration = duration,
+                        OpcEndpointConnected = info.NumberOfConnectedEndpoints != 0,
                     });
                 }
                 else
@@ -139,6 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Timestamp = now,
                         IngestionDuration = duration,
+                        OpcEndpointConnected = info.NumberOfConnectedEndpoints != 0,
 
                         MemoryUsedPercentage =
                             resources.MemoryUsedPercentage,
@@ -208,21 +212,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ReadOnlySpan<KeyValuePair<string, object?>> tags, object? state)
         {
             if (_bindings.TryGetValue(instrument.Name, out var binding) &&
-                TryGetIds(tags, out var writerGroupId, out var writerGroupName, out var dataSetWriterId) &&
+                TryGetIds(tags, out var writerGroupId, out var writerGroupName) &&
                 _diagnostics.TryGetValue(writerGroupId, out var diag))
             {
                 if (writerGroupName != null)
                 {
                     diag.WriterGroupName = writerGroupName;
                 }
-                binding(dataSetWriterId != null ? diag.Get(dataSetWriterId, _timeProvider) : diag, measurement!);
+                binding(diag, measurement!);
             }
             static bool TryGetIds(ReadOnlySpan<KeyValuePair<string, object?>> tags,
-                [NotNullWhen(true)] out string? writerGroupId, out string? writerGroupName,
-                out string? dataSetWriterId)
+                [NotNullWhen(true)] out string? writerGroupId, out string? writerGroupName)
             {
                 writerGroupId = null;
-                dataSetWriterId = null;
                 writerGroupName = null;
                 for (var index = tags.Length; index > 0; index--) // Identifiers are at the end
                 {
@@ -237,13 +239,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             case Constants.WriterGroupNameTag:
                                 writerGroupName = id;
                                 break;
-                            case Constants.DataSetWriterIdTag:
-                                dataSetWriterId = id;
-                                break;
                         }
                     }
                     if (writerGroupId != null &&
-                        dataSetWriterId != null &&
                         writerGroupName != null)
                     {
                         return true;
@@ -253,82 +251,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
         }
 
-        /// <summary>
-        /// Aggregate diagnostics
-        /// </summary>
-        private sealed record class AggregateDiagnosticModel : WriterGroupDiagnosticModel
-        {
-            /// <summary>
-            /// The aggregate including information from all writers
-            /// </summary>
-            internal WriterGroupDiagnosticModel AggregateModel
-            {
-                get
-                {
-                    var writers = _writers.Values; // Snapshot writers
-                    return this with
-                    {
-                        MonitoredOpcNodesFailedCount = MonitoredOpcNodesFailedCount +
-                            writers.Sum(w => w.MonitoredOpcNodesFailedCount),
-                        ActiveConditionCount = ActiveConditionCount +
-                            writers.Sum(w => w.ActiveConditionCount),
-                        ActiveHeartbeatCount = ActiveHeartbeatCount +
-                            writers.Sum(w => w.ActiveHeartbeatCount),
-                        MonitoredOpcNodesSucceededCount = MonitoredOpcNodesSucceededCount +
-                            writers.Sum(w => w.MonitoredOpcNodesSucceededCount),
-                        MonitoredOpcNodesLateCount = MonitoredOpcNodesLateCount +
-                            writers.Sum(w => w.MonitoredOpcNodesLateCount),
-                        OpcEndpointConnected = NumberOfConnectedEndpoints != 0,
-                        ConnectionCount = ConnectionCount +
-                            writers.Sum(w => w.ConnectionCount),
-                        ConnectionRetries = ConnectionRetries +
-                            writers.Sum(w => w.ConnectionRetries),
-                        PublishRequestsRatio = PublishRequestsRatio +
-                            writers.Sum(w => w.PublishRequestsRatio),
-                        BadPublishRequestsRatio = BadPublishRequestsRatio +
-                            writers.Sum(w => w.BadPublishRequestsRatio),
-                        GoodPublishRequestsRatio = GoodPublishRequestsRatio +
-                            writers.Sum(w => w.GoodPublishRequestsRatio),
-                        MinPublishRequestsRatio = MinPublishRequestsRatio +
-                            writers.Sum(w => w.MinPublishRequestsRatio),
-                    };
-                }
-            }
-
-            /// <summary>
-            /// Get the writer diagnostics
-            /// </summary>
-            /// <param name="dataSetWriterId"></param>
-            /// <param name="timeProvider"></param>
-            /// <returns></returns>
-            public WriterGroupDiagnosticModel Get(string dataSetWriterId, TimeProvider timeProvider)
-            {
-                return _writers.GetOrAdd(dataSetWriterId, new WriterGroupDiagnosticModel
-                {
-                    PublisherVersion = PublisherConfig.Version,
-                    IngestionStart = timeProvider.GetUtcNow()
-                });
-            }
-
-            private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _writers = new();
-        }
-
         private readonly MeterListener _meterListener;
         private readonly IResourceMonitor? _resources;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
-        private readonly ConcurrentDictionary<string, AggregateDiagnosticModel> _diagnostics = new();
+        private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics = new();
 
         // TODO: Split this per measurement type to avoid boxing
         private readonly ConcurrentDictionary<string,
             Action<WriterGroupDiagnosticModel, object>> _bindings = new()
             {
-                ["iiot_edge_publisher_good_nodes"] =
-                    (d, i) => d.MonitoredOpcNodesSucceededCount = (long)i,
-                ["iiot_edge_publisher_bad_nodes"] =
-                    (d, i) => d.MonitoredOpcNodesFailedCount = (long)i,
-                ["iiot_edge_publisher_late_nodes"] =
-                    (d, i) => d.MonitoredOpcNodesLateCount = (long)i,
+                ["iiot_edge_publisher_writer_count"] =
+                    (d, i) => d.NumberOfWriters = (int)i,
+                ["iiot_edge_publisher_writer_nodes"] =
+                    (d, i) => d.MonitoredOpcNodesCount = (int)i,
+                ["iiot_edge_publisher_writer_good_nodes"] =
+                    (d, i) => d.MonitoredOpcNodesSucceededCount = (int)i,
+                ["iiot_edge_publisher_writer_bad_nodes"] =
+                    (d, i) => d.MonitoredOpcNodesFailedCount = (int)i,
+                ["iiot_edge_publisher_writer_late_nodes"] =
+                    (d, i) => d.MonitoredOpcNodesLateCount = (int)i,
+                ["iiot_edge_publisher_writer_heartbeat_enabled_nodes"] =
+                    (d, i) => d.ActiveHeartbeatCount = (int)i,
+                ["iiot_edge_publisher_writer_condition_enabled_nodes"] =
+                    (d, i) => d.ActiveConditionCount = (int)i,
+
+                ["iiot_edge_publisher_publish_requests_client_totals"] =
+                    (d, i) => d.TotalPublishRequests = (int)i,
+                ["iiot_edge_publisher_good_publish_requests_client_totals"] =
+                    (d, i) => d.TotalGoodPublishRequests = (int)i,
+                ["iiot_edge_publisher_bad_publish_requests_client_totals"] =
+                    (d, i) => d.TotalBadPublishRequests = (int)i,
+                ["iiot_edge_publisher_min_publish_requests_client_totals"] =
+                    (d, i) => d.TotalMinPublishRequests = (int)i,
+
                 ["iiot_edge_publisher_is_connection_ok"] =
                     (d, i) => d.NumberOfConnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_is_disconnected"] =
@@ -337,23 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.ConnectionRetries = (long)i,
                 ["iiot_edge_publisher_connections"] =
                     (d, i) => d.ConnectionCount = (long)i,
-                ["iiot_edge_publisher_subscriptions"] =
-                    (d, i) => d.NumberOfSubscriptions = (long)i,
-                ["iiot_edge_publisher_publish_requests_per_subscription"] =
-                    (d, i) => d.PublishRequestsRatio = (double)i,
-                ["iiot_edge_publisher_good_publish_requests_per_subscription"] =
-                    (d, i) => d.GoodPublishRequestsRatio = (double)i,
-                ["iiot_edge_publisher_bad_publish_requests_per_subscription"] =
-                    (d, i) => d.BadPublishRequestsRatio = (double)i,
-                ["iiot_edge_publisher_min_publish_requests_per_subscription"] =
-                    (d, i) => d.MinPublishRequestsRatio = (double)i,
-                ["iiot_edge_publisher_heartbeat_enabled_nodes"] =
-                    (d, i) => d.ActiveHeartbeatCount = (long)i,
-                ["iiot_edge_publisher_condition_enabled_nodes"] =
-                    (d, i) => d.ActiveConditionCount = (long)i,
 
-                ["iiot_edge_publisher_unassigned_notification_count"] =
-                    (d, i) => d.IngressUnassignedChanges = (long)i,
                 ["iiot_edge_publisher_keep_alive_notifications"] =
                     (d, i) => d.IngressKeepAliveNotifications = (long)i,
                 ["iiot_edge_publisher_queue_overflows"] =
@@ -435,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
-                    // ... Add here more items if needed
+                // ... Add here more items if needed
             };
     }
 }

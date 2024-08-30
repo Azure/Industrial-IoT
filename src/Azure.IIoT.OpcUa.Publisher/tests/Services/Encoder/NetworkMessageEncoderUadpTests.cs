@@ -157,11 +157,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 100;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
-            messages[10] = messages[10] with
+            messages[0] = messages[0] with
             {
                 // Emit metadata
                 MessageType = Encoders.PubSub.MessageType.Metadata,
-                Context = ((DataSetWriterContext)messages[10].Context) with
+                Context = ((DataSetWriterContext)messages[0].Context) with
                 {
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {

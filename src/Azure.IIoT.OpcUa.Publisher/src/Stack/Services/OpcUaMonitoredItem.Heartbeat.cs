@@ -333,7 +333,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Id = Template.Id,
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
-                    Context = Template.Context,
                     NodeId = TheResolvedNodeId,
                     PathFromRoot = TheResolvedRelativePath,
                     Value = lastValue,

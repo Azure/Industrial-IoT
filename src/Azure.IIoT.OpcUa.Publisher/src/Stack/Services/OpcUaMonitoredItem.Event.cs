@@ -347,7 +347,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
-                        Context = Template.Context,
                         DataSetFieldName = Name,
                         NodeId = Template.StartNodeId,
                         PathFromRoot = TheResolvedRelativePath,
@@ -389,6 +388,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
+                //
+                // Important - so the event is properly batched during encoding the same
+                // sequence number must be used for all monitored item notifications !
+                //
+                var sequenceNumber = GetNextSequenceNumber();
                 if (Fields.Count >= eventFields.EventFields.Count)
                 {
                     for (var i = 0; i < eventFields.EventFields.Count; i++)
@@ -396,14 +400,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         yield return new MonitoredItemNotificationModel
                         {
                             Id = Template.Id ?? string.Empty,
-                            Context = Template.Context,
                             DataSetName = Template.DisplayName,
                             DataSetFieldName = Fields[i].Name,
                             NodeId = Template.StartNodeId,
                             PathFromRoot = TheResolvedRelativePath,
                             Flags = 0,
                             Value = new DataValue(eventFields.EventFields[i]),
-                            SequenceNumber = GetNextSequenceNumber()
+                            SequenceNumber = sequenceNumber
                         };
                     }
                 }

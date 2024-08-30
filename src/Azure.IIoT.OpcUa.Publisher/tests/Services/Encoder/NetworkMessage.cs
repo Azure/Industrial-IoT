@@ -253,6 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         PublisherId = publisherId,
                         Schema = null,
                         Writer = writer,
+                        WriterName = writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName,
                         MetaData = null,
                         WriterGroup = writerGroup
                     },

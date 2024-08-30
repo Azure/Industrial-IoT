@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public void EmptyDataSetMessageModelTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = new[] { new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow, new ServiceMessageContext()) };
+            var messages = new[] { new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow) };
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);

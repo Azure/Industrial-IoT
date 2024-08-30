@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Microsoft.Extensions.Logging;
@@ -32,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// encoding and other egress concerns.  The queues can be partitioned
     /// to handle multiple topics.
     /// </summary>
-    public sealed class NetworkMessageSink : IWriterGroup
+    public sealed class NetworkMessageSink : IWriterGroup, IAsyncDisposable
     {
         /// <inheritdoc/>
         public IMessageSource Source { get; }

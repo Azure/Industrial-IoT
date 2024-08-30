@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{GetHashCode():X8}(P:{Priority}/I:{PublishingInterval})";
+            return $"{GetHashCode():X8}(Prio:{Priority ?? 0}/Rate:{PublishingInterval})";
         }
     }
 }

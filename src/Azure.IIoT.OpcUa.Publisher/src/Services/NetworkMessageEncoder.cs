@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -524,8 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             static string GetDataSetWriterName(OpcUaSubscriptionNotification Notification,
                                 DataSetWriterContext Context)
                             {
-                                var dataSetWriterName = Context.Writer.DataSetWriterName
-                                    ?? Constants.DefaultDataSetWriterName;
+                                var dataSetWriterName = Context.WriterName;
                                 var eventTypeName = Notification.EventTypeName;
                                 if (!string.IsNullOrWhiteSpace(eventTypeName))
                                 {

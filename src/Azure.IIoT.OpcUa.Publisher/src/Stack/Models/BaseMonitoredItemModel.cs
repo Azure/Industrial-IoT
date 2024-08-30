@@ -100,10 +100,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Triggered items
         /// </summary>
         public IList<BaseMonitoredItemModel>? TriggeredItems { get; init; }
-
-        /// <summary>
-        /// Opaque context which will be added to the notifications
-        /// </summary>
-        public object? Context { get; init; }
     }
 }

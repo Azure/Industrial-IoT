@@ -64,8 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private IEnumerable<OpcUaMonitoredItem> CurrentlyMonitored
             => _additionallyMonitored.Values
-                .Concat(MonitoredItems
-                .OfType<OpcUaMonitoredItem>());
+                .Concat(MonitoredItems.OfType<OpcUaMonitoredItem>());
 
         /// <summary>
         /// Subscription
@@ -101,6 +100,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
+            _client.OnSubscriptionCreated(this);
+
             ResetMonitoredItemWatchdogTimer(PublishingEnabled);
         }
 
@@ -135,7 +136,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _missingKeepAlives = subscription._missingKeepAlives;
             _unassignedNotifications = subscription._unassignedNotifications;
-
             _additionallyMonitored = subscription._additionallyMonitored;
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
             _closed = subscription._closed;
@@ -149,6 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
+            _client.OnSubscriptionCreated(this);
         }
 
         /// <inheritdoc/>
@@ -517,6 +518,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         count, overflows, heartbeats);
                 }
             }
+        }
+
+        /// <summary>
+        /// Get number of good monitored item for the subscriber
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        internal int GetGoodMonitoredItems(ISubscriber owner)
+        {
+            return MonitoredItems.Count(r => r is OpcUaMonitoredItem h
+                && h.Owner == owner && h.IsGood);
+        }
+
+        /// <summary>
+        /// Get number of bad monitored item for the subscriber
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        internal int GetBadMonitoredItems(ISubscriber owner)
+        {
+            return MonitoredItems.Count(r => r is OpcUaMonitoredItem h
+                && h.Owner == owner && h.IsBad);
+        }
+
+        /// <summary>
+        /// Get number of late monitored item for the subscriber
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        internal int GetLateMonitoredItems(ISubscriber owner)
+        {
+            return MonitoredItems.Count(r => r is OpcUaMonitoredItem h
+                && h.Owner == owner && h.IsLate);
+        }
+
+        /// <summary>
+        /// Get number of enabled heartbeats for the subscriber
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        internal int GetHeartbeatsEnabled(ISubscriber owner)
+        {
+            return MonitoredItems.Count(r => r is OpcUaMonitoredItem.Heartbeat h
+                && h.Owner == owner && h.TimerEnabled);
+        }
+
+        /// <summary>
+        /// Get number of conditions enabled for the subscriber
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        internal int GetConditionsEnabled(ISubscriber owner)
+        {
+            return MonitoredItems.Count(r => r is OpcUaMonitoredItem.Condition h
+                && h.Owner == owner && h.TimerEnabled);
         }
 
         /// <summary>
@@ -977,11 +1033,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,
                 "Client handles are not distinct or one of the items is null");
 
-            foreach (var owner in metadataChanged)
-            {
-                owner.OnMonitoredItemSemanticsChanged();
-            }
-
             _logger.LogDebug(
                 "Setting monitoring mode on {Count} items in subscription {Subscription}...",
                 set.Count, this);
@@ -1060,6 +1111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _badMonitoredItems = invalidItems;
             _goodMonitoredItems = Math.Max(set.Count - invalidItems, 0);
+
             _reportingItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Reporting);
             _disabledItems = set
@@ -1095,6 +1147,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _disabledItems,
                 _notAppliedItems,
                 dispose.Count);
+
+            // Notify semantic change now that we have update the monitored items
+            foreach (var owner in metadataChanged)
+            {
+                owner.OnMonitoredItemSemanticsChanged();
+            }
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
@@ -1849,8 +1907,13 @@ Actual (revised) state/desired state:
                         item.TryGetLastMonitoredItemNotifications(collector);
                     }
 
-                    notifications = collector.Notifications[owner];
-                    return notifications != null;
+                    if (!collector.Notifications.TryGetValue(owner, out var notitfs))
+                    {
+                        notifications = null;
+                        return false;
+                    }
+                    notifications = notitfs;
+                    return true;
                 }
                 catch (Exception ex)
                 {
@@ -2233,7 +2296,36 @@ Actual (revised) state/desired state:
         /// </summary>
         public void InitializeMetrics()
         {
-            // Collector collected - must be pushed and collected on the subscriber also
+            _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
+                () => new Measurement<long>(_missingKeepAlives, _metrics.TagList),
+                description: "Number of missing keep alives in subscription.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
+                () => new Measurement<long>(TotalMonitoredItems, _metrics.TagList),
+                description: "Total monitored item count.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_disabled_nodes",
+                () => new Measurement<long>(_disabledItems, _metrics.TagList),
+                description: "Monitored items with monitoring mode disabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_nodes_monitoring_mode_inconsistent",
+                () => new Measurement<long>(_notAppliedItems, _metrics.TagList),
+                description: "Monitored items with monitoring mode not applied.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_reporting_nodes",
+                () => new Measurement<long>(_reportingItems, _metrics.TagList),
+                description: "Monitored items reporting.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_sampling_nodes",
+                () => new Measurement<long>(_samplingItems, _metrics.TagList),
+                description: "Monitored items with sampling enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_heartbeat_nodes",
+                () => new Measurement<long>(_heartbeatItems, _metrics.TagList),
+                description: "Monitored items with heartbeats configured.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_heartbeat_enabled_nodes",
+                () => new Measurement<long>(HeartbeatsEnabled, _metrics.TagList),
+                description: "Monitored items with heartbeats enabled.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_condition_nodes",
+                () => new Measurement<long>(_conditionItems, _metrics.TagList),
+                description: "Monitored items with condition monitoring configured.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_condition_enabled_nodes",
+                () => new Measurement<long>(ConditionsEnabled, _metrics.TagList),
+                description: "Monitored items with condition monitoring enabled.");
             _meter.CreateObservableCounter("iiot_edge_publisher_unassigned_notification_count",
                 () => new Measurement<long>(_unassignedNotifications, _metrics.TagList),
                 description: "Number of notifications that could not be assigned.");
@@ -2246,50 +2338,6 @@ Actual (revised) state/desired state:
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_late_nodes",
                 () => new Measurement<long>(_lateMonitoredItems, _metrics.TagList),
                 description: "Monitored items that are late reporting.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_heartbeat_enabled_nodes",
-                () => new Measurement<long>(HeartbeatsEnabled, _metrics.TagList),
-                description: "Monitored items with heartbeats enabled.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_condition_enabled_nodes",
-                () => new Measurement<long>(ConditionsEnabled, _metrics.TagList),
-                description: "Monitored items with condition monitoring enabled.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
-                () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
-                _metrics.TagList), description: "Good publish requests per subsciption.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_publish_requests_per_subscription",
-                () => new Measurement<double>(Ratio(State.GoodPublishRequestCount, State.SubscriptionCount),
-                _metrics.TagList), description: "Good publish requests per subsciption.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_publish_requests_per_subscription",
-                () => new Measurement<double>(Ratio(State.BadPublishRequestCount, State.SubscriptionCount),
-                _metrics.TagList), description: "Bad publish requests per subsciption.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_min_publish_requests_per_subscription",
-                () => new Measurement<double>(Ratio(State.MinPublishRequestCount, State.SubscriptionCount),
-                _metrics.TagList), description: "Min publish requests queued per subsciption.");
-            // end
-
-            _meter.CreateObservableCounter("iiot_edge_publisher_missing_keep_alives",
-                () => new Measurement<long>(_missingKeepAlives, _metrics.TagList),
-                description: "Number of missing keep alives in subscription.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<long>(TotalMonitoredItems, _metrics.TagList),
-                description: "Total monitored item count.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_reporting_nodes",
-                () => new Measurement<long>(_reportingItems, _metrics.TagList),
-                description: "Monitored items reporting.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_sampling_nodes",
-                () => new Measurement<long>(_samplingItems, _metrics.TagList),
-                description: "Monitored items with sampling enabled.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_heartbeat_nodes",
-                () => new Measurement<long>(_heartbeatItems, _metrics.TagList),
-                description: "Monitored items with heartbeats configured.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_condition_nodes",
-                () => new Measurement<long>(_conditionItems, _metrics.TagList),
-                description: "Monitored items with condition monitoring configured.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_disabled_nodes",
-                () => new Measurement<long>(_disabledItems, _metrics.TagList),
-                description: "Monitored items with monitoring mode disabled.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_nodes_monitoring_mode_inconsistent",
-                () => new Measurement<long>(_notAppliedItems, _metrics.TagList),
-                description: "Monitored items with monitoring mode not applied.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscription_stopped_count",
                 () => new Measurement<int>(_publishingStopped ? 1 : 0, _metrics.TagList),
                 description: "Number of subscriptions that stopped publishing.");
@@ -2302,6 +2350,18 @@ Actual (revised) state/desired state:
             _meter.CreateObservableCounter("iiot_edge_publisher_deferred_acks_completed_sequencenumber",
                 () => new Measurement<long>(_currentSequenceNumber, _metrics.TagList),
                 description: "Sequence number of the next notification to acknoledge in subscription.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
+                _metrics.TagList), description: "Good publish requests per subsciption.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(State.GoodPublishRequestCount, State.SubscriptionCount),
+                _metrics.TagList), description: "Good publish requests per subsciption.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(State.BadPublishRequestCount, State.SubscriptionCount),
+                _metrics.TagList), description: "Bad publish requests per subsciption.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_min_publish_requests_per_subscription",
+                () => new Measurement<double>(Ratio(State.MinPublishRequestCount, State.SubscriptionCount),
+                _metrics.TagList), description: "Min publish requests queued per subsciption.");
 
             static double Ratio(int value, int count) => count == 0 ? 0.0 : (double)value / count;
         }
@@ -2334,13 +2394,13 @@ Actual (revised) state/desired state:
         private int _notAppliedItems;
         private int _heartbeatItems;
         private int _conditionItems;
+        private int _lateMonitoredItems;
         private int _badMonitoredItems;
         private int _missingKeepAlives;
         private int _continuouslyMissingKeepAlives;
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
-        private int _lateMonitoredItems;
         private readonly object _lock = new();
         private readonly object _timers = new();
     }

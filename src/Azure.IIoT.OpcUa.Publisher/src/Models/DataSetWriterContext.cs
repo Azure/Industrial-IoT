@@ -50,6 +50,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public required DataSetWriterModel Writer { get; init; }
 
         /// <summary>
+        /// Dataset writer name unique in the context of the group
+        /// </summary>
+        public required string WriterName { get; init; }
+
+        /// <summary>
         /// Metadata for the dataset
         /// </summary>
         public required PublishedDataSetMessageSchemaModel? MetaData { get; init; }

@@ -22,9 +22,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return model == null ? null : (model with
             {
-                Connection = model.Connection.Clone(),
                 PublishedEvents = model.PublishedEvents.Clone(),
                 PublishedVariables = model.PublishedVariables.Clone(),
+                Connection = model.Connection.Clone(),
                 SubscriptionSettings = model.SubscriptionSettings.Clone()
             });
         }

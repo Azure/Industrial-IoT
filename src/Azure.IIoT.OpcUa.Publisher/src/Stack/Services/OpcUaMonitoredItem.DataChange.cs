@@ -435,7 +435,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Id = Template.DataSetFieldId ?? string.Empty,
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
-                    Context = Template.Context,
                     NodeId = NodeId,
                     PathFromRoot = TheResolvedRelativePath,
                     Value = dataValue,

@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Opc.Ua;
     using System;
@@ -100,10 +100,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Notifications = notifications ?? Array.Empty<MonitoredItemNotificationModel>();
             CreatedTimestamp = template.CreatedTimestamp;
+            Context = template.Context;
             ServiceMessageContext = template.ServiceMessageContext;
             ApplicationUri = template.ApplicationUri;
             EndpointUrl = template.EndpointUrl;
             EventTypeName = template.EventTypeName;
+            PublishTimestamp = template.PublishTimestamp;
+            PublishSequenceNumber = template.PublishSequenceNumber;
             MessageType = template.MessageType;
             SequenceNumber = template.SequenceNumber;
         }
@@ -138,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void DebugAssertProcessed()
         {
-            Debug.Assert(_processed);
+            Debug.Assert(Context == null || _processed);
         }
         private bool _processed;
 #endif

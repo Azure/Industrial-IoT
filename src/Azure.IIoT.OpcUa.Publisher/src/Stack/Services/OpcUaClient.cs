@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Bindings;
@@ -29,7 +30,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
@@ -889,7 +889,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _disconnectLock = null;
 
                                             // Sync subscriptions
-                                            await SyncAsync(_session, ct).ConfigureAwait(false);
+                                            await SyncAsync(ct).ConfigureAwait(false);
 
                                             currentSessionState = SessionState.Connected;
                                             currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
@@ -903,15 +903,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             break;
                                     }
                                     break;
-                                case ConnectionEvent.SubscriptionManageOne:
-                                    var item = context as OpcUaSubscription;
-                                    Debug.Assert(item != null);
-                                    await item.SyncAsync(ct).ConfigureAwait(false);
+                                case ConnectionEvent.SubscriptionSyncOne:
+                                    var subscriptionToSync = context as OpcUaSubscription;
+                                    Debug.Assert(subscriptionToSync != null);
+                                    await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
                                     break;
-                                case ConnectionEvent.SubscriptionManageAll:
+                                case ConnectionEvent.SubscriptionSyncAll:
                                     if (_session != null)
                                     {
-                                        await SyncAsync(_session, ct).ConfigureAwait(false);
+                                        await SyncAsync(ct).ConfigureAwait(false);
                                     }
                                     break;
                                 case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
@@ -998,7 +998,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
 
-                                            await SyncAsync(_session, ct).ConfigureAwait(false);
+                                            await SyncAsync(ct).ConfigureAwait(false);
 
                                             _reconnectRequired = 0;
                                             reconnectPeriod = GetMinReconnectPeriod();
@@ -1017,7 +1017,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                     break;
                                 case ConnectionEvent.Disconnect:
-                                    await HandleDisconnectEvent().ConfigureAwait(false);
+                                    await HandleDisconnectEvent(ct).ConfigureAwait(false);
                                     currentSessionState = SessionState.Disconnected;
                                     break;
                             }
@@ -1039,18 +1039,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
-                await HandleDisconnectEvent().ConfigureAwait(false);
+                if (currentSessionState != SessionState.Disconnected)
+                {
+                    await HandleDisconnectEvent(default).ConfigureAwait(false);
+                }
                 _logger.LogDebug("{Client}: Exiting client management loop.", this);
             }
 
-            async ValueTask HandleDisconnectEvent()
+            async ValueTask HandleDisconnectEvent(CancellationToken cancellationToken)
             {
                 // If currently reconnecting, dispose the reconnect handler and stop timer
                 _reconnectHandler.CancelReconnect();
                 reconnectTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                 // if not already disconnected, aquire writer lock
-                _disconnectLock ??= await _lock.WriterLockAsync(ct);
+                _disconnectLock ??= await _lock.WriterLockAsync(cancellationToken);
                 reconnectPeriod = 0;
 
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
@@ -1063,7 +1066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     // Technically unecessary as we have a ref per registration
                     _registrations.Clear();
-                    await SyncAsync(_session, ct).ConfigureAwait(false);
+                    await SyncAsync(cancellationToken).ConfigureAwait(false);
                 }
                 await CloseSessionAsync().ConfigureAwait(false);
                 Debug.Assert(_session == null);
@@ -2033,8 +2036,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             StartReconnect,
             ReconnectComplete,
             Reset,
-            SubscriptionManageOne,
-            SubscriptionManageAll
+            SubscriptionSyncOne,
+            SubscriptionSyncAll
         }
 
         private enum SessionState
@@ -2090,7 +2093,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_namespace_change_count",
                 () => new Measurement<int>(_namespaceTableChanges, _metrics.TagList),
                 description: "Number of namespace table changes detected by the client.");
-            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_subscription_count",
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
                 description: "Number of client managed subscriptions.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_sampler_count",

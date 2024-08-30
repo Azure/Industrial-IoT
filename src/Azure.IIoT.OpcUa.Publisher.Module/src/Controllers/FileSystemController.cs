@@ -503,17 +503,4 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         private readonly IFileSystemServices<ConnectionModel> _files;
         private readonly IJsonSerializer _serializer;
     }
-
-    /// <summary>
-    /// Combines a request envelope and file
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public record RequestEnvelopeWithFile<T> : RequestEnvelope<T>
-    {
-        /// <summary>
-        /// File to upload
-        /// </summary>
-        [DataMember(Name = "file", Order = 2)]
-        public IFormFile? File { get; set; }
-    }
 }

@@ -79,6 +79,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool Valid { get; protected internal set; }
 
         /// <summary>
+        /// Item is good
+        /// </summary>
+        public bool IsGood => Created && StatusCode.IsGood(StatusCode);
+
+        /// <summary>
+        /// Item is bad
+        /// </summary>
+        public bool IsBad => !Created || StatusCode.IsBad(StatusCode);
+
+        /// <summary>
+        /// Item is late
+        /// </summary>
+        public bool IsLate { get; private set; }
+
+        /// <summary>
+        /// Status code
+        /// </summary>
+        public StatusCode StatusCode => Status == null ?
+            StatusCodes.BadNotConnected :
+                (Status.Error?.StatusCode ?? StatusCodes.Good);
+
+        /// <summary>
         /// Event name
         /// </summary>
         public virtual string? EventTypeName { get; }
@@ -288,9 +310,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!Valid || !AttachedToSubscription)
             {
-                return false;
+                return IsLate = false;
             }
-            return !LastReceivedTime.HasValue || LastReceivedTime.Value < dateTime;
+            return IsLate = !LastReceivedTime.HasValue || LastReceivedTime.Value < dateTime;
         }
 
         /// <summary>

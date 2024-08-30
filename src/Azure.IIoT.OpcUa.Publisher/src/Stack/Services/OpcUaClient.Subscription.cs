@@ -5,16 +5,21 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Concurrent;
+    using System.Diagnostics.CodeAnalysis;
+    using Autofac.Features.OwnedInstances;
+    using Nito.AsyncEx;
 
     internal sealed partial class OpcUaClient
     {
@@ -98,12 +103,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (subscription == null)
             {
-                TriggerConnectionEvent(ConnectionEvent.SubscriptionManageAll);
+                TriggerConnectionEvent(ConnectionEvent.SubscriptionSyncAll);
             }
             else
             {
-                TriggerConnectionEvent(ConnectionEvent.SubscriptionManageOne,
+                TriggerConnectionEvent(ConnectionEvent.SubscriptionSyncOne,
                     subscription);
+            }
+        }
+
+        /// <summary>
+        /// Called by subscription when newly created. This needs to be done
+        /// here this way because the stack uses clone to clone the subscriptions
+        /// just like it does with sessions and monitored items. This way we can
+        /// hock the create and clone operations.
+        /// </summary>
+        /// <param name="subscription"></param>
+        internal void OnSubscriptionCreated(OpcUaSubscription subscription)
+        {
+            _cache.AddOrUpdate(subscription.Template, subscription);
+        }
+
+        /// <summary>
+        /// Try get subscription with subscription model
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        private bool TryGetSubscription(SubscriptionModel template,
+            [NotNullWhen(true)] out OpcUaSubscription? subscription)
+        {
+            // Fast lookup
+            if (_cache.TryGetValue(template, out subscription))
+            {
+                return true;
+            }
+            subscription = _session?.SubscriptionHandles
+                .Find(s => s.Template == template);
+            return subscription != null;
+        }
+
+        /// <summary>
+        /// Access to the subscription to sync state must go through the
+        /// subscription lock. This just wraps the sync call on the
+        /// subscription.
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async Task SyncAsync(OpcUaSubscription subscription,
+            CancellationToken ct = default)
+        {
+            await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                await subscription.SyncAsync(ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "{Client}: Error trying to sync subscription {Subscription}",
+                    this, subscription);
+            }
+            finally
+            {
+                _subscriptionLock.Release();
             }
         }
 
@@ -112,13 +176,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// within a session as a result of the trigger call or when a session
         /// is reconnected/recreated.
         /// </summary>
-        /// <param name="session"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task SyncAsync(OpcUaSession session,
-            CancellationToken ct = default)
+        internal async Task SyncAsync(CancellationToken ct = default)
         {
-            Debug.Assert(session != null, "Session is null");
+            var session = _session;
+            if (session == null)
+            {
+                return;
+            }
             var sw = Stopwatch.StartNew();
             var numberOfOperations = 0;
             var existing = session.SubscriptionHandles.ToDictionary(k => k.Template);
@@ -150,6 +216,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         try
                         {
+                            _cache.TryRemove(close.Template, out _);
+
                             // Removes the item from the session
                             await close.CloseAsync(session,
                                 ct).ConfigureAwait(false);
@@ -225,6 +293,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                     })).ConfigureAwait(false);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Client}: Error trying to sync subscriptions.", this);
+            }
             finally
             {
                 _subscriptionLock.Release();
@@ -280,20 +352,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Subscription registration
         /// </summary>
-        private sealed record Registration : ISubscription
+        private sealed record Registration : ISubscription, ISubscriptionDiagnostics
         {
             /// <summary>
             /// The subscription configuration
             /// </summary>
             public SubscriptionModel Subscription { get; }
 
-            /// <inheritdoc/>
-            public IOpcUaClientDiagnostics State => _outer;
-
             /// <summary>
             /// Mark the registration as dirty
             /// </summary>
             public bool Dirty { get; internal set; }
+
+            /// <inheritdoc/>
+            public IOpcUaClientDiagnostics ClientDiagnostics => _outer;
+
+            /// <inheritdoc/>
+            public ISubscriptionDiagnostics Diagnostics => this;
+
+            /// <inheritdoc/>
+            public int GoodMonitoredItems
+                => _outer.TryGetSubscription(Subscription, out var subscription)
+                    ? subscription.GetGoodMonitoredItems(_owner) : 0;
+            /// <inheritdoc/>
+            public int BadMonitoredItems
+                => _outer.TryGetSubscription(Subscription, out var subscription)
+                    ? subscription.GetBadMonitoredItems(_owner) : 0;
+            /// <inheritdoc/>
+            public int LateMonitoredItems
+                => _outer.TryGetSubscription(Subscription, out var subscription)
+                    ? subscription.GetLateMonitoredItems(_owner) : 0;
+            /// <inheritdoc/>
+            public int HeartbeatsEnabled
+                => _outer.TryGetSubscription(Subscription, out var subscription)
+                    ? subscription.GetHeartbeatsEnabled(_owner) : 0;
+            /// <inheritdoc/>
+            public int ConditionsEnabled
+                => _outer.TryGetSubscription(Subscription, out var subscription)
+                    ? subscription.GetConditionsEnabled(_owner) : 0;
 
             /// <summary>
             /// Create subscription
@@ -314,6 +410,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public async ValueTask DisposeAsync()
             {
+                if (_outer._disposed)
+                {
+                    //
+                    // Possibly the client has shut down before the owners of
+                    // the registration have disposed it. This is not an error.
+                    // It might however be better to order the clients to get
+                    // disposed before clients.
+                    //
+                    return;
+                }
+
                 // Remove registration
                 await _outer._subscriptionLock.WaitAsync().ConfigureAwait(false);
                 try
@@ -327,42 +434,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
+            /// <inheritdoc/>
             public OpcUaSubscriptionNotification? CreateKeepAlive()
             {
-                // Find the subscription
-                var subscription = _outer._session?.SubscriptionHandles
-                    .Find(s => s.Template == Subscription);
-                if (subscription == null)
+                if (!_outer.TryGetSubscription(Subscription, out var subscription))
                 {
                     return null;
                 }
                 return subscription.CreateKeepAlive();
             }
 
+            /// <inheritdoc/>
             public void NotifyMonitoredItemsChanged()
             {
-                var subscription = _outer._session?.SubscriptionHandles
-                   .Find(s => s.Template == Subscription);
-
                 Dirty = true;
+                _outer.TryGetSubscription(Subscription, out var subscription);
                 _outer.TriggerSubscriptionSynchronization(subscription);
             }
 
+            /// <inheritdoc/>
             public async ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
                 ISubscriber owner, DataSetMetaDataModel dataSetMetaData,
                 uint minorVersion, CancellationToken ct = default)
             {
-                var subscription = _outer._session?.SubscriptionHandles
-                   .Find(s => s.Template == Subscription);
-
-                if (subscription == null)
+                if (!_outer.TryGetSubscription(Subscription, out var subscription))
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadNoSubscription,
+                    throw new ServiceResultException(StatusCodes.BadNoSubscription,
                         "Subscription not found");
                 }
-
-                return await subscription.CollectMetaDataAsync(owner,
-                    dataSetMetaData, minorVersion, ct).ConfigureAwait(false);
+                return await subscription.CollectMetaDataAsync(owner, dataSetMetaData,
+                    minorVersion, ct).ConfigureAwait(false);
             }
 
             private readonly OpcUaClient _outer;
@@ -373,5 +474,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _subscriptionLock = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Dictionary<ISubscriber, Registration> _registrations = new();
+        private readonly ConcurrentDictionary<SubscriptionModel, OpcUaSubscription> _cache = new();
     }
 }

@@ -378,7 +378,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
-                        Context = Template.Context,
                         DataSetFieldName = field.Name,
                         PathFromRoot = changeFeedNotification.PathFromRoot,
                         NodeId = Template.StartNodeId,

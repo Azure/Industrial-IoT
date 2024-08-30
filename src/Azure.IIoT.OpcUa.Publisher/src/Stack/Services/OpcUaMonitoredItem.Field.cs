@@ -196,8 +196,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(
-                DateTimeOffset publishTime, IEncodeable evt, MonitoredItemNotifications notifications)
+            public override bool TryGetMonitoredItemNotifications(DateTimeOffset publishTime,
+                IEncodeable evt, MonitoredItemNotifications notifications)
             {
                 Debug.Fail("Unexpected notification on extension field");
                 return false;
@@ -231,7 +231,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Id = Template.Id,
                     DataSetFieldName = Template.DisplayName,
-                    Context = Template.Context,
                     DataSetName = Template.DisplayName,
                     NodeId = NodeId,
                     PathFromRoot = null,
