@@ -16,8 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishingQueueSettingsModel
     {
         /// <summary>
-        /// Queue name writer should use to publish messages
-        /// to.
+        /// Queue name writer should use to publish messages to.
         /// </summary>
         [DataMember(Name = "queueName", Order = 1,
             EmitDefaultValue = false)]

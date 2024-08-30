@@ -65,22 +65,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Topic to route metadata to
             /// </summary>
-            public string MetadataTopic => Writer.MetaData?.QueueName ?? Topic;
+            public string MetadataTopic => Writer.MetaData?.QueueName
+                ?? Topic;
 
             /// <summary>
             /// Quality of service to use
             /// </summary>
-            public QoS? MetadataQos => Writer.MetaData?.RequestedDeliveryGuarantee;
+            public QoS MetadataQos => Writer.MetaData?.RequestedDeliveryGuarantee
+                ?? QoS.AtLeastOnce;
 
             /// <summary>
             /// Message time to live
             /// </summary>
-            public TimeSpan? MetadataTtl => Writer.MetaData?.Ttl;
+            public TimeSpan? MetadataTtl => Writer.MetaData?.Ttl
+                ?? Writer.MetaDataUpdateTime;
 
             /// <summary>
             /// Retain support
             /// </summary>
-            public bool MetadataRetain => Writer.MetaData?.Retain ?? true;
+            public bool MetadataRetain => Writer.MetaData?.Retain
+                ?? true;
 
             /// <summary>
             /// Resolved routing
@@ -255,13 +259,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     PublishingQueueSettingsModel? settings, string? fieldId,
                     Dictionary<string, string> variables)
                 {
-                    var queueName = settings?.QueueName
-                        ?? dataSetWriter.Publishing?.QueueName
-                        ?? group.Publishing?.QueueName;
-                    if (string.IsNullOrEmpty(queueName))
-                    {
-                        return (null, null);
-                    }
                     var builder = new TopicBuilder(options, group.MessageType,
                         new TopicTemplatesOptions
                         {
@@ -291,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     var metadata = new PublishingQueueSettingsModel
                     {
-                        QueueName = builder.MethodTopic,
+                        QueueName = builder.DataSetMetaDataTopic,
                         Ttl =
                                dataSetWriter.MetaData?.Ttl
                             ?? publishing.Ttl,
@@ -803,8 +800,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     MessageType = MessageType.Metadata,
                                     EventTypeName = null,
-                                    Context = CreateMessageContext(_writer.MetadataTopic, QoS.AtLeastOnce, true,
-                                        _metadataTimer?.Interval ?? _writer.Writer.MetaDataUpdateTime,
+                                    Context = CreateMessageContext(_writer.MetadataTopic,
+                                        _writer.MetadataQos, _writer.MetadataRetain, _writer.MetadataTtl,
                                         () => Interlocked.Increment(ref _metadataSequenceNumber), metadata)
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -816,8 +813,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (!sourceIsMetaDataTimer)
                         {
                             Debug.Assert(notification.Notifications != null);
-                            notification.Context = CreateMessageContext(_writer.Topic, _writer.Qos,
-                                _writer.Retain, _writer.Ttl,
+                            notification.Context = CreateMessageContext(_writer.Topic,
+                                _writer.Qos, _writer.Retain, _writer.Ttl,
                                 () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata);
                             _logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
@@ -861,9 +858,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private static string CreateUniqueWriterName(string? str, HashSet<string> strings)
             {
                 var originalName = str ?? Constants.DefaultDataSetWriterName;
+                var uniqueName = originalName;
                 for (var index = 1; ; index++)
                 {
-                    var uniqueName = originalName;
                     if (strings.Add(uniqueName))
                     {
                         return uniqueName;
