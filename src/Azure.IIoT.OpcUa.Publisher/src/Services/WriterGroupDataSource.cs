@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var writerNames = _writers.Values.Select(w => w.Name).ToHashSet();
                 foreach (var key in _writers.Keys.ToList())
                 {
-                    if (!writerKeySet.Contains(key))
+                    if (!writerKeySet.TryGetValue(key, out var actualKey))
                     {
                         if (_writers.Remove(key, out var s))
                         {
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Update
                         if (_writers.TryGetValue(key, out var s))
                         {
-                            await s.UpdateAsync(key, writerNames, ct).ConfigureAwait(false);
+                            await s.UpdateAsync(actualKey, writerNames, ct).ConfigureAwait(false);
                         }
                     }
                 }

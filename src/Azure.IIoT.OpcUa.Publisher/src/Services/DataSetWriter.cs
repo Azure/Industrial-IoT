@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Tasks;
     using System.Diagnostics.CodeAnalysis;
-    using Avro.Generic;
+    using System.Text;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -149,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // No auto routing - group variables and events by publish settings
                 var data = source.PublishedVariables?.PublishedData?
                     .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
-                            d.Publishing, d.Id, variables));
+                            d.Publishing, d.Id, routing, variables));
                 if (data != null)
                 {
                     if (routing == DataSetRoutingMode.None)
@@ -164,14 +164,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         foreach (var (p, item) in data.SelectMany(d => d.Select(i => (d.Key, i))))
                         {
-                            var id = $"{dataSetWriter.Id}_{item.Id}";
+                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString()}";
                             yield return CreateDataSetWriter(id, p, new[] { item });
                         }
                     }
                 }
                 var evts = source.PublishedEvents?.PublishedData?
                     .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
-                            d.Publishing, d.Id, variables));
+                            d.Publishing, d.Id, routing, variables));
                 if (evts != null)
                 {
                     if (routing == DataSetRoutingMode.None)
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         foreach (var (p, item) in evts.SelectMany(d => d.Select(i => (d.Key, i))))
                         {
-                            var id = $"{dataSetWriter.Id}_{item.Id}";
+                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString()}";
                             yield return CreateEventWriter(id, p, new[] { item });
                         }
                     }
@@ -256,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 static (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) Resolve(
                     PublisherOptions options, WriterGroupModel group, DataSetWriterModel dataSetWriter,
                     PublishingQueueSettingsModel? settings, string? fieldId,
-                    Dictionary<string, string> variables)
+                    DataSetRoutingMode routing, Dictionary<string, string> variables)
                 {
                     var builder = new TopicBuilder(options, group.MessageType,
                         new TopicTemplatesOptions
@@ -273,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     var telemetryTopic = builder.TelemetryTopic;
                     var metadataTopic = builder.DataSetMetaDataTopic;
-                    if (string.IsNullOrWhiteSpace(metadataTopic))
+                    if (string.IsNullOrWhiteSpace(metadataTopic) || routing != DataSetRoutingMode.None)
                     {
                         metadataTopic = telemetryTopic;
                     }
@@ -778,10 +778,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     lock (_lock)
                     {
                         var metadata = MetaData;
+                        var single = notification.Notifications?.Count == 1 ? notification.Notifications[0] : null;
                         if (metadata == null && _group._options.Value.DisableDataSetMetaData != true)
                         {
                             // Block until we have metadata or just continue
-                            _metaDataLoader.Value.BlockUntilLoaded(TimeSpan.FromSeconds(10));
+                            _metaDataLoader.Value.BlockUntilLoaded(TimeSpan.FromSeconds(10)); // TODO Make Configurable
+                            metadata = MetaData;
                         }
 
                         if (metadata != null)
@@ -808,7 +810,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     EventTypeName = null,
                                     Context = CreateMessageContext(_writer.MetadataTopic,
                                         _writer.MetadataQos, _writer.MetadataRetain, _writer.MetadataTtl,
-                                        () => Interlocked.Increment(ref _metadataSequenceNumber), metadata)
+                                        () => Interlocked.Increment(ref _metadataSequenceNumber), metadata,
+                                        single)
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
                                 _group.OnMessage?.Invoke(this, metadataFrame);
@@ -821,7 +824,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Debug.Assert(notification.Notifications != null);
                             notification.Context = CreateMessageContext(_writer.Topic,
                                 _writer.Qos, _writer.Retain, _writer.Ttl,
-                                () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata);
+                                () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata,
+                                single);
                             _logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
                             _group.OnMessage?.Invoke(this, notification);
@@ -834,7 +838,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 DataSetWriterContext CreateMessageContext(string topic, QoS? qos, bool? retain,
-                    TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata)
+                    TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata,
+                    MonitoredItemNotificationModel? single)
                 {
                     _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     return new DataSetWriterContext
@@ -847,11 +852,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = writerGroup,
                         Schema = networkMessageSchema,
+                        Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
                         Retain = retain,
                         Ttl = ttl,
-                        Topic = topic,
                         Qos = qos
                     };
+
+                    static string GetTopic(DataSetRoutingMode routing, string topic, Opc.Ua.RelativePath? subpath)
+                    {
+                        if (subpath == null || routing == DataSetRoutingMode.None)
+                        {
+                            return topic;
+                        }
+                        // Append subpath to topic (use browse names with namespace index if requested
+                        var sb = new StringBuilder().Append(topic);
+                        foreach (var path in subpath.Elements)
+                        {
+                            sb.Append('/');
+                            if (path.TargetName.NamespaceIndex != 0 &&
+                                routing == DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex)
+                            {
+                                sb.Append(path.TargetName.NamespaceIndex).Append(':');
+                            }
+                            sb.Append(TopicFilter.Escape(path.TargetName.Name));
+                        }
+                        return sb.ToString();
+                    }
                 }
             }
 
