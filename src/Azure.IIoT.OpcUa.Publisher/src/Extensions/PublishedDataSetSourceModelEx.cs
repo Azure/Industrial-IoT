@@ -258,6 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? string.Empty,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable),
                 SamplingUsingCyclicRead = publishedVariable.SamplingUsingCyclicRead,
+                CyclicReadMaxAge = publishedVariable.CyclicReadMaxAge,
                 SkipFirst = publishedVariable.SkipFirst,
                 DiscardNew = publishedVariable.DiscardNew,
                 RegisterRead = publishedVariable.RegisterNodeForSampling,

@@ -56,11 +56,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     {
                         SamplingInterval = dmi.SamplingInterval
                             ?? options.DefaultSamplingInterval,
-                        SamplingUsingCyclicRead = dmi.SamplingUsingCyclicRead
-                            ?? options.DefaultSamplingUsingCyclicRead,
-                        RegisterRead = dmi.RegisterRead
-                            // ?? options.DefaultRegisteredRead
-                            ,
                         HeartbeatBehavior = dmi.HeartbeatBehavior
                             ?? options.DefaultHeartbeatBehavior,
                         HeartbeatInterval = dmi.HeartbeatInterval
@@ -87,6 +82,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         TriggeredItems = item.TriggeredItems?
                             .Select(ti => ti.SetDefaults(options))
                             .ToList(),
+
+                        SamplingUsingCyclicRead = dmi.SamplingUsingCyclicRead
+                            ?? options.DefaultSamplingUsingCyclicRead,
+                        CyclicReadMaxAge = dmi.CyclicReadMaxAge
+                            ?? options.DefaultCyclicReadMaxAge,
 
                         DataChangeFilter = dmi.DataChangeFilter.SetDefaults(options)
                     };

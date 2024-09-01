@@ -13,7 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
+#pragma warning disable CA2217 // Do not mark enums with FlagsAttribute
     public enum HeartbeatBehavior
+#pragma warning restore CA2217 // Do not mark enums with FlagsAttribute
     {
         /// <summary>
         /// Watchdog with Last known value
@@ -55,5 +57,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         WatchdogLKVDiagnosticsOnly = 0x8,
 
         // Others can be combining Cont, LKG with 0x8
+
+        /// <summary>
+        /// Continuously sends last known value but not
+        /// the received values.
+        /// </summary>
+        [EnumMember(Value = "PeriodicLKVDropValue")]
+        PeriodicLKVDropValue = PeriodicLKV | 0x10,
+
+        /// <summary>
+        /// Continuously sends last good value but not
+        /// the received values.
+        /// </summary>
+        [EnumMember(Value = "PeriodicLKGDropValue")]
+        PeriodicLKGDropValue = PeriodicLKG | 0x10
     }
 }

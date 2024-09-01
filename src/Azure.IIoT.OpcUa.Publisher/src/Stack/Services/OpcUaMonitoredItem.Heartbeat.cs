@@ -227,6 +227,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            public override bool SkipMonitoredItemNotification()
+            {
+                var dropValue = (_heartbeatBehavior & (HeartbeatBehavior)0x10) != 0;
+                return dropValue || base.SkipMonitoredItemNotification();
+            }
+
+            /// <inheritdoc/>
             public override void NotifySessionConnectionState(bool disconnected)
             {
                 //

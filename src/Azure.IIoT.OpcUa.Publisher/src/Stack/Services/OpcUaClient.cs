@@ -2174,7 +2174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly Action<ChannelDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<(string, TimeSpan), Sampler> _samplers = new();
+        private readonly Dictionary<(string, TimeSpan, TimeSpan), Sampler> _samplers = new();
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);

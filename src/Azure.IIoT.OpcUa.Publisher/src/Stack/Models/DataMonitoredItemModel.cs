@@ -60,6 +60,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public bool? SamplingUsingCyclicRead { get; set; }
 
         /// <summary>
+        /// Max cache age to use for cyclic reads.
+        /// Default is 0.
+        /// </summary>
+        public TimeSpan? CyclicReadMaxAge { get; init; }
+
+        /// <summary>
         /// Skip first value
         /// </summary>
         public bool? SkipFirst { get; init; }

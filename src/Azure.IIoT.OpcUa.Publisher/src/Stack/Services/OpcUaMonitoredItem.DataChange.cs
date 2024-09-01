@@ -449,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Whether to skip monitored item notification
             /// </summary>
             /// <returns></returns>
-            public bool SkipMonitoredItemNotification()
+            public virtual bool SkipMonitoredItemNotification()
             {
                 // This will update that first value has been processed.
                 var last = Interlocked.Exchange(ref _skipDataChangeNotification,

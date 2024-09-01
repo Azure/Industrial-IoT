@@ -85,6 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultDataSetRoutingKey = "DefaultDataSetRouting";
         public const string ApiKeyOverrideKey = "ApiKey";
         public const string PublishMessageSchemaKey = "PublishMessageSchema";
+        public const string AsyncMetaDataLoadTimeoutKey = "AsyncMetaDataLoadTimeout";
         public const string PreferAvroOverJsonSchemaKey = "PreferAvroOverJsonSchema";
         public const string SchemaNamespaceKey = "SchemaNamespace";
         public const string DisableResourceMonitoringKey = "DisableResourceMonitoring";
@@ -432,6 +433,10 @@ namespace Azure.IIoT.OpcUa.Publisher
             if (options.DefaultMetaDataUpdateTime == null && options.DisableDataSetMetaData != true)
             {
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
+            }
+            if (options.AsyncMetaDataLoadTimeout == null && options.DisableDataSetMetaData != true)
+            {
+                options.AsyncMetaDataLoadTimeout = GetDurationOrNull(AsyncMetaDataLoadTimeoutKey);
             }
             options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
             options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);

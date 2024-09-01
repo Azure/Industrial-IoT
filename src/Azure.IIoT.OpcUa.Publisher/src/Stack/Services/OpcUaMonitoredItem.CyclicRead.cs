@@ -109,6 +109,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
+                if ((Template.CyclicReadMaxAge ?? TimeSpan.Zero) !=
+                    (cyclicRead.Template.CyclicReadMaxAge ?? TimeSpan.Zero))
+                {
+                    return false;
+                }
                 return base.Equals(obj);
             }
 
@@ -121,6 +126,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<TimeSpan>.Default.GetHashCode(
                         Template.SamplingInterval ?? TimeSpan.FromSeconds(1));
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<TimeSpan>.Default.GetHashCode(
+                        Template.CyclicReadMaxAge ?? TimeSpan.Zero);
                 return hashCode;
             }
 
@@ -173,7 +181,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_sampler == null)
                     {
                         _sampling = true;
-                        _sampler = _client.Sample(TimeSpan.FromMilliseconds(SamplingInterval),
+                        _sampler = _client.Sample(
+                            TimeSpan.FromMilliseconds(SamplingInterval),
+                            Template.CyclicReadMaxAge ?? TimeSpan.Zero,
                             new ReadValueId
                             {
                                 AttributeId = AttributeId,

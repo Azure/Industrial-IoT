@@ -703,7 +703,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             private void InitializeMetaDataTrigger()
             {
-                var metaDataSendInterval = _writer.Writer.MetaDataUpdateTime ?? TimeSpan.Zero;
+                var metaDataSendInterval = _writer.Writer.MetaDataUpdateTime
+                    ?? _group._options.Value.DefaultMetaDataUpdateTime
+                    ?? TimeSpan.Zero;
                 if (metaDataSendInterval > TimeSpan.Zero &&
                     _group._options.Value.DisableDataSetMetaData != true)
                 {
@@ -778,11 +780,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     lock (_lock)
                     {
                         var metadata = MetaData;
-                        var single = notification.Notifications?.Count == 1 ? notification.Notifications[0] : null;
-                        if (metadata == null && _group._options.Value.DisableDataSetMetaData != true)
+                        var single = notification.Notifications?.Count == 1 ?
+                            notification.Notifications[0] : null;
+                        if (metadata == null && 
+                            _group._options.Value.DisableDataSetMetaData != true &&
+                            _group._options.Value.AsyncMetaDataLoadTimeout != TimeSpan.Zero)
                         {
                             // Block until we have metadata or just continue
-                            _metaDataLoader.Value.BlockUntilLoaded(TimeSpan.FromSeconds(10)); // TODO Make Configurable
+                            _metaDataLoader.Value.BlockUntilLoaded(
+                                _group._options.Value.AsyncMetaDataLoadTimeout ?? Timeout.InfiniteTimeSpan);
                             metadata = MetaData;
                         }
 

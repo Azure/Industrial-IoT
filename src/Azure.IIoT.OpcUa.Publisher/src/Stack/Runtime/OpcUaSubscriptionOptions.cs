@@ -101,6 +101,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? DefaultSamplingUsingCyclicRead { get; set; }
 
         /// <summary>
+        /// Default cache age to use for cyclic reads.
+        /// Default is 0 (uncached)
+        /// </summary>
+        public TimeSpan DefaultCyclicReadMaxAge { get; set; }
+
+        /// <summary>
         /// The default rebrowse period for model change event generation.
         /// </summary>
         public TimeSpan? DefaultRebrowsePeriod { get; set; }

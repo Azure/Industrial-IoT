@@ -117,6 +117,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
         /// <summary>
+        /// The max cache age to use for cyclic reads.
+        /// Default is 0 (uncached reads).
+        /// </summary>
+        [DataMember(Name = "CyclicReadMaxAgeTimespan", Order = 13,
+            EmitDefaultValue = false)]
+        public TimeSpan? CyclicReadMaxAgeTimespan { get; set; }
+
+        /// <summary>
         /// Browse path from the node to reach the actual node
         /// to monitor.
         /// </summary>
@@ -241,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Expanded Node identifier (same as <see cref="Id"/>)
         /// </summary>
-        [DataMember(Name = "ExpandedNodeId", Order = 30,
+        [DataMember(Name = "ExpandedNodeId", Order = 40,
             EmitDefaultValue = false)]
         public string? ExpandedNodeId { get; set; }
     }
