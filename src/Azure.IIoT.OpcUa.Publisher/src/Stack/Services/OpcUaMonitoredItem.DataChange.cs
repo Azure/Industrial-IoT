@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
-                => Template.RegisterRead && !string.IsNullOrEmpty(TheResolvedNodeId) ?
+                => Template.RegisterRead == true && !string.IsNullOrEmpty(TheResolvedNodeId) ?
                     (TheResolvedNodeId, (v, context) => NodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
@@ -182,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(Template.IndexRange ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<bool>.Default.GetHashCode(Template.RegisterRead);
+                    EqualityComparer<bool>.Default.GetHashCode(Template.RegisterRead ?? false);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<NodeAttribute>.Default.GetHashCode(
                         Template.AttributeId ?? NodeAttribute.NodeId);
@@ -255,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
-                if (!TrySetSkipFirst(Template.SkipFirst))
+                if (!TrySetSkipFirst(Template.SkipFirst ?? false))
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
                 }
@@ -337,11 +338,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Filter = Template.AggregateFilter.ToStackModel(session.MessageContext);
                     itemChange = true;
                 }
-                if (model.Template.SkipFirst != Template.SkipFirst)
+                if ((model.Template.SkipFirst ?? false) != (Template.SkipFirst ?? false))
                 {
                     Template = Template with { SkipFirst = model.Template.SkipFirst };
 
-                    if (model.TrySetSkipFirst(model.Template.SkipFirst))
+                    if (model.TrySetSkipFirst(model.Template.SkipFirst ?? false))
                     {
                         _logger.LogDebug("{Item}: Setting skip first setting to {New}", this,
                             model.Template.SkipFirst);

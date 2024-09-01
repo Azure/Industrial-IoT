@@ -227,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 switch (item)
                 {
                     case DataMonitoredItemModel dmi:
-                        if (dmi.SamplingUsingCyclicRead &&
+                        if (dmi.SamplingUsingCyclicRead == true &&
                             client != null)
                         {
                             yield return new CyclicRead(owner, client, dmi,
@@ -967,8 +967,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="item"></param>
         protected bool UpdateQueueSize(Subscription subscription, BaseMonitoredItemModel item)
         {
-            var queueSize = item.QueueSize;
-            if (item.AutoSetQueueSize)
+            var queueSize = item.QueueSize ?? 1;
+            if (item.AutoSetQueueSize == true)
             {
                 var publishingInterval = subscription.CurrentPublishingInterval;
                 if (publishingInterval == 0)

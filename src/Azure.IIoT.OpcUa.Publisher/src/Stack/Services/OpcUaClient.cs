@@ -186,6 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="reverseConnectManager"></param>
         /// <param name="diagnosticsCallback"></param>
         /// <param name="options"></param>
+        /// <param name="subscriptionOptions"></param>
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
@@ -195,7 +196,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
             Action<ChannelDiagnosticModel> diagnosticsCallback,
-            IOptions<OpcUaClientOptions> options, string? sessionName = null)
+            IOptions<OpcUaClientOptions> options,
+            IOptions<OpcUaSubscriptionOptions> subscriptionOptions, 
+            string? sessionName = null)
         {
             _timeProvider = timeProvider;
             if (connection?.Connection?.Endpoint?.Url == null)
@@ -204,6 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _options = options;
+            _subscriptionOptions = subscriptionOptions;
             _connection = connection.Connection;
             _diagnosticsCb = diagnosticsCallback;
             _lastDiagnostics = new ChannelDiagnosticModel

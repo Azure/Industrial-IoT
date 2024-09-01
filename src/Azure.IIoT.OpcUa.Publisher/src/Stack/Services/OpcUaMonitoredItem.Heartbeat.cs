@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.Serialization;
+    using Microsoft.Extensions.Options;
 
     internal abstract partial class OpcUaMonitoredItem
     {

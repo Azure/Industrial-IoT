@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Options;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -42,8 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="client"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public ModelChangeEventItem(ISubscriber owner,
-                MonitoredAddressSpaceModel template, OpcUaClient client,
+            public ModelChangeEventItem(ISubscriber owner, 
+                MonitoredAddressSpaceModel template, OpcUaClient client, 
                 ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
                 base(owner, logger, template.StartNodeId, timeProvider)
             {

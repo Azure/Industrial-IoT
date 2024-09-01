@@ -42,6 +42,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultWatchdogBehaviorKey = "DefaultWatchdogBehavior";
         public const string DefaultMonitoredItemWatchdogConditionKey = "DefaultMonitoredItemWatchdogCondition";
         public const string DefaultMonitoredItemWatchdogSecondsKey = "DefaultMonitoredItemWatchdogSeconds";
+        public const string SubscriptionErrorRetryDelaySecondsKey = "SubscriptionErrorRetryDelaySeconds";
+        public const string InvalidMonitoredItemRetryDelaySecondsKey = "InvalidMonitoredItemRetryDelaySeconds";
+        public const string BadMonitoredItemRetryDelaySecondsKey = "BadMonitoredItemRetryDelaySeconds";
+        public const string SubscriptionManagementIntervalSecondsKey = "SubscriptionManagementIntervalSeconds";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -57,6 +61,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const bool DefaultRepublishAfterTransferDefault = false;
         public const bool EnableSequentialPublishingDefault = true;
         public const bool UseDeferredAcknoledgementsDefault = false;
+        public const int SubscriptionErrorRetryDelayDefaultSec = 2;
+        public const int InvalidMonitoredItemRetryDelayDefaultSec = 5 * 60;
+        public const int BadMonitoredItemRetryDelayDefaultSec = 30 * 60;
         public const bool DefaultDiscardNewDefault = false;
         public static readonly TimeSpan DefaultRebrowsePeriodDefault = TimeSpan.FromHours(12);
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -122,6 +129,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     out var watchdogBehavior))
             {
                 options.DefaultWatchdogBehavior = watchdogBehavior;
+            }
+
+            if (options.SubscriptionErrorRetryDelay == null)
+            {
+                var retryTimeout = GetIntOrNull(SubscriptionErrorRetryDelaySecondsKey);
+                if (retryTimeout.HasValue)
+                {
+                    options.SubscriptionErrorRetryDelay =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
+                }
+            }
+
+            if (options.BadMonitoredItemRetryDelayDuration == null)
+            {
+                var retryTimeout = GetIntOrNull(BadMonitoredItemRetryDelaySecondsKey);
+                if (retryTimeout.HasValue)
+                {
+                    options.BadMonitoredItemRetryDelayDuration =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
+                }
+            }
+
+            if (options.InvalidMonitoredItemRetryDelayDuration == null)
+            {
+                var retryTimeout = GetIntOrNull(InvalidMonitoredItemRetryDelaySecondsKey);
+                if (retryTimeout.HasValue)
+                {
+                    options.InvalidMonitoredItemRetryDelayDuration =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
+                }
+            }
+
+            if (options.SubscriptionManagementIntervalDuration == null)
+            {
+                var managementInterval = GetIntOrNull(SubscriptionManagementIntervalSecondsKey);
+                if (managementInterval.HasValue)
+                {
+                    options.SubscriptionManagementIntervalDuration =
+                        TimeSpan.FromSeconds(managementInterval.Value);
+                }
             }
 
             options.DefaultKeepAliveCount ??= (uint)GetIntOrDefault(DefaultKeepAliveCountKey,

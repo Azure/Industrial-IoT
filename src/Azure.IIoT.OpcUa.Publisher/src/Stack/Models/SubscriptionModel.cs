@@ -46,14 +46,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Use the sequential publishing feature in the stack.
         /// </summary>
-        public bool EnableSequentialPublishing { get; init; }
+        public bool? EnableSequentialPublishing { get; init; }
 
         /// <summary>
         /// Will set the subscription to have publishing
         /// enabled and every monitored item created to be
         /// in desired monitoring mode.
         /// </summary>
-        public bool EnableImmediatePublishing { get; init; }
+        public bool? EnableImmediatePublishing { get; init; }
 
         /// <summary>
         /// Republish after transfer
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Retrieve paths from root for all monitored items
         /// in the subscription.
         /// </summary>
-        public bool ResolveBrowsePathFromRoot { get; init; }
+        public bool? ResolveBrowsePathFromRoot { get; init; }
 
         /// <inheritdoc/>
         public override string ToString()

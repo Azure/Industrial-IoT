@@ -427,9 +427,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // Create monitored items
                 MonitoredItems = _writer.Source.ToMonitoredItems(
-                    _group._subscriptionConfig.Value, _writer.DataSet.ExtensionFields);
+                    _writer.DataSet.ExtensionFields);
                 _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
-                    _group._subscriptionConfig.Value, _writer.Routing != DataSetRoutingMode.None,
+                    _writer.Routing != DataSetRoutingMode.None,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
                 _connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
             }
@@ -485,9 +485,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 MonitoredItems = _writer.Source.ToMonitoredItems(
-                    _group._subscriptionConfig.Value, _writer.DataSet.ExtensionFields);
+                    _writer.DataSet.ExtensionFields);
                 var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
-                    _group._subscriptionConfig.Value, _writer.Routing != DataSetRoutingMode.None,
+                    _writer.Routing != DataSetRoutingMode.None,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
                 var connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
 

@@ -49,20 +49,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="loggerFactory"></param>
         /// <param name="serializer"></param>
-        /// <param name="options"></param>
+        /// <param name="clientOptions"></param>
         /// <param name="configuration"></param>
+        /// <param name="subscriptionOptions"></param>
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
-            IOptions<OpcUaClientOptions> options, IOpcUaConfiguration configuration,
+            IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
+            IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             TimeProvider? timeProvider = null, IMetricsContext? metrics = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
             _timeProvider = timeProvider ??
                 TimeProvider.System;
-            _options = options ??
-                throw new ArgumentNullException(nameof(options));
+            _clientOptions = clientOptions ??
+                throw new ArgumentNullException(nameof(clientOptions));
+            _subscriptionOptions = subscriptionOptions ??
+                throw new ArgumentNullException(nameof(subscriptionOptions));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
@@ -606,7 +610,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
                     _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
-                    OnClientConnectionDiagnosticChange, _options);
+                    OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
                 _logger.LogInformation("New client {Client} created.", client);
                 return client;
             });
@@ -621,7 +625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private Exception? StartReverseConnectManager()
         {
-            var port = _options.Value.ReverseConnectPort ?? 4840;
+            var port = _clientOptions.Value.ReverseConnectPort ?? 4840;
             try
             {
                 _reverseConnectManager.StartService(new ReverseConnectClientConfiguration
@@ -672,7 +676,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILoggerFactory _loggerFactory;
         private readonly TimeProvider _timeProvider;
         private readonly IOpcUaConfiguration _configuration;
-        private readonly IOptions<OpcUaClientOptions> _options;
+        private readonly IOptions<OpcUaClientOptions> _clientOptions;
+        private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
         private readonly IJsonSerializer _serializer;
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;

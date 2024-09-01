@@ -65,10 +65,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string CreateSessionTimeoutKey = "CreateSessionTimeout";
         public const string MaxReconnectDelayKey = "MaxReconnectDelay";
         public const string MinReconnectDelayKey = "MinReconnectDelay";
-        public const string SubscriptionErrorRetryDelaySecondsKey = "SubscriptionErrorRetryDelaySeconds";
-        public const string InvalidMonitoredItemRetryDelaySecondsKey = "InvalidMonitoredItemRetryDelaySeconds";
-        public const string BadMonitoredItemRetryDelaySecondsKey = "BadMonitoredItemRetryDelaySeconds";
-        public const string SubscriptionManagementIntervalSecondsKey = "SubscriptionManagementIntervalSeconds";
         public const string LingerTimeoutSecondsKey = "LingerTimeoutSeconds";
         public const string ApplicationCertificatePasswordKey = "ApplicationCertificatePassword";
         public const string TryConfigureFromExistingAppCertKey = "TryConfigureFromExistingAppCert";
@@ -98,9 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const int MaxByteStringLengthDefault = 1024 * 1024;
         public const int MaxStringLengthDefault = (128 * 1024) - 256;
         public const int OperationTimeoutDefault = 120 * 1000;
-        public const int SubscriptionErrorRetryDelayDefaultSec = 2;
-        public const int InvalidMonitoredItemRetryDelayDefaultSec = 5 * 60;
-        public const int BadMonitoredItemRetryDelayDefaultSec = 30 * 60;
         public const int DefaultSessionTimeoutDefaultSec = 60;
         public const int DefaultServiceCallTimeoutDefaultSec = 3 * 60;
         public const int KeepAliveIntervalDefaultSec = 10;
@@ -226,46 +219,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
 
             options.DisableComplexTypePreloading ??= GetBoolOrDefault(DisableComplexTypePreloadingKey);
-
-            if (options.SubscriptionErrorRetryDelay == null)
-            {
-                var retryTimeout = GetIntOrNull(SubscriptionErrorRetryDelaySecondsKey);
-                if (retryTimeout.HasValue)
-                {
-                    options.SubscriptionErrorRetryDelay =
-                        TimeSpan.FromSeconds(retryTimeout.Value);
-                }
-            }
-
-            if (options.BadMonitoredItemRetryDelayDuration == null)
-            {
-                var retryTimeout = GetIntOrNull(BadMonitoredItemRetryDelaySecondsKey);
-                if (retryTimeout.HasValue)
-                {
-                    options.BadMonitoredItemRetryDelayDuration =
-                        TimeSpan.FromSeconds(retryTimeout.Value);
-                }
-            }
-
-            if (options.InvalidMonitoredItemRetryDelayDuration == null)
-            {
-                var retryTimeout = GetIntOrNull(InvalidMonitoredItemRetryDelaySecondsKey);
-                if (retryTimeout.HasValue)
-                {
-                    options.InvalidMonitoredItemRetryDelayDuration =
-                        TimeSpan.FromSeconds(retryTimeout.Value);
-                }
-            }
-
-            if (options.SubscriptionManagementIntervalDuration == null)
-            {
-                var managementInterval = GetIntOrNull(SubscriptionManagementIntervalSecondsKey);
-                if (managementInterval.HasValue)
-                {
-                    options.SubscriptionManagementIntervalDuration =
-                        TimeSpan.FromSeconds(managementInterval.Value);
-                }
-            }
 
             options.MinPublishRequests ??= GetIntOrNull(MinPublishRequestsKey);
             options.MaxPublishRequests ??= GetIntOrNull(MaxPublishRequestsKey);

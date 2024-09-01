@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics.CodeAnalysis;
     using Autofac.Features.OwnedInstances;
     using Nito.AsyncEx;
+    using Microsoft.Extensions.Options;
 
     internal sealed partial class OpcUaClient
     {
@@ -246,8 +247,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             // representation and add it to the session.
                             //
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                            var subscription = new OpcUaSubscription(
-                                this, add, _options, _loggerFactory,
+                            var subscription = new OpcUaSubscription(this, 
+                                add, _subscriptionOptions, CreateSessionTimeout, 
+                                _loggerFactory,
                                 new OpcUaClientTagList(_connection, _metrics),
                                 _timeProvider);
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -474,6 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _subscriptionLock = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Dictionary<ISubscriber, Registration> _registrations = new();
+        private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
         private readonly ConcurrentDictionary<SubscriptionModel, OpcUaSubscription> _cache = new();
     }
 }

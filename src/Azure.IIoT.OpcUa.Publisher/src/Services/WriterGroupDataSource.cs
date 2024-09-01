@@ -41,17 +41,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
+        /// <param name="clients"></param>
         /// <param name="writerGroup"></param>
         /// <param name="options"></param>
-        /// <param name="clients"></param>
-        /// <param name="subscriptionConfig"></param>
         /// <param name="metrics"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
-        public WriterGroupDataSource(WriterGroupModel writerGroup,
-            IOptions<PublisherOptions> options, IOpcUaClientManager<ConnectionModel> clients,
-            IOptions<OpcUaSubscriptionOptions> subscriptionConfig, IMetricsContext? metrics,
-            ILoggerFactory loggerFactory, TimeProvider? timeProvider = null)
+        public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients, 
+            WriterGroupModel writerGroup, IOptions<PublisherOptions> options, 
+            IMetricsContext? metrics, ILoggerFactory loggerFactory, 
+            TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
 
@@ -61,7 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _timeProvider = timeProvider ?? TimeProvider.System;
             _metrics = metrics ?? IMetricsContext.Empty;
             _clients = clients;
-            _subscriptionConfig = subscriptionConfig;
             _startTime = _timeProvider.GetTimestamp();
 
             _valueChanges = new RollingAverage(_timeProvider);
@@ -586,7 +584,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TimeProvider _timeProvider;
         private readonly long _startTime;
         private readonly IOpcUaClientManager<ConnectionModel> _clients;
-        private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionConfig;
         private readonly IMetricsContext _metrics;
         private readonly IOptions<PublisherOptions> _options;
         private readonly SemaphoreSlim _lock = new(1, 1);

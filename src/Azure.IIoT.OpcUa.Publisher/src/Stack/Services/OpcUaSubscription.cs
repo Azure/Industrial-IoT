@@ -66,21 +66,89 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _additionallyMonitored.Values
                 .Concat(MonitoredItems.OfType<OpcUaMonitoredItem>());
 
+        public byte DesiredPriority 
+            => Template.Priority
+            ?? Session?.DefaultSubscription?.Priority
+            ?? 0;
+
+        public uint DesiredMaxNotificationsPerPublish 
+            => Template.MaxNotificationsPerPublish
+            ?? Session?.DefaultSubscription?.MaxNotificationsPerPublish
+            ?? 0;
+
+        public uint DesiredLifetimeCount
+            => Template.LifetimeCount 
+            ?? _options.Value.DefaultLifeTimeCount
+            ?? Session?.DefaultSubscription?.LifetimeCount
+            ?? 0;
+
+        public uint DesiredKeepAliveCount
+            => Template.KeepAliveCount
+            ?? _options.Value.DefaultKeepAliveCount
+            ?? Session?.DefaultSubscription?.KeepAliveCount
+            ?? 0;
+
+        public TimeSpan DesiredPublishingInterval
+            => Template.PublishingInterval
+            ?? _options.Value.DefaultPublishingInterval
+            ?? TimeSpan.FromSeconds(1);
+
+        public bool UseDeferredAcknoledgements
+            => Template.UseDeferredAcknoledgements
+            ?? _options.Value.UseDeferredAcknoledgements
+            ?? false;
+
+        public bool EnableImmediatePublishing
+            => Template.EnableImmediatePublishing
+            ?? _options.Value.EnableImmediatePublishing
+            ?? false;
+
+        public bool EnableSequentialPublishing
+            => Template.EnableSequentialPublishing
+            ?? _options.Value.EnableSequentialPublishing 
+            ?? true;
+
+        public bool DesiredRepublishAfterTransfer
+            => Template.RepublishAfterTransfer
+            ?? _options.Value.DefaultRepublishAfterTransfer
+            ?? false;
+
+        public TimeSpan MonitoredItemWatchdogTimeout
+            => Template.MonitoredItemWatchdogTimeout
+            ?? _options.Value.DefaultMonitoredItemWatchdogTimeout
+            ?? TimeSpan.Zero;
+
+        public MonitoredItemWatchdogCondition WatchdogCondition
+            => Template.WatchdogCondition
+            ?? _options.Value.DefaultMonitoredItemWatchdogCondition
+            ?? MonitoredItemWatchdogCondition.WhenAnyIsLate;
+
+        public SubscriptionWatchdogBehavior? WatchdogBehavior 
+            => Template.WatchdogBehavior
+            ?? _options.Value.DefaultWatchdogBehavior;
+
+        public bool ResolveBrowsePathFromRoot
+            => Template.ResolveBrowsePathFromRoot
+            ?? _options.Value.FetchOpcBrowsePathFromRoot
+            ?? false;
+
         /// <summary>
         /// Subscription
         /// </summary>
         /// <param name="client"></param>
         /// <param name="template"></param>
         /// <param name="options"></param>
+        /// <param name="createSessionTimeout"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="timeProvider"></param>
-        internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template,
-            IOptions<OpcUaClientOptions> options, ILoggerFactory loggerFactory,
-            IMetricsContext metrics, TimeProvider? timeProvider = null)
+        internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template, 
+            IOptions<OpcUaSubscriptionOptions> options, TimeSpan? createSessionTimeout,
+            ILoggerFactory loggerFactory, IMetricsContext metrics, TimeProvider? timeProvider = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _createSessionTimeout = createSessionTimeout;
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _timeProvider = timeProvider ?? TimeProvider.System;
@@ -122,7 +190,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             LocalIndex = subscription.LocalIndex;
             _client = subscription._client;
-            _useDeferredAcknoledge = subscription._useDeferredAcknoledge;
             _logger = subscription._logger;
             _sequenceNumber = subscription._sequenceNumber;
 
@@ -406,7 +473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Session {Session} for {Subscription} not connected.",
                     Session, this);
                 TriggerSubscriptionManagementCallbackIn(
-                    _options.Value.CreateSessionTimeoutDuration, TimeSpan.FromSeconds(10));
+                    _createSessionTimeout, TimeSpan.FromSeconds(10));
                 return;
             }
             try
@@ -434,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             subscriptionId = Id;
             sequenceNumber = _currentSequenceNumber;
-            return _useDeferredAcknoledge;
+            return UseDeferredAcknoledgements;
         }
 
         /// <summary>
@@ -667,7 +734,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Get the items assigned to this subscription.
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var desired = OpcUaMonitoredItem
-                .Create(_client, _client.GetItems(Template), _loggerFactory, _timeProvider)
+                .Create(_client, _client
+                    .GetItems(Template)
+                    .Select(i => (i.Item1, i.Item2.SetDefaults(_options.Value))), 
+                    _loggerFactory, _timeProvider)
                 .ToHashSet();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -734,7 +804,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // If retrieving paths for all the items from the root folder was configured do so
             // now. All items that fail here should be retried later.
             //
-            if (Template.ResolveBrowsePathFromRoot)
+            if (ResolveBrowsePathFromRoot)
             {
                 var allGetPaths = add
                     .Select(a => a.GetPath)
@@ -911,7 +981,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (applyChanges)
             {
                 await ApplyChangesAsync(ct).ConfigureAwait(false);
-                if (MonitoredItemCount == 0 && !Template.EnableImmediatePublishing)
+                if (MonitoredItemCount == 0 && !EnableImmediatePublishing)
                 {
                     await SetPublishingModeAsync(false, ct).ConfigureAwait(false);
 
@@ -1249,34 +1319,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Debug.Assert(Session.DefaultSubscription != null, "No default subscription template.");
 
-            GetSubscriptionConfiguration(Session.DefaultSubscription,
-                out var configuredPublishingInterval, out var configuredPriority,
-                out var configuredKeepAliveCount, out var configuredLifetimeCount,
-                out var configuredMaxNotificationsPerPublish);
-
             if (Handle == null)
             {
-                var enablePublishing = Template.EnableImmediatePublishing;
-
                 Handle = LocalIndex; // Initialized for the first time
                 DisplayName = Name;
-                PublishingEnabled = enablePublishing;
-                KeepAliveCount = configuredKeepAliveCount;
-                PublishingInterval = configuredPublishingInterval;
-                MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish;
-                LifetimeCount = configuredLifetimeCount;
-                Priority = configuredPriority;
+                PublishingEnabled = EnableImmediatePublishing;
+                KeepAliveCount = DesiredKeepAliveCount;
+                PublishingInterval = (int)DesiredPublishingInterval.TotalMilliseconds;
+                MaxNotificationsPerPublish = DesiredMaxNotificationsPerPublish;
+                LifetimeCount = DesiredLifetimeCount;
+                Priority = DesiredPriority;
 
                 // TODO: use a channel and reorder task before calling OnMessage
                 // to order or else republish is called too often
-                RepublishAfterTransfer = Template.RepublishAfterTransfer ?? false;
-                SequentialPublishing = Template.EnableSequentialPublishing;
+                RepublishAfterTransfer = DesiredRepublishAfterTransfer;
+                SequentialPublishing = EnableSequentialPublishing;
 
                 _logger.LogInformation(
                     "Creating new {State} subscription {Subscription} in session {Session}.",
                     PublishingEnabled ? "enabled" : "disabled", this, Session);
 
-                Debug.Assert(enablePublishing == PublishingEnabled);
                 Debug.Assert(Session != null);
                 await CreateAsync(ct).ConfigureAwait(false);
                 if (!Created)
@@ -1289,14 +1351,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         $"Failed to create subscription {this} in session {session}");
                 }
 
-                ResetMonitoredItemWatchdogTimer(enablePublishing);
+                ResetMonitoredItemWatchdogTimer(PublishingEnabled);
                 LogRevisedValues(true);
                 Debug.Assert(Id != 0);
                 Debug.Assert(Created);
 
                 _firstDataChangeReceived = false;
-                _useDeferredAcknoledge = Template.UseDeferredAcknoledgements
-                    ?? false;
             }
             else
             {
@@ -1309,47 +1369,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Apply new configuration on configuration on original subscription
                 var modifySubscription = false;
 
-                if (configuredKeepAliveCount != KeepAliveCount)
+                if (DesiredKeepAliveCount != KeepAliveCount)
                 {
                     _logger.LogInformation(
                         "Change KeepAliveCount to {New} in Subscription {Subscription}...",
-                        configuredKeepAliveCount, this);
+                        DesiredKeepAliveCount, this);
 
-                    KeepAliveCount = configuredKeepAliveCount;
+                    KeepAliveCount = DesiredKeepAliveCount;
                     modifySubscription = true;
                 }
-                if (PublishingInterval != configuredPublishingInterval)
+
+                if (PublishingInterval != (int)DesiredPublishingInterval.TotalMilliseconds)
                 {
                     _logger.LogInformation(
                         "Change publishing interval to {New} in Subscription {Subscription}...",
-                        configuredPublishingInterval, this);
-                    PublishingInterval = configuredPublishingInterval;
+                        DesiredPublishingInterval, this);
+                    PublishingInterval = (int)DesiredPublishingInterval.TotalMilliseconds;
                     modifySubscription = true;
                 }
 
-                if (MaxNotificationsPerPublish != configuredMaxNotificationsPerPublish)
+                if (MaxNotificationsPerPublish != DesiredMaxNotificationsPerPublish)
                 {
                     _logger.LogInformation(
                         "Change MaxNotificationsPerPublish to {New} in Subscription {Subscription}",
-                        configuredMaxNotificationsPerPublish, this);
-                    MaxNotificationsPerPublish = configuredMaxNotificationsPerPublish;
+                        DesiredMaxNotificationsPerPublish, this);
+                    MaxNotificationsPerPublish = DesiredMaxNotificationsPerPublish;
                     modifySubscription = true;
                 }
 
-                if (LifetimeCount != configuredLifetimeCount)
+                if (LifetimeCount != DesiredLifetimeCount)
                 {
                     _logger.LogInformation(
                         "Change LifetimeCount to {New} in Subscription {Subscription}...",
-                        configuredLifetimeCount, this);
-                    LifetimeCount = configuredLifetimeCount;
+                        DesiredLifetimeCount, this);
+                    LifetimeCount = DesiredLifetimeCount;
                     modifySubscription = true;
                 }
-                if (Priority != configuredPriority)
+                if (Priority != DesiredPriority)
                 {
                     _logger.LogInformation(
                         "Change Priority to {New} in Subscription {Subscription}...",
-                        configuredPriority, this);
-                    Priority = configuredPriority;
+                        DesiredPriority, this);
+                    Priority = DesiredPriority;
                     modifySubscription = true;
                 }
                 if (modifySubscription)
@@ -1382,31 +1443,6 @@ Actual (revised) state/desired state:
                 CurrentPublishingInterval, PublishingInterval,
                 CurrentKeepAliveCount, KeepAliveCount,
                 CurrentLifetimeCount, LifetimeCount);
-        }
-
-        /// <summary>
-        /// Get configuration
-        /// </summary>
-        /// <param name="defaultSubscription"></param>
-        /// <param name="publishingInterval"></param>
-        /// <param name="priority"></param>
-        /// <param name="keepAliveCount"></param>
-        /// <param name="lifetimeCount"></param>
-        /// <param name="maxNotificationsPerPublish"></param>
-        private void GetSubscriptionConfiguration(Subscription defaultSubscription,
-            out int publishingInterval, out byte priority, out uint keepAliveCount,
-            out uint lifetimeCount, out uint maxNotificationsPerPublish)
-        {
-            publishingInterval = (int)((Template.PublishingInterval) ??
-                TimeSpan.FromSeconds(1)).TotalMilliseconds;
-            keepAliveCount = (Template.KeepAliveCount) ??
-                defaultSubscription.KeepAliveCount;
-            maxNotificationsPerPublish = (Template.MaxNotificationsPerPublish) ??
-                defaultSubscription.MaxNotificationsPerPublish;
-            lifetimeCount = (Template.LifetimeCount) ??
-                defaultSubscription.LifetimeCount;
-            priority = (Template.Priority) ??
-                defaultSubscription.Priority;
         }
 
         /// <summary>
@@ -1957,8 +1993,8 @@ Actual (revised) state/desired state:
         /// <param name="publishingEnabled"></param>
         private void ResetMonitoredItemWatchdogTimer(bool publishingEnabled)
         {
-            var timeout = Template.MonitoredItemWatchdogTimeout;
-            if (timeout == null || timeout.Value == TimeSpan.Zero)
+            var timeout = MonitoredItemWatchdogTimeout;
+            if (timeout == TimeSpan.Zero)
             {
                 if (_lastMonitoredItemCheck == null)
                 {
@@ -1987,8 +2023,8 @@ Actual (revised) state/desired state:
                 }
 
                 _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
-                Debug.Assert(timeout.HasValue);
-                _monitoredItemWatcher.Change(timeout.Value, timeout.Value);
+                Debug.Assert(timeout != TimeSpan.Zero);
+                _monitoredItemWatcher.Change(timeout, timeout);
             }
         }
 
@@ -1998,8 +2034,7 @@ Actual (revised) state/desired state:
         /// <param name="state"></param>
         private void OnMonitoredItemWatchdog(object? state)
         {
-            var action = Template.WatchdogBehavior
-                ?? SubscriptionWatchdogBehavior.Diagnostic;
+            var action = WatchdogBehavior ?? SubscriptionWatchdogBehavior.Diagnostic;
             lock (_timers)
             {
                 if (_disposed || _monitoredItemWatcher == null)
@@ -2046,7 +2081,7 @@ Actual (revised) state/desired state:
                 {
                     return;
                 }
-                if (itemsChecked != missing && Template.WatchdogCondition
+                if (itemsChecked != missing && WatchdogCondition
                     != MonitoredItemWatchdogCondition.WhenAllAreLate)
                 {
                     _logger.LogDebug("Some monitored items in {Subscription} are late.",
@@ -2116,7 +2151,7 @@ Actual (revised) state/desired state:
 
                 if (_continuouslyMissingKeepAlives == CurrentLifetimeCount + 1)
                 {
-                    var action = Template.WatchdogBehavior ?? SubscriptionWatchdogBehavior.Reset;
+                    var action = WatchdogBehavior ?? SubscriptionWatchdogBehavior.Reset;
                     _logger.LogCritical(
                         "#{Count}/{Lifetimecount}: Keep alive count exceeded. Perform {Action} for {Subscription}...",
                         _continuouslyMissingKeepAlives, CurrentLifetimeCount, action, this);
@@ -2176,8 +2211,7 @@ Actual (revised) state/desired state:
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Timeout))
             {
-                var action = Template.WatchdogBehavior
-                    ?? SubscriptionWatchdogBehavior.Reset;
+                var action = WatchdogBehavior ?? SubscriptionWatchdogBehavior.Reset;
                 _logger.LogInformation("Subscription {Subscription} TIMEOUT! ---- " +
                     "Server closed subscription - performing recovery action {Action}...",
                     this, action);
@@ -2342,7 +2376,7 @@ Actual (revised) state/desired state:
                 () => new Measurement<int>(_publishingStopped ? 1 : 0, _metrics.TagList),
                 description: "Number of subscriptions that stopped publishing.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_deferred_acks_enabled_count",
-                () => new Measurement<int>(_useDeferredAcknoledge ? 1 : 0, _metrics.TagList),
+                () => new Measurement<int>(UseDeferredAcknoledgements ? 1 : 0, _metrics.TagList),
                 description: "Number of subscriptions with deferred acknoledgements enabled.");
             _meter.CreateObservableCounter("iiot_edge_publisher_deferred_acks_last_sequencenumber",
                 () => new Measurement<long>(_sequenceNumber, _metrics.TagList),
@@ -2371,12 +2405,12 @@ Actual (revised) state/desired state:
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
-        private bool _useDeferredAcknoledge;
         private bool _firstDataChangeReceived;
         private bool _closed;
         private bool _forceRecreate;
         private readonly OpcUaClient _client;
-        private readonly IOptions<OpcUaClientOptions> _options;
+        private readonly IOptions<OpcUaSubscriptionOptions> _options;
+        private readonly TimeSpan? _createSessionTimeout;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
