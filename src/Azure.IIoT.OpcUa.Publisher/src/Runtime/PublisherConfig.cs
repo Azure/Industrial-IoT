@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
-        public const string FullFeaturedMessage = "FullFeaturedMessage";
+        public const string FullFeaturedMessageKey = "FullFeaturedMessage";
         public const string UseStandardsCompliantEncodingKey = "UseStandardsCompliantEncoding";
         public const string MethodTopicTemplateKey = "MethodTopicTemplate";
         public const string RootTopicTemplateKey = "RootTopicTemplate";
@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                         MessagingMode.PubSub : MessagingMode.Samples;
                 }
 
-                if (GetBoolOrDefault(FullFeaturedMessage, false))
+                if (GetBoolOrDefault(FullFeaturedMessageKey, false))
                 {
                     if (messagingMode == MessagingMode.PubSub)
                     {

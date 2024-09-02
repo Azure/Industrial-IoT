@@ -143,8 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 // Variant encoding is the default
                 var eventId = value.GetProperty(BasicPubSubIntegrationTests.kEventId).GetProperty("Value");
                 var message = value.GetProperty(BasicPubSubIntegrationTests.kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(BasicPubSubIntegrationTests.kCycleId).GetProperty("Value");
-                var currentStep = value.GetProperty(BasicPubSubIntegrationTests.kCurrentStep).GetProperty("Value");
+                var cycleId = value.GetProperty(BasicPubSubIntegrationTests.kCycleIdUri).GetProperty("Value");
+                var currentStep = value.GetProperty(BasicPubSubIntegrationTests.kCurrentStepUri).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -185,11 +185,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
                 Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.kCycleId).GetProperty("Value");
+                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.kCycleIdUri).GetProperty("Value");
                 Assert.Equal("String", cycleId.GetProperty("Type").GetString());
                 Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
 
-                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.kCurrentStep).GetProperty("Value");
+                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.kCurrentStepUri).GetProperty("Value");
                 body = currentStep.GetProperty("Body");
                 Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
                 Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());

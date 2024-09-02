@@ -239,9 +239,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             //
 
             // Sample mode
-            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(),
                     BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(false),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Json);
             AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(true),
@@ -253,9 +253,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             //
 
             // Pub sub
-            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Json);
             AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
@@ -267,9 +267,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             //
 
             // Pub sub gzipped
-            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonGzip);
             AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
@@ -279,7 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             // Reversible encodings
             AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false, true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true, true),
                     BuildNetworkMessageContentMask(),
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true),
                     BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(false),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true),
                     BuildNetworkMessageContentMask(true),
@@ -295,38 +295,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             // Without network message header
-            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true, false),
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(),
                     NetworkMessageContentFlags.DataSetMessageHeader,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
-            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true, true),
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(false, true),
                     NetworkMessageContentFlags.DataSetMessageHeader,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
-            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true, false),
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(),
                     NetworkMessageContentFlags.DataSetMessageHeader | NetworkMessageContentFlags.SingleDataSetMessage,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
-            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true, true),
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(false, true),
                     NetworkMessageContentFlags.DataSetMessageHeader | NetworkMessageContentFlags.SingleDataSetMessage,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             AddProfile(MessagingMode.DataSets, 0,
                     0,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
             AddProfile(MessagingMode.SingleDataSet, 0,
                     NetworkMessageContentFlags.SingleDataSetMessage,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Json, MessageEncoding.JsonGzip);
             AddProfile(MessagingMode.DataSets, 0,
                     0,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.SingleDataSet, 0,
                     NetworkMessageContentFlags.SingleDataSetMessage,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.RawDataSets, 0,
                     0,
@@ -346,21 +346,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             // Uadp encoding
-            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(false),
+            AddProfile(MessagingMode.PubSub, BuildDataSetContentMask(),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(false),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Uadp);
             AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(),
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Uadp);
-            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(true),
+            AddProfile(MessagingMode.DataSetMessages, BuildDataSetContentMask(),
                     NetworkMessageContentFlags.DataSetMessageHeader,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Uadp);
-            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(true),
+            AddProfile(MessagingMode.SingleDataSetMessage, BuildDataSetContentMask(),
                     NetworkMessageContentFlags.DataSetMessageHeader | NetworkMessageContentFlags.SingleDataSetMessage,
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(),
                     MessageEncoding.Uadp);
             AddProfile(MessagingMode.RawDataSets, 0,
                     0,
@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="fullFeaturedMessage"></param>
         /// <returns></returns>
         private static DataSetFieldContentFlags BuildDataSetFieldContentMask(
-            bool fullFeaturedMessage)
+            bool fullFeaturedMessage = false)
         {
             return
                 DataSetFieldContentFlags.StatusCode |
@@ -441,7 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         private static DataSetMessageContentFlags BuildDataSetContentMask(
-            bool fullFeaturedMessage, bool reversibleEncoding = false)
+            bool fullFeaturedMessage = false, bool reversibleEncoding = false)
         {
             return
                 (reversibleEncoding ?

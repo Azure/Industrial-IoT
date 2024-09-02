@@ -264,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         var namespaceFormat =
                             writerGroup.MessageSettings?.NamespaceFormat ??
-                            // _options.Value.DefaultNamespaceFormat ?? // TODO: Fix tests
+                            _options.Value.DefaultNamespaceFormat ??
                             NamespaceFormat.Uri;
                         foreach (var dataSetClass in groups
                             .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
@@ -305,7 +305,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             Context.DataSetWriterId, dataSetMessageContentMask,
                                             MessageType.KeepAlive, new DataSet(),
                                             GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                            standardsCompliant, Context.MetaData?.MetaData,
+                                            standardsCompliant, Notification.EndpointUrl,
+                                            Notification.ApplicationUri, Context.MetaData?.MetaData,
                                             out var dataSetMessage))
                                         {
                                             Drop(Notification.YieldReturn());
@@ -350,7 +351,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                 new DataSet(orderedNotifications.ToDictionary(
                                                     s => s.DataSetFieldName!, s => s.Value), dataSetFieldContentMask),
                                                 GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                                standardsCompliant, Context.MetaData?.MetaData, out var dataSetMessage))
+                                                standardsCompliant, Notification.EndpointUrl, Notification.ApplicationUri,
+                                                Context.MetaData?.MetaData, out var dataSetMessage))
                                             {
                                                 Drop(Notification.YieldReturn());
                                                 continue;

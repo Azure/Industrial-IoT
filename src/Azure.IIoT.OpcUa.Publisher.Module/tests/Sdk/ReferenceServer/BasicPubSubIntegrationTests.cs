@@ -23,8 +23,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         internal const string kMessage = "Message";
         internal const string kCycleIdExpanded = "nsu=http://opcfoundation.org/SimpleEvents;CycleId";
         internal const string kCurrentStepExpanded = "nsu=http://opcfoundation.org/SimpleEvents;CurrentStep";
-        internal const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
-        internal const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
+        internal const string kCycleIdUri = "http://opcfoundation.org/SimpleEvents#CycleId";
+        internal const string kCurrentStepUri = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private readonly ITestOutputHelper _output;
         private readonly ReferenceServer _fixture;
 
@@ -198,8 +198,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Variant encoding is the default
                 var eventId = value.GetProperty(kEventId).GetProperty("Value");
                 var message = value.GetProperty(kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(kCycleId).GetProperty("Value");
-                var currentStep = value.GetProperty(kCurrentStep).GetProperty("Value");
+                var cycleId = value.GetProperty(kCycleIdUri).GetProperty("Value");
+                var currentStep = value.GetProperty(kCurrentStepUri).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -240,11 +240,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
                 Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(kCycleId).GetProperty("Value");
+                var cycleId = body.GetProperty(kCycleIdUri).GetProperty("Value");
                 Assert.Equal("String", cycleId.GetProperty("Type").GetString());
                 Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
 
-                var currentStep = body.GetProperty(kCurrentStep).GetProperty("Value");
+                var currentStep = body.GetProperty(kCurrentStepUri).GetProperty("Value");
                 body = currentStep.GetProperty("Body");
                 Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
                 Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
