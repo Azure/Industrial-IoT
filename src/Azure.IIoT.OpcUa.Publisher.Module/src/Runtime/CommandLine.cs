@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from
@@ -327,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Configure whether publisher republishes missed subscription notifications still in the server queue after transferring a subscription during reconnect handling.\nThis can result in out of order notifications after a reconnect but minimizes data loss.\nDefault: `{OpcUaSubscriptionConfig.DefaultRepublishAfterTransferDefault}` (disabled).\n",
                     (bool? b) => this[OpcUaSubscriptionConfig.DefaultRepublishAfterTransferKey] = b?.ToString() ?? "True" },
                 { $"hbb|heartbeatbehavior=|{OpcUaSubscriptionConfig.DefaultHeartbeatBehaviorKey}=",
-                    $"Default behavior of the heartbeat mechanism unless overridden in the published nodes configuration explicitly.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(HeartbeatBehavior)))}`\nDefault: `{nameof(HeartbeatBehavior.WatchdogLKV)}` (Sending LKV in a watchdog fashion).\n",
+                    $"Default behavior of the heartbeat mechanism unless overridden in the published nodes configuration explicitly.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames(typeof(HeartbeatBehavior)).Where(n => !n.StartsWith(nameof(HeartbeatBehavior.Reserved), StringComparison.InvariantCulture)))}`\nDefault: `{nameof(HeartbeatBehavior.WatchdogLKV)}` (Sending LKV in a watchdog fashion).\n",
                     (HeartbeatBehavior b) => this[OpcUaSubscriptionConfig.DefaultHeartbeatBehaviorKey] = b.ToString() },
                 { $"hb|heartbeatinterval=|{OpcUaSubscriptionConfig.DefaultHeartbeatIntervalKey}=",
                     "The publisher is using this as default value in seconds for the heartbeat interval setting of nodes that were configured without a heartbeat interval setting. A heartbeat is sent at this interval if no value has been received.\nDefault: `0` (disabled)\nAlso can be set using `DefaultHeartbeatInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n",
@@ -369,9 +370,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 { $"dsg|disablesessionpergroup:|{PublisherConfig.DisableSessionPerWriterGroupKey}:",
                     $"Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `{PublisherConfig.DisableSessionPerWriterGroupDefault}`.\n",
                     (bool? b) => this[PublisherConfig.DisableSessionPerWriterGroupKey] = b?.ToString() ?? "True" },
-                { $"spw|enablesessionperwriter:|{PublisherConfig.EnableSessionPerDataSetWriterIdKey}:",
-                    $"Enable creating a separate session per data set writer instead of the default behavior to create one per writer group.\nThis setting overrides the `--dsg` option.\nDefault: `{PublisherConfig.EnableSessionPerDataSetWriterIdDefault}`.\n",
-                    (bool? b) => this[PublisherConfig.EnableSessionPerDataSetWriterIdKey] = b?.ToString() ?? "True" },
                 { $"ipi|ignorepublishingintervals:|{PublisherConfig.IgnoreConfiguredPublishingIntervalsKey}:",
                     $"Always use the publishing interval provided via command line argument `--op` and ignore all publishing interval settings in the configuration.\nCombine with `--op=0` to let the server use the lowest publishing interval it can support.\nDefault: `{PublisherConfig.IgnoreConfiguredPublishingIntervalsDefault}` (disabled).\n",
                     (bool? b) => this[PublisherConfig.IgnoreConfiguredPublishingIntervalsKey] = b?.ToString() ?? "True" },

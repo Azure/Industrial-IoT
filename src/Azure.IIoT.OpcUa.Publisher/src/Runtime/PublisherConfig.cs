@@ -64,7 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultKeyFrameCountKey = "DefaultKeyFrameCount";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
-        public const string EnableSessionPerDataSetWriterIdKey = "EnableSessionPerSubscription";
         public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
         public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
         public const string DefaultMetaDataUpdateTimeKey = "DefaultMetaDataUpdateTime";
@@ -144,7 +143,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int ScaleTestCountDefault = 1;
         public const bool IgnoreConfiguredPublishingIntervalsDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;
-        public const bool EnableSessionPerDataSetWriterIdDefault = false;
         public static readonly int UnsecureHttpServerPortDefault = IsContainer ? 80 : 9071;
         public static readonly int HttpServerPortDefault = IsContainer ? 443 : 9072;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -443,8 +441,6 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
                     DisableSessionPerWriterGroupDefault);
-            options.EnableSessionPerDataSetWriterId ??= GetBoolOrDefault(EnableSessionPerDataSetWriterIdKey,
-                    EnableSessionPerDataSetWriterIdDefault);
 
             options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
             options.DisableSubscriptionTransfer ??= GetBoolOrNull(DisableSubscriptionTransferKey);

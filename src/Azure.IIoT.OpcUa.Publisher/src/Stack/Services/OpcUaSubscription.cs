@@ -403,6 +403,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             static void AddExtraField(List<PublishedFieldMetaDataModel> fields,
                 string name)
             {
+                if (fields.Any(f => f.Name == name))
+                {
+                    return;
+                }
                 fields.Add(new PublishedFieldMetaDataModel
                 {
                     Name = name,

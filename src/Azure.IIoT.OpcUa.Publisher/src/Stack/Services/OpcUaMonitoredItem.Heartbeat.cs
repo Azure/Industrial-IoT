@@ -228,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override bool SkipMonitoredItemNotification()
             {
-                var dropValue = (_heartbeatBehavior & (HeartbeatBehavior)0x10) != 0;
+                var dropValue = (_heartbeatBehavior & HeartbeatBehavior.Reserved) != 0;
                 return dropValue || base.SkipMonitoredItemNotification();
             }
 

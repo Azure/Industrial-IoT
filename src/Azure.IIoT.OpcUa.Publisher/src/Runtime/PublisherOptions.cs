@@ -232,11 +232,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? DisableSessionPerWriterGroup { get; set; }
 
         /// <summary>
-        /// Create a new session for every subscription that is created.
-        /// </summary>
-        public bool? EnableSessionPerDataSetWriterId { get; set; }
-
-        /// <summary>
         /// Always default to use or not use reverse connect
         /// unless overridden by the configuration.
         /// </summary>

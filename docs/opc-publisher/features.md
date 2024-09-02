@@ -105,9 +105,9 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Transfer subscription|||||
 | | On reconnect |-|X||
 | | On startup |-|-||
-| Re-activate session on startup (Transfer session)||||Backlog|
+| Re-activate session on startup (Transfer session)|||||
 | Deferred Notification Acknowledgement||-|X|Experimental|
-| Back pressure to server||-|-|Backlog|
+| Back pressure to server||-|-||
 | Published nodes JSON [schema](./readme.md#configuration-schema) support |||||
 | | v2.5 |X|X||
 | | v2.8 |X|X||
