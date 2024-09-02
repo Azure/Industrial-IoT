@@ -163,7 +163,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                         Name = TestConstants.DirectMethodNames.UnpublishAllNodes,
 
                         // TODO: Remove this line to test fix for null request crash
-                        JsonPayload = _serializer.SerializeToString(new PublishedNodesEntryModel())
+                        JsonPayload = "null"
                     },
                     ct
                 ).ConfigureAwait(false);

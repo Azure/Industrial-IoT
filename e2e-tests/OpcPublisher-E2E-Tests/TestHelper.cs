@@ -403,6 +403,7 @@ namespace OpcPublisherAEE2ETests
         /// <param name="executable">Starting command line</param>
         /// <param name="commandLine">Additional command line options</param>
         /// <param name="fileShareName">File share name</param>
+        /// <param name="cancellationToken"></param>
         private static async Task<string> CreatePlcContainerGroupAsync(ResourceGroupResource resGroup,
             string containerGroupName, IIoTPlatformTestContext context, string executable,
             string[] commandLine, string fileShareName, CancellationToken cancellationToken)
@@ -441,6 +442,7 @@ namespace OpcPublisherAEE2ETests
         /// Delete an ACI
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct"></param>
         public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context, CancellationToken ct)
         {
             if (context.PlcAciDynamicUrls == null || context.PlcAciDynamicUrls.Count == 0)
