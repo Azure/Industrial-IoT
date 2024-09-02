@@ -8,19 +8,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
-    using Opc.Ua.Client;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Concurrent;
-    using System.Diagnostics.CodeAnalysis;
-    using Autofac.Features.OwnedInstances;
-    using Nito.AsyncEx;
-    using Microsoft.Extensions.Options;
 
     internal sealed partial class OpcUaClient
     {
@@ -60,6 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     var registration = new Registration(this, subscription, subscriber);
                     _registrations.Add(subscriber, registration);
+                    TriggerSubscriptionSynchronization(null);
                     return registration;
                 }
                 finally
@@ -247,8 +245,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             // representation and add it to the session.
                             //
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                            var subscription = new OpcUaSubscription(this, 
-                                add, _subscriptionOptions, CreateSessionTimeout, 
+                            var subscription = new OpcUaSubscription(this,
+                                add, _subscriptionOptions, CreateSessionTimeout,
                                 _loggerFactory,
                                 new OpcUaClientTagList(_connection, _metrics),
                                 _timeProvider);
@@ -428,6 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _outer._registrations.Remove(_owner);
+                    _outer.TriggerSubscriptionSynchronization(null);
                 }
                 finally
                 {

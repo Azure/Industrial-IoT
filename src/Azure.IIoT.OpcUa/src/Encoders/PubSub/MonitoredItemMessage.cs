@@ -30,16 +30,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public string? WriterGroupId { get; set; }
 
         /// <summary>
-        /// Endpoint url
-        /// </summary>
-        public string? EndpointUrl { get; set; }
-
-        /// <summary>
-        /// Application uri
-        /// </summary>
-        public string? ApplicationUri { get; set; }
-
-        /// <summary>
         /// Display name
         /// </summary>
         public string? DisplayName => Payload.Keys.SingleOrDefault();
@@ -71,9 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Opc.Ua.Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
-                !Opc.Ua.Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
-                !Opc.Ua.Utils.IsEqual(wrapper.NodeId, NodeId))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.NodeId, NodeId))
             {
                 return false;
             }
@@ -91,8 +79,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
 
-            hash.Add(EndpointUrl);
-            hash.Add(ApplicationUri);
             hash.Add(NodeId);
             hash.Add(ExtensionFields);
             return hash.ToHashCode();

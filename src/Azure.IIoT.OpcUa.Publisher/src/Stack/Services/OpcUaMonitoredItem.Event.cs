@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Options;
 
     internal abstract partial class OpcUaMonitoredItem
     {

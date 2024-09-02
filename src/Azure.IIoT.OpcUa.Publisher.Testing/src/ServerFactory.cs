@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger, scaleunits),
+                new Plc.PlcServer(new TimeService(), logger, scaleunits)
                 // new FileSystem.FileSystemServer(),
                 // new Asset.AssetServer(logger)
                 // new PerfTest.PerfTestServer(),

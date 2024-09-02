@@ -7,8 +7,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -20,6 +20,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Compatibility with 2.8 when encoding and decoding
         /// </summary>
         public bool UseCompatibilityMode { get; set; }
+
+        /// <summary>
+        /// Endpoint url
+        /// </summary>
+        public string? EndpointUrl { get; set; }
+
+        /// <summary>
+        /// Application uri
+        /// </summary>
+        public string? ApplicationUri { get; set; }
 
         /// <summary>
         /// Dataset writer name
@@ -41,7 +51,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
             {
                 return false;
             }
@@ -53,6 +65,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
+
+            hash.Add(EndpointUrl);
+            hash.Add(ApplicationUri);
             hash.Add(DataSetWriterName);
             return hash.ToHashCode();
         }
@@ -81,7 +96,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 if ((DataSetMessageContentMask & DataSetMessageContentFlags.MetaDataVersion) != 0)
                 {
-                    encoder.WriteEncodeable(nameof(MetaDataVersion), MetaDataVersion, typeof(ConfigurationVersionDataType));
+                    encoder.WriteEncodeable(nameof(MetaDataVersion), MetaDataVersion,
+                        typeof(Opc.Ua.ConfigurationVersionDataType));
                 }
                 if ((DataSetMessageContentMask & DataSetMessageContentFlags.Timestamp) != 0)
                 {
@@ -90,8 +106,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
                 {
                     var status = Status ?? Payload.Values
-                        .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ??
-                            StatusCodes.BadNoData))?.StatusCode ?? StatusCodes.Good;
+                        .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(s?.StatusCode ??
+                            Opc.Ua.StatusCodes.BadNoData))?.StatusCode ?? Opc.Ua.StatusCodes.Good;
                     if (!UseCompatibilityMode)
                     {
                         encoder.WriteUInt32(nameof(Status), status.Code);
@@ -142,9 +158,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 var prevReversibleEncoding = jsonEncoder.UseReversibleEncoding;
                 try
                 {
-                    // if propertyname is null we are already inside the object
                     jsonEncoder.UseReversibleEncoding = useReversibleEncoding;
-                    jsonEncoder.WriteDataSet(propertyName, Payload);
+
+                    if ((Payload.DataSetFieldContentMask &
+                        (DataSetFieldContentFlags.EndpointUrl |
+                         DataSetFieldContentFlags.ApplicationUri)) != 0)
+                    {
+                        var extraFields = Enumerable.Empty<KeyValuePair<string, Opc.Ua.DataValue?>>();
+                        if ((Payload.DataSetFieldContentMask & DataSetFieldContentFlags.EndpointUrl) != 0 &&
+                            !Payload.ContainsKey(nameof(EndpointUrl)) &&
+                            !string.IsNullOrWhiteSpace(EndpointUrl))
+                        {
+                            extraFields = extraFields.Append(KeyValuePair.Create<string, Opc.Ua.DataValue?>(
+                                nameof(EndpointUrl), new Opc.Ua.DataValue(EndpointUrl)));
+                        }
+                        if ((Payload.DataSetFieldContentMask & DataSetFieldContentFlags.ApplicationUri) != 0 &&
+                            !Payload.ContainsKey(nameof(ApplicationUri)) &&
+                            !string.IsNullOrWhiteSpace(ApplicationUri))
+                        {
+                            extraFields = extraFields.Append(KeyValuePair.Create<string, Opc.Ua.DataValue?>(
+                                nameof(ApplicationUri), new Opc.Ua.DataValue(ApplicationUri)));
+                        }
+                        jsonEncoder.WriteDataSet(propertyName, Payload, extraFields);
+                    }
+                    else
+                    {
+                        // if propertyname is null we are already inside the object
+                        jsonEncoder.WriteDataSet(propertyName, Payload);
+                    }
                 }
                 finally
                 {
@@ -229,8 +270,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                 if (jsonDecoder.HasField(nameof(MetaDataVersion)))
                 {
-                    MetaDataVersion = (ConfigurationVersionDataType?)jsonDecoder.ReadEncodeable(
-                        nameof(MetaDataVersion), typeof(ConfigurationVersionDataType));
+                    MetaDataVersion = (Opc.Ua.ConfigurationVersionDataType?)jsonDecoder.ReadEncodeable(
+                        nameof(MetaDataVersion), typeof(Opc.Ua.ConfigurationVersionDataType));
                     if (MetaDataVersion != null)
                     {
                         dataSetMessageContentMask |= DataSetMessageContentFlags.MetaDataVersion;

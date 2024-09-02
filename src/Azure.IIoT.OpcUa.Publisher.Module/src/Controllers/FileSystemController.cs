@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
 

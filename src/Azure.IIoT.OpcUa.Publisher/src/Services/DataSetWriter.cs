@@ -16,11 +16,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Text;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         foreach (var (p, item) in data.SelectMany(d => d.Select(i => (d.Key, i))))
                         {
-                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString()}";
+                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
                             yield return CreateDataSetWriter(id, p, new[] { item });
                         }
                     }
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         foreach (var (p, item) in evts.SelectMany(d => d.Select(i => (d.Key, i))))
                         {
-                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString()}";
+                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
                             yield return CreateEventWriter(id, p, new[] { item });
                         }
                     }
@@ -426,7 +426,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Name, _group.Id);
 
                 // Create monitored items
-                MonitoredItems = _writer.Source.ToMonitoredItems(
+                var namespaceFormat =
+                    _group._writerGroup.MessageSettings?.NamespaceFormat ??
+                    _group._options.Value.DefaultNamespaceFormat ??
+                    NamespaceFormat.Uri;
+                MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat,
                     _writer.DataSet.ExtensionFields);
                 _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
                     _writer.Routing != DataSetRoutingMode.None,
@@ -484,7 +488,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Name = CreateUniqueWriterName(_writer.Writer.DataSetWriterName, writerNames);
                 }
 
-                MonitoredItems = _writer.Source.ToMonitoredItems(
+                var namespaceFormat =
+                    _group._writerGroup.MessageSettings?.NamespaceFormat ??
+                    _group._options.Value.DefaultNamespaceFormat ??
+                    NamespaceFormat.Uri;
+                MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat,
                     _writer.DataSet.ExtensionFields);
                 var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
                     _writer.Routing != DataSetRoutingMode.None,
@@ -782,7 +790,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var metadata = MetaData;
                         var single = notification.Notifications?.Count == 1 ?
                             notification.Notifications[0] : null;
-                        if (metadata == null && 
+                        if (metadata == null &&
                             _group._options.Value.DisableDataSetMetaData != true &&
                             _group._options.Value.AsyncMetaDataLoadTimeout != TimeSpan.Zero)
                         {

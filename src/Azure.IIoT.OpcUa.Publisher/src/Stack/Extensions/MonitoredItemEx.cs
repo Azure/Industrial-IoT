@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     return mas with
                     {
                         RebrowsePeriod = mas.RebrowsePeriod
-                            ?? options.DefaultRebrowsePeriod 
+                            ?? options.DefaultRebrowsePeriod
                             ?? TimeSpan.FromHours(12),
                         //
                         // see https://reference.opcfoundation.org/v104/Core/docs/Part4/7.16/

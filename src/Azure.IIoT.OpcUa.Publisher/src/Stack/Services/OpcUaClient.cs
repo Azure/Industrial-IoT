@@ -197,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ReverseConnectManager? reverseConnectManager,
             Action<ChannelDiagnosticModel> diagnosticsCallback,
             IOptions<OpcUaClientOptions> options,
-            IOptions<OpcUaSubscriptionOptions> subscriptionOptions, 
+            IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             string? sessionName = null)
         {
             _timeProvider = timeProvider;

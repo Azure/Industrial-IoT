@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal IAsyncDisposable Sample(TimeSpan samplingRate, TimeSpan maxAge,
             ReadValueId nodeToRead, string subscriptionName, uint clientHandle)
         {
-            return Sampler.Register(this, samplingRate, maxAge, 
+            return Sampler.Register(this, samplingRate, maxAge,
                 nodeToRead, subscriptionName, clientHandle);
         }
 
@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Timestamp = _client._timeProvider.GetUtcNow().UtcDateTime,
                             TimeoutHint = (uint)timeout,
                             ReturnDiagnostics = 0
-                        }, _maxAge.TotalMilliseconds, Opc.Ua.TimestampsToReturn.Both, 
+                        }, _maxAge.TotalMilliseconds, Opc.Ua.TimestampsToReturn.Both,
                             nodesToRead, ct).ConfigureAwait(false);
 
                         var values = response.Validate(response.Results,
@@ -323,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     if (!outer._samplers.TryGetValue(key, out var sampler))
                     {
-                        sampler = new Sampler(outer, samplingRate, maxAge, 
+                        sampler = new Sampler(outer, samplingRate, maxAge,
                             subscriptionName, sampledNode);
                         outer._samplers.Add(key, sampler);
                     }

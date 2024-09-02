@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

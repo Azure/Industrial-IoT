@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         "Run the publisher in legacy (2.5.x) compatibility mode.\nDefault: `false` (disabled).\n",
                         b => this[LegacyCompatibility] = b, true },
                 { $"amt|asyncmetadataloadtimeout=|{PublisherConfig.AsyncMetaDataLoadTimeoutKey}=",
-                    $"The default duration in seconds a publish request should wait until the meta data is loaded.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to block until metadata is loaded.\nOnly used if meta data is supported and enabled.\nDefault: `not set` (block forever).\n",
+                    "The default duration in seconds a publish request should wait until the meta data is loaded.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to block until metadata is loaded.\nOnly used if meta data is supported and enabled.\nDefault: `not set` (block forever).\n",
                     (uint i) => this[PublisherConfig.AsyncMetaDataLoadTimeoutKey] = TimeSpan.FromMilliseconds(i).ToString() },
                 { $"ps|publishschemas:|{PublisherConfig.PublishMessageSchemaKey}:",
                     "Publish the Avro or Json message schemas to schema registry or subtopics.\nAutomatically enables complex type system and metadata support.\nOnly has effect if the messaging profile supports publishing schemas.\nDefault: `True` if the message encoding requires schemas (for example Avro) otherwise `False`.\n",

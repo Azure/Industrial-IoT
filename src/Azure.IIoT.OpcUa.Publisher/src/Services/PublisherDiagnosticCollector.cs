@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
-    using System.Linq;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -375,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_message_send_failures"] =
                     (d, i) => d.OutgressIoTMessageFailedCount = (long)i
 
-                // ... Add here more items if needed
+                    // ... Add here more items if needed
             };
     }
 }

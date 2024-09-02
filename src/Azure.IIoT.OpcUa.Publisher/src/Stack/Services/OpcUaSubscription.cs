@@ -66,18 +66,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _additionallyMonitored.Values
                 .Concat(MonitoredItems.OfType<OpcUaMonitoredItem>());
 
-        public byte DesiredPriority 
+        public byte DesiredPriority
             => Template.Priority
             ?? Session?.DefaultSubscription?.Priority
             ?? 0;
 
-        public uint DesiredMaxNotificationsPerPublish 
+        public uint DesiredMaxNotificationsPerPublish
             => Template.MaxNotificationsPerPublish
             ?? Session?.DefaultSubscription?.MaxNotificationsPerPublish
             ?? 0;
 
         public uint DesiredLifetimeCount
-            => Template.LifetimeCount 
+            => Template.LifetimeCount
             ?? _options.Value.DefaultLifeTimeCount
             ?? Session?.DefaultSubscription?.LifetimeCount
             ?? 0;
@@ -105,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         public bool EnableSequentialPublishing
             => Template.EnableSequentialPublishing
-            ?? _options.Value.EnableSequentialPublishing 
+            ?? _options.Value.EnableSequentialPublishing
             ?? true;
 
         public bool DesiredRepublishAfterTransfer
@@ -123,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ?? _options.Value.DefaultMonitoredItemWatchdogCondition
             ?? MonitoredItemWatchdogCondition.WhenAnyIsLate;
 
-        public SubscriptionWatchdogBehavior? WatchdogBehavior 
+        public SubscriptionWatchdogBehavior? WatchdogBehavior
             => Template.WatchdogBehavior
             ?? _options.Value.DefaultWatchdogBehavior;
 
@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="timeProvider"></param>
-        internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template, 
+        internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template,
             IOptions<OpcUaSubscriptionOptions> options, TimeSpan? createSessionTimeout,
             ILoggerFactory loggerFactory, IMetricsContext metrics, TimeProvider? timeProvider = null)
         {
@@ -736,7 +736,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var desired = OpcUaMonitoredItem
                 .Create(_client, _client
                     .GetItems(Template)
-                    .Select(i => (i.Item1, i.Item2.SetDefaults(_options.Value))), 
+                    .Select(i => (i.Item1, i.Item2.SetDefaults(_options.Value))),
                     _loggerFactory, _timeProvider)
                 .ToHashSet();
 #pragma warning restore CA2000 // Dispose objects before losing scope

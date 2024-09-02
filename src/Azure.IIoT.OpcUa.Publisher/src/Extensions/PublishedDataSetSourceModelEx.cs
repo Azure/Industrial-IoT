@@ -49,10 +49,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Convert dataset source to monitored item
         /// </summary>
         /// <param name="dataSetSource"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="extensionFields"></param>
         /// <returns></returns>
         public static IReadOnlyList<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataSetSourceModel dataSetSource,
+            this PublishedDataSetSourceModel dataSetSource, NamespaceFormat namespaceFormat,
             IDictionary<string, VariantValue>? extensionFields = null)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
@@ -60,13 +61,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 monitoredItems = monitoredItems
                     .Concat(dataSetSource.PublishedVariables
-                        .ToMonitoredItems(dataSetSource.SubscriptionSettings));
+                        .ToMonitoredItems(dataSetSource.SubscriptionSettings, namespaceFormat));
             }
             if (dataSetSource.PublishedEvents?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
                     .Concat(dataSetSource.PublishedEvents
-                        .ToMonitoredItems(dataSetSource.SubscriptionSettings));
+                        .ToMonitoredItems(dataSetSource.SubscriptionSettings, namespaceFormat));
             }
             if (extensionFields != null)
             {
@@ -81,17 +82,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataItems"></param>
         /// <param name="settings"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedDataItemsModel dataItems, PublishedDataSetSettingsModel? settings,
-            bool includeTriggering = true)
+            NamespaceFormat namespaceFormat, bool includeTriggering = true)
         {
             if (dataItems?.PublishedData != null)
             {
                 foreach (var publishedData in dataItems.PublishedData)
                 {
-                    var item = publishedData?.ToMonitoredItemTemplate(settings, includeTriggering);
+                    var item = publishedData?.ToMonitoredItemTemplate(settings,
+                        namespaceFormat, includeTriggering);
                     if (item != null)
                     {
                         yield return item;
@@ -123,18 +126,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="eventItems"></param>
         /// <param name="settings"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedEventItemsModel eventItems, PublishedDataSetSettingsModel? settings,
-            bool includeTriggering = true)
+            NamespaceFormat namespaceFormat, bool includeTriggering = true)
         {
             if (eventItems?.PublishedData != null)
             {
                 foreach (var publishedData in eventItems.PublishedData)
                 {
                     var monitoredItem = publishedData?.ToMonitoredItemTemplate(settings,
-                        includeTriggering);
+                        namespaceFormat, includeTriggering);
                     if (monitoredItem == null)
                     {
                         continue;
@@ -149,25 +153,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="publishedEvent"></param>
         /// <param name="settings"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static BaseMonitoredItemModel? ToMonitoredItemTemplate(
-            this PublishedDataSetEventModel publishedEvent,
-            PublishedDataSetSettingsModel? settings, bool includeTriggering = true)
+            this PublishedDataSetEventModel publishedEvent, PublishedDataSetSettingsModel? settings,
+            NamespaceFormat namespaceFormat, bool includeTriggering = true)
         {
             if (publishedEvent == null)
             {
                 return null;
             }
 
-            var eventNotifier = publishedEvent.EventNotifier 
+            var eventNotifier = publishedEvent.EventNotifier
                 ?? Opc.Ua.ObjectIds.Server.ToString();
 
             if (publishedEvent.ModelChangeHandling != null)
             {
                 return new MonitoredAddressSpaceModel
                 {
-                    DataSetFieldId = publishedEvent.Id 
+                    DataSetFieldId = publishedEvent.Id
                         ?? eventNotifier,
                     DataSetFieldName = publishedEvent.PublishedEventName
                         ?? string.Empty,
@@ -176,20 +181,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     RebrowsePeriod =
                         publishedEvent.ModelChangeHandling.RebrowseIntervalTimespan,
                     TriggeredItems = includeTriggering ? null : ToMonitoredItems(
-                        publishedEvent.Triggering, settings),
+                        publishedEvent.Triggering, settings, namespaceFormat),
                     AttributeId = null,
                     DiscardNew = false,
                     MonitoringMode = publishedEvent.MonitoringMode,
                     StartNodeId = eventNotifier,
+                    NamespaceFormat = namespaceFormat,
                     RootNodeId = Opc.Ua.ObjectIds.RootFolder.ToString()
                 };
             }
 
             return new EventMonitoredItemModel
             {
-                DataSetFieldId = publishedEvent.Id 
+                DataSetFieldId = publishedEvent.Id
                     ?? eventNotifier,
-                DataSetFieldName = publishedEvent.PublishedEventName 
+                DataSetFieldName = publishedEvent.PublishedEventName
                     ?? string.Empty,
                 EventFilter = new EventFilterModel
                 {
@@ -206,10 +212,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 MonitoringMode = publishedEvent.MonitoringMode,
                 StartNodeId = eventNotifier,
                 RelativePath = publishedEvent.BrowsePath,
+                NamespaceFormat = namespaceFormat,
                 FetchDataSetFieldName = publishedEvent.ReadEventNameFromNode
                     ?? settings?.ResolveDisplayName,
                 TriggeredItems = includeTriggering ? null : ToMonitoredItems(
-                    publishedEvent.Triggering, settings),
+                    publishedEvent.Triggering, settings, namespaceFormat),
                 ConditionHandling = publishedEvent.ConditionHandling.Clone()
             };
         }
@@ -239,11 +246,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="publishedVariable"></param>
         /// <param name="settings"></param>
+        /// <param name="namespaceFormat"></param>
         /// <param name="includeTriggering"></param>
         /// <returns></returns>
         internal static DataMonitoredItemModel? ToMonitoredItemTemplate(
-            this PublishedDataSetVariableModel publishedVariable,
-            PublishedDataSetSettingsModel? settings, bool includeTriggering = true)
+            this PublishedDataSetVariableModel publishedVariable, PublishedDataSetSettingsModel? settings,
+            NamespaceFormat namespaceFormat, bool includeTriggering = true)
         {
             if (string.IsNullOrEmpty(publishedVariable.PublishedVariableNodeId))
             {
@@ -251,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
             return new DataMonitoredItemModel
             {
-                DataSetFieldId = publishedVariable.Id 
+                DataSetFieldId = publishedVariable.Id
                     ?? publishedVariable.PublishedVariableNodeId,
                 DataSetClassFieldId = publishedVariable.DataSetClassFieldId,
                 DataSetFieldName = publishedVariable.PublishedVariableDisplayName
@@ -278,8 +286,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     ?? settings?.DefaultHeartbeatBehavior,
                 AggregateFilter = null,
                 AutoSetQueueSize = null,
+                NamespaceFormat = namespaceFormat,
                 TriggeredItems = includeTriggering ? null : ToMonitoredItems(
-                    publishedVariable.Triggering, settings),
+                    publishedVariable.Triggering, settings, namespaceFormat)
             };
         }
 
@@ -288,9 +297,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="triggering"></param>
         /// <param name="settings"></param>
+        /// <param name="namespaceFormat"></param>
         /// <returns></returns>
         private static List<BaseMonitoredItemModel>? ToMonitoredItems(
-            this PublishedDataSetTriggerModel? triggering, PublishedDataSetSettingsModel? settings)
+            this PublishedDataSetTriggerModel? triggering, PublishedDataSetSettingsModel? settings,
+            NamespaceFormat namespaceFormat)
         {
             if (triggering?.PublishedVariables == null && triggering?.PublishedEvents == null)
             {
@@ -301,13 +312,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 monitoredItems = monitoredItems
                     .Concat(triggering.PublishedVariables
-                        .ToMonitoredItems(settings, false));
+                        .ToMonitoredItems(settings, namespaceFormat, false));
             }
             if (triggering.PublishedEvents?.PublishedData != null)
             {
                 monitoredItems = monitoredItems
                     .Concat(triggering.PublishedEvents
-                        .ToMonitoredItems(settings, false));
+                        .ToMonitoredItems(settings, namespaceFormat, false));
             }
             return monitoredItems.ToList();
         }

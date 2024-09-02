@@ -49,8 +49,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="loggerFactory"></param>
         /// <param name="serializer"></param>
-        /// <param name="clientOptions"></param>
         /// <param name="configuration"></param>
+        /// <param name="clientOptions"></param>
         /// <param name="subscriptionOptions"></param>
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>

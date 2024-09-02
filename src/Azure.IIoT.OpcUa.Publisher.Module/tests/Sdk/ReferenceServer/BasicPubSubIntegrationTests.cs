@@ -281,8 +281,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Variant encoding is the default
                 var eventId = value.GetProperty(kEventId).GetProperty("Value");
                 var message = value.GetProperty(kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(kCycleId).GetProperty("Value");
-                var currentStep = value.GetProperty(kCurrentStep).GetProperty("Value");
+                var cycleId = value.GetProperty(kCycleIdExpanded).GetProperty("Value");
+                var currentStep = value.GetProperty(kCurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -322,11 +322,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
                 Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(kCycleId).GetProperty("Value");
+                var cycleId = body.GetProperty(kCycleIdExpanded).GetProperty("Value");
                 Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
                 Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
 
-                var currentStep = body.GetProperty(kCurrentStep).GetProperty("Value");
+                var currentStep = body.GetProperty(kCurrentStepExpanded).GetProperty("Value");
                 body = currentStep.GetProperty("Body");
                 Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
                 Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
@@ -367,8 +367,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Variant encoding is the default
                 var eventId = value.GetProperty(kEventId).GetProperty("Value");
                 var message = value.GetProperty(kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(kCycleId).GetProperty("Value");
-                var currentStep = value.GetProperty(kCurrentStep).GetProperty("Value");
+                var cycleId = value.GetProperty(kCycleIdExpanded).GetProperty("Value");
+                var currentStep = value.GetProperty(kCurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -481,8 +481,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var expectedNames = new[] { "AssetId", "CurrentTime", "EngineeringUnits", "Important", "Variance" };
             Assert.Equal(expectedNames.Length, fieldNames.Count);
             Assert.All(expectedNames, n => fieldNames.Contains(n));
-          // TODO: Need to have order in fields!  Assert.Equal(metadataFields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()),
-          // TODO: Need to have order in fields!      payload.EnumerateObject().Select(p => p.Name));
+            // TODO: Need to have order in fields!  Assert.Equal(metadataFields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()),
+            // TODO: Need to have order in fields!      payload.EnumerateObject().Select(p => p.Name));
             Assert.NotNull(metadata);
         }
 
@@ -539,12 +539,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 },
                 v =>
                 {
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#CycleId", v.GetProperty("Name").GetString());
+                    Assert.Equal(kCycleIdExpanded, v.GetProperty("Name").GetString());
                     Assert.Equal(12, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                 },
                 v =>
                 {
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#CurrentStep", v.GetProperty("Name").GetString());
+                    Assert.Equal(kCurrentStepExpanded, v.GetProperty("Name").GetString());
                     Assert.Equal(183, v.GetProperty("DataType").GetProperty("Id").GetInt32());
                     Assert.Equal("http://opcfoundation.org/SimpleEvents",
                         v.GetProperty("DataType").GetProperty("Namespace").GetString());

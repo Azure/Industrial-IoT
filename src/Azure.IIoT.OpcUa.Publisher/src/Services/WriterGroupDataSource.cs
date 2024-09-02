@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
@@ -47,9 +48,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="metrics"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
-        public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients, 
-            WriterGroupModel writerGroup, IOptions<PublisherOptions> options, 
-            IMetricsContext? metrics, ILoggerFactory loggerFactory, 
+        public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients,
+            WriterGroupModel writerGroup, IOptions<PublisherOptions> options,
+            IMetricsContext? metrics, ILoggerFactory loggerFactory,
             TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
@@ -83,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                Debug.Assert(_writers.Count == 0);
+                Debug.Assert(_writers.IsEmpty);
                 if (_writerGroup.DataSetWriters == null)
                 {
                     return;
@@ -392,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private int ReconnectCount => UsedClients
             .Sum(s => s.ReconnectCount);
         private int ConnectCount => UsedClients
-           .Sum(s => s.ConnectCount);
+            .Sum(s => s.ConnectCount);
         private int OutstandingRequestCount => UsedClients
             .Sum(s => s.OutstandingRequestCount);
         private int GoodPublishRequestCount => UsedClients
@@ -577,7 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
-        private readonly Dictionary<DataSetWriter, DataSetWriterSubscription> _writers = new();
+        private readonly ConcurrentDictionary<DataSetWriter, DataSetWriterSubscription> _writers = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
