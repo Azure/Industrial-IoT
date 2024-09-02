@@ -41,9 +41,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
-                => Template.RegisterRead == true && !string.IsNullOrEmpty(TheResolvedNodeId) ?
-                    (TheResolvedNodeId, (v, context) => NodeId
-                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
+                => Template.RegisterRead == true && !_registeredForReading &&
+                    !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (v, context) =>
+                    {
+                        NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
+                        // We only want to register the node once for reading inside a session
+                        _registeredForReading = true;
+                    }) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateString Update)? GetDisplayName
@@ -122,6 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Template = item.Template;
                 _fieldId = item._fieldId;
                 _skipDataChangeNotification = item._skipDataChangeNotification;
+                _registeredForReading = false;
             }
 
             /// <inheritdoc/>
@@ -490,6 +495,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
             private readonly Guid _fieldId = Guid.NewGuid();
+            private bool _registeredForReading;
         }
     }
 }

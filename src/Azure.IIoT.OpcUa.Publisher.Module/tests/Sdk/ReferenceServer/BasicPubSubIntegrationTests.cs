@@ -5,9 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
+    using Autofac.Features.Indexed;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using FluentAssertions;
+    using Google.Protobuf.WellKnownTypes;
     using Json.More;
     using System;
     using System.Collections.Generic;
@@ -523,6 +526,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // TODO: Need to have order in fields!  Assert.Equal(metadataFields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()),
             // TODO: Need to have order in fields!      payload.EnumerateObject().Select(p => p.Name));
         }
+
+        [Fact]
+        public async Task CyclicReadWithAgeTestAsync()
+        {
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(CyclicReadWithAgeTestAsync), "./Resources/CyclicRead.json",
+                TimeSpan.FromSeconds(20), 10, messageType: "ua-data",
+                arguments: new string[] { "--mm=PubSub", "--dm=false" });
+
+            // Assert
+            Assert.Equal(10, messages.Count);
+            var message = messages[0].Message;
+            var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
+            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+            Assert.NotNull(metadata);
+        }
+
+        [Fact]
+        public async Task PeriodicHeartbeatTest()
+        {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(PeriodicHeartbeatTest), "./Resources/Heartbeat2.json",
+                TimeSpan.FromSeconds(20), 10, messageType: "ua-data",
+                arguments: new string[] { "--mm=PubSub", "-c" });
+
+            // Assert
+            Assert.NotNull(metadata);
+            Assert.Equal(10, messages.Count);
+
+            // Assert that all messages are 1 second apart
+            var timestamps = messages.ConvertAll(m => m.Message.GetProperty("Messages")[0]
+                .GetProperty("Timestamp").GetDateTimeOffset());
+
+            for (var index = 0; index < timestamps.Count - 1; index++)
+            {
+                var diff = timestamps[index + 1] - timestamps[index] - TimeSpan.FromSeconds(1);
+                Assert.True(diff.TotalSeconds <= 0.02 && diff.TotalSeconds >= -0.02, $"{diff}");
+            }
+        }
+
 
         [Fact]
         public async Task CanSendKeyFramesToIoTHubTest()

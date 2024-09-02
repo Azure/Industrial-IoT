@@ -1,0 +1,17 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseReverseConnect": "{{UseReverseConnect}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259",
+                "OpcSamplingInterval": 500,
+                "FetchDisplayName": true,
+                "UseCyclicRead": true,
+                "CyclicReadMaxAge": 500
+            }
+        ]
+    }
+]

@@ -1,0 +1,17 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259",
+                "OpcSamplingInterval": 100,
+                "FetchDisplayName": true,
+                "OpcPublishingInterval": 100,
+                "HeartbeatInterval": 1,
+                "HeartbeatBehavior": "PeriodicLKVDropValue"
+            }
+        ]
+    }
+]

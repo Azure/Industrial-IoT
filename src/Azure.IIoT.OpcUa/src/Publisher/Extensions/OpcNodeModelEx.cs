@@ -173,6 +173,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+            if (model.GetNormalizedCyclicReadMaxAge() != that.GetNormalizedCyclicReadMaxAge())
+            {
+                return false;
+            }
             if ((model.RegisterNode ?? false) != (that.RegisterNode ?? false))
             {
                 return false;
@@ -236,6 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.ConditionHandling?.UpdateInterval);
             hash.Add(model.ConditionHandling?.SnapshotInterval);
             hash.Add(model.UseCyclicRead);
+            hash.Add(model.GetNormalizedCyclicReadMaxAge());
             hash.Add(model.RegisterNode);
 
             if (includeTriggerNodes)
@@ -281,6 +286,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         {
             return model.OpcSamplingIntervalTimespan
                 .GetTimeSpanFromMiliseconds(model.OpcSamplingInterval, defaultSamplingTimespan);
+        }
+
+        /// <summary>
+        /// Retrieves the timespan flavor of a node's CyclicReadMaxAge
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="defaultCyclicReadMaxAgeTimespan"></param>
+        public static TimeSpan? GetNormalizedCyclicReadMaxAge(
+            this OpcNodeModel model, TimeSpan? defaultCyclicReadMaxAgeTimespan = null)
+        {
+            return model.CyclicReadMaxAgeTimespan
+                .GetTimeSpanFromMiliseconds(model.CyclicReadMaxAge, defaultCyclicReadMaxAgeTimespan);
         }
 
         /// <summary>

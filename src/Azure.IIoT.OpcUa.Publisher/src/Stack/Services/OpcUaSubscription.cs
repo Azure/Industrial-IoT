@@ -875,9 +875,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Register nodes for reading if needed. This is needed anytime the session
             // changes as the registration is only valid in the context of the session
             //
-            // TODO: For now we do it every time for both added and merged item, but
-            // this should be fixed to only be done when the session changed.
-            //
             var allRegistrations = add.Concat(same)
                 .Select(a => a.Register)
                 .Where(a => a != null);

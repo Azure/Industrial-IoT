@@ -239,10 +239,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public IReadOnlyList<OpcNodeModel>? TriggeredNodes { get; set; }
 
         /// <summary>
-        /// The max cache age to use for cyclic reads.
+        /// The max cache age to use for cyclic reads in milliseconds.
         /// Default is 0 (uncached reads).
         /// </summary>
-        [DataMember(Name = "CyclicReadMaxAgeTimespan", Order = 31,
+        [DataMember(Name = "CyclicReadMaxAge", Order = 31,
+            EmitDefaultValue = false)]
+        public int? CyclicReadMaxAge { get; set; }
+
+        /// <summary>
+        /// The max cache age to use for cyclic reads as duration.
+        /// Default is 00:00:00 (uncached reads).
+        /// </summary>
+        [DataMember(Name = "CyclicReadMaxAgeTimespan", Order = 32,
             EmitDefaultValue = false)]
         public TimeSpan? CyclicReadMaxAgeTimespan { get; set; }
 

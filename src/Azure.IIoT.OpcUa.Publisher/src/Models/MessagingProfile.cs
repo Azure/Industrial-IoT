@@ -239,11 +239,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             //
 
             // Sample mode
-            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(),
+            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, false, true),
                     BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(false, true),
                     MessageEncoding.Json);
-            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true),
+            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, false, true),
                     BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(true, true),
                     MessageEncoding.Json);
@@ -285,11 +285,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     BuildNetworkMessageContentMask(),
                     BuildDataSetFieldContentMask(true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
-            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true),
+            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true, true),
                     BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(false, true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
-            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true),
+            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true, true),
                     BuildNetworkMessageContentMask(true),
                     BuildDataSetFieldContentMask(true, true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
@@ -446,7 +446,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         private static DataSetMessageContentFlags BuildDataSetContentMask(
-            bool fullFeaturedMessage = false, bool reversibleEncoding = false)
+            bool fullFeaturedMessage = false, bool reversibleEncoding = false,
+            bool isSampleMessage = false)
         {
             return
                 (reversibleEncoding ?
@@ -454,6 +455,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 (fullFeaturedMessage ?
                     (DataSetMessageContentFlags.Timestamp |
                      DataSetMessageContentFlags.DataSetWriterId |
+                     DataSetMessageContentFlags.SequenceNumber) : 0) |
+                (!isSampleMessage ?
+                    (DataSetMessageContentFlags.Timestamp |
                      DataSetMessageContentFlags.SequenceNumber) : 0) |
                 DataSetMessageContentFlags.MetaDataVersion |
                 DataSetMessageContentFlags.MajorVersion |
