@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Avro.Generic;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -1040,7 +1041,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _writer._logger.LogDebug("Loading Metadata {Major}.{Minor} for {Writer}...",
                         dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
 
-                    var metaData = await subscription.CollectMetaDataAsync(_writer,
+                    var fieldMask = _writer._writer.Writer.DataSetFieldContentMask;
+                    var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
                     _writer._logger.LogInformation(
@@ -1048,14 +1050,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id,
                         sw.Elapsed);
 
+                    var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {
                         MetaData = metaData,
                         TypeName = null,
-                        DataSetFieldContentFlags =
-                            _writer._writer.Writer.DataSetFieldContentMask,
-                        DataSetMessageContentFlags =
-                            _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask
+                        DataSetFieldContentFlags = fieldMask,
+                        DataSetMessageContentFlags = msgMask
                     };
                 }
 

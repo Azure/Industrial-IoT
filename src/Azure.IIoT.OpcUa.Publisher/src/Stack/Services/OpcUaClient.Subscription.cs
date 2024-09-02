@@ -455,16 +455,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public async ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
-                ISubscriber owner, DataSetMetaDataModel dataSetMetaData,
-                uint minorVersion, CancellationToken ct = default)
+                ISubscriber owner, DataSetFieldContentFlags? fieldMask,
+                DataSetMetaDataModel dataSetMetaData, uint minorVersion,
+                CancellationToken ct = default)
             {
                 if (!_outer.TryGetSubscription(Subscription, out var subscription))
                 {
                     throw new ServiceResultException(StatusCodes.BadNoSubscription,
                         "Subscription not found");
                 }
-                return await subscription.CollectMetaDataAsync(owner, dataSetMetaData,
-                    minorVersion, ct).ConfigureAwait(false);
+                return await subscription.CollectMetaDataAsync(owner, fieldMask,
+                    dataSetMetaData, minorVersion, ct).ConfigureAwait(false);
             }
 
             private readonly OpcUaClient _outer;

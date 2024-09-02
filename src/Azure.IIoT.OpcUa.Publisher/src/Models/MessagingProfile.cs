@@ -241,11 +241,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             // Sample mode
             AddProfile(MessagingMode.Samples, BuildDataSetContentMask(),
                     BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(),
+                    BuildDataSetFieldContentMask(false, true),
                     MessageEncoding.Json);
             AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true),
                     BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(true, true),
                     MessageEncoding.Json);
 
             //
@@ -287,11 +287,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true),
                     BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(),
+                    BuildDataSetFieldContentMask(false, true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
             AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true),
                     BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(true),
+                    BuildDataSetFieldContentMask(true, true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             // Without network message header
@@ -423,10 +423,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// From published nodes jobs converter
         /// </summary>
+        /// <param name="isSampleMessage"></param>
         /// <param name="fullFeaturedMessage"></param>
         /// <returns></returns>
         private static DataSetFieldContentFlags BuildDataSetFieldContentMask(
-            bool fullFeaturedMessage = false)
+            bool fullFeaturedMessage = false, bool isSampleMessage = false)
         {
             return
                 DataSetFieldContentFlags.StatusCode |
@@ -434,10 +435,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 (fullFeaturedMessage ?
                      (DataSetFieldContentFlags.ServerTimestamp |
                       DataSetFieldContentFlags.ApplicationUri |
+                      DataSetFieldContentFlags.EndpointUrl |
                       DataSetFieldContentFlags.ExtensionFields) : 0) |
-                DataSetFieldContentFlags.NodeId |
-                DataSetFieldContentFlags.DisplayName |
-                DataSetFieldContentFlags.EndpointUrl;
+                (isSampleMessage ?
+                     (DataSetFieldContentFlags.NodeId |
+                      DataSetFieldContentFlags.DisplayName |
+                      DataSetFieldContentFlags.EndpointUrl) :
+                      DataSetFieldContentFlags.ServerTimestamp )
+                ;
         }
 
         private static DataSetMessageContentFlags BuildDataSetContentMask(

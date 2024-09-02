@@ -451,12 +451,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
+        public async Task CanSendFullAndCompliantNetworkMessageWithEndpointUrlAndApplicationUriToIoTHubTest()
+        {
+            // Arrange
+            // Act
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(CanSendDataItemToIoTHubTest), "./Resources/DataItems.json", messageType: "ua-data",
+                arguments: new string[] { "--mm=PubSub", "--fm=true", "--strict" });
+
+            // Assert
+            var message = Assert.Single(messages).Message;
+            var firstDataSet = message.GetProperty("Messages")[0];
+            var payload = firstDataSet.GetProperty("Payload");
+            Assert.NotEqual(JsonValueKind.Null, payload.ValueKind);
+            var output = payload.GetProperty("Output");
+            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+            var ep = payload.GetProperty("EndpointUrl").GetProperty("Value").GetString();
+            Assert.False(string.IsNullOrEmpty(ep));
+            var appuri = payload.GetProperty("ApplicationUri").GetProperty("Value").GetString();
+            Assert.False(string.IsNullOrEmpty(appuri));
+
+            Assert.NotNull(metadata);
+            var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
+            Assert.Equal(JsonValueKind.Array, fields.ValueKind);
+            var fieldNames = fields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()).ToList();
+            Assert.Equal(3, fieldNames.Count);
+            Assert.Equal("Output", fieldNames[0]);
+            Assert.Equal("EndpointUrl", fieldNames[1]);
+            Assert.Equal("ApplicationUri", fieldNames[2]);
+        }
+
+        [Fact]
         public async Task CanSendKeyFramesWithExtensionFieldsToIoTHubTestJsonReversible()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToIoTHubTest), "./Resources/KeyFrames.json", messageType: "ua-data",
+            // NOTE: while we --fm and fullnetworkmessage, the keyframes.json overrides this back to PubSub
                 arguments: new string[] { "--mm=FullNetworkMessages", "--me=JsonReversible", "--fm=true", "--strict" });
 
             // Assert
@@ -469,6 +502,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var time = payload.GetProperty("CurrentTime").GetProperty("Value");
             Assert.NotEqual(JsonValueKind.Null, time.ValueKind);
             Assert.True(time.GetProperty("Body").GetDateTime() < DateTime.UtcNow);
+
+            var ep = payload.TryGetProperty("EndpointUrl", out _);
+            Assert.False(ep);
+            var appuri = payload.TryGetProperty("ApplicationUri", out _);
+            Assert.False(appuri);
+
             Assert.False(payload.GetProperty("Important").GetProperty("Value").GetProperty("Body").GetBoolean());
             Assert.Equal("5", payload.GetProperty("AssetId").GetProperty("Value").GetProperty("Body").GetString());
             Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetProperty("Body").GetString());
@@ -483,7 +522,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.All(expectedNames, n => fieldNames.Contains(n));
             // TODO: Need to have order in fields!  Assert.Equal(metadataFields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()),
             // TODO: Need to have order in fields!      payload.EnumerateObject().Select(p => p.Name));
-            Assert.NotNull(metadata);
         }
 
         [Fact]

@@ -343,6 +343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Collect metadata
         /// </summary>
         /// <param name="owner"></param>
+        /// <param name="dataSetFieldContentMask"></param>
         /// <param name="dataSetMetaData"></param>
         /// <param name="minorVersion"></param>
         /// <param name="ct"></param>
@@ -350,8 +351,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <exception cref="NotImplementedException"></exception>
         /// <exception cref="ServiceResultException"></exception>
         internal async ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
-            ISubscriber owner, DataSetMetaDataModel dataSetMetaData, uint minorVersion,
-            CancellationToken ct)
+            ISubscriber owner, DataSetFieldContentFlags? dataSetFieldContentMask,
+            DataSetMetaDataModel dataSetMetaData, uint minorVersion, CancellationToken ct)
         {
             if (Session is not OpcUaSession session)
             {
@@ -366,6 +367,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 await monitoredItem.GetMetaDataAsync(session, typeSystem,
                     fields, dataTypes, ct).ConfigureAwait(false);
+            }
+
+            //
+            // For full featured messages there are additional fields that are required
+            // see data set json dataset message encoder for more information. This will
+            // not apply to other encodings yet, since they do not support full featured
+            // message modes.
+            //
+            if ((dataSetFieldContentMask & DataSetFieldContentFlags.EndpointUrl) != 0)
+            {
+                AddExtraField(fields, nameof(DataSetFieldContentFlags.EndpointUrl));
+            }
+            if ((dataSetFieldContentMask & DataSetFieldContentFlags.ApplicationUri) != 0)
+            {
+                AddExtraField(fields, nameof(DataSetFieldContentFlags.ApplicationUri));
             }
 
             return new PublishedDataSetMetaDataModel
@@ -383,6 +399,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MinorVersion =
                     minorVersion
             };
+
+            static void AddExtraField(List<PublishedFieldMetaDataModel> fields,
+                string name)
+            {
+                fields.Add(new PublishedFieldMetaDataModel
+                {
+                    Name = name,
+                    DataType = "String",
+                    ValueRank = ValueRanks.Scalar,
+                    BuiltInType = (byte)BuiltInType.String
+                });
+            }
         }
 
         /// <summary>

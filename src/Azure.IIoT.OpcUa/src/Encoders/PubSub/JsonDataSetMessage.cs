@@ -160,9 +160,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     jsonEncoder.UseReversibleEncoding = useReversibleEncoding;
 
-                    if ((Payload.DataSetFieldContentMask &
-                        (DataSetFieldContentFlags.EndpointUrl |
-                         DataSetFieldContentFlags.ApplicationUri)) != 0)
+                    if ((Payload.DataSetFieldContentMask & (DataSetFieldContentFlags.EndpointUrl |
+                                                            DataSetFieldContentFlags.ApplicationUri)) != 0)
                     {
                         var extraFields = Enumerable.Empty<KeyValuePair<string, Opc.Ua.DataValue?>>();
                         if ((Payload.DataSetFieldContentMask & DataSetFieldContentFlags.EndpointUrl) != 0 &&
