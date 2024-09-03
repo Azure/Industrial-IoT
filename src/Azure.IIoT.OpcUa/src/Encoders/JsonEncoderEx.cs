@@ -1156,7 +1156,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public void WriteDataSet(string? property, DataSet? dataSet,
-            IEnumerable<KeyValuePair<string, DataValue?>>? extra = null)
+            IEnumerable<KeyValuePair<string, DataValue?>>? extraFields = null)
         {
             if (dataSet == null)
             {
@@ -1179,7 +1179,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = true;
                     UseReversibleEncoding = false;
-                    Write(property, dataSet, extra,
+                    Write(property, dataSet, extraFields,
                         (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
                 }
                 else if (fieldContentMask == 0)
@@ -1191,7 +1191,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = false;
                     UseReversibleEncoding = true;
-                    Write(property, dataSet, extra,
+                    Write(property, dataSet, extraFields,
                         (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
                 }
                 else
@@ -1201,7 +1201,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // the field value is a DataValue encoded using the non-reversible OPC UA
                     // JSON Data Encoding or reversible depending on encoder configuration.
                     //
-                    Write(property, dataSet, extra, (k, value) =>
+                    Write(property, dataSet, extraFields, (k, value) =>
                     {
                         PushObject(k);
                         try

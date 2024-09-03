@@ -57,7 +57,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Whether the subscription is online
         /// </summary>
         internal bool IsOnline
-            => Handle != null && Session?.Connected == true && !_closed;
+            => Session?.Connected == true && !IsClosed;
+
+        /// <summary>
+        /// Whether it is closed
+        /// </summary>
+        internal bool IsClosed
+            => _disposed || Handle == null;
 
         /// <summary>
         /// Currently monitored but unordered
@@ -160,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
 
             Initialize();
-            _timer = _timeProvider.CreateTimer(OnSubscriptionManagementTriggered, null,
+            _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -205,10 +211,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _unassignedNotifications = subscription._unassignedNotifications;
             _additionallyMonitored = subscription._additionallyMonitored;
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
-            _closed = subscription._closed;
 
             Initialize();
-            _timer = _timeProvider.CreateTimer(OnSubscriptionManagementTriggered, null,
+            _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -284,48 +289,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (disposing)
                 {
-                    lock (_lock)
+                    if (_disposed)
                     {
-                        if (_disposed)
-                        {
-                            // Double dispose
-                            Debug.Fail("Double dispose in subscription");
-                            return;
-                        }
-                        try
-                        {
-                            ResetMonitoredItemWatchdogTimer(false);
-                            _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                        // Double dispose
+                        Debug.Fail("Double dispose in subscription");
+                        return;
+                    }
+                    _disposed = true;
+                    try
+                    {
+                        ResetMonitoredItemWatchdogTimer(false);
+                        _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
-                            FastDataChangeCallback = null;
-                            FastEventCallback = null;
-                            FastKeepAliveCallback = null;
+                        FastDataChangeCallback = null;
+                        FastEventCallback = null;
+                        FastKeepAliveCallback = null;
 
-                            PublishStatusChanged -= OnPublishStatusChange;
-                            StateChanged -= OnStateChange;
+                        PublishStatusChanged -= OnPublishStatusChange;
+                        StateChanged -= OnStateChange;
 
-                            // When the entire session is disposed and recreated we must still dispose
-                            // all monitored items
-                            var items = CurrentlyMonitored.ToList();
-                            items.ForEach(item => item.Dispose());
-                            RemoveItems(MonitoredItems);
+                        // When the entire session is disposed and recreated we must still dispose
+                        // all monitored items
+                        var items = CurrentlyMonitored.ToList();
+                        items.ForEach(item => item.Dispose());
+                        RemoveItems(MonitoredItems);
 
-                            _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
-                            Debug.Assert(!CurrentlyMonitored.Any());
+                        _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+                        Debug.Assert(!CurrentlyMonitored.Any());
 
-                            _logger.LogInformation(
-                                "Disposed of subscription {Subscription} with all {Count} items in it...",
-                                this, items.Count);
-                        }
-                        finally
-                        {
-                            _keepAliveWatcher.Dispose();
-                            _monitoredItemWatcher.Dispose();
-                            _timer.Dispose();
-                            _meter.Dispose();
+                        _logger.LogInformation(
+                            "Disposed of subscription {Subscription} with all {Count} items in it...",
+                            this, items.Count);
+                    }
+                    finally
+                    {
+                        _keepAliveWatcher.Dispose();
+                        _monitoredItemWatcher.Dispose();
+                        _timer.Dispose();
+                        _meter.Dispose();
 
-                            _disposed = true;
-                        }
+                        Handle = null;
                     }
                 }
 
@@ -423,36 +426,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal OpcUaSubscriptionNotification? CreateKeepAlive()
         {
-            lock (_lock)
+            if (IsClosed)
             {
-                if (_disposed)
+                _logger.LogError("Subscription {Subscription} closed!", this);
+                return null;
+            }
+            try
+            {
+                var session = Session;
+                if (session == null)
                 {
-                    _logger.LogError("Subscription {Subscription} already DISPOSED!", this);
                     return null;
                 }
-                try
+                return new OpcUaSubscriptionNotification(this, session.MessageContext,
+                    Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
                 {
-                    var session = Session;
-                    if (session == null)
-                    {
-                        return null;
-                    }
-                    return new OpcUaSubscriptionNotification(this, session.MessageContext,
-                        Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
-                    {
-                        ApplicationUri = session.Endpoint.Server.ApplicationUri,
-                        EndpointUrl = session.Endpoint.EndpointUrl,
-                        SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                        MessageType = MessageType.KeepAlive
-                    };
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        "Failed to create a subscription notification for subscription {Subscription}.",
-                        this);
-                    return null;
-                }
+                    ApplicationUri = session.Endpoint.Server.ApplicationUri,
+                    EndpointUrl = session.Endpoint.EndpointUrl,
+                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                    MessageType = MessageType.KeepAlive
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to create a subscription notification for subscription {Subscription}.",
+                    this);
+                return null;
             }
         }
 
@@ -467,14 +467,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal async ValueTask CloseAsync(ISession? session, CancellationToken ct)
         {
-            if (!_closed)
+            if (IsClosed)
             {
-                _logger.LogWarning("Hard close subscription {Subscription} in session {Session}.",
-                    this, session);
-                _closed = true;
+                return;
             }
 
-            // Finalize closing the subscription
+            Debug.Assert(Session != null);
+            Handle = null; // Mark as closed
+
             ResetKeepAliveTimer();
             ResetMonitoredItemWatchdogTimer(false);
 
@@ -491,11 +491,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal async ValueTask SyncAsync(CancellationToken ct)
         {
-            Debug.Assert(Session != null);
-            if (_disposed || _closed)
+            if (IsClosed)
             {
                 return;
             }
+
+            Debug.Assert(Session != null);
 
             TriggerSubscriptionManagementCallbackIn(Timeout.InfiniteTimeSpan);
 
@@ -696,13 +697,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task CloseCurrentSubscriptionAsync()
         {
             ResetKeepAliveTimer();
-            if (Handle == null)
-            {
-                // Already closed
-                return;
-            }
-
-            Handle = null;
             try
             {
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
@@ -1309,6 +1303,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogInformation(
                     "========  Closing subscription {Subscription} and re-creating =========", this);
                 // Does not throw
+
+                Handle = null; // Mark close
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 Debug.Assert(Session == null);
             }
@@ -1500,25 +1496,11 @@ Actual (revised) state/desired state:
         }
 
         /// <summary>
-        /// The subscription management timer expired. This timer is used to
-        /// retry applying state to the subscription in the current session
-        /// if previous application failed.
-        /// </summary>
-        /// <param name="state"></param>
-        private void OnSubscriptionManagementTriggered(object? state)
-        {
-            lock (_lock)
-            {
-                TriggerManageSubscription();
-            }
-        }
-
-        /// <summary>
         /// Trigger managing of this subscription, ensure client exists if it is null
         /// </summary>
         private void TriggerManageSubscription()
         {
-            if (_disposed || _closed)
+            if (IsClosed)
             {
                 return;
             }
@@ -1954,39 +1936,36 @@ Actual (revised) state/desired state:
         internal bool TryGetNotifications(ISubscriber owner,
             [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
         {
-            lock (_lock)
+            try
             {
-                try
-                {
-                    if (Handle == null)
-                    {
-                        notifications = null;
-                        return false;
-                    }
-
-                    var collector = new OpcUaMonitoredItem.MonitoredItemNotifications();
-                    // Ensure we order by client handle exactly like the meta data is ordered
-                    foreach (var item in CurrentlyMonitored
-                        .Where(m => m.Owner == owner).OrderBy(m => m.ClientHandle))
-                    {
-                        item.TryGetLastMonitoredItemNotifications(collector);
-                    }
-
-                    if (!collector.Notifications.TryGetValue(owner, out var notitfs))
-                    {
-                        notifications = null;
-                        return false;
-                    }
-                    notifications = notitfs;
-                    return true;
-                }
-                catch (Exception ex)
+                if (IsClosed)
                 {
                     notifications = null;
-                    _logger.LogError(ex, "Failed to get a notifications from monitored " +
-                        "items in subscription {Subscription}.", this);
                     return false;
                 }
+
+                var collector = new OpcUaMonitoredItem.MonitoredItemNotifications();
+                // Ensure we order by client handle exactly like the meta data is ordered
+                foreach (var item in CurrentlyMonitored
+                    .Where(m => m.Owner == owner).OrderBy(m => m.ClientHandle))
+                {
+                    item.TryGetLastMonitoredItemNotifications(collector);
+                }
+
+                if (!collector.Notifications.TryGetValue(owner, out var actualNotifications))
+                {
+                    notifications = null;
+                    return false;
+                }
+                notifications = actualNotifications;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                notifications = null;
+                _logger.LogError(ex, "Failed to get a notifications from monitored " +
+                    "items in subscription {Subscription}.", this);
+                return false;
             }
         }
 
@@ -2142,7 +2121,7 @@ Actual (revised) state/desired state:
                 case SubscriptionWatchdogBehavior.Reset:
                     ResetMonitoredItemWatchdogTimer(false);
                     _forceRecreate = true;
-                    OnSubscriptionManagementTriggered(this);
+                    TriggerManageSubscription();
                     break;
                 case SubscriptionWatchdogBehavior.FailFast:
                     Publisher.Runtime.FailFast(msg, null);
@@ -2435,7 +2414,6 @@ Actual (revised) state/desired state:
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
         private bool _firstDataChangeReceived;
-        private bool _closed;
         private bool _forceRecreate;
         private readonly OpcUaClient _client;
         private readonly IOptions<OpcUaSubscriptionOptions> _options;
@@ -2464,7 +2442,6 @@ Actual (revised) state/desired state:
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
-        private readonly object _lock = new();
         private readonly object _timers = new();
     }
 }

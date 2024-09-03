@@ -133,7 +133,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             [NotNullWhen(true)] out OpcUaSubscription? subscription)
         {
             // Fast lookup
-            if (_cache.TryGetValue(template, out subscription))
+            if (_cache.TryGetValue(template, out subscription) &&
+                !subscription.IsClosed)
             {
                 return true;
             }
