@@ -323,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Adjust to the diff between now and received if desired
                     // Should not be possible that last value received is null, nevertheless.
                     var diffTime = LastReceivedTime.HasValue ?
-                        TimeProvider.GetUtcNow() - LastReceivedTime.Value : TimeSpan.Zero;
+                        e.SignalTime - LastReceivedTime.Value : TimeSpan.Zero;
 
                     lastValue = new DataValue(lastValue)
                     {
@@ -353,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 callback(Owner, MessageType.DeltaFrame, heartbeat.YieldReturn().ToList(),
                     diagnosticsOnly: (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
-                        == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly);
+                        == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly, timestamp: e.SignalTime);
             }
 
             /// <summary>

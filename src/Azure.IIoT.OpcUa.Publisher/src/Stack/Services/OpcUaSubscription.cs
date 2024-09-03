@@ -556,9 +556,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="session"></param>
         /// <param name="eventTypeName"></param>
         /// <param name="diagnosticsOnly"></param>
-        internal void SendNotification(ISubscriber callback,
-            MessageType messageType, IList<MonitoredItemNotificationModel> notifications,
-            ISession? session, string? eventTypeName, bool diagnosticsOnly)
+        /// <param name="timestamp"></param>
+        internal void SendNotification(ISubscriber callback, MessageType messageType,
+            IList<MonitoredItemNotificationModel> notifications, ISession? session,
+            string? eventTypeName, bool diagnosticsOnly, DateTimeOffset? timestamp)
         {
             var curSession = session ?? Session;
             var messageContext = curSession?.MessageContext;
@@ -579,7 +580,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var message = new OpcUaSubscriptionNotification(this, messageContext, notifications,
-                _timeProvider)
+                _timeProvider, createdTimestamp: timestamp)
             {
                 ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri,
                 EndpointUrl = curSession?.Endpoint?.EndpointUrl,

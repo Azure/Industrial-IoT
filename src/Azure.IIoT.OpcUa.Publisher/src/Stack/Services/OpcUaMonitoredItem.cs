@@ -51,11 +51,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <param name="session"></param>
     /// <param name="eventTypeName"></param>
     /// <param name="diagnosticsOnly"></param>
-    public delegate void Callback(
-        ISubscriber owner, MessageType messageType,
+    /// <param name="timestamp"></param>
+    public delegate void Callback(ISubscriber owner, MessageType messageType,
         IList<MonitoredItemNotificationModel> notifications,
         ISession? session = null, string? eventTypeName = null,
-        bool diagnosticsOnly = false);
+        bool diagnosticsOnly = false, DateTimeOffset? timestamp = null);
 
     /// <summary>
     /// Monitored item

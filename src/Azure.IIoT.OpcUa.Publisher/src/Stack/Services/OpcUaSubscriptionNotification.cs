@@ -59,17 +59,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="timeProvider"></param>
         /// <param name="advance"></param>
         /// <param name="sequenceNumber"></param>
+        /// <param name="createdTimestamp"></param>
         internal OpcUaSubscriptionNotification(OpcUaSubscription outer,
             IServiceMessageContext messageContext,
             IList<MonitoredItemNotificationModel> notifications,
             TimeProvider timeProvider, IDisposable? advance = null,
-            uint? sequenceNumber = null)
+            uint? sequenceNumber = null, DateTimeOffset? createdTimestamp = null)
         {
             _outer = outer;
             _advance = advance;
 
             PublishSequenceNumber = sequenceNumber;
-            CreatedTimestamp = timeProvider.GetUtcNow();
+            CreatedTimestamp = createdTimestamp ?? timeProvider.GetUtcNow();
             ServiceMessageContext = messageContext;
 
             Notifications = notifications;
