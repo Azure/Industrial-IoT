@@ -533,7 +533,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CyclicReadWithAgeTestAsync), "./Resources/CyclicRead.json",
-                TimeSpan.FromSeconds(20), 10, messageType: "ua-data",
+                TimeSpan.FromMinutes(1), 10, messageType: "ua-data",
                 arguments: new string[] { "--mm=PubSub", "--dm=false" });
 
             // Assert

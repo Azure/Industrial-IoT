@@ -317,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                         Debug.Assert(!CurrentlyMonitored.Any());
-                        _logger.LogInformation("Disposed Subscription {Subscription} (items: {Count)}.",
+                        _logger.LogInformation("Disposed Subscription {Subscription} (with {Count)} items).",
                             this, items.Count);
                     }
                     finally

@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogInformation("{Session}: Session disposed.",
+                    _logger.LogDebug("{Session}: Session disposed.",
                         sessionName);
                 }
                 finally

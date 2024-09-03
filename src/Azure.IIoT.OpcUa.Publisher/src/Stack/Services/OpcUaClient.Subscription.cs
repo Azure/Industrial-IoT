@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_registrations.TryGetValue(subscriber, out var existing) &&
                         existing.Subscription != subscription)
                     {
-                        await existing.DisposeAsync().ConfigureAwait(false);
+                        existing.RemoveFromRegistration();
                         Debug.Assert(!_registrations.ContainsKey(subscriber));
                     }
 
@@ -191,9 +191,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var updates = 0;
             var existing = session.SubscriptionHandles.ToDictionary(k => k.Template);
 
+            _logger.LogInformation(
+                "{Client}: Perform synchronization of subscriptions (total: {Total})",
+                this, session.SubscriptionHandles.Count);
+
             await EnsureSessionIsReadyForSubscriptionsAsync(session,
                 ct).ConfigureAwait(false);
-
             //
             // Take the subscription lock here! - we hold it all the way until we
             // have updated all subscription states. The subscriptions will access
@@ -426,7 +429,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _outer._subscriptionLock.WaitAsync().ConfigureAwait(false);
                 try
                 {
-                    _outer._registrations.Remove(_owner);
+                    RemoveFromRegistration();
+
                     _outer.TriggerSubscriptionSynchronization(null);
                 }
                 finally
@@ -434,6 +438,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _outer._subscriptionLock.Release();
                     _outer.Release();
                 }
+            }
+
+            public void RemoveFromRegistration()
+            {
+                _outer._registrations.Remove(_owner);
             }
 
             /// <inheritdoc/>

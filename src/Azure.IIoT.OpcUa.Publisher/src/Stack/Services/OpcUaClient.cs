@@ -887,13 +887,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                             Debug.Assert(_session != null);
 
+                                            // Sync subscriptions
+                                            await SyncAsync(ct).ConfigureAwait(false);
+
                                             // Allow access to session now
                                             Debug.Assert(_disconnectLock != null);
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
-
-                                            // Sync subscriptions
-                                            await SyncAsync(ct).ConfigureAwait(false);
 
                                             currentSessionState = SessionState.Connected;
                                             currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
@@ -1044,14 +1044,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
             }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Client}: Exception in management loop.", this);
+                throw;
+            }
             finally
             {
                 if (currentSessionState != SessionState.Disconnected)
                 {
+                    _logger.LogInformation(
+                        "{Client}: Disconnect because client is disposed.", this);
                     await HandleDisconnectEvent(default).ConfigureAwait(false);
                     currentSessionState = SessionState.Disconnected;
                 }
-                _logger.LogDebug("{Client}: Exiting client management loop.", this);
+                _logger.LogInformation("{Client}: Exiting client management loop.", this);
             }
 
             async ValueTask HandleDisconnectEvent(CancellationToken cancellationToken)
@@ -1066,16 +1074,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
 
-                // Clean up
                 if (_session?.Connected == true)
                 {
                     _session.SubscriptionHandles.ForEach(h =>
                         h.NotifySessionConnectionState(true));
-
-                    // Technically unecessary as we have a ref per registration
-                    _registrations.Clear();
-
-                    await SyncAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 await CloseSessionAsync().ConfigureAwait(false);
@@ -1284,7 +1286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         continue;
                     }
                     _logger.LogInformation(
-                        "#{Attempt} - {Client}: Creating session {Name} with endpoint {EndpointUrl}...",
+                        "{Client}: #{Attempt} - Creating session {Name} with endpoint {EndpointUrl}...",
                         ++attempt, this, _sessionName, endpointUrl);
 
                     var preferredLocales = _connection.Locales?.ToList() ?? new List<string>();
@@ -1316,7 +1318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
                         this, _sessionName, endpointUrl, _connection.Endpoint.Url);
 
-                    _logger.LogInformation("Client {Client} CONNECTED to {EndpointUrl}!",
+                    _logger.LogInformation("{Client} Client CONNECTED to {EndpointUrl}!",
                         this, endpointUrl);
                     return true;
                 }
