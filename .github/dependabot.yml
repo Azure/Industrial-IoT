@@ -11,4 +11,4 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 25
     # Raise pull requests in worker branch nuget
-    target-branch: "nuget"    
+    target-branch: "nuget"
