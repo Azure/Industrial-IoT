@@ -100,14 +100,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal void TriggerSubscriptionSynchronization(
             OpcUaSubscription? subscription = null)
         {
-            if (subscription == null)
-            {
-                TriggerConnectionEvent(ConnectionEvent.SubscriptionSyncAll);
-            }
-            else
+            if (subscription?.IsClosed == false)
             {
                 TriggerConnectionEvent(ConnectionEvent.SubscriptionSyncOne,
                     subscription);
+            }
+            else
+            {
+                TriggerConnectionEvent(ConnectionEvent.SubscriptionSyncAll);
             }
         }
 
@@ -186,7 +186,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             var sw = Stopwatch.StartNew();
-            var numberOfOperations = 0;
+            var removals = 0;
+            var additions = 0;
+            var updates = 0;
             var existing = session.SubscriptionHandles.ToDictionary(k => k.Template);
 
             await EnsureSessionIsReadyForSubscriptionsAsync(session,
@@ -220,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             // Removes the item from the session and dispose
                             await close.DisposeAsync().ConfigureAwait(false);
 
-                            Interlocked.Increment(ref numberOfOperations);
+                            Interlocked.Increment(ref removals);
                             Debug.Assert(close.IsClosed);
                             Debug.Assert(close.Session == null);
                         }
@@ -258,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                             // Sync the subscription which will get it to go live.
                             await subscription.SyncAsync(ct).ConfigureAwait(false);
-                            Interlocked.Increment(ref numberOfOperations);
+                            Interlocked.Increment(ref additions);
                             Debug.Assert(session == subscription.Session);
 
                             registered[add].ForEach(r => r.Value.Dirty = false);
@@ -281,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             var subscription = existing[update];
                             await subscription.SyncAsync(ct).ConfigureAwait(false);
-                            Interlocked.Increment(ref numberOfOperations);
+                            Interlocked.Increment(ref updates);
                             Debug.Assert(session == subscription.Session);
                             registered[update].ForEach(r => r.Value.Dirty = false);
                         }
@@ -307,17 +309,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.UpdateOperationTimeout(false);
             UpdatePublishRequestCounts();
 
-            if (numberOfOperations < 2)
+            if (updates + removals + additions == 0)
             {
-                // Limit logging
                 return;
             }
 
-            // Clear the node cache - TODO: we should have a real node cache here
-            session?.NodeCache.Clear();
-
-            _logger.LogInformation("{Client}: Applied {Count} changes to subscriptions " +
-                "in session took {Duration}.", this, numberOfOperations, sw.Elapsed);
+            _logger.LogInformation("{Client}: Removed {Removals}, added {Additions} new and " +
+                "updated {Updates} subscriptions in session took {Duration}.", this, removals,
+                additions, updates, sw.Elapsed);
         }
 
         /// <summary>

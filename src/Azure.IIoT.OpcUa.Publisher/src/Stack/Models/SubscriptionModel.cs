@@ -81,11 +81,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// in the subscription.
         /// </summary>
         public bool? ResolveBrowsePathFromRoot { get; init; }
-
-        /// <inheritdoc/>
-        public override string ToString()
-        {
-            return $"{GetHashCode():X8}(Prio:{Priority ?? 0}/Rate:{PublishingInterval})";
-        }
     }
 }

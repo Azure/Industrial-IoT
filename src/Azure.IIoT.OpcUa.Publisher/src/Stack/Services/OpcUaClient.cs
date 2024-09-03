@@ -1021,8 +1021,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                     break;
                                 case ConnectionEvent.Disconnect:
-                                    await HandleDisconnectEvent(ct).ConfigureAwait(false);
-                                    currentSessionState = SessionState.Disconnected;
+                                    if (currentSessionState != SessionState.Disconnected)
+                                    {
+                                        await HandleDisconnectEvent(ct).ConfigureAwait(false);
+                                        currentSessionState = SessionState.Disconnected;
+                                    }
                                     break;
                             }
 
@@ -1046,6 +1049,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (currentSessionState != SessionState.Disconnected)
                 {
                     await HandleDisconnectEvent(default).ConfigureAwait(false);
+                    currentSessionState = SessionState.Disconnected;
                 }
                 _logger.LogDebug("{Client}: Exiting client management loop.", this);
             }
@@ -1063,15 +1067,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
 
                 // Clean up
-                if (_session != null)
+                if (_session?.Connected == true)
                 {
                     _session.SubscriptionHandles.ForEach(h =>
                         h.NotifySessionConnectionState(true));
 
                     // Technically unecessary as we have a ref per registration
                     _registrations.Clear();
+
                     await SyncAsync(cancellationToken).ConfigureAwait(false);
                 }
+
                 await CloseSessionAsync().ConfigureAwait(false);
                 Debug.Assert(_session == null);
             }

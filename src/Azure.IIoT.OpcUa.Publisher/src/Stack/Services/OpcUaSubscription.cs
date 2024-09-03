@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public SubscriptionModel Template { get; }
 
         /// <inheritdoc/>
-        public string Name => Template.ToString();
+        public string Name { get; }
 
         /// <inheritdoc/>
         public ushort LocalIndex { get; }
@@ -158,7 +158,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _timeProvider = timeProvider ?? TimeProvider.System;
+
             Template = template;
+            Name = $"{Template.GetHashCode():X8}(Prio:{Template.Priority ?? 0}" +
+               $"/Rate:{Template.PublishingInterval ?? TimeSpan.Zero})";
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
             _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
@@ -193,6 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _metrics = subscription._metrics;
             _firstDataChangeReceived = subscription._firstDataChangeReceived;
             Template = subscription.Template;
+            Name = subscription.Name;
 
             LocalIndex = subscription.LocalIndex;
             _client = subscription._client;
@@ -239,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{Id}:{Template}";
+            return $"{Id}:{Name}";
         }
 
         /// <inheritdoc/>
