@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
-                result = await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel(), Ct);
+                result = await PublisherApi.UnpublishAllNodesAsync(ct: Ct);
                 Assert.NotNull(result);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -194,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
-                await PublisherApi.UnpublishAllNodesAsync(new PublishedNodesEntryModel(), Ct);
+                await PublisherApi.UnpublishAllNodesAsync(ct: Ct);
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
@@ -213,6 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
+                _output.WriteLine("Removing items...");
                 await PublisherApi.UnpublishNodesAsync(testInput3[0], Ct);
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);
                 Assert.Equal(2, nodes.OpcNodes.Count);
@@ -220,6 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);
                 Assert.Single(nodes.OpcNodes);
 
+                _output.WriteLine("Waiting for remaining...");
                 var messages = await WaitForMessagesAsync(GetDataFrame);
                 var message = Assert.Single(messages);
                 Assert.Equal("ns=23;i=1259", message.Message.GetProperty("NodeId").GetString());

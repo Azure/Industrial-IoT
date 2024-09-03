@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "discoveryUrl", Order = 0)]
         [Required]
-        public string? DiscoveryUrl { get; set; }
+        public required string DiscoveryUrl { get; set; }
 
         /// <summary>
         /// User defined request id

@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "gateway", Order = 0)]
         [Required]
-        public GatewayModel? Gateway { get; set; }
+        public required GatewayModel Gateway { get; set; }
 
         /// <summary>
         /// Gateway modules

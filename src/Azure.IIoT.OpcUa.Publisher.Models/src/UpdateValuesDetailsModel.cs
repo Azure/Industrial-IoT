@@ -20,6 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "values", Order = 0)]
         [Required]
-        public IReadOnlyList<HistoricValueModel>? Values { get; set; }
+        public required IReadOnlyList<HistoricValueModel> Values { get; set; }
     }
 }

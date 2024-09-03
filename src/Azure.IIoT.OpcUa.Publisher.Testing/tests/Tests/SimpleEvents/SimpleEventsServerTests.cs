@@ -32,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
-                Query = "select * from BaseEventType"
+                Query = "select * from BaseEventType",
+                QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
@@ -132,7 +133,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 Query = "prefix se <http://opcfoundation.org/SimpleEvents> " +
                     $"select * from se:i={ObjectTypes.SystemCycleStartedEventType} " +
-                    $"where oftype se:i={ObjectTypes.SystemCycleStartedEventType}"
+                    $"where oftype se:i={ObjectTypes.SystemCycleStartedEventType}",
+                QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);

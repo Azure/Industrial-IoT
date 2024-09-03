@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "attributes", Order = 0)]
         [Required]
-        public IReadOnlyList<AttributeReadRequestModel>? Attributes { get; set; }
+        public required IReadOnlyList<AttributeReadRequestModel> Attributes { get; set; }
 
         /// <summary>
         /// Optional request header

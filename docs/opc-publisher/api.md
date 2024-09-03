@@ -745,7 +745,7 @@ Unpublish all specified nodes or all nodes in the publisher configuration. Furth
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**body**  <br>*required*|The request contains the parts of the configuration to remove.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
+|**Body**|**body**  <br>*optional*|The request contains the parts of the configuration to remove.|[PublishedNodesEntryModel](definitions.md#publishednodesentrymodel)|
 
 
 ##### Responses

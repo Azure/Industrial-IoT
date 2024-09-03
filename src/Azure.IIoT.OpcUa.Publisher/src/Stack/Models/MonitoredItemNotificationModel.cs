@@ -61,10 +61,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Source flags
         /// </summary>
         public MonitoredItemSourceFlags Flags { get; set; }
-
-        /// <summary>
-        /// Opaque context
-        /// </summary>
-        public required object? Context { get; set; }
     }
 }

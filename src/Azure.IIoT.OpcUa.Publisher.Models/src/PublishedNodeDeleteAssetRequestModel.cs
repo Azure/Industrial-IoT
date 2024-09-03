@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -27,8 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// to be deleted. It must contain the as well as the writer
         /// id which represents the asset id.
         /// </summary>
-        [DataMember(Name = "entry", Order = 2,
-            EmitDefaultValue = false)]
+        [DataMember(Name = "entry", Order = 2)]
+        [Required]
         public required PublishedNodesEntryModel Entry { get; init; }
 
         /// <summary>

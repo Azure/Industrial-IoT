@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "item", Order = 0)]
         [Required]
-        public PublishedItemModel? Item { get; set; }
+        public required PublishedItemModel Item { get; set; }
 
         /// <summary>
         /// Optional request header

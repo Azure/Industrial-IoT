@@ -5,45 +5,57 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using System.Collections.Generic;
+
     /// <summary>
-    /// Subscription callbacks
+    /// Lightweight subscription a client can create on
+    /// a connection providing monitored items.
     /// </summary>
-    public interface ISubscriptionCallbacks
+    public interface ISubscriber
     {
         /// <summary>
-        /// Called when the subscription is updated
+        /// The monitored items that shall be monitored in this
+        /// subscription. If the list is updated the registration
+        /// object must be updated and the list is read again.
         /// </summary>
-        /// <param name="subscriptionHandle"></param>
-        public void OnSubscriptionUpdated(
-            ISubscriptionHandle? subscriptionHandle);
+        IEnumerable<BaseMonitoredItemModel> MonitoredItems { get; }
+
+        /// <summary>
+        /// The semantics of the desired monitored items
+        /// changed, therefore the subscriber should update
+        /// its information
+        /// </summary>
+        void OnMonitoredItemSemanticsChanged();
 
         /// <summary>
         /// Called when a keep alive notification is received
+        /// in the subscription.
         /// </summary>
         /// <param name="notification"></param>
-        public void OnSubscriptionKeepAlive(
-            IOpcUaSubscriptionNotification notification);
+        void OnSubscriptionKeepAlive(
+            OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when subscription data changes
         /// </summary>
         /// <param name="notification"></param>
-        public void OnSubscriptionDataChangeReceived(
-            IOpcUaSubscriptionNotification notification);
+        void OnSubscriptionDataChangeReceived(
+            OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when sampled values were received
         /// </summary>
         /// <param name="notification"></param>
-        public void OnSubscriptionCyclicReadCompleted(
-            IOpcUaSubscriptionNotification notification);
+        void OnSubscriptionCyclicReadCompleted(
+            OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when event changes
         /// </summary>
         /// <param name="notification"></param>
-        public void OnSubscriptionEventReceived(
-            IOpcUaSubscriptionNotification notification);
+        void OnSubscriptionEventReceived(
+            OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// ChannelDiagnostics for data change notifications

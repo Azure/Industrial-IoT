@@ -323,7 +323,7 @@ namespace Asset
 
         private void Reconnect()
         {
-            Debug.Assert(_lock.CurrentCount == 1,
+            Debug.Assert(_lock.CurrentCount == 0,
                 "Reconnect should not be called concurrently");
             _tcpClient?.Dispose();
             var port = _address.Port == 0 ? kIanaPort : _address.Port;

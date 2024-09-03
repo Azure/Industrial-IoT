@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
                 // Limit size of batches to a reasonable default to avoid communication timeouts.
                 request.MaxReferencesToReturn = 500;
                 var result = await service.NodeBrowseFirstAsync(endpoint, request, ct).ConfigureAwait(false);
-                var references = result.References?.ToList();
+                var references = result.References.ToList();
                 while (result.ContinuationToken != null)
                 {
                     Debug.Assert(references != null);
@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
                         references.AddRange(next.References);
                         result.ContinuationToken = next.ContinuationToken;
                     }
-                    catch (Exception)
+                    catch (Exception) when (result.ContinuationToken != null)
                     {
                         await Try.Async(() => service.NodeBrowseNextAsync(endpoint,
                             new BrowseNextRequestModel

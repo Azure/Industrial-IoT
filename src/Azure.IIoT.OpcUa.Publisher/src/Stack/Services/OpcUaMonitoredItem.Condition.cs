@@ -36,12 +36,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create condition item
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Condition(EventMonitoredItemModel template,
+            public Condition(ISubscriber owner, EventMonitoredItemModel template,
                 ILogger<Event> logger, TimeProvider timeProvider) :
-                base(template, logger, timeProvider)
+                base(owner, template, logger, timeProvider)
             {
                 _snapshotInterval = template.ConditionHandling?.SnapshotInterval
                     ?? throw new ArgumentException("Invalid snapshot interval");
@@ -127,8 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override bool ProcessEventNotification(uint sequenceNumber, DateTimeOffset publishTime,
-                EventFieldList eventFields, IList<MonitoredItemNotificationModel> notifications)
+            protected override bool ProcessEventNotification(DateTimeOffset publishTime,
+                EventFieldList eventFields, MonitoredItemNotifications notifications)
             {
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
@@ -198,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var monitoredItemNotifications = ToMonitoredItemNotifications(
-                    sequenceNumber, eventFields).ToList();
+                    eventFields).ToList();
                 var conditionIdIndex = state.ConditionIdIndex;
                 var retainIndex = state.RetainIndex;
                 if (conditionIdIndex < monitoredItemNotifications.Count &&
@@ -424,8 +425,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 foreach (var conditionNotification in notifications)
                 {
-                    callback(MessageType.Condition, conditionNotification,
-                        dataSetName: DataSetName);
+                    callback(Owner, MessageType.Condition, conditionNotification,
+                        eventTypeName: EventTypeName);
                 }
             }
 

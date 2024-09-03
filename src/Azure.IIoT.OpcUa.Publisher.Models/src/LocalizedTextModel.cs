@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Text
         /// </summary>
         [DataMember(Name = "text", Order = 0)]
-        public string Text { get; set; } = null!;
+        public required string Text { get; set; }
 
         /// <summary>
         /// Locale or null for default locale

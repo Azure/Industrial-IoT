@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Unique application id
         /// </summary>
         [DataMember(Name = "applicationId", Order = 0)]
-        public string ApplicationId { get; set; } = null!;
+        public required string ApplicationId { get; set; }
 
         /// <summary>
         /// Type of application
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Unique application uri
         /// </summary>
         [DataMember(Name = "applicationUri", Order = 2)]
-        public string ApplicationUri { get; set; } = null!;
+        public required string ApplicationUri { get; set; }
 
         /// <summary>
         /// Product uri

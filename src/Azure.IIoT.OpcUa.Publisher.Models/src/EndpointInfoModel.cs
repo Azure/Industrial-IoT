@@ -20,14 +20,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "registration", Order = 0)]
         [Required]
-        public EndpointRegistrationModel Registration { get; set; } = null!;
+        public required EndpointRegistrationModel Registration { get; set; }
 
         /// <summary>
         /// Application id endpoint is registered under.
         /// </summary>
         [DataMember(Name = "applicationId", Order = 1)]
         [Required]
-        public string ApplicationId { get; set; } = null!;
+        public required string ApplicationId { get; set; }
 
         /// <summary>
         /// Last state of the endpoint

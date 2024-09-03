@@ -31,7 +31,7 @@ List of registered applications
 |Name|Description|Schema|
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation or null if final|string|
-|**items**  <br>*optional*|Application infos|< [ApplicationInfoModel](definitions.md#applicationinfomodel) > array|
+|**items**  <br>*required*|Application infos|< [ApplicationInfoModel](definitions.md#applicationinfomodel) > array|
 
 
 <a name="applicationinfomodel"></a>
@@ -41,10 +41,10 @@ Application info model
 
 |Name|Description|Schema|
 |---|---|---|
-|**applicationId**  <br>*optional*|Unique application id|string|
+|**applicationId**  <br>*required*|Unique application id|string|
 |**applicationName**  <br>*optional*|Default name of application|string|
 |**applicationType**  <br>*optional*||[ApplicationType](definitions.md#applicationtype)|
-|**applicationUri**  <br>*optional*|Unique application uri|string|
+|**applicationUri**  <br>*required*|Unique application uri|string|
 |**capabilities**  <br>*optional*|The capabilities advertised by the server.|< string > array|
 |**created**  <br>*optional*||[OperationContextModel](definitions.md#operationcontextmodel)|
 |**discovererId**  <br>*optional*|Discoverer that registered the application|string|
@@ -119,7 +119,7 @@ Result of an application registration
 
 |Name|Description|Schema|
 |---|---|---|
-|**id**  <br>*optional*|New id application was registered under|string|
+|**id**  <br>*required*|New id application was registered under|string|
 
 
 <a name="applicationregistrationupdatemodel"></a>
@@ -177,7 +177,7 @@ Attribute value read
 |Name|Description|Schema|
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**value**  <br>*optional*|Attribute value|object|
+|**value**  <br>*required*|Attribute value|object|
 
 
 <a name="attributewriterequestmodel"></a>
@@ -251,8 +251,8 @@ Browse response model
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**node**  <br>*optional*||[NodeModel](definitions.md#nodemodel)|
-|**references**  <br>*optional*|References, if included, otherwise null.|< [NodeReferenceModel](definitions.md#nodereferencemodel) > array|
+|**node**  <br>*required*||[NodeModel](definitions.md#nodemodel)|
+|**references**  <br>*required*|References returned|< [NodeReferenceModel](definitions.md#nodereferencemodel) > array|
 
 
 <a name="browsenextrequestmodel"></a>
@@ -279,7 +279,7 @@ Result of node browse continuation
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**references**  <br>*optional*|References, if included, otherwise null.|< [NodeReferenceModel](definitions.md#nodereferencemodel) > array|
+|**references**  <br>*required*|References returned|< [NodeReferenceModel](definitions.md#nodereferencemodel) > array|
 
 
 <a name="browsepathrequestmodel"></a>
@@ -291,7 +291,7 @@ Browse nodes by path
 |---|---|---|
 |**browsePaths**  <br>*required*|The paths to browse from node.<br>(mandatory)|< < string > array > array|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*optional*|Node to browse from.<br>(defaults to root folder).|string|
+|**nodeId**  <br>*optional*|Node to browse from (defaults to root folder).|string|
 |**nodeIdsOnly**  <br>*optional*|Whether to only return the raw node id<br>information and not read the target node.<br>(default is false)|boolean|
 |**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
 
@@ -429,7 +429,7 @@ Request node history update
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**details**  <br>*required*||[DeleteEventsDetailsModel](definitions.md#deleteeventsdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to update (mandatory without browse path)|string|
 
 
 <a name="deletevaluesattimesdetailsmodel"></a>
@@ -452,7 +452,7 @@ Request node history update
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**details**  <br>*required*||[DeleteValuesAtTimesDetailsModel](definitions.md#deletevaluesattimesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to update (mandatory without browse path)|string|
 
 
 <a name="deletevaluesdetailsmodel"></a>
@@ -476,7 +476,7 @@ Request node history update
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**details**  <br>*required*||[DeleteValuesDetailsModel](definitions.md#deletevaluesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to update (mandatory without browse path)|string|
 
 
 <a name="diagnosticslevel"></a>
@@ -604,7 +604,7 @@ Endpoint info list
 |Name|Description|Schema|
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation or null if final|string|
-|**items**  <br>*optional*|Endpoint infos|< [EndpointInfoModel](definitions.md#endpointinfomodel) > array|
+|**items**  <br>*required*|Endpoint infos|< [EndpointInfoModel](definitions.md#endpointinfomodel) > array|
 
 
 <a name="endpointinfomodel"></a>
@@ -631,7 +631,7 @@ Endpoint model
 |**certificate**  <br>*optional*|Endpoint certificate thumbprint|string|
 |**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
 |**securityPolicy**  <br>*optional*|Security policy uri to use for communication.<br>default to best.|string|
-|**url**  <br>*optional*|Endpoint url to use to connect with|string|
+|**url**  <br>*required*|Endpoint url to use to connect with  <br>**Minimum length** : `1`|string|
 
 
 <a name="endpointregistrationmodel"></a>
@@ -675,9 +675,9 @@ Event filter
 
 |Name|Description|Schema|
 |---|---|---|
-|**selectClauses**  <br>*required*|Select clauses|< [SimpleAttributeOperandModel](definitions.md#simpleattributeoperandmodel) > array|
+|**selectClauses**  <br>*optional*|Select clauses|< [SimpleAttributeOperandModel](definitions.md#simpleattributeoperandmodel) > array|
 |**typeDefinitionId**  <br>*optional*|Simple event Type definition node id|string|
-|**whereClause**  <br>*required*||[ContentFilterModel](definitions.md#contentfiltermodel)|
+|**whereClause**  <br>*optional*||[ContentFilterModel](definitions.md#contentfiltermodel)|
 
 
 <a name="exceptiondeviationtype"></a>
@@ -782,7 +782,7 @@ Gateway registration update request
 ### HeartbeatBehavior
 Heartbeat behavior
 
-*Type* : enum (WatchdogLKV, WatchdogLKG, PeriodicLKV, PeriodicLKG, WatchdogLKVWithUpdatedTimestamps, WatchdogLKVDiagnosticsOnly)
+*Type* : enum (WatchdogLKV, WatchdogLKG, PeriodicLKV, PeriodicLKG, WatchdogLKVWithUpdatedTimestamps, WatchdogLKVDiagnosticsOnly, Reserved, PeriodicLKVDropValue, PeriodicLKGDropValue)
 
 
 <a name="historiceventmodel"></a>
@@ -792,7 +792,7 @@ Historic event
 
 |Name|Description|Schema|
 |---|---|---|
-|**eventFields**  <br>*optional*|The selected fields of the event|object|
+|**eventFields**  <br>*required*|The selected fields of the event|object|
 
 
 <a name="historiceventmodelarrayhistoryreadnextresponsemodel"></a>
@@ -804,7 +804,7 @@ History read continuation result
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
+|**history**  <br>*required*|History as json encoded extension object|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
 
 
 <a name="historiceventmodelarrayhistoryreadresponsemodel"></a>
@@ -816,7 +816,7 @@ History read results
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
+|**history**  <br>*required*|History as json encoded extension object|< [HistoricEventModel](definitions.md#historiceventmodel) > array|
 
 
 <a name="historicvaluemodel"></a>
@@ -847,7 +847,7 @@ History read continuation result
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
+|**history**  <br>*required*|History as json encoded extension object|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
 
 
 <a name="historicvaluemodelarrayhistoryreadresponsemodel"></a>
@@ -859,7 +859,7 @@ History read results
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
+|**history**  <br>*required*|History as json encoded extension object|< [HistoricValueModel](definitions.md#historicvaluemodel) > array|
 
 
 <a name="historyconfigurationmodel"></a>
@@ -1030,7 +1030,7 @@ Method call response model
 |Name|Description|Schema|
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**results**  <br>*optional*|Resulting output values of method call|< [MethodCallArgumentModel](definitions.md#methodcallargumentmodel) > array|
+|**results**  <br>*required*|Resulting output values of method call|< [MethodCallArgumentModel](definitions.md#methodcallargumentmodel) > array|
 
 
 <a name="methodmetadataargumentmodel"></a>
@@ -1044,8 +1044,8 @@ Method argument metadata model
 |**defaultValue**  <br>*optional*|Default value for the argument|object|
 |**description**  <br>*optional*|Optional description of argument|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**name**  <br>*optional*|Name of the argument|string|
-|**type**  <br>*optional*||[NodeModel](definitions.md#nodemodel)|
+|**name**  <br>*required*|Name of the argument|string|
+|**type**  <br>*required*||[NodeModel](definitions.md#nodemodel)|
 |**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
 
 
@@ -1248,9 +1248,9 @@ Node path target
 
 |Name|Description|Schema|
 |---|---|---|
-|**browsePath**  <br>*optional*|The target browse path|< string > array|
+|**browsePath**  <br>*required*|The target browse path|< string > array|
 |**remainingPathIndex**  <br>*optional*|Remaining index in path|integer (int32)|
-|**target**  <br>*optional*||[NodeModel](definitions.md#nodemodel)|
+|**target**  <br>*required*||[NodeModel](definitions.md#nodemodel)|
 
 
 <a name="nodereferencemodel"></a>
@@ -1297,6 +1297,7 @@ Describing an entry in the node list
 |**AttributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
 |**BrowsePath**  <br>*optional*|Browse path from the node to reach the actual node<br>to monitor.|< string > array|
 |**ConditionHandling**  <br>*optional*||[ConditionHandlingOptionsModel](definitions.md#conditionhandlingoptionsmodel)|
+|**CyclicReadMaxAgeTimespan**  <br>*optional*|The max cache age to use for cyclic reads.<br>Default is 0 (uncached reads).|string (date-span)|
 |**DataChangeTrigger**  <br>*optional*||[DataChangeTriggerType](definitions.md#datachangetriggertype)|
 |**DataSetClassFieldId**  <br>*optional*|The identifier of the field in the dataset class.<br>Allows correlation to the data set class.|string (uuid)|
 |**DataSetFieldId**  <br>*optional*|The identifier of the field in the dataset message.<br>If not provided Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.DisplayName is used.|string|
@@ -1503,6 +1504,9 @@ Contains the nodes which should be published
 |**DataSetWriterGroup**  <br>*optional*|The Group the writer belongs to.|string|
 |**DataSetWriterId**  <br>*optional*|Name of the data set writer.|string|
 |**DataSetWriterWatchdogBehavior**  <br>*optional*||[SubscriptionWatchdogBehavior](definitions.md#subscriptionwatchdogbehavior)|
+|**DefaultHeartbeatBehavior**  <br>*optional*||[HeartbeatBehavior](definitions.md#heartbeatbehavior)|
+|**DefaultHeartbeatInterval**  <br>*optional*|Default heartbeat interval in milliseconds|integer (int32)|
+|**DefaultHeartbeatIntervalTimespan**  <br>*optional*|Default heartbeat interval for all nodes as duration. Takes<br>precedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DefaultHeartbeatInterval if<br>defined.|string (date-span)|
 |**DisableSubscriptionTransfer**  <br>*optional*|Disable subscription transfer on reconnect|boolean|
 |**DumpConnectionDiagnostics**  <br>*optional*|Dump server diagnostics for the connection to enable<br>advanced troubleshooting scenarios.|boolean|
 |**EncryptedAuthPassword**  <br>*optional*|encrypted password|string|
@@ -1529,6 +1533,7 @@ Contains the nodes which should be published
 |**Priority**  <br>*optional*|Priority of the writer subscription.|integer (int32)|
 |**QualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**QueueName**  <br>*optional*|Writer queue overrides the writer group queue name.<br>Network messages are then split across queues with<br>Qos also accounted for.|string|
+|**RepublishAfterTransfer**  <br>*optional*|Republish after transferring the subscription during<br>reconnect handling unless subscription transfer was disabled.|boolean|
 |**SendKeepAliveDataSetMessages**  <br>*optional*|Send a keep alive message when a subscription keep<br>alive notification is received inside the writer. If keep<br>alive messages are not supported by the messaging<br>profile chosen this value is ignored.|boolean|
 |**UseReverseConnect**  <br>*optional*|Use reverse connect to connect ot the endpoint|boolean|
 |**UseSecurity**  <br>*optional*|Secure transport should be used to connect to<br>the opc server.|boolean|
@@ -1539,7 +1544,6 @@ Contains the nodes which should be published
 |**WriterGroupQualityOfService**  <br>*optional*||[QoS](definitions.md#qos)|
 |**WriterGroupQueueName**  <br>*optional*|Writer group queue overrides the default writer group<br>topic template to use.|string|
 |**WriterGroupTransport**  <br>*optional*||[WriterGroupTransport](definitions.md#writergrouptransport)|
-|**republishAfterTransfer**  <br>*optional*|Republish after transferring the subscription during<br>reconnect handling unless subscription transfer was disabled.|boolean|
 
 
 <a name="publishednodesentrymodeliasyncenumerable"></a>
@@ -1624,7 +1628,7 @@ Request node history read
 |**details**  <br>*required*||[ReadEventsDetailsModel](definitions.md#readeventsdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory without browse path)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
 
 
@@ -1651,7 +1655,7 @@ Request node history read
 |**details**  <br>*required*||[ReadModifiedValuesDetailsModel](definitions.md#readmodifiedvaluesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory without browse path)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
 
 
@@ -1680,7 +1684,7 @@ Request node history read
 |**details**  <br>*required*||[ReadProcessedValuesDetailsModel](definitions.md#readprocessedvaluesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory without browse path)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
 
 
@@ -1703,7 +1707,7 @@ Result of attribute reads
 |Name|Description|Schema|
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**results**  <br>*optional*|All results of attribute reads|< [AttributeReadResponseModel](definitions.md#attributereadresponsemodel) > array|
+|**results**  <br>*required*|All results of attribute reads|< [AttributeReadResponseModel](definitions.md#attributereadresponsemodel) > array|
 
 
 <a name="readvaluesattimesdetailsmodel"></a>
@@ -1728,7 +1732,7 @@ Request node history read
 |**details**  <br>*required*||[ReadValuesAtTimesDetailsModel](definitions.md#readvaluesattimesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory without browse path)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
 
 
@@ -1756,7 +1760,7 @@ Request node history read
 |**details**  <br>*required*||[ReadValuesDetailsModel](definitions.md#readvaluesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory without browse path)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
 
 
@@ -1808,9 +1812,18 @@ Server capabilities
 
 |Name|Description|Schema|
 |---|---|---|
+|**MaxMonitoredItems**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxMonitoredItemsPerSubscription**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxMonitoredItemsQueueSize**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxSelectClauseParameters**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxSessions**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxSubscriptions**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxSubscriptionsPerSession**  <br>*optional*|Supported aggregate functions|integer (int64)|
+|**MaxWhereClauseParameters**  <br>*optional*|Supported aggregate functions|integer (int64)|
 |**aggregateFunctions**  <br>*optional*|Supported aggregate functions|< string, string > map|
+|**conformanceUnits**  <br>*optional*|Supported aggregate functions|< string > array|
 |**modellingRules**  <br>*optional*|Supported modelling rules|< string, string > map|
-|**operationLimits**  <br>*optional*||[OperationLimitsModel](definitions.md#operationlimitsmodel)|
+|**operationLimits**  <br>*required*||[OperationLimitsModel](definitions.md#operationlimitsmodel)|
 |**serverProfileArray**  <br>*optional*|Server profiles|< string > array|
 |**supportedLocales**  <br>*optional*|Supported locales|< string > array|
 
@@ -2001,7 +2014,7 @@ Request node history update
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**details**  <br>*required*||[UpdateEventsDetailsModel](definitions.md#updateeventsdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to update (mandatory without browse path)|string|
 
 
 <a name="updatevaluesdetailsmodel"></a>
@@ -2024,7 +2037,7 @@ Request node history update
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**details**  <br>*required*||[UpdateValuesDetailsModel](definitions.md#updatevaluesdetailsmodel)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to update (mandatory without browse path)|string|
 
 
 <a name="useridentitymodel"></a>
@@ -2116,7 +2129,7 @@ History read continuation result
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**history**  <br>*optional*|History as json encoded extension object|object|
+|**history**  <br>*required*|History as json encoded extension object|object|
 
 
 <a name="variantvaluehistoryreadrequestmodel"></a>
@@ -2130,7 +2143,7 @@ Request node history read
 |**details**  <br>*required*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|object|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*required*|Node to read from (mandatory)  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory without browse path)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
 
 
@@ -2143,7 +2156,7 @@ History read results
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**history**  <br>*optional*|History as json encoded extension object|object|
+|**history**  <br>*required*|History as json encoded extension object|object|
 
 
 <a name="variantvaluehistoryupdaterequestmodel"></a>
@@ -2156,7 +2169,7 @@ Request node history update
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
 |**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|object|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
-|**nodeId**  <br>*required*|Node to update  <br>**Minimum length** : `1`|string|
+|**nodeId**  <br>*optional*|Node to update (mandatory without browse path)|string|
 
 
 <a name="writerequestmodel"></a>
@@ -2178,7 +2191,7 @@ Result of attribute write
 |Name|Description|Schema|
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultModel](definitions.md#serviceresultmodel)|
-|**results**  <br>*optional*|All results of attribute writes|< [AttributeWriteResponseModel](definitions.md#attributewriteresponsemodel) > array|
+|**results**  <br>*required*|All results of attribute writes|< [AttributeWriteResponseModel](definitions.md#attributewriteresponsemodel) > array|
 
 
 <a name="writergrouptransport"></a>

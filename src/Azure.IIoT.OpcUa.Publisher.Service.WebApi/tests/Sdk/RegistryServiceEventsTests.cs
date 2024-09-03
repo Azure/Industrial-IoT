@@ -48,6 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new PublisherModel
             {
+                Id = "TestPublisher",
                 SiteId = "TestSite",
                 Connected = null
             };
@@ -81,6 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new PublisherModel
             {
+                Id = "TestPublisher",
                 SiteId = "TestSite",
                 ApiKey = "api-key"
             };
@@ -116,6 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new DiscovererModel
             {
+                Id = "TestDiscoverer",
                 SiteId = "TestSite4",
                 Connected = true,
                 Discovery = DiscoveryMode.Local,
@@ -157,6 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new DiscovererModel
             {
+                Id = "TestDiscoverer",
                 SiteId = "TestSite"
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -191,6 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new SupervisorModel
             {
+                Id = "TestSupervisor",
                 SiteId = "TestSigfsdfg  ff",
                 Connected = true
             };
@@ -225,6 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new SupervisorModel
             {
+                Id = "TestSupervisor",
                 SiteId = "azagfff"
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -259,6 +265,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new ApplicationInfoModel
             {
+                ApplicationId = "TestSigfsdfg  ff",
+                ApplicationUri = "http://test.com",
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
                 NotSeenSince = DateTimeOffset.UtcNow,
@@ -298,6 +306,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new ApplicationInfoModel
             {
+                ApplicationId = "TestSigfsdfg  ff",
+                ApplicationUri = "http://test.com",
                 SiteId = "TestSigfsdfg  ff",
                 ApplicationType = ApplicationType.Client,
                 NotSeenSince = DateTimeOffset.UtcNow,
@@ -412,6 +422,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new GatewayModel
             {
+                Id = "TestGateway",
                 SiteId = "TestSigfsdfg  ff"
             };
             var result = new TaskCompletionSource<GatewayEventModel>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -444,6 +455,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
             var expected = new GatewayModel
             {
+                Id = "TestGateway",
                 SiteId = "TestSigfsdfg  ff"
             };
             var result = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -479,6 +491,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             const string discovererId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel
             {
+                Request = new DiscoveryRequestModel
+                {
+                    Id = "TestDiscoverer1",
+                    Configuration = new DiscoveryConfigModel
+                    {
+                        AddressRangesToScan = "ttttttt"
+                    }
+                },
                 DiscovererId = discovererId,
                 Discovered = 55,
                 ResultDetails = new Dictionary<string, string> { ["test"] = "test" },
@@ -566,6 +586,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             const string discovererId = "TestDiscoverer1";
             var expected = new DiscoveryProgressModel
             {
+                Request = new DiscoveryRequestModel
+                {
+                    Id = discovererId,
+                    Configuration = new DiscoveryConfigModel
+                    {
+                        AddressRangesToScan = "ttttttt"
+                    }
+                },
                 DiscovererId = discovererId,
                 Discovered = 55,
                 EventType = DiscoveryProgressType.NetworkScanFinished,

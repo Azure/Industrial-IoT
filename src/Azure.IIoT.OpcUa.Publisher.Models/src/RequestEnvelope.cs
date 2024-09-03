@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "connection", Order = 0)]
         [Required]
-        public ConnectionModel? Connection { get; set; }
+        public required ConnectionModel Connection { get; set; }
 
         /// <summary>
         /// Request

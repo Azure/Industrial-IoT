@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// Register read for this item. Registerd read is
         /// a hint, it can fail.
         /// </summary>
-        public bool RegisterRead { get; init; }
+        public bool? RegisterRead { get; init; }
 
         /// <summary>
         /// Field id in class
@@ -57,11 +57,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Sample using cyclic reads
         /// </summary>
-        public bool SamplingUsingCyclicRead { get; set; }
+        public bool? SamplingUsingCyclicRead { get; set; }
+
+        /// <summary>
+        /// Max cache age to use for cyclic reads.
+        /// Default is 0.
+        /// </summary>
+        public TimeSpan? CyclicReadMaxAge { get; init; }
 
         /// <summary>
         /// Skip first value
         /// </summary>
-        public bool SkipFirst { get; init; }
+        public bool? SkipFirst { get; init; }
     }
 }

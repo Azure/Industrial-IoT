@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                     }
                     continuationToken = next.ContinuationToken;
                 }
-                catch (Exception)
+                catch (Exception) when (continuationToken != null)
                 {
                     await Try.Async(() => service.BrowseNextAsync(connection,
                         new BrowseNextRequestModel

@@ -17,10 +17,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class HistoryReadRequestModel<T> where T : class
     {
         /// <summary>
-        /// Node to read from (mandatory)
+        /// Node to read from (mandatory without browse path)
         /// </summary>
-        [DataMember(Name = "nodeId", Order = 0)]
-        [Required]
+        [DataMember(Name = "nodeId", Order = 0,
+            EmitDefaultValue = false)]
         public string? NodeId { get; set; }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "details", Order = 2)]
         [Required]
-        public T? Details { get; set; }
+        public required T Details { get; set; }
 
         /// <summary>
         /// Index range to read, e.g. 1:2,0:1 for 2 slices

@@ -95,6 +95,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "request", Order = 11,
             EmitDefaultValue = false)]
-        public DiscoveryRequestModel Request { get; set; } = null!;
+        public required DiscoveryRequestModel Request { get; set; }
     }
 }

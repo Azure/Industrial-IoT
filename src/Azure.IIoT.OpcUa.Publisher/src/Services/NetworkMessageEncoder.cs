@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
@@ -74,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public IEnumerable<(IEvent Event, Action OnSent)> Encode(Func<IEvent> factory,
-            IEnumerable<IOpcUaSubscriptionNotification> notifications, int maxMessageSize, bool asBatch)
+            IEnumerable<OpcUaSubscriptionNotification> notifications, int maxMessageSize, bool asBatch)
         {
             try
             {
@@ -215,13 +214,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="messages"></param>
         /// <param name="isBatched"></param>
         /// <returns></returns>
-        private List<EncodedMessage> GetNetworkMessages(IEnumerable<IOpcUaSubscriptionNotification> messages,
-            bool isBatched)
+        private List<EncodedMessage> GetNetworkMessages(
+            IEnumerable<OpcUaSubscriptionNotification> messages, bool isBatched)
         {
             var standardsCompliant = _options.Value.UseStandardsCompliantEncoding ?? false;
             var result = new List<EncodedMessage>();
 
-            static PublishingQueueSettingsModel GetQueue(WriterGroupContext context, PublisherOptions options)
+            static PublishingQueueSettingsModel GetQueue(DataSetWriterContext context,
+                PublisherOptions options)
             {
                 return new PublishingQueueSettingsModel
                 {
@@ -233,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             // Group messages by topic and qos, then writer group and then by dataset class id
             foreach (var topics in messages
-                .Select(m => (Notification: m, Context: (m.Context as WriterGroupContext)!))
+                .Select(m => (Notification: m, Context: (m.Context as DataSetWriterContext)!))
                 .Where(m => m.Context != null)
                 .GroupBy(m => GetQueue(m.Context, _options.Value)))
             {
@@ -241,7 +241,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 foreach (var publishers in topics.GroupBy(m => m.Context.PublisherId))
                 {
                     var publisherId = publishers.Key;
-                    foreach (var groups in publishers.GroupBy(m => (m.Context.WriterGroup, m.Context.Schema)))
+                    foreach (var groups in publishers
+                        .GroupBy(m => (m.Context.WriterGroup, m.Context.Schema)))
                     {
                         var writerGroup = groups.Key.WriterGroup;
                         var schema = groups.Key.Schema;
@@ -263,14 +264,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         var namespaceFormat =
                             writerGroup.MessageSettings?.NamespaceFormat ??
-                            // _options.Value.DefaultNamespaceFormat ?? // TODO: Fix tests
+                            _options.Value.DefaultNamespaceFormat ??
                             NamespaceFormat.Uri;
                         foreach (var dataSetClass in groups
                             .GroupBy(m => m.Context.Writer?.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty))
                         {
                             var dataSetClassId = dataSetClass.Key;
                             BaseNetworkMessage? currentMessage = null;
-                            var currentNotifications = new List<IOpcUaSubscriptionNotification>();
+                            var currentNotifications = new List<OpcUaSubscriptionNotification>();
                             foreach (var (Notification, Context) in dataSetClass)
                             {
                                 if (Context.Writer == null ||
@@ -301,10 +302,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         // Create regular data set messages
                                         if (!PubSubMessage.TryCreateDataSetMessage(encoding,
                                             GetDataSetWriterName(Notification, Context),
-                                            Notification.SubscriptionId, dataSetMessageContentMask,
+                                            Context.DataSetWriterId, dataSetMessageContentMask,
                                             MessageType.KeepAlive, new DataSet(),
                                             GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                            standardsCompliant, Notification.MetaData,
+                                            standardsCompliant, Notification.EndpointUrl,
+                                            Notification.ApplicationUri, Context.MetaData?.MetaData,
                                             out var dataSetMessage))
                                         {
                                             Drop(Notification.YieldReturn());
@@ -344,12 +346,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         {
                                             // Create regular data set messages
                                             if (!PubSubMessage.TryCreateDataSetMessage(encoding,
-                                                GetDataSetWriterName(Notification, Context), Notification.SubscriptionId,
+                                                GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
                                                 dataSetMessageContentMask, Notification.MessageType,
                                                 new DataSet(orderedNotifications.ToDictionary(
                                                     s => s.DataSetFieldName!, s => s.Value), dataSetFieldContentMask),
                                                 GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                                standardsCompliant, Notification.MetaData, out var dataSetMessage))
+                                                standardsCompliant, Notification.EndpointUrl, Notification.ApplicationUri,
+                                                Context.MetaData?.MetaData, out var dataSetMessage))
                                             {
                                                 Drop(Notification.YieldReturn());
                                                 continue;
@@ -471,11 +474,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                             currentMessage = null;
-                                            currentNotifications = new List<IOpcUaSubscriptionNotification>();
+                                            currentNotifications = new List<OpcUaSubscriptionNotification>();
                                         }
                                     }
                                 }
-                                else if (Notification.MetaData != null && !hasSamplesPayload)
+                                else if (Context.MetaData?.MetaData != null && !hasSamplesPayload)
                                 {
                                     if (currentMessage?.Messages.Count > 0)
                                     {
@@ -487,13 +490,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                         currentMessage = null;
-                                        currentNotifications = new List<IOpcUaSubscriptionNotification>();
+                                        currentNotifications = new List<OpcUaSubscriptionNotification>();
                                     }
 
                                     if (PubSubMessage.TryCreateMetaDataMessage(encoding, publisherId,
                                         writerGroup.Name ?? Constants.DefaultWriterGroupName,
-                                        GetDataSetWriterName(Notification, Context), Notification.SubscriptionId,
-                                        Notification.MetaData, namespaceFormat, standardsCompliant,
+                                        GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
+                                        Context.MetaData.MetaData, namespaceFormat, standardsCompliant,
                                         out var metadataMessage))
                                     {
                                         result.Add(new EncodedMessage(0, metadataMessage, queue, Notification.Dispose,
@@ -519,20 +522,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 Debug.Assert(currentNotifications.Count == 0);
                             }
 
-                            static string GetDataSetWriterName(IOpcUaSubscriptionNotification Notification,
-                                WriterGroupContext Context)
+                            static string GetDataSetWriterName(OpcUaSubscriptionNotification Notification,
+                                DataSetWriterContext Context)
                             {
-                                var dataSetWriterName = Context.Writer.DataSetWriterName
-                                    ?? Constants.DefaultDataSetWriterName;
-                                var dataSetName = Notification.DataSetName;
-                                if (!string.IsNullOrWhiteSpace(dataSetName))
+                                var dataSetWriterName = Context.WriterName;
+                                var eventTypeName = Notification.EventTypeName;
+                                if (!string.IsNullOrWhiteSpace(eventTypeName))
                                 {
-                                    return dataSetWriterName + "|" + dataSetName;
+                                    return dataSetWriterName + "|" + eventTypeName;
                                 }
                                 return dataSetWriterName;
                             }
 
-                            DateTimeOffset? GetTimestamp(IOpcUaSubscriptionNotification Notification)
+                            DateTimeOffset? GetTimestamp(OpcUaSubscriptionNotification Notification)
                             {
                                 switch (_options.Value.MessageTimestamp)
                                 {
@@ -556,7 +558,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Drop and log messages
         /// </summary>
         /// <param name="messages"></param>
-        private void Drop(IEnumerable<IOpcUaSubscriptionNotification> messages)
+        private void Drop(IEnumerable<OpcUaSubscriptionNotification> messages)
         {
             var totalNotifications = 0;
             foreach (var message in messages)
@@ -582,7 +584,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="args"></param>
         /// <param name="dropped"></param>
-        private void LogNotification(IOpcUaSubscriptionNotification args, bool dropped)
+        private void LogNotification(OpcUaSubscriptionNotification args, bool dropped)
         {
             if (!_logNotifications)
             {
@@ -593,10 +595,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!string.IsNullOrEmpty(notifications))
             {
                 _logger.LogInformation(
-                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Subscription}|{Items}",
+                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}",
                     dropped ? "!!!! Dropped !!!! " : "Encoded", args.PublishTimestamp, args.SequenceNumber,
                     args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
-                    args.SubscriptionName, notifications);
+                    args.EndpointUrl, notifications);
             }
         }
 

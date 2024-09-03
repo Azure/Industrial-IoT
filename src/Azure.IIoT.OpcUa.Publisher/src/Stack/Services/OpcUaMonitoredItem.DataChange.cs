@@ -41,9 +41,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
-                => Template.RegisterRead && !string.IsNullOrEmpty(TheResolvedNodeId) ?
-                    (TheResolvedNodeId, (v, context) => NodeId
-                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
+                => Template.RegisterRead == true && !_registeredForReading &&
+                    !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (v, context) =>
+                    {
+                        NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
+                        // We only want to register the node once for reading inside a session
+                        _registeredForReading = true;
+                    }) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateString Update)? GetDisplayName
@@ -90,12 +94,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public DataChange(DataMonitoredItemModel template,
+            public DataChange(ISubscriber owner, DataMonitoredItemModel template,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(logger, template.StartNodeId, timeProvider)
+                base(owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
 
@@ -121,6 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Template = item.Template;
                 _fieldId = item._fieldId;
                 _skipDataChangeNotification = item._skipDataChangeNotification;
+                _registeredForReading = false;
             }
 
             /// <inheritdoc/>
@@ -181,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(Template.IndexRange ?? string.Empty);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<bool>.Default.GetHashCode(Template.RegisterRead);
+                    EqualityComparer<bool>.Default.GetHashCode(Template.RegisterRead ?? false);
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<NodeAttribute>.Default.GetHashCode(
                         Template.AttributeId ?? NodeAttribute.NodeId);
@@ -254,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
-                if (!TrySetSkipFirst(Template.SkipFirst))
+                if (!TrySetSkipFirst(Template.SkipFirst ?? false))
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
                 }
@@ -262,8 +268,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
-                DateTimeOffset publishTime, IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(
+                DateTimeOffset publishTime, IEncodeable evt, MonitoredItemNotifications notifications)
             {
                 if (evt is not MonitoredItemNotification min)
                 {
@@ -271,11 +277,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, evt?.GetType().Name ?? "null");
                     return false;
                 }
-                if (!base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
+                if (!base.TryGetMonitoredItemNotifications(publishTime, evt, notifications))
                 {
                     return false;
                 }
-                return ProcessMonitoredItemNotification(sequenceNumber, publishTime, min, notifications);
+                return ProcessMonitoredItemNotification(publishTime, min, notifications);
             }
 
             /// <inheritdoc/>
@@ -336,11 +342,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Filter = Template.AggregateFilter.ToStackModel(session.MessageContext);
                     itemChange = true;
                 }
-                if (model.Template.SkipFirst != Template.SkipFirst)
+                if ((model.Template.SkipFirst ?? false) != (Template.SkipFirst ?? false))
                 {
                     Template = Template with { SkipFirst = model.Template.SkipFirst };
 
-                    if (model.TrySetSkipFirst(model.Template.SkipFirst))
+                    if (model.TrySetSkipFirst(model.Template.SkipFirst ?? false))
                     {
                         _logger.LogDebug("{Item}: Setting skip first setting to {New}", this,
                             model.Template.SkipFirst);
@@ -370,50 +376,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetLastMonitoredItemNotifications(uint sequenceNumber,
-                IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetLastMonitoredItemNotifications(
+                MonitoredItemNotifications notifications)
             {
                 SkipMonitoredItemNotification(); // Key frames should always be sent
-                return base.TryGetLastMonitoredItemNotifications(sequenceNumber,
-                    notifications);
+                return base.TryGetLastMonitoredItemNotifications(notifications);
             }
 
             /// <inheritdoc/>
             protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, IOpcUaClient? client = null)
+                ILoggerFactory factory, OpcUaClient client)
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
+                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                        factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
             /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
-                uint sequenceNumber, StatusCode statusCode,
-                IList<MonitoredItemNotificationModel> notifications)
+                StatusCode statusCode, MonitoredItemNotifications notifications)
             {
-                notifications.Add(ToMonitoredItemNotification(sequenceNumber,
-                    new DataValue(statusCode)));
+                notifications.Add(Owner, ToMonitoredItemNotification(new DataValue(statusCode)));
                 return true;
             }
 
             /// <summary>
             /// Process monitored item notification
             /// </summary>
-            /// <param name="sequenceNumber"></param>
             /// <param name="publishTime"></param>
             /// <param name="monitoredItemNotification"></param>
             /// <param name="notifications"></param>
             /// <returns></returns>
-            protected virtual bool ProcessMonitoredItemNotification(uint sequenceNumber,
-                DateTimeOffset publishTime, MonitoredItemNotification monitoredItemNotification,
-                IList<MonitoredItemNotificationModel> notifications)
+            protected virtual bool ProcessMonitoredItemNotification(DateTimeOffset publishTime,
+                MonitoredItemNotification monitoredItemNotification,
+                MonitoredItemNotifications notifications)
             {
                 if (!SkipMonitoredItemNotification())
                 {
-                    notifications.Add(ToMonitoredItemNotification(sequenceNumber,
+                    notifications.Add(Owner, ToMonitoredItemNotification(
                         monitoredItemNotification.Value));
                     return true;
                 }
@@ -423,12 +426,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
-            /// <param name="sequenceNumber"></param>
             /// <param name="dataValue"></param>
             /// <param name="overflow"></param>
             /// <returns></returns>
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
-                uint sequenceNumber, DataValue dataValue, int? overflow = null)
+                DataValue dataValue, int? overflow = null)
             {
                 Debug.Assert(Valid);
                 Debug.Assert(Template != null);
@@ -438,13 +440,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Id = Template.DataSetFieldId ?? string.Empty,
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
-                    Context = Template.Context,
                     NodeId = NodeId,
                     PathFromRoot = TheResolvedRelativePath,
                     Value = dataValue,
                     Flags = 0,
                     Overflow = overflow ?? (dataValue.StatusCode.Overflow ? 1 : 0),
-                    SequenceNumber = sequenceNumber
+                    SequenceNumber = GetNextSequenceNumber()
                 };
             }
 
@@ -452,7 +453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Whether to skip monitored item notification
             /// </summary>
             /// <returns></returns>
-            public bool SkipMonitoredItemNotification()
+            public virtual bool SkipMonitoredItemNotification()
             {
                 // This will update that first value has been processed.
                 var last = Interlocked.Exchange(ref _skipDataChangeNotification,
@@ -494,6 +495,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private volatile int _skipDataChangeNotification = (int)SkipSetting.Unconfigured;
             private readonly Guid _fieldId = Guid.NewGuid();
+            private bool _registeredForReading;
         }
     }
 }

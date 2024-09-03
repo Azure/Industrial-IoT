@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -18,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Endpoint information
         /// </summary>
         [DataMember(Name = "endpoint", Order = 0)]
-        public EndpointModel? Endpoint { get; set; }
+        [Required]
+        public required EndpointModel Endpoint { get; set; }
 
         /// <summary>
         /// User

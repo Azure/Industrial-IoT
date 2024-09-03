@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
         [Required]
-        public VariantValue? Value { get; set; }
+        public required VariantValue Value { get; set; }
 
         /// <summary>
         /// A built in datatype for the value. This can

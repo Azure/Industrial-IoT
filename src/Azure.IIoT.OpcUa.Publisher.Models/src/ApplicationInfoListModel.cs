@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Application infos
         /// </summary>
         [DataMember(Name = "items", Order = 0)]
-        public IReadOnlyList<ApplicationInfoModel> Items { get; set; } = null!;
+        public required IReadOnlyList<ApplicationInfoModel> Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final

@@ -52,13 +52,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Get list of subscription handles registered in the session
         /// </summary>
-        internal List<IOpcUaSubscription> SubscriptionHandles
+        internal List<OpcUaSubscription> SubscriptionHandles
         {
             get
             {
                 lock (SyncRoot)
                 {
-                    return Subscriptions.OfType<IOpcUaSubscription>().ToList();
+                    return Subscriptions.OfType<OpcUaSubscription>().ToList();
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogInformation("{Session}: Session disposed.",
+                    _logger.LogDebug("{Session}: Session disposed.",
                         sessionName);
                 }
                 finally
@@ -1101,6 +1101,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var modellingRules = rules.OfType<BaseObjectState>().ToDictionary(
                 c => c.BrowseName.AsString(MessageContext, namespaceFormat),
                 c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
+            var conformanceUnits = config.ConformanceUnits.GetValueOrDefault(
+                v => v == null || v.Length == 0 ? null :
+                v.Select(q => q.AsString(this.MessageContext, namespaceFormat)).ToList());
             return new ServerCapabilitiesModel
             {
                 OperationLimits = _limits ?? new OperationLimitsModel(),
@@ -1113,7 +1116,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     config.ServerProfileArray.GetValueOrDefault(
                         v => v == null || v.Length == 0 ? null : v),
                 AggregateFunctions =
-                    aggregateFunctions.Count == 0 ? null : aggregateFunctions
+                    aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+                MaxSessions =
+                    config.MaxSessions.GetValueOrDefault(),
+                MaxSubscriptions =
+                    config.MaxSubscriptions.GetValueOrDefault(),
+                MaxMonitoredItems =
+                    config.MaxMonitoredItems.GetValueOrDefault(),
+                MaxMonitoredItemsPerSubscription =
+                    config.MaxMonitoredItemsPerSubscription.GetValueOrDefault(),
+                MaxMonitoredItemsQueueSize =
+                    config.MaxMonitoredItemsQueueSize.GetValueOrDefault(),
+                MaxSubscriptionsPerSession =
+                    config.MaxSubscriptionsPerSession.GetValueOrDefault(),
+                MaxWhereClauseParameters =
+                    config.MaxWhereClauseParameters.GetValueOrDefault(),
+                MaxSelectClauseParameters =
+                    config.MaxSelectClauseParameters.GetValueOrDefault(),
+                ConformanceUnits = conformanceUnits
             };
         }
 

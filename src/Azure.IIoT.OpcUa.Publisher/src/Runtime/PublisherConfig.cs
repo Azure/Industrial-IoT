@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
-        public const string FullFeaturedMessage = "FullFeaturedMessage";
+        public const string FullFeaturedMessageKey = "FullFeaturedMessage";
         public const string UseStandardsCompliantEncodingKey = "UseStandardsCompliantEncoding";
         public const string MethodTopicTemplateKey = "MethodTopicTemplate";
         public const string RootTopicTemplateKey = "RootTopicTemplate";
@@ -59,6 +59,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DebugLogNotificationsFilterKey = "DebugLogNotificationsFilter";
         public const string DebugLogNotificationsWithHeartbeatKey = "DebugLogNotificationsWithHeartbeat";
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
+        public const string DisableDataSetMetaDataKey = "DisableDataSetMetaData";
+        public const string EnableDataSetKeepAlivesKey = "EnableDataSetKeepAlives";
+        public const string DefaultKeyFrameCountKey = "DefaultKeyFrameCount";
+        public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
+        public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
+        public const string DefaultUseReverseConnectKey = "DefaultUseReverseConnect";
+        public const string DisableSubscriptionTransferKey = "DisableSubscriptionTransfer";
+        public const string DefaultMetaDataUpdateTimeKey = "DefaultMetaDataUpdateTime";
         public const string ScaleTestCountKey = "ScaleTestCount";
         public const string IgnoreConfiguredPublishingIntervalsKey = "IgnoreConfiguredPublishingIntervals";
         public const string DisableOpenApiEndpointKey = "DisableOpenApiEndpoint";
@@ -76,6 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DefaultDataSetRoutingKey = "DefaultDataSetRouting";
         public const string ApiKeyOverrideKey = "ApiKey";
         public const string PublishMessageSchemaKey = "PublishMessageSchema";
+        public const string AsyncMetaDataLoadTimeoutKey = "AsyncMetaDataLoadTimeout";
         public const string PreferAvroOverJsonSchemaKey = "PreferAvroOverJsonSchema";
         public const string SchemaNamespaceKey = "SchemaNamespace";
         public const string DisableResourceMonitoringKey = "DisableResourceMonitoring";
@@ -96,6 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
         public const string DataSetWriterVariableName = "DataSetWriter";
         public const string DataSetWriterIdVariableName = "DataSetWriterId";
+        public const string DataSetFieldIdVariableName = "DataSetFieldId";
         public const string DataSetClassIdVariableName = "DataSetClassId";
         public const string EncodingVariableName = "Encoding";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -128,9 +138,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int BatchSizeLegacyDefault = 50;
         public const int MaxNetworkMessageSendQueueSizeDefault = 4096;
         public const int BatchTriggerIntervalLLegacyDefaultMillis = 10 * 1000;
+        public const int AsyncMetaDataLoadTimeoutDefaultMillis = 5 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
+        public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const int ScaleTestCountDefault = 1;
         public const bool IgnoreConfiguredPublishingIntervalsDefault = false;
+        public const bool DisableSessionPerWriterGroupDefault = false;
         public static readonly int UnsecureHttpServerPortDefault = IsContainer ? 80 : 9071;
         public static readonly int HttpServerPortDefault = IsContainer ? 443 : 9072;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
@@ -165,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                         MessagingMode.PubSub : MessagingMode.Samples;
                 }
 
-                if (GetBoolOrDefault(FullFeaturedMessage, false))
+                if (GetBoolOrDefault(FullFeaturedMessageKey, false))
                 {
                     if (messagingMode == MessagingMode.PubSub)
                     {
@@ -378,6 +391,11 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DefaultNamespaceFormat = namespaceFormat;
             }
 
+            options.UnsecureHttpServerPort ??= GetIntOrNull(
+                    UnsecureHttpServerPortKey, UnsecureHttpServerPortDefault);
+            options.HttpServerPort ??= GetIntOrNull(
+                    HttpServerPortKey, HttpServerPortDefault);
+
             options.ApiKeyOverride ??= GetStringOrDefault(ApiKeyOverrideKey);
 
             if (options.DefaultDataSetRouting == null &&
@@ -400,10 +418,34 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.SchemaOptions.PreferAvroOverJsonSchema ??= avroPreferred;
             }
 
-            options.UnsecureHttpServerPort ??= GetIntOrNull(
-                    UnsecureHttpServerPortKey, UnsecureHttpServerPortDefault);
-            options.HttpServerPort ??= GetIntOrNull(
-                    HttpServerPortKey, HttpServerPortDefault);
+            options.DisableComplexTypeSystem ??= GetBoolOrNull(DisableComplexTypeSystemKey);
+            options.DisableDataSetMetaData = options.DisableComplexTypeSystem;
+            // Set a default from the strict setting
+            options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
+                !(options.UseStandardsCompliantEncoding ?? false));
+            if (options.SchemaOptions != null)
+            {
+                // Always turn on metadata for schema publishing
+                options.DisableComplexTypeSystem = false;
+                options.DisableDataSetMetaData = false;
+            }
+            if (options.DefaultMetaDataUpdateTime == null && options.DisableDataSetMetaData != true)
+            {
+                options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
+            }
+            if (options.AsyncMetaDataLoadTimeout == null && options.DisableDataSetMetaData != true)
+            {
+                options.AsyncMetaDataLoadTimeout = GetDurationOrDefault(AsyncMetaDataLoadTimeoutKey,
+                    TimeSpan.FromMilliseconds(AsyncMetaDataLoadTimeoutDefaultMillis));
+            }
+            options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
+            options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
+
+            options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,
+                    DisableSessionPerWriterGroupDefault);
+
+            options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
+            options.DisableSubscriptionTransfer ??= GetBoolOrNull(DisableSubscriptionTransferKey);
         }
 
         /// <summary>

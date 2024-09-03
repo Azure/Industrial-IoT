@@ -430,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Where(n => n.EventFilter == null) // Exclude event filtering
                         .Select(n => new PublishedItemModel
                         {
-                            NodeId = n.Id,
+                            NodeId = n.Id ?? string.Empty,
                             DisplayName = n.DisplayName,
                             HeartbeatInterval = n.HeartbeatIntervalTimespan,
                             PublishingInterval = n.OpcPublishingIntervalTimespan,
@@ -621,7 +621,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async Task UnpublishAllNodesAsync(PublishedNodesEntryModel request,
+        public async Task UnpublishAllNodesAsync(PublishedNodesEntryModel? request,
             CancellationToken ct = default)
         {
             //
@@ -629,13 +629,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // purge content feature is implemented to ensure the backwards compatibility
             // with V2.5.x of the publisher
             //
-            var purge = request.EndpointUrl == null;
-            request.PropagatePublishingIntervalToNodes();
+            var purge = request?.EndpointUrl == null;
+            request?.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 if (!purge)
                 {
+                    Debug.Assert(request != null);
                     var found = false;
                     // Perform pass to determine existing groups
                     var remainingEntries = new List<PublishedNodesEntryModel>();

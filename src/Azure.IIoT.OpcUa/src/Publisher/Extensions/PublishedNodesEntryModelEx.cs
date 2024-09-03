@@ -179,22 +179,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         [return: NotNullIfNotNull(nameof(model))]
         public static PublishedNodesEntryModel? ToPublishedNodesEntry(this ConnectionModel model)
         {
-            if (model is null)
+            if (model?.Endpoint is null)
             {
                 return null;
             }
 
             var useSecurity =
-                model.Endpoint?.SecurityMode == SecurityMode.None ? false :
-                model.Endpoint?.SecurityMode == SecurityMode.NotNone ? true :
+                model.Endpoint.SecurityMode == SecurityMode.None ? false :
+                model.Endpoint.SecurityMode == SecurityMode.NotNone ? true :
                 (bool?)null;
 
             return new PublishedNodesEntryModel
             {
-                EndpointUrl = model.Endpoint?.Url,
+                EndpointUrl = model.Endpoint.Url,
                 UseSecurity = useSecurity,
-                EndpointSecurityMode = !useSecurity.HasValue ? model.Endpoint?.SecurityMode : null,
-                EndpointSecurityPolicy = model.Endpoint?.SecurityPolicy,
+                EndpointSecurityMode = !useSecurity.HasValue ? model.Endpoint.SecurityMode : null,
+                EndpointSecurityPolicy = model.Endpoint.SecurityPolicy,
                 OpcAuthenticationMode = ToOpcAuthenticationMode(model.User?.Type),
                 OpcAuthenticationPassword = model.User.GetPassword(),
                 OpcAuthenticationUsername = model.User.GetUserName(),

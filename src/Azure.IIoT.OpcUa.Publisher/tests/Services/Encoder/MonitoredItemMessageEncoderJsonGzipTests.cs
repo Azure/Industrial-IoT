@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Moq;
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -40,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public void EmptyMessagesTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = new List<SubscriptionNotificationModel>();
+            var messages = new List<OpcUaSubscriptionNotification>();
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
@@ -57,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         public void EmptyDataSetMessageModelTest(bool encodeBatchFlag)
         {
             const int maxMessageSize = 256 * 1024;
-            var messages = new[] { new SubscriptionNotificationModel(DateTimeOffset.UtcNow, new ServiceMessageContext()) };
+            var messages = new[] { new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow) };
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
@@ -124,8 +123,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
-            messages[0].Notifications = messages.SelectMany(n => n.Notifications).ToList();
-            messages = new List<SubscriptionNotificationModel> { messages[0] };
+            messages = new List<OpcUaSubscriptionNotification>
+            {
+                new OpcUaSubscriptionNotification(messages[0], messages.SelectMany(n => n.Notifications).ToList())
+            };
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);

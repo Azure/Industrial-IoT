@@ -189,6 +189,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public PublishingQueueSettingsModel? Publishing { get; set; }
 
         /// <summary>
+        /// The max cache age to use for cyclic reads.
+        /// Default is 0 (uncached reads).
+        /// </summary>
+        [DataMember(Name = "cyclicReadMaxAge", Order = 24,
+            EmitDefaultValue = false)]
+        public TimeSpan? CyclicReadMaxAge { get; set; }
+
+        /// <summary>
         /// Unique Identifier of variable in the dataset.
         /// </summary>
         [DataMember(Name = "id", Order = 30,

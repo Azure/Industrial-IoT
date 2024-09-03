@@ -4950,6 +4950,9 @@
         },
         "ApplicationInfoListModel": {
             "description": "List of registered applications",
+            "required": [
+                "items"
+            ],
             "type": "object",
             "properties": {
                 "items": {
@@ -4968,6 +4971,10 @@
         },
         "ApplicationInfoModel": {
             "description": "Application info model",
+            "required": [
+                "applicationId",
+                "applicationUri"
+            ],
             "type": "object",
             "properties": {
                 "applicationId": {
@@ -5191,6 +5198,9 @@
         },
         "ApplicationRegistrationResponseModel": {
             "description": "Result of an application registration",
+            "required": [
+                "id"
+            ],
             "type": "object",
             "properties": {
                 "id": {
@@ -5306,6 +5316,9 @@
         },
         "AttributeReadResponseModel": {
             "description": "Attribute value read",
+            "required": [
+                "value"
+            ],
             "type": "object",
             "properties": {
                 "value": {
@@ -5459,13 +5472,17 @@
         },
         "BrowseFirstResponseModel": {
             "description": "Browse response model",
+            "required": [
+                "node",
+                "references"
+            ],
             "type": "object",
             "properties": {
                 "node": {
                     "$ref": "#/definitions/NodeModel"
                 },
                 "references": {
-                    "description": "References, if included, otherwise null.",
+                    "description": "References returned",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/NodeReferenceModel"
@@ -5517,10 +5534,13 @@
         },
         "BrowseNextResponseModel": {
             "description": "Result of node browse continuation",
+            "required": [
+                "references"
+            ],
             "type": "object",
             "properties": {
                 "references": {
-                    "description": "References, if included, otherwise null.",
+                    "description": "References returned",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/NodeReferenceModel"
@@ -5544,7 +5564,7 @@
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to browse from.\r\n(defaults to root folder).",
+                    "description": "Node to browse from (defaults to root folder).",
                     "type": "string"
                 },
                 "browsePaths": {
@@ -5771,14 +5791,12 @@
         "DeleteEventsDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to update",
-                    "minLength": 1,
+                    "description": "Node to update (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -5818,14 +5836,12 @@
         "DeleteValuesAtTimesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to update",
-                    "minLength": 1,
+                    "description": "Node to update (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -5864,14 +5880,12 @@
         "DeleteValuesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to update",
-                    "minLength": 1,
+                    "description": "Node to update (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -6133,6 +6147,9 @@
         },
         "EndpointInfoListModel": {
             "description": "Endpoint info list",
+            "required": [
+                "items"
+            ],
             "type": "object",
             "properties": {
                 "items": {
@@ -6178,10 +6195,14 @@
         },
         "EndpointModel": {
             "description": "Endpoint model",
+            "required": [
+                "url"
+            ],
             "type": "object",
             "properties": {
                 "url": {
                     "description": "Endpoint url to use to connect with",
+                    "minLength": 1,
                     "type": "string"
                 },
                 "alternativeUrls": {
@@ -6290,10 +6311,6 @@
         },
         "EventFilterModel": {
             "description": "Event filter",
-            "required": [
-                "selectClauses",
-                "whereClause"
-            ],
             "type": "object",
             "properties": {
                 "selectClauses": {
@@ -6504,7 +6521,10 @@
                 "PeriodicLKV",
                 "PeriodicLKG",
                 "WatchdogLKVWithUpdatedTimestamps",
-                "WatchdogLKVDiagnosticsOnly"
+                "WatchdogLKVDiagnosticsOnly",
+                "Reserved",
+                "PeriodicLKVDropValue",
+                "PeriodicLKGDropValue"
             ],
             "type": "string",
             "x-ms-enum": {
@@ -6514,6 +6534,9 @@
         },
         "HistoricEventModel": {
             "description": "Historic event",
+            "required": [
+                "eventFields"
+            ],
             "type": "object",
             "properties": {
                 "eventFields": {
@@ -6529,6 +6552,9 @@
         },
         "HistoricEventModelArrayHistoryReadNextResponseModel": {
             "description": "History read continuation result",
+            "required": [
+                "history"
+            ],
             "type": "object",
             "properties": {
                 "history": {
@@ -6550,6 +6576,9 @@
         },
         "HistoricEventModelArrayHistoryReadResponseModel": {
             "description": "History read results",
+            "required": [
+                "history"
+            ],
             "type": "object",
             "properties": {
                 "history": {
@@ -6618,6 +6647,9 @@
         },
         "HistoricValueModelArrayHistoryReadNextResponseModel": {
             "description": "History read continuation result",
+            "required": [
+                "history"
+            ],
             "type": "object",
             "properties": {
                 "history": {
@@ -6639,6 +6671,9 @@
         },
         "HistoricValueModelArrayHistoryReadResponseModel": {
             "description": "History read results",
+            "required": [
+                "history"
+            ],
             "type": "object",
             "properties": {
                 "history": {
@@ -7034,6 +7069,9 @@
         },
         "MethodCallResponseModel": {
             "description": "Method call response model",
+            "required": [
+                "results"
+            ],
             "type": "object",
             "properties": {
                 "results": {
@@ -7051,6 +7089,10 @@
         },
         "MethodMetadataArgumentModel": {
             "description": "Method argument metadata model",
+            "required": [
+                "name",
+                "type"
+            ],
             "type": "object",
             "properties": {
                 "name": {
@@ -7543,6 +7585,10 @@
         },
         "NodePathTargetModel": {
             "description": "Node path target",
+            "required": [
+                "browsePath",
+                "target"
+            ],
             "type": "object",
             "properties": {
                 "browsePath": {
@@ -7760,6 +7806,11 @@
                     "items": {
                         "$ref": "#/definitions/OpcNodeModel"
                     }
+                },
+                "CyclicReadMaxAgeTimespan": {
+                    "format": "date-span",
+                    "description": "The max cache age to use for cyclic reads.\r\nDefault is 0 (uncached reads).",
+                    "type": "string"
                 },
                 "ExpandedNodeId": {
                     "description": "Expanded Node identifier (same as Azure.IIoT.OpcUa.Publisher.Models.OpcNodeModel.Id)",
@@ -8262,7 +8313,7 @@
                     "description": "Disable subscription transfer on reconnect",
                     "type": "boolean"
                 },
-                "republishAfterTransfer": {
+                "RepublishAfterTransfer": {
                     "description": "Republish after transferring the subscription during\r\nreconnect handling unless subscription transfer was disabled.",
                     "type": "boolean"
                 },
@@ -8308,6 +8359,19 @@
                 "MessageRetention": {
                     "description": "Message retention setting for messages sent by\r\nthe writer if the transport supports it.",
                     "type": "boolean"
+                },
+                "DefaultHeartbeatInterval": {
+                    "format": "int32",
+                    "description": "Default heartbeat interval in milliseconds",
+                    "type": "integer"
+                },
+                "DefaultHeartbeatIntervalTimespan": {
+                    "format": "date-span",
+                    "description": "Default heartbeat interval for all nodes as duration. Takes\r\nprecedence over Azure.IIoT.OpcUa.Publisher.Models.PublishedNodesEntryModel.DefaultHeartbeatInterval if\r\ndefined.",
+                    "type": "string"
+                },
+                "DefaultHeartbeatBehavior": {
+                    "$ref": "#/definitions/HeartbeatBehavior"
                 },
                 "DumpConnectionDiagnostics": {
                     "description": "Dump server diagnostics for the connection to enable\r\nadvanced troubleshooting scenarios.",
@@ -8446,14 +8510,12 @@
         "ReadEventsDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to read from (mandatory)",
-                    "minLength": 1,
+                    "description": "Node to read from (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -8504,14 +8566,12 @@
         "ReadModifiedValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to read from (mandatory)",
-                    "minLength": 1,
+                    "description": "Node to read from (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -8569,14 +8629,12 @@
         "ReadProcessedValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to read from (mandatory)",
-                    "minLength": 1,
+                    "description": "Node to read from (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -8624,6 +8682,9 @@
         },
         "ReadResponseModel": {
             "description": "Result of attribute reads",
+            "required": [
+                "results"
+            ],
             "type": "object",
             "properties": {
                 "results": {
@@ -8664,14 +8725,12 @@
         "ReadValuesAtTimesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to read from (mandatory)",
-                    "minLength": 1,
+                    "description": "Node to read from (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -8726,14 +8785,12 @@
         "ReadValuesDetailsModelHistoryReadRequestModel": {
             "description": "Request node history read",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to read from (mandatory)",
-                    "minLength": 1,
+                    "description": "Node to read from (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -8860,6 +8917,9 @@
         },
         "ServerCapabilitiesModel": {
             "description": "Server capabilities",
+            "required": [
+                "operationLimits"
+            ],
             "type": "object",
             "properties": {
                 "operationLimits": {
@@ -8890,6 +8950,53 @@
                     "description": "Supported aggregate functions",
                     "type": "object",
                     "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "MaxSessions": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxSubscriptions": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxMonitoredItems": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxSubscriptionsPerSession": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxMonitoredItemsPerSubscription": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxSelectClauseParameters": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxWhereClauseParameters": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "MaxMonitoredItemsQueueSize": {
+                    "format": "int64",
+                    "description": "Supported aggregate functions",
+                    "type": "integer"
+                },
+                "conformanceUnits": {
+                    "description": "Supported aggregate functions",
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
                 }
@@ -9225,14 +9332,12 @@
         "UpdateEventsDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to update",
-                    "minLength": 1,
+                    "description": "Node to update (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -9271,14 +9376,12 @@
         "UpdateValuesDetailsModelHistoryUpdateRequestModel": {
             "description": "Request node history update",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to update",
-                    "minLength": 1,
+                    "description": "Node to update (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -9457,6 +9560,9 @@
         },
         "VariantValueHistoryReadNextResponseModel": {
             "description": "History read continuation result",
+            "required": [
+                "history"
+            ],
             "type": "object",
             "properties": {
                 "history": {
@@ -9476,14 +9582,12 @@
         "VariantValueHistoryReadRequestModel": {
             "description": "Request node history read",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to read from (mandatory)",
-                    "minLength": 1,
+                    "description": "Node to read from (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -9512,6 +9616,9 @@
         },
         "VariantValueHistoryReadResponseModel": {
             "description": "History read results",
+            "required": [
+                "history"
+            ],
             "type": "object",
             "properties": {
                 "history": {
@@ -9531,14 +9638,12 @@
         "VariantValueHistoryUpdateRequestModel": {
             "description": "Request node history update",
             "required": [
-                "details",
-                "nodeId"
+                "details"
             ],
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "description": "Node to update",
-                    "minLength": 1,
+                    "description": "Node to update (mandatory without browse path)",
                     "type": "string"
                 },
                 "browsePath": {
@@ -9580,6 +9685,9 @@
         },
         "WriteResponseModel": {
             "description": "Result of attribute write",
+            "required": [
+                "results"
+            ],
             "type": "object",
             "properties": {
                 "results": {

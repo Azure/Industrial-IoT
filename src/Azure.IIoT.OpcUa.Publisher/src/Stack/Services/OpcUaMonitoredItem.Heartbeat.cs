@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.Serialization;
@@ -47,12 +46,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create data item with heartbeat
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="dataTemplate"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Heartbeat(DataMonitoredItemModel dataTemplate,
+            public Heartbeat(ISubscriber owner, DataMonitoredItemModel dataTemplate,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(dataTemplate, logger, timeProvider)
+                base(owner, dataTemplate, logger, timeProvider)
             {
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);
@@ -134,12 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override bool ProcessMonitoredItemNotification(uint sequenceNumber,
-                DateTimeOffset publishTime, MonitoredItemNotification monitoredItemNotification,
-                IList<MonitoredItemNotificationModel> notifications)
+            protected override bool ProcessMonitoredItemNotification(DateTimeOffset publishTime,
+                MonitoredItemNotification monitoredItemNotification,
+                MonitoredItemNotifications notifications)
             {
                 Debug.Assert(Valid);
-                var result = base.ProcessMonitoredItemNotification(sequenceNumber, publishTime,
+                var result = base.ProcessMonitoredItemNotification(publishTime,
                     monitoredItemNotification, notifications);
 
                 if (!_disposed && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
@@ -214,15 +214,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset publishTime,
-                IEncodeable evt, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(DateTimeOffset publishTime,
+                IEncodeable evt, MonitoredItemNotifications notifications)
             {
-                _lastSequenceNumber = sequenceNumber;
+                _lastSequenceNumber = GetNextSequenceNumber();
                 if (!_disposed && (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV) == 0)
                 {
                     EnableHeartbeatTimer();
                 }
-                return base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications);
+                return base.TryGetMonitoredItemNotifications(publishTime, evt, notifications);
+            }
+
+            /// <inheritdoc/>
+            public override bool SkipMonitoredItemNotification()
+            {
+                var dropValue = (_heartbeatBehavior & HeartbeatBehavior.Reserved) != 0;
+                return dropValue || base.SkipMonitoredItemNotification();
             }
 
             /// <inheritdoc/>
@@ -316,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Adjust to the diff between now and received if desired
                     // Should not be possible that last value received is null, nevertheless.
                     var diffTime = LastReceivedTime.HasValue ?
-                        TimeProvider.GetUtcNow() - LastReceivedTime.Value : TimeSpan.Zero;
+                        e.SignalTime - LastReceivedTime.Value : TimeSpan.Zero;
 
                     lastValue = new DataValue(lastValue)
                     {
@@ -333,7 +340,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Id = Template.Id,
                     DataSetFieldName = Template.DisplayName,
                     DataSetName = Template.DisplayName,
-                    Context = Template.Context,
                     NodeId = TheResolvedNodeId,
                     PathFromRoot = TheResolvedRelativePath,
                     Value = lastValue,
@@ -345,9 +351,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // New value came in while running the timer callback - no need to send heartbeat
                     return;
                 }
-                callback(MessageType.DeltaFrame, heartbeat.YieldReturn(),
+                callback(Owner, MessageType.DeltaFrame, heartbeat.YieldReturn().ToList(),
                     diagnosticsOnly: (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
-                        == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly);
+                        == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly, timestamp: e.SignalTime);
             }
 
             /// <summary>

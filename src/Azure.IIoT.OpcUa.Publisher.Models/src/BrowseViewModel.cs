@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "viewId", Order = 0)]
         [Required]
-        public string? ViewId { get; set; }
+        public required string ViewId { get; set; }
 
         /// <summary>
         /// Browses specific version of the view.

@@ -18,6 +18,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal sealed partial class OpcUaClient
     {
         /// <summary>
+        /// Registers a value to read with results pushed to the provided
+        /// subscription callback
+        /// </summary>
+        /// <param name="samplingRate"></param>
+        /// <param name="maxAge"></param>
+        /// <param name="nodeToRead"></param>
+        /// <param name="subscriptionName"></param>
+        /// <param name="clientHandle"></param>
+        /// <returns></returns>
+        internal IAsyncDisposable Sample(TimeSpan samplingRate, TimeSpan maxAge,
+            ReadValueId nodeToRead, string subscriptionName, uint clientHandle)
+        {
+            return Sampler.Register(this, samplingRate, maxAge,
+                nodeToRead, subscriptionName, clientHandle);
+        }
+
+        /// <summary>
         /// A set of client sampled values
         /// </summary>
         private sealed class Sampler : IAsyncDisposable
@@ -27,16 +44,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="samplingRate"></param>
+            /// <param name="maxAge"></param>
             /// <param name="subscription"></param>
             /// <param name="value"></param>
             private Sampler(OpcUaClient outer, TimeSpan samplingRate,
-                string subscription, SampledNodeId value)
+                TimeSpan maxAge, string subscription, SampledNodeId value)
             {
                 _sampledNodes = ImmutableHashSet<SampledNodeId>.Empty.Add(value);
 
                 _client = outer;
                 _cts = new CancellationTokenSource();
                 _samplingRate = samplingRate;
+                _maxAge = maxAge;
                 _subscription = subscription;
                 _timer = new PeriodicTimer(_samplingRate);
                 _sampler = RunAsync(_cts.Token);
@@ -124,7 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Timestamp = _client._timeProvider.GetUtcNow().UtcDateTime,
                             TimeoutHint = (uint)timeout,
                             ReturnDiagnostics = 0
-                        }, 0.0, Opc.Ua.TimestampsToReturn.Both, nodesToRead, ct).ConfigureAwait(false);
+                        }, _maxAge.TotalMilliseconds, Opc.Ua.TimestampsToReturn.Both,
+                            nodesToRead, ct).ConfigureAwait(false);
 
                         var values = response.Validate(response.Results,
                             r => r.StatusCode, response.DiagnosticInfos, nodesToRead);
@@ -222,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 /// <summary>
                 /// Sampler key
                 /// </summary>
-                public (string, TimeSpan) Key { get; }
+                public (string, TimeSpan, TimeSpan) Key { get; }
 
                 /// <summary>
                 /// Item to monito
@@ -241,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 /// <param name="key"></param>
                 /// <param name="item"></param>
                 /// <param name="clientHandle"></param>
-                public SampledNodeId(OpcUaClient outer, (string, TimeSpan) key,
+                public SampledNodeId(OpcUaClient outer, (string, TimeSpan, TimeSpan) key,
                     ReadValueId item, uint clientHandle)
                 {
                     _outer = outer;
@@ -275,26 +295,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="samplingRate"></param>
+            /// <param name="maxAge"></param>
             /// <param name="item"></param>
             /// <param name="subscriptionName"></param>
             /// <param name="clientHandle"></param>
             /// <returns></returns>
             public static IAsyncDisposable Register(OpcUaClient outer, TimeSpan samplingRate,
-                ReadValueId item, string subscriptionName, uint clientHandle)
+                TimeSpan maxAge, ReadValueId item, string subscriptionName, uint clientHandle)
             {
-                if (samplingRate == TimeSpan.Zero)
+                if (samplingRate <= TimeSpan.Zero)
                 {
                     samplingRate = TimeSpan.FromSeconds(1);
                 }
+                if (maxAge < TimeSpan.Zero)
+                {
+                    maxAge = TimeSpan.Zero;
+                }
                 lock (outer._samplers)
                 {
-                    var key = (subscriptionName, samplingRate);
+                    var key = (subscriptionName, samplingRate, maxAge);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var sampledNode = new SampledNodeId(outer, key, item, clientHandle);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     if (!outer._samplers.TryGetValue(key, out var sampler))
                     {
-                        sampler = new Sampler(outer, samplingRate, subscriptionName, sampledNode);
+                        sampler = new Sampler(outer, samplingRate, maxAge,
+                            subscriptionName, sampledNode);
                         outer._samplers.Add(key, sampler);
                     }
                     else
@@ -310,6 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly Task _sampler;
             private readonly OpcUaClient _client;
             private readonly TimeSpan _samplingRate;
+            private readonly TimeSpan _maxAge;
             private readonly string _subscription;
             private readonly PeriodicTimer _timer;
         }

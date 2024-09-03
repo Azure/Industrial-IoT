@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "target", Order = 2)]
         [Required]
-        public NodeModel Target { get; set; } = null!;
+        public required NodeModel Target { get; set; }
 
         /// <summary>
         /// Service result in case of error

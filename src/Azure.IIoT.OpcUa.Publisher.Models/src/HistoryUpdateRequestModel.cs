@@ -14,13 +14,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [DataContract]
-    public sealed record class HistoryUpdateRequestModel<T>
+    public sealed record class HistoryUpdateRequestModel<T> where T : class
     {
         /// <summary>
-        /// Node to update
+        /// Node to update (mandatory without browse path)
         /// </summary>
-        [DataMember(Name = "nodeId", Order = 0)]
-        [Required]
+        [DataMember(Name = "nodeId", Order = 0,
+            EmitDefaultValue = false)]
         public string? NodeId { get; set; }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "details", Order = 2)]
         [Required]
-        public T? Details { get; set; }
+        public required T Details { get; set; }
 
         /// <summary>
         /// Optional request header

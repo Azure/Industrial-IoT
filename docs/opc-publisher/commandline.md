@@ -252,17 +252,16 @@ Messaging configuration
                                Default: `false` if the messaging profile
                                selected supports sending metadata and `--strict`
                                 is set but not '--dct', `True` otherwise.
-      --amt, --asyncmetadatathreshold, --AsyncMetaDataLoadThreshold=VALUE
-                             The default threshold of monitored items in a
-                               subscription under which meta data is loaded
-                               synchronously during subscription creation.
+      --amt, --asyncmetadataloadtimeout, --AsyncMetaDataLoadTimeout=VALUE
+                             The default duration in seconds a publish request
+                               should wait until the meta data is loaded.
                                Loaded metadata guarantees a metadata message is
                                sent before the first message is sent but
                                loading of metadata takes time during
-                               subscription setup. Set to `0` to always load
-                               metadata asynchronously.
+                               subscription setup. Set to `0` to block until
+                               metadata is loaded.
                                Only used if meta data is supported and enabled.
-                               Default: `30`.
+                               Default: `not set` (block forever).
       --ps, --publishschemas, --PublishMessageSchema[=VALUE]
                              Publish the Avro or Json message schemas to schema
                                registry or subtopics.
@@ -675,6 +674,8 @@ Subscription settings
                                    `PeriodicLKG`
                                    `WatchdogLKVWithUpdatedTimestamps`
                                    `WatchdogLKVDiagnosticsOnly`
+                                   `PeriodicLKVDropValue`
+                                   `PeriodicLKGDropValue`
                                Default: `WatchdogLKV` (Sending LKV in a
                                watchdog fashion).
       --hb, --heartbeatinterval, --DefaultHeartbeatInterval=VALUE
@@ -706,10 +707,37 @@ Subscription settings
                              Set to false to disable sequential publishing in
                                the protocol stack.
                                Default: `True` (enabled).
+      --smi, --subscriptionmanagementinterval, --SubscriptionManagementIntervalSeconds=VALUE
+                             The interval in seconds after which the publisher
+                               re-applies the desired state of the subscription
+                               to a session.
+                               Default: `0` (only on configuration change).
+      --bnr, --badnoderetrydelay, --BadMonitoredItemRetryDelaySeconds=VALUE
+                             The delay in seconds after which nodes that were
+                               rejected by the server while added or updating a
+                               subscription or while publishing, are re-applied
+                               to a subscription.
+                               Set to 0 to disable retrying.
+                               Default: `1800` seconds.
+      --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelaySeconds=VALUE
+                             The delay in seconds after which the publisher
+                               attempts to re-apply nodes that were incorrectly
+                               configured to a subscription.
+                               Set to 0 to disable retrying.
+                               Default: `300` seconds.
+      --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelaySeconds=VALUE
+                             The delay in seconds between attempts to create a
+                               subscription in a session.
+                               Set to 0 to disable retrying.
+                               Default: `2` seconds.
       --urc, --usereverseconnect, --DefaultUseReverseConnect[=VALUE]
                              (Experimental) Use reverse connect for all
-                               endpoints that are part of the subscription
-                               configuration unless otherwise configured.
+                               endpoints in the published nodes configuration
+                               unless otherwise configured.
+                               Default: `false`.
+      --dtr, --disabletransferonreconnect, --DisableSubscriptionTransfer[=VALUE]
+                             Do not attempt to transfer subscriptions when
+                               reconnecting but re-establish the subscription.
                                Default: `false`.
       --dct, --disablecomplextypesystem, --DisableComplexTypeSystem[=VALUE]
                              Never load the complex type system for any
@@ -718,20 +746,10 @@ Subscription settings
                                messages but also prevents transcoding of
                                unknown complex types in outgoing messages.
                                Default: `false`.
-      --dtr, --disabletransferonreconnect, --DisableSubscriptionTransfer[=VALUE]
-                             Do not attempt to transfer subscriptions when
-                               reconnecting but re-establish the subscription.
-                               Default: `false`.
       --dsg, --disablesessionpergroup, --DisableSessionPerWriterGroup[=VALUE]
                              Disable creating a separate session per writer
                                group. Instead sessions are re-used across
                                writer groups.
-                               Default: `False`.
-      --spw, --enablesessionperwriter, --EnableSessionPerSubscription[=VALUE]
-                             Enable creating a separate session per data set
-                               writer instead of the default behavior to create
-                               one per writer group.
-                               This setting overrides the `--dsg` option.
                                Default: `False`.
       --ipi, --ignorepublishingintervals, --IgnoreConfiguredPublishingIntervals[=VALUE]
                              Always use the publishing interval provided via
@@ -841,29 +859,6 @@ OPC UA Client configuration
                              Maximum number of publish requests to every queue
                                once subscriptions are created in the session.
                                Default: `10`.
-      --smi, --subscriptionmanagementinterval, --SubscriptionManagementIntervalSeconds=VALUE
-                             The interval in seconds after which the publisher
-                               re-applies the desired state of the subscription
-                               to a session.
-                               Default: `0` (only on configuration change).
-      --bnr, --badnoderetrydelay, --BadMonitoredItemRetryDelaySeconds=VALUE
-                             The delay in seconds after which nodes that were
-                               rejected by the server while added or updating a
-                               subscription or while publishing, are re-applied
-                               to a subscription.
-                               Set to 0 to disable retrying.
-                               Default: `1800` seconds.
-      --inr, --invalidnoderetrydelay, --InvalidMonitoredItemRetryDelaySeconds=VALUE
-                             The delay in seconds after which the publisher
-                               attempts to re-apply nodes that were incorrectly
-                               configured to a subscription.
-                               Set to 0 to disable retrying.
-                               Default: `300` seconds.
-      --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelaySeconds=VALUE
-                             The delay in seconds between attempts to create a
-                               subscription in a session.
-                               Set to 0 to disable retrying.
-                               Default: `2` seconds.
       --dcp, --disablecomplextypepreloading, --DisableComplexTypePreloading[=VALUE]
                              Complex types (structures, enumerations) a server
                                exposes are preloaded from the server after the

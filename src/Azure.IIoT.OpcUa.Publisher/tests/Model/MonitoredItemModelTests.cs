@@ -62,7 +62,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Models
             {
                 SelectClauses = new List<SimpleAttributeOperandModel>
                 {
-                    new() {
+                    new()
+                    {
                         AttributeId = NodeAttribute.DataType,
                         BrowsePath = new string[] { "EventBrowsePath "},
                         IndexRange = "SelectClauseIndexRange",

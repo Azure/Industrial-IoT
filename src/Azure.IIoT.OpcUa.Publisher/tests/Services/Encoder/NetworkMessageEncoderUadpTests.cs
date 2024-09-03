@@ -112,19 +112,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false, MessageEncoding.Uadp);
-            messages[10].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[10].MetaData = new PublishedDataSetMetaDataModel
+            messages[10] = messages[10] with
             {
-                DataSetMetaData = new DataSetMetaDataModel
+                // Emit metadata
+                MessageType = Encoders.PubSub.MessageType.Metadata,
+                Context = ((DataSetWriterContext)messages[10].Context) with
                 {
-                    Name = "test"
-                },
-                Fields = new[]
-                {
-                    new PublishedFieldMetaDataModel
+                    MetaData = new PublishedDataSetMessageSchemaModel
                     {
-                        Name = "test",
-                        BuiltInType = (byte)BuiltInType.UInt16
+                        DataSetFieldContentFlags = null,
+                        DataSetMessageContentFlags = null,
+                        MetaData = new PublishedDataSetMetaDataModel
+                        {
+                            DataSetMetaData = new DataSetMetaDataModel
+                            {
+                                Name = "test"
+                            },
+                            Fields = new[]
+                            {
+                                new PublishedFieldMetaDataModel
+                                {
+                                    Name = "test",
+                                    BuiltInType = (byte)BuiltInType.UInt16
+                                }
+                            }
+                        }
                     }
                 }
             };
@@ -145,20 +157,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             const int maxMessageSize = 100;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(1, false, MessageEncoding.Uadp);
-            messages[0].MessageType = Encoders.PubSub.MessageType.Metadata; // Emit metadata
-            messages[0].MetaData = new PublishedDataSetMetaDataModel
+            messages[0] = messages[0] with
             {
-                DataSetMetaData = new DataSetMetaDataModel
+                // Emit metadata
+                MessageType = Encoders.PubSub.MessageType.Metadata,
+                Context = ((DataSetWriterContext)messages[0].Context) with
                 {
-                    Name = "test"
-                },
-                Fields = Enumerable.Range(0, 10000)
-                    .Select(r => new PublishedFieldMetaDataModel
+                    MetaData = new PublishedDataSetMessageSchemaModel
                     {
-                        Name = "testfield" + r,
-                        BuiltInType = (byte)BuiltInType.UInt16
-                    })
-                    .ToList()
+                        DataSetFieldContentFlags = null,
+                        DataSetMessageContentFlags = null,
+                        MetaData = new PublishedDataSetMetaDataModel
+                        {
+                            DataSetMetaData = new DataSetMetaDataModel
+                            {
+                                Name = "test"
+                            },
+                            Fields = Enumerable.Range(0, 10000)
+                            .Select(r => new PublishedFieldMetaDataModel
+                            {
+                                Name = "testfield" + r,
+                                BuiltInType = (byte)BuiltInType.UInt16
+                            })
+                            .ToList()
+                        }
+                    }
+                }
             };
 
             using var encoder = GetEncoder();

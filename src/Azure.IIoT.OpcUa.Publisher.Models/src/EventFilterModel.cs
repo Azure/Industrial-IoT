@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -18,15 +17,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Select clauses
         /// </summary>
-        [DataMember(Name = "selectClauses", Order = 0)]
-        [Required]
+        [DataMember(Name = "selectClauses", Order = 0,
+            EmitDefaultValue = false)]
         public IReadOnlyList<SimpleAttributeOperandModel>? SelectClauses { get; set; }
 
         /// <summary>
         /// Where clause
         /// </summary>
-        [DataMember(Name = "whereClause", Order = 1)]
-        [Required]
+        [DataMember(Name = "whereClause", Order = 1,
+            EmitDefaultValue = false)]
         public ContentFilterModel? WhereClause { get; set; }
 
         /// <summary>

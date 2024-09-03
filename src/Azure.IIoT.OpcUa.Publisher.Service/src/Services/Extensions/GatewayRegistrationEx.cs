@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Edge gateway registration extensions
@@ -130,6 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
+        [return: NotNullIfNotNull("registration")]
         public static GatewayModel? ToServiceModel(this GatewayRegistration? registration)
         {
             if (registration is null)
@@ -138,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
             }
             return new GatewayModel
             {
-                Id = registration.DeviceId,
+                Id = registration.DeviceId ?? string.Empty, // throw?
                 SiteId = registration.SiteId,
                 Connected = registration.IsConnected() ? true : null
             };

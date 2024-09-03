@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="request"></param>
         /// <param name="ct"></param>
-        Task UnpublishAllNodesAsync(PublishedNodesEntryModel request,
+        Task UnpublishAllNodesAsync(PublishedNodesEntryModel? request = null,
             CancellationToken ct = default);
 
         /// <summary>

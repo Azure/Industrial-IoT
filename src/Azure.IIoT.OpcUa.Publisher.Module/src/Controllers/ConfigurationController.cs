@@ -244,8 +244,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// configuration to remove.</param>
         /// <param name="ct"></param>
         /// <returns>The result of the operation.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/>
-        /// is <c>null</c>.</exception>
         /// <response code="200">The operation was successful.</response>
         /// <response code="404">The nodes could not be unpublished</response>
         /// <response code="408">The operation timed out.</response>
@@ -256,9 +254,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("nodes/unpublish/all")]
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
-            [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
+            [FromBody] PublishedNodesEntryModel? request, CancellationToken ct = default)
         {
-            ArgumentNullException.ThrowIfNull(request);
             await _configServices.UnpublishAllNodesAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }

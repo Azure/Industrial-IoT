@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
@@ -171,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             OpcAuthenticationMode = OpcAuthenticationMode.Anonymous,
                             OpcAuthenticationUsername = null,
                             OpcAuthenticationPassword = null,
-                            EndpointUrl = null,
+                            EndpointUrl = string.Empty,
                             UseSecurity = false,
                             UseReverseConnect = null,
                             DisableSubscriptionTransfer = null,
@@ -231,6 +232,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         FetchDisplayName = variable.ReadDisplayNameFromNode,
                         BrowsePath = variable.BrowsePath,
                         UseCyclicRead = variable.SamplingUsingCyclicRead,
+                        CyclicReadMaxAge = preferTimeSpan ? null : (int?)variable.CyclicReadMaxAge?.TotalMilliseconds,
+                        CyclicReadMaxAgeTimespan = !preferTimeSpan ? null : variable.CyclicReadMaxAge,
                         DiscardNew = variable.DiscardNew,
                         QueueSize = variable.ServerQueueSize,
                         DataChangeTrigger = variable.DataChangeTrigger,
@@ -294,6 +297,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         HeartbeatIntervalTimespan = null,
                         OpcSamplingInterval = null,
                         OpcSamplingIntervalTimespan = null,
+                        CyclicReadMaxAgeTimespan = null,
+                        CyclicReadMaxAge = null,
                         AttributeId = null,
                         RegisterNode = null,
                         UseCyclicRead = null,
@@ -457,7 +462,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval(),
                                                 MaxNotificationsPerPublish = null,
                                                 EnableImmediatePublishing = null,
-                                                AsyncMetaDataLoadThreshold = null,
                                                 EnableSequentialPublishing = null,
                                                 LifeTimeCount = null,
                                                 UseDeferredAcknoledgements = null
@@ -528,7 +532,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 IndexRange = node.IndexRange,
                                 RegisterNode = node.RegisterNode,
                                 UseCyclicRead = node.UseCyclicRead,
-                                SkipFirst = node.SkipFirst,
+                                                  CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
+              SkipFirst = node.SkipFirst,
                                 DataChangeTrigger = node.DataChangeTrigger,
                                 DeadbandType = node.DeadbandType,
                                 DeadbandValue = node.DeadbandValue,
@@ -567,6 +572,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     IndexRange = node.IndexRange,
                                     RegisterNode = node.RegisterNode,
                                     UseCyclicRead = node.UseCyclicRead,
+                                    CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                     DeadbandType = node.DeadbandType,
                                     DeadbandValue = node.DeadbandValue,
                                     DiscardNew = node.DiscardNew,
@@ -613,6 +619,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         ServerQueueSize = node.QueueSize,
                         DiscardNew = node.DiscardNew,
                         SamplingUsingCyclicRead = node.UseCyclicRead,
+                        CyclicReadMaxAge = node.CyclicReadMaxAgeTimespan,
                         Attribute = node.AttributeId,
                         IndexRange = node.IndexRange,
                         RegisterNodeForSampling = node.RegisterNode,

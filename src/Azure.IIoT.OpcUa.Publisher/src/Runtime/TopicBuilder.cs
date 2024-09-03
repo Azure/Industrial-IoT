@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="variables"></param>
         public TopicBuilder(PublisherOptions options,
             MessageEncoding? encoding = null, TopicTemplatesOptions? templates = null,
-            IReadOnlyDictionary<string, string>? variables = null)
+            IEnumerable<KeyValuePair<string, string>>? variables = null)
         {
             _options = options;
             _templates = templates ?? options.TopicTemplates;

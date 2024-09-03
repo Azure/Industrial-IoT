@@ -17,9 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Operation limits
         /// </summary>
-        [DataMember(Name = "operationLimits", Order = 0,
-            EmitDefaultValue = false)]
-        public OperationLimitsModel OperationLimits { get; set; } = null!;
+        [DataMember(Name = "operationLimits", Order = 0)]
+        public required OperationLimitsModel OperationLimits { get; set; }
 
         /// <summary>
         /// Supported locales
@@ -46,5 +45,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "aggregateFunctions", Order = 4,
             EmitDefaultValue = false)]
         public IReadOnlyDictionary<string, string>? AggregateFunctions { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxSessions", Order = 5,
+            EmitDefaultValue = false)]
+        public uint? MaxSessions { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxSubscriptions", Order = 6,
+            EmitDefaultValue = false)]
+        public uint? MaxSubscriptions { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxMonitoredItems", Order = 7,
+            EmitDefaultValue = false)]
+        public uint? MaxMonitoredItems { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxSubscriptionsPerSession", Order = 8,
+            EmitDefaultValue = false)]
+        public uint? MaxSubscriptionsPerSession { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxMonitoredItemsPerSubscription", Order = 9,
+            EmitDefaultValue = false)]
+        public uint? MaxMonitoredItemsPerSubscription { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxSelectClauseParameters", Order = 10,
+            EmitDefaultValue = false)]
+        public uint? MaxSelectClauseParameters { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxWhereClauseParameters", Order = 11,
+            EmitDefaultValue = false)]
+        public uint? MaxWhereClauseParameters { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "MaxMonitoredItemsQueueSize", Order = 12,
+            EmitDefaultValue = false)]
+        public uint? MaxMonitoredItemsQueueSize { get; set; }
+
+        /// <summary>
+        /// Supported aggregate functions
+        /// </summary>
+        [DataMember(Name = "conformanceUnits", Order = 13,
+            EmitDefaultValue = false)]
+        public IReadOnlyList<string>? ConformanceUnits { get; set; }
     }
 }

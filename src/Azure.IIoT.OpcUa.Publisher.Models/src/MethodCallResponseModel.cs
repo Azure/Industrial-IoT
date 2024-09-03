@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Resulting output values of method call
         /// </summary>
         [DataMember(Name = "results", Order = 0)]
-        public IReadOnlyList<MethodCallArgumentModel> Results { get; set; } = null!;
+        public required IReadOnlyList<MethodCallArgumentModel> Results { get; set; }
 
         /// <summary>
         /// Service result in case of error

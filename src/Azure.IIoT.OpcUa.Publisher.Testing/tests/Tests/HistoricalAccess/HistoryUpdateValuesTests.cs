@@ -66,6 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg => Assert.True(arg.Value == 77));
@@ -155,6 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg => Assert.True(arg.Value == 5));
@@ -216,6 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg => Assert.True(arg.Value == 99));
@@ -232,6 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read3.ErrorInfo);
+            Assert.NotNull(read3.History);
             Assert.Equal(10, read3.History.Length);
             Assert.All(read3.History,
                arg => Assert.True(arg.Value == 5));
@@ -293,6 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg => Assert.True(arg.Value == 99));
@@ -308,6 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
                 }, ct).ConfigureAwait(false);
 
+            Assert.NotNull(read3.History);
             Assert.Equal(20, read3.History.Length);
             Assert.Null(read3.ErrorInfo);
             Assert.All(read3.History,
@@ -407,7 +413,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.NotNull(read2.ErrorInfo);
-            Assert.Equal("GoodNoData", read2.ErrorInfo?.SymbolicId);
+            Assert.Equal("GoodNoData", read2.ErrorInfo.SymbolicId);
+            Assert.NotNull(read2.History);
             Assert.Empty(read2.History);
 
             var read3 = await services.HistoryReadModifiedValuesAsync(_connection,
@@ -424,6 +431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(read3.ErrorInfo);
 
             // Insert + Delete = 20
+            Assert.NotNull(read3.History);
             Assert.Equal(20, read3.History.Length);
             Assert.All(read3.History,
                arg =>
@@ -479,6 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg =>
@@ -512,7 +521,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(read3.ErrorInfo);
-            Assert.Equal("GoodNoData", read3.ErrorInfo?.SymbolicId);
+            Assert.Equal("GoodNoData", read3.ErrorInfo.SymbolicId);
+            Assert.NotNull(read3.History);
             Assert.Empty(read3.History);
         }
 
@@ -558,6 +568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg =>
@@ -605,7 +616,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.NotNull(read3.ErrorInfo);
-            Assert.Equal("GoodNoData", read3.ErrorInfo?.SymbolicId); // TODO: Check this
+            Assert.Equal("GoodNoData", read3.ErrorInfo.SymbolicId); // TODO: Check this
+            Assert.NotNull(read3.History);
             Assert.Empty(read3.History);
         }
 
@@ -651,6 +663,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read2.ErrorInfo);
+            Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
                arg =>
@@ -686,6 +699,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }, ct).ConfigureAwait(false);
 
             Assert.Null(read4.ErrorInfo);
+            Assert.NotNull(read4.History);
             Assert.Equal(9, read4.History.Length);
             Assert.All(read4.History,
                arg => Assert.True(arg.Value == 88));
@@ -704,6 +718,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(read3.ErrorInfo);
 
             // Insert + Delete = 11
+            Assert.NotNull(read3.History);
             Assert.Equal(11, read3.History.Length);
             Assert.All(read3.History,
                arg =>

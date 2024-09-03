@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "typeDefinitionId", Order = 0)]
         [Required]
-        public string TypeDefinitionId { get; set; } = null!;
+        public required string TypeDefinitionId { get; set; }
 
         /// <summary>
         /// The type of the node

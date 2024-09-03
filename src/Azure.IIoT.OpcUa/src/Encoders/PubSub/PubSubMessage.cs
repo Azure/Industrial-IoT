@@ -184,6 +184,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="timestamp"></param>
         /// <param name="sequenceNumber"></param>
         /// <param name="standardsCompliant"></param>
+        /// <param name="endpointUrl"></param>
+        /// <param name="applicationUri"></param>
         /// <param name="metaData"></param>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -191,8 +193,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             string dataSetWriterName, ushort dataSetWriterId,
             DataSetMessageContentFlags? dataSetMessageContentFlags,
             MessageType messageType, DataSet payload, DateTimeOffset? timestamp,
-            uint sequenceNumber, bool standardsCompliant,
-            PublishedDataSetMetaDataModel? metaData,
+            uint sequenceNumber, bool standardsCompliant, string? endpointUrl,
+            string? applicationUri, PublishedDataSetMetaDataModel? metaData,
             [NotNullWhen(true)] out BaseDataSetMessage? message)
         {
             dataSetMessageContentFlags ??= DefaultDataSetMessageContentFlags;
@@ -211,6 +213,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     DataSetWriterId = dataSetWriterId,
                     MessageType = messageType,
                     MetaDataVersion = version,
+                    ApplicationUri = applicationUri,
+                    EndpointUrl = endpointUrl,
                     DataSetMessageContentMask = dataSetMessageContentFlags.Value,
                     Timestamp = timestamp,
                     SequenceNumber = sequenceNumber,
@@ -271,8 +275,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <returns></returns>
         public static bool TryCreateMonitoredItemMessage(MessageEncoding encoding,
             string? writerGroupName, DataSetMessageContentFlags? dataSetMessageContentFlags,
-            MessageType messageType, DateTimeOffset? timestamp, uint sequenceNumber, DataSet payload,
-            string? nodeId, string? endpointUrl, string? applicationUri,
+            MessageType messageType, DateTimeOffset? timestamp, uint sequenceNumber,
+            DataSet payload, string? nodeId, string? endpointUrl, string? applicationUri,
             bool standardsCompliant, IDictionary<string, VariantValue>? extensionFields,
             [NotNullWhen(true)] out BaseDataSetMessage? message)
         {

@@ -108,7 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
-                Query = "select * from BaseEventType"
+                Query = "select * from BaseEventType",
+                QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
@@ -206,7 +207,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
-                Query = "select * from TripAlarmType"
+                Query = "select * from TripAlarmType",
+                QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
@@ -682,7 +684,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     WHERE
                         OFTYPE TripAlarmType AND
                         /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
-                "
+                ",
+                QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);
@@ -773,7 +776,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     WHERE
                         OFTYPE TripAlarmType AND
                         /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
-                "
+                ",
+                QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(result);

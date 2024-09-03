@@ -37,13 +37,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create model change item
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="client"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public ModelChangeEventItem(MonitoredAddressSpaceModel template, IOpcUaClient client,
+            public ModelChangeEventItem(ISubscriber owner,
+                MonitoredAddressSpaceModel template, OpcUaClient client,
                 ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
-                base(logger, template.StartNodeId, timeProvider)
+                base(owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
                 _client = client;
@@ -238,12 +240,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber,
-                DateTimeOffset publishTime, IEncodeable evt,
-                IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(DateTimeOffset publishTime,
+                IEncodeable evt, MonitoredItemNotifications notifications)
             {
                 if (evt is not EventFieldList eventFields ||
-                    !base.TryGetMonitoredItemNotifications(sequenceNumber, publishTime, evt, notifications))
+                    !base.TryGetMonitoredItemNotifications(publishTime, evt, notifications))
                 {
                     return false;
                 }
@@ -280,19 +281,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             protected override bool TryGetErrorMonitoredItemNotifications(
-                uint sequenceNumber, StatusCode statusCode,
-                IList<MonitoredItemNotificationModel> notifications)
+                StatusCode statusCode, MonitoredItemNotifications notifications)
             {
                 return true;
             }
 
             /// <inheritdoc/>
             protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, IOpcUaClient? client = null)
+                ILoggerFactory factory, OpcUaClient client)
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(Template.TriggeredItems, factory, TimeProvider, client);
+                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                        factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
             }
@@ -319,8 +320,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void OnNodeChange(object? sender, Change<Node> e)
             {
-                _callback?.Invoke(MessageType.Event, CreateEvent(_nodeChangeType, e),
-                    sender as ISession, DataSetName);
+                _callback?.Invoke(Owner, MessageType.Event,
+                    CreateEvent(_nodeChangeType, e).ToList(), sender as ISession,
+                    EventTypeName);
             }
 
             /// <summary>
@@ -330,8 +332,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
             {
-                _callback?.Invoke(MessageType.Event, CreateEvent(_refChangeType, e),
-                    sender as ISession, DataSetName);
+                _callback?.Invoke(Owner, MessageType.Event,
+                    CreateEvent(_refChangeType, e).ToList(), sender as ISession,
+                    EventTypeName);
             }
 
             /// <summary>
@@ -375,7 +378,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         Id = Template.Id ?? string.Empty,
                         DataSetName = Template.DisplayName,
-                        Context = Template.Context,
                         DataSetFieldName = field.Name,
                         PathFromRoot = changeFeedNotification.PathFromRoot,
                         NodeId = Template.StartNodeId,
@@ -463,7 +465,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private static readonly ExpandedNodeId _nodeChangeType
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
             private readonly PublishedFieldMetaDataModel[] _fields;
-            private readonly IOpcUaClient _client;
+            private readonly OpcUaClient _client;
             private readonly object _lock = new();
             private IOpcUaBrowser? _browser;
             private Callback? _callback;

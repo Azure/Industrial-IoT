@@ -20,20 +20,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "nodeId", Order = 0)]
         [Required]
-        public string? NodeId { get; set; }
+        public required string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to write (mandatory)
         /// </summary>
         [DataMember(Name = "attribute", Order = 1)]
         [Required]
-        public NodeAttribute Attribute { get; set; }
+        public required NodeAttribute Attribute { get; set; }
 
         /// <summary>
         /// Value to write (mandatory)
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
         [Required]
-        public VariantValue? Value { get; set; }
+        public required VariantValue Value { get; set; }
     }
 }

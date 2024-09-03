@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "application", Order = 0)]
         [Required]
-        public ApplicationInfoModel Application { get; set; } = null!;
+        public required ApplicationInfoModel Application { get; set; }
 
         /// <summary>
         /// List of endpoints for it

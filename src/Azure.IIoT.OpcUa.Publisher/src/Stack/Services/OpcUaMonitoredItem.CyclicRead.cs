@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -32,13 +33,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create cyclic read item
             /// </summary>
+            /// <param name="owner"></param>
             /// <param name="client"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public CyclicRead(IOpcUaClient client, DataMonitoredItemModel template,
-                ILogger<CyclicRead> logger, TimeProvider timeProvider)
-                : base(template with
+            public CyclicRead(ISubscriber owner, OpcUaClient client,
+                DataMonitoredItemModel template, ILogger<CyclicRead> logger,
+                TimeProvider timeProvider) :
+                base(owner, template with
                 {
                     // Always ensure item is disabled
                     MonitoringMode = Publisher.Models.MonitoringMode.Disabled
@@ -106,6 +109,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
+                if ((Template.CyclicReadMaxAge ?? TimeSpan.Zero) !=
+                    (cyclicRead.Template.CyclicReadMaxAge ?? TimeSpan.Zero))
+                {
+                    return false;
+                }
                 return base.Equals(obj);
             }
 
@@ -118,6 +126,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<TimeSpan>.Default.GetHashCode(
                         Template.SamplingInterval ?? TimeSpan.FromSeconds(1));
+                hashCode = (hashCode * -1521134295) +
+                    EqualityComparer<TimeSpan>.Default.GetHashCode(
+                        Template.CyclicReadMaxAge ?? TimeSpan.Zero);
                 return hashCode;
             }
 
@@ -170,7 +181,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_sampler == null)
                     {
                         _sampling = true;
-                        _sampler = _client.Sample(TimeSpan.FromMilliseconds(SamplingInterval),
+                        _sampler = _client.Sample(
+                            TimeSpan.FromMilliseconds(SamplingInterval),
+                            Template.CyclicReadMaxAge ?? TimeSpan.Zero,
                             new ReadValueId
                             {
                                 AttributeId = AttributeId,
@@ -204,8 +217,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryGetMonitoredItemNotifications(uint sequenceNumber, DateTimeOffset timestamp,
-                IEncodeable encodeablePayload, IList<MonitoredItemNotificationModel> notifications)
+            public override bool TryGetMonitoredItemNotifications(DateTimeOffset timestamp,
+                IEncodeable encodeablePayload, MonitoredItemNotifications notifications)
             {
                 if (!Valid || encodeablePayload is not SampledDataValueModel cyclicReadNotification)
                 {
@@ -214,12 +227,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 LastReceivedValue = cyclicReadNotification;
                 LastReceivedTime = TimeProvider.GetUtcNow();
-                notifications.Add(ToMonitoredItemNotification(sequenceNumber,
+                notifications.Add(Owner, ToMonitoredItemNotification(
                     cyclicReadNotification.Value, cyclicReadNotification.Overflow));
                 return true;
             }
 
-            private readonly IOpcUaClient _client;
+            private readonly OpcUaClient _client;
             private IAsyncDisposable? _sampler;
             private bool _sampling;
             private readonly object _lock = new();

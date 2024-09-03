@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
     /// <summary>
     /// Extensions to convert metadata into json schema. Note that this class
     /// generates a schema that complies with the json representation in
-    /// <see cref="JsonEncoderEx.WriteDataSet(string?, Models.DataSet?)"/>.
+    /// <see cref="JsonEncoderEx"/>.WriteDataSet.
     /// This depends on the network settings and reversible vs. nonreversible
     /// encoding mode.
     /// </summary>

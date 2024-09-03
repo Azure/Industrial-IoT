@@ -377,18 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public void Dispose()
             {
-                try
-                {
-                    Source.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    _outer._logger.LogError(ex, "Failed to dispose writer group job {Name}", Id);
-                }
-                finally
-                {
-                    _scope.Dispose();
-                }
+                _scope.Dispose();
             }
 
             private readonly IWriterGroupScope _scope;

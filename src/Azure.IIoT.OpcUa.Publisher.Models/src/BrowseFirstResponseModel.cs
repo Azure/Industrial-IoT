@@ -18,14 +18,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Node info for the currently browsed node
         /// </summary>
         [DataMember(Name = "node", Order = 0)]
-        public NodeModel Node { get; set; } = null!;
+        public required NodeModel Node { get; set; }
 
         /// <summary>
-        /// References, if included, otherwise null.
+        /// References returned
         /// </summary>
-        [DataMember(Name = "references", Order = 1,
-            EmitDefaultValue = false)]
-        public IReadOnlyList<NodeReferenceModel>? References { get; set; }
+        [DataMember(Name = "references", Order = 1)]
+        public required IReadOnlyList<NodeReferenceModel> References { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.

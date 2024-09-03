@@ -27,6 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "events", Order = 1)]
         [Required]
-        public IReadOnlyList<HistoricEventModel>? Events { get; set; }
+        public required IReadOnlyList<HistoricEventModel> Events { get; set; }
     }
 }

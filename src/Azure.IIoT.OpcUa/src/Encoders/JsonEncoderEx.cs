@@ -1155,7 +1155,8 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public void WriteDataSet(string? property, DataSet? dataSet)
+        public void WriteDataSet(string? property, DataSet? dataSet,
+            IEnumerable<KeyValuePair<string, DataValue?>>? extraFields = null)
         {
             if (dataSet == null)
             {
@@ -1178,7 +1179,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = true;
                     UseReversibleEncoding = false;
-                    Write(property, dataSet,
+                    Write(property, dataSet, extraFields,
                         (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
                 }
                 else if (fieldContentMask == 0)
@@ -1190,7 +1191,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     //
                     UseUriEncoding = false;
                     UseReversibleEncoding = true;
-                    Write(property, dataSet,
+                    Write(property, dataSet, extraFields,
                         (k, v) => WriteVariant(k, v?.WrappedValue ?? default), writeSingleValue);
                 }
                 else
@@ -1200,7 +1201,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     // the field value is a DataValue encoded using the non-reversible OPC UA
                     // JSON Data Encoding or reversible depending on encoder configuration.
                     //
-                    Write(property, dataSet, (k, value) =>
+                    Write(property, dataSet, extraFields, (k, value) =>
                     {
                         PushObject(k);
                         try
@@ -1238,7 +1239,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
 
                 void Write<T>(string? property, IEnumerable<KeyValuePair<string, T>> values,
-                    Action<string?, T> writer, bool writeSingleValue)
+                    IEnumerable<KeyValuePair<string, T>>? extra, Action<string?, T> writer,
+                    bool writeSingleValue)
                 {
                     if (writeSingleValue)
                     {
@@ -1246,6 +1248,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     else
                     {
+                        if (extra != null)
+                        {
+                            values = values.Concat(extra);
+                        }
                         WriteDictionary(property, values, writer);
                     }
                 }

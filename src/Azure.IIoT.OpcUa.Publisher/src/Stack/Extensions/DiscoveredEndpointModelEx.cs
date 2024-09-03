@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     new() {
                         SiteId = siteId,
                         DiscovererId = discovererId,
-                        Id = null,
+                        Id = string.Empty,
                         SecurityLevel = result.Description.SecurityLevel,
                         AuthenticationMethods = result.Description.UserIdentityTokens
                             .ToServiceModel(serializer),

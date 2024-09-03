@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -14,12 +14,12 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Writer group
     /// </summary>
-    public interface IMessageSource : IDisposable
+    public interface IMessageSource
     {
         /// <summary>
         /// Subscribe to writer messages
         /// </summary>
-        event EventHandler<IOpcUaSubscriptionNotification>? OnMessage;
+        event EventHandler<OpcUaSubscriptionNotification>? OnMessage;
 
         /// <summary>
         /// Called when ValueChangesCount or DataChangesCount are resetted

@@ -55,5 +55,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         WatchdogLKVDiagnosticsOnly = 0x8,
 
         // Others can be combining Cont, LKG with 0x8
+
+        /// <summary>
+        /// Reserved, do not use
+        /// </summary>
+#pragma warning disable CA1700 // Do not name enum values 'Reserved'
+        Reserved = 0x10,
+#pragma warning restore CA1700 // Do not name enum values 'Reserved'
+
+        /// <summary>
+        /// Continuously sends last known value but not
+        /// the received values.
+        /// </summary>
+        [EnumMember(Value = "PeriodicLKVDropValue")]
+        PeriodicLKVDropValue = PeriodicLKV | Reserved,
+
+        /// <summary>
+        /// Continuously sends last good value but not
+        /// the received values.
+        /// </summary>
+        [EnumMember(Value = "PeriodicLKGDropValue")]
+        PeriodicLKGDropValue = PeriodicLKG | Reserved,
     }
 }

@@ -250,9 +250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 
         /// <inheritdoc/>
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
-            PublishedNodesEntryModel request, CancellationToken ct)
+            PublishedNodesEntryModel? request, CancellationToken ct)
         {
-            ArgumentNullException.ThrowIfNull(request);
             var response = await _methodClient.CallMethodAsync(_target,
                 "UnpublishAllNodes", _serializer.SerializeToMemory(request),
                 ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);

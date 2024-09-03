@@ -186,9 +186,60 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? RuntimeStateRoutingInfo { get; set; }
 
         /// <summary>
+        /// Never load the complex type system from any session.
+        /// This disables metadata loading capability but also
+        /// the ability to encode complex types.
+        /// </summary>
+        public bool? DisableComplexTypeSystem { get; set; }
+
+        /// <summary>
+        /// Whether to enable or disable data set metadata explicitly
+        /// </summary>
+        public bool? DisableDataSetMetaData { get; set; }
+
+        /// <summary>
+        /// Default metadata send interval.
+        /// </summary>
+        public TimeSpan? DefaultMetaDataUpdateTime { get; set; }
+
+        /// <summary>
+        /// Timeout to block the first message after a metadata
+        /// change is causing the load of the new metadata.
+        /// </summary>
+        public TimeSpan? AsyncMetaDataLoadTimeout { get; set; }
+
+        /// <summary>
         /// Enable adding data set routing info to messages
         /// </summary>
         public bool? EnableDataSetRoutingInfo { get; set; }
+
+        /// <summary>
+        /// Whether to enable or disable keep alive messages
+        /// </summary>
+        public bool? EnableDataSetKeepAlives { get; set; }
+
+        /// <summary>
+        /// Default keyframe count
+        /// </summary>
+        public uint? DefaultKeyFrameCount { get; set; }
+
+        /// <summary>
+        /// Disable creating a separate session per writer group. This
+        /// will re-use sessions across writer groups. Default is to
+        /// create a seperate session.
+        /// </summary>
+        public bool? DisableSessionPerWriterGroup { get; set; }
+
+        /// <summary>
+        /// Always default to use or not use reverse connect
+        /// unless overridden by the configuration.
+        /// </summary>
+        public bool? DefaultUseReverseConnect { get; set; }
+
+        /// <summary>
+        /// Disable subscription transfer on reconnect.
+        /// </summary>
+        public bool? DisableSubscriptionTransfer { get; set; }
 
         /// <summary>
         /// Force encryption of credentials in publisher configuration

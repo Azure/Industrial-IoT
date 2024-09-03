@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
     using System;
     using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="maxMessageSize">Maximum size of messages</param>
         /// <param name="asBatch">Encode in batch mode</param>
         IEnumerable<(IEvent Event, Action OnSent)> Encode(Func<IEvent> factory,
-            IEnumerable<IOpcUaSubscriptionNotification> notifications,
+            IEnumerable<OpcUaSubscriptionNotification> notifications,
             int maxMessageSize, bool asBatch);
     }
 }

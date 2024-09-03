@@ -28,7 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var result = await client.HistoryReadValuesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
-                result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
+                result.ContinuationToken, result.History?.AsEnumerable()
+                    ?? Enumerable.Empty<HistoricValueModel>()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -44,7 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var result = await client.HistoryReadModifiedValuesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
-                result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
+                result.ContinuationToken, result.History?.AsEnumerable()
+                    ?? Enumerable.Empty<HistoricValueModel>()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -60,7 +62,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var result = await client.HistoryReadValuesAtTimesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
-                result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
+                result.ContinuationToken, result.History?.AsEnumerable()
+                    ?? Enumerable.Empty<HistoricValueModel>()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -76,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var result = await client.HistoryReadProcessedValuesAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingValuesAsync(client, endpointId, request.Header,
-                result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
+                result.ContinuationToken, result.History?.AsEnumerable()
+                    ?? Enumerable.Empty<HistoricValueModel>()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -92,7 +96,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
         {
             var result = await client.HistoryReadEventsAsync(endpointId, request).ConfigureAwait(false);
             return await HistoryReadAllRemainingEventsAsync(client, endpointId, request.Header,
-                result.ContinuationToken, result.History.AsEnumerable()).ConfigureAwait(false);
+                result.ContinuationToken, result.History?.AsEnumerable()
+                    ?? Enumerable.Empty<HistoricEventModel>()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,7 +121,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
                     Header = header
                 }).ConfigureAwait(false);
                 continuationToken = response.ContinuationToken;
-                returning = returning.Concat(response.History);
+                if (response.History != null)
+                {
+                    returning = returning.Concat(response.History);
+                }
             }
             return returning;
         }
@@ -142,7 +150,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk
                     Header = header
                 }).ConfigureAwait(false);
                 continuationToken = response.ContinuationToken;
-                returning = returning.Concat(response.History);
+                if (response.History != null)
+                {
+                    returning = returning.Concat(response.History);
+                }
             }
             return returning;
         }

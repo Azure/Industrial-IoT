@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "nodeId", Order = 2)]
         [Required]
-        public string NodeId { get; set; } = null!;
+        public required string NodeId { get; set; }
 
         /// <summary>
         /// Description if any
