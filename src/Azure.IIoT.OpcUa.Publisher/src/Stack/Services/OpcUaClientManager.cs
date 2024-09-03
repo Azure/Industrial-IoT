@@ -611,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
                     OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
-                _logger.LogInformation("New client {Client} created.", client);
+                _logger.LogInformation("{Client}: Created new client.", client);
                 return client;
             });
 

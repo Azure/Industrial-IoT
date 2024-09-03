@@ -307,10 +307,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     samplingRate = TimeSpan.FromSeconds(1);
                 }
-                if (maxAge > samplingRate)
-                {
-                    maxAge = samplingRate;
-                }
                 if (maxAge < TimeSpan.Zero)
                 {
                     maxAge = TimeSpan.Zero;

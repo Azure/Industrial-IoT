@@ -431,6 +431,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_bad_metadata",
                 () => new Measurement<int>(_metadataLoadFailures, _metrics.TagList),
                 description: "Number of failed metadata load operations.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_messages_without_metadata",
+                () => new Measurement<int>(_messagesWithoutMetadata, _metrics.TagList),
+                description: "Number of messages dropped because metadata was missing in time.");
 
             // --- collected by publisher collector:
 
@@ -599,6 +602,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly RollingAverage _overflows;
         private WriterGroupModel _writerGroup;
         private long _keepAliveCount;
+        private int _messagesWithoutMetadata;
         private int _metadataLoadSuccess;
         private int _metadataLoadFailures;
         private int _metadataChanges;

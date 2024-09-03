@@ -138,6 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int BatchSizeLegacyDefault = 50;
         public const int MaxNetworkMessageSendQueueSizeDefault = 4096;
         public const int BatchTriggerIntervalLLegacyDefaultMillis = 10 * 1000;
+        public const int AsyncMetaDataLoadTimeoutDefaultMillis = 5 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
         public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const int ScaleTestCountDefault = 1;
@@ -434,7 +435,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             }
             if (options.AsyncMetaDataLoadTimeout == null && options.DisableDataSetMetaData != true)
             {
-                options.AsyncMetaDataLoadTimeout = GetDurationOrNull(AsyncMetaDataLoadTimeoutKey);
+                options.AsyncMetaDataLoadTimeout = GetDurationOrDefault(AsyncMetaDataLoadTimeoutKey,
+                    TimeSpan.FromMilliseconds(AsyncMetaDataLoadTimeoutDefaultMillis));
             }
             options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
             options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);

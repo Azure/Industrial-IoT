@@ -205,7 +205,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Timeout to block the first message after a metadata
         /// change is causing the load of the new metadata.
-        /// Default is block forever
         /// </summary>
         public TimeSpan? AsyncMetaDataLoadTimeout { get; set; }
 

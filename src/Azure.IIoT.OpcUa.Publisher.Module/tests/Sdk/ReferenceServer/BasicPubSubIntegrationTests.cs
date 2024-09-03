@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Json.More;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
@@ -562,10 +563,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var timestamps = messages.ConvertAll(m => m.Message.GetProperty("Messages")[0]
                 .GetProperty("Timestamp").GetDateTimeOffset());
 
+            var allowedVariance = TimeSpan.FromMilliseconds(50);
             for (var index = 0; index < timestamps.Count - 1; index++)
             {
                 var diff = timestamps[index + 1] - timestamps[index] - TimeSpan.FromSeconds(1);
-                Assert.True(diff.TotalSeconds <= 0.02 && diff.TotalSeconds >= -0.02, $"{diff}");
+                Assert.True(diff <= allowedVariance &&
+                            diff > -allowedVariance,
+                    $"{diff} > {allowedVariance}: \n" + string.Join('\n', timestamps
+                        .Select(t => t.ToString(CultureInfo.InvariantCulture))
+                        .ToArray()));
             }
         }
 

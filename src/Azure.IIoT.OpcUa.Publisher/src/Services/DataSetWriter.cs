@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Tasks;
     using Avro.Generic;
+    using Irony.Parsing.Construction;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -397,6 +398,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _metaDataLoader.IsValueCreated ? _metaDataLoader.Value.MetaData : null;
 
             /// <summary>
+            /// Metadata disabled
+            /// </summary>
+            internal bool IsMetadataDisabled => _writer.DataSet?.DataSetMetaData == null
+                || _group._options.Value.DisableDataSetMetaData == true;
+
+            /// <summary>
             /// Subscription id
             /// </summary>
             public IEnumerable<BaseMonitoredItemModel> MonitoredItems { get; private set; }
@@ -423,8 +430,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 Name = CreateUniqueWriterName(writer.Writer.DataSetWriterName, writerNames);
 
-                _logger.LogDebug("Creating new writer {Writer} in writer group {WriterGroup}...",
-                    Name, _group.Id);
+                _logger.LogDebug("Creating new writer {Id} ({Writer}) in writer group {WriterGroup}...",
+                    Id, Name, _group.Id);
 
                 // Create monitored items
                 var namespaceFormat =
@@ -461,7 +468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 writer.InitializeMetaDataTrigger();
                 writer.InitializeKeepAlive();
 
-                group._logger.LogInformation("New writer {Id} in writer group {WriterGroup} opened.",
+                group._logger.LogInformation("Created writer {Id} in writer group {WriterGroup}.",
                     writer.Id, group.Id);
 
                 return writer;
@@ -513,8 +520,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _connection.Connection, _template, this, ct).ConfigureAwait(false);
 
                     _logger.LogInformation(
-                        "Recreated subscription in writer group {WriterGroup}...",
-                       _group.Id);
+                        "Recreated subscription for writer {Id} in writer group {WriterGroup}...",
+                       Id, _group.Id);
                 }
                 else
                 {
@@ -522,8 +529,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Subscription.NotifyMonitoredItemsChanged();
 
                     _logger.LogInformation(
-                        "Updated monitored items in writer group {WriterGroup}.",
-                        _group.Id);
+                        "Updated monitored items for writer {Id} in writer group {WriterGroup}.",
+                        Id, _group.Id);
                 }
 
                 _frameCount = 0;
@@ -549,6 +556,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         await Subscription.DisposeAsync().ConfigureAwait(false);
                         Subscription = null;
                     }
+
+                    _logger.LogInformation("Closed writer {Id} in writer group {WriterGroup}.",
+                        Id, _group.Id);
                 }
                 finally
                 {
@@ -560,7 +570,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public void OnMonitoredItemSemanticsChanged()
             {
-                if (_group._options.Value.DisableDataSetMetaData != true)
+                if (!IsMetadataDisabled)
                 {
                     // Reload metadata
                     _metaDataLoader.Value.Reload();
@@ -715,8 +725,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var metaDataSendInterval = _writer.Writer.MetaDataUpdateTime
                     ?? _group._options.Value.DefaultMetaDataUpdateTime
                     ?? TimeSpan.Zero;
-                if (metaDataSendInterval > TimeSpan.Zero &&
-                    _group._options.Value.DisableDataSetMetaData != true)
+                if (metaDataSendInterval > TimeSpan.Zero && !IsMetadataDisabled)
                 {
                     if (_metadataTimer == null)
                     {
@@ -791,14 +800,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var metadata = MetaData;
                         var single = notification.Notifications?.Count == 1 ?
                             notification.Notifications[0] : null;
-                        if (metadata == null &&
-                            _group._options.Value.DisableDataSetMetaData != true &&
-                            _group._options.Value.AsyncMetaDataLoadTimeout != TimeSpan.Zero)
+                        if (metadata == null && !IsMetadataDisabled)
                         {
-                            // Block until we have metadata or just continue
-                            _metaDataLoader.Value.BlockUntilLoaded(
-                                _group._options.Value.AsyncMetaDataLoadTimeout ?? Timeout.InfiniteTimeSpan);
+                            if (_group._options.Value.AsyncMetaDataLoadTimeout != TimeSpan.Zero)
+                            {
+                                var sw = Stopwatch.StartNew();
+                                // Block until we have metadata or just continue
+                                _metaDataLoader.Value.BlockUntilLoaded(
+                                    _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
+                                _logger.LogInformation(
+                                    "Blocked message for {Duration} until metadata was loaded for {Writer}.",
+                                    sw.Elapsed, this);
+                            }
+
                             metadata = MetaData;
+                            if (metadata == null)
+                            {
+                                _logger.LogWarning("No metadata available for {Writer} - dropping notification.",
+                                    this);
+                                Interlocked.Increment(ref _group._messagesWithoutMetadata);
+                                return;
+                            }
                         }
 
                         if (metadata != null)
