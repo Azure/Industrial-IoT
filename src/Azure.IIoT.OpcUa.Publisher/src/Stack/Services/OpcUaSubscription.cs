@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.Event))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
     [KnownType(typeof(OpcUaMonitoredItem.Field))]
-    internal sealed class OpcUaSubscription : Subscription,
+    internal sealed class OpcUaSubscription : Subscription, IAsyncDisposable,
         IEquatable<OpcUaSubscription>, IEquatable<SubscriptionModel>
     {
         public SubscriptionModel Template { get; }
@@ -60,10 +60,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => Session?.Connected == true && !IsClosed;
 
         /// <summary>
-        /// Whether it is closed
+        /// Whether subscription is closed
         /// </summary>
         internal bool IsClosed
-            => _disposed || Handle == null;
+            => _disposed || Session == null;
 
         /// <summary>
         /// Currently monitored but unordered
@@ -456,31 +456,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        /// <summary>
-        /// Notifies the subscription that should remove
-        /// itself from the session. If the session is null
-        /// then there is no session and the subscription
-        /// should clean up.
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        internal async ValueTask CloseAsync(ISession? session, CancellationToken ct)
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
         {
-            if (IsClosed)
+            try
             {
-                return;
+                if (!IsClosed)
+                {
+                    Debug.Assert(Session != null);
+
+                    ResetKeepAliveTimer();
+                    ResetMonitoredItemWatchdogTimer(false);
+
+                    // Does not throw
+                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+
+                    Debug.Assert(Session == null);
+                }
             }
-
-            Debug.Assert(Session != null);
-            Handle = null; // Mark as closed
-
-            ResetKeepAliveTimer();
-            ResetMonitoredItemWatchdogTimer(false);
-
-            // Does not throw
-            await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-            Debug.Assert(Session == null);
+            finally
+            {
+                Dispose();
+            }
         }
 
         /// <summary>
@@ -491,7 +488,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal async ValueTask SyncAsync(CancellationToken ct)
         {
-            if (IsClosed)
+            if (_disposed)
             {
                 return;
             }
@@ -699,6 +696,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ResetKeepAliveTimer();
             try
             {
+                Handle = null; // Mark as closed
+
                 _logger.LogDebug("Closing subscription '{Subscription}'...", this);
 
                 // Dispose all monitored items
@@ -1299,14 +1298,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (_forceRecreate)
             {
+                var session = Session;
                 _forceRecreate = false;
+
                 _logger.LogInformation(
                     "========  Closing subscription {Subscription} and re-creating =========", this);
-                // Does not throw
 
-                Handle = null; // Mark close
+                // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
                 Debug.Assert(Session == null);
+                session.AddSubscription(this); // Re-add
+                Debug.Assert(Session == session);
             }
 
             // Synchronize subscription through the session.

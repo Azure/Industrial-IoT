@@ -217,11 +217,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         try
                         {
                             _cache.TryRemove(close.Template, out _);
+                            // Removes the item from the session and dispose
+                            await close.DisposeAsync().ConfigureAwait(false);
 
-                            // Removes the item from the session
-                            await close.CloseAsync(session,
-                                ct).ConfigureAwait(false);
                             Interlocked.Increment(ref numberOfOperations);
+                            Debug.Assert(close.IsClosed);
                             Debug.Assert(close.Session == null);
                         }
                         catch (OperationCanceledException) { }
