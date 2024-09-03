@@ -39,8 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
             public CyclicRead(ISubscriber owner, OpcUaClient client,
-                DataMonitoredItemModel template, ILogger<CyclicRead> logger, 
-                TimeProvider timeProvider) : 
+                DataMonitoredItemModel template, ILogger<CyclicRead> logger,
+                TimeProvider timeProvider) :
                 base(owner, template with
                 {
                     // Always ensure item is disabled

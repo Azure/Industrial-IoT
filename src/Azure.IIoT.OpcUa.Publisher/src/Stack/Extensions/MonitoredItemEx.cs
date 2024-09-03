@@ -138,6 +138,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                     ?? DataChangeTriggerType.StatusValue,
             };
         }
-
     }
 }

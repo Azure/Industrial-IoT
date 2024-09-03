@@ -423,8 +423,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// From published nodes jobs converter
         /// </summary>
-        /// <param name="isSampleMessage"></param>
         /// <param name="fullFeaturedMessage"></param>
+        /// <param name="isSampleMessage"></param>
         /// <returns></returns>
         private static DataSetFieldContentFlags BuildDataSetFieldContentMask(
             bool fullFeaturedMessage = false, bool isSampleMessage = false)

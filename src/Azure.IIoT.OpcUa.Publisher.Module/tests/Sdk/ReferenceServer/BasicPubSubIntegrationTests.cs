@@ -585,7 +585,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 #endif
         }
 
-
         [Fact]
         public async Task CanSendKeyFramesToIoTHubTest()
         {

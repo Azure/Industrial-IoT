@@ -314,9 +314,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            _logger.LogInformation("{Client}: Removed {Removals}, added {Additions} new and " +
-                "updated {Updates} subscriptions in session took {Duration}.", this, removals,
-                additions, updates, sw.Elapsed);
+            _logger.LogInformation("{Client}: Removed {Removals}, added {Additions}, and " +
+                "updated {Updates} subscriptions (total: {Total}) took {Duration}ms.",
+                this, removals, additions, updates, session.SubscriptionHandles.Count,
+                sw.ElapsedMilliseconds);
         }
 
         /// <summary>

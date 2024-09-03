@@ -468,6 +468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
+                _output.WriteLine("Removing items...");
                 await PublisherApi.UnpublishNodesAsync(testInput3[0]);
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(2, nodes.OpcNodes.Count);
@@ -475,6 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Single(nodes.OpcNodes);
 
+                _output.WriteLine("Waiting for remaining...");
                 var messages = await WaitForMessagesAsync(GetDataFrame);
                 var message = Assert.Single(messages).Message;
                 Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());

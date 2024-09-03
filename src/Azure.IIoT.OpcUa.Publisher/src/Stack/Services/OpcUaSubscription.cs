@@ -41,17 +41,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal sealed class OpcUaSubscription : Subscription, IAsyncDisposable,
         IEquatable<OpcUaSubscription>, IEquatable<SubscriptionModel>
     {
-        public SubscriptionModel Template { get; }
+        /// <summary>
+        /// Template for subscription
+        /// </summary>
+        public SubscriptionModel Template { get; private set; }
 
-        /// <inheritdoc/>
-        public string Name { get; }
-
-        /// <inheritdoc/>
-        public ushort LocalIndex { get; }
-
-        /// <inheritdoc/>
-        public IOpcUaClientDiagnostics State
-            => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
+        /// <summary>
+        /// The name of the subscription
+        /// </summary>
+        public string Name { get; private set; }
 
         /// <summary>
         /// Whether the subscription is online
@@ -160,13 +158,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _timeProvider = timeProvider ?? TimeProvider.System;
 
             Template = template;
-            Name = $"{Template.GetHashCode():X8}(Prio:{Template.Priority ?? 0}" +
-               $"/Rate:{Template.PublishingInterval ?? TimeSpan.Zero})";
+            Name = Template.CreateSubscriptionId();
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
             _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
 
-            LocalIndex = Opc.Ua.SequenceNumber.Increment16(ref _lastIndex);
+            _generation = Opc.Ua.SequenceNumber.Increment32(ref _lastIndex);
 
             Initialize();
             _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
@@ -198,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Template = subscription.Template;
             Name = subscription.Name;
 
-            LocalIndex = subscription.LocalIndex;
+            _generation = subscription._generation;
             _client = subscription._client;
             _logger = subscription._logger;
             _sequenceNumber = subscription._sequenceNumber;
@@ -320,9 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                         Debug.Assert(!CurrentlyMonitored.Any());
-
-                        _logger.LogInformation(
-                            "Disposed of subscription {Subscription} with all {Count} items in it...",
+                        _logger.LogInformation("Disposed Subscription {Subscription} (items: {Count)}.",
                             this, items.Count);
                     }
                     finally
@@ -344,6 +339,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 base.Dispose(disposing);
             }
+        }
+
+        /// <summary>
+        /// Update subscription configuration
+        /// </summary>
+        /// <param name="template"></param>
+        internal void Update(SubscriptionModel template)
+        {
+            Template = template;
+            Name = Template.CreateSubscriptionId();
         }
 
         /// <summary>
@@ -1353,7 +1358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (Handle == null)
             {
-                Handle = LocalIndex; // Initialized for the first time
+                Handle = _generation; // Initialized for the first time
                 DisplayName = Name;
                 PublishingEnabled = EnableImmediatePublishing;
                 KeepAliveCount = DesiredKeepAliveCount;
@@ -2339,6 +2344,8 @@ Actual (revised) state/desired state:
             => MonitoredItems.Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);
         private int ConditionsEnabled
             => MonitoredItems.Count(r => r is OpcUaMonitoredItem.Condition h && h.TimerEnabled);
+        private IOpcUaClientDiagnostics State
+            => (_client as IOpcUaClientDiagnostics) ?? OpcUaClient.Disconnected;
 
         /// <summary>
         /// Create observable metrics
@@ -2422,6 +2429,7 @@ Actual (revised) state/desired state:
         private uint _currentSequenceNumber;
         private bool _firstDataChangeReceived;
         private bool _forceRecreate;
+        private readonly uint _generation;
         private readonly OpcUaClient _client;
         private readonly IOptions<OpcUaSubscriptionOptions> _options;
         private readonly TimeSpan? _createSessionTimeout;
