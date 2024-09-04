@@ -25,6 +25,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Diagnostics.Eventing.Reader;
+    using static System.Collections.Specialized.BitVector32;
 
     /// <summary>
     /// Subscription implementation
@@ -284,71 +286,95 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        public async ValueTask DisposeAsync()
         {
+            //
+            // Called by the management thread to "close" the subscription and
+            // dispose it. Note that the session calls dispose again or when
+            // it is closed or reconnected. This her is called when the management
+            // thread determines to gracefully close the subscription.
+            //
             try
             {
-                if (disposing)
+                if (IsClosed)
                 {
-                    if (_disposed)
-                    {
-                        // Double dispose
-                        Debug.Fail("Double dispose in subscription");
-                        return;
-                    }
-                    _disposed = true;
-                    try
-                    {
-                        ResetMonitoredItemWatchdogTimer(false);
-                        _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-
-                        FastDataChangeCallback = null;
-                        FastEventCallback = null;
-                        FastKeepAliveCallback = null;
-
-                        PublishStatusChanged -= OnPublishStatusChange;
-                        StateChanged -= OnStateChange;
-
-                        // When the entire session is disposed and recreated we must still dispose
-                        // all monitored items
-                        var items = CurrentlyMonitored.ToList();
-                        items.ForEach(item => item.Dispose());
-                        RemoveItems(MonitoredItems);
-
-                        _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
-                        Debug.Assert(!CurrentlyMonitored.Any());
-                        _logger.LogInformation("Disposed Subscription {Subscription} (with {Count)} items).",
-                            this, items.Count);
-                    }
-                    finally
-                    {
-                        _keepAliveWatcher.Dispose();
-                        _monitoredItemWatcher.Dispose();
-                        _timer.Dispose();
-                        _meter.Dispose();
-
-                        Handle = null;
-                    }
+                    return;
                 }
 
-                Debug.Assert(!_disposed || FastDataChangeCallback == null);
-                Debug.Assert(!_disposed || FastKeepAliveCallback == null);
-                Debug.Assert(!_disposed || FastEventCallback == null);
+                Debug.Assert(Session != null);
+
+                ResetKeepAliveTimer();
+                ResetMonitoredItemWatchdogTimer(false);
+
+                // Does not throw
+                await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
+
+                _logger.LogInformation("Closed Subscription {Subscription}.", this);
+                Debug.Assert(Session == null);
             }
             finally
             {
-                base.Dispose(disposing);
+                Dispose();
             }
         }
 
-        /// <summary>
-        /// Update subscription configuration
-        /// </summary>
-        /// <param name="template"></param>
-        internal void Update(SubscriptionModel template)
+        /// <inheritdoc/>
+        protected override void Dispose(bool disposing)
         {
-            Template = template;
-            Name = Template.CreateSubscriptionId();
+            base.Dispose(disposing);
+
+            if (!disposing || _disposed)
+            {
+                return;
+            }
+            _disposed = true;
+            try
+            {
+                ResetMonitoredItemWatchdogTimer(false);
+                _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+                FastDataChangeCallback = null;
+                FastEventCallback = null;
+                FastKeepAliveCallback = null;
+
+                PublishStatusChanged -= OnPublishStatusChange;
+                StateChanged -= OnStateChange;
+
+                var items = CurrentlyMonitored.ToList();
+                if (items.Count == 0)
+                {
+                    _logger.LogInformation("Disposed Subscription {Subscription}.", this);
+                    return;
+                }
+
+                //
+                // When the entire session is disposed and recreated we must still dispose
+                // all monitored items that are remaining
+                //
+                items.ForEach(item => item.Dispose());
+                RemoveItems(MonitoredItems);
+                _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
+                Debug.Assert(!CurrentlyMonitored.Any());
+
+                _logger.LogInformation("Disposed Subscription {Subscription} with {Count)} items.",
+                    this, items.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Disposing Subscription {Subscription} encountered unexpected error.", this);
+
+                // Eat the error
+            }
+            finally
+            {
+                _keepAliveWatcher.Dispose();
+                _monitoredItemWatcher.Dispose();
+                _timer.Dispose();
+                _meter.Dispose();
+
+                Handle = null;
+            }
         }
 
         /// <summary>
@@ -465,30 +491,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
-        {
-            try
-            {
-                if (!IsClosed)
-                {
-                    Debug.Assert(Session != null);
-
-                    ResetKeepAliveTimer();
-                    ResetMonitoredItemWatchdogTimer(false);
-
-                    // Does not throw
-                    await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-
-                    Debug.Assert(Session == null);
-                }
-            }
-            finally
-            {
-                Dispose();
-            }
-        }
-
         /// <summary>
         /// Create or update the subscription now using the
         /// currently configured subscription configuration.
@@ -528,6 +530,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TriggerSubscriptionManagementCallbackIn(
                     _options.Value.SubscriptionErrorRetryDelay, kDefaultErrorRetryDelay);
             }
+        }
+
+        /// <summary>
+        /// Update subscription configuration and apply changes later during
+        /// synchronization. This is used when the subscription is owned by a
+        /// single subscriber and the configuration is updated.
+        /// </summary>
+        /// <param name="template"></param>
+        internal void Update(SubscriptionModel template)
+        {
+            Template = template;
+            Name = Template.CreateSubscriptionId();
         }
 
         /// <summary>

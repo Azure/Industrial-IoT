@@ -37,31 +37,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);
+                AddRef();
                 try
                 {
+                    OpcUaSubscription? existingSub = null;
+
                     //
-                    // If callback is registered with a different subscription
-                    // dispose first and release the reference count to the client.
-                    //
-                    // TODO: Here we want to check if there is only one subscriber
-                    // for the subscription. If there is - we want to update the
-                    // subscription (safely) with the new template configuration.
-                    // Essentially original behavior before 2.9.12.
+                    // If subscriber is registered with a different subscription we either
+                    // update the subscription or dispose the old one and create a new one.
                     //
                     if (_registrations.TryGetValue(subscriber, out var existing) &&
                         existing.Subscription != subscription)
                     {
-                        existing.RemoveFromRegistration();
+                        existing.RemoveAndReleaseNoLockInternal();
                         Debug.Assert(!_registrations.ContainsKey(subscriber));
+
+                        //
+                        // We check if there are any other subscribers registered with the
+                        // same subscription configuration that we want to apply. If there
+                        // arenot - we update the subscription (safely) with the new
+                        // desired template configuration. Essentially original behavior
+                        // before 2.9.12.
+                        //
+                        if ((!_s2r.TryGetValue(subscription, out var c) || c.Count == 0) &&
+                            TryGetSubscription(existing.Subscription, out existingSub))
+                        {
+                            existingSub.Update(subscription);
+                        }
                     }
 
                     var registration = new Registration(this, subscription, subscriber);
-                    _registrations.Add(subscriber, registration);
-                    TriggerSubscriptionSynchronization(null);
+                    TriggerSubscriptionSynchronization(existingSub);
                     return registration;
                 }
                 finally
                 {
+                    Release();
                     _subscriptionLock.Release();
                 }
             }
@@ -197,6 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             await EnsureSessionIsReadyForSubscriptionsAsync(session,
                 ct).ConfigureAwait(false);
+
             //
             // Take the subscription lock here! - we hold it all the way until we
             // have updated all subscription states. The subscriptions will access
@@ -209,19 +221,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var registered = _registrations
-                    .GroupBy(v => v.Value.Subscription)
-                    .ToDictionary(kv => kv.Key, kv => kv.ToList());
+                var s2r = _s2r.ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
 
                 // Close and remove items that have no subscribers
                 await Task.WhenAll(existing.Keys
-                    .Except(registered.Keys)
+                    .Except(s2r.Keys)
                     .Select(k => existing[k])
                     .Select(async close =>
                     {
                         try
                         {
                             _cache.TryRemove(close.Template, out _);
+                            if (_s2r.TryRemove(close.Template, out var r))
+                            {
+                                Debug.Assert(r.Count == 0,
+                                    $"count of registrations {r.Count} > 0");
+                            }
+
                             // Removes the item from the session and dispose
                             await close.DisposeAsync().ConfigureAwait(false);
 
@@ -239,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     })).ConfigureAwait(false);
 
                 // Add new subscription for items with subscribers
-                await Task.WhenAll(registered.Keys
+                await Task.WhenAll(s2r.Keys
                     .Except(existing.Keys)
                     .Select(async add =>
                     {
@@ -266,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Interlocked.Increment(ref additions);
                             Debug.Assert(session == subscription.Session);
 
-                            registered[add].ForEach(r => r.Value.Dirty = false);
+                            s2r[add].ForEach(r => r.Dirty = false);
                         }
                         catch (OperationCanceledException) { }
                         catch (Exception ex)
@@ -278,8 +294,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     })).ConfigureAwait(false);
 
                 // Update any items where subscriber signalled the item was updated
-                await Task.WhenAll(registered.Keys.Intersect(existing.Keys)
-                    .Where(u => registered[u].Any(b => b.Value.Dirty))
+                await Task.WhenAll(s2r.Keys.Intersect(existing.Keys)
+                    .Where(u => s2r[u].Any(b => b.Dirty))
                     .Select(async update =>
                     {
                         try
@@ -288,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             await subscription.SyncAsync(ct).ConfigureAwait(false);
                             Interlocked.Increment(ref updates);
                             Debug.Assert(session == subscription.Session);
-                            registered[update].ForEach(r => r.Value.Dirty = false);
+                            s2r[update].ForEach(r => r.Dirty = false);
                         }
                         catch (OperationCanceledException) { }
                         catch (Exception ex)
@@ -409,6 +425,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _outer = outer;
 
                 _outer.AddRef();
+                AddNoLockInternal();
             }
 
             /// <inheritdoc/>
@@ -429,8 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _outer._subscriptionLock.WaitAsync().ConfigureAwait(false);
                 try
                 {
-                    RemoveFromRegistration();
-
+                    RemoveNoLockInternal();
                     _outer.TriggerSubscriptionSynchronization(null);
                 }
                 finally
@@ -438,11 +454,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _outer._subscriptionLock.Release();
                     _outer.Release();
                 }
-            }
-
-            public void RemoveFromRegistration()
-            {
-                _outer._registrations.Remove(_owner);
             }
 
             /// <inheritdoc/>
@@ -478,6 +489,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     dataSetMetaData, minorVersion, ct).ConfigureAwait(false);
             }
 
+            /// <summary>
+            /// Remove registration and release reference but not under
+            /// lock (like user of the registration handle) and without
+            /// triggering an update.
+            /// </summary>
+            internal void RemoveAndReleaseNoLockInternal()
+            {
+                RemoveNoLockInternal();
+                _outer.Release();
+            }
+
+            private void AddNoLockInternal()
+            {
+                _outer._registrations.Add(_owner, this);
+                _outer._s2r.AddOrUpdate(Subscription, _ =>
+                {
+                    return new List<Registration> { this };
+                }, (_, c) =>
+                {
+                    c.Add(this);
+                    return c;
+                });
+            }
+
+            private void RemoveNoLockInternal()
+            {
+                _outer._s2r.AddOrUpdate(Subscription, _ =>
+                {
+                    Debug.Fail("Unexpected");
+                    return new List<Registration>();
+                }, (_, c) =>
+                {
+                    c.Remove(this);
+                    return c;
+                });
+                _outer._registrations.Remove(_owner);
+            }
+
             private readonly OpcUaClient _outer;
             private readonly ISubscriber _owner;
         }
@@ -486,7 +535,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _subscriptionLock = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Dictionary<ISubscriber, Registration> _registrations = new();
-        private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
+        private readonly ConcurrentDictionary<SubscriptionModel, List<Registration>> _s2r = new();
         private readonly ConcurrentDictionary<SubscriptionModel, OpcUaSubscription> _cache = new();
+        private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
     }
 }

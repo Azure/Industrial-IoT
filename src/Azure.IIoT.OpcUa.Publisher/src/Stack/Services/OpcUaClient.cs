@@ -1239,9 +1239,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     //
                     var securityMode = _connection.Endpoint.SecurityMode ?? SecurityMode.NotNone;
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
-
-                    var endpointDescription = await SelectEndpointAsync(endpointUrl,
-                        connection, securityMode, securityProfile, ct: ct).ConfigureAwait(false);
+                    var endpointDescription = await SelectEndpointAsync(_configuration,
+                        endpointUrl, connection, securityMode, securityProfile, _logger,
+                        this, ct: ct).ConfigureAwait(false);
                     if (endpointDescription == null)
                     {
                         _logger.LogWarning(
@@ -1764,16 +1764,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Select the endpoint to use
         /// </summary>
+        /// <param name="configuration"></param>
         /// <param name="discoveryUrl"></param>
         /// <param name="connection"></param>
         /// <param name="securityMode"></param>
         /// <param name="securityPolicy"></param>
+        /// <param name="logger"></param>
+        /// <param name="context"></param>
         /// <param name="endpointUrl"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task<EndpointDescription?> SelectEndpointAsync(Uri? discoveryUrl,
+        internal static async Task<EndpointDescription?> SelectEndpointAsync(
+            ApplicationConfiguration configuration, Uri? discoveryUrl,
             ITransportWaitingConnection? connection, SecurityMode securityMode,
-            string? securityPolicy, string? endpointUrl = null, CancellationToken ct = default)
+            string? securityPolicy, ILogger logger, object? context,
+            string? endpointUrl = null, CancellationToken ct = default)
         {
             var endpointConfiguration = EndpointConfiguration.Create();
             endpointConfiguration.OperationTimeout =
@@ -1798,25 +1803,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             using (var client = connection != null ?
-                DiscoveryClient.Create(_configuration, connection, endpointConfiguration) :
-                DiscoveryClient.Create(_configuration, discoveryUrl, endpointConfiguration))
+                DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
+                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration))
             {
                 var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
                 var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
                 discoveryUrl ??= uri;
 
-                _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
+                logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
                     "Selecting endpoint {EndpointUri} with SecurityMode " +
                     "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-                    this, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
+                    context, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
                         ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
 
                 var filtered = endpoints
                     .Where(ep =>
                         SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
                         ep.SecurityMode.IsSame(securityMode) &&
-                        (securityPolicy == null || string.Equals(ep.SecurityPolicyUri,
-                            securityPolicy, StringComparison.OrdinalIgnoreCase)))
+                        (securityPolicy == null ||
+                         string.Equals(ep.SecurityPolicyUri,
+                            securityPolicy,
+                            StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(ep.SecurityPolicyUri,
+                            "http://opcfoundation.org/UA/SecurityPolicy#" + securityPolicy,
+                            StringComparison.OrdinalIgnoreCase)))
                     //
                     // The security level is a relative measure assigned by the server
                     // to the endpoints that it returns. Clients should always pick the
@@ -1843,9 +1853,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     //
                     if (selected != null)
                     {
-                        _logger.LogInformation(
+                        logger.LogInformation(
                             "{Client}: Endpoint {Endpoint} selected via reverse connect!",
-                            this, ToString(selected));
+                            context, ToString(selected));
                     }
                     return selected;
                 }
@@ -1880,7 +1890,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }.ToString();
                 }
 
-                _logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", this,
+                logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", context,
                     ToString(selected));
                 return selected;
 
