@@ -714,11 +714,19 @@ The OPC UA subscription/monitored items service due to its async model (server s
 
 ### Overcoming server limits and interop limitations
 
-OPC UA servers can limit the amount of sessions, subscriptions or publishing requests allowed at any point in time.  OPC Publisher has several options to overcome these limits that can be used to tune and overcome interoperability issues.
+OPC UA servers can be limited with regards to the amount of sessions, subscriptions or publishing requests they support. By default OPC Publisher tries to bundle as many writers with the same subscription configuration (including the publishing interval) into a OPC UA subscription inside a (writer group) session. It uses the `MaxMonitoredItemsPerSubscription` limit provided by in the Server capabilities object read by OPC Publisher when the session is created to create the right number of subscriptions that hold as many monitored items as possible. If the limit a not provided by the server or is 0, OPC Publisher uses a default value of `65536`. This value can be overridden using the `--xmi --maxmonitoreditems` [command line](./commandline.md) option.
 
-- To minimize the number of sessions against a server, the default behavior of creating a session per writer group can be overridden using the `--dsg, --disablesessionpergroup` [command line](./commandline.md) option which results in a *session per endpoint* spanning multiple writer groups with the same endpoint url and configuration.
+OPC Publisher has several options to overcome additional server limitations and that can be used to tune and overcome interoperability issues.
 
-- To further limit the number of subscriptions avoid specifying different publishing intervals for items as each publishing interval will result in its own subscription. You can use the `--ipi, --ignorepublishingintervals` command line option to *ignore publishing interval configuration* in the JSON configuration and use the publishing interval configured using the `--op` command line option (default: 1 second). In addition you can set the `--op=0` to let the server decide the smallest publishing interval it offers. You can also use the `--aq, --autosetqueuesize` option to let OPC Publisher calculate the best queue size for monitored items in the subscription to limit data loss. Note that the `--npd` command line option (default 1000) will still split the data set writer into multiple subscriptions if more nodes than the configured amount are specified.
+- To minimize the number of sessions against a server, the default behavior of creating a session per writer group can be overridden using the `--dsg, --disablesessionpergroup` command line option which results in a *session per endpoint* spanning multiple writer groups with the same endpoint url and configuration.
+
+- To further limit the number of subscriptions avoid specifying different publishing intervals for the `OpcNodes` items in the OPC Publisher [configuration](#configuration-schema). Each publishing interval will result in a subscription with the server inside the (writer group) session.
+
+  - You can use the `--ipi, --ignorepublishingintervals` command line option to *ignore publishing interval configuration* in the JSON configuration and use the publishing interval configured using the `--op` command line option (default: 1 second).
+
+  - In addition you can set the `--op=0` to let the server decide the smallest publishing interval it offers.
+
+  - You can also use the `--aq, --autosetqueuesize` option to let OPC Publisher calculate the best queue size for monitored items in the subscription to limit data loss.
 
 - By default OPC Publisher tries to dispatch as many publishing requests to a server session as there are subscriptions in the session up to a maximum of `10`. The OPC UA stack tries to gradually lower the number based on feedback from the server (`BadTooManyPublishRequests`). This behavior is not tolerated by some servers. To set a lower maximum that OPC Publisher should never exceed use the `--xpr` command line option.
 

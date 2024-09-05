@@ -819,13 +819,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task ManageSessionStateMachineAsync(CancellationToken ct)
         {
             var currentSessionState = SessionState.Disconnected;
-            IReadOnlyList<OpcUaSubscription> currentSubscriptions;
 
             var reconnectPeriod = 0;
             var reconnectTimer = _timeProvider.CreateTimer(
                 _ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry), null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            currentSubscriptions = Array.Empty<OpcUaSubscription>();
             try
             {
                 await using (reconnectTimer.ConfigureAwait(false))
@@ -896,7 +894,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _disconnectLock = null;
 
                                             currentSessionState = SessionState.Connected;
-                                            currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
+                                            NotifySubscriptions(_session, false);
                                             break;
                                         case SessionState.Disconnected:
                                         case SessionState.Connected:
@@ -946,8 +944,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _session = null;
                                             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
                                             currentSessionState = SessionState.Reconnecting;
-                                            _reconnectingSession?.SubscriptionHandles
-                                                .ForEach(h => h.NotifySessionConnectionState(true));
+                                            NotifySubscriptions(_reconnectingSession, true);
                                             (context as TaskCompletionSource)?.TrySetResult();
                                             break;
                                         case SessionState.Connecting:
@@ -1007,7 +1004,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _reconnectRequired = 0;
                                             reconnectPeriod = GetMinReconnectPeriod();
                                             currentSessionState = SessionState.Connected;
-                                            currentSubscriptions.ForEach(h => h.NotifySessionConnectionState(false));
+                                            NotifySubscriptions(_session, false);
                                             break;
 
                                         case SessionState.Connected:
@@ -1073,15 +1070,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 reconnectPeriod = 0;
 
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
-
-                if (_session?.Connected == true)
-                {
-                    _session.SubscriptionHandles.ForEach(h =>
-                        h.NotifySessionConnectionState(true));
-                }
+                NotifySubscriptions(_session, true);
 
                 await CloseSessionAsync().ConfigureAwait(false);
                 Debug.Assert(_session == null);
+            }
+
+            static void NotifySubscriptions(OpcUaSession? session, bool disconnected)
+            {
+                if (session == null)
+                {
+                    return;
+                }
+                foreach (var h in session.SubscriptionHandles.Values)
+                {
+                    h.NotifySessionConnectionState(disconnected);
+                }
             }
 
             int GetMinReconnectPeriod()
@@ -1381,7 +1385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             e.AcknowledgementsToSend.Clear();
             e.DeferredAcknowledgementsToSend.Clear();
 
-            foreach (var subscription in ((OpcUaSession)session).SubscriptionHandles)
+            foreach (var subscription in ((OpcUaSession)session).SubscriptionHandles.Values)
             {
                 if (!subscription.TryGetCurrentPosition(out var sid, out var seq))
                 {

@@ -52,13 +52,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Get list of subscription handles registered in the session
         /// </summary>
-        internal List<OpcUaSubscription> SubscriptionHandles
+        internal Dictionary<uint, OpcUaSubscription> SubscriptionHandles
         {
             get
             {
                 lock (SyncRoot)
                 {
-                    return Subscriptions.OfType<OpcUaSubscription>().ToList();
+                    return Subscriptions
+                        .OfType<OpcUaSubscription>()
+                        .ToDictionary(k => k.SubscriptionId);
                 }
             }
         }

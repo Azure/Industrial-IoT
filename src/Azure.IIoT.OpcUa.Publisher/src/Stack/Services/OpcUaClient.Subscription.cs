@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Opc.Ua.Client;
 
     internal sealed partial class OpcUaClient
     {
@@ -83,23 +84,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Called by subscription to obtain the monitored items that
-        /// should be part of itself. This is called under the subscription
-        /// lock from the management thread so no need to lock here.
+        /// Get subscribers for a subscription template to get at the monitored
+        /// items that should be created in the subscription or subscriptions.
+        /// Called under the subscription lock as a result of synchronization.
         /// </summary>
         /// <param name="template"></param>
         /// <returns></returns>
-        internal IEnumerable<(ISubscriber, BaseMonitoredItemModel)> GetItems(
-            SubscriptionModel template)
+        internal IEnumerable<ISubscriber> GetSubscribers(SubscriptionModel template)
         {
             Debug.Assert(_subscriptionLock.CurrentCount == 0, "Must be locked");
 
-            // Consider having an index for template to subscribers
-            // This will be needed anyway as we must support partitioning
+            if (_s2r.TryGetValue(template, out var registrations))
+            {
+                return registrations.Select(r => r.Owner);
+            }
 
-            return _registrations
-                .Where(s => s.Value.Subscription == template)
-                .SelectMany(s => s.Key.MonitoredItems.Select(i => (s.Key, i)));
+            return Enumerable.Empty<ISubscriber>();
         }
 
         /// <summary>
@@ -149,8 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return true;
             }
-            subscription = _session?.SubscriptionHandles
-                .Find(s => s.Template == template);
+            subscription = _session?.SubscriptionHandles.Values
+                .FirstOrDefault(s => s.IsRoot && s.Template == template);
             return subscription != null;
         }
 
@@ -165,10 +165,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal async Task SyncAsync(OpcUaSubscription subscription,
             CancellationToken ct = default)
         {
+            var session = _session;
+            if (session == null)
+            {
+                return;
+            }
+
             await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                await subscription.SyncAsync(ct).ConfigureAwait(false);
+                // Get the max item per subscription as well as max
+                var caps = await session.GetServerCapabilitiesAsync(
+                    NamespaceFormat.Uri, ct).ConfigureAwait(false);
+                await subscription.SyncAsync(caps.MaxMonitoredItemsPerSubscription,
+                    caps.OperationLimits, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -200,14 +210,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var removals = 0;
             var additions = 0;
             var updates = 0;
-            var existing = session.SubscriptionHandles.ToDictionary(k => k.Template);
 
-            _logger.LogInformation(
+            var existing = session.SubscriptionHandles
+                .Where(s => s.Value.IsRoot)
+                .ToDictionary(k => k.Value.Template, k => k.Value);
+
+            _logger.LogDebug(
                 "{Client}: Perform synchronization of subscriptions (total: {Total})",
                 this, session.SubscriptionHandles.Count);
 
             await EnsureSessionIsReadyForSubscriptionsAsync(session,
                 ct).ConfigureAwait(false);
+
+            // Get the max item per subscription as well as max
+            var caps = await session.GetServerCapabilitiesAsync(
+                NamespaceFormat.Uri, ct).ConfigureAwait(false);
+            var maxMonitoredItems = caps.MaxMonitoredItemsPerSubscription;
+            var limits = caps.OperationLimits;
 
             //
             // Take the subscription lock here! - we hold it all the way until we
@@ -263,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             //
                             // Create a new subscription with the subscription
-                            // configuration template that as yet has no
+                            // configuration template that as of yet has no
                             // representation and add it to the session.
                             //
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -271,14 +290,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 add, _subscriptionOptions, CreateSessionTimeout,
                                 _loggerFactory,
                                 new OpcUaClientTagList(_connection, _metrics),
-                                _timeProvider);
+                                null, _timeProvider);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
                             // Add the subscription to the session
                             session.AddSubscription(subscription);
 
                             // Sync the subscription which will get it to go live.
-                            await subscription.SyncAsync(ct).ConfigureAwait(false);
+                            await subscription.SyncAsync(maxMonitoredItems,
+                                caps.OperationLimits, ct).ConfigureAwait(false);
                             Interlocked.Increment(ref additions);
                             Debug.Assert(session == subscription.Session);
 
@@ -301,7 +321,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         try
                         {
                             var subscription = existing[update];
-                            await subscription.SyncAsync(ct).ConfigureAwait(false);
+                            await subscription.SyncAsync(maxMonitoredItems,
+                                caps.OperationLimits, ct).ConfigureAwait(false);
                             Interlocked.Increment(ref updates);
                             Debug.Assert(session == subscription.Session);
                             s2r[update].ForEach(r => r.Dirty = false);
@@ -333,8 +354,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            _logger.LogInformation("{Client}: Removed {Removals}, added {Additions}, and " +
-                "updated {Updates} subscriptions (total: {Total}) took {Duration}ms.",
+            _logger.LogInformation("{Client}: Removed {Removals}, added {Additions}, " +
+                "and updated {Updates} subscriptions (total: {Total}) took {Duration} ms.",
                 this, removals, additions, updates, session.SubscriptionHandles.Count,
                 sw.ElapsedMilliseconds);
         }
@@ -380,9 +401,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public SubscriptionModel Subscription { get; }
 
             /// <summary>
+            /// Monitored items on the subscriber
+            /// </summary>
+            internal ISubscriber Owner { get; }
+
+            /// <summary>
             /// Mark the registration as dirty
             /// </summary>
-            public bool Dirty { get; internal set; }
+            internal bool Dirty { get; set; }
 
             /// <inheritdoc/>
             public IOpcUaClientDiagnostics ClientDiagnostics => _outer;
@@ -393,23 +419,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public int GoodMonitoredItems
                 => _outer.TryGetSubscription(Subscription, out var subscription)
-                    ? subscription.GetGoodMonitoredItems(_owner) : 0;
+                    ? subscription.GetGoodMonitoredItems(Owner) : 0;
             /// <inheritdoc/>
             public int BadMonitoredItems
                 => _outer.TryGetSubscription(Subscription, out var subscription)
-                    ? subscription.GetBadMonitoredItems(_owner) : 0;
+                    ? subscription.GetBadMonitoredItems(Owner) : 0;
             /// <inheritdoc/>
             public int LateMonitoredItems
                 => _outer.TryGetSubscription(Subscription, out var subscription)
-                    ? subscription.GetLateMonitoredItems(_owner) : 0;
+                    ? subscription.GetLateMonitoredItems(Owner) : 0;
             /// <inheritdoc/>
             public int HeartbeatsEnabled
                 => _outer.TryGetSubscription(Subscription, out var subscription)
-                    ? subscription.GetHeartbeatsEnabled(_owner) : 0;
+                    ? subscription.GetHeartbeatsEnabled(Owner) : 0;
             /// <inheritdoc/>
             public int ConditionsEnabled
                 => _outer.TryGetSubscription(Subscription, out var subscription)
-                    ? subscription.GetConditionsEnabled(_owner) : 0;
+                    ? subscription.GetConditionsEnabled(Owner) : 0;
 
             /// <summary>
             /// Create subscription
@@ -421,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SubscriptionModel subscription, ISubscriber owner)
             {
                 Subscription = subscription;
-                _owner = owner;
+                Owner = owner;
                 _outer = outer;
 
                 _outer.AddRef();
@@ -502,11 +528,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private void AddNoLockInternal()
             {
-                _outer._registrations.Add(_owner, this);
-                _outer._s2r.AddOrUpdate(Subscription, _ =>
-                {
-                    return new List<Registration> { this };
-                }, (_, c) =>
+                _outer._registrations.Add(Owner, this);
+                _outer._s2r.AddOrUpdate(Subscription, _
+                    => new List<Registration> { this },
+                (_, c) =>
                 {
                     c.Add(this);
                     return c;
@@ -524,11 +549,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     c.Remove(this);
                     return c;
                 });
-                _outer._registrations.Remove(_owner);
+                _outer._registrations.Remove(Owner);
             }
 
             private readonly OpcUaClient _outer;
-            private readonly ISubscriber _owner;
         }
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
