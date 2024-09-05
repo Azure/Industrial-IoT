@@ -427,14 +427,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
         }
 
-        [Fact]
-        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2()
+        [Theory]
+        [InlineData(100)]
+        [InlineData(1)]
+        public async Task CanSendDataItemToIoTHubTestWithDeviceMethod2(int maxMonitoredItems)
         {
             const string name = nameof(CanSendDataItemToIoTHubTestWithDeviceMethod2);
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
             var testInput2 = GetEndpointsFromFile(name, "./Resources/SimpleEvents.json");
             var testInput3 = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
-            StartPublisher(name);
+            StartPublisher(name, arguments: new[] { "--xmi=" + maxMonitoredItems });
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -453,8 +455,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
-                await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel> {
-                    new()
+                await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel>
+                {
+                    new ()
                     {
                         OpcNodes = nodes.OpcNodes.ToList(),
                         EndpointUrl = e.EndpointUrl,
@@ -467,6 +470,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 e = Assert.Single(endpoints.Endpoints);
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e);
                 Assert.Equal(3, nodes.OpcNodes.Count);
+
+                var messages1 = await WaitForMessagesAsync(GetDataFrame);
+                var message1 = Assert.Single(messages1).Message;
+                Assert.Equal("ns=23;i=1259", message1.GetProperty("NodeId").GetString());
+                Assert.InRange(message1.GetProperty("Value").GetProperty("Value").GetDouble(),
+                    double.MinValue, double.MaxValue);
 
                 _output.WriteLine("Removing items...");
                 await PublisherApi.UnpublishNodesAsync(testInput3[0]);

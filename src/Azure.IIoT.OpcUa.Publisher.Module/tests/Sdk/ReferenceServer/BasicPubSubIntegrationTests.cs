@@ -585,14 +585,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 #endif
         }
 
-        [Fact]
-        public async Task CanSendKeyFramesToIoTHubTest()
+        [Theory]
+        [InlineData(100)]
+        [InlineData(1)]
+        public async Task CanSendKeyFramesToIoTHubTest(int maxMonitoredItems)
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToIoTHubTest), "./Resources/KeyFrames.json", TimeSpan.FromMinutes(2), 11,
-                messageType: "ua-data", arguments: new[] { "--dm=false" });
+                nameof(CanSendKeyFramesToIoTHubTest), "./Resources/KeyFrames.json", TimeSpan.FromMinutes(2), 11,
+                messageType: "ua-data", arguments: new[] { "--dm=false", "--xmi=" + maxMonitoredItems });
 
             // Assert
             var allDataSetMessages = messages.Select(m => m.Message.GetProperty("Messages")).SelectMany(m => m.EnumerateArray()).ToList();

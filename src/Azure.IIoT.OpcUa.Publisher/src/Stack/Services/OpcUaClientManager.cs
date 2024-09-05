@@ -96,26 +96,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async Task<TestConnectionResponseModel> TestConnectionAsync(
-            ConnectionModel endpoint, TestConnectionRequestModel request,
-            CancellationToken ct)
+            ConnectionModel endpoint, TestConnectionRequestModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
-            if (string.IsNullOrEmpty(endpoint.Endpoint?.Url))
-            {
-                throw new ArgumentException("Endpoint url is missing.", nameof(endpoint));
-            }
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint.Endpoint?.Url);
 
-            var endpointUrl = endpoint.Endpoint.Url;
-            var endpointDescription = CoreClientUtils.SelectEndpoint(
-                _configuration.Value, endpointUrl,
-                    endpoint.Endpoint.SecurityMode != SecurityMode.None);
-            var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
-            var configuredEndpoint = new ConfiguredEndpoint(null, endpointDescription,
-                endpointConfiguration);
-            var userIdentity = await endpoint.User.ToUserIdentityAsync(
-                _configuration.Value).ConfigureAwait(false);
+            var endpointUrl = new Uri(endpoint.Endpoint.Url);
             try
             {
+                var endpointDescription = await OpcUaClient.SelectEndpointAsync(
+                    _configuration.Value, endpointUrl, null,
+                    endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
+                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint,
+                    ct: ct).ConfigureAwait(false);
+
+                var endpointConfiguration = EndpointConfiguration.Create(
+                    _configuration.Value);
+                var configuredEndpoint = new ConfiguredEndpoint(null,
+                    endpointDescription, endpointConfiguration);
+                var userIdentity = await endpoint.User.ToUserIdentityAsync(
+                    _configuration.Value).ConfigureAwait(false);
                 using var session = await DefaultSessionFactory.Instance.CreateAsync(
                     _configuration.Value, reverseConnectManager: null, configuredEndpoint,
                     updateBeforeConnect: true, // Update endpoint through discovery

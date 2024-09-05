@@ -156,9 +156,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod(bool differentPublishingInterval)
+        [InlineData(false, 100)]
+        [InlineData(true, 100)]
+        [InlineData(false, 1)]
+        [InlineData(true, 1)]
+        public async Task AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod(bool differentPublishingInterval,
+            int maxMonitoredItems)
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
@@ -170,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Set both to the same so that there is a single writer instead of 2
                 testInput2[0].OpcNodes[0].OpcPublishingInterval = testInput1[0].OpcNodes[0].OpcPublishingInterval;
             }
-            StartPublisher(name, arguments: new string[] { "--mm=PubSub", "--dm=false" });
+            StartPublisher(name, arguments: new string[] { "--mm=PubSub", "--dm=false", "--xmi=" + maxMonitoredItems });
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();

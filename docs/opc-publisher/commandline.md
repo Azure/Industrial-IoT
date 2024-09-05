@@ -261,7 +261,7 @@ Messaging configuration
                                subscription setup. Set to `0` to block until
                                metadata is loaded.
                                Only used if meta data is supported and enabled.
-                               Default: `not set` (block forever).
+                               Default: `5000` milliseconds.
       --ps, --publishschemas, --PublishMessageSchema[=VALUE]
                              Publish the Avro or Json message schemas to schema
                                registry or subtopics.
@@ -693,6 +693,12 @@ Subscription settings
                                client reads instead of subscriptions services,
                                unless otherwise configured.
                                Default: `false`.
+      --xmi, --maxmonitoreditems, --MaxMonitoredItemPerSubscription=VALUE
+                             Max monitored items per subscription until the
+                               subscription is split.
+                               This is used if the server does not provide
+                               limits in its server capabilities.
+                               Default: `not set`.
       --da, --deferredacks, --UseDeferredAcknoledgements[=VALUE]
                              (Experimental) Acknoledge subscription
                                notifications only when the data has been

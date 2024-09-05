@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string AutoSetQueueSizesKey = "AutoSetQueueSizes";
         public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
         public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
+        public const string MaxMonitoredItemPerSubscriptionKey = "MaxMonitoredItemPerSubscription";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
@@ -183,6 +184,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     ResolveDisplayNameDefault);
             options.DefaultQueueSize ??= (uint?)GetIntOrNull(DefaultQueueSizeKey);
             options.AutoSetQueueSizes ??= GetBoolOrNull(AutoSetQueueSizesKey);
+
+            options.MaxMonitoredItemPerSubscription ??= (uint?)GetIntOrNull(MaxMonitoredItemPerSubscriptionKey);
 
             var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
             options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None

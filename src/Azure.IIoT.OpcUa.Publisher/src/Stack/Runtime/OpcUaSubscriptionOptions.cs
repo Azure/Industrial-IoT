@@ -50,6 +50,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public TimeSpan? DefaultPublishingInterval { get; set; }
 
         /// <summary>
+        /// Allow max monitored item per subscription. If the server
+        /// supports less, this value takes no effect.
+        /// </summary>
+        public uint? MaxMonitoredItemPerSubscription { get; set; }
+
+        /// <summary>
         /// Default subscription keep alive counter
         /// </summary>
         public uint? DefaultKeepAliveCount { get; set; }
