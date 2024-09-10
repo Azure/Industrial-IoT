@@ -660,10 +660,10 @@ You can find more information in [Part 4](https://reference.opcfoundation.org/v1
 
 #### Heartbeat
 
-Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in milliseconds (but can also be specified as a Timespan value):
+Some use cases require to publish data values in constant intervals. OPC Publisher has always supported a "heartbeat" option on the configured monitored node item. Heartbeat acts like a watchdog which fires after the heartbeat interval has passed and no new value has yet been received. It can be enabled by specifying the `HeartbeatInterval` key in an item's configuration. The interval is specified in seconds (but can also be specified as a Timespan value):
 
 ``` json
-  "HeartbeatInterval": 3600,
+  "HeartbeatInterval": 60,
 ```
 
 The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavior` [command line options](./commandline.md) or the
