@@ -507,7 +507,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-
         /// <summary>
         /// Get number of good monitored item for the subscriber across
         /// this and all child subscriptions

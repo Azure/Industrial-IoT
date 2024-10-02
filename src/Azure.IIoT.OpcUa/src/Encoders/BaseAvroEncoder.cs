@@ -268,6 +268,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public void WriteByteString(string? fieldName, ReadOnlySpan<byte> value)
+        {
+            WriteByteString(fieldName, value.ToArray());
+        }
+
+        /// <inheritdoc/>
+        public void WriteByteString(string? fieldName, byte[] value, int index, int count)
+        {
+            WriteByteString(fieldName, value.AsSpan().Slice(index, count));
+        }
+
+        /// <inheritdoc/>
         public virtual void WriteXmlElement(string? fieldName, XmlElement? value)
         {
             _writer.WriteString(value?.OuterXml ?? string.Empty);

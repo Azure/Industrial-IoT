@@ -65,30 +65,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        // Remove when fixed in stack
-#if !NO_UAFIX
-#if !NO_DUMMY
-        internal int MaxPublishRequestCount { get; set; }
-#else
-        internal int MaxPublishRequestCount
-        {
-            get
-            {
-                // TODO: Make accessible in base class
-                var r = _maxPublishRequest?.GetValue(this);
-                return r == null ? 0 : (int)r;
-            }
-            set
-            {
-                // TODO: Make accessible in base class
-                _maxPublishRequest?.SetValue(this, value);
-            }
-        }
-        private readonly FieldInfo? _maxPublishRequest = typeof(Session).GetField(
-            "m_tooManyPublishRequests", BindingFlags.NonPublic | BindingFlags.Instance);
-#endif
-#endif
-
         /// <summary>
         /// Enable or disable ChannelDiagnostics
         /// </summary>
@@ -154,9 +130,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, _serializer);
-
-            MaxPublishRequestCount = session.MaxPublishRequestCount;
-            MinPublishRequestCount = session.MinPublishRequestCount;
         }
 
         /// <inheritdoc/>

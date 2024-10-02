@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -452,6 +453,18 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
                 _writer?.WriteValue(value);
             }
+        }
+
+        /// <inheritdoc/>
+        public void WriteByteString(string? fieldName, ReadOnlySpan<byte> value)
+        {
+            WriteByteString(fieldName, value.ToArray());
+        }
+
+        /// <inheritdoc/>
+        public void WriteByteString(string? fieldName, byte[] value, int index, int count)
+        {
+            WriteByteString(fieldName, value.AsSpan().Slice(index, count));
         }
 
         /// <inheritdoc/>
