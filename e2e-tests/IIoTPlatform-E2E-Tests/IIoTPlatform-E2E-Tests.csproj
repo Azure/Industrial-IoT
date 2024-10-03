@@ -10,7 +10,7 @@
     <None Remove="TestResults\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.5" />
     <PackageReference Include="Neovolve.Logging.Xunit" Version="6.1.0" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.39.1" />
@@ -18,7 +18,7 @@
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
     <PackageReference Include="SSH.NET" Version="2024.1.0" />
     <PackageReference Include="RestSharp" Version="112.0.0" />
-    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -39,5 +39,10 @@
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
+    <PackageReference Update="Roslynator.Analyzers" Version="4.12.7" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.7" />
   </ItemGroup>
 </Project>

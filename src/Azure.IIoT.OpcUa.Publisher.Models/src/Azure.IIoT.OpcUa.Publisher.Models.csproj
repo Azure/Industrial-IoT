@@ -11,4 +11,9 @@
     <PackageReference Include="Furly.Extensions.Abstractions" Version="1.0.68" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
+    <PackageReference Update="Roslynator.Analyzers" Version="4.12.7" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.7" />
+  </ItemGroup>
 </Project>
