@@ -43,7 +43,7 @@ The following table shows the supported features of the Azure IoT Edge and IoT H
 
 IoT Edge is used as the default transport unless the Azure IoT related configuration cannot be found at startup time. By default all discovery and runtime events are sent through IoT Edge. Using the `-t` command line argument a different transport can be chosen to publish network messages with. The writer group (network message) transport can also be individually overridden for a writer group using the OPC Publisher [configuration schema's](./readme.md#configuration-schema) `WriterGroupTransport` attribute.
 
-Direct methods can be used to interact with the OPC Publisher configuration, discovery, and Twin API. Direct method calls have a payload limit of 256 KB. The [Web API companion service](../web-api/readme.md) uses chunking to overcome this limitation. Still, high frequency interaction such as browsing through direct methods is naturally slow.
+Direct methods can be used to interact with the OPC Publisher configuration, discovery, and general (fka. OPC Twin) [API](./api.md). Direct method calls have a payload limit of 256 KB. The [Web API companion service](../web-api/readme.md) uses chunking to overcome this limitation. Still, high frequency interaction such as browsing through direct methods is naturally slow.
 
 ## MQTT
 
