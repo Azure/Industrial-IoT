@@ -1315,7 +1315,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            var set = desiredMonitoredItems.Where(m => m.AttachedToSubscription).ToList();
+            Debug.Assert(remove.All(m => !m.AttachedToSubscription), 
+                "All removed items should be detached now");
+            var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
+            _logger.LogDebug(
+                "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
+                set.Count, desiredMonitoredItems.Count - set.Count, this);
+
             var finalize = set
                 .Where(i => i.FinalizeCompleteChanges != null)
                 .Select(i => i.FinalizeCompleteChanges!(ct))

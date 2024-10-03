@@ -492,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToIoTHubTest), "./Resources/KeyFrames.json", messageType: "ua-data",
+                nameof(CanSendKeyFramesWithExtensionFieldsToIoTHubTestJsonReversible), "./Resources/KeyFrames.json", messageType: "ua-data",
             // NOTE: while we --fm and fullnetworkmessage, the keyframes.json overrides this back to PubSub
                 arguments: new string[] { "--mm=FullNetworkMessages", "--me=JsonReversible", "--fm=true", "--strict" });
 
