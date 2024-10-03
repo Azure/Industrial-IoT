@@ -325,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            _createCall.Verifiable(Times.Exactly(72));
+            _createCall.Verifiable(Times.Exactly(73));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -336,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(72, results.Count);
+            Assert.Equal(73, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
