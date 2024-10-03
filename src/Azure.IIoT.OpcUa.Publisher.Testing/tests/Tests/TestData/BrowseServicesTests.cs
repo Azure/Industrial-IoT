@@ -821,19 +821,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 reference =>
                 {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
-                        reference.Target.BrowseName);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-
-                    Assert.Equal("Boiler #2", reference.Target.DisplayName);
-                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
-                        reference.Target.NodeId);
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
                     Assert.Equal("i=48", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
                         reference.Target.BrowseName);
@@ -842,6 +829,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Boiler #1", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                        reference.Target.NodeId);
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
+                        reference.Target.BrowseName);
+                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
+
+                    Assert.Equal("Boiler #2", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
                 });
@@ -2234,12 +2234,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 reference =>
                 {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
+                    Assert.Equal("i=48", reference.ReferenceTypeId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
-
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Target.NodeId);
                     Assert.NotNull(reference.Target.NodeClass);
                     Assert.Null(reference.Target.DataType);
@@ -2249,11 +2248,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 reference =>
                 {
-                    Assert.Equal("i=48", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
+                    Assert.Equal("i=35", reference.ReferenceTypeId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Target.NodeId);
                     Assert.NotNull(reference.Target.NodeClass);
                     Assert.Null(reference.Target.DataType);

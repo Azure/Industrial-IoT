@@ -196,11 +196,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
-                    Assert.Equal("i=35", reference.Reference.ReferenceTypeId);
+                    Assert.Equal("i=48", reference.Reference.ReferenceTypeId);
 
-                    Assert.Equal("Boiler #2", reference.Reference.Target.DisplayName);
+                    Assert.Equal("Boiler #1", reference.Reference.Target.DisplayName);
                     Assert.Null(reference.Reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Reference.Target.NodeId);
                 },
                 reference =>
@@ -209,11 +209,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
-                    Assert.Equal("i=48", reference.Reference.ReferenceTypeId);
+                    Assert.Equal("i=35", reference.Reference.ReferenceTypeId);
 
-                    Assert.Equal("Boiler #1", reference.Reference.Target.DisplayName);
+                    Assert.Equal("Boiler #2", reference.Reference.Target.DisplayName);
                     Assert.Null(reference.Reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Reference.Target.NodeId);
                 });
         }

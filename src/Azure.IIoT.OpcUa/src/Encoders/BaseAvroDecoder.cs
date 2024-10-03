@@ -104,6 +104,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public IEncodeable DecodeMessage(Type expectedType)
+        {
+            throw ServiceResultException.Create(StatusCodes.BadNotSupported,
+                "Not supported in this decoder.");
+        }
+
+        /// <inheritdoc/>
         public virtual bool ReadBoolean(string? fieldName)
         {
             return _reader.ReadBoolean();

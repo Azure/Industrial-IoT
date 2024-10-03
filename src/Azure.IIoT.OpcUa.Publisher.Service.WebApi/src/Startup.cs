@@ -83,6 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             services.AddCors();
             services.AddHealthChecks();
             services.AddMemoryCache();
+            services.AddResponseCompression(options => options.EnableForHttps = true);
+
             // services.AddDistributedMemoryCache();
             services.AddHttpClient();
             services.AddExceptionSummarization();
@@ -136,6 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             app.UseHeaderForwarding();
 
             app.UseRouting();
+            app.UseResponseCompression();
             app.UseCors();
 
             app.UseAuthentication();

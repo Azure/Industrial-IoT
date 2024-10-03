@@ -6,6 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MQTTnet.Extensions.Rpc" Version="4.3.6.1152" />
+    <PackageReference Include="MQTTnet.Extensions.Rpc" Version="4.3.7.1207" />
   </ItemGroup>
 </Project>

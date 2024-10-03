@@ -1074,11 +1074,21 @@ Direct methods have a payload size limit of 256KB. This means large requests or 
 
 > This feature is in preview
 
-You can now send HTTP requests to the publisher module http server at `https://localhost:8081`. The unsecure endpoint is mounted at `https://localhost:8080` for testing purposes. E.g. to get the swagger definition run:
+You can now send HTTP requests to the publisher module http server at `https://localhost` (use port 8081 when not running as container). The unsecure endpoint is mounted at `http://localhost` for testing purposes (use port 8080 when not running as container). E.g. to get the swagger definition run:
 
 ```bash
-curl http://localhost:8080/swagger/v2/openapi.json
+curl http://localhost/swagger/v2/openapi.json
 ```
+
+When you run inside IoT Edge and want to expose the REST API endpoint on the host network so other applications on the network or on the host sysytem can access it, you must configure port bindings.  For example - as can be seen in the sample [deployment manifest](./deployment.json):
+
+```bash
+... "HostConfig\":{\"PortBindings\": ... \"443/tcp\":[{\"HostPort\":\"8081\"}]}, ...
+```
+
+WIth this setting the API can be securely accessed at `https://localhost:8081` (replace localhost with the host name of the IoT Edge server).
+
+> NOTE: Do not expose port 80 on the host side as traffic over port 80 is unencrypted and insecure. It should only be used for testing and during development.
 
 To call the API you must authenticate to the [built in HTTP server](./transports.md#built-in-http-api-server) endpoint using an API Key. You can obtain the API key needed to authenticate from the publisher module twin. e.g., using the [AZ CLI](https://learn.microsoft.com/azure/iot-edge/how-to-monitor-module-twins?view=iotedge-1.4#monitor-module-twins-in-azure-cli) tool you can run
 

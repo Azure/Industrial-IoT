@@ -85,6 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             services.AddRouting();
             services.AddHealthChecks();
             services.AddMemoryCache();
+            services.AddResponseCompression(options => options.EnableForHttps = true);
 
             services.AddAuthorization();
             services.AddAuthentication()
@@ -129,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             // app.UseHsts();
             // app.UseHttpsRedirection();
+            app.UseResponseCompression();
 
             app.UseAuthentication();
             app.UseAuthorization();

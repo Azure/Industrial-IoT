@@ -507,7 +507,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-
         /// <summary>
         /// Get number of good monitored item for the subscriber across
         /// this and all child subscriptions
@@ -826,7 +825,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var shouldEnable = MonitoredItems
                 .OfType<OpcUaMonitoredItem>()
-                .Any(m => m.Valid && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
+                .Any(m => m.AttachedToSubscription 
+                    && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             if (PublishingEnabled ^ shouldEnable)
             {
                 await SetPublishingModeAsync(shouldEnable, ct).ConfigureAwait(false);
@@ -1315,7 +1315,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            Debug.Assert(remove.All(m => !m.Valid), "All removed items should be invalid now");
+            Debug.Assert(remove.All(m => !m.AttachedToSubscription), 
+                "All removed items should be detached now");
             var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
             _logger.LogDebug(
                 "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",

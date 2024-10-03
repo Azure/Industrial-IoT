@@ -7,6 +7,8 @@ namespace Opc.Ua.Extensions
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Primitives;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
@@ -166,12 +168,12 @@ namespace Opc.Ua.Extensions
                     if (nsUri != null && !Uri.IsWellFormedUriString(nsUri, UriKind.Absolute))
                     {
                         // Fall back to nsu= format - but strip indexes
-                        return new ExpandedNodeId(nodeId.Identifier, 0, nsUri, 0).ToString();
+                        return FormatNodeIdExpanded(nsUri, 0u, nodeId.IdType, nodeId.Identifier);
                     }
                     return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
                 case NamespaceFormat.Expanded:
-                    return new ExpandedNodeId(nodeId.Identifier, 0, nsUri,
-                        nodeId.ServerIndex).ToString();
+                    return FormatNodeIdExpanded(nsUri, nodeId.ServerIndex, nodeId.IdType,
+                        nodeId.Identifier);
                 case NamespaceFormat.Index:
                     return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex, null,
                         nodeId.ServerIndex).ToString();
@@ -243,14 +245,14 @@ namespace Opc.Ua.Extensions
         /// <param name="identifier"></param>
         /// <returns></returns>
         /// <exception cref="FormatException"></exception>
-        public static string FormatNodeIdUri(string? nsUri, string? srvUri,
-            IdType idType, object identifier)
+        private static string FormatNodeIdUri(string? nsUri, string? srvUri,
+            IdType idType, object? identifier)
         {
             var buffer = new StringBuilder();
             if (nsUri != null)
             {
                 // Append node id as fragment
-                buffer.Append(nsUri)
+                buffer = buffer.Append(nsUri)
                     .Append('#');
             }
             switch (idType)
@@ -262,49 +264,93 @@ namespace Opc.Ua.Extensions
                         // For readability use data type name here if possible
                         return typeName;
                     }
-                    buffer.Append("i=");
+                    buffer = buffer.Append("i=");
                     if (identifier == null)
                     {
                         buffer.Append('0'); // null
                         break;
                     }
-                    buffer.AppendFormat(CultureInfo.InvariantCulture,
+                    buffer = buffer.AppendFormat(CultureInfo.InvariantCulture,
                         "{0}", identifier);
                     break;
                 case IdType.String:
-                    buffer.Append("s=");
+                    buffer = buffer.Append("s=");
                     if (identifier == null)
                     {
                         break; // null
                     }
-                    buffer.Append(identifier.ToString()?.UrlEncode());
+                    buffer = buffer.Append(identifier.ToString()?.UrlEncode());
                     break;
                 case IdType.Guid:
-                    buffer.Append("g=");
+                    buffer = buffer.Append("g=");
                     if (identifier == null)
                     {
                         buffer.Append(Guid.Empty); // null
                         break;
                     }
-                    buffer.Append(((Guid)identifier).ToString("D").UrlEncode());
+                    buffer = buffer.Append(((Guid)identifier).ToString("D").UrlEncode());
                     break;
                 case IdType.Opaque:
-                    buffer.Append("b=");
+                    buffer = buffer.Append("b=");
                     if (identifier == null)
                     {
                         break; // null
                     }
-                    buffer.AppendFormat(CultureInfo.InvariantCulture,
+                    buffer = buffer.AppendFormat(CultureInfo.InvariantCulture,
                         "{0}", ((byte[])identifier).ToBase64String().UrlEncode());
                     break;
                 default:
-                    throw new FormatException($"Nod id type {idType} is unknown!");
+                    throw new FormatException($"Node id type {idType} is unknown!");
             }
             if (srvUri != null)
             {
                 // Pack server in front of identifier
-                buffer.Append("&srv=")
+                buffer = buffer.Append("&srv=")
                     .Append(srvUri);
+            }
+            return buffer.ToString();
+        }
+
+        private static string FormatNodeIdExpanded(string? nsUri, uint serverIndex,
+            IdType idType, object? identifier)
+        {
+            var buffer = new StringBuilder();
+            if (serverIndex != 0)
+            {
+                buffer = buffer
+                    .Append("svr=")
+                    .Append(serverIndex)
+                    .Append(';');
+            }
+            if (!string.IsNullOrEmpty(nsUri))
+            {
+                buffer = buffer
+                    .Append("nsu=")
+                    .Append(nsUri.Replace(";", "%3b", StringComparison.Ordinal))
+                    .Append(';');
+            }
+            switch (idType)
+            {
+                case IdType.Numeric:
+                    buffer = buffer.Append("i=")
+                        .Append(identifier == null ? 0 :
+                        (uint)identifier);
+                    break;
+                case IdType.Guid:
+                    buffer = buffer.Append("g=")
+                        .Append(identifier == null ? Guid.Empty :
+                        (Guid)identifier);
+                    break;
+                case IdType.Opaque:
+                    buffer = buffer.Append("b=")
+                        .Append(identifier == null ? string.Empty :
+                        Convert.ToBase64String((byte[])identifier));
+                    break;
+                default:
+                    buffer = buffer.Append("s=")
+                        .Append(identifier == null ? string.Empty :
+                        identifier.ToString());
+                    break;
             }
             return buffer.ToString();
         }
@@ -470,7 +516,7 @@ namespace Opc.Ua.Extensions
         /// <param name="identifier"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static bool TryGetDataTypeName(object identifier, [NotNullWhen(true)] out string? name)
+        private static bool TryGetDataTypeName(object? identifier, [NotNullWhen(true)] out string? name)
         {
             name = null;
             try

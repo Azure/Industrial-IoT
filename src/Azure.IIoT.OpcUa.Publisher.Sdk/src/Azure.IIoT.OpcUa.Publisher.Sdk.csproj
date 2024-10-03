@@ -8,9 +8,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.67" />
-    <PackageReference Include="Furly.Tunnel" Version="1.0.67" />
-    <PackageReference Include="Furly.Extensions" Version="1.0.67" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.68" />
+    <PackageReference Include="Furly.Tunnel" Version="1.0.68" />
+    <PackageReference Include="Furly.Extensions" Version="1.0.68" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -18,5 +18,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
+    <PackageReference Update="Roslynator.Analyzers" Version="4.12.7" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.7" />
   </ItemGroup>
 </Project>
