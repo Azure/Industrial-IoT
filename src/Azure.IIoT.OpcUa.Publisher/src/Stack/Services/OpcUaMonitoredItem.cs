@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// again invalid after <see cref="IDisposable.Dispose"/> is
         /// called.
         /// </summary>
-        public bool Valid { get; protected internal set; }
+        protected internal bool Valid { get; set; }
 
         /// <summary>
         /// Item is good
@@ -197,7 +197,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             LastReceivedTime = item.LastReceivedTime;
             LastReceivedValue = item.LastReceivedValue;
-            Valid = item.Valid;
         }
 
         /// <inheritdoc/>

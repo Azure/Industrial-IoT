@@ -825,7 +825,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var shouldEnable = MonitoredItems
                 .OfType<OpcUaMonitoredItem>()
-                .Any(m => m.Valid && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
+                .Any(m => m.AttachedToSubscription 
+                    && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             if (PublishingEnabled ^ shouldEnable)
             {
                 await SetPublishingModeAsync(shouldEnable, ct).ConfigureAwait(false);
@@ -1314,12 +1315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            Debug.Assert(remove.All(m => !m.Valid), "All removed items should be invalid now");
-            var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
-            _logger.LogDebug(
-                "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
-                set.Count, desiredMonitoredItems.Count - set.Count, this);
-
+            var set = desiredMonitoredItems.Where(m => m.AttachedToSubscription).ToList();
             var finalize = set
                 .Where(i => i.FinalizeCompleteChanges != null)
                 .Select(i => i.FinalizeCompleteChanges!(ct))
