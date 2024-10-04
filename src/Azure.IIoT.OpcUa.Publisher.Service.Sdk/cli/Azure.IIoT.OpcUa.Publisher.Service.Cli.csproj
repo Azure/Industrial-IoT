@@ -17,7 +17,7 @@
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.68" />
     <PackageReference Include="Azure.Identity" Version="1.12.1" />
-    <PackageReference Include="Azure.Core" Version="1.43.0" />
+    <PackageReference Include="Azure.Core" Version="1.44.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />
