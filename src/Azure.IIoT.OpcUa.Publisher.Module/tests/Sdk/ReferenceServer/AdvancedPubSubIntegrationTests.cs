@@ -25,6 +25,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
+        public async Task RestartServerTest()
+        {
+            var server = new ReferenceServer();
+            EndpointUrl = server.EndpointUrl;
+            const string name = nameof(RestartServerTest);
+            StartPublisher(name, "./Resources/Fixedvalue.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
+            try
+            {
+                // Arrange
+                // Act
+                var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
+                    messageType: "ua-data");
+
+                // Assert
+                var message = Assert.Single(messages).Message;
+                AssertMessage(message);
+                Assert.NotNull(metadata);
+
+                await server.RestartAsync();
+
+                (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
+                    messageType: "ua-data");
+
+                message = Assert.Single(messages).Message;
+                AssertMessage(message);
+                Assert.Null(metadata);
+            }
+            finally
+            {
+                server.Dispose();
+                await StopPublisherAsync();
+            }
+
+            static void AssertMessage(JsonElement message)
+            {
+                var s = message.ToJsonString();
+                var m = message.GetProperty("Messages")[0];
+                var type = m.GetProperty("MessageType").GetString();
+         // TODO       Assert.Equal("ua-keyframe", type);
+                var payload1 = m.GetProperty("Payload");
+                var items1 = new[]
+                {
+                    payload1.GetProperty("LocaleIdArray"),
+                    payload1.GetProperty("ServerArray"),
+                    payload1.GetProperty("NamespaceArray")
+                };
+                Assert.All(items1, item =>
+                    Assert.Equal(JsonValueKind.Array, item.GetProperty("Value").ValueKind));
+            }
+        }
+
+        [Fact]
         public async Task SwitchServerWithSameWriterGroupTest()
         {
             var server = new ReferenceServer();

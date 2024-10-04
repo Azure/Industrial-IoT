@@ -1,0 +1,14 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetFetchDisplayNames": true,
+        "OpcNodes": [
+            { "Id": "i=2271" },
+            { "Id": "i=2254" },
+            { "Id": "i=2255" },
+            { "Id": "i=11702" },
+            { "Id": "i=11703" }
+        ]
+    }
+]
