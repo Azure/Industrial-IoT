@@ -299,6 +299,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
+        public async Task SwitchSecuritySettingsTest()
+        {
+            var server = new ReferenceServer();
+            EndpointUrl = server.EndpointUrl;
+            const string name = nameof(SwitchSecuritySettingsTest);
+            StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub", "--dm=false", "--aa" },
+                securityMode: Models.SecurityMode.SignAndEncrypt);
+            try
+            {
+                // Arrange
+                // Act
+                var (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
+                    messageType: "ua-data");
+
+                // Assert
+                var message = Assert.Single(messages).Message;
+                var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
+                Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+                Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+                Assert.NotNull(metadata);
+
+                WritePublishedNodes(name, "./Resources/DataItems2.json", securityMode: Models.SecurityMode.None);
+
+                (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
+                    messageType: "ua-data");
+
+                message = Assert.Single(messages).Message;
+                _output.WriteLine(message.ToJsonString());
+
+                output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
+                Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+                Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+                Assert.NotNull(metadata);
+
+                var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
+                var diag = Assert.Single(diagnostics);
+                Assert.Equal(name, diag.Endpoint.DataSetWriterGroup);
+                Assert.Equal(Models.SecurityMode.None, diag.Endpoint.EndpointSecurityMode);
+            }
+            finally
+            {
+                server.Dispose();
+                await StopPublisherAsync();
+            }
+        }
+
+        [Fact]
         public async Task RestartConfigurationTest()
         {
             using var server = new ReferenceServer();
