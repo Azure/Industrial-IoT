@@ -34,6 +34,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         Task StartAsync(IEnumerable<int> ports);
 
         /// <summary>
+        /// Restart server.
+        /// </summary>
+        /// <returns></returns>
+        Task RestartAsync();
+
+        /// <summary>
         /// Add reverse connection
         /// </summary>
         /// <param name="client"></param>
