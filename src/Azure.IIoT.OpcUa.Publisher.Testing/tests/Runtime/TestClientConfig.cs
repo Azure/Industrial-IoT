@@ -28,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         public override void Configure(string? name, OpcUaClientOptions options)
         {
             options.Security.PkiRootPath = _path;
-            options.KeepAliveIntervalDuration = TimeSpan.FromSeconds(120);
             options.LingerTimeoutDuration = TimeSpan.FromSeconds(20);
         }
 

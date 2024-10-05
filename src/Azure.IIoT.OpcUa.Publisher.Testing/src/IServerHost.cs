@@ -36,8 +36,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Restart server.
         /// </summary>
+        /// <param name="predicate"></param>
         /// <returns></returns>
-        Task RestartAsync();
+        Task RestartAsync(Func<Task> predicate = null);
 
         /// <summary>
         /// Add reverse connection

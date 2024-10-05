@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task RestartAsync()
+        public async Task RestartAsync(Func<Task> predicate)
         {
             await _lock.WaitAsync().ConfigureAwait(false);
             try
@@ -171,6 +171,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _server.Stop();
                     _server.Dispose();
+
+                    if (predicate != null)
+                    {
+                        await predicate().ConfigureAwait(false);
+                    }
 
                     _logger.LogInformation("Restarting server {Instance}...", this);
                     Debug.Assert(_ports != null);

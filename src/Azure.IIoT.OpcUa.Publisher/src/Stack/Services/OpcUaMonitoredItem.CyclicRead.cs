@@ -66,7 +66,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 _client = item._client;
-                if (item._sampling)
+                _subscriptionName = item._subscriptionName;
+                if (_subscriptionName != null)
                 {
                     EnsureSamplerRunning();
                 }
@@ -161,6 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 else
                 {
+                    _subscriptionName = Subscription.DisplayName;
                     Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
                     EnsureSamplerRunning();
                 }
@@ -171,7 +173,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             private void EnsureSamplerRunning()
             {
-                Debug.Assert(AttachedToSubscription);
                 lock (_lock)
                 {
                     if (_disposed)
@@ -180,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (_sampler == null)
                     {
-                        _sampling = true;
+                        Debug.Assert(_subscriptionName != null);
                         _sampler = _client.Sample(
                             TimeSpan.FromMilliseconds(SamplingInterval),
                             Template.CyclicReadMaxAge ?? TimeSpan.Zero,
@@ -190,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 IndexRange = IndexRange,
                                 NodeId = ResolvedNodeId
                             },
-                            Subscription.DisplayName, ClientHandle);
+                            _subscriptionName, ClientHandle);
                         _logger.LogDebug("Item {Item} successfully registered with sampler.",
                             this);
                     }
@@ -207,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 lock (_lock)
                 {
                     _sampler = null;
-                    _sampling = false;
+                    _subscriptionName = null;
                 }
                 if (sampler != null)
                 {
@@ -234,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private readonly OpcUaClient _client;
             private IAsyncDisposable? _sampler;
-            private bool _sampling;
+            private string? _subscriptionName;
             private readonly object _lock = new();
             private bool _disposed;
         }

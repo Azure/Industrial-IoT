@@ -1308,7 +1308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 desiredMonitoredItems.Count, remove.Count, this);
             foreach (var monitoredItem in desiredMonitoredItems.Concat(remove))
             {
-                if (!monitoredItem.TryCompleteChanges(this, ref applyChanges, SendNotification))
+                if (!monitoredItem.TryCompleteChanges(this, ref applyChanges))
                 {
                     // Apply more changes in future passes
                     invalidItems++;
@@ -1737,7 +1737,7 @@ Actual (revised) state/desired state:
         /// <param name="eventTypeName"></param>
         /// <param name="diagnosticsOnly"></param>
         /// <param name="timestamp"></param>
-        private void SendNotification(ISubscriber callback, MessageType messageType,
+        internal void SendNotification(ISubscriber callback, MessageType messageType,
             IList<MonitoredItemNotificationModel> notifications, ISession? session,
             string? eventTypeName, bool diagnosticsOnly, DateTimeOffset? timestamp)
         {
@@ -1749,7 +1749,7 @@ Actual (revised) state/desired state:
                 if (session == null)
                 {
                     // Can only send with context
-                    _logger.LogDebug("Failed to send notification since no session exists " +
+                    _logger.LogWarning("Failed to send notification since no session exists " +
                         "to use as context. Notification was dropped.");
                     return;
                 }

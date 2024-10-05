@@ -64,7 +64,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Template = item.Template;
                 _client = item._client;
-                _callback = item._callback;
                 _fields = item._fields;
             }
 
@@ -163,22 +162,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 fields.AddRange(_fields);
                 return ValueTask.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges, Callback cb)
-            {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
-                if (!AttachedToSubscription)
-                {
-                    _callback = null;
-                }
-                else
-                {
-                    _callback = cb;
-                }
-                return result;
             }
 
             /// <inheritdoc/>
@@ -320,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void OnNodeChange(object? sender, Change<Node> e)
             {
-                _callback?.Invoke(Owner, MessageType.Event,
+                Publish(Owner, MessageType.Event,
                     CreateEvent(_nodeChangeType, e).ToList(), sender as ISession,
                     EventTypeName);
             }
@@ -332,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
             {
-                _callback?.Invoke(Owner, MessageType.Event,
+                Publish(Owner, MessageType.Event,
                     CreateEvent(_refChangeType, e).ToList(), sender as ISession,
                     EventTypeName);
             }
@@ -468,7 +451,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly OpcUaClient _client;
             private readonly object _lock = new();
             private IOpcUaBrowser? _browser;
-            private Callback? _callback;
             private bool _disposed;
         }
     }

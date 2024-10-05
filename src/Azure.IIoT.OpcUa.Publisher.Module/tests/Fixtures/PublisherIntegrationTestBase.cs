@@ -310,10 +310,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="arguments"></param>
         /// <param name="version"></param>
         /// <param name="reverseConnectPort"></param>
+        /// <param name="keepAliveInterval"></param>
         /// <param name="securityMode"></param>
         protected void StartPublisher(string test, string publishedNodesFile = null,
             string[] arguments = default, MqttVersion? version = null, int? reverseConnectPort = null,
-            SecurityMode? securityMode = null)
+            int keepAliveInterval = 120, SecurityMode? securityMode = null)
         {
             var sw = Stopwatch.StartNew();
             _logger = _logFactory.CreateLogger(test);
@@ -343,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
 
             _publisher = new PublisherModule(null, null, null, null,
-                _testOutputHelper, arguments, version);
+                _testOutputHelper, arguments, version, keepAliveInterval);
             _logger.LogInformation("Publisher started in {Elapsed}.", sw.Elapsed);
         }
 
@@ -398,14 +399,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="test"></param>
         /// <param name="publishedNodesFile"></param>
         /// <param name="useReverseConnect"></param>
+        /// <param name="securityMode"></param>
         /// <returns></returns>
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string test, string publishedNodesFile,
-            bool useReverseConnect = false)
+            bool useReverseConnect = false, SecurityMode? securityMode = null)
         {
             IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile)
                 .Replace("\"{{UseReverseConnect}}\"", useReverseConnect ? "true" : "false", StringComparison.Ordinal)
                 .Replace("{{EndpointUrl}}", EndpointUrl, StringComparison.Ordinal)
+                .Replace("{{SecurityMode}}", (securityMode ?? SecurityMode.None).ToString(), StringComparison.Ordinal)
                 .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
             return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
         }

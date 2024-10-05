@@ -177,8 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges,
-                Callback cb)
+                ref bool applyChanges)
             {
                 return true;
             }
