@@ -18,10 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
     public sealed class TestClientConfig : ConfigureOptionBase<OpcUaClientOptions>,
         IDisposable
     {
-        public TestClientConfig(IConfiguration configuration,
-            bool autoAccept = false) : base(configuration)
+        public TestClientConfig(IConfiguration configuration) : base(configuration)
         {
-            _autoAccept = autoAccept;
             _path = Path.Combine(Directory.GetCurrentDirectory(), "pki",
                     Guid.NewGuid().ToByteArray().ToBase16String());
         }
@@ -29,7 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         /// <inheritdoc/>
         public override void Configure(string? name, OpcUaClientOptions options)
         {
-            options.Security.AutoAcceptUntrustedCertificates = _autoAccept;
             options.Security.PkiRootPath = _path;
             options.KeepAliveIntervalDuration = TimeSpan.FromSeconds(120);
             options.LingerTimeoutDuration = TimeSpan.FromSeconds(20);
@@ -44,7 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
             }
         }
 
-        private readonly bool _autoAccept;
         private readonly string _path;
     }
 }

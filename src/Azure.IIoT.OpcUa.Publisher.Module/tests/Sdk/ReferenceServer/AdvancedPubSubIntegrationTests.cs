@@ -367,6 +367,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 // Assert
                 var message = Assert.Single(messages).Message;
+                _output.WriteLine(message.ToJsonString());
                 var output = message.GetProperty("Messages")[0].GetProperty("Payload").GetProperty("Output");
                 Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
                 Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
