@@ -31,7 +31,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [KnownType(typeof(AggregateFilter))]
         internal class Condition : Event
         {
-            public bool TimerEnabled => _conditionTimer?.Enabled ?? false;
+            /// <summary>
+            /// Whether timer is enabled
+            /// </summary>
+            public bool TimerEnabled { get; set; }
 
             /// <summary>
             /// Create condition item
@@ -66,9 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _updateInterval = item._updateInterval;
                 _conditionHandlingState = item._conditionHandlingState;
                 _lastSentPendingConditions = item._lastSentPendingConditions;
-                _callback = item._callback;
-
-                if (_callback != null)
+                if (item.TimerEnabled)
                 {
                     EnableConditionTimer();
                 }
@@ -272,17 +273,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges, Callback cb)
+                ref bool applyChanges)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
+                var result = base.TryCompleteChanges(subscription, ref applyChanges);
                 if (!AttachedToSubscription || !result)
                 {
                     DisableConditionTimer();
-                    _callback = null;
                 }
                 else
                 {
-                    _callback = cb;
                     EnableConditionTimer();
                 }
                 return result;
@@ -409,11 +408,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void SendPendingConditions()
             {
                 var state = _conditionHandlingState;
-                var callback = _callback;
-                if (callback == null)
-                {
-                    return;
-                }
 
                 var notifications = state.Active
                     .Select(entry => entry.Value
@@ -425,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 foreach (var conditionNotification in notifications)
                 {
-                    callback(Owner, MessageType.Condition, conditionNotification,
+                    Publish(Owner, MessageType.Condition, conditionNotification,
                         eventTypeName: EventTypeName);
                 }
             }
@@ -452,6 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     _conditionTimer.Interval = TimeSpan.FromSeconds(1);
                     _conditionTimer.Enabled = true;
+                    TimerEnabled = true;
                 }
             }
 
@@ -469,6 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _conditionTimer = null;
                         _logger.LogDebug("Disabled condition timer.");
                     }
+                    TimerEnabled = false;
                 }
             }
 
@@ -496,7 +492,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     = new Dictionary<string, List<MonitoredItemNotificationModel>>();
             }
 
-            private Callback? _callback;
             private ConditionHandlingState _conditionHandlingState;
             private DateTimeOffset _lastSentPendingConditions;
             private int _snapshotInterval;

@@ -72,7 +72,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _heartbeatInterval = item._heartbeatInterval;
                 _heartbeatBehavior = item._heartbeatBehavior;
-                _callback = item._callback;
                 if (item.TimerEnabled)
                 {
                     EnableHeartbeatTimer();
@@ -185,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges, Callback cb)
+                ref bool applyChanges)
             {
                 if (_disposed)
                 {
@@ -193,20 +192,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "and the timer is handled by the new subscription now.", this);
                     return false;
                 }
-                var result = base.TryCompleteChanges(subscription, ref applyChanges, cb);
+                var result = base.TryCompleteChanges(subscription, ref applyChanges);
                 {
                     var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                             == HeartbeatBehavior.WatchdogLKG;
                     if (!AttachedToSubscription || (!result && lkg))
                     {
-                        _callback = null;
                         // Stop heartbeat
                         DisableHeartbeatTimer();
                     }
                     else
                     {
                         Debug.Assert(AttachedToSubscription);
-                        _callback = cb;
                         EnableHeartbeatTimer();
                     }
                 }
@@ -288,9 +285,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void SendHeartbeatNotifications(object? sender, ElapsedEventArgs e)
             {
-                var callback = _callback;
-                if (callback == null || !Valid)
+                if (!Valid)
                 {
+                    return;
+                }
+
+                if (!AttachedToSubscription)
+                {
+                    _logger.LogInformation("{Item}: Missing subscription.", this);
                     return;
                 }
 
@@ -301,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         !IsGoodDataValue(lastNotification?.Value))
                 {
                     // Currently no last known good value (LKG) to send
-                    _logger.LogDebug("{Item}: No last known good value to send.", this);
+                    _logger.LogInformation("{Item}: No last known good value to send.", this);
                     return;
                 }
 
@@ -314,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (lastValue == null)
                 {
                     // Currently no last known value (LKV) to send
-                    _logger.LogDebug("{Item}: No last known value to send.", this);
+                    _logger.LogInformation("{Item}: No last known value to send.", this);
                     return;
                 }
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
@@ -351,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // New value came in while running the timer callback - no need to send heartbeat
                     return;
                 }
-                callback(Owner, MessageType.DeltaFrame, heartbeat.YieldReturn().ToList(),
+                Publish(Owner, MessageType.DeltaFrame, heartbeat.YieldReturn().ToList(),
                     diagnosticsOnly: (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
                         == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly, timestamp: e.SignalTime);
             }
@@ -374,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             AutoReset = true
                         };
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
-                        _logger.LogDebug("Re-enable heartbeat timer");
+                        _logger.LogInformation("Re-enable heartbeat timer");
                     }
                     _heartbeatTimer.Interval = _heartbeatInterval;
                     _heartbeatTimer.Enabled = true;
@@ -403,7 +405,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private TimerEx? _heartbeatTimer;
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;
-            private Callback? _callback;
             private StatusCode? _lastStatusCode;
             private uint _lastSequenceNumber;
             private readonly object _timerLock = new();

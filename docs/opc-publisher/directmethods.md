@@ -2,9 +2,15 @@
 
 [Home](./readme.md)
 
-OPC Publisher version 2.8.2 and later implements [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods), which can be called from an application using the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
+For large-scale deployments, automating the configuration and management of OPC Publisher is critical. OPC Publisher version 2.8.2 and later implements [IoT Hub Direct Methods](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-direct-methods), which can be called from an application using the [IoT Hub Device SDK](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-sdks).
 
-The following direct methods are exposed:
+Azure IoT Hub's Cloud-to-Device (C2D) commands allow you to remotely configure and control OPC Publisher instances running on IoT Edge devices. For example, you can send commands to update the configuration, restart the module, or change runtime parameters without needing to manually intervene on each device. An example of sending a C2D command to update the configuration:
+
+```bash
+az iot hub invoke-module-method --hub-name <your-iot-hub> --device-id <your-device-id> --module-name <opc-publisher> --method-name SetConfiguredEndpoints --method-payload '{"Endpoints": [{"EndpointUrl": "opc.tcp://new-opc-server:4840", "OpcNodes": [{"Id": "ns=2;i=10853"}]}]}'
+```
+
+The following direct methods and many more can be used to remotely configure the OPC Publisher:
 
 - [PublishNodes\_V1](#publishnodes_v1)
 - [AddOrUpdateEndpoints\_V1](#addorupdateendpoints_v1)

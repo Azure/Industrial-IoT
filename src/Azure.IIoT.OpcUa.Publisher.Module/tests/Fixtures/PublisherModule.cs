@@ -102,9 +102,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="testOutputHelper"></param>
         /// <param name="arguments"></param>
         /// <param name="version"></param>
+        /// <param name="keepAliveInterval"></param>
         public PublisherModule(IMessageSink messageSink, IEnumerable<DeviceTwinModel> devices = null,
             string deviceId = null, string moduleId = null, ITestOutputHelper testOutputHelper = null,
-            string[] arguments = default, MqttVersion? version = null)
+            string[] arguments = default, MqttVersion? version = null, int keepAliveInterval = 120)
         {
             _logFactory = testOutputHelper != null ? LogFactory.Create(testOutputHelper, Logging.Config) : null;
             ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
@@ -163,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
-                    "--ki=90",
+                    $"--ki={keepAliveInterval}",
                     "--aa"
                 }).ToArray();
             if (OperatingSystem.IsLinux())

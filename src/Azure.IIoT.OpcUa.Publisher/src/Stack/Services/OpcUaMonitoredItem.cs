@@ -43,21 +43,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IServiceMessageContext messageContext);
 
     /// <summary>
-    /// Callback
-    /// </summary>
-    /// <param name="owner"></param>
-    /// <param name="messageType"></param>
-    /// <param name="notifications"></param>
-    /// <param name="session"></param>
-    /// <param name="eventTypeName"></param>
-    /// <param name="diagnosticsOnly"></param>
-    /// <param name="timestamp"></param>
-    public delegate void Callback(ISubscriber owner, MessageType messageType,
-        IList<MonitoredItemNotificationModel> notifications,
-        ISession? session = null, string? eventTypeName = null,
-        bool diagnosticsOnly = false, DateTimeOffset? timestamp = null);
-
-    /// <summary>
     /// Monitored item
     /// </summary>
     internal abstract partial class OpcUaMonitoredItem : MonitoredItem, IDisposable
@@ -402,10 +387,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="applyChanges"></param>
-        /// <param name="cb"></param>
         /// <returns></returns>
         public virtual bool TryCompleteChanges(Subscription subscription,
-            ref bool applyChanges, Callback cb)
+            ref bool applyChanges)
         {
             if (!Valid)
             {
@@ -1026,6 +1010,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 list.Add(notification);
             }
+        }
+
+        /// <summary>
+        /// Callback
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <param name="messageType"></param>
+        /// <param name="notifications"></param>
+        /// <param name="session"></param>
+        /// <param name="eventTypeName"></param>
+        /// <param name="diagnosticsOnly"></param>
+        /// <param name="timestamp"></param>
+        protected void Publish(ISubscriber owner, MessageType messageType,
+            IList<MonitoredItemNotificationModel> notifications,
+            ISession? session = null, string? eventTypeName = null,
+            bool diagnosticsOnly = false, DateTimeOffset? timestamp = null)
+        {
+            if (Subscription is not OpcUaSubscription subscription)
+            {
+                _logger.LogDebug(
+                    "Cannot publish notification. Missing subscription for {Item}.",
+                    this);
+                return;
+            }
+            subscription.SendNotification(
+                owner, messageType, notifications, session, eventTypeName,
+                diagnosticsOnly, timestamp);
         }
 
         /// <summary>

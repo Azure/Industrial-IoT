@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
@@ -139,6 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_server == null)
                     {
                         await StartServerInternalAsync(ports, PkiRootPath).ConfigureAwait(false);
+                        _ports = ports.ToArray();
                         return;
                     }
 #pragma warning restore CA1508 // Avoid dead conditional code
@@ -156,6 +159,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             throw new InvalidOperationException($"Server {this} already started");
+        }
+
+        /// <inheritdoc/>
+        public async Task RestartAsync(Func<Task> predicate)
+        {
+            await _lock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_server != null)
+                {
+                    _server.Stop();
+                    _server.Dispose();
+
+                    if (predicate != null)
+                    {
+                        await predicate().ConfigureAwait(false);
+                    }
+
+                    _logger.LogInformation("Restarting server {Instance}...", this);
+                    Debug.Assert(_ports != null);
+
+                    await StartServerInternalAsync(_ports,
+                        PkiRootPath).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
 
         /// <inheritdoc/>
@@ -257,5 +289,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IServerFactory _factory;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private ServerBase _server;
+        private int[] _ports;
     }
 }

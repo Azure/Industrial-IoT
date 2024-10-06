@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.8" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.2.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.2.1" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
@@ -28,11 +28,11 @@
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.9.0" />
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.0.68" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.68" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.68" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.0.69" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.0.69" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.69" />
     <PackageReference Include="Azure.Identity" Version="1.12.1" />
-    <PackageReference Include="Azure.Core" Version="1.43.0" />
+    <PackageReference Include="Azure.Core" Version="1.44.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>

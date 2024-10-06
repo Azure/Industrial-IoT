@@ -47,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
                         // We only want to register the node once for reading inside a session
                         _registeredForReading = true;
-                    }) : null;
+                    }
+            ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateString Update)? GetDisplayName

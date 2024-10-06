@@ -1,0 +1,12 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "EndpointSecurityMode": "{{SecurityMode}}",
+        "DataSetFetchDisplayNames": true,
+        "OpcNodes": [
+            { "Id": "i=2271" },
+            { "Id": "i=2254" },
+            { "Id": "i=2255" }
+        ]
+    }
+]

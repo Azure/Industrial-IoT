@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
     using System.Timers;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
@@ -245,6 +246,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Restart server
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        public Task RestartAsync(Func<Task> predicate)
+        {
+            return _serverHost.RestartAsync(predicate);
         }
 
         /// <summary>

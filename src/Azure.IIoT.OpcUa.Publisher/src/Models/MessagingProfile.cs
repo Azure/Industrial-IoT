@@ -441,7 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                      (DataSetFieldContentFlags.NodeId |
                       DataSetFieldContentFlags.DisplayName |
                       DataSetFieldContentFlags.EndpointUrl) :
-                      DataSetFieldContentFlags.ServerTimestamp )
+                      DataSetFieldContentFlags.ServerTimestamp)
                 ;
         }
 

@@ -440,6 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     message.Complete();
                     message.Event.Dispose();
+                    _outer._logger.LogDebug("Closed. Network message dropped.");
                     return;
                 }
                 try
