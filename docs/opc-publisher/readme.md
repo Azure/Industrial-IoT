@@ -370,6 +370,10 @@ The simplest way to configure OPC Publisher is via a file. A basic configuration
 ]
 ```
 
+This configuration can be placed in a JSON file, typically named publishednodes.json, and provided to OPC Publisher using the [command line](./commandline.md) argument `-f, --pf, --publishfile`, e.g. `--pf=/app/publishednodes.json`.
+
+> Environment variables can also be used to configure OPC Publisher. This method is particularly useful when deploying at scale or in environments where you want to externalize configuration from the container image. An example is `PublishedNodesFile`.
+
 Example configuration files are [here](publishednodes_2.5.json?raw=1) and [here](publishednodes_2.8.json?raw=1).
 
 ### Configuration Schema
