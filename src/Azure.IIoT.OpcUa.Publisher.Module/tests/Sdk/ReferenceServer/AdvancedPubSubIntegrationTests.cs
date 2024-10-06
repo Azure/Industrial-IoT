@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerTest);
-            StartPublisher(name, "./Resources/Fixedvalue.json", 
+            StartPublisher(name, "./Resources/Fixedvalue.json",
                 arguments: new string[] { "--mm=PubSub", "--dm=false" }, keepAliveInterval: 1);
             try
             {
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerWithHeartbeatTest);
-            StartPublisher(name, "./Resources/Heartbeat2.json", 
+            StartPublisher(name, "./Resources/Heartbeat2.json",
                 arguments: new string[] { "--mm=PubSub", "--dm=false", "--bs=1" }, keepAliveInterval: 1);
             try
             {

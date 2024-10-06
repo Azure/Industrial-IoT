@@ -43,7 +43,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         IServiceMessageContext messageContext);
 
     /// <summary>
-    /// <summary>
     /// Monitored item
     /// </summary>
     internal abstract partial class OpcUaMonitoredItem : MonitoredItem, IDisposable

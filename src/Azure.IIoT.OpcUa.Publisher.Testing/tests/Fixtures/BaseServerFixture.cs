@@ -251,6 +251,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Restart server
         /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public Task RestartAsync(Func<Task> predicate)
         {
             return _serverHost.RestartAsync(predicate);

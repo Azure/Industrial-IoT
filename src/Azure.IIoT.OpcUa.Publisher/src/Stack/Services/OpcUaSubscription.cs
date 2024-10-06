@@ -825,7 +825,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var shouldEnable = MonitoredItems
                 .OfType<OpcUaMonitoredItem>()
-                .Any(m => m.AttachedToSubscription 
+                .Any(m => m.AttachedToSubscription
                     && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             if (PublishingEnabled ^ shouldEnable)
             {
@@ -1315,7 +1315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            Debug.Assert(remove.All(m => !m.AttachedToSubscription), 
+            Debug.Assert(remove.All(m => !m.AttachedToSubscription),
                 "All removed items should be detached now");
             var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
             _logger.LogDebug(

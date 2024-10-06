@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation("Restarting server {Instance}...", this);
                     Debug.Assert(_ports != null);
 
-                    await StartServerInternalAsync(_ports, 
+                    await StartServerInternalAsync(_ports,
                         PkiRootPath).ConfigureAwait(false);
                 }
             }
