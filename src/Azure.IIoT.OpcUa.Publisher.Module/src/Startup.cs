@@ -166,6 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             builder.AddNullEventClient();
             builder.AddFileSystemEventClient(Configuration);
+            builder.AddFileSystemRpcServer(Configuration);
             builder.AddHttpEventClient(Configuration);
             builder.AddDaprPubSubClient(Configuration);
             builder.AddEventHubsClient(Configuration);

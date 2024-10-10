@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Dapr;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging.Runtime;
+    using Furly.Extensions.Rpc.Runtime;
     using Furly.Extensions.Mqtt;
     using Furly.Tunnel.Router.Services;
     using Microsoft.AspNetCore.Builder;
@@ -36,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using System.IO;
 
     /// <summary>
     /// Configuration extensions
@@ -177,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static void AddFileSystemEventClient(this ContainerBuilder builder,
             IConfiguration configuration)
         {
-            var fsOptions = new FileSystemOptions();
+            var fsOptions = new FileSystemEventClientOptions();
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.OutputFolder != null)
             {
@@ -192,6 +194,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add file system rpc server
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddFileSystemRpcServer(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            var fsOptions = new FileSystemRpcServerOptions();
+            new FileSystem(configuration).Configure(fsOptions);
+            if (fsOptions.RequestPath != null)
+            {
+                builder.AddFileSystemRpcServer();
+                builder.RegisterType<FileSystem>()
+                    .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
         /// Add http event client
         /// </summary>
         /// <param name="builder"></param>
@@ -199,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static void AddHttpEventClient(this ContainerBuilder builder,
             IConfiguration configuration)
         {
-            var httpOptions = new HttpOptions();
+            var httpOptions = new HttpEventClientOptions();
             new Http(configuration).Configure(httpOptions);
             if (httpOptions.HostName != null)
             {
@@ -812,7 +832,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Configure the http event client
         /// </summary>
-        internal sealed class Http : ConfigureOptionBase<HttpOptions>
+        internal sealed class Http : ConfigureOptionBase<HttpEventClientOptions>
         {
             public const string HttpConnectionStringKey = "HttpConnectionString";
             public const string WebHookHostUrlKey = "WebHookHostUrl";
@@ -822,7 +842,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const string PutKey = "Put";
 
             /// <inheritdoc/>
-            public override void Configure(string? name, HttpOptions options)
+            public override void Configure(string? name, HttpEventClientOptions options)
             {
                 var httpConnectionString = GetStringOrDefault(HttpConnectionStringKey);
                 if (httpConnectionString != null)
@@ -907,12 +927,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Configure the file based event client
         /// </summary>
-        internal sealed class FileSystem : ConfigureOptionBase<FileSystemOptions>
+        internal sealed class FileSystem : ConfigureOptionBase<FileSystemEventClientOptions>,
+            IConfigureOptions<FileSystemRpcServerOptions>,
+            IConfigureNamedOptions<FileSystemRpcServerOptions>
         {
             public const string OutputRootKey = "OutputRoot";
 
+            public const string InitDirKey = "InitDir";
+            public const string InitLogDirKey = "InitLogDir";
+
             /// <inheritdoc/>
-            public override void Configure(string? name, FileSystemOptions options)
+            public void Configure(FileSystemRpcServerOptions options)
+            {
+                Configure(null, options);
+            }
+
+            /// <inheritdoc/>
+            public void Configure(string? name, FileSystemRpcServerOptions options)
+            {
+                options.ResponseExtension = ".log"; // Fixed
+                options.RequestExtension = ".init"; // Fixed
+
+                options.RequestPath ??= GetStringOrDefault(InitDirKey);
+                options.ResponsePath ??= GetStringOrDefault(InitLogDirKey);
+
+                var output = GetStringOrDefault(OutputRootKey,
+                    Directory.GetCurrentDirectory());
+                if (options.ResponsePath == null)
+                {
+                    options.ResponsePath = Path.Combine(output, ".initlogs");
+                }
+            }
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, FileSystemEventClientOptions options)
             {
                 options.OutputFolder ??= GetStringOrDefault(OutputRootKey);
             }

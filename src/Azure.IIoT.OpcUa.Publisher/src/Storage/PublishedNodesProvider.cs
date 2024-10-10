@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Storage
 {
     using Azure.IIoT.OpcUa.Publisher;
+    using Furly.Extensions.Storage;
     using Microsoft.Extensions.FileProviders;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -24,40 +25,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public event EventHandler<FileSystemEventArgs>? Changed;
 
         /// <summary>
-        /// Get file mode to use
-        /// </summary>
-        private FileMode FileMode =>
-            _options.Value.PublishedNodesFile == null ||
-            _options.Value.CreatePublishFileIfNotExist == true ?
-                FileMode.OpenOrCreate : FileMode.Open;
-
-        /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
-        /// <param name="options"> Publisher configuration with location
+        /// <param name="factory">File provider factory</param>
+        /// <param name="options">Publisher configuration with location
         /// of published nodes file. </param>
-        /// <param name="logger"> Logger </param>
-        public PublishedNodesProvider(IOptions<PublisherOptions> options,
+        /// <param name="logger">Logger</param>
+        public PublishedNodesProvider(IFileProviderFactory factory,
+            IOptions<PublisherOptions> options,
             ILogger<PublishedNodesProvider> logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _fileName = _options.Value.PublishedNodesFile ??
-                PublisherConfig.PublishedNodesFileDefault;
-            var directory = Path.GetDirectoryName(_fileName);
+            _fileMode = options.Value.PublishedNodesFile == null ||
+                options.Value.CreatePublishFileIfNotExist == true ?
+                    FileMode.OpenOrCreate : FileMode.Open;
+            _fileName = options.Value.PublishedNodesFile ??
+                    PublisherConfig.PublishedNodesFileDefault;
 
-            if (string.IsNullOrWhiteSpace(directory))
+            var root = Path.GetDirectoryName(_fileName);
+            if (string.IsNullOrWhiteSpace(root))
             {
-                directory = Environment.CurrentDirectory;
+                root = Environment.CurrentDirectory;
             }
+            _root = root;
+            _provider = factory.Create(_root);
 
-            _provider = new PhysicalFileProvider(directory);
-            if (_options.Value.UseFileChangePolling == true)
-            {
-                _provider.UseActivePolling = true;
-                _provider.UsePollingFileWatcher = true;
-            }
             _watch = _provider.Watch(Path.GetFileName(_fileName));
             _watch.RegisterChangeCallback(ChangeCallback, this);
 
@@ -91,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
                 // Create file only if it is the default file.
                 using (var fileStream = new FileStream(_fileName,
-                    FileMode, FileAccess.Read, FileShare.Read))
+                    _fileMode, FileAccess.Read, FileShare.Read))
                 {
                     return fileStream.ReadAsString(Encoding.UTF8);
                 }
@@ -122,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 try
                 {
                     using (var fileStream = new FileStream(_fileName,
-                        FileMode,
+                        _fileMode,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
                         FileShare.None))
@@ -143,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     try
                     {
                         using (var fileStream = new FileStream(_fileName,
-                            FileMode,
+                            _fileMode,
                             FileAccess.Write,
                             // Relaxing requirements.
                             FileShare.ReadWrite))
@@ -177,7 +170,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <inheritdoc/>
         public void Dispose()
         {
-            _provider.Dispose();
             _lock.Dispose();
         }
 
@@ -199,14 +191,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             var exists = File.Exists(_fileName);
             Changed?.Invoke(this, new FileSystemEventArgs(exists ?
                 WatcherChangeTypes.Changed : WatcherChangeTypes.Deleted,
-                _provider.Root, Path.GetFileName(_fileName)));
+                _root, Path.GetFileName(_fileName)));
         }
 
-        private readonly IOptions<PublisherOptions> _options;
+        private readonly string _root;
         private readonly ILogger _logger;
+        private readonly FileMode _fileMode;
         private readonly string _fileName;
         private readonly SemaphoreSlim _lock;
-        private readonly PhysicalFileProvider _provider;
+        private readonly IFileProvider _provider;
         private bool _disableRaisingEvents;
         private IChangeToken _watch;
     }

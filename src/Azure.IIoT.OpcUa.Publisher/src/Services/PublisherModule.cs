@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Autofac;
     using Furly;
     using Furly.Azure.IoT.Edge;
+    using Furly.Extensions.Rpc;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
@@ -65,6 +66,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var version = GetType().Assembly.GetReleaseVersion().ToString();
                     _logger.LogInformation("Starting OpcPublisher module version {Version}...",
                         version);
+
+                    // Start rpc servers
+                    foreach (var server in _scope.Resolve<IEnumerable<IRpcServer>>())
+                    {
+                        _logger.LogInformation("... Starting Rpc {Server} server ...", server.Name);
+                        server.Start();
+                    }
 
                     // Now report runtime state as restarted. This can crash and we will retry.
                     await runtimeStateReporter.SendRestartAnnouncementAsync(

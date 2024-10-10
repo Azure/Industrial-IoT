@@ -30,6 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             builder.RegisterType<PublisherModule>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            builder.RegisterType<PhysicalFileProviderFactory>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublishedNodesProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublishedNodesConverter>()

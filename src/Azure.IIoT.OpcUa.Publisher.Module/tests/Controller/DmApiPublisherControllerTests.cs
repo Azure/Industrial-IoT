@@ -56,7 +56,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Resources/empty_pn.json", _tempFile);
 
-            _publishedNodesProvider = new PublishedNodesProvider(_options,
+            using var factory = new PhysicalFileProviderFactory(_options,
+                _loggerFactory.CreateLogger<PhysicalFileProviderFactory>());
+            _publishedNodesProvider = new PublishedNodesProvider(factory, _options,
                 _loggerFactory.CreateLogger<PublishedNodesProvider>());
             _triggerMock = new Mock<IMessageSource>();
             var factoryMock = new Mock<IWriterGroupScopeFactory>();
