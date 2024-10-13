@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             var fsOptions = new FileSystemRpcServerOptions();
             new FileSystem(configuration).Configure(fsOptions);
-            if (fsOptions.RequestPath != null)
+            if (fsOptions.RequestFilePath != null)
             {
                 builder.AddFileSystemRpcServer();
                 builder.RegisterType<FileSystem>()
@@ -932,9 +932,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             IConfigureNamedOptions<FileSystemRpcServerOptions>
         {
             public const string OutputRootKey = "OutputRoot";
-
-            public const string InitDirKey = "InitDir";
-            public const string InitLogDirKey = "InitLogDir";
+            public const string InitFilePathKey = "InitFilePath";
+            public const string InitLogFileKey = "InitLogFile";
 
             /// <inheritdoc/>
             public void Configure(FileSystemRpcServerOptions options)
@@ -945,17 +944,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public void Configure(string? name, FileSystemRpcServerOptions options)
             {
-                options.ResponseExtension = ".log"; // Fixed
-                options.RequestExtension = ".init"; // Fixed
+                var publishedNodesFile = GetStringOrDefault(
+                    PublisherConfig.PublishedNodesFileKey);
+                var rootFolder = Path.GetDirectoryName(publishedNodesFile)
+                    ?? Environment.CurrentDirectory;
 
-                options.RequestPath ??= GetStringOrDefault(InitDirKey);
-                options.ResponsePath ??= GetStringOrDefault(InitLogDirKey);
-
-                var output = GetStringOrDefault(OutputRootKey,
-                    Directory.GetCurrentDirectory());
-                if (options.ResponsePath == null)
+                options.RequestFilePath ??= GetStringOrDefault(InitFilePathKey);
+                if (options.RequestFilePath == null)
                 {
-                    options.ResponsePath = Path.Combine(output, ".initlogs");
+                    return;
+                }
+
+                if (options.RequestFilePath.Trim().Length == 0)
+                {
+                    // We use pn.json file path and publishednodes.init file name
+                    options.RequestFilePath = Path.Combine(rootFolder,
+                        "publishednodes.init");
+                }
+
+                // Just file?
+                else if (string.IsNullOrEmpty(
+                    Path.GetDirectoryName(options.RequestFilePath)))
+                {
+                    options.RequestFilePath = Path.Combine(rootFolder,
+                        options.RequestFilePath!);
+                }
+
+                options.ResponseFilePath ??= GetStringOrDefault(InitLogFileKey);
+                if (options.ResponseFilePath == null && options.RequestFilePath != null)
+                {
+                    options.ResponseFilePath = options.RequestFilePath + ".log";
+                }
+
+                // Just file?
+                else if (string.IsNullOrEmpty(
+                    Path.GetDirectoryName(options.ResponseFilePath)))
+                {
+                    options.ResponseFilePath = Path.Combine(Path.GetDirectoryName(
+                        options.RequestFilePath) ?? Environment.CurrentDirectory,
+                        options.ResponseFilePath!);
                 }
             }
 
