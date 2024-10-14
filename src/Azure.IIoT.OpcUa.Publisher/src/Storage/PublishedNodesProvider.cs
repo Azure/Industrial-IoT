@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using System.Threading;
 
     /// <summary>
-    /// Utilities provider for published nodes file.
+    /// Provider for published nodes file.
     /// </summary>
     public sealed class PublishedNodesProvider : IStorageProvider, IDisposable
     {
@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public event EventHandler<FileSystemEventArgs>? Changed;
 
         /// <summary>
-        /// Provider of utilities for published nodes file.
+        /// Provider of storage for published nodes file.
         /// </summary>
         /// <param name="factory">File provider factory</param>
         /// <param name="options">Publisher configuration with location
@@ -35,6 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             IOptions<PublisherOptions> options,
             ILogger<PublishedNodesProvider> logger)
         {
+            // TODO: Use IFileProvider and IStorageProvider going forward
+
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _fileMode = options.Value.PublishedNodesFile == null ||
@@ -91,7 +93,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception e)
             {
-                _logger.LogDebug(e, "Failed to read content of published nodes file from \"{Path}\"",
+                _logger.LogDebug(e,
+                    "Failed to read content of published nodes file from \"{Path}\"",
                     _fileName);
                 throw;
             }
