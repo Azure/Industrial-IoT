@@ -347,6 +347,7 @@ OPC Publisher has several interfaces that can be used to configure it.
 - [Configuration via configuration file](#configuration-via-configuration-file)
 - [Command Line options configuration](./commandline.md)
 - [Configuration via API](./directmethods.md)
+- [Configuration via init file](#configuration-via-init-file)
 - [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File
@@ -582,6 +583,27 @@ A `DataSetWriter` is defined by its `DataSetWriterId` and the effective `DataSet
 Due to historic reasons, by default a session is scoped to a writer group. That means for each endpoint url and security configuration inside a single writer group a single session is opened and the subscriptions are established inside the session. If you use more than one writer group in your configuration and each contain writers with the same endpoint information, multiple sessions will be created. This can be overridden using command line options.
 
 OPC Publisher will try to re-use an existing OPC UA subscription or create a new one per `DataSetWriter`.
+
+### Configuration via Init File
+
+OPC Publisher can be configured remotely using its configuration [API](./api.md#configuration).  This API can be invoked via HTTP, in many cases IoT Hub direct methods, MQTT, but also using the init file capabilities.
+
+The init file can be specified using the [command line option](./commandline.md) `--pi`. It can be updated while OPC Publisher is running, in which case the file will be executed again. The file will not be executed if it does not change. This applies also across restarts.
+
+The init file format follows the [.http file format](https://learn.microsoft.com/aspnet/core/test/http-files) with the additional exception that scripting and variable templating are not supported.
+
+While the method line can start with a HTTP method and end with a HTTP version, these are effectively discarded.  The uri must be the direct method name as specified in the API documentation, e.g. `AddOrUpdateEndpoint_V1`.  While headers can be provided, the only relevant one is `Content-Type` which defaults to `application/json`.
+In addition to the documented format, the init files format supported by OPC Publisher supports the following additional request directives which can be provided after a comment (# or //):
+
+| *@no-log* |  Disable logging for this request after this directive. This directive must be applied for every request and on the first line so that nothing is emitted to the log. |
+| *@timeout* | Timeout for the request. If the request times out it will be an error and all further requests are not sent. |
+| *@retries* | Retry this number of times in case of an error. An error is any request that returns with status code >= 400. |
+| *@delay* | Delay before executing a request. If retries are specified the delay applies before every attempt. |
+| *@on-error* | Invoke the request only when the previous request failed.  If the previous request has *@continue-on-error* directive  this request will not be executed. If the request succeeds the next request after is run. |
+| *@continue-on-error* | Continue to next request even if the request failed. The default behavior is to stop execution of requests except for the next request with *@on-error* directive. |
+| *@name* | Name of the request for annotation purposes only. |
+
+It is important to note that the *@on-error* condition can be used as an error handler e.g. to call the restart method. If the restart is immediate, the init file will be execute again after restart.  A delay can throttle these restarts.
 
 ### Sampling and Publishing Interval configuration
 
