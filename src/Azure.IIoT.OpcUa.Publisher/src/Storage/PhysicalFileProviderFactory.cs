@@ -32,7 +32,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         /// <inheritdoc/>
         public IFileProvider Create(string root)
         {
-            root = Path.GetFullPath(root);
+            root = Path.GetFullPath(string.IsNullOrWhiteSpace(root) ?
+                Environment.CurrentDirectory : root);
             return _providers.GetOrAdd(root, directory =>
             {
                 if (!Directory.Exists(directory))

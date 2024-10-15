@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     s => this[PublisherConfig.SiteIdKey] = s},
                 { $"pi|initfile:|{Configuration.FileSystem.InitFilePathKey}:",
                     "A file from which to read initialization instructions.\nUse this option to have OPC Publisher run a set of method calls found in this file.\nThe file must be formatted using a subset of the .http/.rest file format without support for indentation, scripting or environment variables.\nDefault: `not set` (disabled). If only a file name is specified, it is loaded from the path specifed using `--pn`. If just the argument is provided without a value the default is `publishednodes.init`.\n",
-                    pi => this[Configuration.FileSystem.InitFilePathKey] = pi },
+                    pi => this[Configuration.FileSystem.InitFilePathKey] = pi ?? " " },
                 { $"il|initlog=|{Configuration.FileSystem.InitLogFileKey}=",
                     "A file into which the results of the initialization instructions are written.\nOnly valid if `--pi` option is specified.\nDefault: If a init file is set using `--pi`, it is appended with the `.log` extension. If just a file name is used, the file is created in the same folder as the init file configured using the `--pi` command line option.\n",
                     il => this[Configuration.FileSystem.InitLogFileKey] = il },

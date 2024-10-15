@@ -249,8 +249,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 .Where(reference => reference.NodeClass == _matchClass
                     && (reference.NodeId?.ServerIndex ?? 1u) == 0)
                 .Where(reference => _typeDefinitionId == null ||
-                    reference.TypeDefinition == _typeDefinitionId || (_includeTypeDefinitionSubtypes
-                        && context.Session.TypeTree.IsTypeOf(reference.TypeDefinition, _typeDefinitionId)))
+                    reference.TypeDefinition == _typeDefinitionId ||
+                        (_includeTypeDefinitionSubtypes && context.Session.TypeTree
+                            .IsTypeOf(reference.TypeDefinition, _typeDefinitionId)))
                 .Select(reference => new BrowseFrame((NodeId)reference.NodeId,
                     reference.BrowseName, reference.DisplayName?.Text, frame))
                 .ToList();

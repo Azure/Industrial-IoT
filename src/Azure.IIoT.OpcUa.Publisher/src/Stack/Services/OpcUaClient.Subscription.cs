@@ -131,7 +131,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscription"></param>
         internal void OnSubscriptionCreated(OpcUaSubscription subscription)
         {
-            _cache.AddOrUpdate(subscription.Template, subscription);
+            lock (_cache)
+            {
+                if (subscription.IsRoot)
+                {
+                    _cache.AddOrUpdate(subscription.Template, subscription);
+                }
+            }
         }
 
         /// <summary>
@@ -144,14 +150,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             [NotNullWhen(true)] out OpcUaSubscription? subscription)
         {
             // Fast lookup
-            if (_cache.TryGetValue(template, out subscription) &&
-                !subscription.IsClosed)
+            lock (_cache)
             {
-                return true;
+                if (_cache.TryGetValue(template, out subscription) &&
+                    !subscription.IsClosed &&
+                    subscription.IsRoot)
+                {
+                    return true;
+                }
+                subscription = _session?.SubscriptionHandles.Values
+                    .FirstOrDefault(s => s.IsRoot && s.Template == template);
+                if (subscription != null)
+                {
+                    _cache.AddOrUpdate(template, subscription);
+                    return true;
+                }
+                return false;
             }
-            subscription = _session?.SubscriptionHandles.Values
-                .FirstOrDefault(s => s.IsRoot && s.Template == template);
-            return subscription != null;
         }
 
         /// <summary>
@@ -250,7 +265,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         try
                         {
-                            _cache.TryRemove(close.Template, out _);
+                            lock (_cache)
+                            {
+                                _cache.Remove(close.Template);
+                            }
                             if (_s2r.TryRemove(close.Template, out var r))
                             {
                                 Debug.Assert(r.Count == 0,
@@ -560,7 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Dictionary<ISubscriber, Registration> _registrations = new();
         private readonly ConcurrentDictionary<SubscriptionModel, List<Registration>> _s2r = new();
-        private readonly ConcurrentDictionary<SubscriptionModel, OpcUaSubscription> _cache = new();
+        private readonly Dictionary<SubscriptionModel, OpcUaSubscription> _cache = new();
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
     }
 }

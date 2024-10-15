@@ -1,0 +1,35 @@
+﻿###
+
+// 3 retries in case of failure, with a delay of 5 seconds between
+// @delay 5
+// @retries 3
+
+// Creates writer entries for all objects that implement the
+// machine tool object type or one of its subtypes on the
+// umati reference server
+ExpandAndCreateOrUpdateDataSetWriterEntries_V2
+
+{
+    "entry": {
+        "EndpointUrl": "opc.tcp://opcua.umati.app:4840",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "MachineTools",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" }
+        ]
+    },
+    "request": {
+    }
+}
+
+###
+
+// Shutdown the publisher in case the expansion failed
+// and let docker restart it. The Fail fast argument
+// provided as json payload.
+# @on-error
+Shutdown_V2
+
+true
+
+###

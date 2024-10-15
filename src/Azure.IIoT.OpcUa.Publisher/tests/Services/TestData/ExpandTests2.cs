@@ -112,6 +112,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services.TestData
         }
 
         [Fact]
+        public Task ConfigureFromBaseObjectTypeTest2Async()
+        {
+            return GetTests().ConfigureFromBaseObjectTypeTest2Async();
+        }
+
+        [Fact]
         public Task ConfigureFromBaseObjectsAndObjectTypesTestAsync()
         {
             return GetTests().ConfigureFromBaseObjectsAndObjectTypesTestAsync();

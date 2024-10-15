@@ -476,7 +476,8 @@ Options:
                     var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
                     if (profile == null &&
                        (publishProfileName.StartsWith("Unified", StringComparison.OrdinalIgnoreCase) ||
-                        publishProfileName.StartsWith("Empty", StringComparison.OrdinalIgnoreCase)))
+                        publishProfileName.StartsWith("Empty", StringComparison.OrdinalIgnoreCase) ||
+                        publishProfileName.StartsWith("NoNodes", StringComparison.OrdinalIgnoreCase)))
                     {
                         continue;
                     }
