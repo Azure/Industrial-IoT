@@ -12,6 +12,9 @@ az iot hub invoke-module-method --hub-name <your-iot-hub> --device-id <your-devi
 
 The following direct methods and many more can be used to remotely configure the OPC Publisher:
 
+- [Shutdown\_V2](#shutdown_v2)
+- [GetServerCertificate\_V2](#getservercertificate_v2)
+- [GetApiKey\_V2](#getapikey_v2)
 - [PublishNodes\_V1](#publishnodes_v1)
 - [AddOrUpdateEndpoints\_V1](#addorupdateendpoints_v1)
 - [UnpublishNodes\_V1](#unpublishnodes_v1)
@@ -28,6 +31,86 @@ If you need to migrate your application from OPC Publisher 2.5.x to OPC Publishe
 It is important to understand the [configuration schema](./readme.md#configuration-schema) as it is the foundation of the OPC Publisher configuration surface and represented by the [PublishedNodesEntryModel](./definitions.md#publishednodesentrymodel).
 
 Now let's dive into each direct method request and response payloads with examples.
+
+## Shutdown_V2
+
+This API call allows you to shutdown the publisher. By passing a `true`, the publisher is immediately terminates the process with an error and reports an error message. When passing `false`, the exits the process without a 0 exit code.
+
+  _Request_: `true` or `false` or nothing.
+
+  _Response_: Potentially nothing if the publisher is immediately shutdown
+
+  _Example_:
+
+  > _Method Name_: `Shutdown_V2`
+  >
+  > _Request_:
+  >
+  > ```json
+  > true
+  > ```
+  >
+  > _Response_:
+  >
+  > ```json
+  > n/a
+  > ```
+
+## GetServerCertificate_V2
+
+This API can be called to retrieve the HTTP certificate that secures the REST endpoint. A caller should call this API and then validate the server certificate presented against this certificate.  The certificate can be cached for the duration of its validity period. 
+
+  _Request_: An empty object or `null` can be passed since no argument is required.
+
+  _Response_: when successful Status 200 and the certificate in PEM format.
+
+  _Exceptions_: an exception is thrown when method call returns status other than 200
+
+  _Example_:
+
+  > _Method Name_: `GetServerCertificate_V2`
+  >
+  > _Request_:
+  >
+  > ```json
+  > null
+  > ```
+  >
+  > _Response_:
+  >
+  > ```json
+  > "-----BEGIN CERTIFICATE-----\n <base64 encoded certificate" -----END CERTIFICATE-----\n"
+  > ```
+
+The certificate Key can also be read from the IoT Hub device twin as  `__certificate__` reported property, together with the ip address, hostname, schema, and port (`__ip__`, `__hostname__`, `__scheme__`, and `__port__`).
+
+## GetApiKey_V2
+
+This API call allows a caller to programmatically obtain the current API key. The API key is passed in the `Authorization` header of the HTTP request sent to the HTTP endpoint. The format of the header value is `ApiKey <api-key>`, e.g., `ApiKey 856F93F75DD847DE87E22953E7DFE478`.
+
+  _Request_: follows strictly the request [payload schema](./definitions.md#publishednodesentrymodel), the `OpcNodes` attribute being mandatory.
+
+  _Response_: when successful Status 200 and an empty json (`{}`) as payload
+
+  _Exceptions_: an exception is thrown when method call returns status other than 200
+
+  _Example_:
+
+  > _Method Name_: `GetApiKey_V2`
+  >
+  > _Request_:
+  >
+  > ```json
+  > null
+  > ```
+  >
+  > _Response_:
+  >
+  > ```json
+  > "856F93F75DD847DE87E22953E7DFE478"
+  > ```
+
+The API Key can also be read from the IoT Hub device twin as the `__apikey__` reported property.
 
 ## PublishNodes_V1
 
@@ -70,7 +153,7 @@ When a `DataSetWriter` already exists, the nodes are incrementally added to the 
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-publishnodes-direct-method)
+More information can be found in the [API documentation](./api.md#publishnodes)
 
 ## AddOrUpdateEndpoints_V1
 
@@ -122,7 +205,7 @@ This method allows updating multiple endpoints (`DataSetWriter`s) without effect
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-addorupdateendpoints-direct-method)
+More information can be found in the [API documentation](./api.md#addorupdateendpoints)
 
 ## UnpublishNodes_V1
 
@@ -170,7 +253,7 @@ _Note_: If all the nodes from a DataSet are to be unpublished, the DataSetWriter
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-unpublishallnodes-direct-method)
+More information can be found in the [API documentation](./api.md#unpublishnodes)
 
 ## UnpublishAllNodes_V1
 
@@ -212,7 +295,7 @@ When an empty payload is set or the endpoint in payload is null, the complete co
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-unpublishallnodes-direct-method)
+More information can be found in the [API documentation](./api.md#unpublishallnodes)
 
 ## GetConfiguredEndpoints_V1
 
@@ -249,7 +332,7 @@ Returns the configured endpoints (`DataSetWriter`s)
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-getconfiguredendpoints-direct-method)
+More information can be found in the [API documentation](./api.md#getconfiguredendpoints)
 
 ## SetConfiguredEndpoints_V1
 
@@ -292,7 +375,7 @@ Sets the configured endpoints (`DataSetWriter`s) and thus allows to update all c
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-setconfiguredendpoints-direct-method)
+More information can be found in the [API documentation](./api.md#setconfiguredendpoints)
 
 ## GetConfiguredNodesOnEndpoint_V1
 
@@ -336,7 +419,7 @@ Returns the nodes configured for one Endpoint (`DataSetWriter`s).
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-getconfigurednodesonendpoint-direct-method)
+More information can be found in the [API documentation](./api.md#getconfigurednodesonendpoint)
 
 ## GetDiagnosticInfo_V1
 
@@ -397,4 +480,4 @@ Returns a list of actual metrics for all concrete `DataSetWriter`s. This include
   > }
   > ```
 
-More information can be found in the [API documentation](./api.md#handler-for-getdiagnosticinfo-direct-method)
+More information can be found in the [API documentation](./api.md#getdiagnosticinfocinfo)

@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// <para>
@@ -56,12 +57,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="publisher"></param>
         /// <param name="configuration"></param>
         /// <param name="assets"></param>
+        /// <param name="serializer"></param>
         public WriterController(IPublishedNodesServices publisher,
-            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets)
+            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets,
+            IJsonSerializer serializer)
         {
             _publisher = publisher;
             _configuration = configuration;
             _assets = assets;
+            _serializer = serializer;
         }
 
         /// <summary>
@@ -493,13 +497,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
-        /// CreateOrUpdateAsset
+        /// CreateOrUpdateAsset (With binary configuration)
         /// </summary>
         /// <remarks>
         /// Creates an asset from the entry in the request and the configuration provided
-        /// in the Web of Things Asset configuration file. The entry must contain a data
-        /// set name which will be used as the asset name. The writer can stay empty. It
-        /// will be set to the asset id on successful return. The server must support the
+        /// in the Web of Things Asset configuration byte buffer. The entry must contain a
+        /// data set name which will be used as the asset name. The writer can stay empty.
+        /// It will be set to the asset id on successful return. The server must support the
         /// WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/>.
         /// The asset will be created and the configuration updated to reference it. A
         /// wait time can be provided as optional query parameter to wait until the server
@@ -520,12 +524,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("assets/create")]
-        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+        [Ignore]
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAsset2Async(
             [FromBody][Required] PublishedNodeCreateAssetRequestModel<byte[]> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             return await _assets.CreateOrUpdateAssetAsync(request, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// CreateOrUpdateAsset
+        /// </summary>
+        /// <remarks>
+        /// Creates an asset from the entry in the request and the configuration provided
+        /// in the Web of Things Asset json configuration property. The entry must contain
+        /// a data set name which will be used as the asset name. The writer can stay empty.
+        /// It will be set to the asset id on successful return. The server must support the
+        /// WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/"/>.
+        /// The asset will be created and the configuration updated to reference it. A
+        /// wait time can be provided as optional query parameter to wait until the server
+        /// has settled after uploading the configuration.
+        /// </remarks>
+        /// <param name="request">The contains the entry and WoT file to configure the
+        /// server to expose the asset.</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The asset was created</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="408">The operation timed out.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("assets")]
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            [FromBody][Required] PublishedNodeCreateAssetRequestModel<VariantValue> request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            return await _assets.CreateOrUpdateAssetAsync(new PublishedNodeCreateAssetRequestModel<byte[]>
+            {
+                Entry = request.Entry,
+                WaitTime = request.WaitTime,
+                Header = request.Header,
+                Configuration = _serializer.SerializeObjectToMemory(request.Configuration).ToArray()
+            }, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -602,5 +649,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         private readonly IPublishedNodesServices _publisher;
         private readonly IConfigurationServices _configuration;
         private readonly IAssetConfiguration<byte[]> _assets;
+        private readonly IJsonSerializer _serializer;
     }
 }

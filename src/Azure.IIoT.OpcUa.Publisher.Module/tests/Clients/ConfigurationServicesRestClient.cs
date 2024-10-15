@@ -16,12 +16,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using static Grpc.Core.Metadata;
 
     /// <summary>
     /// Implementation of file system services over http
     /// </summary>
     public sealed class ConfigurationServicesRestClient : IConfigurationServices,
-        IAssetConfiguration<Stream>, IAssetConfiguration<byte[]>
+        IAssetConfiguration<Stream>, IAssetConfiguration<byte[]>,
+        IAssetConfiguration<VariantValue>
     {
         /// <summary>
         /// Create service client
@@ -96,14 +98,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 requestWithBuffer, _serializer, ct: ct).ConfigureAwait(false);
         }
 
-        /// <inheritdoc/>
-        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
-            PublishedNodesEntryModel entry, RequestHeaderModel header, CancellationToken ct)
+        public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
+            PublishedNodeCreateAssetRequestModel<VariantValue> request, CancellationToken ct)
         {
-            ArgumentNullException.ThrowIfNull(entry);
-            var uri = new Uri($"{_serviceUri}/v2/writer/assets/list");
-            return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                RequestBody(entry, header), _serializer, ct: ct);
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Entry);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(request.Entry.DataSetName);
+            var uri = new Uri($"{_serviceUri}/v2/writer/assets");
+            return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
+                request, _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -118,6 +122,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             var uri = new Uri($"{_serviceUri}/v2/writer/assets/create");
             return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
                 request, _serializer, ct: ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public IAsyncEnumerable<ServiceResponse<PublishedNodesEntryModel>> GetAllAssetsAsync(
+            PublishedNodesEntryModel entry, RequestHeaderModel header, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(entry);
+            var uri = new Uri($"{_serviceUri}/v2/writer/assets/list");
+            return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
+                RequestBody(entry, header), _serializer, ct: ct);
         }
 
         /// <inheritdoc/>

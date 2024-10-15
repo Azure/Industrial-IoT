@@ -983,7 +983,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var remove = previouslyMonitored.Except(desired).ToHashSet();
             var add = desired.Except(previouslyMonitored).ToHashSet();
             var same = previouslyMonitored.ToHashSet();
-            var errors = 0;
+            var errorsDuringSync = 0;
             same.IntersectWith(desired);
 
             //
@@ -1036,7 +1036,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogWarning("Failed to resolve browse path for {NodeId} " +
                             "in {Subscription} due to '{ServiceResult}'",
                             result.Request!.Value.NodeId, this, result.ErrorInfo);
-                        errors++;
+                        errorsDuringSync++;
                     }
                 }
             }
@@ -1112,7 +1112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (!desired.TryGetValue(toUpdate, out var theDesiredUpdate))
                 {
-                    errors++;
+                    errorsDuringSync++;
                     continue;
                 }
                 desired.Remove(theDesiredUpdate);
@@ -1142,7 +1142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(ex,
                         "Failed to update monitored item '{Item}' in {Subscription}...",
                         toUpdate, this);
-                    errors++;
+                    errorsDuringSync++;
                 }
                 finally
                 {
@@ -1174,7 +1174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(ex,
                         "Failed to remove monitored item '{Item}' from {Subscription}...",
                         toRemove, this);
-                    errors++;
+                    errorsDuringSync++;
                 }
             }
 
@@ -1208,7 +1208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(ex,
                         "Failed to add monitored item '{Item}' to {Subscription}...",
                         toAdd, this);
-                    errors++;
+                    errorsDuringSync++;
                 }
             }
 
@@ -1231,7 +1231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Perform second pass over all monitored items and complete.
             applyChanges = false;
-            var invalidItems = 0;
+            var badMonitoredItems = 0;
 
             var desiredMonitoredItems = same;
             desiredMonitoredItems.UnionWith(add);
@@ -1276,7 +1276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             this, results.ErrorInfo);
 
                         // We will retry later.
-                        errors++;
+                        errorsDuringSync++;
                     }
                     else
                     {
@@ -1311,7 +1311,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges))
                 {
                     // Apply more changes in future passes
-                    invalidItems++;
+                    badMonitoredItems++;
                 }
             }
 
@@ -1389,7 +1389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 }
                             }
                             // Retry later
-                            errors++;
+                            errorsDuringSync++;
                         }
                     }
                 }
@@ -1437,34 +1437,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation("ConditionRefresh on subscription " +
                         "{Subscription} failed with an exception '{Message}'",
                         this, e.Message);
-                    errors++;
+                    errorsDuringSync++;
                 }
             }
 
             set.ForEach(item => item.LogRevisedSamplingRateAndQueueSize());
 
-            _badMonitoredItems = invalidItems;
-            _errorsDuringSync = errors;
-            _goodMonitoredItems = Math.Max(set.Count - invalidItems, 0);
-
-            _reportingItems = set
+            var goodMonitoredItems =
+                Math.Max(set.Count - badMonitoredItems, 0);
+            var reportingItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Reporting);
-            _disabledItems = set
+            var disabledItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
-            _samplingItems = set
+            var samplingItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Sampling);
-            _notAppliedItems = set
+            var notAppliedItems = set
                 .Count(r => r.Status?.MonitoringMode != r.MonitoringMode);
-            _heartbeatItems = set
+            var heartbeatItems = set
                 .Count(r => r is OpcUaMonitoredItem.Heartbeat);
-            _conditionItems = set
+            var conditionItems = set
                 .Count(r => r is OpcUaMonitoredItem.Condition);
             var heartbeatsEnabled = set
                 .Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);
             var conditionsEnabled = set
                 .Count(r => r is OpcUaMonitoredItem.Condition h && h.TimerEnabled);
 
-            _logger.LogInformation(@"{Subscription} - Now monitoring {Count} nodes:
+            if (_badMonitoredItems != badMonitoredItems ||
+                _errorsDuringSync != errorsDuringSync ||
+                _goodMonitoredItems != goodMonitoredItems ||
+                _reportingItems != reportingItems ||
+                _disabledItems != disabledItems ||
+                _samplingItems != samplingItems ||
+                _notAppliedItems != notAppliedItems ||
+                _heartbeatItems != heartbeatItems ||
+                _conditionItems != conditionItems)
+            {
+                _logger.LogInformation(@"{Subscription} - Now monitoring {Count} nodes:
 # Good/Bad:      {Good}/{Bad}
 # Errors:        {Errors}
 # Reporting:     {Reporting}
@@ -1474,19 +1482,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 # Disabled:      {Disabled}
 # Not applied:   {NotApplied}
 # Removed:       {Disposed}",
-                this, set.Count,
-                _goodMonitoredItems, _badMonitoredItems,
-                _errorsDuringSync,
-                _reportingItems,
-                _samplingItems,
-                _heartbeatItems, heartbeatsEnabled,
-                _conditionItems, conditionsEnabled,
-                _disabledItems,
-                _notAppliedItems,
-                dispose.Count);
+                    this, set.Count,
+                    goodMonitoredItems, badMonitoredItems,
+                    errorsDuringSync,
+                    reportingItems,
+                    samplingItems,
+                    heartbeatItems, heartbeatsEnabled,
+                    conditionItems, conditionsEnabled,
+                    disabledItems,
+                    notAppliedItems,
+                    dispose.Count);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "{Subscription} Applied changes to monitored items, but nothing changed.",
+                    this);
+            }
+
+            _badMonitoredItems = badMonitoredItems;
+            _errorsDuringSync = errorsDuringSync;
+            _goodMonitoredItems = goodMonitoredItems;
+            _reportingItems = reportingItems;
+            _disabledItems = disabledItems;
+            _samplingItems = samplingItems;
+            _notAppliedItems = notAppliedItems;
+            _heartbeatItems = heartbeatItems;
+            _conditionItems = conditionItems;
 
             // Set up subscription management trigger
-            if (invalidItems != 0 || errors != 0)
+            if (badMonitoredItems != 0 || errorsDuringSync != 0)
             {
                 // There were items that could not be added to subscription
                 return Delay(_options.Value.InvalidMonitoredItemRetryDelayDuration,

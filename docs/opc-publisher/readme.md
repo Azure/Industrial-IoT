@@ -604,9 +604,9 @@ While the [method line](https://learn.microsoft.com/aspnet/core/test/http-files#
 | **@on-error** | Invoke the request only when the previous request failed.<br>If the previous request has **@continue-on-error** directive this request will not be executed. If the request succeeds the next request after is run. |
 | **@continue-on-error** | Continue to next request even if the request failed.<br>The default behavior is to stop execution of requests except for the next request with **@on-error** directive. |
 
-The **@on-error** condition can be used as an error handler e.g. to call the [Shutdown](./directmethods.md) method. If the restart is immediate, the init file will be execute again after restart.  A delay can throttle these restarts.  An example init file is shown here:
+The **@on-error** condition can be used as an error handler e.g. to call the [Shutdown](./directmethods.md#shutdown_v2) method. If the restart is immediate, the init file will be execute again after restart.  A delay can throttle these restarts.  An example init file is shown here:
 
-``` http
+``` json
 ###
 
 // 3 retries in case of failure, with a delay of 5 seconds between
@@ -614,8 +614,7 @@ The **@on-error** condition can be used as an error handler e.g. to call the [Sh
 // @retries 3
 
 // Creates writer entries for all objects that implement the
-// machine tool object type or one of its subtypes on the
-// umati reference server
+// machine tool object type or one of its subtypes on this server
 ExpandAndCreateOrUpdateDataSetWriterEntries_V2
 
 {
@@ -626,8 +625,6 @@ ExpandAndCreateOrUpdateDataSetWriterEntries_V2
         "OpcNodes": [
             { "Id": "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" }
         ]
-    },
-    "request": {
     }
 }
 
@@ -643,6 +640,8 @@ true
 
 ###
 ```
+
+More init file examples with explanations can be found [here](./intfilesamples.md).
 
 ### Sampling and Publishing Interval configuration
 

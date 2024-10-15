@@ -466,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var node = _currentObject != null ? _currentObject.OriginalNode : CurrentNode;
                 node.AddErrorInfo(errorInfo);
-                _logger.LogDebug("Error expanding node {Node}: {Error}", node, errorInfo);
+                _logger.LogError("Error expanding node {Node}: {Error}", node, errorInfo);
                 return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
             }
 

@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger.LogInformation("Received request to shutdown publisher process.");
             if (failFast)
             {
-                Environment.FailFast("Shutdown was invoked remotely.");
+                Environment.FailFast("User shutdown of OPC Publisher due to error.");
             }
             else
             {

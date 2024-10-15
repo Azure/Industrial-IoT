@@ -1956,18 +1956,21 @@ namespace Azure.IIoT.OpcUa.Encoders
                         WriteEnumeratedArray(fieldName, enumArray, enumType);
                         return;
                     case BuiltInType.Variant:
-                        if (array is Variant[] variants)
+                        switch (array)
                         {
-                            WriteVariantArray(fieldName, variants);
-                            return;
+                            case Variant[] variants:
+                                WriteVariantArray(fieldName, variants);
+                                return;
+                            case object[] objects:
+                                WriteObjectArray(fieldName, objects);
+                                return;
+                            case null:
+                                WriteObjectArray(fieldName, null);
+                                return;
+                            default:
+                                throw new EncodingException("Unexpected type encountered " +
+                                    $"while encoding an array of Variants: {array.GetType()}");
                         }
-                        if (array is object[] objects)
-                        {
-                            WriteObjectArray(fieldName, objects);
-                            return;
-                        }
-                        throw new EncodingException(
-                            $"Unexpected type encountered while encoding an array of Variants: {array.GetType()}");
                 }
             }
             // write matrix.
