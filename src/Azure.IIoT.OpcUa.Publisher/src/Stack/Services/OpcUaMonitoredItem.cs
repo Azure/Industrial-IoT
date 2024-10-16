@@ -445,7 +445,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             Debug.Assert(Subscription != null);
             if (SamplingInterval != Status.SamplingInterval &&
-                QueueSize != Status.QueueSize)
+                QueueSize != Status.QueueSize && Status.QueueSize != 0)
             {
                 _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
                     "to {CurrentSamplingInterval} and QueueSize from {QueueSize} " +
@@ -460,7 +460,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     SamplingInterval, Status.SamplingInterval,
                     Subscription.Id, StartNodeId, DisplayName);
             }
-            else if (QueueSize != Status.QueueSize)
+            else if (QueueSize != Status.QueueSize && Status.QueueSize != 0)
             {
                 _logger.LogInformation("Server revised QueueSize from {QueueSize} " +
                     "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",

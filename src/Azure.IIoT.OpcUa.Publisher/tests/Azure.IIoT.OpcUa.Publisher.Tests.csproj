@@ -25,44 +25,8 @@
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Publisher\empty_pn.json">
+    <Content Include="Publisher\*.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_pending_alarms.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_2.5_legacy_error.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_opc_nodes_empty_and_null.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_opc_nodes_null.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_opc_nodes_empty.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_assets_with_optional_fields.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\publishednodes_with_duplicates.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\publishednodeswithoptionalfields.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\publishednodes.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_assets.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_2.5_legacy.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Publisher\pn_events.json">
-	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 </Project>

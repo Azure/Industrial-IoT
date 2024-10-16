@@ -53,6 +53,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var instances = 1;
             string? connectionString = null;
             string? publishProfile = null;
+            string? publishInitProfile = null;
+            string? publishInitFilePath = null;
             string? publishedNodesFilePath = null;
             var useNullTransport = false;
             string? dumpMessages = null;
@@ -155,6 +157,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 break;
                             }
                             throw new ArgumentException("Missing argument for --publish-profile");
+                        case "-I":
+                        case "--init-profile":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                publishInitProfile = args[i];
+                                withServer = true;
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --init-profile");
                         case "--pnjson":
                             i++;
                             if (i < args.Length)
@@ -163,6 +175,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 break;
                             }
                             throw new ArgumentException("Missing argument for --pnjson");
+                        case "--init":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                publishInitFilePath = args[i];
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --init");
                         case "--":
                             break;
                         default:
@@ -235,19 +255,36 @@ Options:
             {
                 if (dumpMessages != null)
                 {
-                    hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, loggerFactory,
-                        TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, args, cts.Token);
+                    hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, publishInitProfile,
+                        loggerFactory, TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, args,
+                        cts.Token);
                 }
                 else if (!withServer)
                 {
+                    if (publishInitFilePath != null && !File.Exists(publishInitFilePath))
+                    {
+                        publishInitFilePath = $"./Initfiles/{publishInitFilePath}.init";
+                        if (File.Exists(publishInitFilePath))
+                        {
+                            const string copyTo = "profile.init";
+                            File.Copy(publishInitFilePath, copyTo, true);
+                            File.SetLastWriteTimeUtc(copyTo, DateTime.UtcNow);
+                            publishInitFilePath = copyTo;
+                        }
+                        else
+                        {
+                            publishInitFilePath = null;
+                        }
+                    }
                     hostingTask = HostAsync(connectionString, loggerFactory,
                         deviceId, moduleId, args, reverseConnectPort, !checkTrust,
-                        publishedNodesFilePath, cts.Token);
+                        publishInitFilePath, publishedNodesFilePath, cts.Token);
                 }
                 else
                 {
-                    hostingTask = WithServerAsync(connectionString, loggerFactory, deviceId, moduleId, args,
-                        publishProfile, scaleunits, !checkTrust, reverseConnectPort, cts.Token);
+                    hostingTask = WithServerAsync(connectionString, loggerFactory, deviceId,
+                        moduleId, args, publishProfile, publishInitProfile, scaleunits,
+                        !checkTrust, reverseConnectPort, cts.Token);
                 }
 
                 while (!cts.Token.IsCancellationRequested)
@@ -295,11 +332,13 @@ Options:
         /// <param name="args"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="acceptAll"></param>
+        /// <param name="publishInitFile"></param>
         /// <param name="publishedNodesFilePath"></param>
         /// <param name="ct"></param>
         private static async Task HostAsync(string? connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, int? reverseConnectPort,
-            bool acceptAll, string? publishedNodesFilePath = null, CancellationToken ct = default)
+            bool acceptAll, string? publishInitFile, string? publishedNodesFilePath = null,
+            CancellationToken ct = default)
         {
             var logger = loggerFactory.CreateLogger<PublisherModule>();
             logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
@@ -332,7 +371,7 @@ Options:
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
                 var running = RunAsync(logger, deviceId, moduleId, args, acceptAll, cs,
-                    reverseConnectPort, publishedNodesFilePath, cts.Token);
+                    reverseConnectPort, publishedNodesFilePath, publishInitFile, cts.Token);
 
                 Console.WriteLine("Publisher running (Press P to restart)...");
                 await _restartPublisher.WaitAsync(ct).ConfigureAwait(false);
@@ -346,11 +385,16 @@ Options:
 
             static async Task RunAsync(ILogger logger, string deviceId, string moduleId, string[] args,
                 bool acceptAll, ConnectionString? cs, int? reverseConnectPort, string? publishedNodesFilePath,
-                CancellationToken ct)
+                string? publishInitFile, CancellationToken ct)
             {
                 logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
                     deviceId, moduleId);
                 var arguments = args.ToList();
+
+                if (publishInitFile != null)
+                {
+                    arguments.Add($"--pi={publishInitFile}");
+                }
 
                 if (publishedNodesFilePath != null)
                 {
@@ -394,25 +438,37 @@ Options:
         /// <param name="moduleId"></param>
         /// <param name="args"></param>
         /// <param name="publishProfile"></param>
+        /// <param name="publishInitProfile"></param>
         /// <param name="scaleunits"></param>
         /// <param name="acceptAll"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="ct"></param>
         private static async Task WithServerAsync(string? connectionString, ILoggerFactory loggerFactory,
-            string deviceId, string moduleId, string[] args, string? publishProfile, uint scaleunits, bool acceptAll,
-            int? reverseConnectPort, CancellationToken ct)
+            string deviceId, string moduleId, string[] args, string? publishProfile, string? publishInitProfile,
+            uint scaleunits, bool acceptAll, int? reverseConnectPort, CancellationToken ct)
         {
             try
             {
                 // Start test server
                 using (var server = new ServerWrapper(scaleunits, loggerFactory, reverseConnectPort))
                 {
+                    var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
+
+                    var publishInitFile = await LoadInitFile(server, publishInitProfile,
+                        endpointUrl, ct).ConfigureAwait(false);
+
+                    if (publishInitFile != null && publishProfile == null)
+                    {
+                        publishProfile = "Empty";
+                    }
+
                     var publishedNodesFilePath = await LoadPnJson(server, publishProfile,
-                        $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
+                        endpointUrl, ct).ConfigureAwait(false);
 
                     // Start publisher module
                     await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, reverseConnectPort, acceptAll, publishedNodesFilePath, ct).ConfigureAwait(false);
+                        args, reverseConnectPort, acceptAll, publishInitFile, publishedNodesFilePath,
+                        ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
@@ -423,6 +479,7 @@ Options:
         /// </summary>
         /// <param name="messageMode"></param>
         /// <param name="publishProfile"></param>
+        /// <param name="publishInitProfile"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="duration"></param>
         /// <param name="scaleunits"></param>
@@ -431,8 +488,8 @@ Options:
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,
-            ILoggerFactory loggerFactory, TimeSpan duration, uint scaleunits, string? dumpMessagesOutput,
-            string[] args, CancellationToken ct)
+            string? publishInitProfile, ILoggerFactory loggerFactory, TimeSpan duration,
+            uint scaleunits, string? dumpMessagesOutput, string[] args, CancellationToken ct)
         {
             try
             {
@@ -463,20 +520,33 @@ Options:
                         continue;
                     }
                     Directory.CreateDirectory(outputFolder);
-                    await DumpPublishingProfiles(outputFolder, messageProfile, publishProfile).ConfigureAwait(false);
+                    await DumpPublishingProfiles(outputFolder, messageProfile, publishProfile,
+                        publishInitProfile).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
 
             // Dump message profile for all publishing profiles
-            async Task DumpPublishingProfiles(string rootFolder, MessagingProfile messageProfile, string? profile)
+            async Task DumpPublishingProfiles(string rootFolder, MessagingProfile messageProfile,
+                string? profile, string? publishInitProfile)
             {
+                if (publishInitProfile != null)
+                {
+                    var outputFolder = Path.Combine(rootFolder, publishInitProfile);
+
+                    await DumpMessagesForDuration(outputFolder, "Empty", messageProfile,
+                        publishInitProfile, args).ConfigureAwait(false);
+
+                    return;
+                }
+
                 foreach (var publishProfile in Directory.EnumerateFiles("./Profiles", "*.json"))
                 {
                     var publishProfileName = Path.GetFileNameWithoutExtension(publishProfile);
                     if (profile == null &&
                        (publishProfileName.StartsWith("Unified", StringComparison.OrdinalIgnoreCase) ||
-                        publishProfileName.StartsWith("Empty", StringComparison.OrdinalIgnoreCase)))
+                        publishProfileName.StartsWith("Empty", StringComparison.OrdinalIgnoreCase) ||
+                        publishProfileName.StartsWith("NoNodes", StringComparison.OrdinalIgnoreCase)))
                     {
                         continue;
                     }
@@ -491,13 +561,13 @@ Options:
                         continue;
                     }
                     Directory.CreateDirectory(outputFolder);
-                    await DumpMessagesForDuration(outputFolder, publishProfile,
-                            messageProfile, args).ConfigureAwait(false);
+                    await DumpMessagesForDuration(outputFolder, publishProfile, messageProfile,
+                        null, args).ConfigureAwait(false);
                 }
             }
 
             async Task DumpMessagesForDuration(string outputFolder, string publishProfile,
-                MessagingProfile messageProfile, string[] args)
+                MessagingProfile messageProfile, string? publishInitProfile, string[] args)
             {
                 using var runtime = new CancellationTokenSource(duration);
                 try
@@ -507,25 +577,30 @@ Options:
                     var name = Path.GetFileNameWithoutExtension(publishProfile);
                     Console.Title = $"Dumping {messageProfile} for {name}...";
                     await RunAsync(loggerFactory, publishProfile, messageProfile,
-                        outputFolder, scaleunits, args, linkedToken.Token).ConfigureAwait(false);
+                        outputFolder, scaleunits, args, publishInitProfile, linkedToken.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
             }
 
             static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
                 MessagingProfile messageProfile, string outputFolder, uint scaleunits, string[] args,
-                CancellationToken ct)
+                string? publishInitProfile, CancellationToken ct)
             {
                 // Start test server
                 using (var server = new ServerWrapper(scaleunits, loggerFactory, null))
                 {
                     var name = Path.GetFileNameWithoutExtension(publishProfile);
-                    var publishedNodesFilePath = await LoadPnJson(server, name,
-                        $"opc.tcp://localhost:{server.Port}/UA/SampleServer", ct).ConfigureAwait(false);
+                    var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
+
+                    var publishedNodesFilePath = await LoadPnJson(server, name, endpointUrl,
+                        ct).ConfigureAwait(false);
                     if (publishedNodesFilePath == null)
                     {
                         return;
                     }
+
+                    var publishInitFile = await LoadInitFile(server, name, endpointUrl,
+                        ct).ConfigureAwait(false);
 
                     //
                     // Check whether the profile overrides the messaging mode, then set it to the desired
@@ -553,6 +628,10 @@ Options:
                         $"-o={outputFolder}",
                         "--aa"
                     };
+                    if (publishInitFile != null)
+                    {
+                        arguments.Add($"--pi={publishInitFile}");
+                    }
                     args.ForEach(a => arguments.Add(a));
                     await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
                 }
@@ -588,6 +667,27 @@ Options:
 
                 await File.WriteAllTextAsync(publishedNodesFilePath, json, ct).ConfigureAwait(false);
                 return publishedNodesFilePath;
+            }
+            return null;
+        }
+
+        private static async Task<string?> LoadInitFile(ServerWrapper server, string? initProfile,
+            string endpointUrl, CancellationToken ct)
+        {
+            const string initFile = "profile.init";
+            if (!string.IsNullOrEmpty(initProfile))
+            {
+                var publishedNodesFile = $"./Initfiles/{initProfile}.init";
+                if (!File.Exists(publishedNodesFile))
+                {
+                    throw new ArgumentException($"Init profile {initProfile} does not exist");
+                }
+                await File.WriteAllTextAsync(initFile,
+                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
+                    .Replace("{{EndpointUrl}}", endpointUrl,
+                        StringComparison.Ordinal), ct).ConfigureAwait(false);
+
+                return initFile;
             }
             return null;
         }

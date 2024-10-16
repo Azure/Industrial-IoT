@@ -528,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Trigger reevaluation
                     Subscription.NotifyMonitoredItemsChanged();
 
-                    _logger.LogInformation(
+                    _logger.LogDebug(
                         "Updated monitored items for writer {Id} in writer group {WriterGroup}.",
                         Id, _group.Id);
                 }

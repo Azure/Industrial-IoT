@@ -1,7 +1,2 @@
 ﻿[
-    {
-        "EndpointUrl": "{{EndpointUrl}}",
-        "EndpointSecurityMode": "Sign",
-        "OpcNodes": []
-    }
 ]

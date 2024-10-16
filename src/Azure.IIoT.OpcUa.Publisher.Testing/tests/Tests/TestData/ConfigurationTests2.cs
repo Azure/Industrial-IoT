@@ -56,7 +56,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -95,7 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = true,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -126,7 +124,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -163,7 +160,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -200,7 +196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -235,7 +230,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -267,7 +261,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = true,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = true
@@ -297,7 +290,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = true,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -330,7 +322,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -363,7 +354,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = true
@@ -393,7 +383,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     MaxDepth = 1,
                     NoSubTypesOfTypeNodes = false,
@@ -427,7 +416,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     MaxDepth = 0,
                     MaxLevelsToExpand = 1,
@@ -459,13 +447,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
+                    DoNotFlattenTypeInstance = true,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             Assert.Equal(76, results.Count);
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+            _publishedNodesServices.Verify();
+            _publishedNodesServices.VerifyNoOtherCalls();
+        }
+
+        public async Task ConfigureFromBaseObjectTypeTest2Async(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Opc.Ua.ObjectTypeIds.BaseObjectType.ToString()
+                }
+            };
+            _createCall.Verifiable(Times.Exactly(5));
+            var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    DoNotFlattenTypeInstance = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(5, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -503,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
+                    DoNotFlattenTypeInstance = true,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -536,7 +557,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -568,7 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
+                    DoNotFlattenTypeInstance = true,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -599,7 +619,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -628,7 +647,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -658,7 +676,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    StopAtFirstFoundInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -692,7 +709,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -724,7 +740,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = true,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -746,7 +761,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -767,7 +781,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -791,7 +804,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -821,7 +833,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = true,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false)).ConfigureAwait(false);
@@ -845,7 +856,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
-                    StopAtFirstFoundInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);

@@ -22,6 +22,7 @@ Here you find information about
   - [Configuration via Configuration File](#configuration-via-configuration-file)
   - [Configuration Schema](#configuration-schema)
   - [Writer group configuration](#writer-group-configuration)
+  - [Configuration via init file](#configuration-via-init-file)
   - [Sampling and Publishing Interval configuration](#sampling-and-publishing-interval-configuration)
     - [Key frames, delta frames and extension fields](#key-frames-delta-frames-and-extension-fields)
     - [Status codes](#status-codes)
@@ -347,6 +348,7 @@ OPC Publisher has several interfaces that can be used to configure it.
 - [Configuration via configuration file](#configuration-via-configuration-file)
 - [Command Line options configuration](./commandline.md)
 - [Configuration via API](./directmethods.md)
+- [Configuration via init file](#configuration-via-init-file)
 - [How to migrate from previous versions of OPC Publisher](./migrationpath.md)
 
 ### Configuration via Configuration File
@@ -583,6 +585,64 @@ Due to historic reasons, by default a session is scoped to a writer group. That 
 
 OPC Publisher will try to re-use an existing OPC UA subscription or create a new one per `DataSetWriter`.
 
+### Configuration via init file
+
+OPC Publisher can be configured remotely using its [writer](./api.md#writer) and [node](./api.md#configuration) configuration API.  This API can be invoked via HTTP, MQTT (RPC), in many cases through IoT Hub direct methods, but also using OPC Publisher's init file feature.
+
+The init file can be specified using the [command line option](./commandline.md) `--pi, --initfile`. The file can be updated while OPC Publisher is running, in which case the new file content will be executed. The file will not be run if it has not changed. This applies also across restarts. However, this requires that the response file (see the `--il, --initlog` [argument](./commandline.md)) is writeable.
+
+The init file format follows the [.http file format](https://learn.microsoft.com/aspnet/core/test/http-files) with the additional exception that scripting, variables, and `{{ }}` templates are not supported.
+
+While the [method line](https://learn.microsoft.com/aspnet/core/test/http-files#requests) can start with a `HTTPMethod` and end with a `HTTPVersion`, they are effectively discarded at the moment.  The `URL` must be a direct method name as specified in the API documentation, e.g. `AddOrUpdateEndpoint_V1`.  While headers can be provided, the only relevant one is `Content-Type` which defaults to `application/json`. In addition to the documented format, the init file format supported by OPC Publisher supports the following additional request directives which can be provided after a comment (# or //):
+
+| Directive | Description |
+| --------- | ----------- |
+| **@no-log** | Disable logging for this request after this directive.<br>This directive must be applied for every request and on the first line so that nothing is emitted to the init log. |
+| **@timeout** | Timeout for the request.<br>If the request times out it will be an error and all further requests are not sent. |
+| **@retries** | Retry this number of times in case of an error.<br>An error is any request that returns with status code >= 400. |
+| **@delay** | Delay before executing a request.<br>If retries are specified the delay applies again before every retry. |
+| **@on-error** | Invoke the request only when the previous request failed.<br>If the previous request has **@continue-on-error** directive this request will not be executed. If the request succeeds the next request after is run. |
+| **@continue-on-error** | Continue to next request even if the request failed.<br>The default behavior is to stop execution of requests except for the next request with **@on-error** directive. |
+
+The **@on-error** condition can be used as an error handler e.g. to call the [Shutdown](./directmethods.md#shutdown_v2) method. If the restart is immediate, the init file will be execute again after restart.  A delay can throttle these restarts.  An example init file is shown here:
+
+``` json
+###
+
+// 3 retries in case of failure, with a delay of 5 seconds between
+// @delay 5
+// @retries 3
+
+// Creates writer entries for all objects that implement the
+// machine tool object type or one of its subtypes on this server
+ExpandAndCreateOrUpdateDataSetWriterEntries_V2
+
+{
+    "entry": {
+        "EndpointUrl": "opc.tcp://opcua.umati.app:4840",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "MachineTools",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" }
+        ]
+    }
+}
+
+###
+
+// Shutdown the publisher in case the expansion failed
+// and let docker restart it. The Fail fast argument
+// provided as json payload.
+# @on-error
+Shutdown_V2
+
+true
+
+###
+```
+
+More init file examples with explanations can be found [here](./intfilesamples.md).
+
 ### Sampling and Publishing Interval configuration
 
 The OPC UA reference specification provides a detailed overview of the OPC UA [monitored item](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.12) and [subscription](https://reference.opcfoundation.org/Core/Part4/v104/docs/5.13.1) service model.
@@ -676,7 +736,7 @@ The behavior of heartbeat can be fine tuned using the `--hbb, --heartbeatbehavio
   "HeartbeatBehavior": "...",
 ```
 
-option of the node entry. The behavior can be set to watch dog behavior with Last Known Value (`WatchdogLKV`, which is the default) or Last Known Good (`WatchdogLKG`) semantics. A last known good value has either a status code of `Good` or a valid value (!= Null) and not a bad status code (which covers other Good or Uncertain status codes). Bad values are not causing heartbeat messages in LKG mode. 
+option of the node entry. The behavior can be set to watch dog behavior with Last Known Value (`WatchdogLKV`, which is the default) or Last Known Good (`WatchdogLKG`) semantics. A last known good value has either a status code of `Good` or a valid value (!= Null) and not a bad status code (which covers other Good or Uncertain status codes). Bad values are not causing heartbeat messages in LKG mode.
 
 A continuous periodic sending of the last known value (`PeriodicLKV`) or last good value (`PeriodicLKG`) can also be selected. In some cases periodic reporting is all that is needed, and the actual value read that is reported out of period should be dropped. Use the `PeriodicLKVDropValue` or `PeriodicLKGDropValue` behavior to achieve this behavior. The outcome is similar to the [cyclic read](#cyclic-reading-client-side-sampling) mode but using a periodic timer over server side sampled nodes.
 

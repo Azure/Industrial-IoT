@@ -1,0 +1,20 @@
+﻿###
+// @delay 5
+ExpandAndCreateOrUpdateDataSetWriterEntries
+
+{
+    "entry": {
+        "EndpointUrl": "opc.tcp://opcua.umati.app:4840",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "Machinery Objects",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Machinery/;i=1001" }
+        ]
+    }
+}
+
+// @retries 3
+###
+Shutdown
+// @on-error
+###

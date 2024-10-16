@@ -98,6 +98,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.MsgPack
         }
 
         [Fact]
+        public Task ExpandBaseObjectTypeTest2Async()
+        {
+            return GetTests().ExpandBaseObjectTypeTest2Async();
+        }
+
+        [Fact]
         public Task ExpandBaseObjectsAndObjectTypesTestAsync()
         {
             return GetTests().ExpandBaseObjectsAndObjectTypesTestAsync();

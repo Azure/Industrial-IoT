@@ -1,0 +1,21 @@
+###
+// @delay 5
+// @retries 3
+ExpandAndCreateOrUpdateDataSetWriterEntries_V2
+
+{
+    "entry": {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "Objects",
+        "OpcNodes": [
+            { "Id": "i=85" }
+        ]
+    }
+}
+
+###
+# @on-error
+Shutdown_V2
+true
+###

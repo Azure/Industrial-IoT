@@ -345,12 +345,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-
             if (!disposing || _disposed)
             {
                 return;
             }
-            _disposed = true;
             try
             {
                 ResetMonitoredItemWatchdogTimer(false);
@@ -392,6 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
+                _disposed = true;
                 _keepAliveWatcher.Dispose();
                 _monitoredItemWatcher.Dispose();
                 _timer.Dispose();
@@ -983,7 +982,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var remove = previouslyMonitored.Except(desired).ToHashSet();
             var add = desired.Except(previouslyMonitored).ToHashSet();
             var same = previouslyMonitored.ToHashSet();
-            var errors = 0;
+            var errorsDuringSync = 0;
             same.IntersectWith(desired);
 
             //
@@ -1036,7 +1035,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogWarning("Failed to resolve browse path for {NodeId} " +
                             "in {Subscription} due to '{ServiceResult}'",
                             result.Request!.Value.NodeId, this, result.ErrorInfo);
-                        errors++;
+                        errorsDuringSync++;
                     }
                 }
             }
@@ -1112,7 +1111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (!desired.TryGetValue(toUpdate, out var theDesiredUpdate))
                 {
-                    errors++;
+                    errorsDuringSync++;
                     continue;
                 }
                 desired.Remove(theDesiredUpdate);
@@ -1142,7 +1141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(ex,
                         "Failed to update monitored item '{Item}' in {Subscription}...",
                         toUpdate, this);
-                    errors++;
+                    errorsDuringSync++;
                 }
                 finally
                 {
@@ -1174,7 +1173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(ex,
                         "Failed to remove monitored item '{Item}' from {Subscription}...",
                         toRemove, this);
-                    errors++;
+                    errorsDuringSync++;
                 }
             }
 
@@ -1208,7 +1207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogWarning(ex,
                         "Failed to add monitored item '{Item}' to {Subscription}...",
                         toAdd, this);
-                    errors++;
+                    errorsDuringSync++;
                 }
             }
 
@@ -1231,7 +1230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Perform second pass over all monitored items and complete.
             applyChanges = false;
-            var invalidItems = 0;
+            var badMonitoredItems = 0;
 
             var desiredMonitoredItems = same;
             desiredMonitoredItems.UnionWith(add);
@@ -1276,7 +1275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             this, results.ErrorInfo);
 
                         // We will retry later.
-                        errors++;
+                        errorsDuringSync++;
                     }
                     else
                     {
@@ -1311,7 +1310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges))
                 {
                     // Apply more changes in future passes
-                    invalidItems++;
+                    badMonitoredItems++;
                 }
             }
 
@@ -1389,7 +1388,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 }
                             }
                             // Retry later
-                            errors++;
+                            errorsDuringSync++;
                         }
                     }
                 }
@@ -1437,56 +1436,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation("ConditionRefresh on subscription " +
                         "{Subscription} failed with an exception '{Message}'",
                         this, e.Message);
-                    errors++;
+                    errorsDuringSync++;
                 }
             }
 
             set.ForEach(item => item.LogRevisedSamplingRateAndQueueSize());
 
-            _badMonitoredItems = invalidItems;
-            _errorsDuringSync = errors;
-            _goodMonitoredItems = Math.Max(set.Count - invalidItems, 0);
-
-            _reportingItems = set
+            var goodMonitoredItems =
+                Math.Max(set.Count - badMonitoredItems, 0);
+            var reportingItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Reporting);
-            _disabledItems = set
+            var disabledItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Disabled);
-            _samplingItems = set
+            var samplingItems = set
                 .Count(r => r.Status?.MonitoringMode == Opc.Ua.MonitoringMode.Sampling);
-            _notAppliedItems = set
+            var notAppliedItems = set
                 .Count(r => r.Status?.MonitoringMode != r.MonitoringMode);
-            _heartbeatItems = set
+            var heartbeatItems = set
                 .Count(r => r is OpcUaMonitoredItem.Heartbeat);
-            _conditionItems = set
+            var conditionItems = set
                 .Count(r => r is OpcUaMonitoredItem.Condition);
             var heartbeatsEnabled = set
                 .Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);
             var conditionsEnabled = set
                 .Count(r => r is OpcUaMonitoredItem.Condition h && h.TimerEnabled);
 
-            _logger.LogInformation(@"{Subscription} - Now monitoring {Count} nodes:
-# Good/Bad:      {Good}/{Bad}
-# Errors:        {Errors}
-# Reporting:     {Reporting}
-# Sampling:      {Sampling}
-# Heartbeat/ing: {Heartbeat}/{EnabledHeartbeats}
-# Condition/ing: {Conditions}/{EnabledConditions}
-# Disabled:      {Disabled}
-# Not applied:   {NotApplied}
-# Removed:       {Disposed}",
-                this, set.Count,
-                _goodMonitoredItems, _badMonitoredItems,
-                _errorsDuringSync,
-                _reportingItems,
-                _samplingItems,
-                _heartbeatItems, heartbeatsEnabled,
-                _conditionItems, conditionsEnabled,
-                _disabledItems,
-                _notAppliedItems,
+            ReportMonitoredItemChanges(set.Count, goodMonitoredItems, badMonitoredItems,
+                errorsDuringSync, notAppliedItems, reportingItems, disabledItems, heartbeatItems,
+                heartbeatsEnabled, conditionItems, conditionsEnabled, samplingItems,
                 dispose.Count);
 
             // Set up subscription management trigger
-            if (invalidItems != 0 || errors != 0)
+            if (badMonitoredItems != 0 || errorsDuringSync != 0)
             {
                 // There were items that could not be added to subscription
                 return Delay(_options.Value.InvalidMonitoredItemRetryDelayDuration,
@@ -1681,6 +1662,97 @@ Actual (revised) state/desired state:
         }
 
         /// <summary>
+        /// Report monitored item changes
+        /// </summary>
+        /// <param name="count"></param>
+        /// <param name="goodMonitoredItems"></param>
+        /// <param name="badMonitoredItems"></param>
+        /// <param name="errorsDuringSync"></param>
+        /// <param name="notAppliedItems"></param>
+        /// <param name="reportingItems"></param>
+        /// <param name="disabledItems"></param>
+        /// <param name="heartbeatItems"></param>
+        /// <param name="heartbeatsEnabled"></param>
+        /// <param name="conditionItems"></param>
+        /// <param name="conditionsEnabled"></param>
+        /// <param name="samplingItems"></param>
+        /// <param name="disposed"></param>
+        private void ReportMonitoredItemChanges(int count,
+            int goodMonitoredItems, int badMonitoredItems,
+            int errorsDuringSync, int notAppliedItems,
+            int reportingItems, int disabledItems,
+            int heartbeatItems, int heartbeatsEnabled,
+            int conditionItems, int conditionsEnabled,
+            int samplingItems, int disposed)
+        {
+            if (_badMonitoredItems != badMonitoredItems ||
+                _errorsDuringSync != errorsDuringSync ||
+                _goodMonitoredItems != goodMonitoredItems ||
+                _reportingItems != reportingItems ||
+                _disabledItems != disabledItems ||
+                _samplingItems != samplingItems ||
+                _notAppliedItems != notAppliedItems ||
+                _heartbeatItems != heartbeatItems ||
+                _conditionItems != conditionItems)
+            {
+                if (samplingItems == 0 && heartbeatItems == 0 && conditionItems == 0 &&
+                    notAppliedItems == 0)
+                {
+                    if (errorsDuringSync == 0 && disabledItems == 0)
+                    {
+                        _logger.LogInformation(
+@"{Subscription} - Removed {Removed} - now monitoring {Count} nodes:
+# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}",
+                            this, disposed, count,
+                            goodMonitoredItems, badMonitoredItems, reportingItems);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+@"{Subscription} - Removed {Removed} - now monitoring {Count} nodes:
+# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}
+# Disabled/Errors:      {Disabled}/{Errors}",
+                            this, disposed, count,
+                            goodMonitoredItems, badMonitoredItems, reportingItems,
+                            disabledItems, errorsDuringSync);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation(
+@"{Subscription} - Removed {Removed} - now monitoring {Count} nodes:
+# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}
+# Disabled/Errors:      {Disabled}/{Errors} (Not applied: {NotApplied})
+# Sampling:             {Sampling}
+# Heartbeat/ing:        {Heartbeat}/{EnabledHeartbeats}
+# Condition/ing:        {Conditions}/{EnabledConditions}",
+                            this, disposed, count,
+                            goodMonitoredItems, badMonitoredItems, reportingItems,
+                            disabledItems, errorsDuringSync, notAppliedItems,
+                            samplingItems,
+                            heartbeatItems, heartbeatsEnabled,
+                            conditionItems, conditionsEnabled);
+                }
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "{ Subscription} Applied changes to monitored items, but nothing changed.",
+                    this);
+            }
+
+            _badMonitoredItems = badMonitoredItems;
+            _errorsDuringSync = errorsDuringSync;
+            _goodMonitoredItems = goodMonitoredItems;
+            _reportingItems = reportingItems;
+            _disabledItems = disabledItems;
+            _samplingItems = samplingItems;
+            _notAppliedItems = notAppliedItems;
+            _heartbeatItems = heartbeatItems;
+            _conditionItems = conditionItems;
+        }
+
+        /// <summary>
         /// Calculate delay
         /// </summary>
         /// <param name="delay"></param>
@@ -1809,7 +1881,7 @@ Actual (revised) state/desired state:
             EventNotificationList notification, IList<string>? stringTable)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
-            Debug.Assert(!_disposed);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             if (notification?.Events == null)
             {
@@ -1935,7 +2007,7 @@ Actual (revised) state/desired state:
             NotificationData notification)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
-            Debug.Assert(!_disposed);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             ResetKeepAliveTimer();
 
@@ -2011,7 +2083,7 @@ Actual (revised) state/desired state:
             List<SampledDataValueModel> values, uint sequenceNumber, DateTime publishTime)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
-            Debug.Assert(!_disposed);
+            ObjectDisposedException.ThrowIf(_disposed, this);
             var session = Session;
             if (session is not IOpcUaSession sessionContext)
             {
@@ -2083,7 +2155,7 @@ Actual (revised) state/desired state:
             DataChangeNotification notification, IList<string>? stringTable)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
-            Debug.Assert(!_disposed);
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             var firstDataChangeReceived = _firstDataChangeReceived;
             _firstDataChangeReceived = true;
@@ -2460,13 +2532,11 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnPublishStatusChange(Subscription subscription, PublishStateChangedEventArgs e)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (_disposed)
             {
-                // Debug.Fail("Should not be called after dispose");
-                // This currently happens because the stack caches the callbacks!
                 return;
             }
-
             if (e.Status.HasFlag(PublishStateChangedMask.Stopped) && !_publishingStopped)
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
@@ -2516,13 +2586,11 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnStateChange(Subscription subscription, SubscriptionStateChangedEventArgs e)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (_disposed)
             {
-                // Debug.Fail("Should not be called after dispose");
-                // This currently happens because the stack caches the callbacks!
                 return;
             }
-
             if (e.Status.HasFlag(SubscriptionChangeMask.Created))
             {
                 _logger.LogDebug("Subscription {Subscription} created.", this);

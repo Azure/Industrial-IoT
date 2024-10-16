@@ -466,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var node = _currentObject != null ? _currentObject.OriginalNode : CurrentNode;
                 node.AddErrorInfo(errorInfo);
-                _logger.LogDebug("Error expanding node {Node}: {Error}", node, errorInfo);
+                _logger.LogError("Error expanding node {Node}: {Error}", node, errorInfo);
                 return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
             }
 
@@ -692,9 +692,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 }
                             }
                             var depth = _request.MaxDepth == 0 ? 1 : _request.MaxDepth;
-                            var refTypeId = _request.StopAtFirstFoundInstance ?
-                               ReferenceTypeIds.Organizes : ReferenceTypeIds.HierarchicalReferences;
-                            Restart(CurrentNode.NodeId, maxDepth: depth, referenceTypeId: refTypeId);
+                            Restart(CurrentNode.NodeId, maxDepth: depth,
+                                referenceTypeId: ReferenceTypeIds.HierarchicalReferences);
                             return true;
                         case (uint)Opc.Ua.NodeClass.VariableType:
                         case (uint)Opc.Ua.NodeClass.ObjectType:
@@ -703,17 +702,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var instanceClass =
                                 CurrentNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType ?
                                     Opc.Ua.NodeClass.Object : Opc.Ua.NodeClass.Variable;
-
-                            // If stop at first found we only need to use organizes references
-                            var referenceTypeId =
-                                _request.StopAtFirstFoundInstance &&
-                                    instanceClass == Opc.Ua.NodeClass.Object ?
-                                ReferenceTypeIds.Organizes : ReferenceTypeIds.HierarchicalReferences;
-
+                            var stopWhenFound = instanceClass == Opc.Ua.NodeClass.Variable ||
+                                !_request.DoNotFlattenTypeInstance;
                             Restart(ObjectIds.ObjectsFolder, maxDepth: _request.MaxDepth,
                                 typeDefinitionId: CurrentNode.NodeId,
-                                stopWhenFound: _request.StopAtFirstFoundInstance,
-                                referenceTypeId: referenceTypeId, matchClass: instanceClass);
+                                stopWhenFound: stopWhenFound,
+                                referenceTypeId: ReferenceTypeIds.HierarchicalReferences,
+                                matchClass: instanceClass);
                             return true;
                         case (uint)Opc.Ua.NodeClass.Variable:
                             if (!_request.ExcludeRootIfInstanceNode)
@@ -761,10 +756,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (node.TryGetNextObject(out _currentObject))
                     {
                         Debug.Assert(_currentObject != null);
-                        Restart(_currentObject.ObjectFromBrowse.NodeId,
-                            _request.MaxLevelsToExpand == 0 ? null : _request.MaxLevelsToExpand,
+                        var nodeClass = Opc.Ua.NodeClass.Variable;
+                        var maxDepth = _request.MaxLevelsToExpand == 0 ? (uint?)null :
+                            _request.MaxLevelsToExpand;
+                        if (_currentObject.OriginalNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType
+                            && !_request.DoNotFlattenTypeInstance)
+                        {
+                            nodeClass |= Opc.Ua.NodeClass.Object;
+                            maxDepth = null;
+                        }
+                        Restart(_currentObject.ObjectFromBrowse.NodeId, maxDepth,
                             referenceTypeId: ReferenceTypeIds.Aggregates,
-                            nodeClass: Opc.Ua.NodeClass.Variable);
+                            nodeClass: nodeClass, matchClass: Opc.Ua.NodeClass.Variable);
                         return true;
                     }
                 }
@@ -970,7 +973,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="ObjectFromBrowse"></param>
             /// <param name="OriginalNode"></param>
-            private record class ObjectToExpand(BrowseFrame ObjectFromBrowse, NodeToExpand OriginalNode)
+            private record class ObjectToExpand(BrowseFrame ObjectFromBrowse,
+                NodeToExpand OriginalNode)
             {
                 public bool EntriesAlreadyReturned { get; internal set; }
 

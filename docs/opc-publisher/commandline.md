@@ -70,6 +70,28 @@ General
                                identity being used
   -s, --site, --SiteId=VALUE Sets the site name of the publisher module.
                                Default: `not set`
+      --pi, --initfile, --InitFilePath[=VALUE]
+                             A file from which to read initialization
+                               instructions.
+                               Use this option to have OPC Publisher run a set
+                               of method calls found in this file.
+                               The file must be formatted using a subset of the
+                               .http/.rest file format without support for
+                               indentation, scripting or environment variables.
+                               Default: `not set` (disabled). If only a file
+                               name is specified, it is loaded from the path
+                               specifed using `--pn`. If just the argument is
+                               provided without a value the default is `
+                               publishednodes.init`.
+      --il, --initlog, --InitLogFile=VALUE
+                             A file into which the results of the
+                               initialization instructions are written.
+                               Only valid if `--pi` option is specified.
+                               Default: If a init file is set using `--pi`, it
+                               is appended with the `.log` extension. If just a
+                               file name is used, the file is created in the
+                               same folder as the init file configured using
+                               the `--pi` command line option.
       --rs, --runtimestatereporting, --RuntimeStateReporting[=VALUE]
                              Enable that when publisher starts or restarts it
                                reports its runtime state using a restart
