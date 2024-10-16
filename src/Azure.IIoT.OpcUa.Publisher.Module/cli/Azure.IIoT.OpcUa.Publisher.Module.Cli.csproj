@@ -22,11 +22,14 @@
     <Content Include="Profiles\*.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="publishednodes.*">
+    <Content Include="Initfiles\*.init">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Profiles\NoNodes.json" />
+    <None Remove="Initfiles\MachineTools.init" />
+    <None Remove="Initfiles\Objects.init" />
+    <None Remove="initfiles\Variables.init" />
+    <Content Include="publishednodes.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

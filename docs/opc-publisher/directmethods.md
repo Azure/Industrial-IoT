@@ -86,7 +86,7 @@ The certificate Key can also be read from the IoT Hub device twin as  `__certifi
 
 ## GetApiKey_V2
 
-This API call allows a caller to programmatically obtain the current API key. The API key is passed in the `Authorization` header of the HTTP request sent to the HTTP endpoint. The format of the header value is `ApiKey <api-key>`, e.g., `ApiKey 856F93F75DD847DE87E22953E7DFE478`.
+This API call allows a caller to programmatically obtain the current API key. The API key is passed in the `Authorization` header of the HTTP request sent to the HTTP endpoint. The format of the header value is `ApiKey <api-key>`, e.g., `ApiKey 85....<redacted>.....F78`.
 
   _Request_: follows strictly the request [payload schema](./definitions.md#publishednodesentrymodel), the `OpcNodes` attribute being mandatory.
 
@@ -107,7 +107,7 @@ This API call allows a caller to programmatically obtain the current API key. Th
   > _Response_:
   >
   > ```json
-  > "856F93F75DD847DE87E22953E7DFE478"
+  > "85....<redacted>.....F78"
   > ```
 
 The API Key can also be read from the IoT Hub device twin as the `__apikey__` reported property.
