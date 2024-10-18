@@ -309,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -339,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
-                    DoNotFlattenTypeInstance = false,
+                    FlattenTypeInstance = true,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -379,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
@@ -438,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 

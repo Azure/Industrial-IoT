@@ -37,28 +37,13 @@
 
  .PARAMETER tenantId
     The Azure Active Directory tenant tied to the subscription(s)
-     that should be listed as options.
-
- .PARAMETER authTenantId
-    Specifies an Azure Active Directory tenant for authentication
-    that is different from the one tied to the subscription.
-
- .PARAMETER accountName
-    The account name to use if not to use default.
+    that should be listed as options.
 
  .PARAMETER applicationName
     The name of the application, if not local deployment.
 
- .PARAMETER aadConfig
-    The aad configuration object (use aad-register.ps1 to create
-    object). If not provided, calls aad-register.ps1.
-
  .PARAMETER context
     A previously created az context to be used for authentication.
-
- .PARAMETER aadApplicationName
-    The application name to use when registering aad application.
-    If not set, uses applicationName.
 
  .PARAMETER containerRegistryServer
     The container registry server to use to pull images
@@ -111,6 +96,22 @@
     Suggestion: use VM with at least 1 core and 2 GB of memory.
     Must Support Generation 1.
 
+ .PARAMETER noAadAuth
+    Do not deploy service with Azure Active Directory authentication
+    support. Do not use in production!.
+
+ .PARAMETER authTenantId
+    Specifies an Azure Active Directory tenant for authentication
+    that is different from the one tied to the subscription.
+
+ .PARAMETER aadConfig
+    The aad configuration object (use aad-register.ps1 to create
+    object). If not provided, calls aad-register.ps1.
+
+ .PARAMETER aadApplicationName
+    The application name to use when registering aad application.
+    If not set, uses applicationName.
+
  .PARAMETER credentials
     Use these credentials to log in. If not provided you are
     prompted to provide credentials
@@ -136,10 +137,7 @@ param(
     [string] $resourceGroupLocation,
     [string] $subscriptionName,
     [string] $subscriptionId,
-    [string] $accountName,
     [string] $tenantId,
-    [string] $authTenantId,
-    [string] $aadApplicationName,
     [string] $containerRegistryServer,
     [string] $containerRegistryUsername,
     [securestring] $containerRegistryPassword,
@@ -156,6 +154,9 @@ param(
     [pscredential] $credentials,
     [secureString] $accessToken,
     [switch] $isServicePrincipal,
+    [switch] $noAadAuth,
+    [string] $authTenantId,
+    [string] $aadApplicationName,
     [object] $aadConfig,
     [object] $context,
     [string] $environmentName = "AzureCloud",
@@ -998,33 +999,35 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
 
     $aadAddReplyUrls = $false
     if (!$script:aadConfig) {
-        if ([string]::IsNullOrEmpty($script:aadApplicationName)) {
-            $script:aadApplicationName = $script:applicationName
-        }
+        if (!$script:noAadAuth.IsPresent) {
+            if ([string]::IsNullOrEmpty($script:aadApplicationName)) {
+                $script:aadApplicationName = $script:applicationName
+            }
 
-        # register aad application
-        Write-Host
-        Write-Host "Registering client and services AAD applications in your tenant..."
-        $aadRegisterContext = $context
+            # register aad application
+            Write-Host
+            Write-Host "Registering client and services AAD applications in your tenant..."
+            $aadRegisterContext = $context
 
-        # Use context of auth tenant
-        if (![string]::IsNullOrEmpty($authTenantId)) {
-            Write-Host "Connecting to AAD tenant $($authTenantId)..."
-            Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
-            $aadRegisterContext = Select-AzContext AuthTenantId
-        }
+            # Use context of auth tenant
+            if (![string]::IsNullOrEmpty($authTenantId)) {
+                Write-Host "Connecting to AAD tenant $($authTenantId)..."
+                Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
+                $aadRegisterContext = Select-AzContext AuthTenantId
+            }
 
-        $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
-            -Context $aadRegisterContext -Name $script:aadApplicationName
+            $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
+                -Context $aadRegisterContext -Name $script:aadApplicationName
 
-        Write-Host "Client and services AAD applications registered..."
-        Write-Host
-        $aadAddReplyUrls = $true
+            Write-Host "Client and services AAD applications registered..."
+            Write-Host
+            $aadAddReplyUrls = $true
 
-        # Restore AD context
-        if (![string]::IsNullOrEmpty($authTenantId)) {
-            Write-Host "Switching to AAD tenant $($context.Tenant)..."
-            Set-AzContext -Context $context
+            # Restore AD context
+            if (![string]::IsNullOrEmpty($authTenantId)) {
+                Write-Host "Switching to AAD tenant $($context.Tenant)..."
+                Set-AzContext -Context $context
+            }
         }
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
@@ -1125,16 +1128,15 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
             #
             # Add reply urls
             #
-            $replyUrls = New-Object System.Collections.Generic.List[System.String]
-            if ($aadAddReplyUrls) {
+            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
+                $replyUrls = New-Object System.Collections.Generic.List[System.String]
+
                 # retrieve existing urls
                 $app = Get-AzADApplication -ApplicationId $script:aadConfig.WebAppId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
-            }
 
-            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
@@ -1145,9 +1147,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
 
                 $replyUrls.Add("http://localhost:5000/signin-oidc")
                 $replyUrls.Add("https://localhost:5001/signin-oidc")
-            }
 
-            if ($aadAddReplyUrls) {
                 # register reply urls in web application registration
                 Write-Host
                 Write-Host "Registering reply urls for $($script:aadConfig.WebAppId)..."

@@ -89,15 +89,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             services.AddHttpClient();
             services.AddExceptionSummarization();
 
-            services.AddMicrosoftIdentityWebApiAuthentication();
+            services.AddAuthentication(Configuration);
             services.AddAuthorization();
             services.AddAuthorizationBuilder()
-                .AddPolicy(Policies.CanRead,
-                    options => options.RequireAuthenticatedUser())
-                .AddPolicy(Policies.CanWrite,
-                    options => options.RequireAuthenticatedUser())
-                .AddPolicy(Policies.CanPublish,
-                    options => options.RequireAuthenticatedUser());
+                .AddPolicy(Policies.CanRead, options => options.RequireAuthenticatedUser())
+                .AddPolicy(Policies.CanWrite, options => options.RequireAuthenticatedUser())
+                .AddPolicy(Policies.CanPublish, options => options.RequireAuthenticatedUser());
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers()
@@ -140,7 +137,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             app.UseRouting();
             app.UseResponseCompression();
             app.UseCors();
-
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseSwagger();

@@ -105,19 +105,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public uint? MaxDepth { get; init; }
 
         /// <summary>
-        /// If true, treats instance nodes found just like
+        /// If false, treats instance nodes found just like
         /// objects that need to be expanded. In case of a
-        /// companion spec object type this should be set to
-        /// false, flattening the structure into a single
+        /// companion spec object type this could be set to
+        /// true, flattening the structure into a single
         /// writer that represents the object in its entirety.
         /// However, when using generic interfaces that can
         /// be implemented across objects in the address
         /// space and only its variables are important, it
-        /// might be useful to set this to true.
+        /// might be useful to set this to false.
         /// </summary>
-        [DataMember(Name = "doNotFlattenTypeInstance", Order = 7,
+        [DataMember(Name = "flattenTypeInstance", Order = 7,
             EmitDefaultValue = false)]
-        public bool DoNotFlattenTypeInstance { get; init; }
+        public bool FlattenTypeInstance { get; init; }
 
         /// <summary>
         /// Errors are silently discarded and only

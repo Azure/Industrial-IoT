@@ -447,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -480,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = false,
+                    FlattenTypeInstance = true,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -588,7 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
