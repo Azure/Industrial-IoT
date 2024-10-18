@@ -624,7 +624,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var readResults = response.Validate(response.Results,
                             s => s.StatusCode, response.DiagnosticInfos, readValueIds);
 
-                        var errorInfo = readResults.ErrorInfo;
+                        var errorInfo = readResults.ErrorInfo ?? readResults[0].ErrorInfo;
 
                         var nodeClass = readResults.ErrorInfo != null ?
                             Opc.Ua.NodeClass.Unspecified :
