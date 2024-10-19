@@ -14,18 +14,3 @@ steps:
       $resourceGroup = Get-AzResourceGroup -Name "$(ResourceGroupName)" -ErrorAction SilentlyContinue
       if ($resourceGroup) { $resourceGroup | Remove-AzResourceGroup -Force }
       else { Write-Host "Resource group '$(ResourceGroupName)' not found." }
-
-- task: AzurePowerShell@5
-  displayName: "Delete AD App Registrations"
-  condition: eq( '${{ parameters.CleanupAppRegistrations }}', true)
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptType: 'InlineScript'
-    inline: |
-      Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
-      Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -ErrorAction SilentlyContinue
-      Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
-      Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -ErrorAction SilentlyContinue
-      Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
-      Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -ErrorAction SilentlyContinue

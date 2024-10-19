@@ -624,31 +624,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var readResults = response.Validate(response.Results,
                             s => s.StatusCode, response.DiagnosticInfos, readValueIds);
 
-                        var errorInfo = readResults.ErrorInfo ?? readResults[0].ErrorInfo;
-
-                        var nodeClass = readResults.ErrorInfo != null ?
-                            Opc.Ua.NodeClass.Unspecified :
+                        var errorInfo = readResults.ErrorInfo ??
+                            readResults[0].ErrorInfo;
+                        var nodeClass = errorInfo != null ? Opc.Ua.NodeClass.Unspecified :
                             readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
-                        var browseName = readResults.ErrorInfo != null ?
-                            null :
+                        var browseName = errorInfo != null ? null :
                             readResults[1].Result.GetValueOrDefault<QualifiedName>();
-                        var displayName = readResults.ErrorInfo != null ?
-                            null :
+                        var displayName = errorInfo != null ? null :
                             readResults[2].Result.GetValueOrDefault<LocalizedText>();
-                        var eventNotifier = readResults.ErrorInfo != null ?
-                            (byte)0 :
+                        var eventNotifier = errorInfo != null ? (byte)0 :
                             readResults[3].Result.GetValueOrDefault<byte>();
 
                         ExpandedNodeId? typeDefinitionId = null;
-                        if (nodeClass == Opc.Ua.NodeClass.ObjectType ||
-                            nodeClass == Opc.Ua.NodeClass.VariableType)
+                        if (errorInfo == null)
                         {
-                            // typeDefinitionId
+                            switch (nodeClass)
+                            {
+                                case Opc.Ua.NodeClass.ObjectType:
+                                case Opc.Ua.NodeClass.VariableType:
+                                    typeDefinitionId = nodeId;
+                                    break;
+                                case Opc.Ua.NodeClass.Object:
+                                    var (results, errorInfo2) = await context.Session.FindAsync(
+                                        _request.Header.ToRequestHeader(TimeProvider),
+                                        nodeId.YieldReturn(), ReferenceTypeIds.HasTypeDefinition,
+                                        nodeClassMask: (uint)Opc.Ua.NodeClass.ObjectType,
+                                        ct: context.Ct).ConfigureAwait(false);
+                                    errorInfo = errorInfo2;
+                                    if (errorInfo != null)
+                                    {
+                                        break;
+                                    }
+                                    Debug.Assert(results.Count == 1);
+                                    typeDefinitionId = results[0].Node;
+                                    break;
+                            }
                         }
-
                         _expanded.Add(new NodeToExpand(node, nodeId, nodeClass,
-                            browseName, displayName, eventNotifier, typeDefinitionId,
-                            errorInfo));
+                            browseName, displayName, eventNotifier, typeDefinitionId, errorInfo));
                     }
 
                     if (!TryMoveToNextNode())

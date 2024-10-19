@@ -52,7 +52,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new { discoveryUrl };
 
@@ -82,7 +85,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);
@@ -145,7 +151,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
                 Assert.NotNull(response);

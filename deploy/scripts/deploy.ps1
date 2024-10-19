@@ -96,7 +96,7 @@
     Suggestion: use VM with at least 1 core and 2 GB of memory.
     Must Support Generation 1.
 
- .PARAMETER noAadAuth
+ .PARAMETER noAadAppRegistration
     Do not deploy service with Azure Active Directory authentication
     support. Do not use in production!.
 
@@ -154,7 +154,7 @@ param(
     [pscredential] $credentials,
     [secureString] $accessToken,
     [switch] $isServicePrincipal,
-    [switch] $noAadAuth,
+    [switch] $noAadAppRegistration,
     [string] $authTenantId,
     [string] $aadApplicationName,
     [object] $aadConfig,
@@ -999,7 +999,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
 
     $aadAddReplyUrls = $false
     if (!$script:aadConfig) {
-        if (!$script:noAadAuth.IsPresent) {
+        if (!$script:noAadAppRegistration.IsPresent) {
             if ([string]::IsNullOrEmpty($script:aadApplicationName)) {
                 $script:aadApplicationName = $script:applicationName
             }

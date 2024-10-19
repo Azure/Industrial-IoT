@@ -53,6 +53,7 @@ steps:
         | ConvertTo-SecureString -AsPlainText -Force
       Write-Host "Deploying to '$(ResourceGroupName)'..."
       . $(BasePath)/deploy/scripts/deploy.ps1 `
+          -noAadAppRegistration `
           -type services `
           -BranchName "$(BranchName)" `
           -ImageNamespace "$(ImageNamespace)" `
@@ -95,20 +96,3 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
     SecretsFilter: 'PCS-AUTH-CLIENT-APPID,PCS-AUTH-TENANT'
-- task: AzureKeyVault@1
-  displayName: 'Retrieve Admin credentials'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    KeyVaultName: 'e2etestingsecrets'
-    SecretsFilter: 'User,Password'
-- task: AzureCLI@2
-  displayName: 'Grant admin access to App'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    scriptLocation: 'InlineScript'
-    scriptType: 'bash'
-    addSpnToEnvironment: true
-    inlineScript: |
-      az login -t $(pcs-auth-tenant) --allow-no-subscriptions -u $(User) -p "$(Password)"
-      az ad app permission admin-consent --id $(pcs-auth-client-appid)
-

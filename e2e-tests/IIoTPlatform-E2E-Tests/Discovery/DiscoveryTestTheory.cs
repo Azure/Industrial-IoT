@@ -36,7 +36,6 @@ namespace IIoTPlatformE2ETests.Discovery
         {
             // Get OAuth token
             var token = await TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token);
-            Assert.NotEmpty(token);
         }
 
         [Fact, PriorityOrder(1)]

@@ -258,10 +258,6 @@ namespace IIoTPlatformE2ETests.TestExtensions
             Log("PCS_SUBSCRIPTION_ID");
             Log("PCS_RESOURCE_GROUP");
             Log("PCS_SERVICE_URL");
-            Log("PCS_AUTH_TENANT");
-            Log("PCS_AUTH_CLIENT_APPID");
-            Log("PCS_AUTH_CLIENT_SECRET");
-            Log("PCS_AUTH_SERVICE_APPID");
             Log("PLC_SIMULATION_URLS");
             Log("IOT_EDGE_VERSION");
             Log("IOT_EDGE_DEVICE_ID");

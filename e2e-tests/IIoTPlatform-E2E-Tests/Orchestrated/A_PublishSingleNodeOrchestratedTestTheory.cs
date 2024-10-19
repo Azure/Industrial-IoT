@@ -46,7 +46,6 @@ namespace IIoTPlatformE2ETests.Orchestrated
         {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var token = await TestHelper.GetTokenAsync(_context, cts.Token);
-            Assert.NotEmpty(token);
         }
 
         [Fact, PriorityOrder(2)]
