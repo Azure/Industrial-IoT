@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
             {
                 // Simply pass all requirements
                 var authorized = false;
-                foreach (IAuthorizationRequirement requirement in context.PendingRequirements.ToList())
+                foreach (var requirement in context.PendingRequirements.ToList())
                 {
                     authorized = true;
                     context.Succeed(requirement);

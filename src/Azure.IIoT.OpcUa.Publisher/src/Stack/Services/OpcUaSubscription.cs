@@ -2658,7 +2658,7 @@ Actual (revised) state/desired state:
                         .ToList())
                     .OrderByDescending(tl => tl.Count))
                 {
-                    bool placed = false;
+                    var placed = false;
                     foreach (var partition in partitions)
                     {
                         if (partition.Items.Count +

@@ -354,9 +354,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="NodeId"></param>
         /// <param name="BrowseName"></param>
         /// <param name="DisplayName"></param>
-        /// <param name="Parent"></param>
         /// <param name="TypeDefinitionId"></param>
         /// <param name="NodeClass"></param>
+        /// <param name="Parent"></param>
         protected record class BrowseFrame(NodeId NodeId, QualifiedName? BrowseName = null,
             string? DisplayName = null, ExpandedNodeId? TypeDefinitionId = null,
             Opc.Ua.NodeClass? NodeClass = null, BrowseFrame? Parent = null)

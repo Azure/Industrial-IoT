@@ -125,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var browser = new ConfigBrowser(entry with
                 {
                     // Named object in the address space of the server.
-                    OpcNodes = new List<OpcNodeModel> { new OpcNodeModel { Id = AssetsEx.Root } }
+                    OpcNodes = new List<OpcNodeModel> { new () { Id = AssetsEx.Root } }
                 }, expansion, _options, null, _logger, _timeProvider, true);
 
                 // Browse and swap the data set writer id and data set name to make an asset entry.
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         errorInfo = await context.Session.WriteAsync(
                             request.Header.ToRequestHeader(_timeProvider), nodeId,
-                            fileHandle.Value, buffer.AsMemory().Slice(0, read),
+                            fileHandle.Value, buffer.AsMemory()[..read],
                             context.Ct).ConfigureAwait(false);
                         if (errorInfo != null)
                         {
@@ -556,8 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 DataSetName = currentObject.CreateDataSetName(
                                     context.Session.MessageContext),
-                                DataSetWriterId = currentObject.CreateWriterId(
-                                    context.Session.MessageContext),
+                                DataSetWriterId = currentObject.CreateWriterId(),
                                 OpcNodes = currentObject
                                     .GetOpcNodeModels(
                                         currentObject.OriginalNode.NodeFromConfiguration,
@@ -1134,9 +1133,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Create writer id for the object
                 /// </summary>
-                /// <param name="context"></param>
                 /// <returns></returns>
-                public string CreateWriterId(IServiceMessageContext context)
+                public string CreateWriterId()
                 {
                     var sb = new StringBuilder();
                     if (OriginalNode.NodeFromConfiguration.DataSetFieldId != null)
