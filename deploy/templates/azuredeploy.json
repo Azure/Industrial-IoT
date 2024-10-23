@@ -222,7 +222,7 @@
                 "description": "The storage SKU to use."
             }
         },
-        "useStorageAccountKey": {
+        "storageAccountKeyEnabled": {
             "type": "bool",
             "defaultValue": false,
             "metadata": {
@@ -295,7 +295,7 @@
                 "description": "A new GUID used to identify the IoTHub contrib role assignment"
             }
         },
-        "useIoTHubSharedAccessKey": {
+        "ioTHubSharedAccessKeyEnabled": {
             "type": "bool",
             "defaultValue": false,
             "metadata": {
@@ -353,6 +353,13 @@
                 "description": "The KeyVault SKU to use."
             }
         },
+        "keyVaultSoftDeleteEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to enable soft delete for the key vault."
+            }
+        },
         "keyVaultRoleNameGuid": {
             "type": "string",
             "defaultValue": "[newGuid()]",
@@ -360,7 +367,7 @@
                 "description": "A new GUID used to identify the key vault role assignment"
             }
         },
-        "useKeyVaultClassicAuth": {
+        "keyVaultUseAccessPolicies": {
             "type": "bool",
             "defaultValue": false,
             "metadata": {
@@ -422,7 +429,9 @@
                 "enabledForDeployment": false,
                 "enabledForTemplateDeployment": false,
                 "enabledForVolumeEncryption": false,
-                "enableRbacAuthorization": "[not(parameters('useKeyVaultClassicAuth'))]",
+                "enableSoftDelete": "[parameters('keyVaultSoftDeleteEnabled')]",
+                "enablePurgeProtection": "[parameters('keyVaultSoftDeleteEnabled')]",
+                "enableRbacAuthorization": "[not(parameters('keyVaultUseAccessPolicies'))]",
                 "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
                 "sku": {
                     "name": "[parameters('keyVaultSkuName')]",
@@ -435,7 +444,7 @@
         },
         {
             "comments": "KeyVault access permissions for managed identity.",
-            "condition": "[parameters('useKeyVaultClassicAuth')]",
+            "condition": "[parameters('keyVaultUseAccessPolicies')]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(parameters('keyVaultName'), '/managed')]",
             "apiVersion": "2023-07-01",
@@ -478,7 +487,7 @@
         },
         {
             "comments": "Optional KeyVault principal access permissions for configuration secrets.",
-            "condition": "[and(parameters('useKeyVaultClassicAuth'), not(empty(parameters('keyVaultPrincipalId'))))]",
+            "condition": "[and(parameters('keyVaultUseAccessPolicies'), not(empty(parameters('keyVaultPrincipalId'))))]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(parameters('keyVaultName'), '/add')]",
             "apiVersion": "2023-07-01",
@@ -516,7 +525,7 @@
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
             "name": "[parameters('keyVaultRoleNameGuid')]",
-            "condition": "[not(parameters('useKeyVaultClassicAuth'))]",
+            "condition": "[not(parameters('keyVaultUseAccessPolicies'))]",
             "scope": "[variables('keyVaultResourceId')]",
             "properties": {
                 "roleDefinitionId": "[variables('keyVaultSecretUserRoleId')]",
@@ -615,7 +624,7 @@
             "comments": "Assign access to IoT Hub to our managed identity",
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
-            "condition": "[not(parameters('useIoTHubSharedAccessKey'))]",
+            "condition": "[not(parameters('ioTHubSharedAccessKeyEnabled'))]",
             "name": "[parameters('iotHubRoleNameGuid')]",
             "scope": "[variables('iotHubResourceId')]",
             "properties": {
@@ -665,8 +674,8 @@
                     "ipRules": [],
                     "defaultAction": "Allow"
                 },
-                "defaultToOAuthAuthentication": "[not(parameters('useStorageAccountKey'))]",
-                "allowSharedKeyAccess": "[parameters('useStorageAccountKey')]",
+                "defaultToOAuthAuthentication": "[not(parameters('storageAccountKeyEnabled'))]",
+                "allowSharedKeyAccess": "[parameters('storageAccountKeyEnabled')]",
                 "supportsHttpsTrafficOnly": true,
                 "encryption": {
                     "services": {
@@ -685,7 +694,7 @@
             "comments": "Assign access to storage to our managed identity",
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
-            "condition": "[not(parameters('useStorageAccountKey'))]",
+            "condition": "[not(parameters('storageAccountKeyEnabled'))]",
             "name": "[parameters('storageRoleNameGuid')]",
             "scope": "[variables('storageResourceId')]",
             "properties": {
@@ -789,11 +798,11 @@
                             },
                             {
                                 "key": "PCS_IOTHUB_CONNSTRING",
-                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, if(parameters('useIoTHubSharedAccessKey'), concat(';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey), ''))]"
+                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, if(parameters('ioTHubSharedAccessKeyEnabled'), concat(';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey), ''))]"
                             },
                             {
                                 "key": "PCS_STORAGE_CONNSTRING",
-                                "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), if(parameters('useStorageAccountKey'), concat(';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value), ''))]"
+                                "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), if(parameters('storageAccountKeyEnabled'), concat(';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value), ''))]"
                             },
                             {
                                 "key": "PCS_KEYVAULT_URL",
