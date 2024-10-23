@@ -430,7 +430,6 @@
                 "enabledForTemplateDeployment": false,
                 "enabledForVolumeEncryption": false,
                 "enableSoftDelete": "[parameters('keyVaultSoftDeleteEnabled')]",
-                "enablePurgeProtection": "[parameters('keyVaultSoftDeleteEnabled')]",
                 "enableRbacAuthorization": "[not(parameters('keyVaultUseAccessPolicies'))]",
                 "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
                 "sku": {
