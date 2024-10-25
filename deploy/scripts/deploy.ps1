@@ -116,6 +116,11 @@
     Use these credentials to log in. If not provided you are
     prompted to provide credentials
 
+ .PARAMETER disableRbacAuthorization
+    Disable using Azure RBAC authorization using role assignments
+    to the managed identity and use legacy style keys and shared
+    access tokens to access services.
+
  .PARAMETER isServicePrincipal
     The credentials provided are service principal credentials.
 
@@ -155,6 +160,7 @@ param(
     [secureString] $accessToken,
     [switch] $isServicePrincipal,
     [switch] $noAadAppRegistration,
+    [switch] $disableRbacAuthorization,
     [string] $authTenantId,
     [string] $aadApplicationName,
     [object] $aadConfig,
@@ -786,6 +792,14 @@ Function New-Deployment() {
         $templateParameters.Add("templateUrl", $templateUrl)
     }
 
+    if ($script:disableRbacAuthorization.IsPresent) {
+        Write-Host "Deploying without Azure RBAC role based authorization."
+        $templateParameters.Add("enableRbacAuthorization", $false)
+    }
+    else {
+        $templateParameters.Add("enableRbacAuthorization", $true)
+    }
+
     # Select an application name
     if (($script:type -eq "local") -or ($script:type -eq "simulation")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
@@ -1063,16 +1077,16 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
 
     # Register current aad user to access keyvault
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
-        $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
+        $templateParameters.Add("userPrincipalId", $script:aadConfig.UserPrincipalId)
     }
     else {
         $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
 
         if (![string]::IsNullOrEmpty($userPrincipalId)) {
-            $templateParameters.Add("keyVaultPrincipalId", $userPrincipalId)
+            $templateParameters.Add("userPrincipalId", $userPrincipalId)
         }
         else {
-            $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.FallBackPrincipalId)
+            $templateParameters.Add("userPrincipalId", $script:aadConfig.FallBackPrincipalId)
         }
     }
 
