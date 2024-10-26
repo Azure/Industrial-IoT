@@ -10,7 +10,7 @@
     <None Remove="TestResults\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.13.0" />
+    <PackageReference Include="Azure.Identity" Version="1.13.1" />
     <PackageReference Include="Azure.Core" Version="1.44.1" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.5" />
     <PackageReference Include="Azure.ResourceManager.ContainerInstance" Version="1.2.1" />
@@ -45,10 +45,5 @@
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.146" />
-    <PackageReference Update="Roslynator.Analyzers" Version="4.12.8" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.12.8" />
   </ItemGroup>
 </Project>

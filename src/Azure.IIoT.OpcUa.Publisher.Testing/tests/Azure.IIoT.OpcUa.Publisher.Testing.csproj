@@ -5,9 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.83" />
-    <PackageReference Include="Furly.Extensions.Json" Version="1.0.83" />
-    <PackageReference Include="Furly.Extensions.Autofac" Version="1.0.83" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.89" />
+    <PackageReference Include="Furly.Extensions.Json" Version="1.0.89" />
+    <PackageReference Include="Furly.Extensions.Autofac" Version="1.0.89" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageReference Include="FluentAssertions" Version="6.12.1" />

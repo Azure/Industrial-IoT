@@ -83,7 +83,7 @@ internal sealed class Publisher : IDisposable
             return new Pcap.CaptureConfiguration(itf, "ip and tcp",
                 maxPcapFileSize, maxPcapDuration);
         }
-        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses.First() :
+        var filter = "src or dst host " + ((addresses.Count == 1) ? addresses[0] :
             ("(" + string.Join(" or ", addresses.Select(a => $"{a}")) + ")"));
 
         return new Pcap.CaptureConfiguration(itf, filter, maxPcapFileSize, maxPcapDuration);
