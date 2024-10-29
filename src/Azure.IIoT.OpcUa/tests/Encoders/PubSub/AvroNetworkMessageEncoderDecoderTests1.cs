@@ -92,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var json = schema.ToJson();
 
             // Set null data value
-            messages.ForEach(messages => messages.Payload["6"] = null);
+            messages.ForEach(messages => messages.Payload = messages.Payload.Set("6", null));
             // Reencode with the schema
             context = new ServiceMessageContext();
             buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var json = schema.ToJson();
 
             // Set null data value
-            messages.ForEach(messages => messages.Payload.Remove("6"));
+            messages.ForEach(messages => messages.Payload = messages.Payload.Remove("6"));
             // Reencode with the schema
             context = new ServiceMessageContext();
             buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
@@ -141,8 +141,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // Result will contain the removed field in the data set as it was serialized as null
             ((BaseNetworkMessage)result).Messages.ToList().ForEach(m =>
             {
-                Assert.Null(m.Payload["6"]);
-                m.Payload.Remove("6");
+                Assert.Null(m.Payload.DataSetFields.FirstOrDefault(f => f.Name == "6").Value);
+                m.Payload = m.Payload.Remove("6");
             });
             Assert.Equal(networkMessage, result);
         }
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var json = schema.ToJson();
 
             // Set null data value
-            messages.ForEach(messages => messages.Payload["6"] = null);
+            messages.ForEach(messages => messages.Payload = messages.Payload.Set("6", null));
             // Reencode with the schema
             context = new ServiceMessageContext();
             buffers = networkMessage.Encode(context, maxMessageSize);
@@ -293,13 +293,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var result = buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList();
             var serializer = new NewtonsoftJsonSerializer();
             var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
         }
 
@@ -361,7 +361,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var json = schema.ToJson();
 
             // Set null data value
-            messages.ForEach(messages => messages.Payload["6"] = null);
+            messages.ForEach(messages => messages.Payload = messages.Payload.Set("6", null));
             // Reencode with the schema
             context = new ServiceMessageContext();
             buffers = networkMessage.Encode(context, maxMessageSize);
@@ -405,14 +405,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var result = buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList();
             var serializer = new NewtonsoftJsonSerializer();
 
             var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
         }
 
@@ -519,12 +519,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var result = serializer.Parse(serializer.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
             var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
 
             Assert.Equal(expected, result);
@@ -556,7 +556,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var json = schema.ToJson();
 
             // Set null data value
-            messages.ForEach(messages => messages.Payload["6"] = null);
+            messages.ForEach(messages => messages.Payload = messages.Payload.Set("6", null));
             // Reencode with the schema
             context = new ServiceMessageContext();
             buffers = networkMessage.Encode(context, maxMessageSize);
@@ -569,12 +569,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var result = serializer.Parse(serializer.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
             var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
 
             Assert.Equal(expected, result);
@@ -606,7 +606,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var json = schema.ToJson();
 
             // Set null data value
-            messages.ForEach(messages => messages.Payload.Remove("6"));
+            messages.ForEach(messages => messages.Payload = messages.Payload.Remove("6"));
             // Reencode with the schema
             context = new ServiceMessageContext();
             buffers = networkMessage.Encode(context, maxMessageSize);
@@ -619,13 +619,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var result = serializer.Parse(serializer.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
-                .SelectMany(m => m.Payload)
-                .Where(m => m.Key != "6")
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Where(m => m.Name != "6")
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
             var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value?.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value?.Value))
                 .ToList()));
 
             Assert.Equal(expected, result);
@@ -641,9 +641,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             foreach (var dataSetMessage in networkMessage.Messages)
             {
                 var expectedPayload = new Dictionary<string, DataValue>();
-                foreach (var entry in dataSetMessage.Payload)
+                foreach (var entry in dataSetMessage.Payload.DataSetFields)
                 {
-                    expectedPayload[entry.Key] = entry.Value == null ? null : new DataValue(entry.Value).ToOpcUaUniversalTime();
+                    expectedPayload[entry.Name] = entry.Value == null ? null : new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload,
                     DataSetFieldContentFlags.StatusCode |

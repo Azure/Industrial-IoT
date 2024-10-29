@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -41,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "extensionFields", Order = 3,
             EmitDefaultValue = false)]
-        public IDictionary<string, VariantValue>? ExtensionFields { get; set; }
+        public IReadOnlyList<ExtensionFieldModel>? ExtensionFields { get; set; }
 
         /// <summary>
         /// Send keep alive messages for the data set

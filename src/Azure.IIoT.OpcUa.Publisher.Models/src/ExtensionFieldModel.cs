@@ -16,13 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public record ExtensionFieldModel
     {
         /// <summary>
-        /// Field index of this variable in the dataset.
-        /// </summary>
-        [DataMember(Name = "fieldIndex", Order = 0,
-            EmitDefaultValue = false)]
-        public int FieldIndex { get; init; }
-
-        /// <summary>
         /// Field name or display name of the published variable
         /// </summary>
         [DataMember(Name = "dataSetFieldName", Order = 1,
@@ -44,10 +37,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public Guid DataSetClassFieldId { get; init; }
 
         /// <summary>
-        /// Unique Identifier of variable in the dataset.
+        /// Description for the field as it should show up in
+        /// the data set meta data.
         /// </summary>
-        [DataMember(Name = "id", Order = 4,
+        [DataMember(Name = "dataSetFieldDescription", Order = 4,
             EmitDefaultValue = false)]
-        public string? Id { get; set; }
+        public string? DataSetFieldDescription { get; set; }
     }
 }

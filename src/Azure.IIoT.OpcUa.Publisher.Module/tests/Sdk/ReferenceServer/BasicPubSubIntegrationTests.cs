@@ -421,6 +421,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
+        public async Task CanSendExtensionFieldsToIoTHubTest()
+        {
+            // Arrange
+            // Act
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(
+                nameof(CanSendExtensionFieldsToIoTHubTest), "./Resources/ExtensionFields.json",
+                messageType: "ua-data", arguments: new string[] { "--mm=FullNetworkMessages", "--dm=false" });
+
+            Assert.Single(result);
+
+            var messages = result
+                .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
+                .ToArray();
+
+            // Assert
+            Assert.NotEmpty(messages);
+            Assert.All(messages, m =>
+            {
+                var payload = m.GetProperty("Payload");
+                Assert.False(payload.GetProperty("Important").GetProperty("Value").GetBoolean());
+                Assert.Equal(5, payload.GetProperty("AssetId").GetProperty("Value").GetInt16());
+                Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetString());
+                Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetDouble(), 6);
+                Assert.NotEmpty(payload.GetProperty("EndpointUrl").GetProperty("Value").GetString());
+                Assert.NotEmpty(payload.GetProperty("ApplicationUri").GetProperty("Value").GetString());
+            });
+
+            Assert.NotNull(metadata);
+            var metadataFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
+            Assert.Equal(JsonValueKind.Array, metadataFields.ValueKind);
+            var fieldNames = metadataFields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()).ToHashSet();
+
+            var expectedNames = new[] { "Output", "EndpointUrl", "ApplicationUri", "EngineeringUnits", "AssetId", "Important", "Variance" };
+            Assert.Equal(expectedNames.Length, fieldNames.Count);
+            Assert.All(expectedNames, n => fieldNames.Contains(n));
+        }
+
+        [Fact]
         public async Task CanSendKeyFramesWithExtensionFieldsToIoTHubTest()
         {
             // Arrange
@@ -515,7 +553,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.False(payload.GetProperty("Important").GetProperty("Value").GetProperty("Body").GetBoolean());
             Assert.Equal("5", payload.GetProperty("AssetId").GetProperty("Value").GetProperty("Body").GetString());
             Assert.Equal("mm/sec", payload.GetProperty("EngineeringUnits").GetProperty("Value").GetProperty("Body").GetString());
-            Assert.Equal(12.3465, payload.GetProperty("Variance").GetProperty("Value").GetProperty("Body").GetDouble());
+            Assert.Equal(12.3465f, payload.GetProperty("Variance").GetProperty("Value").GetProperty("Body").GetSingle());
 
             Assert.NotNull(metadata);
             var metadataFields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");

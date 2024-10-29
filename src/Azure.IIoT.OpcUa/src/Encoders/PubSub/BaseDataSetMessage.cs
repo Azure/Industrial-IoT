@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Data set message
@@ -57,9 +58,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Payload
         /// </summary>
-#pragma warning disable CA2227 // Collection properties should be read only
         public DataSet Payload { get; set; } = new DataSet();
-#pragma warning restore CA2227 // Collection properties should be read only
+
+        /// <summary>
+        /// Endpoint url
+        /// </summary>
+        public string? EndpointUrl { get; set; }
+
+        /// <summary>
+        /// Application uri
+        /// </summary>
+        public string? ApplicationUri { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -77,7 +86,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 !Opc.Ua.Utils.IsEqual(wrapper.Status ?? Opc.Ua.StatusCodes.Good, Status ?? Opc.Ua.StatusCodes.Good) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.MessageType, MessageType) ||
-                !Opc.Ua.Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion))
+                !Opc.Ua.Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri))
             {
                 return false;
             }
@@ -100,6 +111,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             hash.Add(Picoseconds);
             hash.Add(Status);
             hash.Add(Payload);
+            hash.Add(EndpointUrl);
+            hash.Add(ApplicationUri);
             return hash.ToHashCode();
         }
 

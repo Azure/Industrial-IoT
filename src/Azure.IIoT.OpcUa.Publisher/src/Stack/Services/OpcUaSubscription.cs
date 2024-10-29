@@ -39,7 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.ModelChangeEventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Event))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
-    [KnownType(typeof(OpcUaMonitoredItem.Field))]
     internal sealed class OpcUaSubscription : Subscription, IAsyncDisposable,
         IEquatable<OpcUaSubscription>
     {
@@ -79,8 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Currently monitored but unordered
         /// </summary>
         private IEnumerable<OpcUaMonitoredItem> CurrentlyMonitored
-            => _additionallyMonitored.Values
-                .Concat(MonitoredItems.OfType<OpcUaMonitoredItem>());
+            => MonitoredItems.OfType<OpcUaMonitoredItem>();
 
         public byte DesiredPriority
             => Template.Priority
@@ -177,7 +175,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SubscriptionId = Opc.Ua.SequenceNumber.Increment32(ref _lastIndex);
 
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
-            _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
 
             Initialize();
             _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
@@ -227,7 +224,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _missingKeepAlives = subscription._missingKeepAlives;
             _unassignedNotifications = subscription._unassignedNotifications;
-            _additionallyMonitored = subscription._additionallyMonitored;
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
 
             Initialize();
@@ -261,7 +257,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             SubscriptionId = Opc.Ua.SequenceNumber.Increment32(ref _lastIndex);
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
-            _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
 
             Initialize();
 
@@ -344,60 +339,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-            if (!disposing || _disposed)
+            if (disposing && !_disposed)
             {
-                return;
-            }
-            try
-            {
-                ResetMonitoredItemWatchdogTimer(false);
-                _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-
-                FastDataChangeCallback = null;
-                FastEventCallback = null;
-                FastKeepAliveCallback = null;
-
-                PublishStatusChanged -= OnPublishStatusChange;
-                StateChanged -= OnStateChange;
-
-                var items = CurrentlyMonitored.ToList();
-                if (items.Count == 0)
+                try
                 {
-                    _logger.LogInformation("Disposed Subscription {Subscription}.", this);
-                    return;
+                    ResetMonitoredItemWatchdogTimer(false);
+                    _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+                    FastDataChangeCallback = null;
+                    FastEventCallback = null;
+                    FastKeepAliveCallback = null;
+
+                    PublishStatusChanged -= OnPublishStatusChange;
+                    StateChanged -= OnStateChange;
+
+                    var items = CurrentlyMonitored.ToList();
+                    if (items.Count != 0)
+                    {
+                        //
+                        // When the entire session is disposed and recreated we must
+                        // still dispose all monitored items that are remaining
+                        //
+                        items.ForEach(item => item.Dispose());
+                        RemoveItems(MonitoredItems);
+                        Debug.Assert(!CurrentlyMonitored.Any());
+
+                        _logger.LogInformation(
+                            "Disposed Subscription {Subscription} with {Count)} items.",
+                            this, items.Count);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Disposed Subscription {Subscription}.",
+                            this);
+                    }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Disposing Subscription {Subscription} encountered error.", this);
 
-                //
-                // When the entire session is disposed and recreated we must
-                // still dispose all monitored items that are remaining
-                //
-                items.ForEach(item => item.Dispose());
-                RemoveItems(MonitoredItems);
-                _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
-                Debug.Assert(!CurrentlyMonitored.Any());
+                    // Eat the error
+                }
+                finally
+                {
+                    _disposed = true;
+                    _keepAliveWatcher.Dispose();
+                    _monitoredItemWatcher.Dispose();
+                    _timer.Dispose();
+                    _meter.Dispose();
 
-                _logger.LogInformation(
-                    "Disposed Subscription {Subscription} with {Count)} items.",
-                    this, items.Count);
+                    Handle = null;
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Disposing Subscription {Subscription} encountered error.", this);
-
-                // Eat the error
-            }
-            finally
-            {
-                _disposed = true;
-                _keepAliveWatcher.Dispose();
-                _monitoredItemWatcher.Dispose();
-                _timer.Dispose();
-                _meter.Dispose();
-
-                Handle = null;
-            }
+            base.Dispose(disposing);
         }
 
         /// <inheritdoc/>
@@ -600,21 +595,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await CollectMetaDataAsync(owner, session, typeSystem, dataTypes, fields,
                 ct).ConfigureAwait(false);
 
-            //
-            // For full featured messages there are additional fields that are required
-            // see data set json dataset message encoder for more information. This will
-            // not apply to other encodings yet, since they do not support full featured
-            // message modes.
-            //
-            if ((dataSetFieldContentMask & DataSetFieldContentFlags.EndpointUrl) != 0)
-            {
-                AddExtraField(fields, nameof(DataSetFieldContentFlags.EndpointUrl));
-            }
-            if ((dataSetFieldContentMask & DataSetFieldContentFlags.ApplicationUri) != 0)
-            {
-                AddExtraField(fields, nameof(DataSetFieldContentFlags.ApplicationUri));
-            }
-
             return new PublishedDataSetMetaDataModel
             {
                 DataSetMetaData =
@@ -630,22 +610,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MinorVersion =
                     minorVersion
             };
-
-            static void AddExtraField(List<PublishedFieldMetaDataModel> fields,
-                string name)
-            {
-                if (fields.Any(f => f.Name == name))
-                {
-                    return;
-                }
-                fields.Add(new PublishedFieldMetaDataModel
-                {
-                    Name = name,
-                    DataType = "String",
-                    ValueRank = ValueRanks.Scalar,
-                    BuiltInType = (byte)BuiltInType.String
-                });
-            }
         }
 
         /// <summary>
@@ -1409,11 +1373,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .ToList();
             dispose.ForEach(m => m.Dispose());
 
-            // Update subscription state
-            _additionallyMonitored = set
-                .Where(m => !m.AttachedToSubscription)
-                .ToFrozenDictionary(m => m.ClientHandle, m => m);
-
             // Notify semantic change now that we have update the monitored items
             foreach (var owner in metadataChanged)
             {
@@ -1605,7 +1564,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Dispose all monitored items
                 var items = CurrentlyMonitored.ToList();
 
-                _additionallyMonitored = FrozenDictionary<uint, OpcUaMonitoredItem>.Empty;
                 RemoveItems(MonitoredItems);
                 _currentSequenceNumber = 0;
                 _goodMonitoredItems = 0;
@@ -2261,7 +2219,7 @@ Actual (revised) state/desired state:
             [NotNullWhen(true)] out OpcUaMonitoredItem? monitoredItem)
         {
             monitoredItem = FindItemByClientHandle(clientHandle) as OpcUaMonitoredItem;
-            if (monitoredItem != null || _additionallyMonitored.TryGetValue(clientHandle, out monitoredItem))
+            if (monitoredItem != null)
             {
                 return true;
             }
@@ -2726,8 +2684,6 @@ Actual (revised) state/desired state:
             private int _count;
         }
 
-        private long TotalMonitoredItems
-            => _additionallyMonitored.Count + MonitoredItemCount;
         private int HeartbeatsEnabled
             => MonitoredItems.Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);
         private int ConditionsEnabled
@@ -2744,7 +2700,7 @@ Actual (revised) state/desired state:
                 () => new Measurement<long>(_missingKeepAlives, _metrics.TagList),
                 description: "Number of missing keep alives in subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_monitored_items",
-                () => new Measurement<long>(TotalMonitoredItems, _metrics.TagList),
+                () => new Measurement<long>(MonitoredItemCount, _metrics.TagList),
                 description: "Total monitored item count.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_disabled_nodes",
                 () => new Measurement<long>(_disabledItems, _metrics.TagList),
@@ -2812,7 +2768,6 @@ Actual (revised) state/desired state:
 
         private const int kMaxMonitoredItemPerSubscriptionDefault = 64 * 1024;
         private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromMinutes(1);
-        private FrozenDictionary<uint, OpcUaMonitoredItem> _additionallyMonitored;
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;

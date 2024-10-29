@@ -685,9 +685,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
 
                 // Serialize the fields in the schema
+                var lookup = dataSet.DataSetFields.ToDictionary(f => f.Name, f => f.Value);
                 foreach (var field in r.Fields)
                 {
-                    if (!dataSet.TryGetValue(SchemaUtils.Unescape(field.Name),
+                    if (!lookup.TryGetValue(SchemaUtils.Unescape(field.Name),
                         out var dataValue))
                     {
                         dataValue = null;

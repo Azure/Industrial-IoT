@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);
-                    var extensionFields = message.ExtensionFields?.ToDictionary(k => k.Key, v => v.Value);
+                    var extensionFields = message.ExtensionFields?.ToDictionary(k => k.DataSetFieldName, v => v.Value);
                     var sample = new MonitoredItemMessageModel
                     {
                         PublisherId = (extensionFields != null &&

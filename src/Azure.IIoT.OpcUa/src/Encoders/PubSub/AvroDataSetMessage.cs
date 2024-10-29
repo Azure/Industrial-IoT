@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Avro;
     using System;
     using System.Linq;
+    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Avro binary data set message
@@ -245,9 +246,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 typeof(Opc.Ua.ConfigurationVersionDataType));
             encoder.WriteDateTime(nameof(Timestamp), Timestamp?.UtcDateTime ?? default);
 
-            var status = Status ?? Payload.Values
+            var status = Status ?? Payload.DataSetFields
                 .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(
-                    s?.StatusCode ?? Opc.Ua.StatusCodes.BadNoData))?.StatusCode ?? Opc.Ua.StatusCodes.Good;
+                    s.Value?.StatusCode ?? Opc.Ua.StatusCodes.BadNoData)).Value?.StatusCode
+                        ?? Opc.Ua.StatusCodes.Good;
             encoder.WriteStatusCode(nameof(Status), status);
         }
 

@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
@@ -32,19 +33,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Display name
         /// </summary>
-        public string? DisplayName => Payload.Keys.SingleOrDefault();
+        public string? DisplayName => Payload.DataSetFields.SingleOrDefault().Name;
 
         /// <summary>
         /// Data value for variable change notification
         /// </summary>
-        public Opc.Ua.DataValue? Value => Payload.Values.SingleOrDefault();
+        public Opc.Ua.DataValue? Value => Payload.DataSetFields.SingleOrDefault().Value;
 
         /// <summary>
         /// Extension fields
         /// </summary>
-#pragma warning disable CA2227 // Collection properties should be read only
-        public IDictionary<string, VariantValue>? ExtensionFields { get; set; }
-#pragma warning restore CA2227 // Collection properties should be read only
+        public IReadOnlyList<ExtensionFieldModel>? ExtensionFields { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
@@ -65,8 +64,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!wrapper.ExtensionFields.DictionaryEqualsSafe(ExtensionFields,
-                (a, b) => a.Equals(b)))
+            if (!wrapper.ExtensionFields.SetEqualsSafe(ExtensionFields,
+                (a, b) => a?.Equals(b) ?? b == null))
             {
                 return false;
             }
@@ -178,25 +177,31 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             if (Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.ExtensionFields))
             {
-                var extensionFields = new KeyValuePair<string, string?>(nameof(DataSetWriterId), DataSetWriterName)
+                var extensionFields = (nameof(DataSetWriterId), DataSetWriterName)
                     .YieldReturn();
                 if (publisherId != null)
                 {
                     extensionFields = extensionFields
-                        .Append(new KeyValuePair<string, string?>(nameof(JsonNetworkMessage.PublisherId), publisherId));
+                        .Append((nameof(JsonNetworkMessage.PublisherId), publisherId));
                 }
                 if (WriterGroupId != null)
                 {
                     extensionFields = extensionFields
-                        .Append(new KeyValuePair<string, string?>(nameof(WriterGroupId), WriterGroupId));
+                        .Append((nameof(WriterGroupId), WriterGroupId));
                 }
                 if (ExtensionFields != null)
                 {
                     extensionFields = extensionFields.Concat(ExtensionFields
-                        .Where(e => e.Key is not (nameof(DataSetWriterId)) and
-                                    not (nameof(JsonNetworkMessage.PublisherId)))
-                        .Select(e => new KeyValuePair<string, string?>(e.Key, e.Value.Value?.ToString())));
+                        .Where(e => e.DataSetFieldName is
+                            not (nameof(DataSetWriterId)) and
+                            not (nameof(EndpointUrl)) and
+                            not (nameof(ApplicationUri)) and
+                            not (nameof(WriterGroupId)) and
+                            not (nameof(JsonNetworkMessage.PublisherId)))
+                        .Select(e => (e.DataSetFieldName, e.Value.Value?.ToString())));
                 }
+
+                // We already wrote application uri and endpoint uri, so do not write again
                 encoder.WriteStringDictionary(nameof(ExtensionFields), extensionFields);
             }
         }
@@ -282,33 +287,45 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 DataSetMessageContentMask |= DataSetMessageContentFlags.SequenceNumber;
             }
-            var extensionFields = decoder.ReadStringDictionary(nameof(ExtensionFields));
-            if (extensionFields != null)
+            var stringDictionary = decoder.ReadStringDictionary(nameof(ExtensionFields));
+            if (stringDictionary != null && stringDictionary.Count > 0)
             {
                 dataSetFieldContentMask |= DataSetFieldContentFlags.ExtensionFields;
-                ExtensionFields = new Dictionary<string, VariantValue>();
-                foreach (var item in extensionFields)
+                var extensionFields = new List<ExtensionFieldModel>();
+                foreach (var (name, v) in stringDictionary)
                 {
-                    ExtensionFields.AddOrUpdate(item.Key, item.Value);
+                    if (name == nameof(DataSetWriterId))
+                    {
+                        DataSetWriterName = v;
+                    }
+                    else if (name == nameof(JsonNetworkMessage.PublisherId))
+                    {
+                        publisherId = v;
+                    }
+                    else if (name == nameof(WriterGroupId))
+                    {
+                        WriterGroupId = v;
+                    }
+                    else
+                    {
+                        extensionFields.Add(new ExtensionFieldModel
+                        {
+                            DataSetFieldName = name,
+                            Value = v
+                        });
+                    }
                 }
-                if (extensionFields.TryGetValue(nameof(DataSetWriterId), out var dataSetWriterName))
-                {
-                    DataSetWriterName = dataSetWriterName;
-                }
-                if (extensionFields.TryGetValue(nameof(WriterGroupId), out var writerGroupid))
-                {
-                    WriterGroupId = writerGroupid;
-                }
-                extensionFields.TryGetValue(nameof(JsonNetworkMessage.PublisherId), out publisherId);
+                ExtensionFields = extensionFields;
+            }
+            else
+            {
+                ExtensionFields = null;
             }
 
             withHeader |= DataSetMessageContentMask != 0;
             if (value != null || dataSetFieldContentMask != 0)
             {
-                Payload.Clear();
-                Payload.DataSetFieldContentMask = dataSetFieldContentMask;
-                Payload.Add(displayName ?? string.Empty, value);
-
+                Payload = Payload.Add(displayName ?? string.Empty, value, dataSetFieldContentMask);
                 return true;
             }
             // Only return true if we otherwise read a header value

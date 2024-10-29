@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using System.Xml;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided
@@ -286,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         $"Invalid schema {currentSchema.ToJson()}. " +
                         "Data sets must be records or maps.", Schema.ToJson());
                 }
-                var dataSet = new DataSet();
+                var dataSet = new List<(string, DataValue?)>();
                 var isRaw = false;
 
                 // Run through the fields and read either using variant or data values
@@ -298,13 +299,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                         isRaw = true;
                         dataValue.StatusCode = StatusCodes.Good;
                     }
-                    dataSet.Add(SchemaUtils.Unescape(field.Name), dataValue);
+                    dataSet.Add((SchemaUtils.Unescape(field.Name), dataValue));
                 }
-                if (isRaw)
-                {
-                    dataSet.DataSetFieldContentMask = DataSetFieldContentFlags.RawData;
-                }
-                return dataSet;
+                var dataSetFieldContentFlags = isRaw ? DataSetFieldContentFlags.RawData : 0;
+                return new DataSet(dataSet, dataSetFieldContentFlags);
             }
         }
 

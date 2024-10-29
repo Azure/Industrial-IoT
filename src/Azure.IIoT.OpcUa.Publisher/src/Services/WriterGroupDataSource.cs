@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
@@ -44,18 +45,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="clients"></param>
         /// <param name="writerGroup"></param>
+        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="metrics"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
         public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients,
-            WriterGroupModel writerGroup, IOptions<PublisherOptions> options,
-            IMetricsContext? metrics, ILoggerFactory loggerFactory,
-            TimeProvider? timeProvider = null)
+            WriterGroupModel writerGroup, IJsonSerializer serializer,
+            IOptions<PublisherOptions> options, IMetricsContext? metrics,
+            ILoggerFactory loggerFactory, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
 
             _loggerFactory = loggerFactory;
+            _serializer = serializer;
             _options = options;
             _logger = loggerFactory.CreateLogger<WriterGroupDataSource>();
             _timeProvider = timeProvider ?? TimeProvider.System;
@@ -584,6 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ConcurrentDictionary<DataSetWriter, DataSetWriterSubscription> _writers = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
         private readonly long _startTime;

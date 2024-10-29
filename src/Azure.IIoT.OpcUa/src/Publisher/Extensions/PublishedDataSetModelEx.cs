@@ -25,8 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 DataSetMetaData = model.DataSetMetaData.Clone(),
                 DataSetSource = model.DataSetSource.Clone(),
-                ExtensionFields = model.ExtensionFields?
-                    .ToDictionary(k => k.Key, v => v.Value)
             });
         }
     }

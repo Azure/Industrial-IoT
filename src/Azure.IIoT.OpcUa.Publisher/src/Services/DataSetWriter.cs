@@ -10,7 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
@@ -21,8 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Avro.Generic;
-    using Irony.Parsing.Construction;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -166,7 +166,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         foreach (var (p, item) in data.SelectMany(d => d.Select(i => (d.Key, i))))
                         {
-                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
+                            var id = $"{dataSetWriter.Id}_{item.Id
+                                ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
                             yield return CreateDataSetWriter(id, p, new[] { item });
                         }
                     }
@@ -206,9 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DataSet = dataset with
                         {
                             DataSetMetaData = dataset.DataSetMetaData.Clone(),
-                            ExtensionFields = dataset.ExtensionFields?
-                                .ToDictionary(k => k.Key, v => v.Value),
-
                             DataSetSource = source with
                             {
                                 Connection = source.Connection.Clone(),
@@ -236,9 +234,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DataSet = dataset with
                         {
                             DataSetMetaData = dataset.DataSetMetaData.Clone(),
-                            ExtensionFields = dataset.ExtensionFields?
-                                .ToDictionary(k => k.Key, v => v.Value),
-
                             DataSetSource = source with
                             {
                                 Connection = source.Connection.Clone(),
@@ -438,8 +433,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._writerGroup.MessageSettings?.NamespaceFormat ??
                     _group._options.Value.DefaultNamespaceFormat ??
                     NamespaceFormat.Uri;
-                MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat,
-                    _writer.DataSet.ExtensionFields);
+                MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat);
+                _extensionFields = new ExtensionFields(_group._serializer,
+                    _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
                     _writer.Routing != DataSetRoutingMode.None,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
@@ -500,8 +496,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._writerGroup.MessageSettings?.NamespaceFormat ??
                     _group._options.Value.DefaultNamespaceFormat ??
                     NamespaceFormat.Uri;
-                MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat,
-                    _writer.DataSet.ExtensionFields);
+                MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat);
+                _extensionFields = new ExtensionFields(_group._serializer,
+                    _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
                     _writer.Routing != DataSetRoutingMode.None,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
@@ -885,6 +882,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DataSetWriterId = (ushort)Index,
                         MetaData = metadata,
                         Writer = _writer.Writer,
+                        ExtensionFields = _extensionFields.GetExtensionFieldData(notification),
                         WriterName = Name,
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = writerGroup,
@@ -1075,7 +1073,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {
-                        MetaData = metaData,
+                        MetaData = metaData with
+                        {
+                            Fields = _writer._extensionFields.AddMetadata(metaData.Fields)
+                        },
                         TypeName = null,
                         DataSetFieldContentFlags = fieldMask,
                         DataSetMessageContentFlags = msgMask
@@ -1089,6 +1090,179 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 private readonly DataSetWriterSubscription _writer;
             }
 
+            /// <summary>
+            /// Extension fields of the writer
+            /// </summary>
+            private sealed class ExtensionFields
+            {
+                /// <summary>
+                /// Get extension fields as configured
+                /// </summary>
+                /// <returns></returns>
+                public IReadOnlyList<ExtensionFieldModel>? Fields
+                {
+                    get
+                    {
+                        if ((_fieldMask & (DataSetFieldContentFlags.EndpointUrl |
+                                           DataSetFieldContentFlags.ApplicationUri)) == 0)
+                        {
+                            return _extensionFields;
+                        }
+                        var extensionFields = _extensionFields?.ToList() ?? new List<ExtensionFieldModel>();
+                        if ((_fieldMask & DataSetFieldContentFlags.EndpointUrl) != 0 &&
+                            !extensionFields
+                            .Any(f => f.DataSetFieldName == nameof(DataSetFieldContentFlags.EndpointUrl)))
+                        {
+                            extensionFields.Add(new ExtensionFieldModel
+                            {
+                                DataSetFieldName = nameof(DataSetFieldContentFlags.EndpointUrl),
+                                Value = "{{EndpointUrl}}",
+                                DataSetFieldDescription = "Endpoint Url of the data source."
+                            });
+                        }
+                        if ((_fieldMask & DataSetFieldContentFlags.ApplicationUri) != 0 &&
+                            !extensionFields
+                            .Any(f => f.DataSetFieldName == nameof(DataSetFieldContentFlags.ApplicationUri)))
+                        {
+                            extensionFields.Add(new ExtensionFieldModel
+                            {
+                                DataSetFieldName = nameof(DataSetFieldContentFlags.ApplicationUri),
+                                Value = "{{ApplicationUri}}",
+                                DataSetFieldDescription = "Application Uri of the data source."
+                            });
+                        }
+                        return extensionFields;
+                    }
+                }
+
+                /// <summary>
+                /// Create extension fields
+                /// </summary>
+                /// <param name="serializer"></param>
+                /// <param name="extensionFields"></param>
+                /// <param name="dataSetFieldContentMask"></param>
+                public ExtensionFields(IJsonSerializer serializer,
+                    IReadOnlyList<ExtensionFieldModel>? extensionFields,
+                    DataSetFieldContentFlags? dataSetFieldContentMask)
+                {
+                    _serializer = serializer;
+                    _fieldMask = dataSetFieldContentMask ?? 0;
+                    _extensionFields = extensionFields;
+                    _data = GenerateExtensionFieldData();
+                }
+
+                /// <summary>
+                /// Get extension field data
+                /// </summary>
+                /// <param name="notification"></param>
+                /// <returns></returns>
+                public IReadOnlyList<(string, Opc.Ua.DataValue?)> GetExtensionFieldData(
+                    OpcUaSubscriptionNotification notification)
+                {
+                    if ((_fieldMask & (DataSetFieldContentFlags.EndpointUrl |
+                                       DataSetFieldContentFlags.ApplicationUri)) == 0)
+                    {
+                        return _data;
+                    }
+                    return _data
+                        .Select(f => f.Item1 switch
+                        {
+                            nameof(DataSetFieldContentFlags.EndpointUrl) =>
+                                (f.Item1, new Opc.Ua.DataValue(notification.EndpointUrl)),
+                            nameof(DataSetFieldContentFlags.ApplicationUri) =>
+                                (f.Item1, new Opc.Ua.DataValue(notification.ApplicationUri)),
+                            _ => f
+                        })
+                        .ToList();
+                }
+
+                /// <summary>
+                /// Add extension field metadata to the end of the metadata fields
+                /// </summary>
+                /// <param name="metadataFields"></param>
+                /// <returns></returns>
+                public IReadOnlyList<PublishedFieldMetaDataModel> AddMetadata(
+                    IReadOnlyList<PublishedFieldMetaDataModel> metadataFields)
+                {
+                    var extensionFields = Fields;
+                    if (extensionFields == null || extensionFields.Count == 0)
+                    {
+                        return metadataFields;
+                    }
+                    var fields = new List<PublishedFieldMetaDataModel>(metadataFields);
+                    foreach (var field in extensionFields)
+                    {
+                        var builtInType = GetBuiltInType(field.Value);
+                        fields.Add(new PublishedFieldMetaDataModel
+                        {
+                            Flags = 0, // Set to 1 << 1 for PromotedField fields.
+                            Name = field.DataSetFieldName,
+                            Id = field.DataSetClassFieldId,
+                            Description = field.DataSetFieldDescription,
+                            ValueRank = (int)(field.Value.IsArray ?
+                                 NodeValueRank.OneDimension : NodeValueRank.Scalar),
+                            ArrayDimensions = null,
+                            MaxStringLength = 0,
+                            // If the Property is EngineeringUnits, the unit of the Field Value
+                            // shall match the unit of the FieldMetaData.
+                            Properties = null, // TODO: Add engineering units etc. to properties
+                            BuiltInType = (byte)builtInType
+                        });
+                    }
+                    return fields;
+                }
+
+                /// <summary>
+                /// Generate extension field data values
+                /// </summary>
+                /// <returns></returns>
+                private IReadOnlyList<(string, Opc.Ua.DataValue?)> GenerateExtensionFieldData()
+                {
+                    var extensionFields = Fields;
+                    if (extensionFields == null || extensionFields.Count == 0)
+                    {
+                        return Array.Empty<(string, Opc.Ua.DataValue?)>();
+                    }
+                    var extensions = new List<(string, Opc.Ua.DataValue?)>();
+                    var encoder = new JsonVariantEncoder(new Opc.Ua.ServiceMessageContext(),
+                        _serializer);
+                    foreach (var field in extensionFields)
+                    {
+                        extensions.Add((field.DataSetFieldName,
+                            new Opc.Ua.DataValue(encoder.Decode(field.Value,
+                                (Opc.Ua.BuiltInType)GetBuiltInType(field.Value)))));
+                    }
+                    return extensions;
+                }
+
+                private static byte GetBuiltInType(VariantValue value)
+                {
+                    return value.GetTypeCode() switch
+                    {
+                        TypeCode.Empty => 0,
+                        TypeCode.Boolean => 1,
+                        TypeCode.SByte => 2,
+                        TypeCode.Byte => 3,
+                        TypeCode.Int16 => 4,
+                        TypeCode.UInt16 => 5,
+                        TypeCode.Int32 => 6,
+                        TypeCode.UInt32 => 7,
+                        TypeCode.Int64 => 8,
+                        TypeCode.UInt64 => 9,
+                        TypeCode.Single => 10,
+                        TypeCode.Double => 11,
+                        TypeCode.String or TypeCode.Char => 12,
+                        TypeCode.DateTime => 13,
+                        _ => 24
+                    };
+                }
+
+                private readonly IJsonSerializer _serializer;
+                private readonly DataSetFieldContentFlags _fieldMask;
+                private readonly IReadOnlyList<ExtensionFieldModel>? _extensionFields;
+                private readonly IReadOnlyList<(string, Opc.Ua.DataValue?)> _data;
+            }
+
             private readonly WriterGroupDataSource _group;
             private readonly ILogger _logger;
             private readonly object _lock = new();
@@ -1099,6 +1273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private SubscriptionModel _template;
             private ConnectionIdentifier _connection;
             private DataSetWriter _writer;
+            private ExtensionFields _extensionFields;
             private readonly Lazy<MetaDataLoader> _metaDataLoader;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;

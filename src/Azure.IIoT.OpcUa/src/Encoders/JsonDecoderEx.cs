@@ -884,7 +884,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public IDictionary<string, string?>? ReadStringDictionary(string? property)
+        public IReadOnlyList<(string, string?)>? ReadStringDictionary(string? property)
         {
             return ReadDictionary(property, () => ReadString(null));
         }
@@ -1968,17 +1968,17 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="property"></param>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private Dictionary<string, T?>? ReadDictionary<T>(string? property,
+        private List<(string, T?)>? ReadDictionary<T>(string? property,
             Func<T?> reader)
         {
             if (!TryGetToken(property, out var token) || token is not JObject o)
             {
                 return null;
             }
-            var dictionary = new Dictionary<string, T?>();
+            var dictionary = new List<(string, T?)>();
             foreach (var p in o.Properties())
             {
-                dictionary[p.Name] = ReadToken(p.Value, reader);
+                dictionary.Add((p.Name, ReadToken(p.Value, reader)));
             }
             return dictionary;
         }

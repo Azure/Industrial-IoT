@@ -9,7 +9,9 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Xunit;
 
     public class JsonDataSetTests
@@ -119,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayTest()
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -127,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["..."] = new DataValue(new Variant("imbricated"))
-            };
+            });
 
             const int count = 10000;
             byte[] buffer;
@@ -161,10 +163,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleEntryTest()
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
-            };
+            });
 
             expected.DataSetFieldContentMask |= DataSetFieldContentFlags.SingleFieldDegradeToValue;
 
@@ -183,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             using (var decoder = new JsonDecoderEx(stream, context))
             {
                 var result = decoder.ReadDataValue(null);
-                Assert.Equal(expected["abcd"], result);
+                Assert.Equal(expected.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value, result);
             }
         }
 
@@ -191,10 +193,10 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleValueRawTest()
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
-            };
+            });
 
             expected.DataSetFieldContentMask |= DataSetFieldContentFlags.SingleFieldDegradeToValue;
             expected.DataSetFieldContentMask |= DataSetFieldContentFlags.RawData;
@@ -214,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             using (var decoder = new JsonDecoderEx(stream, context))
             {
                 var result = decoder.ReadInt32(null);
-                Assert.Equal(expected["abcd"].Value, result);
+                Assert.Equal(expected.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value, result);
             }
         }
     }

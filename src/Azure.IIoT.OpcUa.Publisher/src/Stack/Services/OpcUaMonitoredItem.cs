@@ -248,10 +248,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
-                    case ExtensionFieldItemModel efm:
-                        yield return new Field(owner, efm,
-                            factory.CreateLogger<Field>(), timeProvider);
-                        break;
                     default:
                         Debug.Fail($"Unexpected type of item {item}");
                         break;

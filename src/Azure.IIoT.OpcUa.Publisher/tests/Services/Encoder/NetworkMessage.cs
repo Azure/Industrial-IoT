@@ -251,6 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Retain = false,
                         Ttl = randomTopic ? TimeSpan.FromSeconds(Random.Shared.Next(60)) : null,
                         PublisherId = publisherId,
+                        ExtensionFields = Array.Empty<(string, DataValue)>(),
                         Schema = null,
                         Writer = writer,
                         WriterName = writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName,

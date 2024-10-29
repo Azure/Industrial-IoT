@@ -733,7 +733,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         Status = 1073741824,
                         MessageType = MessageType.KeyFrame,
                         DataSetWriterName = "Writer100",
-                        Payload = new DataSet((DataSetFieldContentFlags)fieldMask) {
+                        Payload = new DataSet(new Dictionary<string, DataValue>
+                        {
     ["Temperature"] = new DataValue(25, StatusCodes.Good,
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture)),
@@ -743,7 +744,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     ["Humidiy"] = new DataValue(42, StatusCodes.Uncertain,
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture),
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture))
-                        }
+                        }, (DataSetFieldContentFlags)fieldMask)
                     },
                     new JsonDataSetMessage {
                         DataSetMessageContentMask = PubSubMessageContentFlagHelper.StackToDataSetMessageContentFlags(datasetMask),
@@ -758,7 +759,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         Status = 1073741824,
                         MessageType = MessageType.DeltaFrame,
                         DataSetWriterName = "Writer100",
-                        Payload = new DataSet(PubSubMessageContentFlagHelper.StackToDataSetFieldContentFlags(fieldMask)) {
+                        Payload = new DataSet(new Dictionary<string, DataValue>
+                        {
     ["Temperature"] = new DataValue(26, StatusCodes.Good,
         DateTime.Parse("2021-09-27T18:45:19.556Z", CultureInfo.InvariantCulture),
         DateTime.Parse("2021-09-27T18:45:19.556Z", CultureInfo.InvariantCulture)),
@@ -768,7 +770,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     ["Humidiy"] = new DataValue(43, StatusCodes.Uncertain,
         DateTime.Parse("2021-09-27T18:45:19.556Z", CultureInfo.InvariantCulture),
         DateTime.Parse("2021-09-27T18:45:19.556Z", CultureInfo.InvariantCulture))
-                        }
+                        }, PubSubMessageContentFlagHelper.StackToDataSetFieldContentFlags(fieldMask))
                     }
                 }
             };

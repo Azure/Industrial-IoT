@@ -22,16 +22,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public bool UseCompatibilityMode { get; set; }
 
         /// <summary>
-        /// Endpoint url
-        /// </summary>
-        public string? EndpointUrl { get; set; }
-
-        /// <summary>
-        /// Application uri
-        /// </summary>
-        public string? ApplicationUri { get; set; }
-
-        /// <summary>
         /// Dataset writer name
         /// </summary>
         public string? DataSetWriterName { get; set; }
@@ -51,9 +41,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return false;
             }
-            if (!Opc.Ua.Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
-                !Opc.Ua.Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
-                !Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
+            if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterName, DataSetWriterName))
             {
                 return false;
             }
@@ -66,8 +54,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
 
-            hash.Add(EndpointUrl);
-            hash.Add(ApplicationUri);
             hash.Add(DataSetWriterName);
             return hash.ToHashCode();
         }
@@ -105,9 +91,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
                 {
-                    var status = Status ?? Payload.Values
-                        .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(s?.StatusCode ??
-                            Opc.Ua.StatusCodes.BadNoData))?.StatusCode ?? Opc.Ua.StatusCodes.Good;
+                    var status = Status ?? Payload.DataSetFields
+                        .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(s.Value?.StatusCode ??
+                            Opc.Ua.StatusCodes.BadNoData)).Value?.StatusCode ?? Opc.Ua.StatusCodes.Good;
                     if (!UseCompatibilityMode)
                     {
                         encoder.WriteUInt32(nameof(Status), status.Code);
@@ -160,31 +146,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     jsonEncoder.UseReversibleEncoding = useReversibleEncoding;
 
-                    if ((Payload.DataSetFieldContentMask & (DataSetFieldContentFlags.EndpointUrl |
-                                                            DataSetFieldContentFlags.ApplicationUri)) != 0)
-                    {
-                        var extraFields = Enumerable.Empty<KeyValuePair<string, Opc.Ua.DataValue?>>();
-                        if ((Payload.DataSetFieldContentMask & DataSetFieldContentFlags.EndpointUrl) != 0 &&
-                            !Payload.ContainsKey(nameof(EndpointUrl)) &&
-                            !string.IsNullOrWhiteSpace(EndpointUrl))
-                        {
-                            extraFields = extraFields.Append(KeyValuePair.Create<string, Opc.Ua.DataValue?>(
-                                nameof(EndpointUrl), new Opc.Ua.DataValue(EndpointUrl)));
-                        }
-                        if ((Payload.DataSetFieldContentMask & DataSetFieldContentFlags.ApplicationUri) != 0 &&
-                            !Payload.ContainsKey(nameof(ApplicationUri)) &&
-                            !string.IsNullOrWhiteSpace(ApplicationUri))
-                        {
-                            extraFields = extraFields.Append(KeyValuePair.Create<string, Opc.Ua.DataValue?>(
-                                nameof(ApplicationUri), new Opc.Ua.DataValue(ApplicationUri)));
-                        }
-                        jsonEncoder.WriteDataSet(propertyName, Payload, extraFields);
-                    }
-                    else
-                    {
-                        // if propertyname is null we are already inside the object
-                        jsonEncoder.WriteDataSet(propertyName, Payload);
-                    }
+                    // if propertyname is null we are already inside the object
+                    jsonEncoder.WriteDataSet(propertyName, Payload);
                 }
                 finally
                 {
