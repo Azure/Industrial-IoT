@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
     using System;
-    using System.Collections.Frozen;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
@@ -177,8 +176,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
 
             Initialize();
-            _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
@@ -227,8 +224,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
 
             Initialize();
-            _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
@@ -260,8 +255,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Initialize();
 
-            _timer = _timeProvider.CreateTimer(_ => TriggerManageSubscription(), null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
@@ -386,7 +379,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _disposed = true;
                     _keepAliveWatcher.Dispose();
                     _monitoredItemWatcher.Dispose();
-                    _timer.Dispose();
                     _meter.Dispose();
 
                     Handle = null;
@@ -637,13 +629,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        internal async ValueTask SyncAsync(uint? maxMonitoredItemsPerSubscription,
+        internal async ValueTask<TimeSpan> SyncAsync(uint? maxMonitoredItemsPerSubscription,
             OperationLimitsModel limits, CancellationToken ct)
         {
             Debug.Assert(IsRoot);
             if (_disposed)
             {
-                return;
+                throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
+                    "Subscription was disposed.");
             }
 
             var maxMonitoredItems = maxMonitoredItemsPerSubscription ?? 0u;
@@ -654,87 +647,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             Debug.Assert(Session != null);
-            if (Session is not OpcUaSession session || !session.Connected)
+            if (Session is not OpcUaSession session)
             {
-                _logger.LogError(
-                    "Session {Session} for {Subscription} not connected.",
-                    Session, this);
-                _timer.Change(Delay(_createSessionTimeout, TimeSpan.FromSeconds(10)),
-                    Timeout.InfiniteTimeSpan);
-                return;
+                throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
+                    "Session not of expected type.");
             }
-            try
+
+            var retryDelay = Timeout.InfiniteTimeSpan;
+
+            // Force recreate all subscriptions in the chain if needed
+            await ForceRecreateIfNeededAsync(session).ConfigureAwait(false);
+
+            // Parition the monitored items across subscriptions
+            var partitions = Partition.Create(_client.GetSubscribers(Template),
+                maxMonitoredItems, _options.Value);
+
+            var subscriptionPartition = this; // The root is the default
+            for (var partitionIdx = 0; partitionIdx < partitions.Count; partitionIdx++)
             {
-                var retryDelay = Timeout.InfiniteTimeSpan;
-                _timer.Change(retryDelay, Timeout.InfiniteTimeSpan);
+                // Synchronize the subscription of this partition
+                await subscriptionPartition.SynchronizeSubscriptionAsync(
+                    ct).ConfigureAwait(false);
 
-                // Force recreate all subscriptions in the chain if needed
-                await ForceRecreateIfNeededAsync(session).ConfigureAwait(false);
-
-                // Parition the monitored items across subscriptions
-                var partitions = Partition.Create(_client.GetSubscribers(Template),
-                    maxMonitoredItems, _options.Value);
-
-                var subscriptionPartition = this; // The root is the default
-                for (var partitionIdx = 0; partitionIdx < partitions.Count; partitionIdx++)
+                // Add partitioned items
+                var partition = partitions[partitionIdx];
+                var delay = await subscriptionPartition.SynchronizeMonitoredItemsAsync(
+                    partition, limits, ct).ConfigureAwait(false);
+                if (retryDelay > delay)
                 {
-                    // Synchronize the subscription of this partition
-                    await subscriptionPartition.SynchronizeSubscriptionAsync(
-                        ct).ConfigureAwait(false);
-
-                    // Add partitioned items
-                    var partition = partitions[partitionIdx];
-                    var delay = await subscriptionPartition.SynchronizeMonitoredItemsAsync(
-                        partition, limits, ct).ConfigureAwait(false);
-                    if (retryDelay > delay)
-                    {
-                        retryDelay = delay;
-                    }
-
-                    if (partitionIdx == partitions.Count - 1)
-                    {
-                        break;
-                    }
-
-                    // Get or create a child subscription
-                    subscriptionPartition = subscriptionPartition.GetChildSubscription(true);
-                    if (subscriptionPartition == null)
-                    {
-                        throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
-                            "Failed to create child subscription.");
-                    }
+                    retryDelay = delay;
                 }
 
-                //
-                // subscription now is the tail or head subscription. We remove
-                // all child subscriptions below it as they are not needed anymore.
-                //
-                var tail = subscriptionPartition;
-                while (tail != null)
+                if (partitionIdx == partitions.Count - 1)
                 {
-                    tail = tail.GetChildSubscription();
-                    if (tail != null)
-                    {
-                        await tail.DisposeAsync().ConfigureAwait(false);
-                    }
+                    break;
                 }
-                // Snip off here
-                subscriptionPartition._childId = null;
 
-                // Force finalize all subscriptions in the (new) chain if needed
-                await FinalizeSyncAsync(ct).ConfigureAwait(false);
-
-                _timer.Change(retryDelay, Timeout.InfiniteTimeSpan);
+                // Get or create a child subscription
+                subscriptionPartition = subscriptionPartition.GetChildSubscription(true);
+                if (subscriptionPartition == null)
+                {
+                    throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
+                        "Failed to create child subscription.");
+                }
             }
-            catch (Exception e)
+
+            //
+            // subscription now is the tail or head subscription. We remove
+            // all child subscriptions below it as they are not needed anymore.
+            //
+            var tail = subscriptionPartition;
+            while (tail != null)
             {
-                _logger.LogError(e,
-                    "Failed to apply state to Subscription {Subscription} in session {Session}...",
-                    this, Session);
-                // Retry in 1 minute if not automatically retried
-                _timer.Change(Delay(_options.Value.SubscriptionErrorRetryDelay,
-                    kDefaultErrorRetryDelay), Timeout.InfiniteTimeSpan);
+                tail = tail.GetChildSubscription();
+                if (tail != null)
+                {
+                    await tail.DisposeAsync().ConfigureAwait(false);
+                }
             }
+            // Snip off here
+            subscriptionPartition._childId = null;
+
+            // Force finalize all subscriptions in the (new) chain if needed
+            await FinalizeSyncAsync(ct).ConfigureAwait(false);
+
+            return retryDelay;
         }
 
         /// <summary>
@@ -1730,34 +1707,6 @@ Actual (revised) state/desired state:
         }
 
         /// <summary>
-        /// Trigger managing of this subscription, ensure client exists if it is null
-        /// </summary>
-        private void TriggerManageSubscription()
-        {
-            Debug.Assert(IsRoot);
-
-            if (IsClosed)
-            {
-                return;
-            }
-
-            // Execute creation/update on the session management thread inside the client
-
-            if (IsOnline)
-            {
-                _logger.LogInformation("Trigger management of subscription {Subscription}...",
-                    this);
-            }
-            else
-            {
-                _logger.LogDebug("Trigger management of offline subscription {Subscription}...",
-                    this);
-            }
-
-            _client.TriggerSubscriptionSynchronization(this);
-        }
-
-        /// <summary>
         /// Send notification
         /// </summary>
         /// <param name="callback"></param>
@@ -2428,7 +2377,6 @@ Actual (revised) state/desired state:
                 case SubscriptionWatchdogBehavior.Reset:
                     ResetMonitoredItemWatchdogTimer(false);
                     _forceRecreate = true;
-                    TriggerManageSubscription();
                     break;
                 case SubscriptionWatchdogBehavior.FailFast:
                     Publisher.Runtime.FailFast(msg, null);
@@ -2767,7 +2715,6 @@ Actual (revised) state/desired state:
         }
 
         private const int kMaxMonitoredItemPerSubscriptionDefault = 64 * 1024;
-        private static readonly TimeSpan kDefaultErrorRetryDelay = TimeSpan.FromMinutes(1);
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
@@ -2781,7 +2728,6 @@ Actual (revised) state/desired state:
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
-        private readonly ITimer _timer;
         private readonly ITimer _keepAliveWatcher;
         private readonly ITimer _monitoredItemWatcher;
         private readonly TimeProvider _timeProvider;

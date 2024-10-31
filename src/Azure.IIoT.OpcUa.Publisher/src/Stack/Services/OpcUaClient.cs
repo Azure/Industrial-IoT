@@ -283,6 +283,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _disconnectLock = _lock.WriterLock(_cts.Token);
             _channelMonitor = _timeProvider.CreateTimer(_ => OnUpdateConnectionDiagnostics(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _resyncTimer = _timeProvider.CreateTimer(_ => TriggerSubscriptionSynchronization(),
+                null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _diagnosticsDumper = !DumpDiagnostics ? null :
                 DumpDiagnosticsPeriodicallyAsync(_cts.Token);
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
@@ -476,9 +478,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
-                _subscriptionLock.Dispose();
                 _channelMonitor.Dispose();
+                _resyncTimer.Dispose();
                 _cts.Dispose();
+                _subscriptionLock.Dispose();
             }
         }
 
@@ -911,10 +914,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.SubscriptionSyncAll:
-                                    if (_session != null)
-                                    {
-                                        await SyncAsync(ct).ConfigureAwait(false);
-                                    }
+                                    await SyncAsync(ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
                                     switch (currentSessionState)

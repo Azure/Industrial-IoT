@@ -40,6 +40,8 @@ param(
    [switch] $NoCleanup
 )
 
+#Requires -RunAsAdministrator
+
 $eflowMsiUri = "https://aka.ms/AzEFLOWMSI_1_4_LTS_X64"
 
 $ErrorActionPreference = "Stop"
