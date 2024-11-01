@@ -1,10 +1,11 @@
 
 <#
    .SYNOPSIS
-      Setup Kind and connect cluster to Arc (must run as admin)
+      Setup local AIO cluster and connect to Arc (must run as admin)
    .DESCRIPTION
-      Setup Kind and connect cluster to Arc. This script will install
-      kind required dependencies and connect it to the cloud via Arc.
+      Setup local AIO cluster and connect to Arc. This script installs
+      the cluster type chosen and all other required dependencies and
+      connect it to the cloud via Arc. Then it will install AIO on it.
    .NOTES
       DO NOT USE FOR PRODUCTION SYSTEMS. This script is intended for
       development and testing purposes only.
@@ -33,6 +34,10 @@ param(
     [switch] $Force
 )
 
+$forceReinstall = $Force.IsPresent
+$forceReinstall = $true
+$TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18"
+
 #Requires -RunAsAdministrator
 
 $ErrorActionPreference = 'Stop'
@@ -42,10 +47,6 @@ if (! [Environment]::Is64BitProcess) {
    Write-Host "Error: Run this in 64bit Powershell session" -ForegroundColor Red
    exit -1
 }
-
-$forceReinstall = $Force.IsPresent
-$forceReinstall = $true
-$TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18"
 
 if ([string]::IsNullOrWhiteSpace($ResourceGroup)) {
    $ResourceGroup = $Name
@@ -153,13 +154,14 @@ $TenantId = $session.tenantId
 # Create the cluster
 #
 if ($ClusterType -eq "k3d") {
-    $errOut = $($clusters = & {k3d cluster list --no-headers} -split "`n") 2>&1
-    if (($clusters -contains $Name) -and (!$forceReinstall)) {
-        Write-Host "Cluster $Name exists..." -ForegroundColor Green
-    }
-    elseif ($LASTEXITCODE -ne 0) {
+    $errOut = $($table = & {k3d cluster list --no-headers} -split "`n") 2>&1
+    if ($LASTEXITCODE -ne 0) {
         Write-Host "Error querying k3d clusters - $errOut" -ForegroundColor Red
         exit -1
+    }
+    $clusters = $table | ForEach-Object { $($_ -split " ")[0].Trim() }
+    if (($clusters -contains $Name) -and (!$forceReinstall)) {
+        Write-Host "Cluster $Name exists..." -ForegroundColor Green
     }
     else {
         foreach ($cluster in $clusters) {
@@ -174,10 +176,10 @@ if ($ClusterType -eq "k3d") {
         Write-Host "Creating k3d cluster $Name..." -ForegroundColor Cyan
 
         k3d cluster create $Name `
-            --agents 1 `
+            --agents 4 `
             --agents-memory 4m `
-            --servers 4 `
-            --servers-memory 4m `
+            --servers 1 `
+            --servers-memory 8m `
             --wait
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red
