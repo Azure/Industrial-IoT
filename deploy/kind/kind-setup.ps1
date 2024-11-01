@@ -307,7 +307,12 @@ else {
     Write-Host "Error: Unsupported cluster type $ClusterType" -ForegroundColor Red
     exit -1
 }
-kubectl get nodes
+$errOut = $($stdout = & {kubectl get nodes}) 2>&1
+if ($LASTEXITCODE -ne 0) {
+    $stdout | Out-Host
+    throw "Cluster not reachable : $errOut"
+}
+$stdout | Out-Host
 
 
 Write-Host "Registering the required resource providers..." -ForegroundColor Cyan
