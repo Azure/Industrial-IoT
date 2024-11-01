@@ -10,6 +10,9 @@ ExpandAndCreateOrUpdateDataSetWriterEntries
         "OpcNodes": [
             { "Id": "nsu=http://opcfoundation.org/UA/Machinery/;i=1001" }
         ]
+    },
+    "request": {
+        "flattenTypeInstance": true
     }
 }
 

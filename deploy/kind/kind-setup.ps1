@@ -29,7 +29,7 @@ param(
     [string] $TenantId,
     [string] $SubscriptionId,
     [string] $Location,
-    [string] [ValidateSet("kind", "minikube")] $ClusterType = "kind",
+    [string] [ValidateSet("kind", "minikube", "k3d")] $ClusterType = "minikube",
     [switch] $Force
 )
 
@@ -93,7 +93,7 @@ az config set extension.dynamic_install_allow_preview=true 2>&1 | Out-Null
 $extensions  =
 @(
     "connectedk8s",
-    # "azure-iot-ops",
+    "azure-iot-ops",
     "k8s-configuration"
 )
 foreach ($p in $extensions) {
@@ -134,7 +134,7 @@ foreach($p in $packages) {
 }
 
 #
-# Log into azure and register providers
+# Log into azure
 #
 Write-Host "Log into Azure..." -ForegroundColor Cyan
 $loginparams = @()
@@ -148,6 +148,166 @@ if (-not $session) {
 }
 $SubscriptionId = $session.id
 $TenantId = $session.tenantId
+
+#
+# Create the cluster
+#
+if ($ClusterType -eq "k3d") {
+    $errOut = $($clusters = & {k3d cluster list --no-headers} -split "`n") 2>&1
+    if (($clusters -contains $Name) -and (!$forceReinstall)) {
+        Write-Host "Cluster $Name exists..." -ForegroundColor Green
+    }
+    elseif ($LASTEXITCODE -ne 0) {
+        Write-Host "Error querying k3d clusters - $errOut" -ForegroundColor Red
+        exit -1
+    }
+    else {
+        foreach ($cluster in $clusters) {
+            if (!$forceReinstall) {
+                if ($(Read-Host "Delete existing cluster $cluster? [Y/N]") -ne "Y") {
+                    continue
+                }
+            }
+            Write-Host "Deleting existing cluster $cluster..." -ForegroundColor Yellow
+            k3d cluster delete $cluster 2>&1 | Out-Null
+        }
+        Write-Host "Creating k3d cluster $Name..." -ForegroundColor Cyan
+
+        k3d cluster create $Name `
+            --agents 1 `
+            --agents-memory 4m `
+            --servers 4 `
+            --servers-memory 4m `
+            --wait
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red
+            exit -1
+        }
+        Write-Host "Cluster created..." -ForegroundColor Green
+    }
+}
+elseif ($ClusterType -eq "minikube") {
+    $errOut = $($clusters = & {minikube profile list -o json} | ConvertFrom-Json) 2>&1
+    if (($clusters.valid.Name -contains $Name) -and (!$forceReinstall)) {
+        Write-Host "Valid minikube cluster $Name exists..." -ForegroundColor Green
+        # Start the cluster
+        if ($stat.Host -Contains "Stopped" -or
+            $stat.APIServer -Contains "Stopped"-or
+            $stat.Kubelet -Contains "Stopped") {
+            Write-Host "Minikube cluster $Name stopped. Starting..." -ForegroundColor Cyan
+            minikube start -p $Name
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Error starting minikube cluster." -ForegroundColor Red
+                minikube logs --file=$($Name).log
+                exit -1
+            }
+            Write-Host "Minikube cluster $Name started." -ForegroundColor Green
+        }
+        else {
+            Write-Host "Minikube cluster $Name running." -ForegroundColor Green
+        }
+    }
+    elseif ($LASTEXITCODE -ne 0) {
+        Write-Host "Error querying minikube clusters - $errOut" -ForegroundColor Red
+        exit -1
+    }
+    else {
+        if ($forceReinstall) {
+            Write-Host "Deleting other clusters..." -ForegroundColor Yellow
+            minikube delete --all --purge
+        }
+        elseif ($clusters.invalid.Name -contains $Name) {
+            Write-Host "Delete bad minikube cluster $Name..." -ForegroundColor Yellow
+            minikube delete -p $Name
+        }
+        Write-Host "Creating new minikube cluster $Name..." -ForegroundColor Cyan
+
+        if (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All) {
+            Write-Host "Hyper-V is enabled..." -ForegroundColor Green
+        }
+        else {
+            Write-Host "Enabling Hyper-V..." -ForegroundColor Cyan
+            $hv = Enable-WindowsOptionalFeature -Online `
+                -FeatureName Microsoft-Hyper-V-All
+            if ($hv.RestartNeeded) {
+                Write-Host "Restarting..." -ForegroundColor Yellow
+                Restart-Computer -Force
+            }
+        }
+
+        if (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Management-PowerShell) {
+            Write-Host "Hyper-V commands installed..." -ForegroundColor Green
+        }
+        else {
+            $hv = Enable-WindowsOptionalFeature -Online `
+                -FeatureName Microsoft-Hyper-V-Management-PowerShell
+            if ($hv.RestartNeeded) {
+                Write-Host "Restarting..." -ForegroundColor Yellow
+                Restart-Computer -Force
+            }
+        }
+
+        & {minikube start -p $Name --cpus=4 --memory=4096 --nodes=4 --driver=hyperv}
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Error creating minikube cluster - $errOut" -ForegroundColor Red
+            minikube logs --file=$($Name).log
+            exit -1
+        }
+        Write-Host "Cluster created..." -ForegroundColor Green
+    }
+}
+elseif ($ClusterType -eq "kind") {
+    $errOut = $($clusters = & {kind get clusters} -split "`n") 2>&1
+    if (($clusters -contains $Name) -and (!$forceReinstall)) {
+        Write-Host "Cluster $Name exists..." -ForegroundColor Green
+    }
+    elseif ($LASTEXITCODE -ne 0) {
+        Write-Host "Error querying kind clusters - $errOut" -ForegroundColor Red
+        exit -1
+    }
+    else {
+        foreach ($cluster in $clusters) {
+            if (!$forceReinstall) {
+                if ($(Read-Host "Delete existing cluster $cluster? [Y/N]") -ne "Y") {
+                    continue
+                }
+            }
+            Write-Host "Deleting existing cluster $cluster..." -ForegroundColor Yellow
+            kind delete cluster --name $cluster 2>&1 | Out-Null
+        }
+        Write-Host "Creating kind cluster $Name..." -ForegroundColor Cyan
+
+        $clusterConfig = @"
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    listenAddress: "127.0.0.1"
+- role: worker
+- role: worker
+- role: worker
+- role: worker
+- role: worker
+"@
+        $clusterConfig -replace "`r`n", "`n" `
+            | kind create cluster --name $Name --config -
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Error creating kind cluster - $errOut" -ForegroundColor Red
+            exit -1
+        }
+        Write-Host "Cluster created..." -ForegroundColor Green
+    }
+}
+else {
+    Write-Host "Error: Unsupported cluster type $ClusterType" -ForegroundColor Red
+    exit -1
+}
+kubectl get nodes
+
+
 Write-Host "Registering the required resource providers..." -ForegroundColor Cyan
 $resourceProviders =
 @(
@@ -203,71 +363,8 @@ if (!$rg) {
     Write-Host "Resource group $($rg.id) created." -ForegroundColor Green
 }
 else {
-    Write-Host "Resource group $($rg.id) exists." -ForegroundColor Yellow
+    Write-Host "Resource group $($rg.id) exists." -ForegroundColor Green
 }
-
-#
-# Create the cluster
-#
-if ($ClusterType -eq "minikube") {
-    Write-Host "Creating minikube cluster $Name..." -ForegroundColor Cyan
-    minikube start --driver=hyperv --hyperv-virtual-switch "minikube" --memory=4096
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Error creating minikube cluster - $errOut" -ForegroundColor Red
-        exit -1
-    }
-    Write-Host "Cluster created..." -ForegroundColor Green
-}
-elseif ($ClusterType -eq "kind") {
-    $errOut = $($clusters = & {kind get clusters} -split "`n") 2>&1
-    if (($clusters -contains $Name) -and (!$forceReinstall)) {
-        Write-Host "Cluster $Name already exists..." -ForegroundColor Yellow
-    }
-    elseif ($LASTEXITCODE -ne 0) {
-        Write-Host "Error querying kind clusters - $errOut" -ForegroundColor Red
-        exit -1
-    }
-    else {
-        foreach ($cluster in $clusters) {
-            if (!$forceReinstall) {
-                if ($(Read-Host "Delete existing cluster $cluster? [Y/N]") -ne "Y") {
-                    continue
-                }
-            }
-            Write-Host "Deleting existing cluster $cluster..." -ForegroundColor Cyan
-            kind delete cluster --name $cluster 2>&1 | Out-Null
-        }
-        Write-Host "Creating kind cluster $Name..." -ForegroundColor Cyan
-
-        $clusterConfig = @"
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    listenAddress: "127.0.0.1"
-- role: worker
-- role: worker
-- role: worker
-- role: worker
-- role: worker
-"@
-        $clusterConfig -replace "`r`n", "`n" `
-            | kind create cluster --name $Name --config -
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Error creating kind cluster - $errOut" -ForegroundColor Red
-            exit -1
-        }
-        Write-Host "Cluster created..." -ForegroundColor Green
-    }
-}
-else {
-    Write-Host "Error: Unsupported cluster type $ClusterType" -ForegroundColor Red
-    exit -1
-}
-kubectl get nodes
 
 #
 # Create Azure resources
@@ -292,7 +389,7 @@ if (!$mi) {
     Write-Host "Managed identity $($mi.id) created." -ForegroundColor Green
 }
 else {
-    Write-Host "Managed identity $($mi.id) exists." -ForegroundColor Yellow
+    Write-Host "Managed identity $($mi.id) exists." -ForegroundColor Green
 }
 
 # Storage account
@@ -315,10 +412,10 @@ if (!$stg) {
             -ForegroundColor Red
         exit -1
     }
-    Write-Host "Storage account $($stg.id) created..." -ForegroundColor Green
+    Write-Host "Storage account $($stg.id) created." -ForegroundColor Green
 }
 else {
-    Write-Host "Storage account $($stg.id) exists." -ForegroundColor Yellow
+    Write-Host "Storage account $($stg.id) exists." -ForegroundColor Green
 }
 
 # Keyvault
@@ -350,7 +447,7 @@ if (!$kv) {
     Write-Host "Key vault $($kv.id) created..." -ForegroundColor Green
 }
 else {
-    Write-Host "Key vault $($kv.id) exists." -ForegroundColor Yellow
+    Write-Host "Key vault $($kv.id) exists." -ForegroundColor Green
 }
 
 # Azure IoT Operations schema registry
@@ -378,7 +475,7 @@ if (!$sr) {
 }
 else {
     Write-Host "Azure IoT Operations schema registry $($sr.id) exists." `
-        -ForegroundColor Yellow
+        -ForegroundColor Green
 }
 
 #
@@ -423,7 +520,7 @@ if (!$cc -or $forceReinstall) {
     Write-Host "Cluster $Name connected to Arc." -ForegroundColor Green
 }
 else {
-    Write-Host "Cluster $($cc.name) already connected." -ForegroundColor Yellow
+    Write-Host "Cluster $($cc.name) already connected." -ForegroundColor Green
 }
 
 $errOut = $($iotops = & {az iot ops show `
@@ -503,7 +600,7 @@ if (!$mia) {
 }
 else {
     Write-Host "Managed identity $($mi.id) already assigned to $($iotops.id)." `
-        -ForegroundColor Yellow
+        -ForegroundColor Green
 }
 
 $errOut = $($ss = & {az iot ops secretsync show `
@@ -529,7 +626,7 @@ if (!$ss) {
 }
 else {
     Write-Host "Secret sync with $(kv.id) already enabled in $($iotops.id)." `
-        -ForegroundColor Yellow
+        -ForegroundColor Green
 }
 
 exit 0
