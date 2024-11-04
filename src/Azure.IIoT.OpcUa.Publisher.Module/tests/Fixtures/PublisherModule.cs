@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var register = ClientContainer.Resolve<IEventRegistration<IIoTHubTelemetryHandler>>();
                 _telemetry = new IoTHubTelemetryHandler();
                 _handler1 = register.Register(_telemetry);
-                Target = HubResource.Format(null, device.Id, device.ModuleId);
+                Target = Furly.Azure.HubResource.Format(null, device.Id, device.ModuleId);
             }
             else
             {

@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
 
             _config = configBuilder.Build();
             _ = Server; // Ensure server is created
-            Target = HubResource.Format(null, device.Id, device.ModuleId);
+            Target = Furly.Azure.HubResource.Format(null, device.Id, device.ModuleId);
         }
 
         /// <inheritdoc/>

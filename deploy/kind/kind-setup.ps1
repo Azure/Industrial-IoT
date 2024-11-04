@@ -30,7 +30,7 @@ param(
     [string] $TenantId,
     [string] $SubscriptionId,
     [string] $Location,
-    [string] [ValidateSet("kind", "minikube", "k3d")] $ClusterType = "minikube",
+    [string] [ValidateSet("kind", "minikube", "k3d")] $ClusterType = "k3d",
     [switch] $Force
 )
 
@@ -123,9 +123,11 @@ $packages  =
 @(
     "kubernetes-cli",
     "kubernetes-helm",
-    "k9s",
-    $ClusterType
+    "k9s"
 )
+if ($ClusterType -ne "none") {
+    $packages += $ClusterType
+}
 foreach($p in $packages) {
     $errOut = $($stdout = & {choco install $p --yes}) 2>&1
     if ($LASTEXITCODE -ne 0) {
@@ -153,7 +155,10 @@ $TenantId = $session.tenantId
 #
 # Create the cluster
 #
-if ($ClusterType -eq "k3d") {
+if ($ClusterType -eq "none") {
+    Write-Host "Skipping cluster creation..." -ForegroundColor Green
+}
+elseif ($ClusterType -eq "k3d") {
     $errOut = $($table = & {k3d cluster list --no-headers} -split "`n") 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error querying k3d clusters - $errOut" -ForegroundColor Red
@@ -176,10 +181,8 @@ if ($ClusterType -eq "k3d") {
         Write-Host "Creating k3d cluster $Name..." -ForegroundColor Cyan
 
         k3d cluster create $Name `
-            --agents 4 `
-            --agents-memory 4m `
-            --servers 1 `
-            --servers-memory 8m `
+            --agents 3 `
+            --servers 3 `
             --wait
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red
@@ -307,6 +310,7 @@ else {
     Write-Host "Error: Unsupported cluster type $ClusterType" -ForegroundColor Red
     exit -1
 }
+
 $errOut = $($stdout = & {kubectl get nodes}) 2>&1
 if ($LASTEXITCODE -ne 0) {
     $stdout | Out-Host
