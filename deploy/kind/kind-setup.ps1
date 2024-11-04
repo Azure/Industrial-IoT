@@ -541,6 +541,16 @@ $errOut = $($iotops = & {az iot ops show `
 if (!$iotops) {
     Write-Host "Initializing cluster $Name for deployment of Azure IoT operations..." `
         -ForegroundColor Cyan
+
+    # install latest container storage
+    az k8s-extension create `
+        --cluster $Name `
+        --resource-group $ResourceGroup `
+        --subscription $SubscriptionId `
+        --name azure-arc-containerstorage `
+        --cluster-type connectedclusters `
+        --extension-type microsoft.arc.containerstorage
+
     az iot ops init `
         --cluster $Name `
         --resource-group $ResourceGroup `
