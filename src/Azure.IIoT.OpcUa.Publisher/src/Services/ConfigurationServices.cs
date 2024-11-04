@@ -877,7 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Node that should be expanded
             /// </summary>
-            private record class NodeToExpand
+            private class NodeToExpand
             {
                 public IEnumerable<ServiceResultModel> ErrorInfos => _errorInfos;
 
@@ -1052,11 +1052,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// The object to expand
             /// </summary>
-            /// <param name="ObjectFromBrowse"></param>
-            /// <param name="OriginalNode"></param>
-            private record class ObjectToExpand(BrowseFrame ObjectFromBrowse,
-                NodeToExpand OriginalNode)
+            private class ObjectToExpand
             {
+                public BrowseFrame ObjectFromBrowse { get; }
+                public NodeToExpand OriginalNode { get; }
+
+                /// <summary>
+                /// Create object to expand
+                /// </summary>
+                /// <param name="objectFromBrowse"></param>
+                /// <param name="originalNode"></param>
+                public ObjectToExpand(BrowseFrame objectFromBrowse,
+                    NodeToExpand originalNode)
+                {
+                    ObjectFromBrowse = objectFromBrowse;
+                    OriginalNode = originalNode;
+                }
+
                 public bool EntriesAlreadyReturned { get; internal set; }
 
                 public bool ContainsVariables => _variables.Count > 0;

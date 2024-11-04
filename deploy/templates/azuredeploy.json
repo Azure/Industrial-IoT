@@ -288,9 +288,9 @@
                 "description": "The Azure IoT Hub default message retention in days."
             }
         },
-        "ioTHubSharedAccessKeyEnabled": {
+        "iotHubSharedAccessKeyEnabled": {
             "type": "bool",
-            "defaultValue": "[not(parameters('enableRbacAuthorization'))]",
+            "defaultValue": true,
             "metadata": {
                 "description": "Whether to use shared access key instead of RBAC access via managed identity."
             }
@@ -585,7 +585,7 @@
             "comments": "And assign access to IoT Hub to our managed identity.",
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
-            "condition": "[not(parameters('ioTHubSharedAccessKeyEnabled'))]",
+            "condition": "[not(parameters('iotHubSharedAccessKeyEnabled'))]",
             "name": "[variables('iotHubRoleAssignment')]",
             "scope": "[variables('iotHubResourceId')]",
             "properties": {
@@ -603,7 +603,7 @@
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
             "name": "[variables('iotHubPrincipalRoleAssignment')]",
-            "condition": "[and(not(parameters('ioTHubSharedAccessKeyEnabled')), not(empty(parameters('userPrincipalId'))))]",
+            "condition": "[and(not(parameters('iotHubSharedAccessKeyEnabled')), not(empty(parameters('userPrincipalId'))))]",
             "scope": "[variables('keyVaultResourceId')]",
             "properties": {
                 "roleDefinitionId": "[variables('iotHubContributorRoleId')]",
@@ -806,7 +806,7 @@
                             },
                             {
                                 "key": "PCS_IOTHUB_CONNSTRING",
-                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, if(parameters('ioTHubSharedAccessKeyEnabled'), concat(';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey), ''))]"
+                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, if(parameters('iotHubSharedAccessKeyEnabled'), concat(';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey), ''))]"
                             },
                             {
                                 "key": "PCS_STORAGE_CONNSTRING",

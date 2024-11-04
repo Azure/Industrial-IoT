@@ -35,7 +35,7 @@ param(
 )
 
 $forceReinstall = $Force.IsPresent
-$forceReinstall = $true
+#$forceReinstall = $true
 $TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18"
 
 #Requires -RunAsAdministrator
@@ -544,9 +544,10 @@ if (!$iotops) {
     az iot ops init `
         --cluster $Name `
         --resource-group $ResourceGroup `
-        --ensure-latest `
         --subscription $SubscriptionId `
-        --enable-fault-tolerance
+        --ensure-latest `
+        --enable-fault-tolerance false `
+        --only-show-errors
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error initializing cluster $Name for Azure IoT Operations." `
             -ForegroundColor Red
@@ -558,12 +559,13 @@ if (!$iotops) {
     az iot ops create `
         --cluster $Name `
         --resource-group $ResourceGroup `
+        --subscription $SubscriptionId `
         --name $Name `
         --location $Location `
         --sr-resource-id $sr.id `
         --enable-rsync true `
         --add-insecure-listener true `
-        --subscription $SubscriptionId
+        --only-show-errors
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error creating Azure IoT Operations instance - $errOut." `
             -ForegroundColor Red
