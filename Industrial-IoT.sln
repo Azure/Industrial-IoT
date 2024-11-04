@@ -52,6 +52,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Testing.Servers", "src\Azure.IIoT.OpcUa.Publisher.Testing\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj", "{01D62553-CDEF-402D-955F-AC139471F522}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Client", "src\Azure.IIoT.OpcUa.Client\src\Azure.IIoT.OpcUa.Client.csproj", "{1B941FA3-BDB4-4812-85E3-E645E485E5CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -212,6 +214,14 @@ Global
 		{01D62553-CDEF-402D-955F-AC139471F522}.Release|Any CPU.Build.0 = Release|Any CPU
 		{01D62553-CDEF-402D-955F-AC139471F522}.Release|x64.ActiveCfg = Release|Any CPU
 		{01D62553-CDEF-402D-955F-AC139471F522}.Release|x64.Build.0 = Release|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Debug|x64.Build.0 = Debug|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Release|x64.ActiveCfg = Release|Any CPU
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -236,6 +246,7 @@ Global
 		{AEF6F8B9-42FC-4435-8B20-3EE71657EB9D} = {E68AE69D-D585-4FFA-A820-5D1636E9656E}
 		{ECD27F89-55D1-4B84-AF20-7CEEFC5FCE76} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
 		{01D62553-CDEF-402D-955F-AC139471F522} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
+		{1B941FA3-BDB4-4812-85E3-E645E485E5CB} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}
