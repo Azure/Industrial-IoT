@@ -227,7 +227,7 @@ namespace Opc.Ua.Client.ComplexTypes
         {
             var attributeType = typeof(DataMemberAttribute);
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes);
-            var builder = new CustomAttributeBuilder(
+            return new CustomAttributeBuilder(
                 ctorInfo,
                 Array.Empty<object>(),  // constructor arguments
                 new[]           // properties to assign
@@ -242,7 +242,6 @@ namespace Opc.Ua.Client.ComplexTypes
                     isRequired,
                     order
                 });
-            return builder;
         }
 
         /// <summary>
@@ -253,7 +252,7 @@ namespace Opc.Ua.Client.ComplexTypes
         {
             var attributeType = typeof(DataContractAttribute);
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes);
-            var builder = new CustomAttributeBuilder(
+            return new CustomAttributeBuilder(
                 ctorInfo,
                 Array.Empty<object>(),  // constructor arguments
                 new[]           // properties to assign
@@ -264,7 +263,6 @@ namespace Opc.Ua.Client.ComplexTypes
                 {
                     Namespace
                 });
-            return builder;
         }
 
         /// <summary>

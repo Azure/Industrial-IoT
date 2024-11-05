@@ -32,6 +32,7 @@ namespace Opc.Ua.Client.ComplexTypes
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Serialization;
@@ -42,8 +43,7 @@ namespace Opc.Ua.Client.ComplexTypes
     /// The base class for all complex types.
     /// </summary>
     public class BaseComplexType :
-        IEncodeable, IFormattable, ICloneable,
-        IComplexTypeProperties,
+        IEncodeable, IFormattable,
         IStructureTypeInfo
     {
         /// <summary>
@@ -69,23 +69,6 @@ namespace Opc.Ua.Client.ComplexTypes
         public BaseComplexType(ExpandedNodeId typeId)
         {
             TypeId = typeId;
-        }
-
-        [OnSerializing()]
-        private void UpdateContext(StreamingContext context)
-        {
-            m_context = MessageContextExtension.CurrentContext;
-        }
-
-        /// <summary>
-        /// Initializes the object during deserialization.
-        /// </summary>
-        /// <param name="context"></param>
-        [OnDeserializing()]
-        private void Initialize(StreamingContext context)
-        {
-            TypeId = ExpandedNodeId.Null;
-            m_context = MessageContextExtension.CurrentContext;
         }
 
         /// <inheritdoc/>
@@ -227,24 +210,7 @@ namespace Opc.Ua.Client.ComplexTypes
 
             throw new FormatException(Utils.Format("Invalid format string: '{0}'.", format));
         }
-
-        /// <inheritdoc/>
-        public virtual int GetPropertyCount()
-        {
-            return m_propertyList.Count;
-        }
-
-        /// <inheritdoc/>
-        public virtual IList<string> GetPropertyNames()
-        {
-            return m_propertyList.Select(p => p.Name).ToList();
-        }
-
-        /// <inheritdoc/>
-        public virtual IList<Type> GetPropertyTypes()
-        {
-            return m_propertyList.Select(p => p.PropertyType).ToList();
-        }
+#if INDEXED
 
         /// <inheritdoc/>
         public virtual object this[int index]
@@ -259,6 +225,7 @@ namespace Opc.Ua.Client.ComplexTypes
             get => m_propertyDict[name].GetValue(this);
             set => m_propertyDict[name].SetValue(this, value);
         }
+#endif
 
         /// <inheritdoc/>
         public virtual IEnumerable<ComplexTypePropertyInfo> GetPropertyEnumerator()
@@ -653,6 +620,8 @@ namespace Opc.Ua.Client.ComplexTypes
                 m_structureBaseType = definitionAttribute.BaseDataType;
             }
 
+            definitionAttribute.DefaultEncodingId ??= "DefaultBinary";
+
             var typeAttribute = (StructureTypeIdAttribute)
                 GetType().GetCustomAttribute(typeof(StructureTypeIdAttribute));
             if (typeAttribute != null)
@@ -663,8 +632,7 @@ namespace Opc.Ua.Client.ComplexTypes
             }
 
             m_propertyList = new List<ComplexTypePropertyInfo>();
-            var properties = GetType().GetProperties();
-            foreach (var property in properties)
+            foreach (var property in GetType().GetProperties())
             {
                 var fieldAttribute = (StructureFieldAttribute)
                     property.GetCustomAttribute(typeof(StructureFieldAttribute));
@@ -711,7 +679,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// </summary>
         protected Dictionary<string, ComplexTypePropertyInfo> m_propertyDict;
 
-        private IServiceMessageContext m_context;
+        private readonly IServiceMessageContext m_context;
         private StructureBaseDataType m_structureBaseType;
         private XmlQualifiedName m_xmlName;
     }

@@ -137,6 +137,6 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         private TypeBuilder m_structureBuilder;
-        private StructureType m_structureType;
+        private readonly StructureType m_structureType;
     }
 }

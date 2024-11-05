@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Bindings;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -36,7 +37,6 @@ namespace Opc.Ua.Client
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Bindings;
 
     /// <summary>
     /// Manages a session with a server.
@@ -44,26 +44,6 @@ namespace Opc.Ua.Client
     /// </summary>
     public partial class Session : SessionClientBatched, ISession
     {
-        /// <inheritdoc/>
-        public Task OpenAsync(
-            string sessionName,
-            IUserIdentity identity,
-            CancellationToken ct)
-        {
-            return OpenAsync(sessionName, 0, identity, null, ct);
-        }
-
-        /// <inheritdoc/>
-        public Task OpenAsync(
-            string sessionName,
-            uint sessionTimeout,
-            IUserIdentity identity,
-            IList<string> preferredLocales,
-            CancellationToken ct)
-        {
-            return OpenAsync(sessionName, sessionTimeout, identity, preferredLocales, true, ct);
-        }
-
         /// <inheritdoc/>
         public async Task OpenAsync(
             string sessionName,
@@ -367,108 +347,6 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<bool> ReactivateSubscriptionsAsync(
-            SubscriptionCollection subscriptions,
-            bool sendInitialValues,
-            CancellationToken ct = default)
-        {
-            var subscriptionIds = CreateSubscriptionIdsForTransfer(subscriptions);
-            var failedSubscriptions = 0;
-
-            if (subscriptionIds.Count > 0)
-            {
-                var reconnecting = false;
-                await m_reconnectLock.WaitAsync(ct).ConfigureAwait(false);
-                try
-                {
-                    reconnecting = m_reconnecting;
-                    m_reconnecting = true;
-
-                    for (var ii = 0; ii < subscriptions.Count; ii++)
-                    {
-                        if (!await subscriptions[ii].TransferAsync(this, subscriptionIds[ii], new UInt32Collection(), ct).ConfigureAwait(false))
-                        {
-                            Utils.LogError("SubscriptionId {0} failed to reactivate.", subscriptionIds[ii]);
-                            failedSubscriptions++;
-                        }
-                    }
-
-                    if (sendInitialValues)
-                    {
-                        (var success, var resendResults) = await ResendDataAsync(subscriptions, ct).ConfigureAwait(false);
-                        if (!success)
-                        {
-                            Utils.LogError("Failed to call resend data for subscriptions.");
-                        }
-                        else if (resendResults != null)
-                        {
-                            for (var ii = 0; ii < resendResults.Count; ii++)
-                            {
-                                // no need to try for subscriptions which do not exist
-                                if (StatusCode.IsNotGood(resendResults[ii].StatusCode))
-                                {
-                                    Utils.LogError("SubscriptionId {0} failed to resend data.", subscriptionIds[ii]);
-                                }
-                            }
-                        }
-                    }
-
-                    Utils.LogInfo("Session REACTIVATE of {0} subscriptions completed. {1} failed.", subscriptions.Count, failedSubscriptions);
-                }
-                finally
-                {
-                    m_reconnecting = reconnecting;
-                    m_reconnectLock.Release();
-                }
-
-                StartPublishing(OperationTimeout, true);
-            }
-            else
-            {
-                Utils.LogInfo("No subscriptions. TransferSubscription skipped.");
-            }
-
-            return failedSubscriptions == 0;
-        }
-
-        /// <inheritdoc/>
-        public async Task<(bool, IList<ServiceResult>)> ResendDataAsync(IEnumerable<Subscription> subscriptions, CancellationToken ct)
-        {
-            var requests = CreateCallRequestsForResendData(subscriptions);
-
-            var errors = new List<ServiceResult>(requests.Count);
-            try
-            {
-                var response = await CallAsync(null, requests, ct).ConfigureAwait(false);
-                var results = response.Results;
-                var diagnosticInfos = response.DiagnosticInfos;
-                var responseHeader = response.ResponseHeader;
-                ClientBase.ValidateResponse(results, requests);
-                ClientBase.ValidateDiagnosticInfos(diagnosticInfos, requests);
-
-                var ii = 0;
-                foreach (var value in results)
-                {
-                    var result = ServiceResult.Good;
-                    if (StatusCode.IsNotGood(value.StatusCode))
-                    {
-                        result = ClientBase.GetResult(value.StatusCode, ii, diagnosticInfos, responseHeader);
-                    }
-                    errors.Add(result);
-                    ii++;
-                }
-
-                return (true, errors);
-            }
-            catch (ServiceResultException sre)
-            {
-                Utils.LogError(sre, "Failed to call ResendData on server.");
-            }
-
-            return (false, errors);
-        }
-
-        /// <inheritdoc/>
         public async Task<bool> TransferSubscriptionsAsync(
             SubscriptionCollection subscriptions,
             bool sendInitialValues,
@@ -567,23 +445,6 @@ namespace Opc.Ua.Client
             ValidateDiagnosticInfos(diagnosticInfos, nodesToRead);
 
             UpdateNamespaceTable(values, diagnosticInfos, responseHeader);
-        }
-
-        /// <inheritdoc/>
-        public async Task FetchTypeTreeAsync(ExpandedNodeId typeId, CancellationToken ct = default)
-        {
-            if (await NodeCache.FindAsync(typeId, ct).ConfigureAwait(false) is Node node)
-            {
-                var subTypes = new ExpandedNodeIdCollection();
-                foreach (var reference in node.Find(ReferenceTypeIds.HasSubtype, false))
-                {
-                    subTypes.Add(reference.TargetId);
-                }
-                if (subTypes.Count > 0)
-                {
-                    await FetchTypeTreeAsync(subTypes, ct).ConfigureAwait(false);
-                }
-            }
         }
 
         /// <inheritdoc/>
@@ -1584,10 +1445,6 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public Task<StatusCode> CloseAsync(int timeout, CancellationToken ct = default)
-            => CloseAsync(timeout, true, ct);
-
-        /// <inheritdoc/>
         public virtual async Task<StatusCode> CloseAsync(int timeout, bool closeChannel, CancellationToken ct = default)
         {
             // check if already called.
@@ -1665,10 +1522,6 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public Task ReconnectAsync(ITransportWaitingConnection connection, CancellationToken ct)
             => ReconnectAsync(connection, null, ct);
-
-        /// <inheritdoc/>
-        public Task ReconnectAsync(ITransportChannel channel, CancellationToken ct)
-            => ReconnectAsync(null, channel, ct);
 
         /// <summary>
         /// Reconnects to the server after a network failure using a waiting connection.

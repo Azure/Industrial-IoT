@@ -215,42 +215,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Raised when the configuration changes.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="args">The <see cref="Opc.Ua.ConfigurationWatcherEventArgs"/> instance containing the event data.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers")]
-        protected virtual async void OnConfigurationChanged(object sender, ConfigurationWatcherEventArgs args)
-        {
-            try
-            {
-                var configuration = await ApplicationConfiguration.Load(
-                    new FileInfo(args.FilePath),
-                    m_applicationType,
-                    m_configType).ConfigureAwait(false);
-
-                OnUpdateConfiguration(configuration);
-            }
-            catch (Exception e)
-            {
-                Utils.LogError(e, "Could not load updated configuration file from: {0}", args);
-            }
-        }
-
-        /// <summary>
-        /// Called when the configuration is changed on disk.
-        /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        protected virtual void OnUpdateConfiguration(ApplicationConfiguration configuration)
-        {
-            // save types for config watcher
-            m_applicationType = configuration.ApplicationType;
-            m_configType = configuration.GetType();
-
-            OnUpdateConfiguration(configuration.ClientConfiguration.ReverseConnect);
-        }
-
-        /// <summary>
         /// Called when the reverse connect configuration is changed.
         /// </summary>
         /// <remarks>
@@ -357,56 +321,6 @@ namespace Opc.Ua.Client
             {
                 CloseHosts();
                 m_endpointUrls = null;
-            }
-        }
-
-        /// <summary>
-        /// Add endpoint for reverse connection.
-        /// </summary>
-        /// <param name="endpointUrl"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="endpointUrl"/> is <c>null</c>.</exception>
-        /// <exception cref="ServiceResultException"></exception>
-        public void AddEndpoint(Uri endpointUrl)
-        {
-            ArgumentNullException.ThrowIfNull(endpointUrl);
-            lock (m_lock)
-            {
-                if (m_state == ReverseConnectManagerState.Started) throw new ServiceResultException(StatusCodes.BadInvalidState);
-                AddEndpointInternal(endpointUrl, false);
-            }
-        }
-
-        /// <summary>
-        /// Starts the server application.
-        /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>null</c>.</exception>
-        /// <exception cref="ServiceResultException"></exception>
-        public void StartService(ApplicationConfiguration configuration)
-        {
-            ArgumentNullException.ThrowIfNull(configuration);
-            lock (m_lock)
-            {
-                if (m_state == ReverseConnectManagerState.Started) throw new ServiceResultException(StatusCodes.BadInvalidState);
-                try
-                {
-                    OnUpdateConfiguration(configuration);
-                    StartService();
-
-                    // monitor the configuration file.
-                    if (!String.IsNullOrEmpty(configuration.SourceFilePath))
-                    {
-                        m_configurationWatcher = new ConfigurationWatcher(configuration);
-                        m_configurationWatcher.Changed += OnConfigurationChanged;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Utils.LogError(e, "Unexpected error starting reverse connect manager.");
-                    m_state = ReverseConnectManagerState.Errored;
-                    var error = ServiceResult.Create(e, StatusCodes.BadInternalError, "Unexpected error starting application");
-                    throw new ServiceResultException(error);
-                }
             }
         }
 
@@ -738,12 +652,10 @@ namespace Opc.Ua.Client
 
         private readonly object m_lock = new object();
         private ConfigurationWatcher m_configurationWatcher;
-        private ApplicationType m_applicationType;
-        private Type m_configType;
         private ReverseConnectClientConfiguration m_configuration;
         private Dictionary<Uri, ReverseConnectInfo> m_endpointUrls;
         private ReverseConnectManagerState m_state;
-        private List<Registration> m_registrations;
+        private readonly List<Registration> m_registrations;
         private readonly object m_registrationsLock = new object();
         private CancellationTokenSource m_cts;
     }

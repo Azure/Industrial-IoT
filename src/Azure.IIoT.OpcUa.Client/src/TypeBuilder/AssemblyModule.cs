@@ -55,14 +55,6 @@ namespace Opc.Ua.Client.ComplexTypes
         /// </summary>
         public ModuleBuilder ModuleBuilder => m_moduleBuilder;
 
-        /// <summary>
-        /// Get the types defined in this assembly.
-        /// </summary>
-        public Type[] GetTypes()
-        {
-            return m_assemblyBuilder.GetTypes();
-        }
-
         private readonly AssemblyBuilder m_assemblyBuilder;
         private readonly ModuleBuilder m_moduleBuilder;
         private const string kOpcTypesModuleName = "Opc.Ua.ComplexTypes.Module";

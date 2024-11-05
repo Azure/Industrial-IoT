@@ -29,12 +29,12 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Redaction;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
-    using Opc.Ua.Redaction;
 
     /// <summary>
     /// An implementation of a client side nodecache.
@@ -52,7 +52,6 @@ namespace Opc.Ua.Client
             m_session = session;
             m_typeTree = new TypeTable(m_session.NamespaceUris);
             m_nodes = new NodeTable(m_session.NamespaceUris, m_session.ServerUris, m_typeTree);
-            m_uaTypesLoaded = false;
             m_cacheLock = new ReaderWriterLockSlim();
         }
 
@@ -731,42 +730,8 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public void LoadUaDefinedTypes(ISystemContext context)
-        {
-            if (m_uaTypesLoaded)
-            {
-                return;
-            }
-
-            var predefinedNodes = new NodeStateCollection();
-            var assembly = typeof(ArgumentCollection).GetTypeInfo().Assembly;
-            predefinedNodes.LoadFromBinaryResource(context, "Opc.Ua.Stack.Generated.Opc.Ua.PredefinedNodes.uanodes", assembly, true);
-
-            try
-            {
-                m_cacheLock.EnterWriteLock();
-
-                for (var ii = 0; ii < predefinedNodes.Count; ii++)
-                {
-                    if (predefinedNodes[ii] is not BaseTypeState type)
-                    {
-                        continue;
-                    }
-
-                    type.Export(context, m_nodes);
-                }
-            }
-            finally
-            {
-                m_cacheLock.ExitWriteLock();
-            }
-            m_uaTypesLoaded = true;
-        }
-
-        /// <inheritdoc/>
         public void Clear()
         {
-            m_uaTypesLoaded = false;
             try
             {
                 m_cacheLock.EnterWriteLock();
@@ -863,9 +828,7 @@ namespace Opc.Ua.Client
                 if (!ServiceResult.IsBad(fetchErrors[ii]))
                 {
                     // fetch references from server.
-                    var references = referenceCollectionList[ii];
-
-                    foreach (var reference in references)
+                    foreach (var reference in referenceCollectionList[ii])
                     {
                         try
                         {
@@ -902,34 +865,6 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public void FetchSuperTypes(ExpandedNodeId nodeId)
-        {
-            // find the target node,
-
-            if (Find(nodeId) is not ILocalNode source)
-            {
-                return;
-            }
-
-            // follow the tree.
-            var subType = source;
-
-            while (subType != null)
-            {
-                ILocalNode superType = null;
-
-                var references = subType.References.Find(ReferenceTypeIds.HasSubtype, true, true, this);
-
-                if (references?.Count > 0)
-                {
-                    superType = Find(references[0].TargetId) as ILocalNode;
-                }
-
-                subType = superType;
-            }
-        }
-
-        /// <inheritdoc/>
         public IList<INode> FindReferences(
             ExpandedNodeId nodeId,
             NodeId referenceTypeId,
@@ -958,9 +893,7 @@ namespace Opc.Ua.Client
             var targetIds = new ExpandedNodeIdCollection(
                 references.Select(reference => reference.TargetId));
 
-            var result = Find(targetIds);
-
-            foreach (var target in result)
+            foreach (var target in Find(targetIds))
             {
                 if (target != null)
                 {
@@ -983,8 +916,7 @@ namespace Opc.Ua.Client
                 return targets;
             }
             var targetIds = new ExpandedNodeIdCollection();
-            var sources = Find(nodeIds);
-            foreach (var source in sources)
+            foreach (var source in Find(nodeIds))
             {
                 if (!(source is Node node))
                 {
@@ -1010,8 +942,7 @@ namespace Opc.Ua.Client
                 }
             }
 
-            var result = Find(targetIds);
-            foreach (var target in result)
+            foreach (var target in Find(targetIds))
             {
                 if (target != null)
                 {
@@ -1084,52 +1015,6 @@ namespace Opc.Ua.Client
             return node.ToString();
         }
 
-        /// <inheritdoc/>
-        public string GetDisplayText(ExpandedNodeId nodeId)
-        {
-            if (NodeId.IsNull(nodeId))
-            {
-                return String.Empty;
-            }
-
-            var node = Find(nodeId);
-
-            if (node != null)
-            {
-                return GetDisplayText(node);
-            }
-
-            return Utils.Format("{0}", nodeId);
-        }
-
-        /// <inheritdoc/>
-        public string GetDisplayText(ReferenceDescription reference)
-        {
-            if (reference == null || NodeId.IsNull(reference.NodeId))
-            {
-                return String.Empty;
-            }
-
-            var node = Find(reference.NodeId);
-
-            if (node != null)
-            {
-                return GetDisplayText(node);
-            }
-
-            return reference.ToString();
-        }
-
-        /// <inheritdoc/>
-        public NodeId BuildBrowsePath(ILocalNode node, IList<QualifiedName> browsePath)
-        {
-            NodeId typeId = null;
-
-            browsePath.Add(node.BrowseName);
-
-            return typeId;
-        }
-
         private void InternalWriteLockedAttach(ILocalNode node)
         {
             try
@@ -1145,10 +1030,9 @@ namespace Opc.Ua.Client
             }
         }
 
-        private ReaderWriterLockSlim m_cacheLock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim m_cacheLock = new ReaderWriterLockSlim();
         private ISession m_session;
-        private TypeTable m_typeTree;
-        private NodeTable m_nodes;
-        private bool m_uaTypesLoaded;
+        private readonly TypeTable m_typeTree;
+        private readonly NodeTable m_nodes;
     }
 }

@@ -39,12 +39,6 @@ namespace Opc.Ua.Client
     public interface INodeCache : INodeTable, ITypeTable
     {
         /// <summary>
-        /// Loads the UA defined types into the cache.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        void LoadUaDefinedTypes(ISystemContext context);
-
-        /// <summary>
         /// Removes all nodes from the cache.
         /// </summary>
         void Clear();
@@ -99,19 +93,6 @@ namespace Opc.Ua.Client
         Task<IList<Node>> FetchNodesAsync(IList<ExpandedNodeId> nodeIds, CancellationToken ct = default);
 
         /// <summary>
-        /// Adds the supertypes of the node to the cache.
-        /// </summary>
-        /// <param name="nodeId">Node id to fetch.</param>
-        /// <param name="ct"></param>
-        Task FetchSuperTypesAsync(ExpandedNodeId nodeId, CancellationToken ct = default);
-
-        /// <summary>
-        /// Adds the supertypes of the node to the cache.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        void FetchSuperTypes(ExpandedNodeId nodeId);
-
-        /// <summary>
         /// Returns the references of the specified node that meet the criteria specified.
         /// </summary>
         /// <param name="nodeId"></param>
@@ -154,24 +135,5 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="node"></param>
         string GetDisplayText(INode node);
-
-        /// <summary>
-        /// Returns a display name for a node.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        string GetDisplayText(ExpandedNodeId nodeId);
-
-        /// <summary>
-        /// Returns a display name for the target of a reference.
-        /// </summary>
-        /// <param name="reference"></param>
-        string GetDisplayText(ReferenceDescription reference);
-
-        /// <summary>
-        /// Builds the relative path from a type to a node.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="browsePath"></param>
-        NodeId BuildBrowsePath(ILocalNode node, IList<QualifiedName> browsePath);
     }
 }

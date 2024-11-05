@@ -29,10 +29,10 @@
 
 namespace Opc.Ua.Client
 {
+    using static Opc.Ua.Utils;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics.Tracing;
-    using Microsoft.Extensions.Logging;
-    using static Opc.Ua.Utils;
 
     /// <summary>
     /// EventSource for client.

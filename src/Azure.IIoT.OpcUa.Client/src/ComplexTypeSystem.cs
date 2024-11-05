@@ -29,13 +29,13 @@
 
 namespace Opc.Ua.Client.ComplexTypes
 {
+    using static Opc.Ua.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using static Opc.Ua.Utils;
 
     /// <summary>
     /// Manages the custom types of a server for a client session.
@@ -108,121 +108,6 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         /// <summary>
-        /// Load a single custom type with subtypes.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="subTypes"></param>
-        /// <param name="throwOnError"></param>
-        /// <param name="ct"></param>
-        /// <remarks>
-        /// Uses inverse references on the server to find the super type(s).
-        /// If the new structure contains a type dependency to a yet
-        /// unknown type, it loads also the dependent type(s).
-        /// For servers without DataTypeDefinition support, all
-        /// custom types are loaded.
-        /// </remarks>
-        public async Task<Type> LoadType(ExpandedNodeId nodeId, bool subTypes = false, bool throwOnError = false, CancellationToken ct = default)
-        {
-            try
-            {
-                // add fast path, if no subTypes are requested
-                if (!subTypes)
-                {
-                    var systemType = GetSystemType(nodeId);
-                    if (systemType != null)
-                    {
-                        return systemType;
-                    }
-                }
-
-                // cache the server type system
-                _ = await m_complexTypeResolver.LoadDataTypesAsync(DataTypeIds.BaseDataType, true, ct: ct).ConfigureAwait(false);
-                var subTypeNodes = await m_complexTypeResolver.LoadDataTypesAsync(nodeId, subTypes, true, ct: ct).ConfigureAwait(false);
-                var subTypeNodesWithoutKnownTypes = RemoveKnownTypes(subTypeNodes);
-
-                if (subTypeNodesWithoutKnownTypes.Count > 0)
-                {
-                    IList<INode> serverEnumTypes = new List<INode>();
-                    IList<INode> serverStructTypes = new List<INode>();
-                    foreach (var node in subTypeNodesWithoutKnownTypes)
-                    {
-                        await AddEnumerationOrStructureTypeAsync(node, serverEnumTypes, serverStructTypes, ct).ConfigureAwait(false);
-                    }
-
-                    // load server types
-                    if (DisableDataTypeDefinition || !await LoadBaseDataTypesAsync(serverEnumTypes, serverStructTypes, ct).ConfigureAwait(false))
-                    {
-                        if (!DisableDataTypeDictionary)
-                        {
-                            await LoadDictionaryDataTypes(serverEnumTypes, serverStructTypes, false, ct).ConfigureAwait(false);
-                        }
-                    }
-                }
-                return GetSystemType(nodeId);
-            }
-            catch (Exception ex)
-            {
-                Utils.LogError(ex, "Failed to load the custom type {0}.", nodeId);
-                if (throwOnError)
-                {
-                    throw;
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Load all custom types of a namespace.
-        /// </summary>
-        /// <param name="nameSpace"></param>
-        /// <param name="throwOnError"></param>
-        /// <param name="ct"></param>
-        /// <remarks>
-        /// If a new type in the namespace contains a type dependency to an
-        /// unknown type in another namespace, it loads also the dependent type(s).
-        /// For servers without DataTypeDefinition support all
-        /// custom types are loaded.
-        /// </remarks>
-        /// <exception cref="ServiceResultException"></exception>
-        public async Task<bool> LoadNamespace(string nameSpace, bool throwOnError = false, CancellationToken ct = default)
-        {
-            try
-            {
-                var index = m_complexTypeResolver.NamespaceUris.GetIndex(nameSpace);
-                if (index < 0)
-                {
-                    throw new ServiceResultException($"Bad argument {nameSpace}. Namespace not found.");
-                }
-                var nameSpaceIndex = (ushort)index;
-                _ = await m_complexTypeResolver.LoadDataTypesAsync(DataTypeIds.BaseDataType, true, ct: ct).ConfigureAwait(false);
-                var serverEnumTypes = await m_complexTypeResolver.LoadDataTypesAsync(DataTypeIds.Enumeration, ct: ct).ConfigureAwait(false);
-                var serverStructTypes = await m_complexTypeResolver.LoadDataTypesAsync(DataTypeIds.Structure, true, ct: ct).ConfigureAwait(false);
-                // filter for namespace
-                serverEnumTypes = serverEnumTypes.Where(rd => rd.NodeId.NamespaceIndex == nameSpaceIndex).ToList();
-                serverStructTypes = serverStructTypes.Where(rd => rd.NodeId.NamespaceIndex == nameSpaceIndex).ToList();
-                // load types
-                if (DisableDataTypeDefinition || !await LoadBaseDataTypesAsync(serverEnumTypes, serverStructTypes, ct).ConfigureAwait(false))
-                {
-                    if (DisableDataTypeDictionary)
-                    {
-                        return false;
-                    }
-                    return await LoadDictionaryDataTypes(serverEnumTypes, serverStructTypes, false, ct).ConfigureAwait(false);
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Utils.LogError(ex, "Failed to load the custom type namespace {0}.", nameSpace);
-                if (throwOnError)
-                {
-                    throw;
-                }
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Load all custom types from a server into the session system type factory.
         /// </summary>
         /// <param name="onlyEnumTypes"></param>
@@ -273,23 +158,6 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         /// <summary>
-        /// Get the types defined in this type system.
-        /// </summary>
-        public Type[] GetDefinedTypes()
-        {
-            return m_complexTypeBuilderFactory.GetTypes();
-        }
-
-        /// <summary>
-        /// Returns data types node ids for everything that was defined.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<ExpandedNodeId> GetDefinedDataTypeIds()
-        {
-            return m_dataTypeDefinitionCache.Keys.Select(nodeId => NodeId.ToExpandedNodeId(nodeId, m_complexTypeResolver.NamespaceUris));
-        }
-
-        /// <summary>
         /// Get the data type definition and dependent definitions for a data type node id.
         /// Recursive through the cache to find all dependent types for strutures fields
         /// contained in the cache.
@@ -331,14 +199,6 @@ namespace Opc.Ua.Client.ComplexTypes
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Clear references in datatype cache.
-        /// </summary>
-        public void ClearDataTypeCache()
-        {
-            m_dataTypeDefinitionCache.Clear();
         }
 
         /// <summary>
@@ -1301,7 +1161,7 @@ namespace Opc.Ua.Client.ComplexTypes
 
         private IComplexTypeResolver m_complexTypeResolver;
         private IComplexTypeFactory m_complexTypeBuilderFactory;
-        private NodeIdDictionary<DataTypeDefinition> m_dataTypeDefinitionCache = new NodeIdDictionary<DataTypeDefinition>();
+        private readonly NodeIdDictionary<DataTypeDefinition> m_dataTypeDefinitionCache = new NodeIdDictionary<DataTypeDefinition>();
         private static readonly string[] m_supportedEncodings = new string[] { BrowseNames.DefaultBinary, BrowseNames.DefaultXml, BrowseNames.DefaultJson };
     }
 }

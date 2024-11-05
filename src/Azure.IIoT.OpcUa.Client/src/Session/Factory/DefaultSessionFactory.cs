@@ -53,20 +53,6 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public virtual Task<ISession> CreateAsync(
-            ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint,
-            bool updateBeforeConnect,
-            string sessionName,
-            uint sessionTimeout,
-            IUserIdentity identity,
-            IList<string> preferredLocales,
-            CancellationToken ct = default)
-        {
-            return CreateAsync(configuration, endpoint, updateBeforeConnect, false, sessionName, sessionTimeout, identity, preferredLocales, ct);
-        }
-
-        /// <inheritdoc/>
         public async virtual Task<ISession> CreateAsync(
             ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint,
@@ -156,41 +142,6 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public virtual ISession Create(
-           ApplicationConfiguration configuration,
-           ITransportChannel channel,
-           ConfiguredEndpoint endpoint,
-           X509Certificate2 clientCertificate,
-           EndpointDescriptionCollection availableEndpoints = null,
-           StringCollection discoveryProfileUris = null)
-        {
-            return Session.Create(this, configuration, channel, endpoint, clientCertificate, availableEndpoints, discoveryProfileUris);
-        }
-
-        /// <inheritdoc/>
-        public virtual Task<ITransportChannel> CreateChannelAsync(
-            ApplicationConfiguration configuration,
-            ITransportWaitingConnection connection,
-            ConfiguredEndpoint endpoint,
-            bool updateBeforeConnect,
-            bool checkDomain,
-            CancellationToken ct = default)
-        {
-            return Session.CreateChannelAsync(configuration, connection, endpoint, updateBeforeConnect, checkDomain, ct);
-        }
-
-        /// <inheritdoc/>
-        public virtual async Task<ISession> RecreateAsync(ISession sessionTemplate, CancellationToken ct = default)
-        {
-            if (!(sessionTemplate is Session template))
-            {
-                throw new ArgumentOutOfRangeException(nameof(sessionTemplate), "The ISession provided is not of a supported type.");
-            }
-
-            return await Session.RecreateAsync(template, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
         public virtual async Task<ISession> RecreateAsync(ISession sessionTemplate, ITransportWaitingConnection connection, CancellationToken ct = default)
         {
             if (!(sessionTemplate is Session template))
@@ -209,15 +160,6 @@ namespace Opc.Ua.Client
                 throw new ArgumentOutOfRangeException(nameof(sessionTemplate), "The ISession provided is not of a supported type");
             }
             return await Session.RecreateAsync(template, transportChannel, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        public virtual Session Create(
-            ISessionChannel channel,
-            ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint)
-        {
-            return new Session(channel, configuration, endpoint);
         }
 
         /// <inheritdoc/>

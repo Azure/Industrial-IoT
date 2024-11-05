@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Schema;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -36,7 +37,6 @@ namespace Opc.Ua.Client
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Schema;
 
     /// <summary>
     /// A class that holds the configuration for a UA service.
@@ -101,18 +101,6 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Loads the dictionary identified by the node id.
         /// </summary>
-        /// <param name="dictionary"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="dictionary"/> is <c>null</c>.</exception>
-        public void Load(INode dictionary)
-        {
-            ArgumentNullException.ThrowIfNull(dictionary);
-            var dictionaryId = ExpandedNodeId.ToNodeId(dictionary.NodeId, m_session.NamespaceUris);
-            Load(dictionaryId, dictionary.ToString());
-        }
-
-        /// <summary>
-        /// Loads the dictionary identified by the node id.
-        /// </summary>
         /// <param name="dictionaryId"></param>
         /// <param name="name"></param>
         /// <param name="schema"></param>
@@ -148,34 +136,6 @@ namespace Opc.Ua.Client
 
             DictionaryId = dictionaryId;
             Name = name;
-        }
-
-        /// <summary>
-        /// Returns true if the dictionary contains the data type description.
-        /// </summary>
-        /// <param name="descriptionId"></param>
-        public bool Contains(NodeId descriptionId)
-        {
-            return DataTypes.ContainsKey(descriptionId);
-        }
-
-        /// <summary>
-        /// Returns the schema for the specified type (returns the entire dictionary if null).
-        /// </summary>
-        /// <param name="descriptionId"></param>
-        public string GetSchema(NodeId descriptionId)
-        {
-            if (descriptionId != null)
-            {
-                if (!DataTypes.TryGetValue(descriptionId, out var browseName))
-                {
-                    return null;
-                }
-
-                return m_validator.GetSchema(browseName.Name);
-            }
-
-            return m_validator.GetSchema(null);
         }
 
         /// <summary>
@@ -334,16 +294,6 @@ namespace Opc.Ua.Client
 
             // return as a byte array.
             return values[0].Value as byte[];
-        }
-
-        /// <summary>
-        /// Validates the type dictionary.
-        /// </summary>
-        /// <param name="dictionary">The encoded dictionary to validate.</param>
-        /// <param name="throwOnError">Throw if an error occurred.</param>
-        internal void Validate(byte[] dictionary, bool throwOnError)
-        {
-            Validate(dictionary, null, throwOnError);
         }
 
         /// <summary>

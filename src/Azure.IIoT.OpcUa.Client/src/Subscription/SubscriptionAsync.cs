@@ -206,24 +206,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Republishes the specified notification message.
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="ct"></param>
-        public async Task<NotificationMessage> RepublishAsync(uint sequenceNumber, CancellationToken ct = default)
-        {
-            VerifySubscriptionState(true);
-
-            var response = await m_session.RepublishAsync(
-                null,
-                m_id,
-                sequenceNumber,
-                ct).ConfigureAwait(false);
-
-            return response.NotificationMessage;
-        }
-
-        /// <summary>
         /// Applies any changes to the subscription items.
         /// </summary>
         /// <param name="ct"></param>
@@ -232,45 +214,6 @@ namespace Opc.Ua.Client
             await DeleteItemsAsync(ct).ConfigureAwait(false);
             await ModifyItemsAsync(ct).ConfigureAwait(false);
             await CreateItemsAsync(ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Resolves all relative paths to nodes on the server.
-        /// </summary>
-        /// <param name="ct"></param>
-        public async Task ResolveItemNodeIdsAsync(CancellationToken ct)
-        {
-            VerifySubscriptionState(true);
-
-            // collect list of browse paths.
-            var browsePaths = new BrowsePathCollection();
-            var itemsToBrowse = new List<MonitoredItem>();
-
-            PrepareResolveItemNodeIds(browsePaths, itemsToBrowse);
-
-            // nothing to do.
-            if (browsePaths.Count == 0)
-            {
-                return;
-            }
-
-            // translate browse paths.
-            var response = await m_session.TranslateBrowsePathsToNodeIdsAsync(
-                null,
-                browsePaths,
-                ct).ConfigureAwait(false);
-
-            var results = response.Results;
-            ClientBase.ValidateResponse(results, browsePaths);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, browsePaths);
-
-            // update results.
-            for (var ii = 0; ii < results.Count; ii++)
-            {
-                itemsToBrowse[ii].SetResolvePathResult(results[ii], ii, response.DiagnosticInfos, response.ResponseHeader);
-            }
-
-            m_changeMask |= SubscriptionChangeMask.ItemsModified;
         }
 
         /// <summary>

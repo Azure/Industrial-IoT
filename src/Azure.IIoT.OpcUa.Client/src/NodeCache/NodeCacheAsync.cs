@@ -29,12 +29,12 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Redaction;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Redaction;
 
     /// <summary>
     /// An implementation of a client side nodecache.
@@ -293,9 +293,7 @@ namespace Opc.Ua.Client
                 if (!ServiceResult.IsBad(fetchErrors[ii]))
                 {
                     // fetch references from server.
-                    var references = referenceCollectionList[ii];
-
-                    foreach (var reference in references)
+                    foreach (var reference in referenceCollectionList[ii])
                     {
                         try
                         {
@@ -424,34 +422,6 @@ namespace Opc.Ua.Client
             }
 
             return targets;
-        }
-
-        /// <inheritdoc/>
-        public async Task FetchSuperTypesAsync(ExpandedNodeId nodeId, CancellationToken ct)
-        {
-            // find the target node,
-
-            if (await FindAsync(nodeId, ct).ConfigureAwait(false) is not ILocalNode source)
-            {
-                return;
-            }
-
-            // follow the tree.
-            var subType = source;
-
-            while (subType != null)
-            {
-                ILocalNode superType = null;
-
-                var references = subType.References.Find(ReferenceTypeIds.HasSubtype, true, true, this);
-
-                if (references?.Count > 0)
-                {
-                    superType = await FindAsync(references[0].TargetId, ct).ConfigureAwait(false) as ILocalNode;
-                }
-
-                subType = superType;
-            }
         }
     }
 }

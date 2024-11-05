@@ -65,22 +65,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Creates the session configuration from a stream.
-        /// </summary>
-        /// <param name="stream"></param>
-        public static SessionConfiguration Create(Stream stream)
-        {
-            // secure settings
-            var settings = Utils.DefaultXmlReaderSettings();
-            using (var reader = XmlReader.Create(stream, settings))
-            {
-                var serializer = new DataContractSerializer(typeof(SessionConfiguration));
-                var sessionConfiguration = (SessionConfiguration)serializer.ReadObject(reader);
-                return sessionConfiguration;
-            }
-        }
-
-        /// <summary>
         /// When the session configuration was created.
         /// </summary>
         [DataMember(IsRequired = true, Order = 10)]

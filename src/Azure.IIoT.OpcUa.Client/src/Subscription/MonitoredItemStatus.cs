@@ -76,34 +76,9 @@ namespace Opc.Ua.Client
         public ServiceResult Error => m_error;
 
         /// <summary>
-        /// The node id being monitored.
-        /// </summary>
-        public NodeId NodeId => m_nodeId;
-
-        /// <summary>
-        /// The attribute being monitored.
-        /// </summary>
-        public uint AttributeId => m_attributeId;
-
-        /// <summary>
-        /// The range of array indexes to being monitored.
-        /// </summary>
-        public string IndexRange => m_indexRange;
-
-        /// <summary>
-        /// The encoding to use when returning notifications.
-        /// </summary>
-        public QualifiedName DataEncoding => m_encoding;
-
-        /// <summary>
         /// The monitoring mode.
         /// </summary>
         public MonitoringMode MonitoringMode => m_monitoringMode;
-
-        /// <summary>
-        /// The identifier assigned by the client.
-        /// </summary>
-        public uint ClientHandle => m_clientHandle;
 
         /// <summary>
         /// The sampling interval.
@@ -111,24 +86,9 @@ namespace Opc.Ua.Client
         public double SamplingInterval => m_samplingInterval;
 
         /// <summary>
-        /// The filter to use to select values to return.
-        /// </summary>
-        public MonitoringFilter Filter => m_filter;
-
-        /// <summary>
-        /// The result of applying the filter
-        /// </summary>
-        public MonitoringFilterResult FilterResult => m_filterResult;
-
-        /// <summary>
         /// The length of the queue used to buffer values.
         /// </summary>
         public uint QueueSize => m_queueSize;
-
-        /// <summary>
-        /// Whether to discard the oldest entries in the queue when it is full.
-        /// </summary>
-        public bool DiscardOldest => m_discardOldest;
 
         /// <summary>
         /// Updates the monitoring mode.

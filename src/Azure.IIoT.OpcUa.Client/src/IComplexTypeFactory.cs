@@ -46,11 +46,6 @@ namespace Opc.Ua.Client.ComplexTypes
             string targetNamespace,
             int targetNamespaceIndex,
             string moduleName = null);
-
-        /// <summary>
-        /// Types defined in the factory.
-        /// </summary>
-        public abstract Type[] GetTypes();
     }
 
     /// <summary>

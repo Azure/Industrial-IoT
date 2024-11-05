@@ -29,10 +29,10 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Redaction;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Redaction;
 
     /// <summary>
     /// Attempts to reconnect to the server.
@@ -53,11 +53,6 @@ namespace Opc.Ua.Client
         /// The default reconnect period in ms.
         /// </summary>
         public const int DefaultReconnectPeriod = 1000;
-
-        /// <summary>
-        /// The default reconnect operation timeout in ms.
-        /// </summary>
-        public const int MinReconnectOperationTimeout = 5000;
 
         /// <summary>
         /// The internal state of the reconnect handler.
@@ -181,17 +176,6 @@ namespace Opc.Ua.Client
 
                 m_cancelReconnect = true;
             }
-        }
-
-        /// <summary>
-        /// Begins the reconnect process.
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="reconnectPeriod"></param>
-        /// <param name="callback"></param>
-        public ReconnectState BeginReconnect(ISession session, int reconnectPeriod, EventHandler callback)
-        {
-            return BeginReconnect(session, null, reconnectPeriod, callback);
         }
 
         /// <summary>
@@ -548,14 +532,14 @@ namespace Opc.Ua.Client
         private readonly object m_lock = new object();
         private ISession m_session;
         private ReconnectState m_state;
-        private Random m_random;
+        private readonly Random m_random;
         private bool m_reconnectFailed;
-        private bool m_reconnectAbort;
+        private readonly bool m_reconnectAbort;
         private bool m_cancelReconnect;
         private bool m_updateFromServer;
         private int m_reconnectPeriod;
         private int m_baseReconnectPeriod;
-        private int m_maxReconnectPeriod;
+        private readonly int m_maxReconnectPeriod;
         private Timer m_reconnectTimer;
         private EventHandler m_callback;
         private ReverseConnectManager m_reverseConnectManager;

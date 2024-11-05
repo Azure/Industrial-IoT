@@ -2,7 +2,7 @@
  * Copyright (c) 2005-2020 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
- * 
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -11,7 +11,7 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -215,16 +215,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Raised when a browse operation halted because of a continuation point.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly")]
-        public event BrowserEventHandler MoreReferences
-        {
-            add { m_MoreReferences += value; }
-            remove { m_MoreReferences -= value; }
-        }
-
-        /// <summary>
         /// Whether subsequent continuation points should be processed automatically.
         /// </summary>
         public bool ContinueUntilDone
@@ -235,102 +225,6 @@ namespace Opc.Ua.Client
             {
                 CheckBrowserState();
                 m_continueUntilDone = value;
-            }
-        }
-
-        /// <summary>
-        /// Browses the specified node.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        public ReferenceDescriptionCollection Browse(NodeId nodeId)
-        {
-            if (m_session == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadServerNotConnected, "Cannot browse if not connected to a server.");
-            }
-
-            try
-            {
-                m_browseInProgress = true;
-
-                // construct request.
-                var nodeToBrowse = new BrowseDescription();
-
-                nodeToBrowse.NodeId = nodeId;
-                nodeToBrowse.BrowseDirection = m_browseDirection;
-                nodeToBrowse.ReferenceTypeId = m_referenceTypeId;
-                nodeToBrowse.IncludeSubtypes = m_includeSubtypes;
-                nodeToBrowse.NodeClassMask = m_nodeClassMask;
-                nodeToBrowse.ResultMask = m_resultMask;
-
-                var nodesToBrowse = new BrowseDescriptionCollection();
-                nodesToBrowse.Add(nodeToBrowse);
-
-                // make the call to the server.
-                BrowseResultCollection results;
-                DiagnosticInfoCollection diagnosticInfos;
-
-                var responseHeader = m_session.Browse(
-                    null,
-                    m_view,
-                    m_maxReferencesReturned,
-                    nodesToBrowse,
-                    out results,
-                    out diagnosticInfos);
-
-                // ensure that the server returned valid results.
-                ClientBase.ValidateResponse(results, nodesToBrowse);
-                ClientBase.ValidateDiagnosticInfos(diagnosticInfos, nodesToBrowse);
-
-                // check if valid.
-                if (StatusCode.IsBad(results[0].StatusCode))
-                {
-                    throw ServiceResultException.Create(results[0].StatusCode, 0, diagnosticInfos, responseHeader.StringTable);
-                }
-
-                // fetch initial set of references.
-                var continuationPoint = results[0].ContinuationPoint;
-                var references = results[0].References;
-
-                // process any continuation point.
-                while (continuationPoint != null)
-                {
-                    ReferenceDescriptionCollection additionalReferences;
-
-                    if (!m_continueUntilDone && m_MoreReferences != null)
-                    {
-                        var args = new BrowserEventArgs(references);
-                        m_MoreReferences(this, args);
-
-                        // cancel browser and return the references fetched so far.
-                        if (args.Cancel)
-                        {
-                            BrowseNext(ref continuationPoint, true);
-                            return references;
-                        }
-
-                        m_continueUntilDone = args.ContinueUntilDone;
-                    }
-
-                    additionalReferences = BrowseNext(ref continuationPoint, false);
-                    if (additionalReferences?.Count > 0)
-                    {
-                        references.AddRange(additionalReferences);
-                    }
-                    else
-                    {
-                        Utils.LogWarning("Browser: Continuation point exists, but the browse results are null/empty.");
-                        break;
-                    }
-                }
-
-                // return the results.
-                return references;
-            }
-            finally
-            {
-                m_browseInProgress = false;
             }
         }
 
@@ -346,46 +240,6 @@ namespace Opc.Ua.Client
             }
         }
 
-        /// <summary>
-        /// Fetches the next batch of references.
-        /// </summary>
-        /// <param name="continuationPoint">The continuation point.</param>
-        /// <param name="cancel">if set to <c>true</c> the browse operation is cancelled.</param>
-        /// <returns>The next batch of references</returns>
-        /// <exception cref="ServiceResultException"></exception>
-        private ReferenceDescriptionCollection BrowseNext(ref byte[] continuationPoint, bool cancel)
-        {
-            var continuationPoints = new ByteStringCollection();
-            continuationPoints.Add(continuationPoint);
-
-            // make the call to the server.
-            BrowseResultCollection results;
-            DiagnosticInfoCollection diagnosticInfos;
-
-            var responseHeader = m_session.BrowseNext(
-                null,
-                cancel,
-                continuationPoints,
-                out results,
-                out diagnosticInfos);
-
-            // ensure that the server returned valid results.
-            ClientBase.ValidateResponse(results, continuationPoints);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, continuationPoints);
-
-            // check if valid.
-            if (StatusCode.IsBad(results[0].StatusCode))
-            {
-                throw ServiceResultException.Create(results[0].StatusCode, 0, diagnosticInfos, responseHeader.StringTable);
-            }
-
-            // update continuation point.
-            continuationPoint = results[0].ContinuationPoint;
-
-            // return references.
-            return results[0].References;
-        }
-
         private ISession m_session;
         private ViewDescription m_view;
         private uint m_maxReferencesReturned;
@@ -394,47 +248,7 @@ namespace Opc.Ua.Client
         private bool m_includeSubtypes;
         private uint m_nodeClassMask;
         private uint m_resultMask;
-        private event BrowserEventHandler m_MoreReferences;
         private bool m_continueUntilDone;
         private bool m_browseInProgress;
     }
-
-    /// <summary>
-    /// The event arguments provided a browse operation returns a continuation point.
-    /// </summary>
-    public class BrowserEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="references"></param>
-        internal BrowserEventArgs(ReferenceDescriptionCollection references)
-        {
-            m_references = references;
-        }
-
-        /// <summary>
-        /// Whether the browse operation should be cancelled.
-        /// </summary>
-        public bool Cancel { get; set; }
-
-        /// <summary>
-        /// Whether subsequent continuation points should be processed automatically.
-        /// </summary>
-        public bool ContinueUntilDone { get; set; }
-
-        /// <summary>
-        /// The references that have been fetched so far.
-        /// </summary>
-        public ReferenceDescriptionCollection References => m_references;
-
-        private ReferenceDescriptionCollection m_references;
-    }
-
-    /// <summary>
-    /// A delegate used to received browser events.
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    public delegate void BrowserEventHandler(Browser sender, BrowserEventArgs e);
 }

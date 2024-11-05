@@ -303,14 +303,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public override Session Create(ISessionChannel channel, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint)
-        {
-            return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                _timeProvider, (ITransportChannel)channel, configuration, endpoint);
-        }
-
-        /// <inheritdoc/>
         public override Session Create(ITransportChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate,
             EndpointDescriptionCollection? availableEndpoints,
@@ -319,16 +311,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
                 _timeProvider, channel, configuration, endpoint,
                 clientCertificate, availableEndpoints, discoveryProfileUris);
-        }
-
-        /// <inheritdoc/>
-        public override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, bool updateBeforeConnect, string sessionName,
-            uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
-            CancellationToken ct)
-        {
-            return CreateAsync(configuration, endpoint, updateBeforeConnect, false,
-                sessionName, sessionTimeout, identity, preferredLocales, ct);
         }
 
         /// <inheritdoc/>
@@ -350,15 +332,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             return await Session.Create(this, configuration, connection, endpoint, updateBeforeConnect,
                 checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        public override ISession Create(ApplicationConfiguration configuration, ITransportChannel channel,
-            ConfiguredEndpoint endpoint, X509Certificate2 clientCertificate,
-            EndpointDescriptionCollection? availableEndpoints, StringCollection? discoveryProfileUris)
-        {
-            return Session.Create(this, configuration, channel, endpoint, clientCertificate,
-                availableEndpoints, discoveryProfileUris);
         }
 
         /// <inheritdoc/>
