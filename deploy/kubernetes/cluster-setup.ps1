@@ -544,7 +544,7 @@ if (!$iotops) {
 
     # install latest container storage
     az k8s-extension create `
-        --cluster $Name `
+        --cluster-name $Name `
         --resource-group $ResourceGroup `
         --subscription $SubscriptionId `
         --name azure-arc-containerstorage `

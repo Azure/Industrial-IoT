@@ -57,7 +57,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <inheritdoc/>
         public override object Clone()
         {
-            return this.MemberwiseClone();
+            return MemberwiseClone();
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// A value of 0 means all properties are invalid, x=1..n means the
         /// xth property is valid.
         /// </summary>
-        public UInt32 SwitchField => m_switchField;
+        public uint SwitchField => m_switchField;
 
         /// <inheritdoc/>
         public override StructureType StructureType => StructureType.Union;
@@ -159,7 +159,7 @@ namespace Opc.Ua.Client.ComplexTypes
             }
 
             var valueType = valueBaseType.GetType();
-            if (this.GetType() != valueType)
+            if (GetType() != valueType)
             {
                 return false;
             }
@@ -208,9 +208,9 @@ namespace Opc.Ua.Client.ComplexTypes
                     return body.ToString();
                 }
 
-                if (!NodeId.IsNull(this.TypeId))
+                if (!NodeId.IsNull(TypeId))
                 {
-                    return string.Format(formatProvider, "{{{0}}}", this.TypeId);
+                    return string.Format(formatProvider, "{{{0}}}", TypeId);
                 }
 
                 return "(null)";
@@ -321,6 +321,6 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <summary>
         /// The selector for the value of the Union.
         /// </summary>
-        protected UInt32 m_switchField;
+        protected uint m_switchField;
     }
 }

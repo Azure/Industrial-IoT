@@ -58,7 +58,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <inheritdoc/>
         public override object Clone()
         {
-            return this.MemberwiseClone();
+            return MemberwiseClone();
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <summary>
         /// The encoding mask for the optional fields.
         /// </summary>
-        public UInt32 EncodingMask => m_encodingMask;
+        public uint EncodingMask => m_encodingMask;
 
         /// <inheritdoc/>
         public override void Encode(IEncoder encoder)
@@ -142,7 +142,7 @@ namespace Opc.Ua.Client.ComplexTypes
             }
 
             var valueType = valueBaseType.GetType();
-            if (this.GetType() != valueType)
+            if (GetType() != valueType)
             {
                 return false;
             }
@@ -185,9 +185,9 @@ namespace Opc.Ua.Client.ComplexTypes
                     return body.ToString();
                 }
 
-                if (!NodeId.IsNull(this.TypeId))
+                if (!NodeId.IsNull(TypeId))
                 {
-                    return string.Format(formatProvider, "{{{0}}}", this.TypeId);
+                    return string.Format(formatProvider, "{{{0}}}", TypeId);
                 }
 
                 return "(null)";
@@ -274,7 +274,7 @@ namespace Opc.Ua.Client.ComplexTypes
             base.InitializePropertyAttributes();
 
             // build optional field mask attribute
-            UInt32 optionalFieldMask = 1;
+            uint optionalFieldMask = 1;
             foreach (var property in GetPropertyEnumerator())
             {
                 property.OptionalFieldMask = 0;
@@ -286,6 +286,6 @@ namespace Opc.Ua.Client.ComplexTypes
             }
         }
 
-        private UInt32 m_encodingMask;
+        private uint m_encodingMask;
     }
 }

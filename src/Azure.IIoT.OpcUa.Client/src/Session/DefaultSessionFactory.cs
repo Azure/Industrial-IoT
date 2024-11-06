@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
@@ -40,16 +41,14 @@ namespace Opc.Ua.Client
     /// </summary>
     public class DefaultSessionFactory : ISessionFactory, ISessionInstantiator
     {
-        /// <summary>
-        /// The default instance of the factory.
-        /// </summary>
-        public static readonly DefaultSessionFactory Instance = new DefaultSessionFactory();
+        private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
         /// Force use of the default instance.
         /// </summary>
-        protected DefaultSessionFactory()
+        public DefaultSessionFactory(ILoggerFactory loggerFactory)
         {
+            _loggerFactory = loggerFactory;
         }
 
         /// <inheritdoc/>
@@ -104,7 +103,7 @@ namespace Opc.Ua.Client
         {
             if (reverseConnectManager == null)
             {
-                return await this.CreateAsync(configuration, endpoint, updateBeforeConnect,
+                return await CreateAsync(configuration, endpoint, updateBeforeConnect,
                     checkDomain, sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
             }
 
@@ -171,7 +170,7 @@ namespace Opc.Ua.Client
             EndpointDescriptionCollection availableEndpoints = null,
             StringCollection discoveryProfileUris = null)
         {
-            return new Session(channel, configuration, endpoint, clientCertificate, availableEndpoints, discoveryProfileUris);
+            return new Session(channel, configuration, endpoint, clientCertificate, _loggerFactory, availableEndpoints, discoveryProfileUris);
         }
     }
 }

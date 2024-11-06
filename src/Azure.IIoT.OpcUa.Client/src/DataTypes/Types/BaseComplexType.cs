@@ -54,7 +54,6 @@ namespace Opc.Ua.Client.ComplexTypes
             TypeId = ExpandedNodeId.Null;
             BinaryEncodingId = ExpandedNodeId.Null;
             XmlEncodingId = ExpandedNodeId.Null;
-            m_context = MessageContextExtension.CurrentContext;
 
             // TODO:
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
@@ -74,7 +73,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <inheritdoc/>
         public virtual object Clone()
         {
-            return this.MemberwiseClone();
+            return MemberwiseClone();
         }
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// </returns>
         public new object MemberwiseClone()
         {
-            var thisType = this.GetType();
+            var thisType = GetType();
             var clone = Activator.CreateInstance(thisType) as BaseComplexType;
 
             clone.TypeId = TypeId;
@@ -153,7 +152,7 @@ namespace Opc.Ua.Client.ComplexTypes
             }
 
             var valueType = valueBaseType.GetType();
-            if (this.GetType() != valueType)
+            if (GetType() != valueType)
             {
                 return false;
             }
@@ -181,7 +180,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <param name="format">(Unused). Leave this as null</param>
         /// <param name="formatProvider">The provider of a mechanism for retrieving an object to control formatting.</param>
         /// <returns>
-        /// A <see cref="System.String"/> containing the value of the current embedded instance in the specified format.
+        /// A <see cref="string"/> containing the value of the current embedded instance in the specified format.
         /// </returns>
         /// <exception cref="FormatException">Thrown if the <i>format</i> parameter is not null</exception>
         public virtual string ToString(string format, IFormatProvider formatProvider)
@@ -200,9 +199,9 @@ namespace Opc.Ua.Client.ComplexTypes
                     return body.Append('}').ToString();
                 }
 
-                if (!NodeId.IsNull(this.TypeId))
+                if (!NodeId.IsNull(TypeId))
                 {
-                    return string.Format(formatProvider, "{{{0}}}", this.TypeId);
+                    return string.Format(formatProvider, "{{{0}}}", TypeId);
                 }
 
                 return "(null)";
@@ -422,21 +421,21 @@ namespace Opc.Ua.Client.ComplexTypes
             }
             switch (builtInType)
             {
-                case BuiltInType.Boolean: encoder.WriteBoolean(name, (Boolean)property.GetValue(this)); break;
-                case BuiltInType.SByte: encoder.WriteSByte(name, (SByte)property.GetValue(this)); break;
-                case BuiltInType.Byte: encoder.WriteByte(name, (Byte)property.GetValue(this)); break;
-                case BuiltInType.Int16: encoder.WriteInt16(name, (Int16)property.GetValue(this)); break;
-                case BuiltInType.UInt16: encoder.WriteUInt16(name, (UInt16)property.GetValue(this)); break;
-                case BuiltInType.Int32: encoder.WriteInt32(name, (Int32)property.GetValue(this)); break;
-                case BuiltInType.UInt32: encoder.WriteUInt32(name, (UInt32)property.GetValue(this)); break;
-                case BuiltInType.Int64: encoder.WriteInt64(name, (Int64)property.GetValue(this)); break;
-                case BuiltInType.UInt64: encoder.WriteUInt64(name, (UInt64)property.GetValue(this)); break;
-                case BuiltInType.Float: encoder.WriteFloat(name, (Single)property.GetValue(this)); break;
-                case BuiltInType.Double: encoder.WriteDouble(name, (Double)property.GetValue(this)); break;
-                case BuiltInType.String: encoder.WriteString(name, (String)property.GetValue(this)); break;
+                case BuiltInType.Boolean: encoder.WriteBoolean(name, (bool)property.GetValue(this)); break;
+                case BuiltInType.SByte: encoder.WriteSByte(name, (sbyte)property.GetValue(this)); break;
+                case BuiltInType.Byte: encoder.WriteByte(name, (byte)property.GetValue(this)); break;
+                case BuiltInType.Int16: encoder.WriteInt16(name, (short)property.GetValue(this)); break;
+                case BuiltInType.UInt16: encoder.WriteUInt16(name, (ushort)property.GetValue(this)); break;
+                case BuiltInType.Int32: encoder.WriteInt32(name, (int)property.GetValue(this)); break;
+                case BuiltInType.UInt32: encoder.WriteUInt32(name, (uint)property.GetValue(this)); break;
+                case BuiltInType.Int64: encoder.WriteInt64(name, (long)property.GetValue(this)); break;
+                case BuiltInType.UInt64: encoder.WriteUInt64(name, (ulong)property.GetValue(this)); break;
+                case BuiltInType.Float: encoder.WriteFloat(name, (float)property.GetValue(this)); break;
+                case BuiltInType.Double: encoder.WriteDouble(name, (double)property.GetValue(this)); break;
+                case BuiltInType.String: encoder.WriteString(name, (string)property.GetValue(this)); break;
                 case BuiltInType.DateTime: encoder.WriteDateTime(name, (DateTime)property.GetValue(this)); break;
                 case BuiltInType.Guid: encoder.WriteGuid(name, (Uuid)property.GetValue(this)); break;
-                case BuiltInType.ByteString: encoder.WriteByteString(name, (Byte[])property.GetValue(this)); break;
+                case BuiltInType.ByteString: encoder.WriteByteString(name, (byte[])property.GetValue(this)); break;
                 case BuiltInType.XmlElement: encoder.WriteXmlElement(name, (XmlElement)property.GetValue(this)); break;
                 case BuiltInType.NodeId: encoder.WriteNodeId(name, (NodeId)property.GetValue(this)); break;
                 case BuiltInType.ExpandedNodeId: encoder.WriteExpandedNodeId(name, (ExpandedNodeId)property.GetValue(this)); break;
@@ -679,7 +678,6 @@ namespace Opc.Ua.Client.ComplexTypes
         /// </summary>
         protected Dictionary<string, ComplexTypePropertyInfo> m_propertyDict;
 
-        private readonly IServiceMessageContext m_context;
         private StructureBaseDataType m_structureBaseType;
         private XmlQualifiedName m_xmlName;
     }

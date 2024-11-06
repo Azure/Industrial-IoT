@@ -75,7 +75,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(configuration));
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
+#if OLD_STACK
             _reverseConnectManager = new ReverseConnectManager();
+#else
+            _reverseConnectManager = new ReverseConnectManager(_loggerFactory);
+#endif
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
             _configuration.Validate += OnValidate;
@@ -116,7 +120,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     endpointDescription, endpointConfiguration);
                 var userIdentity = await endpoint.User.ToUserIdentityAsync(
                     _configuration.Value).ConfigureAwait(false);
-                using var session = await DefaultSessionFactory.Instance.CreateAsync(
+#if OLD_STACK
+                var factory = DefaultSessionFactory.Instance;
+#else
+                var factory = new DefaultSessionFactory(_loggerFactory);
+#endif
+                using var session = await factory.CreateAsync(
                     _configuration.Value, reverseConnectManager: null, configuredEndpoint,
                     updateBeforeConnect: true, // Update endpoint through discovery
                     checkDomain: false, // Domain must match on connect

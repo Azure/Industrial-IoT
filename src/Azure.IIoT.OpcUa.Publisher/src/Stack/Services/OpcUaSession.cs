@@ -79,7 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="client"></param>
         /// <param name="serializer"></param>
-        /// <param name="logger"></param>
+        /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
         /// <param name="channel"></param>
         /// <param name="configuration"></param>
@@ -88,15 +88,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="availableEndpoints"></param>
         /// <param name="discoveryProfileUris"></param>
         public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
-            ILogger<OpcUaSession> logger, TimeProvider timeProvider,
+            ILoggerFactory loggerFactory, TimeProvider timeProvider,
             ITransportChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate = null,
             EndpointDescriptionCollection? availableEndpoints = null,
             StringCollection? discoveryProfileUris = null)
             : base(channel, configuration, endpoint, clientCertificate,
+#if !OLD_STACK
+                  loggerFactory,
+#endif
                   availableEndpoints, discoveryProfileUris)
         {
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger<OpcUaSession>();
             _client = client;
             _serializer = serializer;
             _timeProvider = timeProvider;

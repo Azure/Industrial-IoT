@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed partial class OpcUaClient : DefaultSessionFactory,
+    internal sealed partial class OpcUaClient : ISessionFactory, ISessionInstantiator,
         IOpcUaClientDiagnostics, IDisposable
     {
         /// <summary>
@@ -276,8 +276,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _maxReconnectPeriod = TimeSpan.FromSeconds(30);
             }
+#if OLD_STACK
             _reconnectHandler = new SessionReconnectHandler(true,
                 (int)_maxReconnectPeriod.TotalMilliseconds);
+#else
+            _reconnectHandler = new SessionReconnectHandler(_loggerFactory, true,
+                (int)_maxReconnectPeriod.TotalMilliseconds);
+#endif
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
@@ -303,18 +308,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public override Session Create(ITransportChannel channel, ApplicationConfiguration configuration,
+        public Session Create(ITransportChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate,
             EndpointDescriptionCollection? availableEndpoints,
             StringCollection? discoveryProfileUris)
         {
-            return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
+            return new OpcUaSession(this, _serializer, _loggerFactory,
                 _timeProvider, channel, configuration, endpoint,
                 clientCertificate, availableEndpoints, discoveryProfileUris);
         }
 
         /// <inheritdoc/>
-        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+        public async Task<ISession> CreateAsync(ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, bool updateBeforeConnect, bool checkDomain,
             string sessionName, uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
             CancellationToken ct)
@@ -325,7 +330,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+        public async Task<ISession> CreateAsync(ApplicationConfiguration configuration,
             ITransportWaitingConnection connection, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
             bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity identity,
             IList<string> preferredLocales, CancellationToken ct)
@@ -335,7 +340,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
+        public async Task<ISession> CreateAsync(ApplicationConfiguration configuration,
             ReverseConnectManager? reverseConnectManager, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
             bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity userIdentity,
             IList<string> preferredLocales, CancellationToken ct)
@@ -362,6 +367,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             } while (connection == null);
             return await CreateAsync(configuration, connection, endpoint, false, checkDomain,
                 sessionName, sessionTimeout, userIdentity, preferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ISession> RecreateAsync(ISession sessionTemplate,
+            ITransportWaitingConnection connection, CancellationToken ct)
+        {
+            if (sessionTemplate is not OpcUaSession template)
+            {
+                throw new ArgumentOutOfRangeException(nameof(sessionTemplate),
+                    "The ISession provided is not of a supported type");
+            }
+            return await Session.RecreateAsync(template, connection, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task<ISession> RecreateAsync(ISession sessionTemplate,
+            ITransportChannel transportChannel, CancellationToken ct )
+        {
+            if (sessionTemplate is not OpcUaSession template)
+            {
+                throw new ArgumentOutOfRangeException(nameof(sessionTemplate),
+                    "The ISession provided is not of a supported type");
+            }
+            return await Session.RecreateAsync(template, transportChannel, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1318,7 +1347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="e"></param>
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
         {
-            if (session == _session && session.Connected)
+            if (_disconnectLock == null && session == _session)
             {
                 switch (e.Status.Code)
                 {
@@ -1671,9 +1700,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
-
-                    _logger.LogDebug("{Client}: Successfully closed session {Session}.",
-                        this, session);
                 }
                 catch (Exception ex)
                 {

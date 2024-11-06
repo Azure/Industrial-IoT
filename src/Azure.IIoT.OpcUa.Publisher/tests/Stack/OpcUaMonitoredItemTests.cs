@@ -112,7 +112,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal("DisplayName", monitoredItem.DisplayName);
             Assert.Equal((uint)NodeAttribute.Value, monitoredItem.AttributeId);
             Assert.Equal("5:20", monitoredItem.IndexRange);
-            Assert.Null(monitoredItem.RelativePath);
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItem.MonitoringMode);
             Assert.Equal("i=2258", monitoredItem.StartNodeId);
             Assert.Equal(10u, monitoredItem.QueueSize);

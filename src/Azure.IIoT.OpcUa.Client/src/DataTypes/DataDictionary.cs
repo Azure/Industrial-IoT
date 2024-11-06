@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Logging;
     using Opc.Ua.Schema;
     using System;
     using System.Collections.Generic;
@@ -50,17 +51,10 @@ namespace Opc.Ua.Client
         /// <param name="session"></param>
         public DataDictionary(ISession session)
         {
-            Initialize();
             m_session = session;
-        }
-
-        /// <summary>
-        /// Sets private members to default values.
-        /// </summary>
-        private void Initialize()
-        {
-            m_session = null;
+            m_logger = session.LoggerFactory?.CreateLogger<DataDictionary>();
             DataTypes = new Dictionary<NodeId, QualifiedName>();
+
             m_validator = null;
             TypeSystemId = null;
             TypeSystemName = null;
@@ -105,17 +99,18 @@ namespace Opc.Ua.Client
         /// <param name="name"></param>
         /// <param name="schema"></param>
         /// <param name="imports"></param>
+        /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException"><paramref name="dictionaryId"/> is <c>null</c>.</exception>
         /// <exception cref="ServiceResultException"></exception>
-        public void Load(NodeId dictionaryId, string name, byte[] schema = null, IDictionary<string, byte[]> imports = null)
+        public async Task LoadAsync(NodeId dictionaryId, string name, byte[] schema = null, IDictionary<string, byte[]> imports = null, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(dictionaryId);
 
-            GetTypeSystem(dictionaryId);
+            await GetTypeSystemAsync(dictionaryId, ct).ConfigureAwait(false);
 
             if (schema == null || schema.Length == 0)
             {
-                schema = ReadDictionary(dictionaryId);
+                schema = await ReadDictionaryAsync(dictionaryId, ct).ConfigureAwait(false);
             }
 
             if (schema == null || schema.Length == 0)
@@ -132,7 +127,7 @@ namespace Opc.Ua.Client
 
             Validate(schema, imports);
 
-            ReadDataTypes(dictionaryId);
+            await ReadDataTypesAsync(dictionaryId, ct).ConfigureAwait(false);
 
             DictionaryId = dictionaryId;
             Name = name;
@@ -142,9 +137,10 @@ namespace Opc.Ua.Client
         /// Retrieves the type system for the dictionary.
         /// </summary>
         /// <param name="dictionaryId"></param>
-        private void GetTypeSystem(NodeId dictionaryId)
+        /// <param name="ct"></param>
+        private async Task GetTypeSystemAsync(NodeId dictionaryId, CancellationToken ct)
         {
-            var references = m_session.NodeCache.FindReferences(dictionaryId, ReferenceTypeIds.HasComponent, true, false);
+            var references = await m_session.NodeCache.FindReferencesAsync(dictionaryId, ReferenceTypeIds.HasComponent, true, false, ct).ConfigureAwait(false);
             if (references.Count > 0)
             {
                 TypeSystemId = ExpandedNodeId.ToNodeId(references[0].NodeId, m_session.NamespaceUris);
@@ -156,18 +152,19 @@ namespace Opc.Ua.Client
         /// Retrieves the data types in the dictionary.
         /// </summary>
         /// <param name="dictionaryId"></param>
+        /// <param name="ct"></param>
         /// <remarks>
         /// In order to allow for fast Linq matching of dictionary
         /// QNames with the data type nodes, the BrowseName of
         /// the DataType node is replaced with Value string.
         /// </remarks>
-        private void ReadDataTypes(NodeId dictionaryId)
+        private async Task ReadDataTypesAsync(NodeId dictionaryId, CancellationToken ct)
         {
-            var references = m_session.NodeCache.FindReferences(dictionaryId, ReferenceTypeIds.HasComponent, false, false);
+            var references = await m_session.NodeCache.FindReferencesAsync(dictionaryId, ReferenceTypeIds.HasComponent, false, false, ct).ConfigureAwait(false);
             IList<NodeId> nodeIdCollection = references.Select(node => ExpandedNodeId.ToNodeId(node.NodeId, m_session.NamespaceUris)).ToList();
 
             // read the value to get the names that are used in the dictionary
-            m_session.ReadValues(nodeIdCollection, out var values, out var errors);
+            var (values, errors) = await m_session.ReadValuesAsync(nodeIdCollection, ct).ConfigureAwait(false);
 
             var ii = 0;
             foreach (var reference in references)
@@ -177,7 +174,7 @@ namespace Opc.Ua.Client
                 {
                     if (ServiceResult.IsGood(errors[ii]))
                     {
-                        var dictName = (String)values[ii].Value;
+                        var dictName = (string)values[ii].Value;
                         DataTypes[datatypeId] = new QualifiedName(dictName, datatypeId.NamespaceIndex);
                     }
                     ii++;
@@ -254,8 +251,9 @@ namespace Opc.Ua.Client
         /// Reads the contents of a data dictionary.
         /// </summary>
         /// <param name="dictionaryId"></param>
+        /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public byte[] ReadDictionary(NodeId dictionaryId)
+        public async Task<byte[]> ReadDictionaryAsync(NodeId dictionaryId, CancellationToken ct)
         {
             // create item to read.
             var itemToRead = new ReadValueId
@@ -271,16 +269,16 @@ namespace Opc.Ua.Client
             };
 
             // read value.
-            DataValueCollection values;
-            DiagnosticInfoCollection diagnosticInfos;
 
-            var responseHeader = m_session.Read(
+            var response = await m_session.ReadAsync(
                 null,
                 0,
                 TimestampsToReturn.Neither,
                 itemsToRead,
-                out values,
-                out diagnosticInfos);
+                ct).ConfigureAwait(false);
+
+            var values = response.Results;
+            var diagnosticInfos = response.DiagnosticInfos;
 
             ClientBase.ValidateResponse(values, itemsToRead);
             ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
@@ -288,7 +286,7 @@ namespace Opc.Ua.Client
             // check for error.
             if (StatusCode.IsBad(values[0].StatusCode))
             {
-                var result = ClientBase.GetResult(values[0].StatusCode, 0, diagnosticInfos, responseHeader);
+                var result = ClientBase.GetResult(values[0].StatusCode, 0, diagnosticInfos, response.ResponseHeader);
                 throw new ServiceResultException(result);
             }
 
@@ -316,7 +314,7 @@ namespace Opc.Ua.Client
                 }
                 catch (Exception e) when (!throwOnError)
                 {
-                    Utils.LogWarning(e, "Could not validate XML schema, error is ignored.");
+                    m_logger.LogWarning(e, "Could not validate XML schema, error is ignored.");
                 }
 
                 m_validator = validator;
@@ -331,7 +329,7 @@ namespace Opc.Ua.Client
                 }
                 catch (Exception e) when (!throwOnError)
                 {
-                    Utils.LogWarning(e, "Could not validate binary schema, error is ignored.");
+                    m_logger.LogWarning(e, "Could not validate binary schema, error is ignored.");
                 }
 
                 m_validator = validator;
@@ -340,6 +338,7 @@ namespace Opc.Ua.Client
         }
 
         private ISession m_session;
+        private readonly ILogger m_logger;
         private SchemaValidator m_validator;
     }
 }

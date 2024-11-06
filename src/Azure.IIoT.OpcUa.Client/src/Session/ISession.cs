@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -75,6 +76,11 @@ namespace Opc.Ua.Client
     /// </summary>
     public interface ISession : ISessionClient
     {
+        /// <summary>
+        /// Logger of the session
+        /// </summary>
+        ILoggerFactory LoggerFactory { get; }
+
         /// <summary>
         /// Raised when a keep alive arrives from the server or an error is detected.
         /// </summary>
@@ -196,11 +202,6 @@ namespace Opc.Ua.Client
         bool DeleteSubscriptionsOnClose { get; set; }
 
         /// <summary>
-        /// Gets or Sets the default subscription for the session.
-        /// </summary>
-        Subscription DefaultSubscription { get; set; }
-
-        /// <summary>
         /// Gets or Sets how frequently the server is pinged to see if communication is still working.
         /// </summary>
         /// <remarks>
@@ -292,15 +293,6 @@ namespace Opc.Ua.Client
         Task ReconnectAsync(ITransportWaitingConnection connection, CancellationToken ct = default);
 
         /// <summary>
-        /// Updates the cache with the types and its subtypes.
-        /// </summary>
-        /// <param name="typeIds"></param>
-        /// <remarks>
-        /// This method can be used to ensure the TypeTree is populated.
-        /// </remarks>
-        void FetchTypeTree(ExpandedNodeIdCollection typeIds);
-
-        /// <summary>
         /// Updates the local copy of the server's namespace uri and server uri tables.
         /// </summary>
         /// <param name="ct">The cancellation token.</param>
@@ -321,59 +313,9 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="dataTypeSystem">The type system.</param>
         /// <param name="ct"></param>
-        Task<Dictionary<NodeId, DataDictionary>> LoadDataTypeSystem(
+        Task<Dictionary<NodeId, DataDictionary>> LoadDataTypeSystemAsync(
             NodeId dataTypeSystem = null,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Reads the values for the node attributes and returns a node object.
-        /// </summary>
-        /// <param name="nodeId">The nodeId.</param>
-        Node ReadNode(NodeId nodeId);
-
-        /// <summary>
-        /// Reads the values for the node attributes and returns a node object.
-        /// </summary>
-        /// <remarks>
-        /// If the nodeclass is known, only the supported attribute values are read.
-        /// </remarks>
-        /// <param name="nodeId">The nodeId.</param>
-        /// <param name="nodeClass">The nodeclass of the node to read.</param>
-        /// <param name="optionalAttributes">Read optional attributes.</param>
-        Node ReadNode(NodeId nodeId, NodeClass nodeClass, bool optionalAttributes = true);
-
-        /// <summary>
-        /// Reads the values for the node attributes and returns a node object.
-        /// Reads the nodeclass of the nodeIds, then reads
-        /// the values for the node attributes and returns a node object collection.
-        /// </summary>
-        /// <param name="nodeIds">The nodeId collection.</param>
-        /// <param name="nodeCollection">The node collection read from the server.</param>
-        /// <param name="errors">The errors occured reading the nodes.</param>
-        /// <param name="optionalAttributes">Set to <c>true</c> if optional attributes should not be omitted.</param>
-        void ReadNodes(IList<NodeId> nodeIds, out IList<Node> nodeCollection, out IList<ServiceResult> errors, bool optionalAttributes = false);
-
-        /// <summary>
-        /// Reads the values for a node collection. Returns diagnostic errors.
-        /// </summary>
-        /// <param name="nodeIds">The node Id.</param>
-        /// <param name="values">The data values read from the server.</param>
-        /// <param name="errors">The errors reported by the server.</param>
-        void ReadValues(IList<NodeId> nodeIds, out DataValueCollection values, out IList<ServiceResult> errors);
-
-        /// <summary>
-        /// Fetches all references for the specified node.
-        /// </summary>
-        /// <param name="nodeId">The node id.</param>
-        ReferenceDescriptionCollection FetchReferences(NodeId nodeId);
-
-        /// <summary>
-        /// Fetches all references for the specified nodes.
-        /// </summary>
-        /// <param name="nodeIds">The node id collection.</param>
-        /// <param name="referenceDescriptions">A list of reference collections.</param>
-        /// <param name="errors">The errors reported by the server.</param>
-        void FetchReferences(IList<NodeId> nodeIds, out IList<ReferenceDescriptionCollection> referenceDescriptions, out IList<ServiceResult> errors);
 
         /// <summary>
         /// Fetches all references for the specified node.
@@ -458,13 +400,6 @@ namespace Opc.Ua.Client
         /// <param name="nodeIds">The node Id.</param>
         /// <param name="ct">The cancellation token for the request.</param>
         Task<(DataValueCollection, IList<ServiceResult>)> ReadValuesAsync(IList<NodeId> nodeIds, CancellationToken ct = default);
-
-        /// <summary>
-        /// Disconnects from the server and frees any network resources with the specified timeout.
-        /// </summary>
-        /// <param name="timeout"></param>
-        /// <param name="closeChannel"></param>
-        StatusCode Close(int timeout, bool closeChannel);
 
         /// <summary>
         /// Close the session with the server and optionally closes the channel.
@@ -573,16 +508,6 @@ namespace Opc.Ua.Client
                 CancellationToken ct = default
             );
 
-
-        /// <summary>
-        /// Calls the specified method and returns the output arguments.
-        /// </summary>
-        /// <param name="objectId">The NodeId of the object that provides the method.</param>
-        /// <param name="methodId">The NodeId of the method to call.</param>
-        /// <param name="args">The input arguments.</param>
-        /// <returns>The list of output argument values.</returns>
-        IList<object> Call(NodeId objectId, NodeId methodId, params object[] args);
-
         /// <summary>
         /// Calls the specified method and returns the output arguments.
         /// </summary>
@@ -613,6 +538,29 @@ namespace Opc.Ua.Client
         /// <param name="sequenceNumber"></param>
         /// <param name="ct"></param>
         Task<(bool, ServiceResult)> RepublishAsync(uint subscriptionId, uint sequenceNumber, CancellationToken ct = default);
+
+        /// <summary>
+        /// Reads the values for the node attributes and returns a node object.
+        /// </summary>
+        /// <param name="nodeId">The nodeId.</param>
+        Node ReadNode(NodeId nodeId);
+
+        /// <summary>
+        /// Reads the values for the node attributes and returns a node object.
+        /// </summary>
+        /// <remarks>
+        /// If the nodeclass is known, only the supported attribute values are read.
+        /// </remarks>
+        /// <param name="nodeId">The nodeId.</param>
+        /// <param name="nodeClass">The nodeclass of the node to read.</param>
+        /// <param name="optionalAttributes">Read optional attributes.</param>
+        Node ReadNode(NodeId nodeId, NodeClass nodeClass, bool optionalAttributes = true);
+
+        /// <summary>
+        /// Fetches all references for the specified node.
+        /// </summary>
+        /// <param name="nodeId">The node id.</param>
+        ReferenceDescriptionCollection FetchReferences(NodeId nodeId);
     }
 
     /// <summary>
@@ -639,6 +587,5 @@ namespace Opc.Ua.Client
         /// (if set to a value different from 0)
         /// </summary>
         Balanced
-
     }
 }

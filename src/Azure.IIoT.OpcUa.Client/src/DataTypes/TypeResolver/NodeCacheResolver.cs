@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client.ComplexTypes
 {
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -48,11 +49,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <param name="session"></param>
         public NodeCacheResolver(ISession session)
         {
-            Initialize(session);
-        }
-
-        private void Initialize(ISession session)
-        {
+            m_logger = session.LoggerFactory.CreateLogger<NodeCacheResolver>();
             m_session = session;
         }
 
@@ -67,7 +64,7 @@ namespace Opc.Ua.Client.ComplexTypes
             NodeId dataTypeSystem = null,
             CancellationToken ct = default)
         {
-            return m_session.LoadDataTypeSystem(dataTypeSystem, ct);
+            return m_session.LoadDataTypeSystemAsync(dataTypeSystem, ct);
         }
 
         /// <inheritdoc/>
@@ -214,7 +211,7 @@ namespace Opc.Ua.Client.ComplexTypes
 
 #if DEBUG
             stopwatch.Stop();
-            Utils.LogInfo("LoadDataTypes returns {0} nodes in {1}ms", result.Count, stopwatch.ElapsedMilliseconds);
+            m_logger.LogInformation("LoadDataTypes returns {Count} nodes in {Duration}ms", result.Count, stopwatch.ElapsedMilliseconds);
 #endif
 
             return result;
@@ -264,5 +261,6 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         private ISession m_session;
+        private readonly ILogger m_logger;
     }
 }

@@ -29,6 +29,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Logging;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>

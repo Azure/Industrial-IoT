@@ -51,12 +51,12 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <summary>
         /// The value rank of the field.
         /// </summary>
-        public Int32 ValueRank { get; set; }
+        public int ValueRank { get; set; }
 
         /// <summary>
         /// The maximum string length of the field.
         /// </summary>
-        public UInt32 MaxStringLength { get; set; }
+        public uint MaxStringLength { get; set; }
 
         /// <summary>
         /// If the field is optional.
@@ -66,6 +66,6 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <summary>
         /// The datatype of a field as BuiltInType.
         /// </summary>
-        public Int32 BuiltInType { get; set; }
+        public int BuiltInType { get; set; }
     }
 }

@@ -81,24 +81,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         public byte DesiredPriority
             => Template.Priority
-            ?? Session?.DefaultSubscription?.Priority
             ?? 0;
 
         public uint DesiredMaxNotificationsPerPublish
             => Template.MaxNotificationsPerPublish
-            ?? Session?.DefaultSubscription?.MaxNotificationsPerPublish
             ?? 0;
 
         public uint DesiredLifetimeCount
             => Template.LifetimeCount
             ?? _options.Value.DefaultLifeTimeCount
-            ?? Session?.DefaultSubscription?.LifetimeCount
             ?? 0;
 
         public uint DesiredKeepAliveCount
             => Template.KeepAliveCount
             ?? _options.Value.DefaultKeepAliveCount
-            ?? Session?.DefaultSubscription?.KeepAliveCount
             ?? 0;
 
         public TimeSpan DesiredPublishingInterval
@@ -160,6 +156,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IOptions<OpcUaSubscriptionOptions> options, TimeSpan? createSessionTimeout,
             ILoggerFactory loggerFactory, IMetricsContext metrics, uint? parentId = null,
             TimeProvider? timeProvider = null)
+#if !OLD_STACK
+            : base (loggerFactory.CreateLogger<OpcUaSubscription>())
+#endif
         {
             _client = client;
             _options = options;
@@ -239,6 +238,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscription"></param>
         /// <param name="parentId"></param>
         private OpcUaSubscription(OpcUaSubscription subscription, uint parentId)
+#if !OLD_STACK
+            : base(subscription._loggerFactory.CreateLogger<OpcUaSubscription>())
+#endif
         {
             _options = subscription._options;
             _loggerFactory = subscription._loggerFactory;
@@ -787,8 +789,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <exception cref="ServiceResultException"></exception>
         private async ValueTask SynchronizeSubscriptionAsync(CancellationToken ct)
         {
-            Debug.Assert(Session.DefaultSubscription != null, "No default subscription template.");
-
             if (Handle == null)
             {
                 Handle = SubscriptionId; // Initialized for the first time

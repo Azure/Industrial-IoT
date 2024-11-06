@@ -44,25 +44,6 @@ namespace Opc.Ua.Client
         void Clear();
 
         /// <summary>
-        /// Fetches a node from the server and updates the cache.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        Node FetchNode(ExpandedNodeId nodeId);
-
-        /// <summary>
-        /// Finds a set of nodes in the nodeset,
-        /// fetches missing nodes from server.
-        /// </summary>
-        /// <param name="nodeIds">The node identifier collection.</param>
-        IList<INode> Find(IList<ExpandedNodeId> nodeIds);
-
-        /// <summary>
-        /// Fetches a node collection from the server and updates the cache.
-        /// </summary>
-        /// <param name="nodeIds"></param>
-        IList<Node> FetchNodes(IList<ExpandedNodeId> nodeIds);
-
-        /// <summary>
         /// Finds a set of nodes in the nodeset,
         /// fetches missing nodes from server.
         /// </summary>
@@ -99,24 +80,6 @@ namespace Opc.Ua.Client
         /// <param name="referenceTypeId"></param>
         /// <param name="isInverse"></param>
         /// <param name="includeSubtypes"></param>
-        IList<INode> FindReferences(ExpandedNodeId nodeId, NodeId referenceTypeId, bool isInverse, bool includeSubtypes);
-
-        /// <summary>
-        /// Returns the references of the specified nodes that meet the criteria specified.
-        /// </summary>
-        /// <param name="nodeIds"></param>
-        /// <param name="referenceTypeIds"></param>
-        /// <param name="isInverse"></param>
-        /// <param name="includeSubtypes"></param>
-        IList<INode> FindReferences(IList<ExpandedNodeId> nodeIds, IList<NodeId> referenceTypeIds, bool isInverse, bool includeSubtypes);
-
-        /// <summary>
-        /// Returns the references of the specified node that meet the criteria specified.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="referenceTypeId"></param>
-        /// <param name="isInverse"></param>
-        /// <param name="includeSubtypes"></param>
         /// <param name="ct"></param>
         Task<IList<INode>> FindReferencesAsync(ExpandedNodeId nodeId, NodeId referenceTypeId, bool isInverse, bool includeSubtypes, CancellationToken ct = default);
 
@@ -129,11 +92,5 @@ namespace Opc.Ua.Client
         /// <param name="includeSubtypes"></param>
         /// <param name="ct"></param>
         Task<IList<INode>> FindReferencesAsync(IList<ExpandedNodeId> nodeIds, IList<NodeId> referenceTypeIds, bool isInverse, bool includeSubtypes, CancellationToken ct = default);
-
-        /// <summary>
-        /// Returns a display name for a node.
-        /// </summary>
-        /// <param name="node"></param>
-        string GetDisplayText(INode node);
     }
 }

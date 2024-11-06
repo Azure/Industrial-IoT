@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 : base(item, copyEventHandlers, copyClientHandle)
             {
                 Fields = item.Fields;
-                RelativePath = item.RelativePath;
+                TheResolvedRelativePath = item.TheResolvedRelativePath;
                 Template = item.Template;
             }
 
@@ -288,6 +288,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     itemChange = true;
                 }
                 return itemChange;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription, ref bool applyChanges)
+            {
+                var msgContext = subscription.Session?.MessageContext;
+                if (Status?.FilterResult is EventFilterResult evr && msgContext != null)
+                {
+                    if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
+                    {
+                        _logger.LogError("Event filter applied with result {Result} for {Item}",
+                            evr.AsJson(msgContext), this);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Event filter applied with result {Result} for {Item}",
+                            evr.AsJson(msgContext), this);
+                    }
+                }
+                return base.TryCompleteChanges(subscription, ref applyChanges);
             }
 
             /// <inheritdoc/>

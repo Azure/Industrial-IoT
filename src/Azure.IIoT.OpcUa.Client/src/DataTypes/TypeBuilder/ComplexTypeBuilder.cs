@@ -133,7 +133,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <param name="targetNamespaceIndex"></param>
         private static string FindModuleName(string moduleName, string targetNamespace, int targetNamespaceIndex)
         {
-            if (String.IsNullOrWhiteSpace(moduleName))
+            if (string.IsNullOrWhiteSpace(moduleName))
             {
                 // remove space chars in malformed namespace url
                 var tempNamespace = targetNamespace.Replace(" ", "");

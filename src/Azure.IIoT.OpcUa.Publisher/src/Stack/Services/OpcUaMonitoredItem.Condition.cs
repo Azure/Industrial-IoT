@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Subscription.DisplayName);
                         try
                         {
-                            Subscription.ConditionRefresh();
+                            Subscription.ConditionRefreshAsync().GetAwaiter().GetResult(); // TODO
                         }
                         catch (Exception e)
                         {

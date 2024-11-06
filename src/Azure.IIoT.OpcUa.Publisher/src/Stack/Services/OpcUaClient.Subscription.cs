@@ -433,7 +433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="delay"></param>
         private void RescheduleSynchronization(TimeSpan delay)
         {
-            Debug.Assert(delay <= Timeout.InfiniteTimeSpan);
+            Debug.Assert(delay <= Timeout.InfiniteTimeSpan, delay.ToString());
             Debug.Assert(_subscriptionLock.CurrentCount == 0, "Must be locked");
 
             if (delay == Timeout.InfiniteTimeSpan)
