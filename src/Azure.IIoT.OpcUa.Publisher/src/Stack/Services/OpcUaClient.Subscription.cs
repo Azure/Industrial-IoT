@@ -308,8 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             //
 #pragma warning disable CA2000 // Dispose objects before losing scope
                             var subscription = new OpcUaSubscription(this,
-                                add, _subscriptionOptions, CreateSessionTimeout,
-                                _loggerFactory,
+                                add, _subscriptionOptions, _loggerFactory,
                                 new OpcUaClientTagList(_connection, _metrics),
                                 null, _timeProvider);
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -433,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="delay"></param>
         private void RescheduleSynchronization(TimeSpan delay)
         {
-            Debug.Assert(delay <= Timeout.InfiniteTimeSpan);
+            Debug.Assert(delay <= Timeout.InfiniteTimeSpan, delay.ToString());
             Debug.Assert(_subscriptionLock.CurrentCount == 0, "Must be locked");
 
             if (delay == Timeout.InfiniteTimeSpan)

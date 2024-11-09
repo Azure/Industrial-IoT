@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Description>Contains several test servers to run tests against</Description>
     <IsPackable>true</IsPackable>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <Nullable>disable</Nullable>

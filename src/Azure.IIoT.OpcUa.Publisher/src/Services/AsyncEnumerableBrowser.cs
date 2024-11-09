@@ -248,10 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var matching = refs
                 .Where(reference => reference.NodeClass == _matchClass
                     && (reference.NodeId?.ServerIndex ?? 1u) == 0)
-                .Where(reference => _typeDefinitionId == null ||
-                    reference.TypeDefinition == _typeDefinitionId ||
-                        (_includeTypeDefinitionSubtypes && context.Session.TypeTree
-                            .IsTypeOf(reference.TypeDefinition, _typeDefinitionId)))
+                .Where(reference => MatchTypeDefinitionId(context.Session, reference.TypeDefinition))
                 .Select(reference => new BrowseFrame((NodeId)reference.NodeId,
                     reference.BrowseName, reference.DisplayName?.Text,
                     reference.TypeDefinition, reference.NodeClass, frame))
@@ -289,6 +286,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Pass matching on
             return HandleMatching(context, matching);
+
+            // Helper to match type definition to desired type definition id
+            bool MatchTypeDefinitionId(IOpcUaSession session, ExpandedNodeId typeDefinition)
+            {
+                if (typeDefinition == _typeDefinitionId || _typeDefinitionId == null)
+                {
+                    return true;
+                }
+                if (_includeTypeDefinitionSubtypes && !Opc.Ua.NodeId.IsNull(typeDefinition))
+                {
+                    var typeDefinitionId = ExpandedNodeId.ToNodeId(typeDefinition,
+                        session.MessageContext.NamespaceUris);
+                    return session.NodeCache.IsTypeOf(typeDefinitionId, _typeDefinitionId);
+                }
+                return false;
+
+            }
         }
 
         /// <summary>

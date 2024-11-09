@@ -151,22 +151,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="client"></param>
         /// <param name="template"></param>
         /// <param name="options"></param>
-        /// <param name="createSessionTimeout"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="parentId"></param>
         /// <param name="timeProvider"></param>
         internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template,
-            IOptions<OpcUaSubscriptionOptions> options, TimeSpan? createSessionTimeout,
-            ILoggerFactory loggerFactory, IMetricsContext metrics, uint? parentId = null,
-            TimeProvider? timeProvider = null)
+            IOptions<OpcUaSubscriptionOptions> options, ILoggerFactory loggerFactory,
+            IMetricsContext metrics, uint? parentId = null, TimeProvider? timeProvider = null)
         {
             _client = client;
             _options = options;
             _loggerFactory = loggerFactory;
             _metrics = metrics;
             _parentId = parentId;
-            _createSessionTimeout = createSessionTimeout;
             _timeProvider = timeProvider ?? TimeProvider.System;
 
             Template = template;
@@ -787,8 +784,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <exception cref="ServiceResultException"></exception>
         private async ValueTask SynchronizeSubscriptionAsync(CancellationToken ct)
         {
-            Debug.Assert(Session.DefaultSubscription != null, "No default subscription template.");
-
             if (Handle == null)
             {
                 Handle = SubscriptionId; // Initialized for the first time
@@ -1553,15 +1548,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 ResetMonitoredItemWatchdogTimer(false);
 
-                await Try.Async(() => SetPublishingModeAsync(false)).ConfigureAwait(false);
+                await Try.Async(() => SetPublishingModeAsync(false, default)).ConfigureAwait(false);
                 await Try.Async(() => DeleteItemsAsync(default)).ConfigureAwait(false);
-                await Try.Async(() => ApplyChangesAsync()).ConfigureAwait(false);
+                await Try.Async(() => ApplyChangesAsync(default)).ConfigureAwait(false);
 
                 items.ForEach(item => item.Dispose());
                 _logger.LogDebug("Deleted {Count} monitored items for '{Subscription}'.",
                     items.Count, this);
 
-                await Try.Async(() => DeleteAsync(true)).ConfigureAwait(false);
+                await Try.Async(() => DeleteAsync(true, default)).ConfigureAwait(false);
 
                 if (Session != null)
                 {
@@ -1712,26 +1707,18 @@ Actual (revised) state/desired state:
         /// <param name="callback"></param>
         /// <param name="messageType"></param>
         /// <param name="notifications"></param>
-        /// <param name="session"></param>
         /// <param name="eventTypeName"></param>
         /// <param name="diagnosticsOnly"></param>
         /// <param name="timestamp"></param>
         internal void SendNotification(ISubscriber callback, MessageType messageType,
-            IList<MonitoredItemNotificationModel> notifications, ISession? session,
+            IList<MonitoredItemNotificationModel> notifications,
             string? eventTypeName, bool diagnosticsOnly, DateTimeOffset? timestamp)
         {
-            var curSession = session ?? Session;
+            var curSession = Session;
             var messageContext = curSession?.MessageContext;
 
             if (messageContext == null)
             {
-                if (session == null)
-                {
-                    // Can only send with context
-                    _logger.LogWarning("Failed to send notification since no session exists " +
-                        "to use as context. Notification was dropped.");
-                    return;
-                }
                 _logger.LogWarning("A session was passed to send notification with but without " +
                     "message context. Using thread context.");
                 messageContext = ServiceMessageContext.ThreadContext;
@@ -2132,7 +2119,6 @@ Actual (revised) state/desired state:
                             firstDataChangeReceived ? MessageType.DeltaFrame : MessageType.KeyFrame
                     };
 #pragma warning restore CA2000 // Dispose objects before losing scope
-
                     Debug.Assert(notification.MonitoredItems != null);
 
                     callback.OnSubscriptionDataChangeReceived(message);
@@ -2724,7 +2710,6 @@ Actual (revised) state/desired state:
         private readonly uint? _parentId;
         private readonly OpcUaClient _client;
         private readonly IOptions<OpcUaSubscriptionOptions> _options;
-        private readonly TimeSpan? _createSessionTimeout;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;

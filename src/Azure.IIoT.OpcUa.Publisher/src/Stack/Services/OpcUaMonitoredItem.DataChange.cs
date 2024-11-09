@@ -269,6 +269,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription, ref bool applyChanges)
+            {
+                var msgContext = subscription.Session?.MessageContext;
+                if (Filter is AggregateFilter &&
+                    Status?.FilterResult is AggregateFilterResult afr && msgContext != null)
+                {
+                    if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
+                    {
+                        _logger.LogError("Aggregate filter applied with result {Result} for {Item}",
+                            afr.AsJson(msgContext), this);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Aggregate filter applied with result {Result} for {Item}",
+                            afr.AsJson(msgContext), this);
+                    }
+                }
+                return base.TryCompleteChanges(subscription, ref applyChanges);
+            }
+
+            /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(
                 DateTimeOffset publishTime, IEncodeable evt, MonitoredItemNotifications notifications)
             {
