@@ -152,7 +152,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
                 return true;
             }
 
-            if (!(encodeable is UnionComplexType valueBaseType))
+            if (encodeable is not UnionComplexType valueBaseType)
             {
                 return false;
             }

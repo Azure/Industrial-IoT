@@ -301,7 +301,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return session.NodeCache.IsTypeOf(typeDefinitionId, _typeDefinitionId);
                 }
                 return false;
-
             }
         }
 

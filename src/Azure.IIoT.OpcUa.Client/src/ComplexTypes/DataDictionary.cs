@@ -260,8 +260,7 @@ namespace Opc.Ua.Client.ComplexTypes
         {
             var data = await context.ReadValueAsync(dictionaryId, ct).ConfigureAwait(false);
             // return as a byte array.
-            var dictionary = data.Value as byte[];
-            if (dictionary == null || dictionary.Length == 0)
+            if (data.Value is not byte[] dictionary || dictionary.Length == 0)
             {
                 throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
                     "Found empty data dictionary.");

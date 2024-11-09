@@ -228,8 +228,7 @@ namespace Opc.Ua.Client.ComplexTypes
                     else if (field.SwitchField != null)
                     {
                         dataTypeField.IsOptional = true;
-                        byte value;
-                        if (!switchFieldBits.TryGetValue(field.SwitchField, out value))
+                        if (!switchFieldBits.TryGetValue(field.SwitchField, out var value))
                         {
                             throw new DataTypeNotSupportedException(
                                 $"The switch field for {field.SwitchField} does not exist.");

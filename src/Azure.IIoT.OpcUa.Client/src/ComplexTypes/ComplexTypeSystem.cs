@@ -545,7 +545,7 @@ namespace Opc.Ua.Client.ComplexTypes
                         foreach (var structType in structTypes)
                         {
                             Type? newType = null;
-                            if (!(structType is DataTypeNode dataTypeNode) ||
+                            if (structType is not DataTypeNode dataTypeNode ||
                                 dataTypeNode.IsAbstract)
                             {
                                 continue;

@@ -119,7 +119,7 @@ namespace Opc.Ua.Client
         public virtual async Task<ISession> RecreateAsync(ISession sessionTemplate,
             ITransportWaitingConnection connection, CancellationToken ct)
         {
-            if (!(sessionTemplate is Session template))
+            if (sessionTemplate is not Session template)
             {
                 throw new ArgumentOutOfRangeException(nameof(sessionTemplate),
                     "The ISession provided is not of a supported type");
@@ -131,7 +131,7 @@ namespace Opc.Ua.Client
         public virtual async Task<ISession> RecreateAsync(ISession sessionTemplate,
             ITransportChannel? transportChannel, CancellationToken ct)
         {
-            if (!(sessionTemplate is Session template))
+            if (sessionTemplate is not Session template)
             {
                 throw new ArgumentOutOfRangeException(nameof(sessionTemplate),
                     "The ISession provided is not of a supported type");

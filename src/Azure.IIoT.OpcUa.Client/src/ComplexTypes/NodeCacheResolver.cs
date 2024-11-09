@@ -277,7 +277,7 @@ namespace Opc.Ua.Client.ComplexTypes
             {
                 var rootNode = await _context.NodeCache.FindAsync(nodesToBrowse[0],
                     ct).ConfigureAwait(false);
-                if (!(rootNode is DataTypeNode))
+                if (rootNode is not DataTypeNode)
                 {
                     throw new ServiceResultException(
                         "Root Node is not a DataType node.");

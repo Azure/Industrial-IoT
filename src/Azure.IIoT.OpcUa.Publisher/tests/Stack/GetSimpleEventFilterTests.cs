@@ -181,7 +181,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             AddNode(_commentNode);
             AddNode(_enabledStateNode);
             AddNode(_idNode);
-
             _baseObjectTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.BaseEventType);
             _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, true, ObjectTypeIds.BaseObjectType);
             _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _messageNode.NodeId);
@@ -198,6 +197,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
 
             var nodeCache = base.SetupMockedNodeCache(namespaceTable);
+            var typeTable = new TypeTable(namespaceTable);
+            typeTable.Add(_baseObjectTypeNode);
+            typeTable.Add(_baseEventTypeNode);
+            typeTable.Add(_conditionTypeNode);
+            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
+            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
             nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
                 .Returns((NodeId x, CancellationToken _) =>
                 {
@@ -207,13 +212,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     }
                     return Task.FromResult<Node>(null);
                 });
-
-            var typeTable = new TypeTable(namespaceTable);
-            typeTable.Add(_baseObjectTypeNode);
-            typeTable.Add(_baseEventTypeNode);
-            typeTable.Add(_conditionTypeNode);
-            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
-            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
 
             nodeCache.Setup(x => x.IsTypeOf(It.IsAny<NodeId>(), It.IsAny<NodeId>()))
                 .Returns((NodeId subTypeId, NodeId superTypeId) => typeTable.IsTypeOf(subTypeId, superTypeId));

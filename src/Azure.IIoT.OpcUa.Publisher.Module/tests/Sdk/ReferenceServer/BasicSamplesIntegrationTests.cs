@@ -259,9 +259,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
 
             var json = value
-                        .GetProperty("Body")
-                        .GetProperty("Body")
-                        .GetRawText();
+                .GetProperty("Body")
+                .GetProperty("Body")
+                .GetRawText();
             var buffer = Encoding.UTF8.GetBytes(json);
 
             var serviceMessageContext = new ServiceMessageContext();

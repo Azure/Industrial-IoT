@@ -344,17 +344,17 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The unique identifier assigned by the server.
         /// </summary>
-        public uint Id => _id;
+        public uint Id { get; private set; }
 
         /// <summary>
         /// Whether the subscription has been created on the server.
         /// </summary>
-        public bool Created => _id != 0;
+        public bool Created => Id != 0;
 
         /// <summary>
         /// Whether publishing is currently enabled.
         /// </summary>
-        public bool CurrentPublishingEnabled => _currentPublishingEnabled;
+        public bool CurrentPublishingEnabled { get; private set; }
 
         /// <summary>
         /// Create subscription
@@ -594,7 +594,7 @@ namespace Opc.Ua.Client
                 }
 
                 // delete the subscription.
-                UInt32Collection subscriptionIds = new uint[] { _id };
+                UInt32Collection subscriptionIds = new uint[] { Id };
 
                 var response = await Session.DeleteSubscriptionsAsync(null, subscriptionIds,
                     ct).ConfigureAwait(false);
@@ -643,7 +643,7 @@ namespace Opc.Ua.Client
             AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
 
             Debug.Assert(Session != null);
-            var response = await Session.ModifySubscriptionAsync(null, _id,
+            var response = await Session.ModifySubscriptionAsync(null, Id,
                 PublishingInterval, revisedLifetimeCounter, revisedKeepAliveCount,
                 MaxNotificationsPerPublish, Priority, ct).ConfigureAwait(false);
 
@@ -667,11 +667,11 @@ namespace Opc.Ua.Client
             VerifySubscriptionState(true);
 
             // modify the subscription.
-            UInt32Collection subscriptionIds = new uint[] { _id };
+            UInt32Collection subscriptionIds = new uint[] { Id };
 
             Debug.Assert(Session != null);
             var response = await Session.SetPublishingModeAsync(
-                null, enabled, new uint[] { _id }, ct).ConfigureAwait(false);
+                null, enabled, new uint[] { Id }, ct).ConfigureAwait(false);
 
             // validate response.
             ClientBase.ValidateResponse(response.Results, subscriptionIds);
@@ -685,7 +685,7 @@ namespace Opc.Ua.Client
             }
 
             // update current state.
-            _currentPublishingEnabled = PublishingEnabled = enabled;
+            CurrentPublishingEnabled = PublishingEnabled = enabled;
             _changeMask |= SubscriptionChangeMask.Modified;
 
             ChangesCompleted();
@@ -708,8 +708,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         public async Task<IList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
         {
-            List<MonitoredItem> itemsToCreate;
-            var requestItems = PrepareItemsToCreate(out itemsToCreate);
+            var requestItems = PrepareItemsToCreate(out var itemsToCreate);
             if (requestItems.Count == 0)
             {
                 return itemsToCreate;
@@ -719,7 +718,7 @@ namespace Opc.Ua.Client
             Debug.Assert(Session != null);
             var response = await Session.CreateMonitoredItemsAsync(
                 null,
-                _id,
+                Id,
                 TimestampsToReturn,
                 requestItems,
                 ct).ConfigureAwait(false);
@@ -762,7 +761,7 @@ namespace Opc.Ua.Client
 
             // modify the subscription.
             Debug.Assert(Session != null);
-            var response = await Session.ModifyMonitoredItemsAsync(null, _id,
+            var response = await Session.ModifyMonitoredItemsAsync(null, Id,
                 TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
 
             var results = response.Results;
@@ -807,7 +806,7 @@ namespace Opc.Ua.Client
             }
 
             Debug.Assert(Session != null);
-            var response = await Session.DeleteMonitoredItemsAsync(null, _id,
+            var response = await Session.DeleteMonitoredItemsAsync(null, Id,
                 monitoredItemIds, ct).ConfigureAwait(false);
 
             var results = response.Results;
@@ -855,7 +854,7 @@ namespace Opc.Ua.Client
             }
 
             Debug.Assert(Session != null);
-            var response = await Session.SetMonitoringModeAsync(null, _id,
+            var response = await Session.SetMonitoringModeAsync(null, Id,
                 monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
             var results = response.Results;
             ClientBase.ValidateResponse(results, monitoredItemIds);
@@ -889,7 +888,7 @@ namespace Opc.Ua.Client
             methodsToCall.Add(new CallMethodRequest()
             {
                 MethodId = MethodIds.ConditionType_ConditionRefresh,
-                InputArguments = new VariantCollection() { new Variant(_id) }
+                InputArguments = new VariantCollection() { new Variant(Id) }
             });
 
             Debug.Assert(Session != null);
@@ -913,7 +912,7 @@ namespace Opc.Ua.Client
             {
                 // handle the case when the client has the subscription
                 // template and reconnects
-                if (id != _id)
+                if (id != Id)
                 {
                     return false;
                 }
@@ -967,7 +966,7 @@ namespace Opc.Ua.Client
                 }
 
                 // sets state to 'Created'
-                _id = id;
+                Id = id;
                 TransferItems(serverHandles, clientHandles, out var itemsToModify);
 
                 await ModifyItemsAsync(ct).ConfigureAwait(false);
@@ -1309,7 +1308,7 @@ namespace Opc.Ua.Client
                     }
 
                     _logger.LogInformation("SubscriptionId {Id}: Republishing {Messages} messages, next sequencenumber {SequenceNumber} after transfer.",
-                        _id, republishMessages, _lastSequenceNumberProcessed);
+                        Id, republishMessages, _lastSequenceNumberProcessed);
 
                     availableSequenceNumbers.Clear();
                 }
@@ -1338,7 +1337,7 @@ namespace Opc.Ua.Client
             }
             catch (ServiceResultException sre)
             {
-                _logger.LogError(sre, "SubscriptionId {Id}: Failed to call GetMonitoredItems on server", _id);
+                _logger.LogError(sre, "SubscriptionId {Id}: Failed to call GetMonitoredItems on server", Id);
             }
             return (false, serverHandles, clientHandles);
         }
@@ -1450,7 +1449,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         private async Task PublishResponseMessageWorkerAsync(CancellationToken ct)
         {
-            _logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Started.", _id, Environment.CurrentManagedThreadId);
+            _logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Started.", Id, Environment.CurrentManagedThreadId);
 
             bool cancelled;
             try
@@ -1474,11 +1473,11 @@ namespace Opc.Ua.Client
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "SubscriptionId {Id} - Publish Worker Thread {Thread:X8} Exited Unexpectedly.", _id, Environment.CurrentManagedThreadId);
+                _logger.LogError(e, "SubscriptionId {Id} - Publish Worker Thread {Thread:X8} Exited Unexpectedly.", Id, Environment.CurrentManagedThreadId);
                 return;
             }
 
-            _logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Exited Normally.", _id, Environment.CurrentManagedThreadId);
+            _logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Exited Normally.", Id, Environment.CurrentManagedThreadId);
         }
 
         /// <summary>
@@ -1551,8 +1550,8 @@ namespace Opc.Ua.Client
             }
             else
             {
-                _currentPublishingEnabled = PublishingEnabled;
-                TransferId = _id = subscriptionId;
+                CurrentPublishingEnabled = PublishingEnabled;
+                TransferId = Id = subscriptionId;
                 StartKeepAliveTimer();
                 _changeMask |= SubscriptionChangeMask.Created;
             }
@@ -1592,10 +1591,10 @@ namespace Opc.Ua.Client
         /// </summary>
         private void DeleteSubscription()
         {
-            TransferId = _id = 0;
+            TransferId = Id = 0;
             CurrentPublishingInterval = 0;
             CurrentKeepAliveCount = 0;
-            _currentPublishingEnabled = false;
+            CurrentPublishingEnabled = false;
             _currentPriority = 0;
 
             // update items.
@@ -1790,7 +1789,7 @@ namespace Opc.Ua.Client
                     }
 
                     session = Session;
-                    subscriptionId = _id;
+                    subscriptionId = Id;
                     callback = _publishStatusChanged;
                 }
 
@@ -1931,13 +1930,13 @@ namespace Opc.Ua.Client
         /// <exception cref="ServiceResultException"></exception>
         private void VerifySubscriptionState(bool created)
         {
-            if (created && _id == 0)
+            if (created && Id == 0)
             {
                 throw new ServiceResultException(StatusCodes.BadInvalidState,
                     "Subscription has not been created.");
             }
 
-            if (!created && _id != 0)
+            if (!created && Id != 0)
             {
                 throw new ServiceResultException(StatusCodes.BadInvalidState,
                     "Subscription has already been created.");
@@ -2181,8 +2180,6 @@ namespace Opc.Ua.Client
         private event SubscriptionStateChangedEventHandler? _StateChanged;
         private List<MonitoredItem> _deletedItems;
         private SubscriptionChangeMask _changeMask;
-        private uint _id;
-        private bool _currentPublishingEnabled;
         private byte _currentPriority;
 #if NET6_0_OR_GREATER
         private PeriodicTimer? _publishTimer;

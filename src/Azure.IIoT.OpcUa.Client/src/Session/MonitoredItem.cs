@@ -95,7 +95,7 @@ namespace Opc.Ua.Client
             {
                 if (_samplingInterval != value)
                 {
-                    _attributesModified = true;
+                    AttributesModified = true;
                 }
 
                 _samplingInterval = value;
@@ -114,7 +114,7 @@ namespace Opc.Ua.Client
                 // validate filter against node class.
                 ValidateFilter(value);
 
-                _attributesModified = true;
+                AttributesModified = true;
                 _filter = value;
             }
         }
@@ -131,7 +131,7 @@ namespace Opc.Ua.Client
             {
                 if (_queueSize != value)
                 {
-                    _attributesModified = true;
+                    AttributesModified = true;
                 }
 
                 _queueSize = value;
@@ -150,7 +150,7 @@ namespace Opc.Ua.Client
             {
                 if (_discardOldest != value)
                 {
-                    _attributesModified = true;
+                    AttributesModified = true;
                 }
 
                 _discardOldest = value;
@@ -175,7 +175,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The identifier assigned by the client.
         /// </summary>
-        public uint ClientHandle => _clientHandle;
+        public uint ClientHandle { get; private set; }
 
         /// <summary>
         /// The node id to monitor after applying any relative path.
@@ -185,7 +185,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Whether the monitoring attributes have been modified since the item was created.
         /// </summary>
-        public bool AttributesModified => _attributesModified;
+        public bool AttributesModified { get; private set; }
 
         /// <summary>
         /// The status associated with the monitored item.
@@ -202,9 +202,9 @@ namespace Opc.Ua.Client
             MonitoringMode = MonitoringMode.Reporting;
             _samplingInterval = -1;
             _discardOldest = true;
-            _attributesModified = true;
+            AttributesModified = true;
             Status = new MonitoredItemStatus();
-            _clientHandle = Utils.IncrementIdentifier(ref s_globalClientHandle);
+            ClientHandle = Utils.IncrementIdentifier(ref s_globalClientHandle);
         }
 
         /// <summary>
@@ -239,11 +239,11 @@ namespace Opc.Ua.Client
             }
 
             Status = new MonitoredItemStatus();
-            _clientHandle = copyClientHandle ? template._clientHandle :
+            ClientHandle = copyClientHandle ? template.ClientHandle :
                 Utils.IncrementIdentifier(ref s_globalClientHandle);
 
             Handle = template.Handle;
-            DisplayName = Utils.Format("{0} {1}", displayName, _clientHandle);
+            DisplayName = Utils.Format("{0} {1}", displayName, ClientHandle);
             StartNodeId = template.StartNodeId;
             AttributeId = template.AttributeId;
             IndexRange = template.IndexRange;
@@ -257,7 +257,7 @@ namespace Opc.Ua.Client
             _filter = (MonitoringFilter)Utils.Clone(template._filter);
             _queueSize = template._queueSize;
             _discardOldest = template._discardOldest;
-            _attributesModified = true;
+            AttributesModified = true;
         }
 
         /// <inheritdoc/>
@@ -308,7 +308,7 @@ namespace Opc.Ua.Client
             }
 
             Status.SetCreateResult(request, result, error);
-            _attributesModified = false;
+            AttributesModified = false;
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace Opc.Ua.Client
             }
 
             Status.SetModifyResult(request, result, error);
-            _attributesModified = false;
+            AttributesModified = false;
         }
 
         /// <summary>
@@ -343,9 +343,9 @@ namespace Opc.Ua.Client
         {
             // ensure the global counter is not duplicating future handle ids
             Utils.LowerLimitIdentifier(ref s_globalClientHandle, clientHandle);
-            _clientHandle = clientHandle;
+            ClientHandle = clientHandle;
             Status.SetTransferResult(this);
-            _attributesModified = false;
+            AttributesModified = false;
         }
 
         /// <summary>
@@ -430,8 +430,6 @@ namespace Opc.Ua.Client
         private MonitoringFilter? _filter;
         private uint _queueSize;
         private bool _discardOldest;
-        private uint _clientHandle;
-        private bool _attributesModified;
         private static long s_globalClientHandle;
     }
 }

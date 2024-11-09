@@ -309,10 +309,11 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
                 case DataTypes.Integer:
                 case DataTypes.UInteger:
                 case DataTypes.Number:
-                case DataTypes.Decimal: return BuiltInType.Variant;
+                case DataTypes.Decimal:
+                    return BuiltInType.Variant;
+                default:
+                    return Ua.TypeInfo.GetBuiltInType(datatypeId);
             }
-
-            return Ua.TypeInfo.GetBuiltInType(datatypeId);
         }
     }
 }

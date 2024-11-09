@@ -49,22 +49,22 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Any error condition associated with the monitored item.
         /// </summary>
-        public ServiceResult Error => _error;
+        public ServiceResult Error { get; private set; }
 
         /// <summary>
         /// Filter result
         /// </summary>
-        public MonitoringFilterResult? FilterResult => _filterResult;
+        public MonitoringFilterResult? FilterResult { get; private set; }
 
         /// <summary>
         /// The monitoring mode.
         /// </summary>
-        public MonitoringMode MonitoringMode => _monitoringMode;
+        public MonitoringMode MonitoringMode { get; private set; }
 
         /// <summary>
         /// The sampling interval.
         /// </summary>
-        public double SamplingInterval => _samplingInterval;
+        public double SamplingInterval { get; private set; }
 
         /// <summary>
         /// The length of the queue used to buffer values.
@@ -83,8 +83,8 @@ namespace Opc.Ua.Client
         /// </summary>
         internal MonitoredItemStatus()
         {
-            _monitoringMode = MonitoringMode.Disabled;
-            _error = ServiceResult.Good;
+            MonitoringMode = MonitoringMode.Disabled;
+            Error = ServiceResult.Good;
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Opc.Ua.Client
         /// <param name="monitoringMode"></param>
         internal void SetMonitoringMode(MonitoringMode monitoringMode)
         {
-            _monitoringMode = monitoringMode;
+            MonitoringMode = monitoringMode;
         }
 
         /// <summary>
@@ -111,21 +111,21 @@ namespace Opc.Ua.Client
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(result);
 
-            _monitoringMode = request.MonitoringMode;
+            MonitoringMode = request.MonitoringMode;
             _clientHandle = request.RequestedParameters.ClientHandle;
-            _samplingInterval = request.RequestedParameters.SamplingInterval;
+            SamplingInterval = request.RequestedParameters.SamplingInterval;
             _queueSize = request.RequestedParameters.QueueSize;
-            _error = error;
+            Error = error;
 
             if (ServiceResult.IsGood(error))
             {
                 Id = result.MonitoredItemId;
-                _samplingInterval = result.RevisedSamplingInterval;
+                SamplingInterval = result.RevisedSamplingInterval;
                 _queueSize = result.RevisedQueueSize;
 
                 if (result.FilterResult != null)
                 {
-                    _filterResult = Utils.Clone(result.FilterResult.Body)
+                    FilterResult = Utils.Clone(result.FilterResult.Body)
                         as MonitoringFilterResult;
                 }
             }
@@ -142,11 +142,11 @@ namespace Opc.Ua.Client
         {
             ArgumentNullException.ThrowIfNull(monitoredItem);
 
-            _monitoringMode = monitoredItem.MonitoringMode;
+            MonitoringMode = monitoredItem.MonitoringMode;
             _clientHandle = monitoredItem.ClientHandle;
-            _samplingInterval = monitoredItem.SamplingInterval;
+            SamplingInterval = monitoredItem.SamplingInterval;
             _queueSize = monitoredItem.QueueSize;
-            _filterResult = null;
+            FilterResult = null;
         }
 
         /// <summary>
@@ -164,20 +164,20 @@ namespace Opc.Ua.Client
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(result);
 
-            _error = error;
+            Error = error;
 
             if (ServiceResult.IsGood(error))
             {
                 _clientHandle = request.RequestedParameters.ClientHandle;
-                _samplingInterval = request.RequestedParameters.SamplingInterval;
+                SamplingInterval = request.RequestedParameters.SamplingInterval;
                 _queueSize = request.RequestedParameters.QueueSize;
 
-                _samplingInterval = result.RevisedSamplingInterval;
+                SamplingInterval = result.RevisedSamplingInterval;
                 _queueSize = result.RevisedQueueSize;
 
                 if (result.FilterResult != null)
                 {
-                    _filterResult = Utils.Clone(result.FilterResult.Body)
+                    FilterResult = Utils.Clone(result.FilterResult.Body)
                         as MonitoringFilterResult;
                 }
             }
@@ -190,14 +190,10 @@ namespace Opc.Ua.Client
         internal void SetDeleteResult(ServiceResult error)
         {
             Id = 0;
-            _error = error;
+            Error = error;
         }
 
-        private ServiceResult _error;
-        private MonitoringMode _monitoringMode;
         private uint _clientHandle;
-        private double _samplingInterval;
-        private MonitoringFilterResult? _filterResult;
         private uint _queueSize;
     }
 }

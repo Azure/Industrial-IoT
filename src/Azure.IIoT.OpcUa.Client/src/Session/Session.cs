@@ -235,15 +235,15 @@ namespace Opc.Ua.Client
 
             if (messageContext != null)
             {
-                m_namespaceUris = messageContext.NamespaceUris;
+                NamespaceUris = messageContext.NamespaceUris;
                 m_serverUris = messageContext.ServerUris;
-                m_factory = messageContext.Factory;
+                Factory = messageContext.Factory;
             }
             else
             {
-                m_namespaceUris = new NamespaceTable();
+                NamespaceUris = new NamespaceTable();
                 m_serverUris = new StringTable();
-                m_factory = new EncodeableFactory(EncodeableFactory.GlobalFactory);
+                Factory = new EncodeableFactory(EncodeableFactory.GlobalFactory);
             }
 
             // initialize the NodeCache late, it needs references to the namespaceUris
@@ -256,8 +256,8 @@ namespace Opc.Ua.Client
             m_systemContext = new SystemContext
             {
                 SystemHandle = this,
-                EncodeableFactory = m_factory,
-                NamespaceUris = m_namespaceUris,
+                EncodeableFactory = Factory,
+                NamespaceUris = NamespaceUris,
                 ServerUris = m_serverUris,
                 TypeTable = new Obsolete.TypeTree(m_nodeCache),
                 PreferredLocales = null,
@@ -273,9 +273,9 @@ namespace Opc.Ua.Client
         {
             SessionFactory = new DefaultSessionFactory(LoggerFactory);
             m_sessionTimeout = 0;
-            m_namespaceUris = new NamespaceTable();
+            NamespaceUris = new NamespaceTable();
             m_serverUris = new StringTable();
-            m_factory = EncodeableFactory.GlobalFactory;
+            Factory = EncodeableFactory.GlobalFactory;
             m_configuration = null;
             m_instanceCertificate = null;
             m_endpoint = null;
@@ -541,7 +541,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Gets the table of namespace uris known to the server.
         /// </summary>
-        public NamespaceTable NamespaceUris => m_namespaceUris;
+        public NamespaceTable NamespaceUris { get; private set; }
 
         /// <summary>
         /// Gets the system context for use with the session.
@@ -551,7 +551,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Gets the factory used to create encodeable objects that the server understands.
         /// </summary>
-        public IEncodeableFactory Factory => m_factory;
+        public IEncodeableFactory Factory { get; private set; }
 
         /// <summary>
         /// Gets the cache of nodes fetched from the server.
@@ -645,7 +645,7 @@ namespace Opc.Ua.Client
                 var lastKeepAliveErrorStatusCode = m_lastKeepAliveErrorStatusCode;
                 if (StatusCode.IsGood(lastKeepAliveErrorStatusCode) || lastKeepAliveErrorStatusCode == StatusCodes.BadNoCommunication)
                 {
-                    var delta = HiResClock.TickCount - m_lastKeepAliveTickCount;
+                    var delta = HiResClock.TickCount - LastKeepAliveTickCount;
 
                     // add a guard band to allow for network lag.
                     return (m_keepAliveInterval + kKeepAliveGuardBand) <= delta;
@@ -660,13 +660,7 @@ namespace Opc.Ua.Client
         /// Gets the TickCount in ms of the last keep alive based on <see cref="HiResClock.TickCount"/>.
         /// Independent of system time changes.
         /// </summary>
-        public int LastKeepAliveTickCount
-        {
-            get
-            {
-                return m_lastKeepAliveTickCount;
-            }
-        }
+        public int LastKeepAliveTickCount { get; private set; }
 
         /// <summary>
         /// Gets the number of outstanding publish or keep alive requests.
@@ -2371,15 +2365,12 @@ namespace Opc.Ua.Client
                 }
 
                 // reactivate session.
-                byte[] serverNonce = null;
-                StatusCodeCollection certificateResults = null;
-                DiagnosticInfoCollection certificateDiagnosticInfos = null;
 
                 EndActivateSession(
                     result,
-                    out serverNonce,
-                    out certificateResults,
-                    out certificateDiagnosticInfos);
+                    out var serverNonce,
+                    out var certificateResults,
+                    out var certificateDiagnosticInfos);
 
                 m_logger.LogInformation("Session RECONNECT {Session} completed successfully.", SessionId);
 
@@ -2630,7 +2621,7 @@ namespace Opc.Ua.Client
 
             m_lastKeepAliveErrorStatusCode = StatusCodes.Good;
             Interlocked.Exchange(ref m_lastKeepAliveTime, DateTime.UtcNow.Ticks);
-            m_lastKeepAliveTickCount = HiResClock.TickCount;
+            LastKeepAliveTickCount = HiResClock.TickCount;
 
             m_serverState = ServerState.Unknown;
 
@@ -2920,7 +2911,7 @@ namespace Opc.Ua.Client
 
                 m_lastKeepAliveErrorStatusCode = StatusCodes.Good;
                 Interlocked.Exchange(ref m_lastKeepAliveTime, DateTime.UtcNow.Ticks);
-                m_lastKeepAliveTickCount = HiResClock.TickCount;
+                LastKeepAliveTickCount = HiResClock.TickCount;
 
                 lock (m_outstandingRequests)
                 {
@@ -2939,7 +2930,7 @@ namespace Opc.Ua.Client
             {
                 m_lastKeepAliveErrorStatusCode = StatusCodes.Good;
                 Interlocked.Exchange(ref m_lastKeepAliveTime, DateTime.UtcNow.Ticks);
-                m_lastKeepAliveTickCount = HiResClock.TickCount;
+                LastKeepAliveTickCount = HiResClock.TickCount;
             }
 
             // save server state.
@@ -2970,7 +2961,7 @@ namespace Opc.Ua.Client
             if (result.StatusCode == StatusCodes.BadNoCommunication)
             {
                 //keep alive read timed out
-                var delta = HiResClock.TickCount - m_lastKeepAliveTickCount;
+                var delta = HiResClock.TickCount - LastKeepAliveTickCount;
                 m_logger.LogInformation(
                     "KEEP ALIVE LATE: {Late}ms, EndpointUrl={Url}, RequestCount={Good}/{Outstanding}",
                     delta,
@@ -3069,7 +3060,7 @@ namespace Opc.Ua.Client
             }
             else
             {
-                m_namespaceUris.Update((string[])values[0].Value);
+                NamespaceUris.Update((string[])values[0].Value);
             }
 
             // validate server array.
@@ -3898,7 +3889,6 @@ namespace Opc.Ua.Client
             var acknowledgementsToSend = (SubscriptionAcknowledgementCollection)state[1];
             var requestHeader = (RequestHeader)state[2];
             uint subscriptionId = 0;
-            bool moreNotifications;
 
             AsyncRequestCompleted(result, requestHeader.RequestHandle, DataTypes.PublishRequest);
 
@@ -3912,19 +3902,15 @@ namespace Opc.Ua.Client
                 m_reconnectLock.Release();
 
                 // complete publish.
-                UInt32Collection availableSequenceNumbers;
-                NotificationMessage notificationMessage;
-                StatusCodeCollection acknowledgeResults;
-                DiagnosticInfoCollection acknowledgeDiagnosticInfos;
 
                 var responseHeader = EndPublish(
                     result,
                     out subscriptionId,
-                    out availableSequenceNumbers,
-                    out moreNotifications,
-                    out notificationMessage,
-                    out acknowledgeResults,
-                    out acknowledgeDiagnosticInfos);
+                    out var availableSequenceNumbers,
+                    out var moreNotifications,
+                    out var notificationMessage,
+                    out var acknowledgeResults,
+                    out var acknowledgeDiagnosticInfos);
 
                 var logLevel = LogLevel.Warning;
                 foreach (var code in acknowledgeResults)
@@ -4627,12 +4613,11 @@ namespace Opc.Ua.Client
 
             foreach (var signedCertificate in serverSoftwareCertificates)
             {
-                SoftwareCertificate softwareCertificate = null;
 
                 var result = SoftwareCertificate.Validate(
                     validator,
                     signedCertificate.CertificateData,
-                    out softwareCertificate);
+                    out var softwareCertificate);
 
                 if (ServiceResult.IsBad(result))
                 {
@@ -5133,9 +5118,7 @@ namespace Opc.Ua.Client
 #endif
         private List<Subscription> m_subscriptions;
         private uint m_maxRequestMessageSize;
-        private NamespaceTable m_namespaceUris;
         private StringTable m_serverUris;
-        private IEncodeableFactory m_factory;
         private SystemContext m_systemContext;
         private NodeCache m_nodeCache;
         private byte[] m_serverNonce;
@@ -5144,7 +5127,6 @@ namespace Opc.Ua.Client
         private long m_publishCounter;
         private int m_tooManyPublishRequests;
         private long m_lastKeepAliveTime;
-        private int m_lastKeepAliveTickCount;
         private StatusCode m_lastKeepAliveErrorStatusCode;
         private ServerState m_serverState;
         private int m_keepAliveInterval;

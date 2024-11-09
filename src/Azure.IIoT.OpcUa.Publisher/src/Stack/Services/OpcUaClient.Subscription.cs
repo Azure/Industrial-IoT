@@ -310,8 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             var subscription = new OpcUaSubscription(this,
                                 add, _subscriptionOptions, _loggerFactory,
                                 new OpcUaClientTagList(_connection, _metrics),
-                                null,
-                                _timeProvider);
+                                null, _timeProvider);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
                             // Add the subscription to the session

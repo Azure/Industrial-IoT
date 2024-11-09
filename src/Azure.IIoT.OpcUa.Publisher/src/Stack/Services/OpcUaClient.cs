@@ -198,7 +198,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Action<ChannelDiagnosticModel> diagnosticsCallback,
             IOptions<OpcUaClientOptions> options,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
-            string? sessionName = null) : base(loggerFactory)
+            string? sessionName = null)
+#if !OLD_STACK
+			: base(loggerFactory)
+#endif
         {
             _timeProvider = timeProvider;
             if (connection?.Connection?.Endpoint?.Url == null)
@@ -1340,7 +1343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             e.AcknowledgementsToSend.Clear();
             e.DeferredAcknowledgementsToSend.Clear();
 
-            foreach (var subscription in ((OpcUaSession)session).SubscriptionHandles.Values)
+            foreach (var subscription in session.SubscriptionHandles.Values)
             {
                 if (!subscription.TryGetCurrentPosition(out var sid, out var seq))
                 {
@@ -1653,6 +1656,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+
+                    _logger.LogDebug("{Client}: Successfully closed session {Session}.",
+                        this, session);
                 }
                 catch (Exception ex)
                 {

@@ -167,7 +167,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
                 return true;
             }
 
-            if (!(encodeable is BaseComplexType valueBaseType))
+            if (encodeable is not BaseComplexType valueBaseType)
             {
                 return false;
             }
@@ -761,14 +761,6 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// </summary>
         private void InitializePropertyAttributes()
         {
-            var definitionAttribute = (StructureDefinitionAttribute?)
-                GetType().GetCustomAttribute(typeof(StructureDefinitionAttribute));
-            if (definitionAttribute != null)
-            {
-                _structureBaseType = definitionAttribute.BaseDataType;
-                definitionAttribute.DefaultEncodingId ??= "DefaultBinary";
-            }
-
             var typeAttribute = (StructureTypeIdAttribute?)
                 GetType().GetCustomAttribute(typeof(StructureTypeIdAttribute));
             if (typeAttribute != null)
@@ -814,7 +806,6 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// <summary> The list of properties as dictionary. </summary>
         protected readonly Dictionary<string, ComplexTypePropertyInfo> _propertyDict
             = new();
-        private StructureBaseDataType _structureBaseType;
         private XmlQualifiedName? _xmlName;
     }
 }
