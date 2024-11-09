@@ -211,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
                 NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
-                var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
+                var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     // Failed.
@@ -219,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 try
                 {
-                    var node = await session.NodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
+                    var node = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
                     if (node is VariableNode variable)
                     {
                         await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (Filter is AggregateFilter &&
                     Status?.FilterResult is AggregateFilterResult afr && msgContext != null)
                 {
-                    if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
+                    if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
                     {
                         _logger.LogError("Aggregate filter applied with result {Result} for {Item}",
                             afr.AsJson(msgContext), this);

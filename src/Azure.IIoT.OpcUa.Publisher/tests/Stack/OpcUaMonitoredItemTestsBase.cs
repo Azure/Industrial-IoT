@@ -24,12 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
         {
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
-            var nodeCache = mock.Mock<INodeCache>();
-            namespaceTable ??= new NamespaceTable();
-            var typeTable = new TypeTable(namespaceTable);
-            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
-            nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
-            return nodeCache;
+            return mock.Mock<INodeCache>();
         }
 
         protected virtual Mock<IOpcUaSession> SetupMockedSession(NamespaceTable namespaceTable = null)
@@ -37,7 +32,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             namespaceTable ??= new NamespaceTable();
 
             var nodeCache = SetupMockedNodeCache(namespaceTable).Object;
-            var typeTable = nodeCache.TypeTree;
 
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var session = mock.Mock<IOpcUaSession>();
@@ -47,7 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
             var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
             session.SetupGet(x => x.Codec).Returns(codec);
-            session.SetupGet(x => x.TypeTree).Returns(typeTable);
             session.SetupGet(x => x.NodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);
             return session;
@@ -70,13 +63,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return monitoredItemWrapper;
         }
 
-        internal class SimpleSubscription : Subscription
+        internal sealed class SimpleSubscription : Subscription
         {
             public SimpleSubscription() : base(Log.Console<SimpleSubscription>())
-            {
-            }
-
-            public SimpleSubscription(Subscription template) : base(template)
             {
             }
 

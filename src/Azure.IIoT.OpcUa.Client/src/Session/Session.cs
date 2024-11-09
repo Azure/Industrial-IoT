@@ -27,29 +27,26 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 #define PERIODIC_TIMER
+#nullable disable
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Bindings;
     using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
-    using System.IO;
     using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Serialization;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Xml;
 
     /// <summary>
     /// Manages a session with a server.
     /// </summary>
-    public partial class Session : SessionClientBatched, ISession
+    public class Session : SessionBase, ISession, ISessionInternal, IComplexTypeContext, INodeCacheContext
     {
         private const int kReconnectTimeout = 15000;
         private const int kMinPublishRequestCountMax = 100;
@@ -126,20 +123,20 @@ namespace Opc.Ua.Client
             m_logger = LoggerFactory.CreateLogger<Session>();
             Initialize(channel, template.m_configuration, template.ConfiguredEndpoint, template.m_instanceCertificate);
 
-            m_sessionFactory = template.m_sessionFactory;
-            m_deleteSubscriptionsOnClose = template.m_deleteSubscriptionsOnClose;
-            m_transferSubscriptionsOnReconnect = template.m_transferSubscriptionsOnReconnect;
+            SessionFactory = template.SessionFactory;
+            DeleteSubscriptionsOnClose = template.DeleteSubscriptionsOnClose;
+            TransferSubscriptionsOnReconnect = template.TransferSubscriptionsOnReconnect;
             m_sessionTimeout = template.m_sessionTimeout;
             m_maxRequestMessageSize = template.m_maxRequestMessageSize;
             m_minPublishRequestCount = template.m_minPublishRequestCount;
             m_maxPublishRequestCount = template.m_maxPublishRequestCount;
             m_preferredLocales = template.PreferredLocales;
             m_sessionName = template.SessionName;
-            m_handle = template.Handle;
+            Handle = template.Handle;
             m_identity = template.Identity;
             m_keepAliveInterval = template.KeepAliveInterval;
             m_checkDomain = template.m_checkDomain;
-            m_continuationPointPolicy = template.m_continuationPointPolicy;
+            ContinuationPointPolicy = template.ContinuationPointPolicy;
             if (template.OperationTimeout > 0)
             {
                 OperationTimeout = template.OperationTimeout;
@@ -262,7 +259,7 @@ namespace Opc.Ua.Client
                 EncodeableFactory = m_factory,
                 NamespaceUris = m_namespaceUris,
                 ServerUris = m_serverUris,
-                TypeTable = TypeTree,
+                TypeTable = new Obsolete.TypeTree(m_nodeCache),
                 PreferredLocales = null,
                 SessionId = null,
                 UserIdentity = null
@@ -274,7 +271,7 @@ namespace Opc.Ua.Client
         /// </summary>
         private void Initialize()
         {
-            m_sessionFactory = new DefaultSessionFactory(LoggerFactory);
+            SessionFactory = new DefaultSessionFactory(LoggerFactory);
             m_sessionTimeout = 0;
             m_namespaceUris = new NamespaceTable();
             m_serverUris = new StringTable();
@@ -283,7 +280,6 @@ namespace Opc.Ua.Client
             m_instanceCertificate = null;
             m_endpoint = null;
             m_subscriptions = new List<Subscription>();
-            m_dictionaries = new Dictionary<NodeId, DataDictionary>();
             m_acknowledgementsToSend = new SubscriptionAcknowledgementCollection();
             m_acknowledgementsToSendLock = new object();
 #if DEBUG_SEQUENTIALPUBLISHING
@@ -295,11 +291,11 @@ namespace Opc.Ua.Client
             m_minPublishRequestCount = kDefaultPublishRequestCount;
             m_maxPublishRequestCount = kMaxPublishRequestCountMax;
             m_sessionName = "";
-            m_deleteSubscriptionsOnClose = true;
-            m_transferSubscriptionsOnReconnect = false;
+            DeleteSubscriptionsOnClose = true;
+            TransferSubscriptionsOnReconnect = false;
             m_reconnecting = false;
             m_reconnectLock = new SemaphoreSlim(1, 1);
-            m_serverMaxContinuationPointsPerBrowse = 0;
+            ServerMaxContinuationPointsPerBrowse = 0;
         }
 
         /// <summary>
@@ -400,7 +396,7 @@ namespace Opc.Ua.Client
                 m_keepAliveTimer?.Dispose();
                 m_keepAliveTimer = null;
 
-                m_nodeCache?.Dispose();
+                m_nodeCache?.Clear();
                 m_nodeCache = null;
 
                 List<Subscription> subscriptions = null;
@@ -512,11 +508,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// A session factory that was used to create the session.
         /// </summary>
-        public ISessionFactory SessionFactory
-        {
-            get => m_sessionFactory;
-            set => m_sessionFactory = value;
-        }
+        public ISessionFactory SessionFactory { get; set; }
 
         /// <inheritdoc/>
         public ILoggerFactory LoggerFactory { get; }
@@ -539,11 +531,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Gets the local handle assigned to the session.
         /// </summary>
-        public object Handle
-        {
-            get { return m_handle; }
-            set { m_handle = value; }
-        }
+        public object Handle { get; set; }
 
         /// <summary>
         /// Gets the user identity currently used for the session.
@@ -556,11 +544,6 @@ namespace Opc.Ua.Client
         public NamespaceTable NamespaceUris => m_namespaceUris;
 
         /// <summary>
-        /// Gets the table of remote server uris known to the server.
-        /// </summary>
-        public StringTable ServerUris => m_serverUris;
-
-        /// <summary>
         /// Gets the system context for use with the session.
         /// </summary>
         public ISystemContext SystemContext => m_systemContext;
@@ -569,11 +552,6 @@ namespace Opc.Ua.Client
         /// Gets the factory used to create encodeable objects that the server understands.
         /// </summary>
         public IEncodeableFactory Factory => m_factory;
-
-        /// <summary>
-        /// Gets the cache of the server's type tree.
-        /// </summary>
-        public ITypeTable TypeTree => m_nodeCache.TypeTree;
 
         /// <summary>
         /// Gets the cache of nodes fetched from the server.
@@ -620,11 +598,7 @@ namespace Opc.Ua.Client
         /// Default <c>true</c>, set to <c>false</c> if subscriptions need to
         /// be transferred or for durable subscriptions.
         /// </remarks>
-        public bool DeleteSubscriptionsOnClose
-        {
-            get { return m_deleteSubscriptionsOnClose; }
-            set { m_deleteSubscriptionsOnClose = value; }
-        }
+        public bool DeleteSubscriptionsOnClose { get; set; }
 
         /// <summary>
         /// If the subscriptions are transferred when a session is reconnected.
@@ -633,19 +607,7 @@ namespace Opc.Ua.Client
         /// Default <c>false</c>, set to <c>true</c> if subscriptions should
         /// be transferred after reconnect. Service must be supported by server.
         /// </remarks>
-        public bool TransferSubscriptionsOnReconnect
-        {
-            get { return m_transferSubscriptionsOnReconnect; }
-            set { m_transferSubscriptionsOnReconnect = value; }
-        }
-
-        /// <summary>
-        /// Whether the endpoint Url domain is checked in the certificate.
-        /// </summary>
-        public bool CheckDomain
-        {
-            get { return m_checkDomain; }
-        }
+        public bool TransferSubscriptionsOnReconnect { get; set; }
 
         /// <summary>
         /// Gets or Sets how frequently the server is pinged to see if communication is still working.
@@ -819,18 +781,10 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Read from the Server capability MaxContinuationPointsPerBrowse when the Operation Limits are fetched
         /// </summary>
-        public uint ServerMaxContinuationPointsPerBrowse
-        {
-            get => m_serverMaxContinuationPointsPerBrowse;
-            set => m_serverMaxContinuationPointsPerBrowse = value;
-        }
+        public uint ServerMaxContinuationPointsPerBrowse { get; set; }
 
         /// <inheritdoc/>
-        public ContinuationPointPolicy ContinuationPointPolicy
-        {
-            get => m_continuationPointPolicy;
-            set => m_continuationPointPolicy = value;
-        }
+        public ContinuationPointPolicy ContinuationPointPolicy { get; set; } = ContinuationPointPolicy.Default;
 
         /// <summary>
         /// Creates a secure channel to the specified endpoint.
@@ -1376,31 +1330,6 @@ namespace Opc.Ua.Client
             UpdateNamespaceTable(values, diagnosticInfos, responseHeader);
         }
 
-        /// <inheritdoc/>
-        public async Task FetchTypeTreeAsync(ExpandedNodeIdCollection typeIds, CancellationToken ct = default)
-        {
-            var referenceTypeIds = new NodeIdCollection() { ReferenceTypeIds.HasSubtype };
-            var nodes = await NodeCache.FindReferencesAsync(typeIds, referenceTypeIds, false, false, ct).ConfigureAwait(false);
-            var subTypes = new ExpandedNodeIdCollection();
-            foreach (var inode in nodes)
-            {
-                if (inode is Node node)
-                {
-                    foreach (var reference in node.Find(ReferenceTypeIds.HasSubtype, false))
-                    {
-                        if (!typeIds.Contains(reference.TargetId))
-                        {
-                            subTypes.Add(reference.TargetId);
-                        }
-                    }
-                }
-            }
-            if (subTypes.Count > 0)
-            {
-                await FetchTypeTreeAsync(subTypes, ct).ConfigureAwait(false);
-            }
-        }
-
         /// <summary>
         /// Fetch the operation limits of the server.
         /// </summary>
@@ -1414,7 +1343,7 @@ namespace Opc.Ua.Client
 
                 var nodeIds = new NodeIdCollection(
                     operationLimitsProperties.Select(name => (NodeId)typeof(VariableIds)
-                    .GetField("Server_ServerCapabilities_OperationLimits_" + name, BindingFlags.Public | BindingFlags.Static)
+                    .GetField("Server_ServerCapabilities_OperationLimits_" + name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
                     .GetValue(null))
                     );
 
@@ -1433,13 +1362,11 @@ namespace Opc.Ua.Client
                     var property = typeof(OperationLimits).GetProperty(operationLimitsProperties[ii]);
                     var value = (uint)property.GetValue(configOperationLimits);
                     if (values[ii] != null &&
-                        ServiceResult.IsNotBad(errors[ii]) && values[ii].Value is uint serverValue)
-                    {
-                        if (serverValue > 0 &&
+                        ServiceResult.IsNotBad(errors[ii]) &&
+                        values[ii].Value is uint serverValue && serverValue > 0 &&
                            (value == 0 || serverValue < value))
-                        {
-                            value = serverValue;
-                        }
+                    {
+                        value = serverValue;
                     }
                     property.SetValue(operationLimits, value);
                 }
@@ -1464,61 +1391,7 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public async Task<(IList<Node>, IList<ServiceResult>)> ReadNodesAsync(
-            IList<NodeId> nodeIds,
-            NodeClass nodeClass,
-            bool optionalAttributes = false,
-            CancellationToken ct = default)
-        {
-            if (nodeIds.Count == 0)
-            {
-                return (new List<Node>(), new List<ServiceResult>());
-            }
-
-            if (nodeClass == NodeClass.Unspecified)
-            {
-                return await ReadNodesAsync(nodeIds, optionalAttributes, ct).ConfigureAwait(false);
-            }
-
-            var nodeCollection = new NodeCollection(nodeIds.Count);
-
-            // determine attributes to read for nodeclass
-            var attributesPerNodeId = new List<IDictionary<uint, DataValue>>(nodeIds.Count);
-            var attributesToRead = new ReadValueIdCollection();
-
-            CreateNodeClassAttributesReadNodesRequest(
-                nodeIds, nodeClass,
-                attributesToRead, attributesPerNodeId,
-                nodeCollection,
-                optionalAttributes);
-
-            var readResponse = await ReadAsync(
-                null,
-                0,
-                TimestampsToReturn.Neither,
-                attributesToRead,
-                ct).ConfigureAwait(false);
-
-            var values = readResponse.Results;
-            var diagnosticInfos = readResponse.DiagnosticInfos;
-
-            ClientBase.ValidateResponse(values, attributesToRead);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, attributesToRead);
-
-            var serviceResults = new ServiceResult[nodeIds.Count].ToList();
-            ProcessAttributesReadNodesResponse(
-                readResponse.ResponseHeader,
-                attributesToRead, attributesPerNodeId,
-                values, diagnosticInfos,
-                nodeCollection, serviceResults);
-
-            return (nodeCollection, serviceResults);
-        }
-
-        /// <inheritdoc/>
-        public async Task<(IList<Node>, IList<ServiceResult>)> ReadNodesAsync(
-            IList<NodeId> nodeIds,
-            bool optionalAttributes = false,
-            CancellationToken ct = default)
+            IList<NodeId> nodeIds, CancellationToken ct = default)
         {
             if (nodeIds.Count == 0)
             {
@@ -1558,8 +1431,7 @@ namespace Opc.Ua.Client
             CreateAttributesReadNodesRequest(
                 readResponse.ResponseHeader,
                 itemsToRead, nodeClassValues, diagnosticInfos,
-                attributesToRead, attributesPerNodeId, nodeCollection, serviceResults,
-                optionalAttributes);
+                attributesToRead, attributesPerNodeId, nodeCollection, serviceResults);
 
             if (attributesToRead.Count > 0)
             {
@@ -1586,22 +1458,10 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public Task<Node> ReadNodeAsync(
-            NodeId nodeId,
-            CancellationToken ct = default)
-        {
-            return ReadNodeAsync(nodeId, NodeClass.Unspecified, true, ct);
-        }
-
-        /// <inheritdoc/>
-        public async Task<Node> ReadNodeAsync(
-            NodeId nodeId,
-            NodeClass nodeClass,
-            bool optionalAttributes = true,
-            CancellationToken ct = default)
+        public async Task<Node> ReadNodeAsync(NodeId nodeId, CancellationToken ct = default)
         {
             // build list of attributes.
-            IDictionary<uint, DataValue> attributes = CreateAttributes(nodeClass, optionalAttributes);
+            IDictionary<uint, DataValue> attributes = CreateAttributes();
 
             // build list of values to read.
             var itemsToRead = new ReadValueIdCollection();
@@ -1628,13 +1488,13 @@ namespace Opc.Ua.Client
             ClientBase.ValidateResponse(values, itemsToRead);
             ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
 
-            return ProcessReadResponse(readResponse.ResponseHeader, attributes, itemsToRead, values, diagnosticInfos);
+            return ProcessReadResponse(readResponse.ResponseHeader, attributes,
+                itemsToRead, values, diagnosticInfos);
         }
 
         /// <inheritdoc/>
         public async Task<DataValue> ReadValueAsync(
-            NodeId nodeId,
-            CancellationToken ct = default)
+            NodeId nodeId, CancellationToken ct = default)
         {
             var itemToRead = new ReadValueId
             {
@@ -1993,6 +1853,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Used to pass on references to the Service results in the loop in ManagedBrowseAsync.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         private class ReferenceWrapper<T>
         {
             public T reference { get; set; }
@@ -2320,7 +2181,8 @@ namespace Opc.Ua.Client
         /// <param name="transportChannel">The waiting reverse connection.</param>
         /// <param name="ct"></param>
         /// <returns>The new session object.</returns>
-        public static async Task<Session> RecreateAsync(Session sessionTemplate, ITransportChannel transportChannel, CancellationToken ct = default)
+        public static async Task<Session> RecreateAsync(Session sessionTemplate,
+            ITransportChannel transportChannel, CancellationToken ct = default)
         {
             if (transportChannel == null)
             {
@@ -2411,7 +2273,7 @@ namespace Opc.Ua.Client
                     {
                         TimeoutHint = timeout > 0 ? (uint)timeout : (uint)(OperationTimeout > 0 ? OperationTimeout : 0)
                     };
-                    var response = await base.CloseSessionAsync(requestHeader, m_deleteSubscriptionsOnClose, ct).ConfigureAwait(false);
+                    var response = await base.CloseSessionAsync(requestHeader, DeleteSubscriptionsOnClose, ct).ConfigureAwait(false);
 
                     if (closeChannel)
                     {
@@ -2638,175 +2500,29 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<NodeId, DataDictionary>> LoadDataTypeSystemAsync(NodeId dataTypeSystem = null, CancellationToken ct = default)
-        {
-            if (dataTypeSystem == null)
-            {
-                dataTypeSystem = ObjectIds.OPCBinarySchema_TypeSystem;
-            }
-            else
-            if (!Utils.IsEqual(dataTypeSystem, ObjectIds.OPCBinarySchema_TypeSystem) &&
-                !Utils.IsEqual(dataTypeSystem, ObjectIds.XmlSchema_TypeSystem))
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNodeIdInvalid, $"{nameof(dataTypeSystem)} does not refer to a valid data dictionary.");
-            }
-
-            // find the dictionary for the description.
-            var references = await NodeCache.FindReferencesAsync(dataTypeSystem, ReferenceTypeIds.HasComponent, false, false, ct).ConfigureAwait(false);
-
-            if (references.Count == 0)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNodeIdInvalid, "Type system does not contain a valid data dictionary.");
-            }
-
-            // batch read all encodings and namespaces
-            var referenceNodeIds = references.Select(r => r.NodeId).ToList();
-
-            // find namespace properties
-            var namespaceReferences = await NodeCache.FindReferencesAsync(referenceNodeIds, new NodeIdCollection { ReferenceTypeIds.HasProperty }, false, false, ct).ConfigureAwait(false);
-            var namespaceNodes = namespaceReferences.Where(n => n.BrowseName == BrowseNames.NamespaceUri).ToList();
-            var namespaceNodeIds = namespaceNodes.ConvertAll(n => ExpandedNodeId.ToNodeId(n.NodeId, NamespaceUris));
-
-            // read all schema definitions
-            var referenceExpandedNodeIds = references
-                .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, NamespaceUris))
-                .Where(n => n.NamespaceIndex != 0).ToList();
-            var schemas = await DataDictionary.ReadDictionaries(this, referenceExpandedNodeIds, ct).ConfigureAwait(false);
-
-            // read namespace property values
-            var namespaces = new Dictionary<NodeId, string>();
-
-            var (nameSpaceValues, errors) = await ReadValuesAsync(namespaceNodeIds, ct).ConfigureAwait(false);
-
-            // build the namespace dictionary
-            for (var ii = 0; ii < nameSpaceValues.Count; ii++)
-            {
-                // servers may optimize space by not returning a dictionary
-                if (StatusCode.IsNotBad(errors[ii].StatusCode) && nameSpaceValues[ii]?.Value is string ns)
-                {
-                    namespaces[(NodeId)referenceNodeIds[ii]] = ns;
-                }
-                else
-                {
-                    m_logger.LogWarning("Failed to load namespace {Ns}: {Error}", namespaceNodeIds[ii], errors[ii]);
-                }
-            }
-
-            // build the namespace/schema import dictionary
-            var imports = new Dictionary<string, byte[]>();
-            foreach (var r in references)
-            {
-                var nodeId = ExpandedNodeId.ToNodeId(r.NodeId, NamespaceUris);
-                if (schemas.TryGetValue(nodeId, out var schema) && namespaces.TryGetValue(nodeId, out var ns))
-                {
-                    imports[ns] = schema;
-                }
-            }
-
-            // read all type dictionaries in the type system
-            foreach (var r in references)
-            {
-                DataDictionary dictionaryToLoad = null;
-                var dictionaryId = ExpandedNodeId.ToNodeId(r.NodeId, m_namespaceUris);
-                if (dictionaryId.NamespaceIndex != 0 &&
-                    !m_dictionaries.TryGetValue(dictionaryId, out dictionaryToLoad))
-                {
-                    try
-                    {
-                        dictionaryToLoad = new DataDictionary(this);
-                        if (schemas.TryGetValue(dictionaryId, out var schema))
-                        {
-                            await dictionaryToLoad.LoadAsync(dictionaryId, dictionaryId.ToString(), schema, imports, ct).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await dictionaryToLoad.LoadAsync(dictionaryId, dictionaryId.ToString(), ct: ct).ConfigureAwait(false);
-                        }
-                        m_dictionaries[dictionaryId] = dictionaryToLoad;
-                    }
-                    catch (Exception ex)
-                    {
-                        m_logger.LogError("Dictionary load error for Dictionary {NodeId} : {Message}", r.NodeId, ex.Message);
-                    }
-                }
-            }
-
-            return m_dictionaries;
-        }
-
-        /// <inheritdoc/>
-        public Node ReadNode(NodeId nodeId)
-        {
-            return ReadNode(nodeId, NodeClass.Unspecified, true);
-        }
-
-        /// <inheritdoc/>
-        public Node ReadNode(
-            NodeId nodeId,
-            NodeClass nodeClass,
-            bool optionalAttributes = true)
-        {
-            // build list of attributes.
-            var attributes = CreateAttributes(nodeClass, optionalAttributes);
-
-            // build list of values to read.
-            var itemsToRead = new ReadValueIdCollection();
-            foreach (var attributeId in attributes.Keys)
-            {
-                var itemToRead = new ReadValueId
-                {
-                    NodeId = nodeId,
-                    AttributeId = attributeId
-                };
-                itemsToRead.Add(itemToRead);
-            }
-
-            // read from server.
-            DataValueCollection values = null;
-            DiagnosticInfoCollection diagnosticInfos = null;
-
-            var responseHeader = Read(
-                null,
-                0,
-                TimestampsToReturn.Neither,
-                itemsToRead,
-                out values,
-                out diagnosticInfos);
-
-            ClientBase.ValidateResponse(values, itemsToRead);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
-
-            return ProcessReadResponse(responseHeader, attributes, itemsToRead, values, diagnosticInfos);
-        }
-
-        /// <inheritdoc/>
-        public ReferenceDescriptionCollection FetchReferences(NodeId nodeId)
-        {
-            ManagedBrowse(
-                requestHeader: null,
-                view: null,
-                nodesToBrowse: new List<NodeId>() { nodeId },
-                maxResultsToReturn: 0,
-                browseDirection: BrowseDirection.Both,
-                referenceTypeId: null,
-                includeSubtypes: true,
-                nodeClassMask: 0,
-                out var descriptionsList,
-                out var errors
-                );
-            return descriptionsList[0];
-        }
-
-        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, obj)) return true;
-
-            if (obj is ISession session)
+            if (ReferenceEquals(this, obj))
             {
-                if (!m_endpoint.Equals(session.Endpoint)) return false;
-                if (!m_sessionName.Equals(session.SessionName, StringComparison.Ordinal)) return false;
-                if (!SessionId.Equals(session.SessionId)) return false;
+                return true;
+            }
+
+            if (obj is Session session)
+            {
+                if (!m_endpoint.Equals(session.Endpoint))
+                {
+                    return false;
+                }
+
+                if (!m_sessionName.Equals(session.SessionName, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                if (!SessionId.Equals(session.SessionId))
+                {
+                    return false;
+                }
 
                 return true;
             }
@@ -2875,32 +2591,6 @@ namespace Opc.Ua.Client
             m_SubscriptionsChanged?.Invoke(this, null);
 
             return true;
-        }
-
-        /// <inheritdoc/>
-        public void ManagedBrowse(
-            RequestHeader requestHeader,
-            ViewDescription view,
-            IList<NodeId> nodesToBrowse,
-            uint maxResultsToReturn,
-            BrowseDirection browseDirection,
-            NodeId referenceTypeId,
-            bool includeSubtypes,
-            uint nodeClassMask,
-            out IList<ReferenceDescriptionCollection> result,
-            out IList<ServiceResult> errors
-            )
-        {
-            (result, errors) = ManagedBrowseAsync(
-                requestHeader,
-                view,
-                nodesToBrowse,
-                maxResultsToReturn,
-                browseDirection,
-                referenceTypeId,
-                includeSubtypes,
-                nodeClassMask
-                ).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -3335,45 +3025,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Creates a read request with attributes determined by the NodeClass.
-        /// </summary>
-        /// <param name="nodeIdCollection"></param>
-        /// <param name="nodeClass"></param>
-        /// <param name="attributesToRead"></param>
-        /// <param name="attributesPerNodeId"></param>
-        /// <param name="nodeCollection"></param>
-        /// <param name="optionalAttributes"></param>
-        private static void CreateNodeClassAttributesReadNodesRequest(
-            IList<NodeId> nodeIdCollection,
-            NodeClass nodeClass,
-            ReadValueIdCollection attributesToRead,
-            List<IDictionary<uint, DataValue>> attributesPerNodeId,
-            List<Node> nodeCollection,
-            bool optionalAttributes)
-        {
-            for (var ii = 0; ii < nodeIdCollection.Count; ii++)
-            {
-                var node = new Node();
-                node.NodeId = nodeIdCollection[ii];
-                node.NodeClass = nodeClass;
-
-                var attributes = CreateAttributes(node.NodeClass, optionalAttributes);
-                foreach (var attributeId in attributes.Keys)
-                {
-                    var itemToRead = new ReadValueId
-                    {
-                        NodeId = node.NodeId,
-                        AttributeId = attributeId
-                    };
-                    attributesToRead.Add(itemToRead);
-                }
-
-                nodeCollection.Add(node);
-                attributesPerNodeId.Add(attributes);
-            }
-        }
-
-        /// <summary>
         /// Prepares the list of node ids to read to fetch the namespace table.
         /// </summary>
         private static ReadValueIdCollection PrepareNamespaceTableNodesToRead()
@@ -3445,7 +3096,6 @@ namespace Opc.Ua.Client
         /// <param name="attributesPerNodeId"></param>
         /// <param name="nodeCollection"></param>
         /// <param name="errors"></param>
-        /// <param name="optionalAttributes"></param>
         private static void CreateAttributesReadNodesRequest(
             ResponseHeader responseHeader,
             ReadValueIdCollection itemsToRead,
@@ -3454,9 +3104,7 @@ namespace Opc.Ua.Client
             ReadValueIdCollection attributesToRead,
             List<IDictionary<uint, DataValue>> attributesPerNodeId,
             Opc.Ua.NodeCollection nodeCollection,
-            List<ServiceResult> errors,
-            bool optionalAttributes
-            )
+            List<ServiceResult> errors)
         {
             int? nodeClass;
             for (var ii = 0; ii < itemsToRead.Count; ii++)
@@ -3485,7 +3133,7 @@ namespace Opc.Ua.Client
 
                 node.NodeClass = (NodeClass)nodeClass;
 
-                var attributes = CreateAttributes(node.NodeClass, optionalAttributes);
+                var attributes = CreateAttributes(node.NodeClass);
                 foreach (var attributeId in attributes.Keys)
                 {
                     var itemToRead = new ReadValueId
@@ -3505,10 +3153,10 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Builds the node collection results based on the attribute values of the read response.
         /// </summary>
+        /// <param name="responseHeader">The response header of the read request.</param>
         /// <param name="attributesToRead">The collection of all attributes to read passed in the read request.</param>
         /// <param name="attributesPerNodeId">The attributes requested per NodeId</param>
         /// <param name="values">The attribute values returned by the read request.</param>
-        /// <param name="responseHeader">The response header of the read request.</param>
         /// <param name="diagnosticInfos">The diagnostic info returned by the read request.</param>
         /// <param name="nodeCollection">The node collection which holds the results.</param>
         /// <param name="errors">The service results for each node.</param>
@@ -4740,12 +4388,11 @@ namespace Opc.Ua.Client
 
                 if (actualUrl != null &&
                     actualUrl.Scheme == expectedUrl.Scheme &&
-                    (matchPort ? actualUrl.Port == expectedUrl.Port : true) && serverEndpoint.SecurityPolicyUri == m_endpoint.Description.SecurityPolicyUri)
+                    (!matchPort || actualUrl.Port == expectedUrl.Port) &&
+                    serverEndpoint.SecurityPolicyUri == m_endpoint.Description.SecurityPolicyUri &&
+                    serverEndpoint.SecurityMode == m_endpoint.Description.SecurityMode)
                 {
-                    if (serverEndpoint.SecurityMode == m_endpoint.Description.SecurityMode)
-                    {
-                        return serverEndpoint;
-                    }
+                    return serverEndpoint;
                 }
             }
 
@@ -5007,7 +4654,7 @@ namespace Opc.Ua.Client
         /// <param name="availableSequenceNumbers"></param>
         /// <param name="moreNotifications"></param>
         /// <param name="notificationMessage"></param>
-        private async void ProcessPublishResponse(
+        private void ProcessPublishResponse(
             ResponseHeader responseHeader,
             uint subscriptionId,
             UInt32Collection availableSequenceNumbers,
@@ -5166,7 +4813,7 @@ namespace Opc.Ua.Client
             }
             else
             {
-                if (m_deleteSubscriptionsOnClose && !m_reconnecting)
+                if (DeleteSubscriptionsOnClose && !m_reconnecting)
                 {
                     // Delete abandoned subscription from server.
                     m_logger.LogWarning("Received Publish Response for Unknown SubscriptionId={SubscriptionId}. Deleting abandoned subscription from server.", subscriptionId);
@@ -5204,8 +4851,8 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Invokes a DeleteSubscriptions call for the specified subscriptionId.
         /// </summary>
-        /// <param name="ct"></param>
         /// <param name="subscriptionId"></param>
+        /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
         private async Task DeleteSubscriptionAsync(uint subscriptionId, CancellationToken ct)
         {
@@ -5216,10 +4863,7 @@ namespace Opc.Ua.Client
                 // delete the subscription.
                 UInt32Collection subscriptionIds = new uint[] { subscriptionId };
 
-
-                var response = await DeleteSubscriptionsAsync(
-                    null,
-                    subscriptionIds,
+                var response = await DeleteSubscriptionsAsync(null, subscriptionIds,
                     ct).ConfigureAwait(false);
 
                 var results = response.Results;
@@ -5482,24 +5126,18 @@ namespace Opc.Ua.Client
         /// The user identity currently used for the session.
         /// </summary>
         protected IUserIdentity m_identity;
-
-        private ISessionFactory m_sessionFactory;
         private SubscriptionAcknowledgementCollection m_acknowledgementsToSend;
         private object m_acknowledgementsToSendLock;
 #if DEBUG_SEQUENTIALPUBLISHING
         private Dictionary<uint, uint> m_latestAcknowledgementsSent;
 #endif
         private List<Subscription> m_subscriptions;
-        private Dictionary<NodeId, DataDictionary> m_dictionaries;
-        private bool m_deleteSubscriptionsOnClose;
-        private bool m_transferSubscriptionsOnReconnect;
         private uint m_maxRequestMessageSize;
         private NamespaceTable m_namespaceUris;
         private StringTable m_serverUris;
         private IEncodeableFactory m_factory;
         private SystemContext m_systemContext;
         private NodeCache m_nodeCache;
-        private object m_handle;
         private byte[] m_serverNonce;
         private byte[] m_previousServerNonce;
         private X509Certificate2 m_serverCertificate;
@@ -5523,10 +5161,7 @@ namespace Opc.Ua.Client
         private LinkedList<AsyncRequestState> m_outstandingRequests;
         private readonly EndpointDescriptionCollection m_discoveryServerEndpoints;
         private readonly StringCollection m_discoveryProfileUris;
-        private uint m_serverMaxContinuationPointsPerBrowse;
-        private ContinuationPointPolicy m_continuationPointPolicy
-            = ContinuationPointPolicy.Default;
-        private ILogger m_logger;
+        private readonly ILogger m_logger;
 
         private class AsyncRequestState
         {
@@ -5544,171 +5179,5 @@ namespace Opc.Ua.Client
         private event EventHandler m_SubscriptionsChanged;
         private event EventHandler m_SessionClosing;
         private event EventHandler m_SessionConfigurationChanged;
-    }
-
-    /// <summary>
-    /// The event arguments provided when a keep alive response arrives.
-    /// </summary>
-    public class KeepAliveEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="status"></param>
-        /// <param name="currentState"></param>
-        /// <param name="currentTime"></param>
-        public KeepAliveEventArgs(
-            ServiceResult status,
-            ServerState currentState,
-            DateTime currentTime)
-        {
-            Status = status;
-            CurrentState = currentState;
-            CurrentTime = currentTime;
-        }
-
-        /// <summary>
-        /// Gets the status associated with the keep alive operation.
-        /// </summary>
-        public ServiceResult Status { get; }
-
-        /// <summary>
-        /// Gets the current server state.
-        /// </summary>
-        public ServerState CurrentState { get; }
-
-        /// <summary>
-        /// Gets the current server time.
-        /// </summary>
-        public DateTime CurrentTime { get; }
-
-        /// <summary>
-        /// Gets or sets a flag indicating whether the session should send another keep alive.
-        /// </summary>
-        public bool CancelKeepAlive { get; set; }
-    }
-
-    /// <summary>
-    /// Represents the event arguments provided when a new notification message arrives.
-    /// </summary>
-    public class NotificationEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <param name="notificationMessage"></param>
-        /// <param name="stringTable"></param>
-        public NotificationEventArgs(
-            Subscription subscription,
-            NotificationMessage notificationMessage,
-            IList<string> stringTable)
-        {
-            Subscription = subscription;
-            NotificationMessage = notificationMessage;
-            StringTable = stringTable;
-        }
-
-        /// <summary>
-        /// Gets the subscription that the notification applies to.
-        /// </summary>
-        public Subscription Subscription { get; }
-
-        /// <summary>
-        /// Gets the notification message.
-        /// </summary>
-        public NotificationMessage NotificationMessage { get; }
-
-        /// <summary>
-        /// Gets the string table returned with the notification message.
-        /// </summary>
-        public IList<string> StringTable { get; }
-    }
-
-    /// <summary>
-    /// Represents the event arguments provided when a publish error occurs.
-    /// </summary>
-    public class PublishErrorEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="status"></param>
-        public PublishErrorEventArgs(ServiceResult status)
-        {
-            Status = status;
-        }
-
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="status"></param>
-        /// <param name="subscriptionId"></param>
-        /// <param name="sequenceNumber"></param>
-        internal PublishErrorEventArgs(ServiceResult status, uint subscriptionId, uint sequenceNumber)
-        {
-            Status = status;
-            SubscriptionId = subscriptionId;
-            SequenceNumber = sequenceNumber;
-        }
-
-        /// <summary>
-        /// Gets the status associated with the keep alive operation.
-        /// </summary>
-        public ServiceResult Status { get; }
-
-        /// <summary>
-        /// Gets the subscription with the message that could not be republished.
-        /// </summary>
-        public uint SubscriptionId { get; }
-
-        /// <summary>
-        /// Gets the sequence number for the message that could not be republished.
-        /// </summary>
-        public uint SequenceNumber { get; }
-    }
-
-    /// <summary>
-    /// Represents the event arguments provided when publish response
-    /// sequence numbers are about to be achknoledged with a publish request.
-    /// </summary>
-    /// <remarks>
-    /// A callee can defer an acknowledge to the next publish request by
-    /// moving the <see cref="SubscriptionAcknowledgement"/> to the deferred list.
-    /// The callee can modify the list of acknowledgements to send, it is the
-    /// responsibility of the caller to protect the lists for modifications.
-    /// </remarks>
-    public class PublishSequenceNumbersToAcknowledgeEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="acknowledgementsToSend"></param>
-        /// <param name="deferredAcknowledgementsToSend"></param>
-        public PublishSequenceNumbersToAcknowledgeEventArgs(
-            SubscriptionAcknowledgementCollection acknowledgementsToSend,
-            SubscriptionAcknowledgementCollection deferredAcknowledgementsToSend)
-        {
-            AcknowledgementsToSend = acknowledgementsToSend;
-            DeferredAcknowledgementsToSend = deferredAcknowledgementsToSend;
-        }
-
-        /// <summary>
-        /// The acknowledgements which are sent with the next publish request.
-        /// </summary>
-        /// <remarks>
-        /// A client may also chose to remove an acknowledgement from this list to add it back
-        /// to the list in a subsequent callback when the request is fully processed.
-        /// </remarks>
-        public SubscriptionAcknowledgementCollection AcknowledgementsToSend { get; }
-
-        /// <summary>
-        /// The deferred list of acknowledgements.
-        /// </summary>
-        /// <remarks>
-        /// The callee can transfer an outstanding <see cref="SubscriptionAcknowledgement"/>
-        /// to this list to defer the acknowledge of a sequence number to the next publish request.
-        /// </remarks>
-        public SubscriptionAcknowledgementCollection DeferredAcknowledgementsToSend { get; }
     }
 }

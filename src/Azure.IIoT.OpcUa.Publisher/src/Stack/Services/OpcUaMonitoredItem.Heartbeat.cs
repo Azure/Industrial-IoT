@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var lastValue = lastNotification?.Value;
-                if (lastValue == null && Status?.Error?.StatusCode != null)
+                if (lastValue == null && ServiceResult.IsNotGood(Status.Error))
                 {
                     lastValue = new DataValue(Status.Error.StatusCode);
                 }

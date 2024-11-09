@@ -29,8 +29,8 @@
 
 namespace Opc.Ua.Client
 {
-    using Microsoft.Extensions.Logging;
     using Opc.Ua.Types.Utils;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -40,350 +40,141 @@ namespace Opc.Ua.Client
     using System.Threading.Tasks;
 
     /// <summary>
+    /// The delegate used to receive data change notifications via a direct function call instead of a .NET Event.
+    /// </summary>
+    /// <param name="subscription"></param>
+    /// <param name="notification"></param>
+    /// <param name="stringTable"></param>
+    public delegate void FastDataChangeNotificationEventHandler(
+        Subscription subscription, DataChangeNotification notification,
+        IList<string> stringTable);
+
+    /// <summary>
+    /// The delegate used to receive event notifications via a
+    /// direct function call instead of a .NET Event.
+    /// </summary>
+    /// <param name="subscription"></param>
+    /// <param name="notification"></param>
+    /// <param name="stringTable"></param>
+    public delegate void FastEventNotificationEventHandler(
+        Subscription subscription, EventNotificationList notification,
+        IList<string> stringTable);
+
+    /// <summary>
+    /// The delegate used to receive keep alive notifications via
+    /// a direct function call instead of a .NET Event.
+    /// </summary>
+    /// <param name="subscription"></param>
+    /// <param name="notification"></param>
+    public delegate void FastKeepAliveNotificationEventHandler(
+        Subscription subscription, NotificationData notification);
+
+    /// <summary>
+    /// The delegate used to receive subscription state change notifications.
+    /// </summary>
+    /// <param name="subscription"></param>
+    /// <param name="e"></param>
+    public delegate void SubscriptionStateChangedEventHandler(
+        Subscription subscription, SubscriptionStateChangedEventArgs e);
+
+    /// <summary>
+    /// The delegate used to receive publish state change notifications.
+    /// </summary>
+    /// <param name="subscription"></param>
+    /// <param name="e"></param>
+    public delegate void PublishStateChangedEventHandler(
+        Subscription subscription, PublishStateChangedEventArgs e);
+
+    /// <summary>
     /// A subscription.
     /// </summary>
     public abstract class Subscription : IDisposable, ICloneable
     {
-        const int kMinKeepAliveTimerInterval = 1000;
-        const int kKeepAliveTimerMargin = 1000;
-        const int kRepublishMessageTimeout = 2500;
-        const int kRepublishMessageExpiredTimeout = 10000;
-
-        /// <summary>
-        /// Creates a empty object.
-        /// </summary>
-        protected Subscription(ILogger logger)
-        {
-            m_logger = logger;
-            Initialize();
-        }
-
-        /// <summary>
-        /// Initializes the subscription from a template.
-        /// </summary>
-        /// <param name="template"></param>
-        protected Subscription(Subscription template) : this(template, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes the subscription from a template.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="copyEventHandlers">if set to <c>true</c> the event handlers are copied.</param>
-        protected Subscription(Subscription template, bool copyEventHandlers)
-        {
-            Initialize();
-
-            Debug.Assert(template != null);
-
-            m_logger = template.m_logger;
-            m_displayName = template.m_displayName;
-            m_publishingInterval = template.m_publishingInterval;
-            m_keepAliveCount = template.m_keepAliveCount;
-            m_lifetimeCount = template.m_lifetimeCount;
-            m_minLifetimeInterval = template.m_minLifetimeInterval;
-            m_maxNotificationsPerPublish = template.m_maxNotificationsPerPublish;
-            m_publishingEnabled = template.m_publishingEnabled;
-            m_priority = template.m_priority;
-            m_timestampsToReturn = template.m_timestampsToReturn;
-            m_maxMessageCount = template.m_maxMessageCount;
-            m_sequentialPublishing = template.m_sequentialPublishing;
-            m_republishAfterTransfer = template.m_republishAfterTransfer;
-            m_defaultItem = (MonitoredItem)template.m_defaultItem.Clone();
-            m_handle = template.m_handle;
-            m_transferId = template.m_transferId;
-
-            if (copyEventHandlers)
-            {
-                m_StateChanged = template.m_StateChanged;
-                m_publishStatusChanged = template.m_publishStatusChanged;
-                m_fastDataChangeCallback = template.m_fastDataChangeCallback;
-                m_fastEventCallback = template.m_fastEventCallback;
-                m_fastKeepAliveCallback = template.m_fastKeepAliveCallback;
-            }
-
-            // copy the list of monitored items.
-            var clonedMonitoredItems = new List<MonitoredItem>();
-            foreach (var monitoredItem in template.MonitoredItems)
-            {
-                var clone = monitoredItem.CloneMonitoredItem(copyEventHandlers, true);
-                clone.DisplayName = monitoredItem.DisplayName;
-                clonedMonitoredItems.Add(clone);
-            }
-            if (clonedMonitoredItems.Count > 0)
-            {
-                AddItems(clonedMonitoredItems);
-            }
-        }
-
-        /// <summary>
-        /// Resets the state of the publish timer and associated message worker.
-        /// </summary>
-        private void ResetPublishTimerAndWorkerState()
-        {
-            // stop the publish timer.
-            m_publishTimer?.Dispose();
-            m_publishTimer = null;
-            m_messageWorkerCts?.Dispose();
-            m_messageWorkerEvent.Set();
-            m_messageWorkerCts = null;
-            m_messageWorkerTask = null;
-        }
-
-        /// <summary>
-        /// Sets the private members to default values.
-        /// </summary>
-        private void Initialize()
-        {
-            m_transferId = m_id = 0;
-            m_displayName = "Subscription";
-            m_publishingInterval = 0;
-            m_keepAliveCount = 0;
-            m_keepAliveInterval = 0;
-            m_lifetimeCount = 0;
-            m_maxNotificationsPerPublish = 0;
-            m_publishingEnabled = false;
-            m_timestampsToReturn = TimestampsToReturn.Both;
-            m_maxMessageCount = 10;
-            m_republishAfterTransfer = false;
-            m_outstandingMessageWorkers = 0;
-            m_sequentialPublishing = false;
-            m_lastSequenceNumberProcessed = 0;
-            m_messageCache = new LinkedList<NotificationMessage>();
-            m_monitoredItems = new SortedDictionary<uint, MonitoredItem>();
-            m_deletedItems = new List<MonitoredItem>();
-            m_messageWorkerEvent = new AsyncAutoResetEvent();
-            m_messageWorkerCts = null;
-            m_resyncLastSequenceNumberProcessed = false;
-
-            m_defaultItem = new MonitoredItem
-            {
-                DisplayName = "MonitoredItem",
-                SamplingInterval = -1,
-                MonitoringMode = MonitoringMode.Reporting,
-                QueueSize = 0,
-                DiscardOldest = true
-            };
-        }
-
-        /// <summary>
-        /// Frees any unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                m_publishTimer?.Dispose();
-                m_publishTimer = null;
-                m_messageWorkerCts?.Dispose();
-                m_messageWorkerCts = null;
-
-                m_messageWorkerEvent.Set();
-                m_messageWorkerTask = null;
-            }
-        }
-
-        /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone()
-        {
-            return MemberwiseClone();
-        }
-
-        /// <summary>
-        /// Clones a subscription or a subclass with an option to copy event handlers.
-        /// </summary>
-        /// <param name="copyEventHandlers"></param>
-        /// <returns>A cloned instance of the subscription or its subclass.</returns>
-        public abstract Subscription CloneSubscription(bool copyEventHandlers);
-
-        /// <summary>
-        /// Raised to indicate that the state of the subscription has changed.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1009:DeclareEventHandlersCorrectly")]
-        public event SubscriptionStateChangedEventHandler StateChanged
-        {
-            add { m_StateChanged += value; }
-            remove { m_StateChanged -= value; }
-        }
-
-        /// <summary>
-        /// Raised to indicate the publishing state for the subscription has stopped or resumed (see PublishingStopped property).
-        /// </summary>
-        public event PublishStateChangedEventHandler PublishStatusChanged
-        {
-            add
-            {
-                m_publishStatusChanged += value;
-            }
-
-            remove
-            {
-                m_publishStatusChanged -= value;
-            }
-        }
-
         /// <summary>
         /// A display name for the subscription.
         /// </summary>
         [DataMember(Order = 1)]
-        public string DisplayName
-        {
-            get => m_displayName;
-            set => m_displayName = value;
-        }
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// The publishing interval.
         /// </summary>
         [DataMember(Order = 2)]
-        public int PublishingInterval
-        {
-            get => m_publishingInterval;
-            set => m_publishingInterval = value;
-        }
+        public int PublishingInterval { get; set; }
 
         /// <summary>
         /// The keep alive count.
         /// </summary>
         [DataMember(Order = 3)]
-        public uint KeepAliveCount
-        {
-            get => m_keepAliveCount;
-            set => m_keepAliveCount = value;
-        }
+        public uint KeepAliveCount { get; set; }
 
         /// <summary>
-        /// The life time of of the subscription in counts of
+        /// The life time of the subscription in counts of
         /// publish interval.
         /// LifetimeCount shall be at least 3*KeepAliveCount.
         /// </summary>
         [DataMember(Order = 4)]
-        public uint LifetimeCount
-        {
-            get => m_lifetimeCount;
-            set => m_lifetimeCount = value;
-        }
+        public uint LifetimeCount { get; set; }
 
         /// <summary>
         /// The maximum number of notifications per publish request.
         /// </summary>
         [DataMember(Order = 5)]
-        public uint MaxNotificationsPerPublish
-        {
-            get => m_maxNotificationsPerPublish;
-            set => m_maxNotificationsPerPublish = value;
-        }
+        public uint MaxNotificationsPerPublish { get; set; }
 
         /// <summary>
         /// Whether publishing is enabled.
         /// </summary>
         [DataMember(Order = 6)]
-        public bool PublishingEnabled
-        {
-            get => m_publishingEnabled;
-            set => m_publishingEnabled = value;
-        }
+        public bool PublishingEnabled { get; set; }
 
         /// <summary>
         /// The priority assigned to subscription.
         /// </summary>
         [DataMember(Order = 7)]
-        public byte Priority
-        {
-            get => m_priority;
-            set => m_priority = value;
-        }
+        public byte Priority { get; set; }
 
         /// <summary>
         /// The timestamps to return with the notification messages.
         /// </summary>
         [DataMember(Order = 8)]
-        public TimestampsToReturn TimestampsToReturn
-        {
-            get => m_timestampsToReturn;
-            set => m_timestampsToReturn = value;
-        }
-
-        /// <summary>
-        /// The maximum number of messages to keep in the internal cache.
-        /// </summary>
-        [DataMember(Order = 9)]
-        public int MaxMessageCount
-        {
-            get
-            {
-                return m_maxMessageCount;
-            }
-
-            set
-            {
-                // lock needed to synchronize with message list processing
-                lock (m_cache)
-                {
-                    m_maxMessageCount = value;
-                }
-            }
-        }
+        public TimestampsToReturn TimestampsToReturn { get; set; }
 
         /// <summary>
         /// The default monitored item.
         /// </summary>
         [DataMember(Order = 10)]
-        public MonitoredItem DefaultItem
-        {
-            get => m_defaultItem;
-            set => m_defaultItem = value;
-        }
+        public MonitoredItem DefaultItem { get; set; }
 
         /// <summary>
         /// The minimum lifetime for subscriptions in milliseconds.
         /// </summary>
         [DataMember(Order = 12)]
-        public uint MinLifetimeInterval
-        {
-            get => m_minLifetimeInterval;
-            set => m_minLifetimeInterval = value;
-        }
+        public uint MinLifetimeInterval { get; set; }
 
         /// <summary>
-        /// Back compat
-        /// </summary>
-        public static bool DisableMonitoredItemCache { get => true; set { } }
-
-        /// <summary>
-        /// Gets or sets the behavior of waiting for sequential order in handling incoming messages.
+        /// Gets or sets the behavior of waiting for sequential
+        /// order in handling incoming messages.
         /// </summary>
         /// <value>
-        /// <c>true</c> if incoming messages are handled sequentially; <c>false</c> otherwise.
+        /// <c>true</c> if incoming messages are handled
+        /// sequentially; <c>false</c> otherwise.
         /// </value>
         /// <remarks>
-        /// Setting <see cref="SequentialPublishing"/> to <c>true</c> means incoming messages are processed in
-        /// a "single-threaded" manner and callbacks will not be invoked in parallel.
+        /// Setting <see cref="SequentialPublishing"/> to <c>true</c>
+        /// means incoming messages are processed in a "single-threaded"
+        /// manner and callbacks will not be invoked in parallel.
         /// </remarks>
         [DataMember(Order = 14)]
         public bool SequentialPublishing
         {
-            get
-            {
-                return m_sequentialPublishing;
-            }
+            get => _sequentialPublishing;
             set
             {
                 // synchronize with message list processing
-                lock (m_cache)
+                lock (_cache)
                 {
-                    m_sequentialPublishing = value;
+                    _sequentialPublishing = value;
                 }
             }
         }
@@ -393,25 +184,56 @@ namespace Opc.Ua.Client
         /// are republished or acknowledged after a transfer.
         /// </summary>
         /// <remarks>
-        /// Default <c>false</c>, set to <c>true</c> if no data loss is important
-        /// and available publish requests (sequence numbers) that were never acknowledged should be
-        /// recovered with a republish. The setting is used after a subscription transfer.
+        /// Default <c>false</c>, set to <c>true</c> if no data
+        /// loss is important and available publish requests
+        /// (sequence numbers) that were never acknowledged should
+        /// be recovered with a republish. The setting is used
+        /// after a subscription transfer.
         /// </remarks>
         [DataMember(Name = "RepublishAfterTransfer", Order = 15)]
-        public bool RepublishAfterTransfer
-        {
-            get { return m_republishAfterTransfer; }
-            set { m_republishAfterTransfer = value; }
-        }
+        public bool RepublishAfterTransfer { get; set; }
 
         /// <summary>
         /// The unique identifier assigned by the server which can be used to transfer a session.
         /// </summary>
         [DataMember(Name = "TransferId", Order = 16)]
-        public uint TransferId
+        public uint TransferId { get; set; }
+
+        /// <summary>
+        /// The current publishing interval.
+        /// </summary>
+        [DataMember(Name = "CurrentPublishInterval", Order = 20)]
+        public double CurrentPublishingInterval { get; set; }
+
+        /// <summary>
+        /// The current keep alive count.
+        /// </summary>
+        [DataMember(Name = "CurrentKeepAliveCount", Order = 21)]
+        public uint CurrentKeepAliveCount { get; set; }
+
+        /// <summary>
+        /// The current lifetime count.
+        /// </summary>
+        [DataMember(Name = "CurrentLifetimeCount", Order = 22)]
+        public uint CurrentLifetimeCount { get; set; }
+
+        /// <summary>
+        /// Raised to indicate that the state of the subscription has changed.
+        /// </summary>
+        public event SubscriptionStateChangedEventHandler StateChanged
         {
-            get => m_transferId;
-            set => m_transferId = value;
+            add => _StateChanged += value;
+            remove => _StateChanged -= value;
+        }
+
+        /// <summary>
+        /// Raised to indicate the publishing state for the subscription
+        /// has stopped or resumed (see PublishingStopped property).
+        /// </summary>
+        public event PublishStateChangedEventHandler PublishStatusChanged
+        {
+            add => _publishStatusChanged += value;
+            remove => _publishStatusChanged -= value;
         }
 
         /// <summary>
@@ -419,39 +241,35 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <value>The fast data change callback.</value>
         /// <remarks>
-        /// Only one callback is allowed at a time but it is more efficient to call than an event.
+        /// Only one callback is allowed at a time but it is more
+        /// efficient to call than an event.
         /// </remarks>
-        public FastDataChangeNotificationEventHandler FastDataChangeCallback
-        {
-            get => m_fastDataChangeCallback;
-            set => m_fastDataChangeCallback = value;
-        }
+        public FastDataChangeNotificationEventHandler? FastDataChangeCallback { get; set; }
 
         /// <summary>
         /// Gets or sets the fast event callback.
         /// </summary>
         /// <value>The fast event callback.</value>
         /// <remarks>
-        /// Only one callback is allowed at a time but it is more efficient to call than an event.
+        /// Only one callback is allowed at a time but it is more
+        /// efficient to call than an event.
         /// </remarks>
-        public FastEventNotificationEventHandler FastEventCallback
-        {
-            get => m_fastEventCallback;
-            set => m_fastEventCallback = value;
-        }
+        public FastEventNotificationEventHandler? FastEventCallback { get; set; }
 
         /// <summary>
         /// Gets or sets the fast keep alive callback.
         /// </summary>
         /// <value>The keep alive change callback.</value>
         /// <remarks>
-        /// Only one callback is allowed at a time but it is more efficient to call than an event.
+        /// Only one callback is allowed at a time but it is more
+        /// efficient to call than an event.
         /// </remarks>
-        public FastKeepAliveNotificationEventHandler FastKeepAliveCallback
-        {
-            get => m_fastKeepAliveCallback;
-            set => m_fastKeepAliveCallback = value;
-        }
+        public FastKeepAliveNotificationEventHandler? FastKeepAliveCallback { get; set; }
+
+        /// <summary>
+        /// Back compat
+        /// </summary>
+        public static bool DisableMonitoredItemCache { get => true; set { } }
 
         /// <summary>
         /// The items to monitor.
@@ -460,9 +278,9 @@ namespace Opc.Ua.Client
         {
             get
             {
-                lock (m_cache)
+                lock (_cache)
                 {
-                    return new List<MonitoredItem>(m_monitoredItems.Values);
+                    return new List<MonitoredItem>(_monitoredItems.Values);
                 }
             }
         }
@@ -474,14 +292,14 @@ namespace Opc.Ua.Client
         {
             get
             {
-                lock (m_cache)
+                lock (_cache)
                 {
-                    if (m_deletedItems.Count > 0)
+                    if (_deletedItems.Count > 0)
                     {
                         return true;
                     }
 
-                    foreach (var monitoredItem in m_monitoredItems.Values)
+                    foreach (var monitoredItem in _monitoredItems.Values)
                     {
                         if (Created && !monitoredItem.Status.Created)
                         {
@@ -506,9 +324,9 @@ namespace Opc.Ua.Client
         {
             get
             {
-                lock (m_cache)
+                lock (_cache)
                 {
-                    return (uint)m_monitoredItems.Count;
+                    return (uint)_monitoredItems.Count;
                 }
             }
         }
@@ -516,197 +334,185 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The session that owns the subscription item.
         /// </summary>
-        public ISession Session
-        {
-            get => m_session;
-            protected internal set => m_session = value;
-        }
+        public ISessionInternal? Session { get; protected internal set; }
 
         /// <summary>
         /// A local handle assigned to the subscription
         /// </summary>
-        public object Handle
-        {
-            get => m_handle;
-            set => m_handle = value;
-        }
+        public object? Handle { get; set; }
 
         /// <summary>
         /// The unique identifier assigned by the server.
         /// </summary>
-        public uint Id => m_id;
+        public uint Id => _id;
 
         /// <summary>
         /// Whether the subscription has been created on the server.
         /// </summary>
-        public bool Created => m_id != 0;
-
-        /// <summary>
-        /// The current publishing interval.
-        /// </summary>
-        [DataMember(Name = "CurrentPublishInterval", Order = 20)]
-        public double CurrentPublishingInterval
-        {
-            get => m_currentPublishingInterval;
-            set => m_currentPublishingInterval = value;
-        }
-
-        /// <summary>
-        /// The current keep alive count.
-        /// </summary>
-        [DataMember(Name = "CurrentKeepAliveCount", Order = 21)]
-        public uint CurrentKeepAliveCount
-        {
-            get => m_currentKeepAliveCount;
-            set => m_currentKeepAliveCount = value;
-        }
-
-        /// <summary>
-        /// The current lifetime count.
-        /// </summary>
-        [DataMember(Name = "CurrentLifetimeCount", Order = 22)]
-        public uint CurrentLifetimeCount
-        {
-            get => m_currentLifetimeCount;
-            set => m_currentLifetimeCount = value;
-        }
+        public bool Created => _id != 0;
 
         /// <summary>
         /// Whether publishing is currently enabled.
         /// </summary>
-        public bool CurrentPublishingEnabled => m_currentPublishingEnabled;
+        public bool CurrentPublishingEnabled => _currentPublishingEnabled;
 
         /// <summary>
-        /// The priority assigned to subscription when it was created.
+        /// Create subscription
         /// </summary>
-        public byte CurrentPriority => m_currentPriority;
-
-        /// <summary>
-        /// The time that the last notification received was published.
-        /// </summary>
-        public DateTime PublishTime
+        /// <param name="logger"></param>
+        protected Subscription(ILogger logger)
         {
-            get
-            {
-                lock (m_cache)
-                {
-                    if (m_messageCache.Count > 0)
-                    {
-                        return m_messageCache.Last.Value.PublishTime;
-                    }
-                }
+            _logger = logger;
+            DisplayName = "Subscription";
+            TimestampsToReturn = TimestampsToReturn.Both;
+            _maxMessageCount = 10;
+            RepublishAfterTransfer = false;
+            _outstandingMessageWorkers = 0;
+            _sequentialPublishing = false;
+            _lastSequenceNumberProcessed = 0;
+            _messageCache = new LinkedList<NotificationMessage>();
+            _monitoredItems = new SortedDictionary<uint, MonitoredItem>();
+            _deletedItems = new List<MonitoredItem>();
+            _messageWorkerEvent = new AsyncAutoResetEvent();
+            _resyncLastSequenceNumberProcessed = false;
 
-                return DateTime.MinValue;
+            DefaultItem = new MonitoredItem
+            {
+                DisplayName = "MonitoredItem",
+                SamplingInterval = -1,
+                MonitoringMode = MonitoringMode.Reporting,
+                QueueSize = 0,
+                DiscardOldest = true
+            };
+        }
+
+        /// <summary>
+        /// Initializes the subscription from a template.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <param name="copyEventHandlers">if set to <c>true</c>
+        /// the event handlers are copied.</param>
+        protected Subscription(Subscription template, bool copyEventHandlers)
+        {
+            TimestampsToReturn = TimestampsToReturn.Both;
+            _maxMessageCount = 10;
+            _messageCache = new LinkedList<NotificationMessage>();
+            _monitoredItems = new SortedDictionary<uint, MonitoredItem>();
+            _deletedItems = new List<MonitoredItem>();
+            _messageWorkerEvent = new AsyncAutoResetEvent();
+
+            DefaultItem = new MonitoredItem
+            {
+                DisplayName = "MonitoredItem",
+                SamplingInterval = -1,
+                MonitoringMode = MonitoringMode.Reporting,
+                QueueSize = 0,
+                DiscardOldest = true
+            };
+
+            Debug.Assert(template != null);
+
+            _logger = template._logger;
+            _maxMessageCount = template._maxMessageCount;
+            _sequentialPublishing = template._sequentialPublishing;
+
+            DisplayName = template.DisplayName;
+            PublishingInterval = template.PublishingInterval;
+            KeepAliveCount = template.KeepAliveCount;
+            LifetimeCount = template.LifetimeCount;
+            MinLifetimeInterval = template.MinLifetimeInterval;
+            MaxNotificationsPerPublish = template.MaxNotificationsPerPublish;
+            PublishingEnabled = template.PublishingEnabled;
+            Priority = template.Priority;
+            TimestampsToReturn = template.TimestampsToReturn;
+            RepublishAfterTransfer = template.RepublishAfterTransfer;
+            DefaultItem = (MonitoredItem)template.DefaultItem.Clone();
+            Handle = template.Handle;
+            TransferId = template.TransferId;
+
+            if (copyEventHandlers)
+            {
+                _StateChanged = template._StateChanged;
+                _publishStatusChanged = template._publishStatusChanged;
+                FastDataChangeCallback = template.FastDataChangeCallback;
+                FastEventCallback = template.FastEventCallback;
+                FastKeepAliveCallback = template.FastKeepAliveCallback;
+            }
+
+            // copy the list of monitored items.
+            var clonedMonitoredItems = new List<MonitoredItem>();
+            foreach (var monitoredItem in template.MonitoredItems)
+            {
+                var clone = monitoredItem.CloneMonitoredItem(copyEventHandlers, true);
+                clone.DisplayName = monitoredItem.DisplayName;
+                clonedMonitoredItems.Add(clone);
+            }
+            if (clonedMonitoredItems.Count > 0)
+            {
+                AddItems(clonedMonitoredItems);
             }
         }
 
         /// <summary>
-        /// The time that the last notification was received.
+        /// Resets the state of the publish timer and associated message worker.
         /// </summary>
-        public DateTime LastNotificationTime
+        private void ResetPublishTimerAndWorkerState()
         {
-            get
-            {
-                var ticks = Interlocked.Read(ref m_lastNotificationTime);
-                return new DateTime(ticks, DateTimeKind.Utc);
-            }
+            // stop the publish timer.
+            _publishTimer?.Dispose();
+            _publishTimer = null;
+            _messageWorkerCts?.Dispose();
+            _messageWorkerEvent.Set();
+            _messageWorkerCts = null;
+            _messageWorkerTask = null;
         }
 
         /// <summary>
-        /// The sequence number assigned to the last notification message.
+        /// Frees any unmanaged resources.
         /// </summary>
-        public uint SequenceNumber
+        public void Dispose()
         {
-            get
-            {
-                lock (m_cache)
-                {
-                    if (m_messageCache.Count > 0)
-                    {
-                        return m_messageCache.Last.Value.SequenceNumber;
-                    }
-                }
-
-                return 0;
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// The number of notifications contained in the last notification message.
+        /// An overrideable version of the Dispose.
         /// </summary>
-        public uint NotificationCount
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
         {
-            get
+            if (disposing)
             {
-                lock (m_cache)
-                {
-                    if (m_messageCache.Count > 0)
-                    {
-                        return (uint)m_messageCache.Last.Value.NotificationData.Count;
-                    }
-                }
-
-                return 0;
+                _publishTimer?.Dispose();
+                _publishTimer = null;
+                _messageWorkerCts?.Dispose();
+                _messageWorkerCts = null;
+                _messageWorkerEvent.Set();
+                _messageWorkerTask = null;
             }
+        }
+
+        /// <inheritdoc/>
+        public virtual object Clone()
+        {
+            return MemberwiseClone();
         }
 
         /// <summary>
-        /// The last notification received from the server.
+        /// Clones a subscription or a subclass with an option to copy event handlers.
         /// </summary>
-        public NotificationMessage LastNotification
-        {
-            get
-            {
-                lock (m_cache)
-                {
-                    if (m_messageCache.Count > 0)
-                    {
-                        return m_messageCache.Last.Value;
-                    }
-
-                    return null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// The cached notifications.
-        /// </summary>
-        public IEnumerable<NotificationMessage> Notifications
-        {
-            get
-            {
-                lock (m_cache)
-                {
-                    // make a copy to ensure the state of the last cannot change during enumeration.
-                    return new List<NotificationMessage>(m_messageCache);
-                }
-            }
-        }
-
-        /// <summary>
-        /// The sequence numbers that are available for republish requests.
-        /// </summary>
-        public IEnumerable<uint> AvailableSequenceNumbers
-        {
-            get
-            {
-                lock (m_cache)
-                {
-                    return m_availableSequenceNumbers != null ?
-                        (IEnumerable<uint>)new ReadOnlyList<uint>(m_availableSequenceNumbers) :
-                        Enumerable.Empty<uint>();
-                }
-            }
-        }
+        /// <param name="copyEventHandlers"></param>
+        /// <returns>A cloned instance of the subscription or its subclass.</returns>
+        public abstract Subscription CloneSubscription(bool copyEventHandlers);
 
         /// <summary>
         /// Sends a notification that the state of the subscription has changed.
         /// </summary>
         public void ChangesCompleted()
         {
-            m_StateChanged?.Invoke(this, new SubscriptionStateChangedEventArgs(m_changeMask));
-            m_changeMask = SubscriptionChangeMask.None;
+            _StateChanged?.Invoke(this, new SubscriptionStateChangedEventArgs(_changeMask));
+            _changeMask = SubscriptionChangeMask.None;
         }
 
         /// <summary>
@@ -716,8 +522,8 @@ namespace Opc.Ua.Client
         {
             get
             {
-                var timeSinceLastNotification = HiResClock.TickCount - m_lastNotificationTickCount;
-                if (timeSinceLastNotification > m_keepAliveInterval + kKeepAliveTimerMargin)
+                var timeSinceLastNotification = HiResClock.TickCount - _lastNotificationTickCount;
+                if (timeSinceLastNotification > _keepAliveInterval + kKeepAliveTimerMargin)
                 {
                     return true;
                 }
@@ -725,28 +531,30 @@ namespace Opc.Ua.Client
                 return false;
             }
         }
+
         /// <summary>
         /// Creates a subscription on the server and adds all monitored items.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task CreateAsync(CancellationToken ct = default)
+        public async Task CreateAsync(CancellationToken ct)
         {
             VerifySubscriptionState(false);
 
             // create the subscription.
-            var revisedMaxKeepAliveCount = m_keepAliveCount;
-            var revisedLifetimeCount = m_lifetimeCount;
+            var revisedMaxKeepAliveCount = KeepAliveCount;
+            var revisedLifetimeCount = LifetimeCount;
 
             AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
 
-            var response = await m_session.CreateSubscriptionAsync(
+            Debug.Assert(Session != null);
+            var response = await Session.CreateSubscriptionAsync(
                 null,
-                m_publishingInterval,
+                PublishingInterval,
                 revisedLifetimeCount,
                 revisedMaxKeepAliveCount,
-                m_maxNotificationsPerPublish,
-                m_publishingEnabled,
-                m_priority,
+                MaxNotificationsPerPublish,
+                PublishingEnabled,
+                Priority,
                 ct).ConfigureAwait(false);
 
             CreateSubscription(
@@ -766,32 +574,29 @@ namespace Opc.Ua.Client
         /// <param name="silent"></param>
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public async Task DeleteAsync(bool silent, CancellationToken ct = default)
+        public async Task DeleteAsync(bool silent, CancellationToken ct)
         {
             if (!silent)
             {
                 VerifySubscriptionState(true);
             }
-
             // nothing to do if not created.
             if (!Created)
             {
                 return;
             }
-
+            Debug.Assert(Session != null);
             try
             {
-                lock (m_cache)
+                lock (_cache)
                 {
                     ResetPublishTimerAndWorkerState();
                 }
 
                 // delete the subscription.
-                UInt32Collection subscriptionIds = new uint[] { m_id };
+                UInt32Collection subscriptionIds = new uint[] { _id };
 
-                var response = await m_session.DeleteSubscriptionsAsync(
-                    null,
-                    subscriptionIds,
+                var response = await Session.DeleteSubscriptionsAsync(null, subscriptionIds,
                     ct).ConfigureAwait(false);
 
                 // validate response.
@@ -801,7 +606,8 @@ namespace Opc.Ua.Client
                 if (StatusCode.IsBad(response.Results[0]))
                 {
                     throw new ServiceResultException(
-                        ClientBase.GetResult(response.Results[0], 0, response.DiagnosticInfos, response.ResponseHeader));
+                        ClientBase.GetResult(response.Results[0], 0, response.DiagnosticInfos,
+                        response.ResponseHeader));
                 }
             }
 
@@ -826,25 +632,20 @@ namespace Opc.Ua.Client
         /// Modifies a subscription on the server.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ModifyAsync(CancellationToken ct = default)
+        public async Task ModifyAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
             // modify the subscription.
-            var revisedKeepAliveCount = m_keepAliveCount;
-            var revisedLifetimeCounter = m_lifetimeCount;
+            var revisedKeepAliveCount = KeepAliveCount;
+            var revisedLifetimeCounter = LifetimeCount;
 
             AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
 
-            var response = await m_session.ModifySubscriptionAsync(
-                null,
-                m_id,
-                m_publishingInterval,
-                revisedLifetimeCounter,
-                revisedKeepAliveCount,
-                m_maxNotificationsPerPublish,
-                m_priority,
-                ct).ConfigureAwait(false);
+            Debug.Assert(Session != null);
+            var response = await Session.ModifySubscriptionAsync(null, _id,
+                PublishingInterval, revisedLifetimeCounter, revisedKeepAliveCount,
+                MaxNotificationsPerPublish, Priority, ct).ConfigureAwait(false);
 
             // update current state.
             ModifySubscription(
@@ -861,18 +662,16 @@ namespace Opc.Ua.Client
         /// <param name="enabled"></param>
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public async Task SetPublishingModeAsync(bool enabled, CancellationToken ct = default)
+        public async Task SetPublishingModeAsync(bool enabled, CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
             // modify the subscription.
-            UInt32Collection subscriptionIds = new uint[] { m_id };
+            UInt32Collection subscriptionIds = new uint[] { _id };
 
-            var response = await m_session.SetPublishingModeAsync(
-                null,
-                enabled,
-                new uint[] { m_id },
-                ct).ConfigureAwait(false);
+            Debug.Assert(Session != null);
+            var response = await Session.SetPublishingModeAsync(
+                null, enabled, new uint[] { _id }, ct).ConfigureAwait(false);
 
             // validate response.
             ClientBase.ValidateResponse(response.Results, subscriptionIds);
@@ -881,12 +680,13 @@ namespace Opc.Ua.Client
             if (StatusCode.IsBad(response.Results[0]))
             {
                 throw new ServiceResultException(
-                    ClientBase.GetResult(response.Results[0], 0, response.DiagnosticInfos, response.ResponseHeader));
+                    ClientBase.GetResult(response.Results[0], 0,
+                    response.DiagnosticInfos, response.ResponseHeader));
             }
 
             // update current state.
-            m_currentPublishingEnabled = m_publishingEnabled = enabled;
-            m_changeMask |= SubscriptionChangeMask.Modified;
+            _currentPublishingEnabled = PublishingEnabled = enabled;
+            _changeMask |= SubscriptionChangeMask.Modified;
 
             ChangesCompleted();
         }
@@ -895,7 +695,7 @@ namespace Opc.Ua.Client
         /// Applies any changes to the subscription items.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ApplyChangesAsync(CancellationToken ct = default)
+        public async Task ApplyChangesAsync(CancellationToken ct)
         {
             await DeleteItemsAsync(ct).ConfigureAwait(false);
             await ModifyItemsAsync(ct).ConfigureAwait(false);
@@ -906,21 +706,21 @@ namespace Opc.Ua.Client
         /// Creates all items on the server that have not already been created.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task<IList<MonitoredItem>> CreateItemsAsync(CancellationToken ct = default)
+        public async Task<IList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
         {
             List<MonitoredItem> itemsToCreate;
             var requestItems = PrepareItemsToCreate(out itemsToCreate);
-
             if (requestItems.Count == 0)
             {
                 return itemsToCreate;
             }
 
             // create monitored items.
-            var response = await m_session.CreateMonitoredItemsAsync(
+            Debug.Assert(Session != null);
+            var response = await Session.CreateMonitoredItemsAsync(
                 null,
-                m_id,
-                m_timestampsToReturn,
+                _id,
+                TimestampsToReturn,
                 requestItems,
                 ct).ConfigureAwait(false);
 
@@ -929,12 +729,13 @@ namespace Opc.Ua.Client
             ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToCreate);
 
             // update results.
-            for (var ii = 0; ii < results.Count; ii++)
+            for (var index = 0; index < results.Count; index++)
             {
-                itemsToCreate[ii].SetCreateResult(requestItems[ii], results[ii], ii, response.DiagnosticInfos, response.ResponseHeader);
+                itemsToCreate[index].SetCreateResult(requestItems[index],
+                    results[index], index, response.DiagnosticInfos, response.ResponseHeader);
             }
 
-            m_changeMask |= SubscriptionChangeMask.ItemsCreated;
+            _changeMask |= SubscriptionChangeMask.ItemsCreated;
             ChangesCompleted();
 
             // return the list of items affected by the change.
@@ -945,7 +746,7 @@ namespace Opc.Ua.Client
         /// Modifies all items that have been changed.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task<IList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct = default)
+        public async Task<IList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
@@ -960,24 +761,22 @@ namespace Opc.Ua.Client
             }
 
             // modify the subscription.
-            var response = await m_session.ModifyMonitoredItemsAsync(
-                null,
-                m_id,
-                m_timestampsToReturn,
-                requestItems,
-                ct).ConfigureAwait(false);
+            Debug.Assert(Session != null);
+            var response = await Session.ModifyMonitoredItemsAsync(null, _id,
+                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
 
             var results = response.Results;
             ClientBase.ValidateResponse(results, itemsToModify);
             ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToModify);
 
             // update results.
-            for (var ii = 0; ii < results.Count; ii++)
+            for (var index = 0; index < results.Count; index++)
             {
-                itemsToModify[ii].SetModifyResult(requestItems[ii], results[ii], ii, response.DiagnosticInfos, response.ResponseHeader);
+                itemsToModify[index].SetModifyResult(requestItems[index], results[index],
+                    index, response.DiagnosticInfos, response.ResponseHeader);
             }
 
-            m_changeMask |= SubscriptionChangeMask.ItemsModified;
+            _changeMask |= SubscriptionChangeMask.ItemsModified;
             ChangesCompleted();
 
             // return the list of items affected by the change.
@@ -992,13 +791,13 @@ namespace Opc.Ua.Client
         {
             VerifySubscriptionState(true);
 
-            if (m_deletedItems.Count == 0)
+            if (_deletedItems.Count == 0)
             {
                 return new List<MonitoredItem>();
             }
 
-            var itemsToDelete = m_deletedItems;
-            m_deletedItems = new List<MonitoredItem>();
+            var itemsToDelete = _deletedItems;
+            _deletedItems = new List<MonitoredItem>();
 
             var monitoredItemIds = new UInt32Collection();
 
@@ -1007,23 +806,22 @@ namespace Opc.Ua.Client
                 monitoredItemIds.Add(monitoredItem.Status.Id);
             }
 
-            var response = await m_session.DeleteMonitoredItemsAsync(
-                null,
-                m_id,
-                monitoredItemIds,
-                ct).ConfigureAwait(false);
+            Debug.Assert(Session != null);
+            var response = await Session.DeleteMonitoredItemsAsync(null, _id,
+                monitoredItemIds, ct).ConfigureAwait(false);
 
             var results = response.Results;
             ClientBase.ValidateResponse(results, monitoredItemIds);
             ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItemIds);
 
             // update results.
-            for (var ii = 0; ii < results.Count; ii++)
+            for (var index = 0; index < results.Count; index++)
             {
-                itemsToDelete[ii].SetDeleteResult(results[ii], ii, response.DiagnosticInfos, response.ResponseHeader);
+                itemsToDelete[index].SetDeleteResult(results[index], index,
+                    response.DiagnosticInfos, response.ResponseHeader);
             }
 
-            m_changeMask |= SubscriptionChangeMask.ItemsDeleted;
+            _changeMask |= SubscriptionChangeMask.ItemsDeleted;
             ChangesCompleted();
 
             // return the list of items affected by the change.
@@ -1036,19 +834,17 @@ namespace Opc.Ua.Client
         /// <param name="monitoringMode"></param>
         /// <param name="monitoredItems"></param>
         /// <param name="ct"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        public async Task<List<ServiceResult>> SetMonitoringModeAsync(
-            MonitoringMode monitoringMode,
-            IList<MonitoredItem> monitoredItems,
-            CancellationToken ct = default)
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
+        protected async Task<IReadOnlyList<ServiceResult>> SetMonitoringModeAsync(
+            MonitoringMode monitoringMode, IReadOnlyList<MonitoredItem> monitoredItems,
+            CancellationToken ct)
         {
-            ArgumentNullException.ThrowIfNull(monitoredItems);
-
             VerifySubscriptionState(true);
 
             if (monitoredItems.Count == 0)
             {
-                return null;
+                return Array.Empty<ServiceResult>();
             }
 
             // get list of items to update.
@@ -1058,34 +854,27 @@ namespace Opc.Ua.Client
                 monitoredItemIds.Add(monitoredItem.Status.Id);
             }
 
-            var response = await m_session.SetMonitoringModeAsync(
-                null,
-                m_id,
-                monitoringMode,
-                monitoredItemIds,
-                ct).ConfigureAwait(false);
-
+            Debug.Assert(Session != null);
+            var response = await Session.SetMonitoringModeAsync(null, _id,
+                monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
             var results = response.Results;
             ClientBase.ValidateResponse(results, monitoredItemIds);
             ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItemIds);
 
             // update results.
             var errors = new List<ServiceResult>();
-            var noErrors = UpdateMonitoringMode(
-                monitoredItems, errors, results,
-                response.DiagnosticInfos, response.ResponseHeader,
-                monitoringMode);
+            var noErrors = UpdateMonitoringMode(monitoredItems, errors, results,
+                response.DiagnosticInfos, response.ResponseHeader, monitoringMode);
 
             // raise state changed event.
-            m_changeMask |= SubscriptionChangeMask.ItemsModified;
+            _changeMask |= SubscriptionChangeMask.ItemsModified;
             ChangesCompleted();
 
-            // return null list if no errors occurred.
+            // return empty list if no errors occurred.
             if (noErrors)
             {
-                return null;
+                return Array.Empty<ServiceResult>();
             }
-
             return errors;
         }
 
@@ -1093,83 +882,92 @@ namespace Opc.Ua.Client
         /// Tells the server to refresh all conditions being monitored by the subscription.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ConditionRefreshAsync(CancellationToken ct = default)
+        public async Task ConditionRefreshAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
-
             var methodsToCall = new CallMethodRequestCollection();
             methodsToCall.Add(new CallMethodRequest()
             {
                 MethodId = MethodIds.ConditionType_ConditionRefresh,
-                InputArguments = new VariantCollection() { new Variant(m_id) }
+                InputArguments = new VariantCollection() { new Variant(_id) }
             });
 
-            var response = await m_session.CallAsync(
-                null,
-                methodsToCall,
+            Debug.Assert(Session != null);
+            var response = await Session.CallAsync(null, methodsToCall,
                 ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Called after the subscription was transferred.
         /// </summary>
-        /// <param name="session">The session to which the subscription is transferred.</param>
+        /// <param name="session">The session to which the subscription is
+        /// transferred.</param>
         /// <param name="id">Id of the transferred subscription.</param>
-        /// <param name="availableSequenceNumbers">The available sequence numbers on the server.</param>
+        /// <param name="availableSequenceNumbers">The available sequence
+        /// numbers on the server.</param>
         /// <param name="ct">The cancellation token.</param>
-        public async Task<bool> TransferAsync(ISession session, uint id, UInt32Collection availableSequenceNumbers, CancellationToken ct = default)
+        internal async Task<bool> TransferAsync(ISessionInternal session, uint id,
+            UInt32Collection availableSequenceNumbers, CancellationToken ct)
         {
             if (Created)
             {
-                // handle the case when the client has the subscription template and reconnects
-                if (id != m_id)
+                // handle the case when the client has the subscription
+                // template and reconnects
+                if (id != _id)
                 {
                     return false;
                 }
 
                 // remove the subscription from disconnected session
-                if (m_session?.RemoveTransferredSubscription(this) != true)
+                if (Session?.RemoveTransferredSubscription(this) != true)
                 {
-                    m_logger.LogError("SubscriptionId {Id}: Failed to remove transferred subscription from owner SessionId={SessionId}.", Id, m_session?.SessionId);
+                    _logger.LogError("SubscriptionId {Id}: Failed to remove transferred " +
+                        "subscription from owner SessionId={SessionId}.", Id,
+                        Session?.SessionId);
                     return false;
                 }
 
                 // remove default subscription template which was copied in Session.Create()
-                var subscriptionsToRemove = session.Subscriptions.Where(s => !s.Created && s.TransferId == Id).ToList();
-                await session.RemoveSubscriptionsAsync(subscriptionsToRemove, ct).ConfigureAwait(false);
+                var subscriptionsToRemove = session.Subscriptions
+                    .Where(s => !s.Created && s.TransferId == Id)
+                    .ToList();
+                await session.RemoveSubscriptionsAsync(subscriptionsToRemove,
+                    ct).ConfigureAwait(false);
 
                 // add transferred subscription to session
                 if (!session.AddSubscription(this))
                 {
-                    m_logger.LogError("SubscriptionId {Id}: Failed to add transferred subscription to SessionId={SessionId}.", Id, session.SessionId);
+                    _logger.LogError("SubscriptionId {Id}: Failed to add transferred " +
+                        "subscription to SessionId={SessionId}.", Id, session.SessionId);
                     return false;
                 }
             }
             else
             {
-                // handle the case when the client restarts and loads the saved subscriptions from storage
-                bool success;
-                UInt32Collection serverHandles;
-                UInt32Collection clientHandles;
-                (success, serverHandles, clientHandles) = await GetMonitoredItemsAsync(ct).ConfigureAwait(false);
+                // handle the case when the client restarts and loads the saved
+                // subscriptions from storage
+                var (success, serverHandles, clientHandles) =
+                    await GetMonitoredItemsAsync(ct).ConfigureAwait(false);
                 if (!success)
                 {
-                    m_logger.LogError("SubscriptionId {Id}: The server failed to respond to GetMonitoredItems after transfer.", Id);
+                    _logger.LogError("SubscriptionId {Id}: The server failed to respond " +
+                        "to GetMonitoredItems after transfer.", Id);
                     return false;
                 }
 
-                var monitoredItemsCount = m_monitoredItems.Count;
+                var monitoredItemsCount = _monitoredItems.Count;
                 if (serverHandles.Count != monitoredItemsCount ||
                     clientHandles.Count != monitoredItemsCount)
                 {
                     // invalid state
-                    m_logger.LogError("SubscriptionId {Id}: Number of Monitored Items on client and server do not match after transfer {Old}!={New}",
+                    _logger.LogError("SubscriptionId {Id}: Number of Monitored Items" +
+                        " on client and server do not match after transfer {Old}!={New}",
                         Id, serverHandles.Count, monitoredItemsCount);
                     return false;
                 }
 
                 // sets state to 'Created'
-                m_id = id;
+                _id = id;
                 TransferItems(serverHandles, clientHandles, out var itemsToModify);
 
                 await ModifyItemsAsync(ct).ConfigureAwait(false);
@@ -1178,13 +976,9 @@ namespace Opc.Ua.Client
             // add available sequence numbers to incoming
             ProcessTransferredSequenceNumbers(availableSequenceNumbers);
 
-            m_changeMask |= SubscriptionChangeMask.Transferred;
+            _changeMask |= SubscriptionChangeMask.Transferred;
             ChangesCompleted();
-
             StartKeepAliveTimer();
-
-            TraceState("TRANSFERRED ASYNC");
-
             return true;
         }
 
@@ -1194,18 +988,15 @@ namespace Opc.Ua.Client
         /// <param name="availableSequenceNumbers"></param>
         /// <param name="message"></param>
         /// <param name="stringTable"></param>
-        public void SaveMessageInCache(
-            IList<uint> availableSequenceNumbers,
-            NotificationMessage message,
-            IList<string> stringTable)
+        public void SaveMessageInCache(IList<uint> availableSequenceNumbers,
+            NotificationMessage message, IList<string> stringTable)
         {
-            PublishStateChangedEventHandler callback = null;
-
-            lock (m_cache)
+            PublishStateChangedEventHandler? callback = null;
+            lock (_cache)
             {
                 if (availableSequenceNumbers != null)
                 {
-                    m_availableSequenceNumbers = availableSequenceNumbers;
+                    _availableSequenceNumbers = availableSequenceNumbers;
                 }
 
                 if (message == null)
@@ -1216,20 +1007,16 @@ namespace Opc.Ua.Client
                 // check if a publish error was previously reported.
                 if (PublishingStopped)
                 {
-                    callback = m_publishStatusChanged;
-                    TraceState("PUBLISHING RECOVERED");
+                    callback = _publishStatusChanged;
                 }
 
                 var now = DateTime.UtcNow;
-                Interlocked.Exchange(ref m_lastNotificationTime, now.Ticks);
+                Interlocked.Exchange(ref _lastNotificationTime, now.Ticks);
                 var tickCount = HiResClock.TickCount;
-                m_lastNotificationTickCount = tickCount;
+                _lastNotificationTickCount = tickCount;
 
                 // save the string table that came with notification.
                 message.StringTable = new List<string>(stringTable);
-
-                // create queue for the first time.
-                m_incomingMessages ??= new LinkedList<IncomingMessage>();
 
                 // find or create an entry for the incoming sequence number.
                 var entry = FindOrCreateEntry(now, tickCount, message.SequenceNumber);
@@ -1242,20 +1029,21 @@ namespace Opc.Ua.Client
                 }
 
                 // fill in any gaps in the queue
-                var node = m_incomingMessages.First;
+                var node = _incomingMessages.First;
 
                 while (node != null)
                 {
                     entry = node.Value;
                     var next = node.Next;
 
-                    if (next != null && next.Value.SequenceNumber > entry.SequenceNumber + 1)
+                    if (next != null &&
+                        next.Value.SequenceNumber > entry.SequenceNumber + 1)
                     {
                         var placeholder = new IncomingMessage();
                         placeholder.SequenceNumber = entry.SequenceNumber + 1;
                         placeholder.Timestamp = now;
                         placeholder.TickCount = tickCount;
-                        node = m_incomingMessages.AddAfter(node, placeholder);
+                        node = _incomingMessages.AddAfter(node, placeholder);
                         continue;
                     }
 
@@ -1263,7 +1051,7 @@ namespace Opc.Ua.Client
                 }
 
                 // clean out processed values.
-                node = m_incomingMessages.First;
+                node = _incomingMessages.First;
 
                 while (node != null)
                 {
@@ -1271,26 +1059,29 @@ namespace Opc.Ua.Client
                     var next = node.Next;
 
                     // can only pull off processed or expired or missing messages.
-                    if (!entry.Processed &&
-                        !(entry.Republished && (entry.RepublishStatus != StatusCodes.Good || (tickCount - entry.TickCount) > kRepublishMessageExpiredTimeout)))
+                    if (!entry.Processed && !(entry.Republished &&
+                       (entry.RepublishStatus != StatusCodes.Good ||
+                            (tickCount - entry.TickCount) > kRepublishMessageExpiredTimeout)))
                     {
                         break;
                     }
 
                     if (next != null)
                     {
-                        //If the message being removed is supposed to be the next message, advance it to release anything waiting on it to be processed
-                        if (entry.SequenceNumber == m_lastSequenceNumberProcessed + 1)
+                        //If the message being removed is supposed to be the next message,
+                        //advance it to release anything waiting on it to be processed
+                        if (entry.SequenceNumber == _lastSequenceNumberProcessed + 1)
                         {
                             if (!entry.Processed)
                             {
-                                m_logger.LogWarning("SubscriptionId {Id} skipping PublishResponse Sequence Number {SeqNumber}", Id, entry.SequenceNumber);
+                                _logger.LogWarning("SubscriptionId {Id} skipping PublishResponse " +
+                                    "Sequence Number {SeqNumber}", Id, entry.SequenceNumber);
                             }
 
-                            m_lastSequenceNumberProcessed = entry.SequenceNumber;
+                            _lastSequenceNumberProcessed = entry.SequenceNumber;
                         }
 
-                        m_incomingMessages.Remove(node);
+                        _incomingMessages.Remove(node);
                     }
 
                     node = next;
@@ -1302,44 +1093,41 @@ namespace Opc.Ua.Client
             {
                 try
                 {
-                    callback(this, new PublishStateChangedEventArgs(PublishStateChangedMask.Recovered));
+                    callback(this,
+                        new PublishStateChangedEventArgs(PublishStateChangedMask.Recovered));
                 }
                 catch (Exception e)
                 {
-                    m_logger.LogError(e, "Error while raising PublishStateChanged event.");
+                    _logger.LogError(e, "Error while raising PublishStateChanged event.");
                 }
             }
 
             // process messages.
-            m_messageWorkerEvent.Set();
+            _messageWorkerEvent.Set();
         }
-
-        /// <summary>
-        /// Get the number of outstanding message workers
-        /// </summary>
-        public int OutstandingMessageWorkers => m_outstandingMessageWorkers;
 
         /// <summary>
         /// Adds an item to the subscription.
         /// </summary>
         /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="monitoredItem"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
         public void AddItem(MonitoredItem monitoredItem)
         {
             ArgumentNullException.ThrowIfNull(monitoredItem);
 
-            lock (m_cache)
+            lock (_cache)
             {
-                if (m_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
+                if (_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
                 {
                     return;
                 }
 
-                m_monitoredItems.Add(monitoredItem.ClientHandle, monitoredItem);
+                _monitoredItems.Add(monitoredItem.ClientHandle, monitoredItem);
                 monitoredItem.Subscription = this;
             }
 
-            m_changeMask |= SubscriptionChangeMask.ItemsAdded;
+            _changeMask |= SubscriptionChangeMask.ItemsAdded;
             ChangesCompleted();
         }
 
@@ -1354,13 +1142,13 @@ namespace Opc.Ua.Client
 
             var added = false;
 
-            lock (m_cache)
+            lock (_cache)
             {
                 foreach (var monitoredItem in monitoredItems)
                 {
-                    if (!m_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
+                    if (!_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
                     {
-                        m_monitoredItems.Add(monitoredItem.ClientHandle, monitoredItem);
+                        _monitoredItems.Add(monitoredItem.ClientHandle, monitoredItem);
                         monitoredItem.Subscription = this;
                         added = true;
                     }
@@ -1369,7 +1157,7 @@ namespace Opc.Ua.Client
 
             if (added)
             {
-                m_changeMask |= SubscriptionChangeMask.ItemsAdded;
+                _changeMask |= SubscriptionChangeMask.ItemsAdded;
                 ChangesCompleted();
             }
         }
@@ -1383,9 +1171,9 @@ namespace Opc.Ua.Client
         {
             ArgumentNullException.ThrowIfNull(monitoredItem);
 
-            lock (m_cache)
+            lock (_cache)
             {
-                if (!m_monitoredItems.Remove(monitoredItem.ClientHandle))
+                if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
                 {
                     return;
                 }
@@ -1395,10 +1183,10 @@ namespace Opc.Ua.Client
 
             if (monitoredItem.Status.Created)
             {
-                m_deletedItems.Add(monitoredItem);
+                _deletedItems.Add(monitoredItem);
             }
 
-            m_changeMask |= SubscriptionChangeMask.ItemsRemoved;
+            _changeMask |= SubscriptionChangeMask.ItemsRemoved;
             ChangesCompleted();
         }
 
@@ -1413,17 +1201,17 @@ namespace Opc.Ua.Client
 
             var changed = false;
 
-            lock (m_cache)
+            lock (_cache)
             {
                 foreach (var monitoredItem in monitoredItems)
                 {
-                    if (m_monitoredItems.Remove(monitoredItem.ClientHandle))
+                    if (_monitoredItems.Remove(monitoredItem.ClientHandle))
                     {
                         monitoredItem.Subscription = null;
 
                         if (monitoredItem.Status.Created)
                         {
-                            m_deletedItems.Add(monitoredItem);
+                            _deletedItems.Add(monitoredItem);
                         }
 
                         changed = true;
@@ -1433,7 +1221,7 @@ namespace Opc.Ua.Client
 
             if (changed)
             {
-                m_changeMask |= SubscriptionChangeMask.ItemsRemoved;
+                _changeMask |= SubscriptionChangeMask.ItemsRemoved;
                 ChangesCompleted();
             }
         }
@@ -1442,17 +1230,14 @@ namespace Opc.Ua.Client
         /// Returns the monitored item identified by the client handle.
         /// </summary>
         /// <param name="clientHandle"></param>
-        public MonitoredItem FindItemByClientHandle(uint clientHandle)
+        public MonitoredItem? FindItemByClientHandle(uint clientHandle)
         {
-            lock (m_cache)
+            lock (_cache)
             {
-                MonitoredItem monitoredItem = null;
-
-                if (m_monitoredItems.TryGetValue(clientHandle, out monitoredItem))
+                if (_monitoredItems.TryGetValue(clientHandle, out var monitoredItem))
                 {
                     return monitoredItem;
                 }
-
                 return null;
             }
         }
@@ -1467,25 +1252,25 @@ namespace Opc.Ua.Client
         /// <param name="availableSequenceNumbers">The list of available sequence numbers on the server.</param>
         private void ProcessTransferredSequenceNumbers(UInt32Collection availableSequenceNumbers)
         {
-            lock (m_cache)
+            lock (_cache)
             {
                 // reset incoming state machine and clear cache
-                m_lastSequenceNumberProcessed = 0;
-                m_resyncLastSequenceNumberProcessed = true;
-                m_incomingMessages = new LinkedList<IncomingMessage>();
+                _lastSequenceNumberProcessed = 0;
+                _resyncLastSequenceNumberProcessed = true;
+                _incomingMessages.Clear();
 
                 // save available sequence numbers
-                m_availableSequenceNumbers = (UInt32Collection)availableSequenceNumbers.MemberwiseClone();
+                _availableSequenceNumbers = (UInt32Collection)availableSequenceNumbers.MemberwiseClone();
 
-                if (availableSequenceNumbers.Count != 0 && m_republishAfterTransfer)
+                if (availableSequenceNumbers.Count != 0 && RepublishAfterTransfer)
                 {
                     // update last sequence number processed
                     // available seq numbers may not be in order
                     foreach (var sequenceNumber in availableSequenceNumbers)
                     {
-                        if (sequenceNumber >= m_lastSequenceNumberProcessed)
+                        if (sequenceNumber >= _lastSequenceNumberProcessed)
                         {
-                            m_lastSequenceNumberProcessed = sequenceNumber + 1;
+                            _lastSequenceNumberProcessed = sequenceNumber + 1;
                         }
                     }
 
@@ -1494,7 +1279,7 @@ namespace Opc.Ua.Client
                     // if event is in the past
                     var now = DateTime.UtcNow.AddMilliseconds(-kRepublishMessageTimeout * 2);
                     var tickCount = HiResClock.TickCount - (kRepublishMessageTimeout * 2);
-                    var lastSequenceNumberToRepublish = m_lastSequenceNumberProcessed - 1;
+                    var lastSequenceNumberToRepublish = _lastSequenceNumberProcessed - 1;
                     var availableNumbers = availableSequenceNumbers.Count;
                     var republishMessages = 0;
                     for (var i = 0; i < availableNumbers; i++)
@@ -1523,8 +1308,8 @@ namespace Opc.Ua.Client
                         }
                     }
 
-                    m_logger.LogInformation("SubscriptionId {Id}: Republishing {Messages} messages, next sequencenumber {SequenceNumber} after transfer.",
-                        m_id, republishMessages, m_lastSequenceNumberProcessed);
+                    _logger.LogInformation("SubscriptionId {Id}: Republishing {Messages} messages, next sequencenumber {SequenceNumber} after transfer.",
+                        _id, republishMessages, _lastSequenceNumberProcessed);
 
                     availableSequenceNumbers.Clear();
                 }
@@ -1535,13 +1320,15 @@ namespace Opc.Ua.Client
         /// Call the GetMonitoredItems method on the server.
         /// </summary>
         /// <param name="ct"></param>
-        private async Task<(bool, UInt32Collection, UInt32Collection)> GetMonitoredItemsAsync(CancellationToken ct = default)
+        private async Task<(bool, UInt32Collection, UInt32Collection)> GetMonitoredItemsAsync(CancellationToken ct)
         {
             var serverHandles = new UInt32Collection();
             var clientHandles = new UInt32Collection();
             try
             {
-                var outputArguments = await m_session.CallAsync(ObjectIds.Server, MethodIds.Server_GetMonitoredItems, ct, m_transferId).ConfigureAwait(false);
+                Debug.Assert(Session != null);
+                var outputArguments = await Session.CallAsync(ObjectIds.Server,
+                    MethodIds.Server_GetMonitoredItems, ct, TransferId).ConfigureAwait(false);
                 if (outputArguments?.Count == 2)
                 {
                     serverHandles.AddRange((uint[])outputArguments[0]);
@@ -1551,49 +1338,52 @@ namespace Opc.Ua.Client
             }
             catch (ServiceResultException sre)
             {
-                m_logger.LogError(sre, "SubscriptionId {Id}: Failed to call GetMonitoredItems on server", m_id);
+                _logger.LogError(sre, "SubscriptionId {Id}: Failed to call GetMonitoredItems on server", _id);
             }
             return (false, serverHandles, clientHandles);
         }
 
         /// <summary>
-        /// Starts a timer to ensure publish requests are sent frequently enough to detect network interruptions.
+        /// Starts a timer to ensure publish requests are sent frequently enough to detect
+        /// network interruptions.
         /// </summary>
         private void StartKeepAliveTimer()
         {
             // stop the publish timer.
-            lock (m_cache)
+            lock (_cache)
             {
-                m_publishTimer?.Dispose();
-                m_publishTimer = null;
+                _publishTimer?.Dispose();
+                _publishTimer = null;
 
-                Interlocked.Exchange(ref m_lastNotificationTime, DateTime.UtcNow.Ticks);
-                m_lastNotificationTickCount = HiResClock.TickCount;
-                m_keepAliveInterval = (int)Math.Min(m_currentPublishingInterval * (m_currentKeepAliveCount + 1), int.MaxValue);
-                if (m_keepAliveInterval < kMinKeepAliveTimerInterval)
+                Interlocked.Exchange(ref _lastNotificationTime, DateTime.UtcNow.Ticks);
+                _lastNotificationTickCount = HiResClock.TickCount;
+                _keepAliveInterval = (int)Math.Min(
+                    CurrentPublishingInterval * (CurrentKeepAliveCount + 1), int.MaxValue);
+                if (_keepAliveInterval < kMinKeepAliveTimerInterval)
                 {
-                    m_keepAliveInterval = (int)Math.Min(m_publishingInterval * (m_keepAliveCount + 1), int.MaxValue);
-                    m_keepAliveInterval = Math.Max(kMinKeepAliveTimerInterval, m_keepAliveInterval);
+                    _keepAliveInterval = (int)Math.Min(
+                        PublishingInterval * (KeepAliveCount + 1), int.MaxValue);
+                    _keepAliveInterval = Math.Max(kMinKeepAliveTimerInterval, _keepAliveInterval);
                 }
 #if NET6_0_OR_GREATER
-                var publishTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(m_keepAliveInterval));
+                var publishTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(_keepAliveInterval));
                 _ = Task.Run(() => OnKeepAliveAsync(publishTimer));
-                m_publishTimer = publishTimer;
+                _publishTimer = publishTimer;
 #else
-                m_publishTimer = new Timer(OnKeepAlive, m_keepAliveInterval, m_keepAliveInterval, m_keepAliveInterval);
+                _publishTimer = new Timer(OnKeepAlive, _keepAliveInterval, _keepAliveInterval, _keepAliveInterval);
 #endif
 
-                if (m_messageWorkerTask?.IsCompleted != false)
+                if (_messageWorkerTask?.IsCompleted != false)
                 {
-                    m_messageWorkerCts?.Dispose();
-                    m_messageWorkerCts = new CancellationTokenSource();
-                    var ct = m_messageWorkerCts.Token;
-                    m_messageWorkerTask = Task.Run(() => PublishResponseMessageWorkerAsync(ct));
+                    _messageWorkerCts?.Dispose();
+                    _messageWorkerCts = new CancellationTokenSource();
+                    var ct = _messageWorkerCts.Token;
+                    _messageWorkerTask = Task.Run(() => PublishResponseMessageWorkerAsync(ct));
                 }
             }
 
             // start publishing. Fill the queue.
-            m_session.StartPublishing(BeginPublishTimeout(), false);
+            Session?.StartPublishing(BeginPublishTimeout(), false);
         }
 
 #if NET6_0_OR_GREATER
@@ -1634,11 +1424,9 @@ namespace Opc.Ua.Client
         private void HandleOnKeepAliveStopped()
         {
             // check if a publish has arrived.
-            var callback = m_publishStatusChanged;
+            var callback = _publishStatusChanged;
 
-            Interlocked.Increment(ref m_publishLateCount);
-
-            TraceState("PUBLISHING STOPPED");
+            Interlocked.Increment(ref _publishLateCount);
 
             if (callback != null)
             {
@@ -1648,12 +1436,12 @@ namespace Opc.Ua.Client
                 }
                 catch (Exception e)
                 {
-                    m_logger.LogError(e, "Error while raising PublishStateChanged event.");
+                    _logger.LogError(e, "Error while raising PublishStateChanged event.");
                 }
             }
 
             // try to send a publish to recover stopped publishing.
-            m_session?.BeginPublish(BeginPublishTimeout());
+            Session?.BeginPublish(BeginPublishTimeout());
         }
 
         /// <summary>
@@ -1662,14 +1450,14 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         private async Task PublishResponseMessageWorkerAsync(CancellationToken ct)
         {
-            m_logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Started.", m_id, Environment.CurrentManagedThreadId);
+            _logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Started.", _id, Environment.CurrentManagedThreadId);
 
             bool cancelled;
             try
             {
                 do
                 {
-                    await m_messageWorkerEvent.WaitAsync().ConfigureAwait(false);
+                    await _messageWorkerEvent.WaitAsync().ConfigureAwait(false);
 
                     cancelled = ct.IsCancellationRequested;
                     if (!cancelled)
@@ -1686,21 +1474,11 @@ namespace Opc.Ua.Client
             }
             catch (Exception e)
             {
-                m_logger.LogError(e, "SubscriptionId {Id} - Publish Worker Thread {Thread:X8} Exited Unexpectedly.", m_id, Environment.CurrentManagedThreadId);
+                _logger.LogError(e, "SubscriptionId {Id} - Publish Worker Thread {Thread:X8} Exited Unexpectedly.", _id, Environment.CurrentManagedThreadId);
                 return;
             }
 
-            m_logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Exited Normally.", m_id, Environment.CurrentManagedThreadId);
-        }
-
-        /// <summary>
-        /// Dumps the current state of the session queue.
-        /// </summary>
-        /// <param name="context"></param>
-        internal static void TraceState(string context)
-        {
-            //CoreClientUtils.EventLog.SubscriptionState(context, m_id, new DateTime(m_lastNotificationTime), m_session?.GoodPublishRequestCount ?? 0,
-            //m_currentPublishingInterval, m_currentKeepAliveCount, m_currentPublishingEnabled, MonitoredItemCount);
+            _logger.LogTrace("SubscriptionId {Id} - Publish Thread {Thread:X8} Exited Normally.", _id, Environment.CurrentManagedThreadId);
         }
 
         /// <summary>
@@ -1708,7 +1486,7 @@ namespace Opc.Ua.Client
         /// </summary>
         private int BeginPublishTimeout()
         {
-            return Math.Max(Math.Min(m_keepAliveInterval * 3, int.MaxValue), kMinKeepAliveTimerInterval);
+            return Math.Max(Math.Min(_keepAliveInterval * 3, int.MaxValue), kMinKeepAliveTimerInterval);
         }
 
         /// <summary>
@@ -1762,49 +1540,49 @@ namespace Opc.Ua.Client
             )
         {
             // update current state.
-            m_currentPublishingInterval = revisedPublishingInterval;
-            m_currentKeepAliveCount = revisedKeepAliveCount;
-            m_currentLifetimeCount = revisedLifetimeCounter;
-            m_currentPriority = m_priority;
+            CurrentPublishingInterval = revisedPublishingInterval;
+            CurrentKeepAliveCount = revisedKeepAliveCount;
+            CurrentLifetimeCount = revisedLifetimeCounter;
+            _currentPriority = Priority;
 
             if (!created)
             {
-                m_changeMask |= SubscriptionChangeMask.Modified;
+                _changeMask |= SubscriptionChangeMask.Modified;
             }
             else
             {
-                m_currentPublishingEnabled = m_publishingEnabled;
-                m_transferId = m_id = subscriptionId;
+                _currentPublishingEnabled = PublishingEnabled;
+                TransferId = _id = subscriptionId;
                 StartKeepAliveTimer();
-                m_changeMask |= SubscriptionChangeMask.Created;
+                _changeMask |= SubscriptionChangeMask.Created;
             }
 
-            if (m_keepAliveCount != revisedKeepAliveCount)
+            if (KeepAliveCount != revisedKeepAliveCount)
             {
-                m_logger.LogInformation("For subscriptionId {Id}, Keep alive count was revised from {Old} to {New}",
-                    Id, m_keepAliveCount, revisedKeepAliveCount);
+                _logger.LogInformation("For subscriptionId {Id}, Keep alive count was revised from {Old} to {New}",
+                    Id, KeepAliveCount, revisedKeepAliveCount);
             }
 
-            if (m_lifetimeCount != revisedLifetimeCounter)
+            if (LifetimeCount != revisedLifetimeCounter)
             {
-                m_logger.LogInformation("For subscriptionId {Id}, Lifetime count was revised from {Old} to {New}",
-                    Id, m_lifetimeCount, revisedLifetimeCounter);
+                _logger.LogInformation("For subscriptionId {Id}, Lifetime count was revised from {Old} to {New}",
+                    Id, LifetimeCount, revisedLifetimeCounter);
             }
 
-            if (m_publishingInterval != revisedPublishingInterval)
+            if (PublishingInterval != revisedPublishingInterval)
             {
-                m_logger.LogInformation("For subscriptionId {Id}, Publishing interval was revised from {Old} to {New}",
-                    Id, m_publishingInterval, revisedPublishingInterval);
+                _logger.LogInformation("For subscriptionId {Id}, Publishing interval was revised from {Old} to {New}",
+                    Id, PublishingInterval, revisedPublishingInterval);
             }
 
             if (revisedLifetimeCounter < revisedKeepAliveCount * 3)
             {
-                m_logger.LogInformation("For subscriptionId {Id}, Revised lifetime counter (value={Lifetime}) is less than three times the keep alive count (value={KeepAlive})", Id, revisedLifetimeCounter, revisedKeepAliveCount);
+                _logger.LogInformation("For subscriptionId {Id}, Revised lifetime counter (value={Lifetime}) is less than three times the keep alive count (value={KeepAlive})", Id, revisedLifetimeCounter, revisedKeepAliveCount);
             }
 
-            if (m_currentPriority == 0)
+            if (_currentPriority == 0)
             {
-                m_logger.LogInformation("For subscriptionId {Id}, the priority was set to 0.", Id);
+                _logger.LogInformation("For subscriptionId {Id}, the priority was set to 0.", Id);
             }
         }
 
@@ -1814,24 +1592,24 @@ namespace Opc.Ua.Client
         /// </summary>
         private void DeleteSubscription()
         {
-            m_transferId = m_id = 0;
-            m_currentPublishingInterval = 0;
-            m_currentKeepAliveCount = 0;
-            m_currentPublishingEnabled = false;
-            m_currentPriority = 0;
+            TransferId = _id = 0;
+            CurrentPublishingInterval = 0;
+            CurrentKeepAliveCount = 0;
+            _currentPublishingEnabled = false;
+            _currentPriority = 0;
 
             // update items.
-            lock (m_cache)
+            lock (_cache)
             {
-                foreach (var monitoredItem in m_monitoredItems.Values)
+                var responseHeader = new ResponseHeader();
+                var diagnosticInfo = new DiagnosticInfoCollection();
+                foreach (var monitoredItem in _monitoredItems.Values)
                 {
-                    monitoredItem.SetDeleteResult(StatusCodes.Good, -1, null, null);
+                    monitoredItem.SetDeleteResult(StatusCodes.Good, 0, diagnosticInfo, responseHeader);
                 }
             }
-
-            m_deletedItems.Clear();
-
-            m_changeMask |= SubscriptionChangeMask.Deleted;
+            _deletedItems.Clear();
+            _changeMask |= SubscriptionChangeMask.Deleted;
         }
 
         /// <summary>
@@ -1847,46 +1625,53 @@ namespace Opc.Ua.Client
             // keep alive count must be at least 1, 10 is a good default.
             if (keepAliveCount == 0)
             {
-                m_logger.LogInformation("Adjusted KeepAliveCount from value={Old}, to value={New}, for subscriptionId {Id}.",
+                _logger.LogInformation(
+                    "Adjusted KeepAliveCount from value={Old}, to value={New}, for subscriptionId {Id}.",
                     keepAliveCount, kDefaultKeepAlive, Id);
                 keepAliveCount = kDefaultKeepAlive;
             }
 
             // ensure the lifetime is sensible given the sampling interval.
-            if (m_publishingInterval > 0)
+            if (PublishingInterval > 0)
             {
-                if (m_minLifetimeInterval > 0 && m_minLifetimeInterval < m_session.SessionTimeout)
+                var session = Session;
+                Debug.Assert(session != null);
+
+                if (MinLifetimeInterval > 0 && MinLifetimeInterval < session.SessionTimeout)
                 {
-                    m_logger.LogWarning("A smaller minLifetimeInterval {Counter}ms than session timeout {Timeout}ms configured for subscriptionId {Id}.",
-                        m_minLifetimeInterval, m_session.SessionTimeout, Id);
+                    _logger.LogWarning("A smaller minLifetimeInterval {Counter}ms than session " +
+                        "timeout {Timeout}ms configured for subscriptionId {Id}.",
+                        MinLifetimeInterval, session.SessionTimeout, Id);
                 }
 
-                var minLifetimeCount = (uint)(m_minLifetimeInterval / m_publishingInterval);
-
+                var minLifetimeCount = (uint)(MinLifetimeInterval / PublishingInterval);
                 if (lifetimeCount < minLifetimeCount)
                 {
                     lifetimeCount = minLifetimeCount;
 
-                    if (m_minLifetimeInterval % m_publishingInterval != 0)
+                    if (MinLifetimeInterval % PublishingInterval != 0)
                     {
                         lifetimeCount++;
                     }
 
-                    m_logger.LogInformation("Adjusted LifetimeCount to value={New}, for subscriptionId {Id}. ",
+                    _logger.LogInformation(
+                        "Adjusted LifetimeCount to value={New}, for subscriptionId {Id}. ",
                         lifetimeCount, Id);
                 }
 
-                if (lifetimeCount * m_publishingInterval < m_session.SessionTimeout)
+                if (lifetimeCount * PublishingInterval < session.SessionTimeout)
                 {
-                    m_logger.LogWarning("Lifetime {LifeTime}ms configured for subscriptionId {Id} is less than session timeout {Timeout}ms.",
-                        lifetimeCount * m_publishingInterval, Id, m_session.SessionTimeout);
+                    _logger.LogWarning("Lifetime {LifeTime}ms configured for " +
+                        "subscriptionId {Id} is less than session timeout {Timeout}ms.",
+                        lifetimeCount * PublishingInterval, Id, session.SessionTimeout);
                 }
             }
             else if (lifetimeCount == 0)
             {
                 // don't know what the sampling interval will be - use something large enough
                 // to ensure the user does not experience unexpected drop outs.
-                m_logger.LogInformation("Adjusted LifetimeCount from value={Old}, to value={New}, for subscriptionId {Id}. ",
+                _logger.LogInformation(
+                    "Adjusted LifetimeCount from value={Old}, to value={New}, for subscriptionId {Id}. ",
                     lifetimeCount, kDefaultLifeTime, Id);
                 lifetimeCount = kDefaultLifeTime;
             }
@@ -1895,7 +1680,8 @@ namespace Opc.Ua.Client
             var minLifeTimeCount = 3 * keepAliveCount;
             if (lifetimeCount < minLifeTimeCount)
             {
-                m_logger.LogInformation("Adjusted LifetimeCount from value={Old}, to value={New}, for subscriptionId {Id}. ",
+                _logger.LogInformation(
+                    "Adjusted LifetimeCount from value={Old}, to value={New}, for subscriptionId {Id}. ",
                     lifetimeCount, minLifeTimeCount, Id);
                 lifetimeCount = minLifeTimeCount;
             }
@@ -1909,112 +1695,107 @@ namespace Opc.Ua.Client
         {
             try
             {
-                Interlocked.Increment(ref m_outstandingMessageWorkers);
+                Interlocked.Increment(ref _outstandingMessageWorkers);
 
-                ISession session = null;
+                ISessionInternal? session = null;
                 uint subscriptionId = 0;
-                PublishStateChangedEventHandler callback = null;
+                PublishStateChangedEventHandler? callback = null;
 
                 // list of new messages to process.
-                List<NotificationMessage> messagesToProcess = null;
+                List<NotificationMessage>? messagesToProcess = null;
 
                 // list of keep alive messages to process.
-                List<IncomingMessage> keepAliveToProcess = null;
+                List<IncomingMessage>? keepAliveToProcess = null;
 
                 // list of new messages to republish.
-                List<IncomingMessage> messagesToRepublish = null;
+                List<IncomingMessage>? messagesToRepublish = null;
 
                 var publishStateChangedMask = PublishStateChangedMask.None;
 
-                lock (m_cache)
+                lock (_cache)
                 {
-                    if (m_incomingMessages == null)
-                    {
-                        return;
-                    }
-
-                    for (var ii = m_incomingMessages.First; ii != null; ii = ii.Next)
+                    for (var llNode = _incomingMessages.First; llNode != null; llNode = llNode.Next)
                     {
                         // update monitored items with unprocessed messages.
-                        if (ii.Value.Message != null && !ii.Value.Processed &&
-                            (!m_sequentialPublishing || ValidSequentialPublishMessage(ii.Value)))
+                        if (llNode.Value.Message != null && !llNode.Value.Processed &&
+                            (!_sequentialPublishing || ValidSequentialPublishMessage(llNode.Value)))
                         {
                             messagesToProcess ??= new List<NotificationMessage>();
 
-                            messagesToProcess.Add(ii.Value.Message);
+                            messagesToProcess.Add(llNode.Value.Message);
 
                             // remove the oldest items.
-                            while (m_messageCache.Count > m_maxMessageCount)
+                            while (_messageCache.Count > _maxMessageCount)
                             {
-                                m_messageCache.RemoveFirst();
+                                _messageCache.RemoveFirst();
                             }
 
-                            m_messageCache.AddLast(ii.Value.Message);
-                            ii.Value.Processed = true;
+                            _messageCache.AddLast(llNode.Value.Message);
+                            llNode.Value.Processed = true;
 
                             // Keep the last sequence number processed going up
-                            if (ii.Value.SequenceNumber > m_lastSequenceNumberProcessed ||
-                               (ii.Value.SequenceNumber == 1 && m_lastSequenceNumberProcessed == uint.MaxValue))
+                            if (llNode.Value.SequenceNumber > _lastSequenceNumberProcessed ||
+                               (llNode.Value.SequenceNumber == 1 && _lastSequenceNumberProcessed == uint.MaxValue))
                             {
-                                m_lastSequenceNumberProcessed = ii.Value.SequenceNumber;
-                                if (m_resyncLastSequenceNumberProcessed)
+                                _lastSequenceNumberProcessed = llNode.Value.SequenceNumber;
+                                if (_resyncLastSequenceNumberProcessed)
                                 {
-                                    m_logger.LogInformation("SubscriptionId {Id}: Resynced last sequence number processed to {LastSeqNumber}.",
-                                        Id, m_lastSequenceNumberProcessed);
-                                    m_resyncLastSequenceNumberProcessed = false;
+                                    _logger.LogInformation("SubscriptionId {Id}: Resynced last sequence number processed to {LastSeqNumber}.",
+                                        Id, _lastSequenceNumberProcessed);
+                                    _resyncLastSequenceNumberProcessed = false;
                                 }
                             }
                         }
 
                         // process keep alive messages
-                        else if (ii.Next == null && ii.Value.Message == null && !ii.Value.Processed)
+                        else if (llNode.Next == null && llNode.Value.Message == null && !llNode.Value.Processed)
                         {
                             keepAliveToProcess ??= new List<IncomingMessage>();
-                            keepAliveToProcess.Add(ii.Value);
+                            keepAliveToProcess.Add(llNode.Value);
                             publishStateChangedMask |= PublishStateChangedMask.KeepAlive;
                         }
 
                         // check for missing messages.
-                        else if (ii.Next != null && ii.Value.Message == null && !ii.Value.Processed && !ii.Value.Republished)
+                        else if (llNode.Next != null && llNode.Value.Message == null && !llNode.Value.Processed && !llNode.Value.Republished)
                         {
                             // tolerate if a single request was received out of order
-                            if (ii.Next.Next != null &&
-                                (HiResClock.TickCount - ii.Value.TickCount) > kRepublishMessageTimeout)
+                            if (llNode.Next.Next != null &&
+                                (HiResClock.TickCount - llNode.Value.TickCount) > kRepublishMessageTimeout)
                             {
-                                ii.Value.Republished = true;
+                                llNode.Value.Republished = true;
                                 publishStateChangedMask |= PublishStateChangedMask.Republish;
 
                                 // only call republish if the sequence number is available
-                                if (m_availableSequenceNumbers?.Contains(ii.Value.SequenceNumber) == true)
+                                if (_availableSequenceNumbers?.Contains(llNode.Value.SequenceNumber) == true)
                                 {
                                     messagesToRepublish ??= new List<IncomingMessage>();
 
-                                    messagesToRepublish.Add(ii.Value);
+                                    messagesToRepublish.Add(llNode.Value);
                                 }
                                 else
                                 {
-                                    m_logger.LogInformation("Skipped to receive RepublishAsync for subscription {Id}-{SeqNumber}-BadMessageNotAvailable", subscriptionId, ii.Value.SequenceNumber);
-                                    ii.Value.RepublishStatus = StatusCodes.BadMessageNotAvailable;
+                                    _logger.LogInformation("Skipped to receive RepublishAsync for subscription {Id}-{SeqNumber}-BadMessageNotAvailable", subscriptionId, llNode.Value.SequenceNumber);
+                                    llNode.Value.RepublishStatus = StatusCodes.BadMessageNotAvailable;
                                 }
                             }
                         }
 #if DEBUG
                         // a message that is deferred because of a missing sequence number
-                        else if (ii.Value.Message != null && !ii.Value.Processed)
+                        else if (llNode.Value.Message != null && !llNode.Value.Processed)
                         {
-                            m_logger.LogDebug("subscriptionId {Id}: Delayed message with sequence number {SeqNumber}, expected sequence number is {Expected}.",
-                                Id, ii.Value.SequenceNumber, m_lastSequenceNumberProcessed + 1);
+                            _logger.LogDebug("subscriptionId {Id}: Delayed message with sequence number {SeqNumber}, expected sequence number is {Expected}.",
+                                Id, llNode.Value.SequenceNumber, _lastSequenceNumberProcessed + 1);
                         }
 #endif
                     }
 
-                    session = m_session;
-                    subscriptionId = m_id;
-                    callback = m_publishStatusChanged;
+                    session = Session;
+                    subscriptionId = _id;
+                    callback = _publishStatusChanged;
                 }
 
                 // process new keep alive messages.
-                var keepAliveCallback = m_fastKeepAliveCallback;
+                var keepAliveCallback = FastKeepAliveCallback;
                 if (keepAliveToProcess != null && keepAliveCallback != null)
                 {
                     foreach (var message in keepAliveToProcess)
@@ -2032,8 +1813,8 @@ namespace Opc.Ua.Client
                 if (messagesToProcess != null)
                 {
                     int noNotificationsReceived;
-                    var datachangeCallback = m_fastDataChangeCallback;
-                    var eventCallback = m_fastEventCallback;
+                    var datachangeCallback = FastDataChangeCallback;
+                    var eventCallback = FastEventCallback;
 
                     foreach (var message in messagesToProcess)
                     {
@@ -2067,7 +1848,7 @@ namespace Opc.Ua.Client
                                     statusChanged.PublishTime = message.PublishTime;
                                     statusChanged.SequenceNumber = message.SequenceNumber;
 
-                                    m_logger.LogWarning("StatusChangeNotification received with Status = {Status} for SubscriptionId={Id}.",
+                                    _logger.LogWarning("StatusChangeNotification received with Status = {Status} for SubscriptionId={Id}.",
                                         statusChanged.Status.ToString(), Id);
 
                                     if (statusChanged.Status == StatusCodes.GoodSubscriptionTransferred)
@@ -2084,12 +1865,14 @@ namespace Opc.Ua.Client
                         }
                         catch (Exception e)
                         {
-                            m_logger.LogError(e, "Error while processing incoming message #{SeqNumber}.", message.SequenceNumber);
+                            _logger.LogError(e, "Error while processing incoming message #{SeqNumber}.",
+                                message.SequenceNumber);
                         }
 
                         if (MaxNotificationsPerPublish != 0 && noNotificationsReceived > MaxNotificationsPerPublish)
                         {
-                            m_logger.LogWarning("For subscriptionId {Id}, more notifications were received={Received} than the max notifications per publish value={MaxNotifications}",
+                            _logger.LogWarning("For subscriptionId {Id}, more notifications were received={Received} " +
+                                "than the max notifications per publish value={MaxNotifications}",
                                 Id, noNotificationsReceived, MaxNotificationsPerPublish);
                         }
                     }
@@ -2101,7 +1884,7 @@ namespace Opc.Ua.Client
                         }
                         catch (Exception e)
                         {
-                            m_logger.LogError(e, "Error while raising PublishStateChanged event.");
+                            _logger.LogError(e, "Error while raising PublishStateChanged event.");
                         }
                     }
                 }
@@ -2111,32 +1894,33 @@ namespace Opc.Ua.Client
                 {
                     var count = messagesToRepublish.Count;
                     var tasks = new Task<(bool, ServiceResult)>[count];
-                    for (var ii = 0; ii < count; ii++)
+                    for (var index = 0; index < count; index++)
                     {
-                        tasks[ii] = session.RepublishAsync(subscriptionId, messagesToRepublish[ii].SequenceNumber, ct);
+                        tasks[index] = session.RepublishAsync(subscriptionId,
+                            messagesToRepublish[index].SequenceNumber, ct);
                     }
 
                     var publishResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-                    lock (m_cache)
+                    lock (_cache)
                     {
-                        for (var ii = 0; ii < count; ii++)
+                        for (var index = 0; index < count; index++)
                         {
-                            var (success, serviceResult) = publishResults[ii].ToTuple();
+                            var (success, serviceResult) = publishResults[index].ToTuple();
 
-                            messagesToRepublish[ii].Republished = success;
-                            messagesToRepublish[ii].RepublishStatus = serviceResult.StatusCode;
+                            messagesToRepublish[index].Republished = success;
+                            messagesToRepublish[index].RepublishStatus = serviceResult.StatusCode;
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-                m_logger.LogError(e, "Error while processing incoming messages.");
+                _logger.LogError(e, "Error while processing incoming messages.");
             }
             finally
             {
-                Interlocked.Decrement(ref m_outstandingMessageWorkers);
+                Interlocked.Decrement(ref _outstandingMessageWorkers);
             }
         }
 
@@ -2147,19 +1931,22 @@ namespace Opc.Ua.Client
         /// <exception cref="ServiceResultException"></exception>
         private void VerifySubscriptionState(bool created)
         {
-            if (created && m_id == 0)
+            if (created && _id == 0)
             {
-                throw new ServiceResultException(StatusCodes.BadInvalidState, "Subscription has not been created.");
+                throw new ServiceResultException(StatusCodes.BadInvalidState,
+                    "Subscription has not been created.");
             }
 
-            if (!created && m_id != 0)
+            if (!created && _id != 0)
             {
-                throw new ServiceResultException(StatusCodes.BadInvalidState, "Subscription has already been created.");
+                throw new ServiceResultException(StatusCodes.BadInvalidState,
+                    "Subscription has already been created.");
             }
 
             if (!created && Session is null) // Occurs only on Create() and CreateAsync()
             {
-                throw new ServiceResultException(StatusCodes.BadInvalidState, "Subscription has not been assigned to a Session");
+                throw new ServiceResultException(StatusCodes.BadInvalidState,
+                    "Subscription has not been assigned to a Session");
             }
         }
 
@@ -2170,11 +1957,11 @@ namespace Opc.Ua.Client
         private bool ValidSequentialPublishMessage(IncomingMessage message)
         {
             // If sequential publishing is enabled, only release messages in perfect sequence.
-            return message.SequenceNumber <= m_lastSequenceNumberProcessed + 1 ||
+            return message.SequenceNumber <= _lastSequenceNumberProcessed + 1 ||
                 // reconnect / transfer subscription case
-                m_resyncLastSequenceNumberProcessed ||
+                _resyncLastSequenceNumberProcessed ||
                 // release the first message after wrapping around.
-                message.SequenceNumber == 1 && m_lastSequenceNumberProcessed == uint.MaxValue;
+                (message.SequenceNumber == 1 && _lastSequenceNumberProcessed == uint.MaxValue);
         }
 
         /// <summary>
@@ -2187,35 +1974,31 @@ namespace Opc.Ua.Client
         /// <param name="diagnosticInfos"></param>
         /// <param name="responseHeader"></param>
         /// <param name="monitoringMode"></param>
-        private static bool UpdateMonitoringMode(
-            IList<MonitoredItem> monitoredItems,
-            List<ServiceResult> errors,
-            StatusCodeCollection results,
-            DiagnosticInfoCollection diagnosticInfos,
-            ResponseHeader responseHeader,
+        private static bool UpdateMonitoringMode(IReadOnlyList<MonitoredItem> monitoredItems,
+            List<ServiceResult> errors, StatusCodeCollection results,
+            DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader,
             MonitoringMode monitoringMode)
         {
             // update results.
             var noErrors = true;
 
-            for (var ii = 0; ii < results.Count; ii++)
+            for (var index = 0; index < results.Count; index++)
             {
-                ServiceResult error = null;
-
-                if (StatusCode.IsBad(results[ii]))
+                ServiceResult error;
+                if (StatusCode.IsBad(results[index]))
                 {
-                    error = ClientBase.GetResult(results[ii], ii, diagnosticInfos, responseHeader);
+                    error = ClientBase.GetResult(results[index], index, diagnosticInfos,
+                        responseHeader);
                     noErrors = false;
                 }
                 else
                 {
-                    monitoredItems[ii].MonitoringMode = monitoringMode;
-                    monitoredItems[ii].Status.SetMonitoringMode(monitoringMode);
+                    monitoredItems[index].MonitoringMode = monitoringMode;
+                    monitoredItems[index].Status.SetMonitoringMode(monitoringMode);
+                    error = ServiceResult.Good;
                 }
-
                 errors.Add(error);
             }
-
             return noErrors;
         }
 
@@ -2223,16 +2006,17 @@ namespace Opc.Ua.Client
         /// Prepare the creation requests for all monitored items that have not yet been created.
         /// </summary>
         /// <param name="itemsToCreate"></param>
-        private MonitoredItemCreateRequestCollection PrepareItemsToCreate(out List<MonitoredItem> itemsToCreate)
+        private MonitoredItemCreateRequestCollection PrepareItemsToCreate(
+            out List<MonitoredItem> itemsToCreate)
         {
             VerifySubscriptionState(true);
 
             var requestItems = new MonitoredItemCreateRequestCollection();
             itemsToCreate = new List<MonitoredItem>();
 
-            lock (m_cache)
+            lock (_cache)
             {
-                foreach (var monitoredItem in m_monitoredItems.Values)
+                foreach (var monitoredItem in _monitoredItems.Values)
                 {
                     // ignore items that have been created.
                     if (monitoredItem.Status.Created)
@@ -2277,9 +2061,9 @@ namespace Opc.Ua.Client
             MonitoredItemModifyRequestCollection requestItems,
             List<MonitoredItem> itemsToModify)
         {
-            lock (m_cache)
+            lock (_cache)
             {
-                foreach (var monitoredItem in m_monitoredItems.Values)
+                foreach (var monitoredItem in _monitoredItems.Values)
                 {
                     // ignore items that have been created or modified.
                     if (!monitoredItem.Status.Created || !monitoredItem.AttributesModified)
@@ -2314,16 +2098,14 @@ namespace Opc.Ua.Client
         /// <param name="serverHandles"></param>
         /// <param name="clientHandles"></param>
         /// <param name="itemsToModify"></param>
-        private void TransferItems(
-            UInt32Collection serverHandles,
-            UInt32Collection clientHandles,
-            out IList<MonitoredItem> itemsToModify)
+        private void TransferItems(UInt32Collection serverHandles,
+            UInt32Collection clientHandles, out IList<MonitoredItem> itemsToModify)
         {
-            lock (m_cache)
+            lock (_cache)
             {
                 itemsToModify = new List<MonitoredItem>();
                 var updatedMonitoredItems = new SortedDictionary<uint, MonitoredItem>();
-                foreach (var monitoredItem in m_monitoredItems.Values)
+                foreach (var monitoredItem in _monitoredItems.Values)
                 {
                     var index = serverHandles.FindIndex(handle => handle == monitoredItem.Status.Id);
                     if (index >= 0 && index < clientHandles.Count)
@@ -2339,7 +2121,7 @@ namespace Opc.Ua.Client
                         itemsToModify.Add(monitoredItem);
                     }
                 }
-                m_monitoredItems = updatedMonitoredItems;
+                _monitoredItems = updatedMonitoredItems;
             }
         }
 
@@ -2348,13 +2130,15 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="utcNow">The current Utc time.</param>
         /// <param name="tickCount">The current monotonic time</param>
-        /// <param name="sequenceNumber">The sequence number for the new entry.</param>
-        private IncomingMessage FindOrCreateEntry(DateTime utcNow, int tickCount, uint sequenceNumber)
+        /// <param name="sequenceNumber">The sequence number for the new
+        /// entry.</param>
+        private IncomingMessage FindOrCreateEntry(DateTime utcNow, int tickCount,
+            uint sequenceNumber)
         {
-            IncomingMessage entry = null;
-            var node = m_incomingMessages.Last;
+            IncomingMessage? entry = null;
+            var node = _incomingMessages.Last;
 
-            Debug.Assert(Monitor.IsEntered(m_cache));
+            Debug.Assert(Monitor.IsEntered(_cache));
             while (node != null)
             {
                 entry = node.Value;
@@ -2373,7 +2157,7 @@ namespace Opc.Ua.Client
                     entry.SequenceNumber = sequenceNumber;
                     entry.Timestamp = utcNow;
                     entry.TickCount = tickCount;
-                    m_incomingMessages.AddAfter(node, entry);
+                    _incomingMessages.AddAfter(node, entry);
                     break;
                 }
 
@@ -2387,62 +2171,42 @@ namespace Opc.Ua.Client
                 entry.SequenceNumber = sequenceNumber;
                 entry.Timestamp = utcNow;
                 entry.TickCount = tickCount;
-                m_incomingMessages.AddLast(entry);
+                _incomingMessages.AddLast(entry);
             }
 
             return entry;
         }
 
-        private string m_displayName;
-        private int m_publishingInterval;
-        private uint m_keepAliveCount;
-        private uint m_lifetimeCount;
-        private uint m_minLifetimeInterval;
-        private uint m_maxNotificationsPerPublish;
-        private bool m_publishingEnabled;
-        private byte m_priority;
-        private TimestampsToReturn m_timestampsToReturn;
-        private List<MonitoredItem> m_deletedItems;
-        private event SubscriptionStateChangedEventHandler m_StateChanged;
-        private MonitoredItem m_defaultItem;
-        private SubscriptionChangeMask m_changeMask;
-
-        private ISession m_session;
-        private object m_handle;
-        private uint m_id;
-        private uint m_transferId;
-        private double m_currentPublishingInterval;
-        private uint m_currentKeepAliveCount;
-        private uint m_currentLifetimeCount;
-        private bool m_currentPublishingEnabled;
-        private byte m_currentPriority;
+        private event PublishStateChangedEventHandler? _publishStatusChanged;
+        private event SubscriptionStateChangedEventHandler? _StateChanged;
+        private List<MonitoredItem> _deletedItems;
+        private SubscriptionChangeMask _changeMask;
+        private uint _id;
+        private bool _currentPublishingEnabled;
+        private byte _currentPriority;
 #if NET6_0_OR_GREATER
-        private PeriodicTimer m_publishTimer;
+        private PeriodicTimer? _publishTimer;
 #else
-        private Timer m_publishTimer;
+        private Timer? _publishTimer;
 #endif
-        private long m_lastNotificationTime;
-        private int m_lastNotificationTickCount;
-        private int m_keepAliveInterval;
-        private int m_publishLateCount;
-        private event PublishStateChangedEventHandler m_publishStatusChanged;
+        private long _lastNotificationTime;
+        private int _lastNotificationTickCount;
+        private int _keepAliveInterval;
+        private int _publishLateCount;
 
-        private object m_cache = new();
-        private LinkedList<NotificationMessage> m_messageCache;
-        private IList<uint> m_availableSequenceNumbers;
-        private int m_maxMessageCount;
-        private bool m_republishAfterTransfer;
-        private SortedDictionary<uint, MonitoredItem> m_monitoredItems;
-        private FastDataChangeNotificationEventHandler m_fastDataChangeCallback;
-        private FastEventNotificationEventHandler m_fastEventCallback;
-        private FastKeepAliveNotificationEventHandler m_fastKeepAliveCallback;
-        private AsyncAutoResetEvent m_messageWorkerEvent;
-        private CancellationTokenSource m_messageWorkerCts;
-        private Task m_messageWorkerTask;
-        private int m_outstandingMessageWorkers;
-        private bool m_sequentialPublishing;
-        private uint m_lastSequenceNumberProcessed;
-        private bool m_resyncLastSequenceNumberProcessed;
+        private readonly object _cache = new();
+        private readonly LinkedList<NotificationMessage> _messageCache;
+        private readonly AsyncAutoResetEvent _messageWorkerEvent;
+
+        private IList<uint>? _availableSequenceNumbers;
+        private int _maxMessageCount;
+        private SortedDictionary<uint, MonitoredItem> _monitoredItems;
+        private CancellationTokenSource? _messageWorkerCts;
+        private Task? _messageWorkerTask;
+        private int _outstandingMessageWorkers;
+        private bool _sequentialPublishing;
+        private uint _lastSequenceNumberProcessed;
+        private bool _resyncLastSequenceNumberProcessed;
 
         /// <summary>
         /// A message received from the server cached until is processed or discarded.
@@ -2452,227 +2216,18 @@ namespace Opc.Ua.Client
             public uint SequenceNumber;
             public DateTime Timestamp;
             public int TickCount;
-            public NotificationMessage Message;
+            public NotificationMessage? Message;
             public bool Processed;
             public bool Republished;
             public StatusCode RepublishStatus;
         }
 
-        private LinkedList<IncomingMessage> m_incomingMessages;
-        private ILogger m_logger;
-    }
+        private readonly LinkedList<IncomingMessage> _incomingMessages = new();
+        private readonly ILogger _logger;
 
-    /// <summary>
-    /// Flags indicating what has changed in a subscription.
-    /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1714:FlagsEnumsShouldHavePluralNames"), Flags]
-    public enum SubscriptionChangeMask
-    {
-        /// <summary>
-        /// The subscription has not changed.
-        /// </summary>
-        None = 0x00,
-
-        /// <summary>
-        /// The subscription was created on the server.
-        /// </summary>
-        Created = 0x01,
-
-        /// <summary>
-        /// The subscription was deleted on the server.
-        /// </summary>
-        Deleted = 0x02,
-
-        /// <summary>
-        /// The subscription was modified on the server.
-        /// </summary>
-        Modified = 0x04,
-
-        /// <summary>
-        /// Monitored items were added to the subscription (but not created on the server)
-        /// </summary>
-        ItemsAdded = 0x08,
-
-        /// <summary>
-        /// Monitored items were removed to the subscription (but not deleted on the server)
-        /// </summary>
-        ItemsRemoved = 0x10,
-
-        /// <summary>
-        /// Monitored items were created on the server.
-        /// </summary>
-        ItemsCreated = 0x20,
-
-        /// <summary>
-        /// Monitored items were deleted on the server.
-        /// </summary>
-        ItemsDeleted = 0x40,
-
-        /// <summary>
-        /// Monitored items were modified on the server.
-        /// </summary>
-        ItemsModified = 0x80,
-
-        /// <summary>
-        /// Subscription was transferred on the server.
-        /// </summary>
-        Transferred = 0x100
-    }
-
-    /// <summary>
-    /// Flags indicating what has changed in a publish state change.
-    /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1714:FlagsEnumsShouldHavePluralNames"), Flags]
-    public enum PublishStateChangedMask
-    {
-        /// <summary>
-        /// The publish state has not changed.
-        /// </summary>
-        None = 0x00,
-
-        /// <summary>
-        /// The publishing stopped.
-        /// </summary>
-        Stopped = 0x01,
-
-        /// <summary>
-        /// The publishing recovered.
-        /// </summary>
-        Recovered = 0x02,
-
-        /// <summary>
-        /// A keep alive message was received.
-        /// </summary>
-        KeepAlive = 0x04,
-
-        /// <summary>
-        /// A republish for a missing message was issued.
-        /// </summary>
-        Republish = 0x08,
-
-        /// <summary>
-        /// The publishing was transferred to another node.
-        /// </summary>
-        Transferred = 0x10,
-
-        /// <summary>
-        /// The publishing was timed out
-        /// </summary>
-        Timeout = 0x20,
-    }
-
-    /// <summary>
-    /// The delegate used to receive data change notifications via a direct function call instead of a .NET Event.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="notification"></param>
-    /// <param name="stringTable"></param>
-    public delegate void FastDataChangeNotificationEventHandler(Subscription subscription, DataChangeNotification notification, IList<string> stringTable);
-
-    /// <summary>
-    /// The delegate used to receive event notifications via a direct function call instead of a .NET Event.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="notification"></param>
-    /// <param name="stringTable"></param>
-    public delegate void FastEventNotificationEventHandler(Subscription subscription, EventNotificationList notification, IList<string> stringTable);
-
-    /// <summary>
-    /// The delegate used to receive keep alive notifications via a direct function call instead of a .NET Event.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="notification"></param>
-    public delegate void FastKeepAliveNotificationEventHandler(Subscription subscription, NotificationData notification);
-
-    /// <summary>
-    /// The event arguments provided when the state of a subscription changes.
-    /// </summary>
-    public class SubscriptionStateChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="changeMask"></param>
-        internal SubscriptionStateChangedEventArgs(SubscriptionChangeMask changeMask)
-        {
-            Status = changeMask;
-        }
-
-        /// <summary>
-        /// The changes that have affected the subscription.
-        /// </summary>
-        public SubscriptionChangeMask Status { get; }
-    }
-
-    /// <summary>
-    /// The delegate used to receive subscription state change notifications.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="e"></param>
-    public delegate void SubscriptionStateChangedEventHandler(Subscription subscription, SubscriptionStateChangedEventArgs e);
-
-    /// <summary>
-    /// The event arguments provided when the state of a subscription changes.
-    /// </summary>
-    public class PublishStateChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Creates a new instance.
-        /// </summary>
-        /// <param name="changeMask"></param>
-        internal PublishStateChangedEventArgs(PublishStateChangedMask changeMask)
-        {
-            Status = changeMask;
-        }
-
-        /// <summary>
-        /// The publish state changes.
-        /// </summary>
-        public PublishStateChangedMask Status { get; }
-    }
-
-    /// <summary>
-    /// The delegate used to receive publish state change notifications.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="e"></param>
-    public delegate void PublishStateChangedEventHandler(Subscription subscription, PublishStateChangedEventArgs e);
-
-    /// <summary>
-    /// A collection of subscriptions.
-    /// </summary>
-    [CollectionDataContract(Name = "ListOfSubscription", Namespace = Namespaces.OpcUaXsd, ItemName = "Subscription")]
-    public partial class SubscriptionCollection : List<Subscription>, ICloneable
-    {
-        /// <summary>
-        /// Initializes an empty collection.
-        /// </summary>
-        public SubscriptionCollection() { }
-
-        /// <summary>
-        /// Initializes the collection from another collection.
-        /// </summary>
-        /// <param name="collection">The existing collection to use as the basis of creating this collection</param>
-        public SubscriptionCollection(IEnumerable<Subscription> collection) : base(collection) { }
-
-        /// <summary>
-        /// Initializes the collection with the specified capacity.
-        /// </summary>
-        /// <param name="capacity">The max. capacity of the collection</param>
-        public SubscriptionCollection(int capacity) : base(capacity) { }
-
-        /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone()
-        {
-            return (SubscriptionCollection)MemberwiseClone();
-        }
-
-        /// <summary cref="object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
-            var clone = new SubscriptionCollection();
-            clone.AddRange(this.Select(item => (Subscription)item.Clone()));
-            return clone;
-        }
+        const int kMinKeepAliveTimerInterval = 1000;
+        const int kKeepAliveTimerMargin = 1000;
+        const int kRepublishMessageTimeout = 2500;
+        const int kRepublishMessageExpiredTimeout = 10000;
     }
 }

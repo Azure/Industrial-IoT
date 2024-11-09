@@ -12,6 +12,8 @@
 
    .PARAMETER Name
       The name of the cluster
+   .PARAMETER SharedFolderPath
+      The shared folder path on the host system to mount into the guest.
    .PARAMETER TenantId
       The tenant id to use when logging into Azure.
    .PARAMETER SubscriptionId
@@ -26,6 +28,7 @@
 
 param(
     [string] [Parameter(Mandatory = $true)] $Name,
+    [string] $SharedFolderPath,
     [string] $ResourceGroup,
     [string] $TenantId,
     [string] $SubscriptionId,
@@ -35,7 +38,7 @@ param(
 )
 
 $forceReinstall = $Force.IsPresent
-#$forceReinstall = $true
+$forceReinstall = $true
 $TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18"
 
 #Requires -RunAsAdministrator
@@ -56,6 +59,11 @@ if ([string]::IsNullOrWhiteSpace($TenantId)) {
 }
 if ([string]::IsNullOrWhiteSpace($Location)) {
    $Location = "eastus2"
+}
+
+$mountPath = "C:\Shared"
+if (![string]::IsNullOrWhiteSpace($SharedFolderPath)) {
+   $mountPath = $SharedFolderPath
 }
 
 Write-Host "Ensuring all required dependencies are installed..." -ForegroundColor Cyan
@@ -155,10 +163,12 @@ $TenantId = $session.tenantId
 #
 # Create the cluster
 #
+$distro = "K8s"
 if ($ClusterType -eq "none") {
     Write-Host "Skipping cluster creation..." -ForegroundColor Green
 }
 elseif ($ClusterType -eq "k3d") {
+    $distro = "K3s"
     $errOut = $($table = & {k3d cluster list --no-headers} -split "`n") 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error querying k3d clusters - $errOut" -ForegroundColor Red
@@ -179,10 +189,17 @@ elseif ($ClusterType -eq "k3d") {
             k3d cluster delete $cluster 2>&1 | Out-Null
         }
         Write-Host "Creating k3d cluster $Name..." -ForegroundColor Cyan
+        $fullPath = Join-Path $mountPath "k3d"
+        if (!(Test-Path $fullPath)) {
+            New-Item -ItemType Directory -Path $fullPath | Out-Null
+        }
 
+        $volumeMapping = "$($fullPath):/var/lib/rancher/k3s/storage"
+        $env:K3D_FIX_MOUNTS = '1'
         k3d cluster create $Name `
             --agents 3 `
             --servers 3 `
+            --volume $volumeMapping `
             --wait
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red
@@ -542,15 +559,6 @@ if (!$iotops) {
     Write-Host "Initializing cluster $Name for deployment of Azure IoT operations..." `
         -ForegroundColor Cyan
 
-    # install latest container storage
-    az k8s-extension create `
-        --cluster-name $Name `
-        --resource-group $ResourceGroup `
-        --subscription $SubscriptionId `
-        --name azure-arc-containerstorage `
-        --cluster-type connectedclusters `
-        --extension-type microsoft.arc.containerstorage
-
     az iot ops init `
         --cluster $Name `
         --resource-group $ResourceGroup `
@@ -573,6 +581,7 @@ if (!$iotops) {
         --name $Name `
         --location $Location `
         --sr-resource-id $sr.id `
+        --kubernetes-distro $distro `
         --enable-rsync true `
         --add-insecure-listener true `
         --only-show-errors

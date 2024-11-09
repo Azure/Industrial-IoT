@@ -544,11 +544,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             MonitoredItemNotifications notifications)
         {
             var lastValue = LastReceivedValue;
-            if (lastValue == null || Status?.Error != null)
+            if (lastValue == null)
             {
                 return TryGetErrorMonitoredItemNotifications(
-                    Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
-                    notifications);
+                    StatusCodes.BadNoData, notifications);
+            }
+            if (ServiceResult.IsNotGood(Status.Error))
+            {
+                return TryGetErrorMonitoredItemNotifications(
+                    Status.Error.StatusCode, notifications);
             }
             return TryGetMonitoredItemNotifications(TimeProvider.GetUtcNow(),
                 lastValue, notifications);
@@ -696,8 +700,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             byte builtInType = 0;
             try
             {
-                builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                    session.TypeTree, ct).ConfigureAwait(false);
+                builtInType = (byte)await session.NodeCache.GetBuiltInTypeAsync(
+                    variable.DataType, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -752,7 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        var dataType = await session.NodeCache.FetchNodeAsync(baseType,
+                        var dataType = await session.NodeCache.FindAsync(baseType,
                             ct).ConfigureAwait(false);
                         if (dataType == null)
                         {
@@ -762,7 +766,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        dataTypeId = dataType.NodeId;
+                        dataTypeId = ExpandedNodeId.ToNodeId(dataType.NodeId, session.MessageContext.NamespaceUris);
                         Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
                         if (IsBuiltInType(dataTypeId))
                         {
@@ -770,9 +774,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                            session.TypeTree, ct).ConfigureAwait(false);
-                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
+                        var builtInType = await session.NodeCache.GetBuiltInTypeAsync(dataTypeId,
+                            ct).ConfigureAwait(false);
+                        baseType = await session.NodeCache.FindSuperTypeAsync(dataTypeId,
                             ct).ConfigureAwait(false);
 
                         var browseName = dataType.BrowseName
@@ -793,24 +797,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     dataType.NodeId);
                                 if (types == null || types.Count == 0)
                                 {
-                                    var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
+                                    var dtNode = await session.NodeCache.FindAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
                                         v.DataTypeDefinition.Body is DataTypeDefinition t)
                                     {
-                                        types ??= new NodeIdDictionary<DataTypeDefinition>();
-                                        types.Add(dataTypeId, t);
+                                        types ??= new Dictionary<ExpandedNodeId, DataTypeDefinition>();
+                                        types.Add(dtNode.NodeId, t);
                                     }
                                     else
                                     {
-                                        dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
+                                        dataTypes.AddOrUpdate(dataTypeId, GetDefault(
                                             dataType, builtInType, session.MessageContext));
                                         break;
                                     }
                                 }
                                 foreach (var type in types)
                                 {
-                                    if (!dataTypes.ContainsKey(type.Key))
+                                    var typeId = ExpandedNodeId.ToNodeId(type.Key,
+                                        session.MessageContext.NamespaceUris);
+                                    if (!dataTypes.ContainsKey(typeId))
                                     {
                                         var description = type.Value switch
                                         {
@@ -847,7 +853,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 },
                                             _ => GetDefault(dataType, builtInType, session.MessageContext),
                                         };
-                                        dataTypes.AddOrUpdate(type.Key, description);
+                                        dataTypes.AddOrUpdate(typeId, description);
                                     }
                                 }
                                 break;
@@ -873,7 +879,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
-                object GetDefault(Node dataType, BuiltInType builtInType, IServiceMessageContext context)
+                object GetDefault(INode dataType, BuiltInType builtInType, IServiceMessageContext context)
                 {
                     _logger.LogError("{Item}: Could not find a valid type definition for {Type} " +
                         "({BuiltInType}). Adding a default placeholder with no fields instead.",
@@ -926,9 +932,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            static bool IsBuiltInType(NodeId dataTypeId)
+            static bool IsBuiltInType(ExpandedNodeId dataTypeId)
             {
-                if (dataTypeId.NamespaceIndex == 0 && dataTypeId.IdType == IdType.Numeric)
+                if (!dataTypeId.IsAbsolute && dataTypeId.NamespaceIndex == 0 &&
+                    dataTypeId.IdType == IdType.Numeric)
                 {
                     var id = (BuiltInType)(int)(uint)dataTypeId.Identifier;
                     if (id >= BuiltInType.Null && id <= BuiltInType.Enumeration)
@@ -1014,14 +1021,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="owner"></param>
         /// <param name="messageType"></param>
         /// <param name="notifications"></param>
-        /// <param name="session"></param>
         /// <param name="eventTypeName"></param>
         /// <param name="diagnosticsOnly"></param>
         /// <param name="timestamp"></param>
         protected void Publish(ISubscriber owner, MessageType messageType,
             IList<MonitoredItemNotificationModel> notifications,
-            ISession? session = null, string? eventTypeName = null,
-            bool diagnosticsOnly = false, DateTimeOffset? timestamp = null)
+            string? eventTypeName = null, bool diagnosticsOnly = false,
+            DateTimeOffset? timestamp = null)
         {
             if (Subscription is not OpcUaSubscription subscription)
             {
@@ -1030,9 +1036,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     this);
                 return;
             }
-            subscription.SendNotification(
-                owner, messageType, notifications, session, eventTypeName,
-                diagnosticsOnly, timestamp);
+            subscription.SendNotification(owner, messageType, notifications,
+                eventTypeName, diagnosticsOnly, timestamp);
         }
 
         /// <summary>

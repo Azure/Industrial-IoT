@@ -172,6 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     else if (eventType == ObjectTypeIds.RefreshRequiredEventType)
                     {
                         var noErrorFound = true;
+                        Debug.Assert(Subscription != null);
 
                         // issue a condition refresh to make sure we are in a correct state
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
@@ -180,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Subscription.DisplayName);
                         try
                         {
-                            Subscription.ConditionRefreshAsync().GetAwaiter().GetResult(); // TODO
+                            Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
                         }
                         catch (Exception e)
                         {

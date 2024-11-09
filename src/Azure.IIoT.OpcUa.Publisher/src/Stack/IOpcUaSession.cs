@@ -39,11 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         ISystemContext SystemContext { get; }
 
         /// <summary>
-        /// Get the type tree
-        /// </summary>
-        ITypeTable TypeTree { get; }
-
-        /// <summary>
         /// Get the node cache
         /// </summary>
         INodeCache NodeCache { get; }

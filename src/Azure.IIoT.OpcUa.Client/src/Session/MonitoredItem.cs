@@ -30,7 +30,6 @@
 namespace Opc.Ua.Client
 {
     using System;
-    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -43,137 +42,10 @@ namespace Opc.Ua.Client
     public class MonitoredItem : ICloneable
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MonitoredItem"/> class.
-        /// </summary>
-        public MonitoredItem()
-        {
-            Initialize();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MonitoredItem"/> class.
-        /// </summary>
-        /// <param name="clientHandle">The client handle. The caller must ensure it uniquely identifies the monitored item.</param>
-        public MonitoredItem(uint clientHandle)
-        {
-            Initialize();
-            m_clientHandle = clientHandle;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MonitoredItem"/> class.
-        /// </summary>
-        /// <param name="template">The template used to specify the monitoring parameters.</param>
-        public MonitoredItem(MonitoredItem template) : this(template, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MonitoredItem"/> class.
-        /// </summary>
-        /// <param name="template">The template used to specify the monitoring parameters.</param>
-        /// <param name="copyEventHandlers">if set to <c>true</c> the event handlers are copied.</param>
-        public MonitoredItem(MonitoredItem template, bool copyEventHandlers) : this(template, copyEventHandlers, false)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MonitoredItem"/> class.
-        /// </summary>
-        /// <param name="template">The template used to specify the monitoring parameters.</param>
-        /// <param name="copyEventHandlers">if set to <c>true</c> the event handlers are copied.</param>
-        /// <param name="copyClientHandle">if set to <c>true</c> the clientHandle is of the template copied.</param>
-        public MonitoredItem(MonitoredItem template, bool copyEventHandlers, bool copyClientHandle)
-        {
-            Initialize();
-
-            if (template != null)
-            {
-                var displayName = template.DisplayName;
-
-                if (displayName != null)
-                {
-                    // remove any existing numeric suffix.
-                    var index = displayName.LastIndexOf(' ');
-
-                    if (index != -1)
-                    {
-                        try
-                        {
-                            displayName = displayName.Substring(0, index);
-                        }
-                        catch
-                        {
-                            // not a numeric suffix.
-                        }
-                    }
-                }
-
-                Handle = template.Handle;
-                DisplayName = Utils.Format("{0} {1}", displayName, m_clientHandle);
-                StartNodeId = template.StartNodeId;
-                m_relativePath = template.m_relativePath;
-                AttributeId = template.AttributeId;
-                IndexRange = template.IndexRange;
-                Encoding = template.Encoding;
-                MonitoringMode = template.MonitoringMode;
-                m_samplingInterval = template.m_samplingInterval;
-                m_filter = (MonitoringFilter)Utils.Clone(template.m_filter);
-                m_queueSize = template.m_queueSize;
-                m_discardOldest = template.m_discardOldest;
-                m_attributesModified = true;
-
-                if (copyClientHandle)
-                {
-                    m_clientHandle = template.m_clientHandle;
-                }
-
-                // this ensures the state is consistent with the node class.
-                NodeClass = template.NodeClass;
-            }
-        }
-
-        /// <summary>
-        /// Called by the .NET framework during deserialization.
-        /// </summary>
-        /// <param name="context"></param>
-        [OnDeserializing]
-        protected void Initialize(StreamingContext context)
-        {
-            Initialize();
-        }
-
-        /// <summary>
-        /// Sets the private members to default values.
-        /// </summary>
-        private void Initialize()
-        {
-            StartNodeId = null;
-            m_relativePath = null;
-            m_clientHandle = 0;
-            AttributeId = Attributes.Value;
-            IndexRange = null;
-            Encoding = null;
-            MonitoringMode = MonitoringMode.Reporting;
-            m_samplingInterval = -1;
-            m_filter = null;
-            m_queueSize = 0;
-            m_discardOldest = true;
-            m_attributesModified = true;
-            m_status = new MonitoredItemStatus();
-
-            // this ensures the state is consistent with the node class.
-            NodeClass = NodeClass.Variable;
-
-            // assign a unique handle.
-            m_clientHandle = Utils.IncrementIdentifier(ref s_globalClientHandle);
-        }
-
-        /// <summary>
         /// A display name for the monitored item.
         /// </summary>
         [DataMember(Order = 1)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         /// <summary>
         /// The start node for the browse path that identifies the node to monitor.
@@ -197,13 +69,13 @@ namespace Opc.Ua.Client
         /// The range of array indexes to monitor.
         /// </summary>
         [DataMember(Order = 6)]
-        public string IndexRange { get; set; }
+        public string? IndexRange { get; set; }
 
         /// <summary>
         /// The encoding to use when returning notifications.
         /// </summary>
         [DataMember(Order = 7)]
-        public QualifiedName Encoding { get; set; }
+        public QualifiedName? Encoding { get; set; }
 
         /// <summary>
         /// The monitoring mode.
@@ -217,16 +89,16 @@ namespace Opc.Ua.Client
         [DataMember(Order = 9)]
         public int SamplingInterval
         {
-            get { return m_samplingInterval; }
+            get { return _samplingInterval; }
 
             set
             {
-                if (m_samplingInterval != value)
+                if (_samplingInterval != value)
                 {
-                    m_attributesModified = true;
+                    _attributesModified = true;
                 }
 
-                m_samplingInterval = value;
+                _samplingInterval = value;
             }
         }
 
@@ -234,17 +106,16 @@ namespace Opc.Ua.Client
         /// The filter to use to select values to return.
         /// </summary>
         [DataMember(Order = 10)]
-        public MonitoringFilter Filter
+        public MonitoringFilter? Filter
         {
-            get { return m_filter; }
-
+            get { return _filter; }
             set
             {
                 // validate filter against node class.
-                ValidateFilter(NodeClass, value);
+                ValidateFilter(value);
 
-                m_attributesModified = true;
-                m_filter = value;
+                _attributesModified = true;
+                _filter = value;
             }
         }
 
@@ -254,16 +125,16 @@ namespace Opc.Ua.Client
         [DataMember(Order = 11)]
         public uint QueueSize
         {
-            get { return m_queueSize; }
+            get { return _queueSize; }
 
             set
             {
-                if (m_queueSize != value)
+                if (_queueSize != value)
                 {
-                    m_attributesModified = true;
+                    _attributesModified = true;
                 }
 
-                m_queueSize = value;
+                _queueSize = value;
             }
         }
 
@@ -273,67 +144,121 @@ namespace Opc.Ua.Client
         [DataMember(Order = 12)]
         public bool DiscardOldest
         {
-            get { return m_discardOldest; }
+            get { return _discardOldest; }
 
             set
             {
-                if (m_discardOldest != value)
+                if (_discardOldest != value)
                 {
-                    m_attributesModified = true;
+                    _attributesModified = true;
                 }
 
-                m_discardOldest = value;
+                _discardOldest = value;
             }
         }
 
         /// <summary>
         /// The subscription that owns the monitored item.
         /// </summary>
-        public Subscription Subscription { get; internal set; }
+        public Subscription? Subscription { get; internal set; }
 
         /// <summary>
         /// A local handle assigned to the monitored item.
         /// </summary>
-        public object Handle { get; set; }
+        public object? Handle { get; set; }
 
         /// <summary>
         /// Whether the item has been created on the server.
         /// </summary>
-        public bool Created => m_status.Created;
+        public bool Created => Status.Created;
 
         /// <summary>
         /// The identifier assigned by the client.
         /// </summary>
-        public uint ClientHandle => m_clientHandle;
+        public uint ClientHandle => _clientHandle;
 
         /// <summary>
         /// The node id to monitor after applying any relative path.
         /// </summary>
-        public NodeId ResolvedNodeId
-        {
-            get
-            {
-                // just return the start id if relative path is empty.
-                if (string.IsNullOrEmpty(m_relativePath))
-                {
-                    return StartNodeId;
-                }
-
-                return m_resolvedNodeId;
-            }
-
-            internal set { m_resolvedNodeId = value; }
-        }
+        public NodeId? ResolvedNodeId => StartNodeId;
 
         /// <summary>
         /// Whether the monitoring attributes have been modified since the item was created.
         /// </summary>
-        public bool AttributesModified => m_attributesModified;
+        public bool AttributesModified => _attributesModified;
 
         /// <summary>
         /// The status associated with the monitored item.
         /// </summary>
-        public MonitoredItemStatus Status => m_status;
+        public MonitoredItemStatus Status { get; }
+
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        public MonitoredItem()
+        {
+            StartNodeId = NodeId.Null;
+            AttributeId = Attributes.Value;
+            MonitoringMode = MonitoringMode.Reporting;
+            _samplingInterval = -1;
+            _discardOldest = true;
+            _attributesModified = true;
+            Status = new MonitoredItemStatus();
+            _clientHandle = Utils.IncrementIdentifier(ref s_globalClientHandle);
+        }
+
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="template">The template used to specify the
+        /// monitoring parameters.</param>
+        /// <param name="copyEventHandlers">if set to <c>true</c>
+        /// the event handlers are copied.</param>
+        /// <param name="copyClientHandle">if set to <c>true</c> the
+        /// clientHandle is of the template copied.</param>
+        public MonitoredItem(MonitoredItem template,
+            bool copyEventHandlers, bool copyClientHandle)
+        {
+            var displayName = template.DisplayName;
+            if (displayName != null)
+            {
+                // remove any existing numeric suffix.
+                var index = displayName.LastIndexOf(' ');
+
+                if (index != -1)
+                {
+                    try
+                    {
+                        displayName = displayName.Substring(0, index);
+                    }
+                    catch
+                    {
+                        // not a numeric suffix.
+                    }
+                }
+            }
+
+            Status = new MonitoredItemStatus();
+            _clientHandle = copyClientHandle ? template._clientHandle :
+                Utils.IncrementIdentifier(ref s_globalClientHandle);
+
+            Handle = template.Handle;
+            DisplayName = Utils.Format("{0} {1}", displayName, _clientHandle);
+            StartNodeId = template.StartNodeId;
+            AttributeId = template.AttributeId;
+            IndexRange = template.IndexRange;
+            Encoding = template.Encoding;
+            MonitoringMode = template.MonitoringMode;
+
+            // this ensures the state is consistent with the node class.
+            NodeClass = template.NodeClass;
+
+            _samplingInterval = template._samplingInterval;
+            _filter = (MonitoringFilter)Utils.Clone(template._filter);
+            _queueSize = template._queueSize;
+            _discardOldest = template._discardOldest;
+            _attributesModified = true;
+        }
 
         /// <inheritdoc/>
         public virtual object Clone()
@@ -346,16 +271,18 @@ namespace Opc.Ua.Client
         /// </summary>
         public new object MemberwiseClone()
         {
-            return new MonitoredItem(this);
+            return new MonitoredItem(this, false, false);
         }
 
         /// <summary>
-        /// Clones a monitored item or the subclass with an option to copy event handlers.
+        /// Clones a monitored item or the subclass with an option to copy
+        /// event handlers.
         /// </summary>
         /// <param name="copyEventHandlers"></param>
         /// <param name="copyClientHandle"></param>
-        /// <returns>A cloned instance of the monitored item or a subclass.</returns>
-        public virtual MonitoredItem CloneMonitoredItem(bool copyEventHandlers, bool copyClientHandle)
+        /// <returns>A cloned instance of the monitored item.</returns>
+        public virtual MonitoredItem CloneMonitoredItem(bool copyEventHandlers,
+            bool copyClientHandle)
         {
             return new MonitoredItem(this, copyEventHandlers, copyClientHandle);
         }
@@ -368,22 +295,20 @@ namespace Opc.Ua.Client
         /// <param name="index"></param>
         /// <param name="diagnosticInfos"></param>
         /// <param name="responseHeader"></param>
-        public void SetCreateResult(
-            MonitoredItemCreateRequest request,
-            MonitoredItemCreateResult result,
-            int index,
-            DiagnosticInfoCollection diagnosticInfos,
-            ResponseHeader responseHeader)
+        public void SetCreateResult(MonitoredItemCreateRequest request,
+            MonitoredItemCreateResult result, int index,
+            DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
-            ServiceResult error = null;
+            ServiceResult error = ServiceResult.Good;
 
             if (StatusCode.IsBad(result.StatusCode))
             {
-                error = ClientBase.GetResult(result.StatusCode, index, diagnosticInfos, responseHeader);
+                error = ClientBase.GetResult(result.StatusCode, index,
+                    diagnosticInfos, responseHeader);
             }
 
-            m_status.SetCreateResult(request, result, error);
-            m_attributesModified = false;
+            Status.SetCreateResult(request, result, error);
+            _attributesModified = false;
         }
 
         /// <summary>
@@ -394,22 +319,20 @@ namespace Opc.Ua.Client
         /// <param name="index"></param>
         /// <param name="diagnosticInfos"></param>
         /// <param name="responseHeader"></param>
-        public void SetModifyResult(
-            MonitoredItemModifyRequest request,
-            MonitoredItemModifyResult result,
-            int index,
-            DiagnosticInfoCollection diagnosticInfos,
-            ResponseHeader responseHeader)
+        public void SetModifyResult(MonitoredItemModifyRequest request,
+            MonitoredItemModifyResult result, int index,
+            DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
-            ServiceResult error = null;
+            ServiceResult error = ServiceResult.Good;
 
             if (StatusCode.IsBad(result.StatusCode))
             {
-                error = ClientBase.GetResult(result.StatusCode, index, diagnosticInfos, responseHeader);
+                error = ClientBase.GetResult(result.StatusCode, index,
+                    diagnosticInfos, responseHeader);
             }
 
-            m_status.SetModifyResult(request, result, error);
-            m_attributesModified = false;
+            Status.SetModifyResult(request, result, error);
+            _attributesModified = false;
         }
 
         /// <summary>
@@ -420,9 +343,9 @@ namespace Opc.Ua.Client
         {
             // ensure the global counter is not duplicating future handle ids
             Utils.LowerLimitIdentifier(ref s_globalClientHandle, clientHandle);
-            m_clientHandle = clientHandle;
-            m_status.SetTransferResult(this);
-            m_attributesModified = false;
+            _clientHandle = clientHandle;
+            Status.SetTransferResult(this);
+            _attributesModified = false;
         }
 
         /// <summary>
@@ -432,95 +355,83 @@ namespace Opc.Ua.Client
         /// <param name="index"></param>
         /// <param name="diagnosticInfos"></param>
         /// <param name="responseHeader"></param>
-        public void SetDeleteResult(
-            StatusCode result,
-            int index,
-            DiagnosticInfoCollection diagnosticInfos,
-            ResponseHeader responseHeader)
+        public void SetDeleteResult(StatusCode result, int index,
+            DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
-            ServiceResult error = null;
+            ServiceResult error = ServiceResult.Good;
 
             if (StatusCode.IsBad(result))
             {
                 error = ClientBase.GetResult(result, index, diagnosticInfos, responseHeader);
             }
 
-            m_status.SetDeleteResult(error);
+            Status.SetDeleteResult(error);
         }
 
         /// <summary>
         /// Throws an exception if the flter cannot be used with the node class.
         /// </summary>
-        /// <param name="nodeClass"></param>
         /// <param name="filter"></param>
         /// <exception cref="ServiceResultException"></exception>
-        private void ValidateFilter(NodeClass nodeClass, MonitoringFilter filter)
+        private void ValidateFilter(MonitoringFilter? filter)
         {
             if (filter == null)
             {
                 return;
             }
-
-            switch (nodeClass)
+            switch (filter)
             {
-                case NodeClass.Variable:
-                case NodeClass.VariableType:
+                case AggregateFilter af:
+                    if (NodeClass == NodeClass.Unspecified)
                     {
-                        if (!typeof(DataChangeFilter).IsInstanceOfType(filter))
-                        {
-                            NodeClass = NodeClass.Variable;
-                        }
-
-                        break;
+                        NodeClass = NodeClass.Variable;
                     }
-
-                case NodeClass.Object:
-                case NodeClass.View:
+                    else if (NodeClass != NodeClass.Variable)
                     {
-                        if (!typeof(EventFilter).IsInstanceOfType(filter))
-                        {
-                            NodeClass = NodeClass.Object;
-                        }
-
-                        break;
+                        throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed,
+                            "AggregateFilter may not be specified for nodes of class '{0}'.",
+                            NodeClass);
                     }
-
+                    break;
+                case DataChangeFilter dfe:
+                    if (NodeClass == NodeClass.Unspecified)
+                    {
+                        NodeClass = NodeClass.Variable;
+                    }
+                    else if (NodeClass != NodeClass.Variable && NodeClass != NodeClass.VariableType)
+                    {
+                        throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed,
+                            "DataChangeFilter may not be specified for nodes of class '{0}'.",
+                            NodeClass);
+                    }
+                    break;
+                case EventFilter ef:
+                    if (NodeClass == NodeClass.Unspecified)
+                    {
+                        NodeClass = NodeClass.Object;
+                    }
+                    else if (NodeClass != NodeClass.Object && NodeClass != NodeClass.View)
+                    {
+                        throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed,
+                            "EventFilter may not be specified for nodes of class '{0}'.",
+                            NodeClass);
+                    }
+                    break;
+                case null:
+                    break;
                 default:
-                    {
-                        throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed, "Filters may not be specified for nodes of class '{0}'.", nodeClass);
-                    }
+                    throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed,
+                        "Unsupported filter '{0}'.",
+                        filter.GetType().Name);
             }
         }
 
-        /// <summary>
-        /// Sets the default event filter.
-        /// </summary>
-        private void UseDefaultEventFilter()
-        {
-            EventFilter filter = filter = new EventFilter();
-
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.EventId);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.EventType);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.SourceNode);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.SourceName);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.Time);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.ReceiveTime);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.LocalTime);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.Message);
-            filter.AddSelectClause(ObjectTypes.BaseEventType, Opc.Ua.BrowseNames.Severity);
-
-            m_filter = filter;
-        }
-
-        private string m_relativePath;
-        private NodeId m_resolvedNodeId;
-        private int m_samplingInterval;
-        private MonitoringFilter m_filter;
-        private uint m_queueSize;
-        private bool m_discardOldest;
-        private uint m_clientHandle;
-        private MonitoredItemStatus m_status;
-        private bool m_attributesModified;
+        private int _samplingInterval;
+        private MonitoringFilter? _filter;
+        private uint _queueSize;
+        private bool _discardOldest;
+        private uint _clientHandle;
+        private bool _attributesModified;
         private static long s_globalClientHandle;
     }
 }

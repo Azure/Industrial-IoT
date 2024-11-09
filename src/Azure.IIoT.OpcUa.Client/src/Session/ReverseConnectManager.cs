@@ -52,36 +52,6 @@ namespace Opc.Ua.Client
     public class ReverseConnectManager : IDisposable
     {
         /// <summary>
-        /// A default value for reverse hello configurations, if undefined.
-        /// </summary>
-        /// <remarks>
-        /// This value is used as wait timeout if the value is undefined by a caller.
-        /// </remarks>
-        public const int DefaultWaitTimeout = 20000;
-
-        /// <summary>
-        /// Internal state of the reverse connect manager.
-        /// </summary>
-        private enum ReverseConnectManagerState
-        {
-            New = 0,
-            Stopped = 1,
-            Started = 2,
-            Errored = 3
-        }
-
-        /// <summary>
-        /// Internal state of the reverse connect host.
-        /// </summary>
-        private enum ReverseConnectHostState
-        {
-            New = 0,
-            Closed = 1,
-            Open = 2,
-            Errored = 3
-        }
-
-        /// <summary>
         /// Specify the strategy for the reverse connect registration.
         /// </summary>
         [Flags]
@@ -121,61 +91,17 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Entry for a client reverse connect registration.
-        /// </summary>
-        private class ReverseConnectInfo
-        {
-            public ReverseConnectInfo(ReverseConnectHost reverseConnectHost, bool configEntry)
-            {
-                ReverseConnectHost = reverseConnectHost;
-                State = ReverseConnectHostState.New;
-                ConfigEntry = configEntry;
-            }
-            public ReverseConnectHost ReverseConnectHost;
-            public ReverseConnectHostState State;
-            public bool ConfigEntry;
-        }
-
-        /// <summary>
-        /// Record to store information on a client
-        /// registration for a reverse connect event.
-        /// </summary>
-        private class Registration
-        {
-            public Registration(
-                string serverUri,
-                Uri endpointUrl,
-                EventHandler<ConnectionWaitingEventArgs> onConnectionWaiting) :
-                this(endpointUrl, onConnectionWaiting)
-            {
-                ServerUri = Utils.ReplaceLocalhost(serverUri);
-            }
-
-            private Registration(
-                Uri endpointUrl,
-                EventHandler<ConnectionWaitingEventArgs> onConnectionWaiting)
-            {
-                EndpointUrl = new Uri(Utils.ReplaceLocalhost(endpointUrl.ToString()));
-                OnConnectionWaiting = onConnectionWaiting;
-                ReverseConnectStrategy = ReverseConnectStrategy.Once;
-            }
-
-            public readonly string ServerUri;
-            public readonly Uri EndpointUrl;
-            public readonly EventHandler<ConnectionWaitingEventArgs> OnConnectionWaiting;
-            public ReverseConnectStrategy ReverseConnectStrategy;
-        }
-
-        /// <summary>
         /// Initializes the object with default values.
         /// </summary>
+        /// <param name="loggerFactory"></param>
         public ReverseConnectManager(ILoggerFactory loggerFactory)
         {
-            m_logger = loggerFactory.CreateLogger<ReverseConnectManager>();
-            m_state = ReverseConnectManagerState.New;
-            m_registrations = new List<Registration>();
-            m_endpointUrls = new Dictionary<Uri, ReverseConnectInfo>();
-            m_cts = new CancellationTokenSource();
+            _logger = loggerFactory.CreateLogger<ReverseConnectManager>();
+            _state = ReverseConnectManagerState.New;
+            _registrations = new List<Registration>();
+            _endpointUrls = new Dictionary<Uri, ReverseConnectInfo>();
+            _configuration = new ReverseConnectClientConfiguration();
+            _cts = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -190,125 +116,13 @@ namespace Opc.Ua.Client
         /// <summary>
         /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        /// <param name="disposing"><c>true</c> to release both managed and
+        /// unmanaged resources; <c>false</c> to release only unmanaged
+        /// resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            // close the watcher.
-            m_configurationWatcher?.Dispose();
-            m_configurationWatcher = null;
-            m_cts?.Dispose();
-            m_cts = null;
+            _cts.Dispose();
             DisposeHosts();
-        }
-
-        /// <summary>
-        /// Called when the reverse connect configuration is changed.
-        /// </summary>
-        /// <remarks>
-        ///  An empty configuration or null stops service on all configured endpoints.
-        /// </remarks>
-        /// <param name="configuration">The client endpoint configuration.</param>
-        protected virtual void OnUpdateConfiguration(ReverseConnectClientConfiguration configuration)
-        {
-            var restartService = false;
-
-            lock (m_lock)
-            {
-                if (m_configuration != null)
-                {
-                    StopService();
-                    m_configuration = null;
-                    restartService = true;
-                }
-
-                m_configuration = configuration ?? new ReverseConnectClientConfiguration();
-
-                // clear configured endpoints
-                ClearEndpoints(true);
-
-                if (configuration?.ClientEndpoints != null)
-                {
-                    foreach (var endpoint in configuration.ClientEndpoints)
-                    {
-                        var uri = Utils.ParseUri(endpoint.EndpointUrl);
-                        if (uri != null)
-                        {
-                            AddEndpointInternal(uri, true);
-                        }
-                    }
-                }
-
-                if (restartService)
-                {
-                    StartService();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Open host ports.
-        /// </summary>
-        private void OpenHosts()
-        {
-            lock (m_lock)
-            {
-                foreach (var host in m_endpointUrls)
-                {
-                    var value = host.Value;
-                    try
-                    {
-                        if (host.Value.State < ReverseConnectHostState.Open)
-                        {
-                            value.ReverseConnectHost.Open();
-                            value.State = ReverseConnectHostState.Open;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        m_logger.LogError(e, "Failed to Open {Host}.", host.Key);
-                        value.State = ReverseConnectHostState.Errored;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Close host ports.
-        /// </summary>
-        private void CloseHosts()
-        {
-            lock (m_lock)
-            {
-                foreach (var host in m_endpointUrls)
-                {
-                    var value = host.Value;
-                    try
-                    {
-                        if (value.State == ReverseConnectHostState.Open)
-                        {
-                            value.ReverseConnectHost.Close();
-                            value.State = ReverseConnectHostState.Closed;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        m_logger.LogError(e, "Failed to Close {Host}.", host.Key);
-                        value.State = ReverseConnectHostState.Errored;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Dispose the hosts;
-        /// </summary>
-        private void DisposeHosts()
-        {
-            lock (m_lock)
-            {
-                CloseHosts();
-                m_endpointUrls = null;
-            }
         }
 
         /// <summary>
@@ -320,35 +134,40 @@ namespace Opc.Ua.Client
         public void StartService(ReverseConnectClientConfiguration configuration)
         {
             ArgumentNullException.ThrowIfNull(configuration);
-            lock (m_lock)
+            lock (_lock)
             {
-                if (m_state == ReverseConnectManagerState.Started) throw new ServiceResultException(StatusCodes.BadInvalidState);
+                if (_state == ReverseConnectManagerState.Started)
+                {
+                    throw new ServiceResultException(StatusCodes.BadInvalidState);
+                }
                 try
                 {
-                    m_configurationWatcher = null;
-                    OnUpdateConfiguration(configuration);
+                    _configuration = configuration;
+
+                    // clear configured endpoints
+                    ClearEndpoints(true);
+                    if (_configuration.ClientEndpoints != null)
+                    {
+                        foreach (var endpoint in _configuration.ClientEndpoints)
+                        {
+                            var uri = Utils.ParseUri(endpoint.EndpointUrl);
+                            if (uri != null)
+                            {
+                                AddEndpointInternal(uri, true);
+                            }
+                        }
+                    }
                     OpenHosts();
-                    m_state = ReverseConnectManagerState.Started;
+                    _state = ReverseConnectManagerState.Started;
                 }
                 catch (Exception e)
                 {
-                    m_logger.LogError(e, "Unexpected error starting reverse connect manager.");
-                    m_state = ReverseConnectManagerState.Errored;
-                    var error = ServiceResult.Create(e, StatusCodes.BadInternalError, "Unexpected error starting reverse connect manager");
+                    _logger.LogError(e, "Unexpected error starting reverse connect manager.");
+                    _state = ReverseConnectManagerState.Errored;
+                    var error = ServiceResult.Create(e, StatusCodes.BadInternalError,
+                        "Unexpected error starting reverse connect manager");
                     throw new ServiceResultException(error);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Clears all waiting reverse connection handlers.
-        /// </summary>
-        public void ClearWaitingConnections()
-        {
-            lock (m_registrationsLock)
-            {
-                m_registrations.Clear();
-                CancelAndRenewTokenSource();
             }
         }
 
@@ -360,25 +179,24 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
         public async Task<ITransportWaitingConnection> WaitForConnection(
-            Uri endpointUrl,
-            string serverUri,
-            CancellationToken ct = default)
+            Uri endpointUrl, string? serverUri, CancellationToken ct = default)
         {
             var tcs = new TaskCompletionSource<ITransportWaitingConnection>();
             var hashCode = RegisterWaitingConnection(endpointUrl, serverUri,
-                (object sender, ConnectionWaitingEventArgs e) => tcs.TrySetResult(e),
-                ReverseConnectStrategy.Once);
+                (_, e) => tcs.TrySetResult(e), ReverseConnectStrategy.Once);
 
             Func<Task> listenForCancelTaskFnc = async () =>
             {
                 if (ct == default)
                 {
-                    var waitTimeout = m_configuration.WaitTimeout > 0 ? m_configuration.WaitTimeout : DefaultWaitTimeout;
+                    var waitTimeout = _configuration.WaitTimeout > 0 ?
+                        _configuration.WaitTimeout : DefaultWaitTimeout;
                     await Task.Delay(waitTimeout).ConfigureAwait(false);
                 }
                 else
                 {
-                    await Task.Delay(-1, ct).ContinueWith(tsk => { }, scheduler: TaskScheduler.Current).ConfigureAwait(false);
+                    await Task.Delay(-1, ct).ContinueWith(tsk => { },
+                        scheduler: TaskScheduler.Current).ConfigureAwait(false);
                 }
                 tcs.TrySetCanceled();
             };
@@ -391,7 +209,8 @@ namespace Opc.Ua.Client
             if (!tcs.Task.IsCompleted || tcs.Task.IsCanceled)
             {
                 UnregisterWaitingConnection(hashCode);
-                throw new ServiceResultException(StatusCodes.BadTimeout, "Waiting for the reverse connection timed out.");
+                throw new ServiceResultException(StatusCodes.BadTimeout,
+                    "Waiting for the reverse connection timed out.");
             }
 
             return await tcs.Task.ConfigureAwait(false);
@@ -400,26 +219,25 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Register for a waiting reverse connection.
         /// </summary>
-        /// <param name="endpointUrl">The endpoint Url of the reverse connection.</param>
-        /// <param name="serverUri">Optional. The server application Uri of the reverse connection.</param>
+        /// <param name="endpointUrl">The endpoint Url of the reverse
+        /// connection.</param>
+        /// <param name="serverUri">Optional. The server application Uri
+        /// of the reverse connection.</param>
         /// <param name="onConnectionWaiting">The callback</param>
-        /// <param name="reverseConnectStrategy">The reverse connect callback strategy.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="endpointUrl"/> is <c>null</c>.</exception>
-        public int RegisterWaitingConnection(
-            Uri endpointUrl,
-            string serverUri,
+        /// <param name="reverseConnectStrategy">The reverse connect
+        /// callback strategy.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="endpointUrl"/> is <c>null</c>.</exception>
+        public int RegisterWaitingConnection(Uri endpointUrl, string? serverUri,
             EventHandler<ConnectionWaitingEventArgs> onConnectionWaiting,
-            ReverseConnectStrategy reverseConnectStrategy
-            )
+            ReverseConnectStrategy reverseConnectStrategy)
         {
             ArgumentNullException.ThrowIfNull(endpointUrl);
-            var registration = new Registration(serverUri, endpointUrl, onConnectionWaiting)
+            var registration = new Registration(serverUri, endpointUrl,
+                onConnectionWaiting, reverseConnectStrategy);
+            lock (_registrationsLock)
             {
-                ReverseConnectStrategy = reverseConnectStrategy
-            };
-            lock (m_registrationsLock)
-            {
-                m_registrations.Add(registration);
+                _registrations.Add(registration);
                 CancelAndRenewTokenSource();
             }
             return registration.GetHashCode();
@@ -431,10 +249,10 @@ namespace Opc.Ua.Client
         /// <param name="hashCode">The hashcode returned by the registration.</param>
         public void UnregisterWaitingConnection(int hashCode)
         {
-            lock (m_registrationsLock)
+            lock (_registrationsLock)
             {
-                Registration toRemove = null;
-                foreach (var registration in m_registrations)
+                Registration? toRemove = null;
+                foreach (var registration in _registrations)
                 {
                     if (registration.GetHashCode() == hashCode)
                     {
@@ -444,34 +262,75 @@ namespace Opc.Ua.Client
                 }
                 if (toRemove != null)
                 {
-                    m_registrations.Remove(toRemove);
+                    _registrations.Remove(toRemove);
                     CancelAndRenewTokenSource();
                 }
             }
         }
 
         /// <summary>
-        /// Called before the server stops
+        /// Open host ports.
         /// </summary>
-        private void StopService()
+        private void OpenHosts()
         {
-            ClearWaitingConnections();
-            lock (m_lock)
+            lock (_lock)
             {
-                CloseHosts();
-                m_state = ReverseConnectManagerState.Stopped;
+                foreach (var host in _endpointUrls)
+                {
+                    var value = host.Value;
+                    try
+                    {
+                        if (host.Value.State < ReverseConnectHostState.Open)
+                        {
+                            value.ReverseConnectHost.Open();
+                            value.State = ReverseConnectHostState.Open;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "Failed to Open {Host}.", host.Key);
+                        value.State = ReverseConnectHostState.Errored;
+                    }
+                }
             }
         }
 
         /// <summary>
-        /// Called to start hosting the reverse connect ports.
+        /// Close host ports.
         /// </summary>
-        private void StartService()
+        private void CloseHosts()
         {
-            lock (m_lock)
+            lock (_lock)
             {
-                OpenHosts();
-                m_state = ReverseConnectManagerState.Started;
+                foreach (var host in _endpointUrls)
+                {
+                    var value = host.Value;
+                    try
+                    {
+                        if (value.State == ReverseConnectHostState.Open)
+                        {
+                            value.ReverseConnectHost.Close();
+                            value.State = ReverseConnectHostState.Closed;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "Failed to Close {Host}.", host.Key);
+                        value.State = ReverseConnectHostState.Errored;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Dispose the hosts;
+        /// </summary>
+        private void DisposeHosts()
+        {
+            lock (_lock)
+            {
+                CloseHosts();
+                _endpointUrls.Clear();
             }
         }
 
@@ -482,36 +341,37 @@ namespace Opc.Ua.Client
         private void ClearEndpoints(bool configEntry)
         {
             var newEndpointUrls = new Dictionary<Uri, ReverseConnectInfo>();
-            foreach (var endpoint in m_endpointUrls)
+            foreach (var endpoint in _endpointUrls)
             {
                 if (endpoint.Value.ConfigEntry != configEntry)
                 {
                     newEndpointUrls[endpoint.Key] = endpoint.Value;
                 }
             }
-            m_endpointUrls = newEndpointUrls;
+            _endpointUrls = newEndpointUrls;
         }
 
         /// <summary>
         /// Add endpoint for reverse connection.
         /// </summary>
-        /// <param name="endpointUrl">The endpoint Url of the reverse connect client endpoint.</param>
-        /// <param name="configEntry">Tf this is an entry in the application configuration.</param>
+        /// <param name="endpointUrl">The endpoint Url of the reverse
+        /// connect client endpoint.</param>
+        /// <param name="configEntry">Tf this is an entry in the application
+        /// configuration.</param>
         private void AddEndpointInternal(Uri endpointUrl, bool configEntry)
         {
             var reverseConnectHost = new ReverseConnectHost();
             var info = new ReverseConnectInfo(reverseConnectHost, configEntry);
             try
             {
-                m_endpointUrls[endpointUrl] = info;
-                reverseConnectHost.CreateListener(
-                    endpointUrl,
-                    new ConnectionWaitingHandlerAsync(OnConnectionWaiting),
-                    new EventHandler<ConnectionStatusEventArgs>(OnConnectionStatusChanged));
+                _endpointUrls[endpointUrl] = info;
+                reverseConnectHost.CreateListener(endpointUrl, OnConnectionWaiting,
+                    OnConnectionStatusChanged);
             }
             catch (ArgumentException ae)
             {
-                m_logger.LogError(ae, "No listener was found for endpoint {Endpoint}.", endpointUrl);
+                _logger.LogError(ae, "No listener was found for endpoint {Endpoint}.",
+                    endpointUrl);
                 info.State = ReverseConnectHostState.Errored;
             }
         }
@@ -525,16 +385,17 @@ namespace Opc.Ua.Client
         private async Task OnConnectionWaiting(object sender, ConnectionWaitingEventArgs e)
         {
             var startTime = HiResClock.TickCount;
-            var endTime = startTime + m_configuration.HoldTime;
+            var endTime = startTime + _configuration.HoldTime;
 
             var matched = MatchRegistration(sender, e);
             while (!matched)
             {
-                m_logger.LogInformation("Holding reverse connection: {Server} {Endpoint}", e.ServerUri, e.EndpointUrl);
+                _logger.LogInformation("Holding reverse connection: {Server} {Endpoint}",
+                    e.ServerUri, e.EndpointUrl);
                 CancellationToken ct;
-                lock (m_registrationsLock)
+                lock (_registrationsLock)
                 {
-                    ct = m_cts.Token;
+                    ct = _cts.Token;
                 }
                 var delay = endTime - HiResClock.TickCount;
                 if (delay > 0)
@@ -546,7 +407,8 @@ namespace Opc.Ua.Client
                             matched = MatchRegistration(sender, e);
                             if (matched)
                             {
-                                m_logger.LogInformation("Matched reverse connection {Server} {Endpoint} after {Duration}ms",
+                                _logger.LogInformation(
+                                    "Matched reverse connection {Server} {Endpoint} after {Duration}ms",
                                      e.ServerUri, e.EndpointUrl,
                                      HiResClock.TickCount - startTime);
                             }
@@ -556,7 +418,8 @@ namespace Opc.Ua.Client
                 break;
             }
 
-            m_logger.LogInformation("{Action} reverse connection: {Server} {Endpoint} after {Duration}ms",
+            _logger.LogInformation(
+                "{Action} reverse connection: {Server} {Endpoint} after {Duration}ms",
                 e.Accepted ? "Accepted" : "Rejected",
                 e.ServerUri, e.EndpointUrl, HiResClock.TickCount - startTime);
         }
@@ -570,21 +433,26 @@ namespace Opc.Ua.Client
         /// <returns>true if a match was found.</returns>
         private bool MatchRegistration(object sender, ConnectionWaitingEventArgs e)
         {
-            Registration callbackRegistration = null;
+            Registration? callbackRegistration = null;
             var found = false;
-            lock (m_registrationsLock)
+            lock (_registrationsLock)
             {
                 // first try to match single registrations
-                foreach (var registration in m_registrations.Where(r => (r.ReverseConnectStrategy & ReverseConnectStrategy.Any) == 0))
+                foreach (var registration in _registrations
+                    .Where(r => (r.Strategy & ReverseConnectStrategy.Any) == 0))
                 {
-                    if (registration.EndpointUrl.Scheme.Equals(e.EndpointUrl.Scheme, StringComparison.InvariantCulture) &&
+                    if (registration.EndpointUrl.Scheme.Equals(e.EndpointUrl.Scheme,
+                            StringComparison.InvariantCulture) &&
                        (registration.ServerUri == e.ServerUri ||
-                        registration.EndpointUrl.Authority.Equals(e.EndpointUrl.Authority, StringComparison.InvariantCulture)))
+                        registration.EndpointUrl.Authority.Equals(e.EndpointUrl.Authority,
+                            StringComparison.InvariantCulture)))
                     {
                         callbackRegistration = registration;
                         e.Accepted = true;
                         found = true;
-                        m_logger.LogInformation("Accepted reverse connection: {Server} {Endpoint}", e.ServerUri, e.EndpointUrl);
+                        _logger.LogInformation(
+                            "Accepted reverse connection: {Server} {Endpoint}",
+                            e.ServerUri, e.EndpointUrl);
                         break;
                     }
                 }
@@ -592,27 +460,30 @@ namespace Opc.Ua.Client
                 // now try any registrations.
                 if (callbackRegistration == null)
                 {
-                    foreach (var registration in m_registrations.Where(r => (r.ReverseConnectStrategy & ReverseConnectStrategy.Any) != 0))
+                    foreach (var registration in _registrations
+                        .Where(r => (r.Strategy & ReverseConnectStrategy.Any) != 0))
                     {
-                        if (registration.EndpointUrl.Scheme.Equals(e.EndpointUrl.Scheme, StringComparison.InvariantCulture))
+                        if (registration.EndpointUrl.Scheme.Equals(
+                            e.EndpointUrl.Scheme, StringComparison.InvariantCulture))
                         {
                             callbackRegistration = registration;
                             e.Accepted = true;
                             found = true;
-                            m_logger.LogInformation("Accept any reverse connection for approval: {Server} {Endpoint}", e.ServerUri, e.EndpointUrl);
+                            _logger.LogInformation(
+                                "Accept any reverse connection for approval: {Server} {Endpoint}",
+                                e.ServerUri, e.EndpointUrl);
                             break;
                         }
                     }
                 }
 
-                if (callbackRegistration != null && (callbackRegistration.ReverseConnectStrategy & ReverseConnectStrategy.Once) != 0)
+                if (callbackRegistration != null &&
+                    (callbackRegistration.Strategy & ReverseConnectStrategy.Once) != 0)
                 {
-                    m_registrations.Remove(callbackRegistration);
+                    _registrations.Remove(callbackRegistration);
                 }
             }
-
             callbackRegistration?.OnConnectionWaiting?.Invoke(sender, e);
-
             return found;
         }
 
@@ -621,9 +492,10 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnConnectionStatusChanged(object sender, ConnectionStatusEventArgs e)
+        private void OnConnectionStatusChanged(object? sender, ConnectionStatusEventArgs e)
         {
-            m_logger.LogInformation("{Endpoint}: Channel={ChannelStatus} Closed={Closed}", e.EndpointUrl, e.ChannelStatus, e.Closed);
+            _logger.LogInformation("{Endpoint}: Channel={ChannelStatus} Closed={Closed}",
+                e.EndpointUrl, e.ChannelStatus, e.Closed);
         }
 
         /// <summary>
@@ -631,20 +503,88 @@ namespace Opc.Ua.Client
         /// </summary>
         private void CancelAndRenewTokenSource()
         {
-            var cts = m_cts;
-            m_cts = new CancellationTokenSource();
+            var cts = _cts;
+            _cts = new CancellationTokenSource();
             cts.Cancel();
             cts.Dispose();
         }
+        /// <summary>
+        /// A default value for reverse hello configurations, if undefined.
+        /// </summary>
+        /// <remarks>
+        /// This value is used as wait timeout if the value is undefined by a caller.
+        /// </remarks>
+        public const int DefaultWaitTimeout = 20000;
 
-        private readonly object m_lock = new();
-        private ConfigurationWatcher m_configurationWatcher;
-        private ReverseConnectClientConfiguration m_configuration;
-        private Dictionary<Uri, ReverseConnectInfo> m_endpointUrls;
-        private readonly ILogger m_logger;
-        private ReverseConnectManagerState m_state;
-        private readonly List<Registration> m_registrations;
-        private readonly object m_registrationsLock = new();
-        private CancellationTokenSource m_cts;
+        /// <summary>
+        /// Internal state of the reverse connect manager.
+        /// </summary>
+        private enum ReverseConnectManagerState
+        {
+            New = 0,
+            Stopped = 1,
+            Started = 2,
+            Errored = 3
+        }
+
+        /// <summary>
+        /// Internal state of the reverse connect host.
+        /// </summary>
+        private enum ReverseConnectHostState
+        {
+            New = 0,
+            Closed = 1,
+            Open = 2,
+            Errored = 3
+        }
+
+        /// <summary>
+        /// Entry for a client reverse connect registration.
+        /// </summary>
+        private sealed class ReverseConnectInfo
+        {
+            public ReverseConnectHostState State { get; set; }
+            public ReverseConnectHost ReverseConnectHost { get; }
+            public bool ConfigEntry { get; }
+
+            public ReverseConnectInfo(ReverseConnectHost reverseConnectHost,
+                bool configEntry)
+            {
+                ReverseConnectHost = reverseConnectHost;
+                State = ReverseConnectHostState.New;
+                ConfigEntry = configEntry;
+            }
+        }
+
+        /// <summary>
+        /// Record to store information on a client
+        /// registration for a reverse connect event.
+        /// </summary>
+        private sealed class Registration
+        {
+            public string? ServerUri { get; }
+            public Uri EndpointUrl { get; }
+            public EventHandler<ConnectionWaitingEventArgs> OnConnectionWaiting { get; }
+            public ReverseConnectStrategy Strategy { get; }
+
+            public Registration(string? serverUri, Uri endpointUrl,
+                EventHandler<ConnectionWaitingEventArgs> onConnectionWaiting,
+                ReverseConnectStrategy strategy = ReverseConnectStrategy.Once)
+            {
+                ServerUri = Utils.ReplaceLocalhost(serverUri);
+                EndpointUrl = new Uri(Utils.ReplaceLocalhost(endpointUrl.ToString()));
+                OnConnectionWaiting = onConnectionWaiting;
+                Strategy = strategy;
+            }
+        }
+
+        private readonly object _lock = new();
+        private ReverseConnectClientConfiguration _configuration;
+        private readonly ILogger _logger;
+        private Dictionary<Uri, ReverseConnectInfo> _endpointUrls;
+        private ReverseConnectManagerState _state;
+        private CancellationTokenSource _cts;
+        private readonly object _registrationsLock = new();
+        private readonly List<Registration> _registrations;
     }
 }

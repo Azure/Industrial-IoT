@@ -37,24 +37,6 @@ namespace Opc.Ua.Client
     public class MonitoredItemStatus
     {
         /// <summary>
-        /// Creates a empty object.
-        /// </summary>
-        internal MonitoredItemStatus()
-        {
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            Id = 0;
-            m_monitoringMode = MonitoringMode.Disabled;
-            m_clientHandle = 0;
-            m_samplingInterval = 0;
-            m_filterResult = null;
-            m_queueSize = 0;
-        }
-
-        /// <summary>
         /// The identifier assigned by the server.
         /// </summary>
         public uint Id { get; set; }
@@ -67,116 +49,136 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Any error condition associated with the monitored item.
         /// </summary>
-        public ServiceResult Error => m_error;
+        public ServiceResult Error => _error;
 
         /// <summary>
         /// Filter result
         /// </summary>
-        public MonitoringFilterResult FilterResult => m_filterResult;
+        public MonitoringFilterResult? FilterResult => _filterResult;
 
         /// <summary>
         /// The monitoring mode.
         /// </summary>
-        public MonitoringMode MonitoringMode => m_monitoringMode;
+        public MonitoringMode MonitoringMode => _monitoringMode;
 
         /// <summary>
         /// The sampling interval.
         /// </summary>
-        public double SamplingInterval => m_samplingInterval;
+        public double SamplingInterval => _samplingInterval;
 
         /// <summary>
         /// The length of the queue used to buffer values.
         /// </summary>
-        public uint QueueSize => m_queueSize;
+        public uint QueueSize => _queueSize;
+#if ZOMBIE
+
+        /// <summary>
+        /// The length of the queue used to buffer values.
+        /// </summary>
+        public uint ClientHandle => _clientHandle;
+#endif
+
+        /// <summary>
+        /// Creates a empty object.
+        /// </summary>
+        internal MonitoredItemStatus()
+        {
+            _monitoringMode = MonitoringMode.Disabled;
+            _error = ServiceResult.Good;
+        }
 
         /// <summary>
         /// Updates the monitoring mode.
         /// </summary>
         /// <param name="monitoringMode"></param>
-        public void SetMonitoringMode(MonitoringMode monitoringMode)
+        internal void SetMonitoringMode(MonitoringMode monitoringMode)
         {
-            m_monitoringMode = monitoringMode;
+            _monitoringMode = monitoringMode;
         }
 
         /// <summary>
-        /// Updates the object with the results of a create monitored item request.
+        /// Updates the object with the results of a create monitored
+        /// item request.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <param name="error"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
-        internal void SetCreateResult(
-            MonitoredItemCreateRequest request,
-            MonitoredItemCreateResult result,
-            ServiceResult error)
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="request"/> is <c>null</c>.</exception>
+        internal void SetCreateResult(MonitoredItemCreateRequest request,
+            MonitoredItemCreateResult result, ServiceResult error)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(result);
 
-            m_monitoringMode = request.MonitoringMode;
-            m_clientHandle = request.RequestedParameters.ClientHandle;
-            m_samplingInterval = request.RequestedParameters.SamplingInterval;
-            m_queueSize = request.RequestedParameters.QueueSize;
-            m_error = error;
+            _monitoringMode = request.MonitoringMode;
+            _clientHandle = request.RequestedParameters.ClientHandle;
+            _samplingInterval = request.RequestedParameters.SamplingInterval;
+            _queueSize = request.RequestedParameters.QueueSize;
+            _error = error;
 
             if (ServiceResult.IsGood(error))
             {
                 Id = result.MonitoredItemId;
-                m_samplingInterval = result.RevisedSamplingInterval;
-                m_queueSize = result.RevisedQueueSize;
+                _samplingInterval = result.RevisedSamplingInterval;
+                _queueSize = result.RevisedQueueSize;
 
                 if (result.FilterResult != null)
                 {
-                    m_filterResult = Utils.Clone(result.FilterResult.Body) as MonitoringFilterResult;
+                    _filterResult = Utils.Clone(result.FilterResult.Body)
+                        as MonitoringFilterResult;
                 }
             }
         }
 
         /// <summary>
-        /// Updates the object with the results of a transfer monitored item request.
+        /// Updates the object with the results of a transfer monitored
+        /// item request.
         /// </summary>
         /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="monitoredItem"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
         internal void SetTransferResult(MonitoredItem monitoredItem)
         {
             ArgumentNullException.ThrowIfNull(monitoredItem);
 
-            m_monitoringMode = monitoredItem.MonitoringMode;
-            m_clientHandle = monitoredItem.ClientHandle;
-            m_samplingInterval = monitoredItem.SamplingInterval;
-            m_queueSize = monitoredItem.QueueSize;
-            m_filterResult = null;
+            _monitoringMode = monitoredItem.MonitoringMode;
+            _clientHandle = monitoredItem.ClientHandle;
+            _samplingInterval = monitoredItem.SamplingInterval;
+            _queueSize = monitoredItem.QueueSize;
+            _filterResult = null;
         }
 
         /// <summary>
-        /// Updates the object with the results of a modify monitored item request.
+        /// Updates the object with the results of a modify monitored
+        /// item request.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="result"></param>
         /// <param name="error"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
-        internal void SetModifyResult(
-            MonitoredItemModifyRequest request,
-            MonitoredItemModifyResult result,
-            ServiceResult error)
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="request"/> is <c>null</c>.</exception>
+        internal void SetModifyResult(MonitoredItemModifyRequest request,
+            MonitoredItemModifyResult result, ServiceResult error)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(result);
 
-            m_error = error;
+            _error = error;
 
             if (ServiceResult.IsGood(error))
             {
-                m_clientHandle = request.RequestedParameters.ClientHandle;
-                m_samplingInterval = request.RequestedParameters.SamplingInterval;
-                m_queueSize = request.RequestedParameters.QueueSize;
+                _clientHandle = request.RequestedParameters.ClientHandle;
+                _samplingInterval = request.RequestedParameters.SamplingInterval;
+                _queueSize = request.RequestedParameters.QueueSize;
 
-                m_samplingInterval = result.RevisedSamplingInterval;
-                m_queueSize = result.RevisedQueueSize;
+                _samplingInterval = result.RevisedSamplingInterval;
+                _queueSize = result.RevisedQueueSize;
 
                 if (result.FilterResult != null)
                 {
-                    m_filterResult = Utils.Clone(result.FilterResult.Body) as MonitoringFilterResult;
+                    _filterResult = Utils.Clone(result.FilterResult.Body)
+                        as MonitoringFilterResult;
                 }
             }
         }
@@ -188,14 +190,14 @@ namespace Opc.Ua.Client
         internal void SetDeleteResult(ServiceResult error)
         {
             Id = 0;
-            m_error = error;
+            _error = error;
         }
 
-        private ServiceResult m_error;
-        private MonitoringMode m_monitoringMode;
-        private uint m_clientHandle;
-        private double m_samplingInterval;
-        private MonitoringFilterResult m_filterResult;
-        private uint m_queueSize;
+        private ServiceResult _error;
+        private MonitoringMode _monitoringMode;
+        private uint _clientHandle;
+        private double _samplingInterval;
+        private MonitoringFilterResult? _filterResult;
+        private uint _queueSize;
     }
 }

@@ -173,7 +173,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
         protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
         {
-            var nodeCache = base.SetupMockedNodeCache(namespaceTable);
             AddNode(_baseObjectTypeNode);
             AddNode(_baseEventTypeNode);
             AddNode(_messageNode);
@@ -182,12 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             AddNode(_commentNode);
             AddNode(_enabledStateNode);
             AddNode(_idNode);
-            var typeTable = nodeCache.Object.TypeTree as TypeTable;
-            typeTable.Add(_baseObjectTypeNode);
-            typeTable.Add(_baseEventTypeNode);
-            typeTable.Add(_conditionTypeNode);
-            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
-            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
+
             _baseObjectTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.BaseEventType);
             _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, true, ObjectTypeIds.BaseObjectType);
             _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _messageNode.NodeId);
@@ -202,14 +196,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _idNode.NodeId);
             _idNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, _enabledStateNode.NodeId);
             _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
-            nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<ExpandedNodeId>(), It.IsAny<CancellationToken>())).Returns((ExpandedNodeId x, CancellationToken _) =>
-            {
-                if (x.IdType == IdType.Numeric && x.Identifier is uint id)
+
+            var nodeCache = base.SetupMockedNodeCache(namespaceTable);
+            nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
+                .Returns((NodeId x, CancellationToken _) =>
                 {
-                    return Task.FromResult(_nodes[id]);
-                }
-                return Task.FromResult<Node>(null);
-            });
+                    if (x.IdType == IdType.Numeric && x.Identifier is uint id)
+                    {
+                        return Task.FromResult(_nodes[id]);
+                    }
+                    return Task.FromResult<Node>(null);
+                });
+
+            var typeTable = new TypeTable(namespaceTable);
+            typeTable.Add(_baseObjectTypeNode);
+            typeTable.Add(_baseEventTypeNode);
+            typeTable.Add(_conditionTypeNode);
+            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
+            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
+
+            nodeCache.Setup(x => x.IsTypeOf(It.IsAny<NodeId>(), It.IsAny<NodeId>()))
+                .Returns((NodeId subTypeId, NodeId superTypeId) => typeTable.IsTypeOf(subTypeId, superTypeId));
+            nodeCache.Setup(x => x.FindSuperTypeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
+                .Returns((NodeId subTypeId, CancellationToken ct) => typeTable.FindSuperTypeAsync(subTypeId, ct));
+            nodeCache.Setup(x => x.GetBuiltInTypeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
+                .Returns((NodeId dataTypeId, CancellationToken ct) => TypeInfo.GetBuiltInTypeAsync(dataTypeId, typeTable, ct));
             return nodeCache;
         }
 

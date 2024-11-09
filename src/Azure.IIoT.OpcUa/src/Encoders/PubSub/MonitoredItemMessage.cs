@@ -288,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 DataSetMessageContentMask |= DataSetMessageContentFlags.SequenceNumber;
             }
             var stringDictionary = decoder.ReadStringDictionary(nameof(ExtensionFields));
-            if (stringDictionary != null && stringDictionary.Count > 0)
+            if (stringDictionary?.Count > 0)
             {
                 dataSetFieldContentMask |= DataSetFieldContentFlags.ExtensionFields;
                 var extensionFields = new List<ExtensionFieldModel>();

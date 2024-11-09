@@ -304,8 +304,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnNodeChange(object? sender, Change<Node> e)
             {
                 Publish(Owner, MessageType.Event,
-                    CreateEvent(_nodeChangeType, e).ToList(), sender as ISession,
-                    EventTypeName);
+                    CreateEvent(_nodeChangeType, e).ToList(),
+                    eventTypeName: EventTypeName);
             }
 
             /// <summary>
@@ -316,8 +316,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
             {
                 Publish(Owner, MessageType.Event,
-                    CreateEvent(_refChangeType, e).ToList(), sender as ISession,
-                    EventTypeName);
+                    CreateEvent(_refChangeType, e).ToList(),
+                    eventTypeName: EventTypeName);
             }
 
             /// <summary>
@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     // Start the browser
-                    if (_browser == null)
+                    if (_browser == null && Subscription != null)
                     {
                         _browser = _client.Browse(Template.RebrowsePeriod ??
                             TimeSpan.FromHours(12), Subscription.DisplayName);

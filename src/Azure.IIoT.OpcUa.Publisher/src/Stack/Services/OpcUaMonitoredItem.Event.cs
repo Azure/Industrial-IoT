@@ -203,8 +203,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             continue;
                         }
                         var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
-                        var targetNode = await FindNodeWithBrowsePathAsync(session,
-                            selectClause.BrowsePath, selectClause.TypeDefinitionId,
+                        var targetNode = await session.NodeCache.FindNodeWithBrowsePathAsync(
+                            selectClause.TypeDefinitionId, selectClause.BrowsePath,
                             ct).ConfigureAwait(false);
                         if (targetNode is VariableNode variable)
                         {
@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var msgContext = subscription.Session?.MessageContext;
                 if (Status?.FilterResult is EventFilterResult evr && msgContext != null)
                 {
-                    if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
+                    if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
                     {
                         _logger.LogError("Event filter applied with result {Result} for {Item}",
                             evr.AsJson(msgContext), this);
@@ -539,14 +539,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
                     session.MessageContext);
                 var nodes = new List<Node>();
-                ExpandedNodeId? superType = null;
+                NodeId? superType = null;
                 var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(typeDefinitionId,
                     ct).ConfigureAwait(false);
                 nodes.Insert(0, typeDefinitionNode);
                 do
                 {
-                    superType = nodes[0].GetSuperType(session.TypeTree);
-                    if (superType != null)
+                    superType = await session.NodeCache.FindSuperTypeAsync(typeDefinitionId,
+                        ct).ConfigureAwait(false);
+                    if (!Opc.Ua.NodeId.IsNull(superType))
                     {
                         typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
                             ct).ConfigureAwait(false);
@@ -598,64 +599,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <summary>
-            /// Find node by browse path
-            /// </summary>
-            /// <param name="session"></param>
-            /// <param name="browsePath"></param>
-            /// <param name="nodeId"></param>
-            /// <param name="ct"></param>
-            /// <returns></returns>
-            private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(IOpcUaSession session,
-                QualifiedNameCollection browsePath, ExpandedNodeId nodeId, CancellationToken ct)
-            {
-                INode? found = null;
-                foreach (var browseName in browsePath)
-                {
-                    found = null;
-                    while (found == null)
-                    {
-                        found = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
-                        if (found is not Node node)
-                        {
-                            return null;
-                        }
-
-                        //
-                        // Get all hierarchical references of the node and
-                        // match browse name
-                        //
-                        foreach (var reference in node.ReferenceTable.Find(
-                            ReferenceTypeIds.HierarchicalReferences, false,
-                                true, session.TypeTree))
-                        {
-                            var target = await session.NodeCache.FindAsync(reference.TargetId,
-                                ct).ConfigureAwait(false);
-                            if (target?.BrowseName == browseName)
-                            {
-                                nodeId = target.NodeId;
-                                found = target;
-                                break;
-                            }
-                        }
-
-                        if (found == null)
-                        {
-                            // Try super type
-                            nodeId = await session.TypeTree.FindSuperTypeAsync(nodeId,
-                                ct).ConfigureAwait(false);
-                            if (Opc.Ua.NodeId.IsNull(nodeId))
-                            {
-                                // Nothing can be found since there is no more super type
-                                return null;
-                            }
-                        }
-                    }
-                    nodeId = found.NodeId;
-                }
-                return found;
-            }
-
-            /// <summary>
             /// Get all the fields of a type definition node to build the
             /// select clause.
             /// </summary>
@@ -664,15 +607,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="node"></param>
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
-            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
-                Node node, string browsePathPrefix, CancellationToken ct)
+            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session,
+                List<QualifiedName> fieldNames, Node node, string browsePathPrefix, CancellationToken ct)
             {
                 foreach (var reference in node.ReferenceTable)
                 {
                     if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent &&
                         !reference.IsInverse)
                     {
-                        var componentNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
+                        var componentNode = await session.NodeCache.FetchNodeAsync(
+                            ExpandedNodeId.ToNodeId(reference.TargetId, session.MessageContext.NamespaceUris),
                             ct).ConfigureAwait(false);
                         if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
                         {
@@ -685,7 +629,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty)
                     {
-                        var propertyNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
+                        var propertyNode = await session.NodeCache.FetchNodeAsync(
+                            ExpandedNodeId.ToNodeId(reference.TargetId, session.MessageContext.NamespaceUris),
                             ct).ConfigureAwait(false);
                         var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
                         fieldNames.Add(new QualifiedName(
