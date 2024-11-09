@@ -549,7 +549,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return TryGetErrorMonitoredItemNotifications(
                     StatusCodes.BadNoData, notifications);
             }
-            if (ServiceResult.IsNotGood(Status.Error))
+            if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
             {
                 return TryGetErrorMonitoredItemNotifications(
                     Status.Error.StatusCode, notifications);
