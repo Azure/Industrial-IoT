@@ -4,11 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Json.More.Net" Version="2.0.2" />
-    <PackageReference Include="FluentAssertions" Version="6.12.1" />
+    <PackageReference Include="FluentAssertions" Version="6.12.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="Moq" Version="[4.20.2]" />
-    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.1.0" />
+    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.2.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
