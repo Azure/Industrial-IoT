@@ -263,21 +263,6 @@ namespace Opc.Ua.Client
             IList<NodeId> nodeIds, CancellationToken ct = default);
 
         /// <summary>
-        /// Close the session with the server and optionally closes the channel.
-        /// </summary>
-        /// <param name="closeChannel"></param>
-        /// <param name="ct"></param>
-        Task<StatusCode> CloseAsync(bool closeChannel, CancellationToken ct = default);
-
-        /// <summary>
-        /// Disconnects from the server and frees any network resources with the specified timeout.
-        /// </summary>
-        /// <param name="timeout"></param>
-        /// <param name="closeChannel"></param>
-        /// <param name="ct"></param>
-        Task<StatusCode> CloseAsync(int timeout, bool closeChannel, CancellationToken ct = default);
-
-        /// <summary>
         /// Adds a subscription to the session.
         /// </summary>
         /// <param name="subscription">The subscription to add.</param>

@@ -47,7 +47,8 @@ namespace Opc.Ua.Client
         NamespaceTable NamespaceUris { get; }
 
         /// <summary>
-        /// Reads the values for the node attributes and returns a node object collection.
+        /// Reads the values for the node attributes and returns a node object
+        /// collection.
         /// </summary>
         /// <remarks>
         /// If the nodeclass for the nodes in nodeIdCollection is already known
@@ -57,14 +58,15 @@ namespace Opc.Ua.Client
         /// <param name="nodeIds">The nodeId collection to read.</param>
         /// <param name="ct">The cancellation token.</param>
         /// <returns>The node collection and associated errors.</returns>
-        Task<(IList<Node>, IList<ServiceResult>)> ReadNodesAsync(
-            IList<NodeId> nodeIds, CancellationToken ct = default);
+        Task<ResultSet<Node>> ReadNodesAsync(IReadOnlyList<NodeId> nodeIds,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Reads the values for the node attributes and returns a node object.
         /// </summary>
         /// <remarks>
-        /// If the nodeclass is known, only the supported attribute values are read.
+        /// If the nodeclass is known, only the supported attribute values are
+        /// read.
         /// </remarks>
         /// <param name="nodeId">The nodeId.</param>
         /// <param name="ct">The cancellation token for the request.</param>
@@ -85,7 +87,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns>A list of reference collections and the errors reported by the
         /// server.</returns>
-        Task<(IList<ReferenceDescriptionCollection>, IList<ServiceResult>)> FetchReferencesAsync(
-            IList<NodeId> nodeIds, CancellationToken ct = default);
+        Task<ResultSet<ReferenceDescriptionCollection>> FetchReferencesAsync(
+            IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
     }
 }

@@ -321,27 +321,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 clientCertificate, availableEndpoints, discoveryProfileUris);
         }
 
-        /// <inheritdoc/>
-        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, bool updateBeforeConnect, bool checkDomain,
-            string sessionName, uint sessionTimeout, IUserIdentity identity, IList<string>? preferredLocales,
-            CancellationToken ct)
-        {
-            return await Session.Create(this, configuration, (ITransportWaitingConnection?)null, endpoint,
-                updateBeforeConnect, checkDomain, sessionName, sessionTimeout,
-                identity, preferredLocales, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
-            ITransportWaitingConnection connection, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
-            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity identity,
-            IList<string>? preferredLocales, CancellationToken ct)
-        {
-            return await Session.Create(this, configuration, connection, endpoint, updateBeforeConnect,
-                checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Reset the client
         /// </summary>
