@@ -292,16 +292,16 @@ namespace Azure.IIoT.OpcUa.Encoders
             if ((fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData)) ||
                 fieldContentMask == 0)
             {
-                foreach (var field in dataSet.DataSetFields)
+                foreach (var (Name, Value) in dataSet.DataSetFields)
                 {
-                    WriteVariant(field.Name, field.Value?.WrappedValue ?? default);
+                    WriteVariant(Name, Value?.WrappedValue ?? default);
                 }
             }
             else
             {
-                foreach (var field in dataSet.DataSetFields)
+                foreach (var (Name, Value) in dataSet.DataSetFields)
                 {
-                    WriteNullable(field.Name, field.Value, WriteDataValue);
+                    WriteNullable(Name, Value, WriteDataValue);
                 }
             }
         }

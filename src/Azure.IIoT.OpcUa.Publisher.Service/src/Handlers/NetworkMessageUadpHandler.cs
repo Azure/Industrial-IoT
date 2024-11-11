@@ -71,12 +71,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                             Timestamp = dataSetMessage.Timestamp,
                             Payload = new Dictionary<string, DataValueModel?>()
                         };
-                        foreach (var datapoint in dataSetMessage.Payload.DataSetFields)
+                        foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                         {
                             var codec = _encoder.Create(context);
                             var type = BuiltInType.Null;
-                            var dataValue = datapoint.Value;
-                            dataset.Payload[datapoint.Name] = dataValue == null ? null : new DataValueModel
+                            var dataValue = Value;
+                            dataset.Payload[Name] = dataValue == null ? null : new DataValueModel
                             {
                                 Value = codec.Encode(dataValue.WrappedValue, out type),
                                 DataType = type == BuiltInType.Null

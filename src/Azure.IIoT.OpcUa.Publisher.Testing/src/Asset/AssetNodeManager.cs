@@ -882,8 +882,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private bool TryGetBinding(NodeState node, [NotNullWhen(true)] out IAsset? assetInterface,
             [NotNullWhen(true)] out AssetTag? assetTag)
         {
-            var assetId = node.Handle as string;
-            if (assetId == null ||
+            if (node.Handle is not string assetId ||
                 !_assets.TryGetValue(assetId, out assetInterface) ||
                 !_tags.TryGetValue(assetId, out var tag) ||
                 !tag.TryGetValue(node.SymbolicName, out assetTag))

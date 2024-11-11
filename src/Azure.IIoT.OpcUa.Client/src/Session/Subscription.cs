@@ -987,8 +987,8 @@ namespace Opc.Ua.Client
         /// <param name="availableSequenceNumbers"></param>
         /// <param name="message"></param>
         /// <param name="stringTable"></param>
-        public void SaveMessageInCache(IList<uint> availableSequenceNumbers,
-            NotificationMessage message, IList<string> stringTable)
+        public void SaveMessageInCache(IReadOnlyList<uint>? availableSequenceNumbers,
+            NotificationMessage message, IReadOnlyList<string> stringTable)
         {
             PublishStateChangedEventHandler? callback = null;
             lock (_cache)
@@ -2195,8 +2195,8 @@ namespace Opc.Ua.Client
         private readonly LinkedList<NotificationMessage> _messageCache;
         private readonly AsyncAutoResetEvent _messageWorkerEvent;
 
-        private IList<uint>? _availableSequenceNumbers;
-        private int _maxMessageCount;
+        private IReadOnlyList<uint>? _availableSequenceNumbers;
+        private readonly int _maxMessageCount;
         private SortedDictionary<uint, MonitoredItem> _monitoredItems;
         private CancellationTokenSource? _messageWorkerCts;
         private Task? _messageWorkerTask;

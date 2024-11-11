@@ -208,17 +208,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 {
                     if (x.IdType == IdType.Numeric && x.Identifier is uint id)
                     {
-                        return Task.FromResult(_nodes[id]);
+                        return ValueTask.FromResult(_nodes[id]);
                     }
-                    return Task.FromResult<Node>(null);
+                    return ValueTask.FromResult<Node>(null);
                 });
 
             nodeCache.Setup(x => x.IsTypeOf(It.IsAny<NodeId>(), It.IsAny<NodeId>()))
                 .Returns((NodeId subTypeId, NodeId superTypeId) => typeTable.IsTypeOf(subTypeId, superTypeId));
             nodeCache.Setup(x => x.FindSuperTypeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId subTypeId, CancellationToken ct) => typeTable.FindSuperTypeAsync(subTypeId, ct));
+                .Returns((NodeId subTypeId, CancellationToken ct) => new ValueTask<NodeId>(typeTable.FindSuperTypeAsync(subTypeId, ct)));
             nodeCache.Setup(x => x.GetBuiltInTypeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId dataTypeId, CancellationToken ct) => TypeInfo.GetBuiltInTypeAsync(dataTypeId, typeTable, ct));
+                .Returns((NodeId dataTypeId, CancellationToken ct) => new ValueTask<BuiltInType>(TypeInfo.GetBuiltInTypeAsync(dataTypeId, typeTable, ct)));
             return nodeCache;
         }
 

@@ -49,6 +49,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Empty result set
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         public static ResultSet<T> Empty<T>() => new ResultSet<T>(
             Array.Empty<T>(), Array.Empty<ServiceResult>());
     }

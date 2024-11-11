@@ -73,17 +73,6 @@ namespace Opc.Ua.Client
         double SessionTimeout { get; }
 
         /// <summary>
-        /// Detach the channel.
-        /// </summary>
-        void DetachChannel();
-
-        /// <summary>
-        /// Gets or set the channel being wrapped by the client object.
-        /// </summary>
-        /// <value>The transport channel.</value>
-        ITransportChannel? NullableTransportChannel { get; }
-
-        /// <summary>
         /// Returns true if the session is not receiving keep alives.
         /// </summary>
         /// <remarks>
@@ -99,10 +88,10 @@ namespace Opc.Ua.Client
         int LastKeepAliveTickCount { get; }
 
         /// <summary>
-        /// Reconnects to the server after a network failure.
+        /// Gets or set the channel being wrapped by the client object.
         /// </summary>
-        /// <param name="ct"></param>
-        Task ReconnectAsync(CancellationToken ct = default);
+        /// <value>The transport channel.</value>
+        ITransportChannel? NullableTransportChannel { get; }
 
         /// <summary>
         /// Reconnects to the server after a network failure
@@ -110,13 +99,19 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="ct"></param>
-        Task ReconnectAsync(ITransportWaitingConnection connection,
+        Task ReconnectAsync(ITransportWaitingConnection? connection = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Closes the channel using async call.
         /// </summary>
+        /// <param name="closeChannel"></param>
         /// <param name="ct"></param>
-        Task<StatusCode> CloseAsync(CancellationToken ct = default);
+        Task<StatusCode> CloseAsync(bool closeChannel, CancellationToken ct = default);
+
+        /// <summary>
+        /// Detach the channel.
+        /// </summary>
+        void DetachChannel();
     }
 }

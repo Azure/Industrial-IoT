@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(request.Entry.DataSetName); // Asset name
 
-            using var trace = _activitySource.StartActivity("CreateAsset");
+            using var trace = _activitySource.StartActivity("CreateOrUpdateAsset");
 
             var entry = request.Entry;
             var connection = entry.ToConnectionModel();

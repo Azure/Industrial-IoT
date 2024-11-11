@@ -76,9 +76,9 @@ namespace Opc.Ua.Client.Obsolete
 
         /// <inheritdoc/>
         public override IAsyncResult BeginActivateSession(RequestHeader? requestHeader,
-            SignatureData clientSignature, SignedSoftwareCertificateCollection clientSoftwareCertificates,
+            SignatureData clientSignature, SignedSoftwareCertificateCollection? clientSoftwareCertificates,
             StringCollection localeIds, ExtensionObject userIdentityToken, SignatureData userTokenSignature,
-            AsyncCallback callback, object asyncState)
+            AsyncCallback? callback, object? asyncState)
         {
             throw NotSupported(nameof(BeginActivateSession));
         }

@@ -2037,9 +2037,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             else
             {
                 PushObject(property);
-                foreach (var value in values)
+                foreach (var (Key, Value) in values)
                 {
-                    writer(value.Key, value.Value);
+                    writer(Key, Value);
                 }
                 PopObject();
             }

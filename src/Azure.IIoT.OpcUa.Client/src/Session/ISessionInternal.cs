@@ -106,14 +106,15 @@ namespace Opc.Ua.Client
         string SessionName { get; }
 
         /// <summary>
-        /// Gets the period for wich the server will maintain the session if there is no communication from the client.
+        /// Gets the period for wich the server will maintain the
+        /// session if there is no communication from the client.
         /// </summary>
         double SessionTimeout { get; }
 
         /// <summary>
         /// Gets the local handle assigned to the session.
         /// </summary>
-        object Handle { get; }
+        object? Handle { get; }
 
         /// <summary>
         /// Gets the user identity currently used for the session.
@@ -218,12 +219,6 @@ namespace Opc.Ua.Client
         bool TransferSubscriptionsOnReconnect { get; set; }
 
         /// <summary>
-        /// gets or set the policy which is used to prevent the allocation of too many
-        /// Continuation Points in the ManagedBrowse(Async) methods
-        /// </summary>
-        ContinuationPointPolicy ContinuationPointPolicy { get; set; }
-
-        /// <summary>
         /// Raised before a reconnect operation completes.
         /// </summary>
         event RenewUserIdentityEventHandler RenewUserIdentity;
@@ -245,7 +240,7 @@ namespace Opc.Ua.Client
         /// certificate must match the endpoint used.</param>
         /// <param name="ct">The cancellation token.</param>
         Task OpenAsync(string sessionName, uint sessionTimeout, IUserIdentity identity,
-            IList<string> preferredLocales, bool checkDomain, CancellationToken ct);
+            IList<string>? preferredLocales, bool checkDomain, CancellationToken ct = default);
 
         /// <summary>
         /// Reads the value for a node.
@@ -312,7 +307,7 @@ namespace Opc.Ua.Client
         /// Sends an additional publish request.
         /// </summary>
         /// <param name="timeout"></param>
-        IAsyncResult BeginPublish(int timeout);
+        IAsyncResult? BeginPublish(int timeout);
 
         /// <summary>
         /// Create the publish requests for the active subscriptions.

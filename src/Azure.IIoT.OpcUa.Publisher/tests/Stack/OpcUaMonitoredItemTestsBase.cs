@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
         internal sealed class SimpleSubscription : Subscription
         {
-            public SimpleSubscription() 
+            public SimpleSubscription()
 				: base(Log.Console<SimpleSubscription>())
             {
             }

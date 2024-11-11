@@ -543,18 +543,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(typeDefinitionId,
                     ct).ConfigureAwait(false);
                 nodes.Insert(0, typeDefinitionNode);
-                do
+                var subType = typeDefinitionId;
+                while (true)
                 {
-                    superType = await session.NodeCache.FindSuperTypeAsync(typeDefinitionId,
+                    superType = await session.NodeCache.FindSuperTypeAsync(subType,
                         ct).ConfigureAwait(false);
-                    if (!Opc.Ua.NodeId.IsNull(superType))
+                    if (Opc.Ua.NodeId.IsNull(superType))
                     {
-                        typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
-                            ct).ConfigureAwait(false);
-                        nodes.Insert(0, typeDefinitionNode);
+                        break;
                     }
+                    typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
+                        ct).ConfigureAwait(false);
+                    nodes.Insert(0, typeDefinitionNode);
+                    subType = typeDefinitionNode.NodeId;
                 }
-                while (superType != null);
 
                 var fieldNames = new List<QualifiedName>();
 

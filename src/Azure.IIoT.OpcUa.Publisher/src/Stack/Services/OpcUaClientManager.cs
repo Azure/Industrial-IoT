@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     Debug.Assert(session != null);
-                    await session.CloseAsync(ct).ConfigureAwait(false);
+                    await session.CloseAsync(true, ct).ConfigureAwait(false);
                 }
                 catch
                 {

@@ -128,7 +128,8 @@ namespace Opc.Ua.Client
                 throw new ArgumentOutOfRangeException(nameof(sessionTemplate),
                     "The ISession provided is not of a supported type");
             }
-            return await Session.RecreateAsync(template, connection, ct).ConfigureAwait(false);
+            return await Session.RecreateAsync(template, null, connection,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -140,7 +141,8 @@ namespace Opc.Ua.Client
                 throw new ArgumentOutOfRangeException(nameof(sessionTemplate),
                     "The ISession provided is not of a supported type");
             }
-            return await Session.RecreateAsync(template, transportChannel, ct).ConfigureAwait(false);
+            return await Session.RecreateAsync(template, transportChannel,
+                null, ct).ConfigureAwait(false);
         }
 
         /// <summary>

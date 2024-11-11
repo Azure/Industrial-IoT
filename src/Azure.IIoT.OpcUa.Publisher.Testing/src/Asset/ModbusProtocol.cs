@@ -437,7 +437,7 @@ namespace Asset
             var length = Mbap.Length + 6 + bitBuffer.Length;
             var adu = writer.GetSpan(length);
 
-            var request = adu.Slice(Mbap.Length, length - Mbap.Length);
+            var request = adu[Mbap.Length..length];
             WriteRequestHeader(function, startingAddress, quantity, request);
             request[5] = (byte)bitBuffer.Length;
             bitBuffer.CopyTo(request[6..]);
@@ -461,7 +461,7 @@ namespace Asset
             var length = Mbap.Length + 6 + words.Length;
             var adu = writer.GetSpan(length);
 
-            var request = adu.Slice(Mbap.Length, length - Mbap.Length);
+            var request = adu[Mbap.Length..length];
             WriteRequestHeader(function, startingAddress, quantity, request);
             request[5] = (byte)words.Length;
 
@@ -521,7 +521,7 @@ namespace Asset
             {
                 return false;
             }
-            inputStatus.Write(reader.UnreadSpan.Slice(byteCount));
+            inputStatus.Write(reader.UnreadSpan[byteCount..]);
             reader.Advance(byteCount);
             return true;
         }
@@ -614,7 +614,7 @@ namespace Asset
         private static void WriteMbap(Mbap mbap, int length, Span<byte> buffer)
         {
             Debug.Assert(buffer.Length >= Mbap.Length);
-            BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(0, 2), mbap.TransactionId);
+            BinaryPrimitives.WriteUInt16BigEndian(buffer[..2], mbap.TransactionId);
             BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(2, 2), mbap.ProtocolId);
             // length is the number of bytes following this field which includes unitid
             BinaryPrimitives.WriteUInt16BigEndian(buffer.Slice(4, 2), (ushort)(length + 1));

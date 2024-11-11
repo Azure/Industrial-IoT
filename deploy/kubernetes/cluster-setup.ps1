@@ -106,7 +106,10 @@ $extensions  =
     "k8s-configuration"
 )
 foreach ($p in $extensions) {
-    $errOut = $($stdout = & {az extension add --upgrade --name $p}) 2>&1
+    $errOut = $($stdout = & {az extension add `
+        --upgrade `
+        --name $p `
+        --allow-preview true}) 2>&1
     if ($LASTEXITCODE -ne 0) {
         $stdout | Out-Host
         throw "Error installing az extension $p : $errOut"
@@ -189,17 +192,22 @@ elseif ($ClusterType -eq "k3d") {
             k3d cluster delete $cluster 2>&1 | Out-Null
         }
         Write-Host "Creating k3d cluster $Name..." -ForegroundColor Cyan
-        $fullPath = Join-Path $mountPath "k3d"
-        if (!(Test-Path $fullPath)) {
-            New-Item -ItemType Directory -Path $fullPath | Out-Null
-        }
 
-        $volumeMapping = "$($fullPath):/var/lib/rancher/k3s/storage"
-        $env:K3D_FIX_MOUNTS = '1'
+        $fullPath1 = Join-Path $mountPath "system"
+        if (!(Test-Path $fullPath1)) {
+            New-Item -ItemType Directory -Path $fullPath1 | Out-Null
+        }
+        $volumeMapping1 = "$($fullPath1):/var/lib/rancher/k3s/storage@all"
+        $fullPath2 = Join-Path $mountPath "user"
+        if (!(Test-Path $fullPath2)) {
+            New-Item -ItemType Directory -Path $fullPath2 | Out-Null
+        }
+        $volumeMapping2 = "$($fullPath2):/storage/user@all"
+        $env:K3D_FIX_MOUNTS = 1
         k3d cluster create $Name `
             --agents 3 `
-            --servers 3 `
-            --volume $volumeMapping `
+            --servers 1 `
+            --volume $volumeMapping2 `
             --wait
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red
@@ -549,6 +557,20 @@ if (!$cc -or $forceReinstall) {
 }
 else {
     Write-Host "Cluster $($cc.name) already connected." -ForegroundColor Green
+}
+
+# enable custom location feature
+$errOut = $($objectId = & {az ad sp show `
+    --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv}) 2>&1
+az connectedk8s enable-features `
+    --name $Name `
+    --resource-group $Name `
+    --subscription $SubscriptionId `
+    --custom-locations-oid $objectId `
+    --features cluster-connect custom-locations
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Error: Failed to enable custom location feature." -ForegroundColor Red
+    exit -1
 }
 
 $errOut = $($iotops = & {az iot ops show `

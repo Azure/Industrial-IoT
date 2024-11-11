@@ -216,11 +216,7 @@ namespace Azure.IIoT.OpcUa
             try
             {
                 // To avoid race between remove handler and raising the event
-                EventHandler<ElapsedEventArgs>? intervalElapsed = _onIntervalElapsed;
-                if (intervalElapsed != null)
-                {
-                    intervalElapsed(this, elapsedEventArgs);
-                }
+                _onIntervalElapsed?.Invoke(this, elapsedEventArgs);
             }
             catch
             {
