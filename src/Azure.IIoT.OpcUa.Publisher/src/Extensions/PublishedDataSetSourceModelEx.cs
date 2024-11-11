@@ -50,11 +50,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="dataSetSource"></param>
         /// <param name="namespaceFormat"></param>
-        /// <param name="extensionFields"></param>
         /// <returns></returns>
         public static IReadOnlyList<BaseMonitoredItemModel> ToMonitoredItems(
-            this PublishedDataSetSourceModel dataSetSource, NamespaceFormat namespaceFormat,
-            IDictionary<string, VariantValue>? extensionFields = null)
+            this PublishedDataSetSourceModel dataSetSource, NamespaceFormat namespaceFormat)
         {
             var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null)
@@ -68,11 +66,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 monitoredItems = monitoredItems
                     .Concat(dataSetSource.PublishedEvents
                         .ToMonitoredItems(dataSetSource.SubscriptionSettings, namespaceFormat));
-            }
-            if (extensionFields != null)
-            {
-                monitoredItems = monitoredItems
-                    .Concat(extensionFields.ToMonitoredItems());
             }
             return monitoredItems.ToList();
         }
@@ -99,24 +92,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     {
                         yield return item;
                     }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Convert to extension field items
-        /// </summary>
-        /// <param name="extensionFields"></param>
-        /// <returns></returns>
-        internal static IEnumerable<BaseMonitoredItemModel> ToMonitoredItems(
-            this IDictionary<string, VariantValue> extensionFields)
-        {
-            foreach (var extensionField in extensionFields)
-            {
-                var item = extensionField.ToMonitoredItemTemplate();
-                if (item != null)
-                {
-                    yield return item;
                 }
             }
         }
@@ -218,26 +193,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 TriggeredItems = includeTriggering ? null : ToMonitoredItems(
                     publishedEvent.Triggering, settings, namespaceFormat),
                 ConditionHandling = publishedEvent.ConditionHandling.Clone()
-            };
-        }
-
-        /// <summary>
-        /// Convert to monitored item
-        /// </summary>
-        /// <param name="extensionField"></param>
-        /// <returns></returns>
-        internal static ExtensionFieldItemModel? ToMonitoredItemTemplate(
-            this KeyValuePair<string, VariantValue> extensionField)
-        {
-            if (string.IsNullOrEmpty(extensionField.Key))
-            {
-                return null;
-            }
-            return new ExtensionFieldItemModel
-            {
-                DataSetFieldName = extensionField.Key,
-                Value = extensionField.Value,
-                StartNodeId = string.Empty
             };
         }
 

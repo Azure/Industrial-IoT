@@ -122,7 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
-                            DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields,
+                            DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields?.ToDictionary(
+                                e => e.DataSetFieldName, e => e.Value),
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
                             QueueName = item.Writer.Publishing?.QueueName,
                             QualityOfService = item.Writer.Publishing?.RequestedDeliveryGuarantee,
@@ -441,7 +442,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             Description = b.Header.DataSetDescription,
                                             Name = b.Header.DataSetName
                                         },
-                                        ExtensionFields = b.Header.DataSetExtensionFields,
+                                        ExtensionFields = b.Header.DataSetExtensionFields?
+                                            .Select(ef => new ExtensionFieldModel
+                                            {
+                                                DataSetFieldName = ef.Key,
+                                                Value = ef.Value
+                                            })
+                                            .ToList(),
                                         SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
                                         Routing = b.Header.DataSetRouting,
                                         DataSetSource = new PublishedDataSetSourceModel

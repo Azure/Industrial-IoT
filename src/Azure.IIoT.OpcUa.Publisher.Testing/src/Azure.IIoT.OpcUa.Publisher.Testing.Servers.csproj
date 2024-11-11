@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Description>Contains several test servers to run tests against</Description>
     <IsPackable>true</IsPackable>
-	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <Nullable>disable</Nullable>
@@ -58,7 +58,7 @@
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.0.78" />
+    <PackageReference Include="Furly.Extensions" Version="1.0.90" />
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />

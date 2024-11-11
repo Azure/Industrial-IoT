@@ -5,11 +5,11 @@ Param(
     $TenantId,
     [String]
     $Region = "northeurope",
-    [string] 
+    [string]
     $PublisherDeploymentFile = "./K8s-Standalone/publisher/deployment.yaml",
-    [string] 
+    [string]
     $ContainerRegistryServer = "mcr.microsoft.com",
-    [string] 
+    [string]
     $ContainerRegistryUsername,
     [string]
     $ContainerRegistryPassword,

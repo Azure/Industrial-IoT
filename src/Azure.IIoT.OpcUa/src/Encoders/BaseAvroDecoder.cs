@@ -404,9 +404,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             return ReadUnion(fieldName, avroFieldContent =>
             {
                 var fieldNames = Array.Empty<string>();
-                var dataSet = avroFieldContent == 0 ?
-                    new DataSet() :
-                    new DataSet(DataSetFieldContentFlags.RawData);
+                var dataSet = new List<(string, DataValue?)>();
+                var dataSetFieldContentMask = avroFieldContent == 0 ?
+                    0 : DataSetFieldContentFlags.RawData;
 
                 if (avroFieldContent == 1) // Raw mode
                 {
@@ -416,7 +416,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     var variants = ReadVariantArray(null); // TODO: Read map
                     if (variants == null && fieldNames.Length == 0)
                     {
-                        return dataSet;
+                        return new DataSet(dataSet, dataSetFieldContentMask);
                     }
                     if (variants == null || variants.Count != fieldNames.Length)
                     {
@@ -425,7 +425,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     for (var index = 0; index < fieldNames.Length; index++)
                     {
-                        dataSet.Add(fieldNames[index], new DataValue(variants[index]));
+                        dataSet.Add((fieldNames[index], new DataValue(variants[index])));
                     }
                 }
                 else if (avroFieldContent == 0)
@@ -436,7 +436,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     var dataValues = ReadDataValueArray(null); // TODO: Read map
                     if (dataValues == null && fieldNames.Length == 0)
                     {
-                        return dataSet;
+                        return new DataSet(dataSet, dataSetFieldContentMask);
                     }
                     if (dataValues == null || dataValues.Count != fieldNames.Length)
                     {
@@ -445,10 +445,10 @@ namespace Azure.IIoT.OpcUa.Encoders
                     }
                     for (var index = 0; index < fieldNames.Length; index++)
                     {
-                        dataSet.Add(fieldNames[index], dataValues[index]);
+                        dataSet.Add((fieldNames[index], dataValues[index]));
                     }
                 }
-                return dataSet;
+                return new DataSet(dataSet, dataSetFieldContentMask);
             });
         }
 

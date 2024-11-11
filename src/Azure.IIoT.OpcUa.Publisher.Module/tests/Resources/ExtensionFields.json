@@ -1,0 +1,22 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "DataSetExtensionFields": {
+            "EngineeringUnits": "mm/sec",
+            "AssetId": 5,
+            "Important": false,
+            "Variance": 12.3465
+        },
+        "OpcNodes": [
+            {
+                "Id": "ns=23;i=1259",
+                "OpcSamplingInterval": 200,
+                "OpcPublishingInterval": 200,
+                "DisplayName": "Output",
+                "SkipFirst": true
+            }
+        ]
+    }
+]

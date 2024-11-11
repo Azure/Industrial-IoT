@@ -303,7 +303,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         if (!PubSubMessage.TryCreateDataSetMessage(encoding,
                                             GetDataSetWriterName(Notification, Context),
                                             Context.DataSetWriterId, dataSetMessageContentMask,
-                                            MessageType.KeepAlive, new DataSet(),
+                                            MessageType.KeepAlive,
+#if KA_WITH_EX_FIELDS
+                                            new DataSet(Context.ExtensionFields, dataSetFieldContentMask),
+#else
+                                            new DataSet(),
+#endif
                                             GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
                                             standardsCompliant, Notification.EndpointUrl,
                                             Notification.ApplicationUri, Context.MetaData?.MetaData,
@@ -348,8 +353,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             if (!PubSubMessage.TryCreateDataSetMessage(encoding,
                                                 GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
                                                 dataSetMessageContentMask, Notification.MessageType,
-                                                new DataSet(orderedNotifications.ToDictionary(
-                                                    s => s.DataSetFieldName!, s => s.Value), dataSetFieldContentMask),
+                                                new DataSet(orderedNotifications
+                                                    .Select(s => (s.DataSetFieldName!, s.Value))
+                                                    .Concat(Context.ExtensionFields)
+                                                    .ToList(), dataSetFieldContentMask),
                                                 GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
                                                 standardsCompliant, Notification.EndpointUrl, Notification.ApplicationUri,
                                                 Context.MetaData?.MetaData, out var dataSetMessage))

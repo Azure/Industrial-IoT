@@ -97,6 +97,7 @@ internal abstract class Pcap
     /// <summary>
     /// Get file path
     /// </summary>
+    /// <param name="folder"></param>
     /// <param name="index"></param>
     /// <returns></returns>
     private static string GetFilePath(string folder, int index)

@@ -7,8 +7,8 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.78" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.78" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.0.90" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.90" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>

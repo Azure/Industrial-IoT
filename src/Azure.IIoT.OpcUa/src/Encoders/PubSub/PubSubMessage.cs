@@ -277,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             string? writerGroupName, DataSetMessageContentFlags? dataSetMessageContentFlags,
             MessageType messageType, DateTimeOffset? timestamp, uint sequenceNumber,
             DataSet payload, string? nodeId, string? endpointUrl, string? applicationUri,
-            bool standardsCompliant, IDictionary<string, VariantValue>? extensionFields,
+            bool standardsCompliant, IReadOnlyList<ExtensionFieldModel>? extensionFields,
             [NotNullWhen(true)] out BaseDataSetMessage? message)
         {
             if (encoding.HasFlag(MessageEncoding.Json))

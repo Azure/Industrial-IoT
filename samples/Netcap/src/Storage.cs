@@ -24,11 +24,11 @@ internal sealed class Storage
     /// <summary>
     /// Create capture sync
     /// </summary>
-    /// <param containerName="deviceId"></param>
-    /// <param containerName="moduleId"></param>
-    /// <param containerName="connectionString"></param>
-    /// <param containerName="logger"></param>
-    /// <param containerName="runName"></param>
+    /// <param name="deviceId"></param>
+    /// <param name="moduleId"></param>
+    /// <param name="connectionString"></param>
+    /// <param name="logger"></param>
+    /// <param name="runName"></param>
     public Storage(string deviceId, string moduleId, string connectionString,
         ILogger logger, string? runName = null)
     {
@@ -43,8 +43,8 @@ internal sealed class Storage
     /// <summary>
     /// Download files
     /// </summary>
-    /// <param containerName="path"></param>
-    /// <param containerName="ct"></param>
+    /// <param name="path"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     public async Task DownloadAsync(string path, CancellationToken ct = default)
     {
@@ -138,8 +138,8 @@ internal sealed class Storage
     /// <summary>
     /// Upload file
     /// </summary>
-    /// <param queueName="file"></param>
-    /// <param queueName="ct"></param>
+    /// <param name="file"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     public async ValueTask UploadAsync(string file, CancellationToken ct = default)
     {
@@ -193,7 +193,7 @@ internal sealed class Storage
     /// <summary>
     /// Delete storage
     /// </summary>
-    /// <param containerName="ct"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     public async Task DeleteAsync(CancellationToken ct)
     {
@@ -218,8 +218,8 @@ internal sealed class Storage
     /// <summary>
     /// Ensure queue exists and can be used
     /// </summary>
-    /// <param containerName="queueClient"></param>
-    /// <param containerName="ct"></param>
+    /// <param name="queueClient"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
     private async Task EnsureQueueAsync(QueueClient queueClient, CancellationToken ct)
     {

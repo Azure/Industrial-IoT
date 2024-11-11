@@ -6,7 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Context to add to notification to convey data required for
@@ -58,6 +60,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Metadata for the dataset
         /// </summary>
         public required PublishedDataSetMessageSchemaModel? MetaData { get; init; }
+
+        /// <summary>
+        /// Extension fields
+        /// </summary>
+        public required IReadOnlyList<(string, Opc.Ua.DataValue?)> ExtensionFields { get; init; }
 
         /// <summary>
         /// Sequence number inside the writer

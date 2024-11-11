@@ -104,7 +104,10 @@ namespace IIoTPlatformE2ETests
                     request.AddQueryParameter("continuationToken", continuationToken);
                 }
 
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
 
@@ -252,7 +255,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new
                 {
@@ -293,7 +299,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new { attributes };
 
@@ -333,7 +342,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new { attributes };
 
@@ -376,7 +388,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new
                 {
@@ -421,7 +436,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new
                 {
@@ -466,7 +484,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new { nodeId };
 
@@ -520,7 +541,10 @@ namespace IIoTPlatformE2ETests
                 {
                     Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
                 };
-                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                if (accessToken != null)
+                {
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                }
 
                 var body = new { nodeId, value, dataType };
 

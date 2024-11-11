@@ -283,6 +283,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _disconnectLock = _lock.WriterLock(_cts.Token);
             _channelMonitor = _timeProvider.CreateTimer(_ => OnUpdateConnectionDiagnostics(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _resyncTimer = _timeProvider.CreateTimer(_ => TriggerSubscriptionSynchronization(),
+                null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _diagnosticsDumper = !DumpDiagnostics ? null :
                 DumpDiagnosticsPeriodicallyAsync(_cts.Token);
             _sessionManager = ManageSessionStateMachineAsync(_cts.Token);
@@ -476,9 +478,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
-                _subscriptionLock.Dispose();
                 _channelMonitor.Dispose();
+                _resyncTimer.Dispose();
                 _cts.Dispose();
+                _subscriptionLock.Dispose();
             }
         }
 
@@ -911,10 +914,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.SubscriptionSyncAll:
-                                    if (_session != null)
-                                    {
-                                        await SyncAsync(ct).ConfigureAwait(false);
-                                    }
+                                    await SyncAsync(ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
                                     switch (currentSessionState)
@@ -928,6 +928,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                             _logger.LogInformation("{Client}: Reconnecting session {Session} due to {Reason}...",
                                                 this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
+                                            Debug.Assert(_session != null);
                                             var state = _reconnectHandler.BeginReconnect(_session,
                                                 _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                                 {
@@ -957,7 +958,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                                 case ConnectionEvent.ReconnectComplete:
                                     // if session recovered, Session property is not null
-                                    var reconnected = _reconnectHandler.Session;
+                                    var reconnected = _reconnectHandler.Session as OpcUaSession;
                                     switch (currentSessionState)
                                     {
                                         case SessionState.Reconnecting:
@@ -1311,8 +1312,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         updateBeforeConnect: _reverseConnectManager != null,
                         checkDomain: false, // Domain must match on connect
                         _sessionName, (uint)sessionTimeout.TotalMilliseconds,
-                        userIdentity, preferredLocales, ct).ConfigureAwait(false);
+                        userIdentity, preferredLocales, ct).ConfigureAwait(false) as OpcUaSession;
 
+                    Debug.Assert(session != null);
                     session.RenewUserIdentity += (_, _) => userIdentity;
 
                     // Assign the createdSubscriptions session
@@ -1345,7 +1347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="e"></param>
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
         {
-            if (session == _session && session.Connected)
+            if (_disconnectLock == null && session == _session)
             {
                 switch (e.Status.Code)
                 {
@@ -1367,11 +1369,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Feed back acknoledgements
         /// </summary>
-        /// <param name="session"></param>
+        /// <param name="context"></param>
         /// <param name="e"></param>
-        internal void Session_PublishSequenceNumbersToAcknowledge(ISession session,
+        internal void Session_PublishSequenceNumbersToAcknowledge(ISession context,
             PublishSequenceNumbersToAcknowledgeEventArgs e)
         {
+            if (context is not OpcUaSession session)
+            {
+                return;
+            }
+
             // Reset timeout counter
             _publishTimeoutCounter = 0;
 

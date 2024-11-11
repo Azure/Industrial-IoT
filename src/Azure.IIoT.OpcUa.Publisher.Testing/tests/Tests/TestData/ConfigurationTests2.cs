@@ -447,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -480,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = false,
+                    FlattenTypeInstance = true,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -588,7 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new PublishedNodeExpansionModel
                 {
                     DiscardErrors = false,
-                    DoNotFlattenTypeInstance = true,
+                    FlattenTypeInstance = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     CreateSingleWriter = false
@@ -627,7 +627,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var result = Assert.Single(results);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
-            Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType + "/Variables", result.Result.DataSetWriterId);
+            Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType + "/PropertyType", result.Result.DataSetWriterId);
             Assert.NotNull(result.Result.OpcNodes);
             Assert.Equal(675, result.Result.OpcNodes.Count);
             _publishedNodesServices.Verify();
@@ -655,7 +655,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var result = Assert.Single(results);
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
-            Assert.Equal(Opc.Ua.VariableTypeIds.DataItemType + "/Variables", result.Result.DataSetWriterId);
+            Assert.Equal(Opc.Ua.VariableTypeIds.DataItemType + "/DataItemType", result.Result.DataSetWriterId);
             Assert.NotNull(result.Result.OpcNodes);
             Assert.Equal(96, result.Result.OpcNodes.Count);
             _publishedNodesServices.Verify();
@@ -688,7 +688,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(r.ErrorInfo);
                 Assert.NotNull(r.Result);
                 Assert.NotNull(r.Result.OpcNodes);
-                Assert.EndsWith("/Variables", r.Result.DataSetWriterId, StringComparison.InvariantCulture);
                 total += r.Result.OpcNodes.Count;
             });
             Assert.Equal(96 + 675, total);

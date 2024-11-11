@@ -466,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                     if (errorInfo != null)
                     {
                         // Error response
-                        this.Result = new ServiceResponse<Stream>
+                        Result = new ServiceResponse<Stream>
                         {
                             ErrorInfo = _serializer.Deserialize<ServiceResultModel>(errorInfo)
                         };

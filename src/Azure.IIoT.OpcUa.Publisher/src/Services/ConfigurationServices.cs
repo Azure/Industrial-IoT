@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -15,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using Opc.Ua.Extensions;
     using System;
     using System.Buffers;
@@ -23,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -122,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var browser = new ConfigBrowser(entry with
                 {
                     // Named object in the address space of the server.
-                    OpcNodes = new List<OpcNodeModel> { new OpcNodeModel { Id = AssetsEx.Root } }
+                    OpcNodes = new List<OpcNodeModel> { new () { Id = AssetsEx.Root } }
                 }, expansion, _options, null, _logger, _timeProvider, true);
 
                 // Browse and swap the data set writer id and data set name to make an asset entry.
@@ -234,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         errorInfo = await context.Session.WriteAsync(
                             request.Header.ToRequestHeader(_timeProvider), nodeId,
-                            fileHandle.Value, buffer.AsMemory().Slice(0, read),
+                            fileHandle.Value, buffer.AsMemory()[..read],
                             context.Ct).ConfigureAwait(false);
                         if (errorInfo != null)
                         {
@@ -553,8 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 DataSetName = currentObject.CreateDataSetName(
                                     context.Session.MessageContext),
-                                DataSetWriterId = currentObject.CreateWriterId(
-                                    context.Session.MessageContext),
+                                DataSetWriterId = currentObject.CreateWriterId(),
                                 OpcNodes = currentObject
                                     .GetOpcNodeModels(
                                         currentObject.OriginalNode.NodeFromConfiguration,
@@ -589,19 +591,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var nodeId = await context.Session.ResolveNodeIdAsync(_request.Header,
                             node.Id, node.BrowsePath, nameof(node.BrowsePath), TimeProvider,
                             context.Ct).ConfigureAwait(false);
-                        _expanded.Add(new NodeToExpand(node, nodeId));
+
+                        var readValueIds = new ReadValueIdCollection
+                        {
+                            new ReadValueId
+                            {
+                                NodeId = nodeId,
+                                AttributeId = Attributes.NodeClass
+                            },
+                            new ReadValueId
+                            {
+                                NodeId = nodeId,
+                                AttributeId = Attributes.BrowseName
+                            },
+                            new ReadValueId
+                            {
+                                NodeId = nodeId,
+                                AttributeId = Attributes.DisplayName
+                            },
+                            new ReadValueId
+                            {
+                                NodeId = nodeId,
+                                AttributeId = Attributes.EventNotifier
+                            }
+                        };
+                        var response = await context.Session.Services.ReadAsync(
+                            _request.Header.ToRequestHeader(TimeProvider), 0,
+                            Opc.Ua.TimestampsToReturn.Neither, readValueIds,
+                            context.Ct).ConfigureAwait(false);
+
+                        var readResults = response.Validate(response.Results,
+                            s => s.StatusCode, response.DiagnosticInfos, readValueIds);
+
+                        var errorInfo = readResults.ErrorInfo ??
+                            readResults[0].ErrorInfo;
+                        var nodeClass = errorInfo != null ? Opc.Ua.NodeClass.Unspecified :
+                            readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
+                        var browseName = errorInfo != null ? null :
+                            readResults[1].Result.GetValueOrDefault<QualifiedName>();
+                        var displayName = errorInfo != null ? null :
+                            readResults[2].Result.GetValueOrDefault<LocalizedText>();
+                        var eventNotifier = errorInfo != null ? (byte)0 :
+                            readResults[3].Result.GetValueOrDefault<byte>();
+
+                        ExpandedNodeId? typeDefinitionId = null;
+                        if (errorInfo == null)
+                        {
+                            switch (nodeClass)
+                            {
+                                case Opc.Ua.NodeClass.ObjectType:
+                                case Opc.Ua.NodeClass.VariableType:
+                                    typeDefinitionId = nodeId;
+                                    break;
+                                case Opc.Ua.NodeClass.Object:
+                                    var (results, errorInfo2) = await context.Session.FindAsync(
+                                        _request.Header.ToRequestHeader(TimeProvider),
+                                        nodeId.YieldReturn(), ReferenceTypeIds.HasTypeDefinition,
+                                        nodeClassMask: (uint)Opc.Ua.NodeClass.ObjectType,
+                                        ct: context.Ct).ConfigureAwait(false);
+                                    errorInfo = errorInfo2;
+                                    if (errorInfo != null)
+                                    {
+                                        break;
+                                    }
+                                    Debug.Assert(results.Count == 1);
+                                    typeDefinitionId = results[0].Node;
+                                    break;
+                            }
+                        }
+                        _expanded.Add(new NodeToExpand(node, nodeId, nodeClass,
+                            browseName, displayName, eventNotifier, typeDefinitionId, errorInfo));
                     }
 
-                    // Resolve node classes
-                    var results = await context.Session.ReadAttributeAsync<int>(
-                        _request.Header.ToRequestHeader(TimeProvider),
-                        _expanded.Select(r => r.NodeId ?? NodeId.Null),
-                        (uint)NodeAttribute.NodeClass, context.Ct).ConfigureAwait(false);
-                    foreach (var result in results.Zip(_expanded))
-                    {
-                        result.Second.AddErrorInfo(result.First.Item2);
-                        result.Second.NodeClass = (uint)result.First.Item1;
-                    }
                     if (!TryMoveToNextNode())
                     {
                         // Complete
@@ -616,7 +677,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="context"></param>
             /// <returns></returns>
-            /// <exception cref="NotImplementedException"></exception>
             private async ValueTask<IEnumerable<ServiceResponse<PublishedNodesEntryModel>>> EndAsync(
                 ServiceCallContext context)
             {
@@ -683,7 +743,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 // Add root
                                 CurrentNode.AddObjectsOrVariables(
-                                    new BrowseFrame(CurrentNode.NodeId!, null, null).YieldReturn());
+                                    new BrowseFrame(CurrentNode.NodeId!).YieldReturn());
 
                                 if (_request.MaxDepth == 0)
                                 {
@@ -703,7 +763,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 CurrentNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType ?
                                     Opc.Ua.NodeClass.Object : Opc.Ua.NodeClass.Variable;
                             var stopWhenFound = instanceClass == Opc.Ua.NodeClass.Variable ||
-                                !_request.DoNotFlattenTypeInstance;
+                                _request.FlattenTypeInstance;
                             Restart(ObjectIds.ObjectsFolder, maxDepth: _request.MaxDepth,
                                 typeDefinitionId: CurrentNode.NodeId,
                                 stopWhenFound: stopWhenFound,
@@ -715,7 +775,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 // Add root
                                 CurrentNode.AddObjectsOrVariables(
-                                    new BrowseFrame(CurrentNode.NodeId!, null, null).YieldReturn());
+                                    new BrowseFrame(CurrentNode.NodeId!).YieldReturn());
 
                                 if (_request.MaxLevelsToExpand == 0)
                                 {
@@ -760,7 +820,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var maxDepth = _request.MaxLevelsToExpand == 0 ? (uint?)null :
                             _request.MaxLevelsToExpand;
                         if (_currentObject.OriginalNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType
-                            && !_request.DoNotFlattenTypeInstance)
+                            && _request.FlattenTypeInstance)
                         {
                             nodeClass |= Opc.Ua.NodeClass.Object;
                             maxDepth = null;
@@ -817,7 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Node that should be expanded
             /// </summary>
-            private record class NodeToExpand
+            private class NodeToExpand
             {
                 public IEnumerable<ServiceResultModel> ErrorInfos => _errorInfos;
 
@@ -840,21 +900,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Node class of the node
                 /// </summary>
-                public uint NodeClass { get; internal set; }
+                public uint NodeClass { get; }
+
+                /// <summary>
+                /// Event Notifier of the node
+                /// </summary>
+                public byte EventNotifier { get; }
 
                 /// <summary>
                 /// Create node to expand
                 /// </summary>
                 /// <param name="nodeFromConfiguration"></param>
                 /// <param name="nodeId"></param>
-                public NodeToExpand(OpcNodeModel nodeFromConfiguration, NodeId? nodeId)
+                /// <param name="nodeClass"></param>
+                /// <param name="browseName"></param>
+                /// <param name="displayName"></param>
+                /// <param name="eventNotifier"></param>
+                /// <param name="typeDefinitionId"></param>
+                /// <param name="errorInfo"></param>
+                public NodeToExpand(OpcNodeModel nodeFromConfiguration, NodeId? nodeId,
+                    Opc.Ua.NodeClass nodeClass, QualifiedName? browseName, LocalizedText? displayName,
+                    byte eventNotifier, ExpandedNodeId? typeDefinitionId, ServiceResultModel? errorInfo)
                 {
                     NodeFromConfiguration = nodeFromConfiguration;
                     NodeId = nodeId;
+                    NodeClass = (uint)nodeClass;
+                    EventNotifier = eventNotifier;
+
+                    if (errorInfo != null)
+                    {
+                        AddErrorInfo(errorInfo);
+                    }
 
                     // Hold variables resolved from a variable or variable type
-                    Variables = new ObjectToExpand(
-                        new BrowseFrame(nodeId ?? NodeId.Null, "Variables", "Variables"), this);
+                    Variables = new ObjectToExpand(new BrowseFrame(
+                        nodeId ?? NodeId.Null, browseName ?? "Variables",
+                        displayName?.Text ?? "Variables", typeDefinitionId, nodeClass), this);
                 }
 
                 /// <summary>
@@ -971,11 +1052,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// The object to expand
             /// </summary>
-            /// <param name="ObjectFromBrowse"></param>
-            /// <param name="OriginalNode"></param>
-            private record class ObjectToExpand(BrowseFrame ObjectFromBrowse,
-                NodeToExpand OriginalNode)
+            private class ObjectToExpand
             {
+                public BrowseFrame ObjectFromBrowse { get; }
+                public NodeToExpand OriginalNode { get; }
+
+                /// <summary>
+                /// Create object to expand
+                /// </summary>
+                /// <param name="objectFromBrowse"></param>
+                /// <param name="originalNode"></param>
+                public ObjectToExpand(BrowseFrame objectFromBrowse,
+                    NodeToExpand originalNode)
+                {
+                    ObjectFromBrowse = objectFromBrowse;
+                    OriginalNode = originalNode;
+                }
+
                 public bool EntriesAlreadyReturned { get; internal set; }
 
                 public bool ContainsVariables => _variables.Count > 0;
@@ -990,7 +1083,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var duplicates = false;
                     foreach (var frame in frames)
                     {
-                        duplicates |= _variables.Add(frame);
+                        duplicates |= !_variables.Add(frame);
+                    }
+                    return duplicates;
+                }
+
+                /// <summary>
+                /// Add events
+                /// </summary>
+                /// <param name="frames"></param>
+                /// <returns></returns>
+                public bool AddEvents(IEnumerable<BrowseFrame> frames)
+                {
+                    var duplicates = false;
+                    foreach (var frame in frames)
+                    {
+                        duplicates |= !_events.Add(frame);
                     }
                     return duplicates;
                 }
@@ -1037,9 +1145,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Create writer id for the object
                 /// </summary>
-                /// <param name="context"></param>
                 /// <returns></returns>
-                public string CreateWriterId(IServiceMessageContext context)
+                public string CreateWriterId()
                 {
                     var sb = new StringBuilder();
                     if (OriginalNode.NodeFromConfiguration.DataSetFieldId != null)
@@ -1063,6 +1170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 private readonly HashSet<BrowseFrame> _variables = new();
+                private readonly HashSet<BrowseFrame> _events = new();
             }
 
             private int _nodeIndex = -1;

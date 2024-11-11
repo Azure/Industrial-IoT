@@ -37,11 +37,18 @@
                 "description": "A client application identifier (GUID) in your Azure Active Directory tenant for public application such as CLI."
             }
         },
-        "keyVaultPrincipalId": {
+        "enableRbacAuthorization": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Whether to use azure rbac."
+            }
+        },
+        "userPrincipalId": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
+                "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access the deployed services."
             }
         },
         "authorityUri": {
@@ -222,6 +229,13 @@
                 "description": "The storage SKU to use."
             }
         },
+        "storageAccountKeyEnabled": {
+            "type": "bool",
+            "defaultValue": "[not(parameters('enableRbacAuthorization'))]",
+            "metadata": {
+                "description": "Whether to use storage account key instead of RBAC access via managed identity."
+            }
+        },
         "iotHubName": {
             "type": "string",
             "defaultValue": "[concat('iothub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
@@ -274,11 +288,11 @@
                 "description": "The Azure IoT Hub default message retention in days."
             }
         },
-        "iotHubRoleNameGuid": {
-            "type": "string",
-            "defaultValue": "[newGuid()]",
+        "iotHubSharedAccessKeyEnabled": {
+            "type": "bool",
+            "defaultValue": true,
             "metadata": {
-                "description": "A new GUID used to identify the IoTHub contrib role assignment"
+                "description": "Whether to use shared access key instead of RBAC access via managed identity."
             }
         },
         "dpsName": {
@@ -332,6 +346,20 @@
                 "description": "The KeyVault SKU to use."
             }
         },
+        "keyVaultSoftDeleteEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to enable soft delete for the key vault."
+            }
+        },
+        "keyVaultUseAccessPolicies": {
+            "type": "bool",
+            "defaultValue": "[not(parameters('enableRbacAuthorization'))]",
+            "metadata": {
+                "description": "Whether to use classic auth roles in key vault."
+            }
+        },
         "tags": {
             "type": "object",
             "defaultValue": {},
@@ -350,13 +378,29 @@
         "simulationConfigurationResourceName": "[concat(deployment().name, '.simulation.configuration')]",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
         "iotHubKeyName": "iothubowner",
-        "iotHubContributorRoleId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4fc6c259-987e-4a07-842e-c321cc9d413f')]",
+        "iotHubContributorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4fc6c259-987e-4a07-842e-c321cc9d413f')]",
+        "iotHubPrincipalRoleAssignment": "[guid(parameters('iotHubName'), parameters('userPrincipalId'))]",
+        "iotHubRoleAssignment": "[guid(parameters('iotHubName'), parameters('managedIdentityName'))]",
+        "iotHubRoleAssignmentResourceId": "[resourceId('Microsoft.Resources/deployments', variables('iotHubRoleAssignment'))]",
         "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
         "iothubTelemetryConsumerGroup": "telemetry",
         "iothubEventsConsumerGroup": "events",
         "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
+        "storageBlobDataOwnerRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]",
+        "storageAccountContributorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '17d1049b-9a84-46fb-8f53-869881c3d3ab')]",
+        "storagePrincipalBlobDataOwnerRoleAssignment": "[guid(parameters('storageName'), 'StorageBlobDataOwner', parameters('userPrincipalId'))]",
+        "storagePrincipalStorageAccountContributorRoleAssignment": "[guid(parameters('storageName'), 'StorageAccountContributor', parameters('userPrincipalId'))]",
+        "storageRoleAssignment": "[guid(parameters('storageName'), parameters('managedIdentityName'))]",
+        "storageRoleAssignmentResourceId": "[resourceId('Microsoft.Resources/deployments', variables('storageRoleAssignment'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+        "keyVaultSecretUserRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]",
+        "keyVaultPrincipalRoleAssignment": "[guid(parameters('keyVaultName'), parameters('userPrincipalId'))]",
+        "keyVaultPrincipalAccessPolicy": { "tenantId": "[subscription().tenantId]", "objectId": "[parameters('userPrincipalId')]", "permissions": { "secrets": [ "all" ] }},
+        "keyVaultAccessPolicies": "[if(and(not(empty(parameters('userPrincipalId'))), parameters('keyVaultUseAccessPolicies')), createArray(variables('keyVaultPrincipalAccessPolicy')), createArray())]",
+        "keyVaultSecretOfficerRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]",
+        "keyVaultRoleAssignment": "[guid(parameters('keyVaultName'), parameters('managedIdentityName'))]",
+        "keyVaultRoleAssignmentResourceId": "[resourceId('Microsoft.Resources/deployments', variables('keyVaultRoleAssignment'))]",
         "configurationResourceName": "[concat(deployment().name, '.configuration')]",
         "configurationResourceId": "[resourceId('Microsoft.Resources/deployments', variables('configurationResourceName'))]",
         "dpsResourceId": "[resourceId('Microsoft.Devices/provisioningServices', parameters('dpsName'))]",
@@ -367,7 +411,7 @@
             "comments": "Managed identity to access keyvault.",
             "name": "[parameters('managedIdentityName')]",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-            "apiVersion": "2018-11-30",
+            "apiVersion": "2023-01-31",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]"
         },
@@ -375,89 +419,86 @@
             "comments": "KeyVault for secrets and certificate store.",
             "type": "Microsoft.KeyVault/vaults",
             "name": "[parameters('keyVaultName')]",
-            "apiVersion": "2016-10-01",
+            "apiVersion": "2023-07-01",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "enabledForDeployment": false,
                 "enabledForTemplateDeployment": false,
                 "enabledForVolumeEncryption": false,
+                "enableSoftDelete": "[parameters('keyVaultSoftDeleteEnabled')]",
+                "enableRbacAuthorization": "[not(parameters('keyVaultUseAccessPolicies'))]",
+                "accessPolicies": "[variables('keyVaultAccessPolicies')]",
                 "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
                 "sku": {
                     "name": "[parameters('keyVaultSkuName')]",
                     "family": "A"
-                },
-                "accessPolicies": [
-                    {
-                        "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
-                        "objectId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
-                        "permissions": {
-                            "keys": [
-                                "get",
-                                "list",
-                                "sign",
-                                "unwrapKey",
-                                "wrapKey",
-                                "create"
-                            ],
-                            "secrets": [
-                                "get",
-                                "list",
-                                "set",
-                                "delete"
-                            ],
-                            "certificates": [
-                                "get",
-                                "list",
-                                "update",
-                                "create",
-                                "import"
-                            ]
-                        }
-                    }
-                ]
+                }
             },
             "dependsOn": [
                 "[variables('identityResourceId')]"
             ]
         },
         {
-            "comments": "Optional KeyVault principal access permissions for configuration secrets.",
-            "condition": "[not(empty(parameters('keyVaultPrincipalId')))]",
+            "comments": "Add get and list permissions to key vault secrets for our managed identity.",
+            "condition": "[parameters('keyVaultUseAccessPolicies')]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(parameters('keyVaultName'), '/add')]",
-            "apiVersion": "2016-10-01",
+            "apiVersion": "2023-07-01",
             "tags": "[parameters('tags')]",
             "properties": {
                 "accessPolicies": [
                     {
-                        "tenantId": "[subscription().tenantId]",
-                        "objectId": "[parameters('keyVaultPrincipalId')]",
+                        "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
+                        "objectId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
                         "permissions": {
-                            "keys": [
-                                "get",
-                                "list",
-                                "sign",
-                                "unwrapKey",
-                                "wrapKey",
-                                "create"
-                            ],
                             "secrets": [
                                 "get",
-                                "list",
-                                "set",
-                                "delete"
+                                "list"
                             ]
                         }
                     }
                 ]
             },
             "dependsOn": [
+                "[variables('keyVaultResourceId')]",
+                "[variables('identityResourceId')]"
+            ]
+        },
+        {
+            "comments": "Or assign access to key vault to our managed identity using rbac.",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "name": "[variables('keyVaultRoleAssignment')]",
+            "condition": "[not(parameters('keyVaultUseAccessPolicies'))]",
+            "scope": "[variables('keyVaultResourceId')]",
+            "properties": {
+                "roleDefinitionId": "[variables('keyVaultSecretUserRoleId')]",
+                "principalId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
+                "principalType": "ServicePrincipal"
+            },
+            "dependsOn": [
+                "[variables('identityResourceId')]",
                 "[variables('keyVaultResourceId')]"
             ]
         },
         {
-            "comments": "Azure IoT Hub",
+            "comments": "And optionally the secret officer role to the KeyVault principal when access policies are not used.",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "name": "[variables('keyVaultPrincipalRoleAssignment')]",
+            "condition": "[and(not(parameters('keyVaultUseAccessPolicies')), not(empty(parameters('userPrincipalId'))))]",
+            "scope": "[variables('keyVaultResourceId')]",
+            "properties": {
+                "roleDefinitionId": "[variables('keyVaultSecretOfficerRoleId')]",
+                "principalId": "[parameters('userPrincipalId')]"
+            },
+            "dependsOn": [
+                "[variables('keyVaultResourceId')]"
+            ]
+        },
+        {
+            "comments": "Create an Azure IoT Hub.",
             "apiVersion": "2023-06-30",
             "type": "Microsoft.Devices/Iothubs",
             "name": "[parameters('iotHubName')]",
@@ -541,14 +582,16 @@
             ]
         },
         {
-            "comments": "Assign access to IoT Hub to our managed identity",
+            "comments": "And assign access to IoT Hub to our managed identity.",
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2022-04-01",
-            "name": "[parameters('iotHubRoleNameGuid')]",
+            "condition": "[not(parameters('iotHubSharedAccessKeyEnabled'))]",
+            "name": "[variables('iotHubRoleAssignment')]",
             "scope": "[variables('iotHubResourceId')]",
             "properties": {
                 "roleDefinitionId": "[variables('iotHubContributorRoleId')]",
-                "principalId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]"
+                "principalId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
+                "principalType": "ServicePrincipal"
             },
             "dependsOn": [
                 "[variables('identityResourceId')]",
@@ -556,7 +599,22 @@
             ]
         },
         {
-            "comments": "Telemetry Consumer Group in IoT Hub",
+            "comments": "And optionally the iot hub owner role to the user principal.",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "name": "[variables('iotHubPrincipalRoleAssignment')]",
+            "condition": "[and(not(parameters('iotHubSharedAccessKeyEnabled')), not(empty(parameters('userPrincipalId'))))]",
+            "scope": "[variables('keyVaultResourceId')]",
+            "properties": {
+                "roleDefinitionId": "[variables('iotHubContributorRoleId')]",
+                "principalId": "[parameters('userPrincipalId')]"
+            },
+            "dependsOn": [
+                "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Create a Telemetry Consumer Group in IoT Hub.",
             "apiVersion": "2019-03-22",
             "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTelemetryConsumerGroup'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
@@ -566,7 +624,7 @@
             ]
         },
         {
-            "comments": "Edge Events Consumer Group in IoT Hub",
+            "comments": "And a edge Events Consumer Group in the hub.",
             "apiVersion": "2019-03-22",
             "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubEventsConsumerGroup'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
@@ -576,10 +634,10 @@
             ]
         },
         {
-            "comments": "Blob storage account",
+            "comments": "Create blob storage account for event processing offset snapshots.",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[parameters('storageName')]",
-            "apiVersion": "2019-04-01",
+            "apiVersion": "2023-04-01",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]",
             "kind": "StorageV2",
@@ -593,6 +651,8 @@
                     "ipRules": [],
                     "defaultAction": "Allow"
                 },
+                "defaultToOAuthAuthentication": "[not(parameters('storageAccountKeyEnabled'))]",
+                "allowSharedKeyAccess": "[parameters('storageAccountKeyEnabled')]",
                 "supportsHttpsTrafficOnly": true,
                 "encryption": {
                     "services": {
@@ -608,7 +668,54 @@
             }
         },
         {
-            "comments": "Applications monitoring instance",
+            "comments": "Assign access to own blobs in the storage to our managed identity.",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "condition": "[not(parameters('storageAccountKeyEnabled'))]",
+            "name": "[variables('storageRoleAssignment')]",
+            "scope": "[variables('storageResourceId')]",
+            "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerRoleId')]",
+                "principalId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
+                "principalType": "ServicePrincipal"
+            },
+            "dependsOn": [
+                "[variables('identityResourceId')]",
+                "[variables('storageResourceId')]"
+            ]
+        },
+        {
+            "comments": "And optionally the storage blob data owner role...",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "name": "[variables('storagePrincipalBlobDataOwnerRoleAssignment')]",
+            "condition": "[and(not(parameters('storageAccountKeyEnabled')), not(empty(parameters('userPrincipalId'))))]",
+            "scope": "[variables('storageResourceId')]",
+            "properties": {
+                "roleDefinitionId": "[variables('storageBlobDataOwnerRoleId')]",
+                "principalId": "[parameters('userPrincipalId')]"
+            },
+            "dependsOn": [
+                "[variables('storageResourceId')]"
+            ]
+        },
+        {
+            "comments": "... as well as the storage account contributor role to the user principal.",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2022-04-01",
+            "name": "[variables('storagePrincipalStorageAccountContributorRoleAssignment')]",
+            "condition": "[and(not(parameters('storageAccountKeyEnabled')), not(empty(parameters('userPrincipalId'))))]",
+            "scope": "[variables('storageResourceId')]",
+            "properties": {
+                "roleDefinitionId": "[variables('storageAccountContributorRoleId')]",
+                "principalId": "[parameters('userPrincipalId')]"
+            },
+            "dependsOn": [
+                "[variables('storageResourceId')]"
+            ]
+        },
+        {
+            "comments": "Create a Azure monitor and app insights instance.",
             "type": "Microsoft.Insights/components",
             "name": "[parameters('appInsightsName')]",
             "apiVersion": "2015-05-01",
@@ -686,10 +793,6 @@
                                 "value": "[parameters('imagesNamespace')]"
                             },
                             {
-                                "key": "PCS_IOTHUB_CONNSTRING",
-                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]"
-                            },
-                            {
                                 "key": "PCS_IOTHUB_EVENTHUBENDPOINT",
                                 "value": "[reference(variables('iotHubResourceId')).eventHubEndpoints.events.endpoint]"
                             },
@@ -702,12 +805,12 @@
                                 "value": "[variables('iothubEventsConsumerGroup')]"
                             },
                             {
-                                "key": "PCS_STORAGE_CONNSTRING",
-                                "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]"
+                                "key": "PCS_IOTHUB_CONNSTRING",
+                                "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, if(parameters('iotHubSharedAccessKeyEnabled'), concat(';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey), ''))]"
                             },
                             {
-                                "key": "PCS_STORAGE_KEY",
-                                "value": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+                                "key": "PCS_STORAGE_CONNSTRING",
+                                "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), if(parameters('storageAccountKeyEnabled'), concat(';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value), ''))]"
                             },
                             {
                                 "key": "PCS_KEYVAULT_URL",
@@ -790,7 +893,10 @@
                 }
             },
             "dependsOn": [
-                "[variables('configurationResourceId')]"
+                "[variables('configurationResourceId')]",
+                "[variables('iotHubRoleAssignmentResourceId')]",
+                "[variables('keyVaultRoleAssignmentResourceId')]",
+                "[variables('storageRoleAssignmentResourceId')]"
             ]
         },
         {
@@ -827,11 +933,11 @@
             ]
         },
         {
-            "comments": "Azure Device Provisioning service.",
+            "comments": "Create Azure Device Provisioning service.",
             "type": "Microsoft.Devices/provisioningServices",
             "name": "[parameters('dpsName')]",
             "condition": "[variables('simulationDeployment')]",
-            "apiVersion": "2018-01-22",
+            "apiVersion": "2022-12-12",
             "location": "[resourceGroup().location]",
             "tags": "[parameters('tags')]",
             "sku": {
@@ -882,7 +988,7 @@
                         "value": "[parameters('edgeVmSize')]"
                     },
                     "simulationVmSize": {
-                        "value": "[parameters('simulationVmSize')]"  
+                        "value": "[parameters('simulationVmSize')]"
                     },
                     "edgeUserName": {
                         "value": "[parameters('edgeUserName')]"

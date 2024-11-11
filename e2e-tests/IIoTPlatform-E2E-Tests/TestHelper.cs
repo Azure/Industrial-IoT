@@ -52,6 +52,10 @@ namespace IIoTPlatformE2ETests
             CancellationToken ct = default
         )
         {
+            if (string.IsNullOrWhiteSpace(context.IIoTPlatformConfigHubConfig.AuthClientId))
+            {
+                return null;
+            }
             if (context.Token != null && (DateTime.UtcNow + TimeSpan.FromSeconds(10) < context.TokenExpiration))
             {
                 return context.Token;
@@ -268,7 +272,10 @@ namespace IIoTPlatformE2ETests
             {
                 Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
             };
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            if (accessToken != null)
+            {
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            }
 
             if (body != null)
             {
@@ -833,7 +840,10 @@ namespace IIoTPlatformE2ETests
             {
                 Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
             };
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            if (accessToken != null)
+            {
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            }
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
@@ -855,7 +865,10 @@ namespace IIoTPlatformE2ETests
             {
                 Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds)
             };
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            if (accessToken != null)
+            {
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            }
 
             var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);

@@ -358,12 +358,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var result = serializer.Parse(serializer.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context)).Messages)
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value.Value))
                 .ToList()));
             var expected = serializer.Parse(serializer.SerializeToString(messages
-                .SelectMany(m => m.Payload)
-                .Select(v => (v.Key, v.Value.Value))
+                .SelectMany(m => m.Payload.DataSetFields)
+                .Select(v => (v.Name, v.Value.Value))
                 .ToList()));
 
             Assert.Equal(expected, result);
@@ -379,9 +379,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             foreach (var dataSetMessage in networkMessage.Messages)
             {
                 var expectedPayload = new Dictionary<string, DataValue>();
-                foreach (var entry in dataSetMessage.Payload)
+                foreach (var entry in dataSetMessage.Payload.DataSetFields)
                 {
-                    expectedPayload[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
+                    expectedPayload[entry.Name] = new DataValue(entry.Value).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload,
                     DataSetFieldContentFlags.StatusCode |

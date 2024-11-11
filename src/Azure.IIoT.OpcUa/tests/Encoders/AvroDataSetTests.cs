@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using System.IO;
     using System.Linq;
     using Xunit;
+    using System.Collections.Generic;
 
     public class AvroDataSetTests
     {
@@ -226,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetTest1(bool concise)
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -234,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["..."] = new DataValue(new Variant("imbricated"))
-            };
+            });
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -264,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetTest2(bool concise)
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = null,
@@ -272,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = null,
                 ["..."] = new DataValue(new Variant("imbricated"))
-            };
+            });
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -302,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayRawTest1(bool concise)
         {
             // Create dummy
-            var expected = new DataSet(DataSetFieldContentFlags.RawData)
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -310,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["..."] = new DataValue(new Variant("imbricated"))
-            };
+            }, DataSetFieldContentFlags.RawData);
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -338,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayRawTest2(bool concise)
         {
             // Create dummy
-            var expected = new DataSet(DataSetFieldContentFlags.RawData)
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = null,
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -346,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["..."] = null
-            };
+            }, DataSetFieldContentFlags.RawData);
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -374,11 +375,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleEntryTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
-            };
+            });
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -396,7 +397,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             using (var decoder = new AvroDecoder(stream, schema, context))
             {
                 var result = decoder.ReadDataSet(null);
-                Assert.Equal(expected["abcd"], result["abcd"]);
+                Assert.Equal(expected.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value,
+                    result.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value);
             }
         }
 
@@ -406,11 +408,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleComplexEntryTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(VariantVariants.Complex),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
-            };
+            });
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -428,8 +430,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             using (var decoder = new AvroDecoder(stream, schema, context))
             {
                 var result = decoder.ReadDataSet(null);
-                Assert.True(result["abcd"].Value is ExtensionObject);
-                var eo = (ExtensionObject)result["abcd"].Value;
+                Assert.True(result.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value is ExtensionObject);
+                var eo = (ExtensionObject)result.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value;
                 Assert.True(eo.Body is IEncodeable);
                 var e = (IEncodeable)eo.Body;
                 Assert.Equal(VariantVariants.Complex.AsJson(context), e.AsJson(context));
@@ -442,11 +444,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleValueRawTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet(DataSetFieldContentFlags.RawData)
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
-            };
+            }, DataSetFieldContentFlags.RawData);
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -464,7 +466,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             using (var decoder = new AvroDecoder(stream, schema, context))
             {
                 var result = decoder.ReadDataSet(null);
-                Assert.Equal(expected["abcd"].Value, result["abcd"].Value);
+                Assert.Equal(expected.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value,
+                    result.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value);
             }
         }
 
@@ -474,11 +477,11 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetWithSingleComplexValueRawTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet(DataSetFieldContentFlags.RawData)
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(VariantVariants.Complex),
                     StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow)
-            };
+            }, DataSetFieldContentFlags.RawData);
 
             byte[] buffer;
             var context = new ServiceMessageContext();
@@ -496,8 +499,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             using (var decoder = new AvroDecoder(stream, schema, context))
             {
                 var result = decoder.ReadDataSet(null);
-                Assert.True(result["abcd"].Value is ExtensionObject);
-                var eo = (ExtensionObject)result["abcd"].Value;
+                Assert.True(result.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value is ExtensionObject);
+                var eo = (ExtensionObject)result.DataSetFields.FirstOrDefault(f => f.Name == "abcd").Value.Value;
                 Assert.True(eo.Body is IEncodeable);
                 var e = (IEncodeable)eo.Body;
                 Assert.Equal(VariantVariants.Complex.AsJson(context), e.AsJson(context));
@@ -510,7 +513,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void ReadWriteDataSetArrayRawStreamTest(bool concise)
         {
             // Create dummy
-            var expected = new DataSet(DataSetFieldContentFlags.RawData)
+            var expected = new DataSet(new Dictionary<string, DataValue>
             {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.UtcNow, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.UtcNow),
@@ -518,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
                 ["..."] = new DataValue(new Variant("imbricated"))
-            };
+            }, DataSetFieldContentFlags.RawData);
 
             const int count = 10000;
             byte[] buffer;

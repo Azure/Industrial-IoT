@@ -640,7 +640,7 @@ internal sealed class App : IDisposable
     {
         // NOTE: This is for local testing against IoT Hub
         string deviceId;
-        var ncModuleId = "netcap";
+        const string ncModuleId = "netcap";
         _run ??= new RunOptions();
         var edgeHubConnectionString = Environment.GetEnvironmentVariable("EdgeHubConnectionString");
         if (!string.IsNullOrWhiteSpace(edgeHubConnectionString))

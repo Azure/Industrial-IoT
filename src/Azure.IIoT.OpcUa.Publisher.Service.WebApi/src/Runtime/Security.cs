@@ -7,12 +7,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
 {
     using Furly.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Web;
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Service auth configuration
@@ -20,14 +23,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     public static class Security
     {
         /// <summary>
-        /// Helper to add jwt bearer authentication
+        /// Add authentication
         /// </summary>
         /// <param name="services"></param>
-        public static MicrosoftIdentityWebApiAuthenticationBuilder AddMicrosoftIdentityWebApiAuthentication(
-            this IServiceCollection services)
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddAuthentication(this IServiceCollection services,
+            IConfiguration configuration)
         {
+            //
+            // Detect Microsoft.Identity.Web detects EasyAuth and register authentication if so.
+            //
+            if (AppServicesAuthenticationInformation.IsAppServicesAadAuthenticationEnabled)
+            {
+                services.AddAuthentication(AppServicesAuthenticationDefaults.AuthenticationScheme)
+                   .AddMicrosoftIdentityWebApi(configuration,
+                    subscribeToJwtBearerMiddlewareDiagnosticsEvents: false)
+                   ;
+                return services;
+            }
+
+            //
+            // Otherwise we check if a client id was configured and allow anonymous access if not.
+            //
+            var options = new MicrosoftIdentityOptions();
+            new MicrosoftIdentity(configuration).Configure(options);
+            if (string.IsNullOrEmpty(options.ClientId))
+            {
+                return services.AddSingleton<IAuthorizationHandler, AllowAnonymous>();
+            }
+
             services.AddTransient<IConfigureOptions<MicrosoftIdentityOptions>, MicrosoftIdentity>();
             services.AddTransient<IConfigureNamedOptions<MicrosoftIdentityOptions>, MicrosoftIdentity>();
+
             services.AddTransient<IConfigureOptions<JwtBearerOptions>>(context =>
             {
                 // Support 2.8 where the audience does not contain api://
@@ -36,10 +64,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                     options => options.TokenValidationParameters.ValidAudiences =
                         clientId == null ? Enumerable.Empty<string>() : clientId.YieldReturn());
             });
-            return services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApi(_ => { }, _ => { },
                     subscribeToJwtBearerMiddlewareDiagnosticsEvents: false)
                 ;
+            return services;
+        }
+
+        /// <summary>
+        /// This authoriuation handler will bypass all requirements
+        /// </summary>
+        internal sealed class AllowAnonymous : IAuthorizationHandler
+        {
+            /// <inheritdoc/>
+            public AllowAnonymous(ILogger<AllowAnonymous> logger)
+            {
+                _logger = logger;
+            }
+
+            /// <inheritdoc/>
+            public Task HandleAsync(AuthorizationHandlerContext context)
+            {
+                // Simply pass all requirements
+                var authorized = false;
+                foreach (var requirement in context.PendingRequirements.ToList())
+                {
+                    authorized = true;
+                    context.Succeed(requirement);
+                }
+                if (authorized)
+                {
+                    _logger.LogWarning(@"
+
+    An anonyomous user was authorized because of missing configuration.
+                    !!! Do not use in production !!!
+    Configure app service authentication (see http://aka.ms/easyauth)
+");
+                }
+                return Task.CompletedTask;
+            }
+
+            private readonly ILogger<AllowAnonymous> _logger;
         }
 
         /// <summary>

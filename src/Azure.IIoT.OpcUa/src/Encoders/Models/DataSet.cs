@@ -7,14 +7,16 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Encodable dataset message payload
     /// </summary>
-    public class DataSet : Dictionary<string, DataValue?>
+    public class DataSet
     {
         /// <summary>
         /// Field mask
@@ -22,18 +24,32 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public DataSetFieldContentFlags DataSetFieldContentMask { get; set; }
 
         /// <summary>
+        /// Entries
+        /// </summary>
+        public IReadOnlyList<(string Name, DataValue? Value)> DataSetFields { get; }
+
+        /// <summary>
         /// Create payload
         /// </summary>
         /// <param name="values"></param>
         /// <param name="fieldContentMask"></param>
         public DataSet(IDictionary<string, DataValue?> values,
+            DataSetFieldContentFlags? fieldContentMask = null)
+            : this(fieldContentMask)
+        {
+            DataSetFields = values.Select(kv => (kv.Key, kv.Value)).ToList();
+        }
+
+        /// <summary>
+        /// Create payload
+        /// </summary>
+        /// <param name="values"></param>
+        /// <param name="fieldContentMask"></param>
+        public DataSet(IReadOnlyList<(string, DataValue?)> values,
             DataSetFieldContentFlags? fieldContentMask)
             : this(fieldContentMask)
         {
-            foreach (var value in values)
-            {
-                this[value.Key] = value.Value;
-            }
+            DataSetFields = values;
         }
 
         /// <summary>
@@ -46,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             DataSetFieldContentFlags? fieldContentMask)
             : this(fieldContentMask)
         {
-            this[field] = value;
+            DataSetFields = new[] { (field, value) };
         }
 
         /// <summary>
@@ -57,21 +73,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         {
             DataSetFieldContentMask = fieldContentMask ??
                 PubSubMessage.DefaultDataSetFieldContentFlags;
+            DataSetFields = Array.Empty<(string, DataValue?)>();
         }
 
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
-            if (obj is not Dictionary<string, DataValue> set)
+            if (obj is not DataSet set)
             {
                 return false;
             }
-            if (!Keys.SequenceEqualsSafe(set.Keys))
-            {
-                return false;
-            }
-            if (!Values.SequenceEqualsSafe(set.Values,
-                (x, y) => Utils.IsEqual(x?.Value, y?.Value)))
+            if (!DataSetFields.SequenceEqualsSafe(set.DataSetFields,
+                (x, y) => x.Item1 == y.Item1 &&
+                    Utils.IsEqual(x.Item2?.Value, y.Item2?.Value)))
             {
                 return false;
             }
@@ -81,7 +95,52 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return HashCode.Combine(Keys);
+            return HashCode.Combine(DataSetFields.Select(s => s.Item1));
+        }
+
+        /// <summary>
+        /// Remove field from dataset
+        /// </summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        internal DataSet Remove(string field)
+        {
+            return new DataSet(DataSetFields
+                .Where(b => b.Name != field)
+                .ToList(), DataSetFieldContentMask);
+        }
+
+        /// <summary>
+        /// Set field from dataset to different value
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal DataSet Set(string field, DataValue? value)
+        {
+            return new DataSet(DataSetFields
+                .Select(b => (b.Name, b.Name == field ? value : b.Value))
+                .ToList(), DataSetFieldContentMask);
+        }
+
+        /// <summary>
+        /// Set field from dataset to different value
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="value"></param>
+        /// <param name="additionalFlags"></param>
+        /// <returns></returns>
+        internal DataSet Add(string field, DataValue? value,
+            DataSetFieldContentFlags? additionalFlags = null)
+        {
+            var fieldContentMask = DataSetFieldContentMask;
+            if (additionalFlags.HasValue)
+            {
+                fieldContentMask |= additionalFlags.Value;
+            }
+            return new DataSet(DataSetFields
+                .Append((field, value))
+                .ToList(), fieldContentMask);
         }
     }
 }

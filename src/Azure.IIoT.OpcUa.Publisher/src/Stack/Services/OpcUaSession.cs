@@ -1078,7 +1078,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
             var conformanceUnits = config.ConformanceUnits.GetValueOrDefault(
                 v => v == null || v.Length == 0 ? null :
-                v.Select(q => q.AsString(this.MessageContext, namespaceFormat)).ToList());
+                v.Select(q => q.AsString(MessageContext, namespaceFormat)).ToList());
             return new ServerCapabilitiesModel
             {
                 OperationLimits = _limits ?? new OperationLimitsModel(),

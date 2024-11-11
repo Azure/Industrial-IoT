@@ -430,8 +430,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 // This is the high order 16 bits of the StatusCode DataType representing
                 // the numeric value of the Severity and SubCode of the StatusCode DataType.
-                var status = Status ?? Payload.Values
-                    .FirstOrDefault(s => StatusCode.IsNotGood(s?.StatusCode ?? StatusCodes.BadNoData))?
+                var status = Status ?? Payload.DataSetFields
+                    .FirstOrDefault(s => StatusCode.IsNotGood(s.Value?.StatusCode ?? StatusCodes.BadNoData)).Value?
                         .StatusCode ?? StatusCodes.Good;
                 encoder.WriteUInt16(null, (ushort)(status.Code >> 16));
             }
@@ -474,22 +474,23 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
 
             // check configuration version
+            var fields = Payload.DataSetFields.ToList();
             switch (fieldType)
             {
                 case 0:
                     for (var i = 0; i < dataSetFieldCount; i++)
                     {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
-                        Payload.Add(fieldMetaData?.Name ?? i.ToString(CultureInfo.InvariantCulture),
-                            new DataValue(binaryDecoder.ReadVariant(null)));
+                        fields.Add((fieldMetaData?.Name ?? i.ToString(CultureInfo.InvariantCulture),
+                            new DataValue(binaryDecoder.ReadVariant(null))));
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
                     for (var i = 0; i < dataSetFieldCount; i++)
                     {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
-                        Payload.Add(fieldMetaData?.Name ?? i.ToString(CultureInfo.InvariantCulture),
-                            binaryDecoder.ReadDataValue(null));
+                        fields.Add((fieldMetaData?.Name ?? i.ToString(CultureInfo.InvariantCulture),
+                            binaryDecoder.ReadDataValue(null)));
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeRawData:
@@ -499,13 +500,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         if (fieldMetaData != null)
                         {
                             var decodedValue = ReadRawData(binaryDecoder, fieldMetaData);
-                            Payload.Add(fieldMetaData.Name, new DataValue(new Variant(decodedValue)));
+                            fields.Add((fieldMetaData.Name, new DataValue(new Variant(decodedValue))));
                         }
                     }
                     break;
                 default:
                     throw new DecodingException($"Reserved field type {fieldType} not allowed.");
             }
+            Payload = new Models.DataSet(fields, Payload.DataSetFieldContentMask);
         }
 
         /// <summary>
@@ -520,24 +522,24 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             switch (fieldType)
             {
                 case 0:
-                    Debug.Assert(Payload.Count <= ushort.MaxValue);
-                    binaryEncoder.WriteUInt16(null, (ushort)Payload.Count);
-                    foreach (var value in Payload)
+                    Debug.Assert(Payload.DataSetFields.Count <= ushort.MaxValue);
+                    binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
+                    foreach (var field in Payload.DataSetFields)
                     {
-                        binaryEncoder.WriteVariant(null, value.Value?.WrappedValue ?? default);
+                        binaryEncoder.WriteVariant(null, field.Value?.WrappedValue ?? default);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                    Debug.Assert(Payload.Count <= ushort.MaxValue);
-                    binaryEncoder.WriteUInt16(null, (ushort)Payload.Count);
-                    foreach (var value in Payload)
+                    Debug.Assert(Payload.DataSetFields.Count <= ushort.MaxValue);
+                    binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
+                    foreach (var field in Payload.DataSetFields)
                     {
-                        binaryEncoder.WriteDataValue(null, value.Value);
+                        binaryEncoder.WriteDataValue(null, field.Value);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeRawData:
                     // DataSetFieldCount is not written for RawData
-                    var values = Payload.ToList();
+                    var values = Payload.DataSetFields.ToList();
                     for (var i = 0; i < values.Count; i++)
                     {
                         var fieldMetaData = GetFieldMetadata(metadata, i);
@@ -563,6 +565,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
             var fieldCount = binaryDecoder.ReadUInt16(null);
 
+            var fields = Payload.DataSetFields.ToList();
             for (var i = 0; i < fieldCount; i++)
             {
                 var fieldIndex = binaryDecoder.ReadUInt16(null);
@@ -570,25 +573,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 switch (fieldType)
                 {
                     case 0:
-                        Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(CultureInfo.InvariantCulture),
-                            new DataValue(binaryDecoder.ReadVariant(null)));
+                        fields.Add((fieldMetaData?.Name ?? fieldIndex.ToString(CultureInfo.InvariantCulture),
+                            new DataValue(binaryDecoder.ReadVariant(null))));
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                        Payload.Add(fieldMetaData?.Name ?? fieldIndex.ToString(CultureInfo.InvariantCulture),
-                            binaryDecoder.ReadDataValue(null));
+                        fields.Add((fieldMetaData?.Name ?? fieldIndex.ToString(CultureInfo.InvariantCulture),
+                            binaryDecoder.ReadDataValue(null)));
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeRawData:
                         if (fieldMetaData != null)
                         {
                             var decodedValue = ReadRawData(binaryDecoder, fieldMetaData);
-                            Payload.Add(fieldMetaData.Name,
-                                new DataValue(new Variant(decodedValue)));
+                            fields.Add((fieldMetaData.Name,
+                                new DataValue(new Variant(decodedValue))));
                         }
                         break;
                     default:
                         throw new DecodingException($"Reserved field type {fieldType} not allowed.");
                 }
             }
+            Payload = new Models.DataSet(fields, Payload.DataSetFieldContentMask);
         }
 
         /// <summary>
@@ -600,12 +604,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         private void WritePayloadDeltaFrame(BinaryEncoder binaryEncoder, PublishedDataSetMetaDataModel? metadata)
         {
             // ignore null fields
-            var fieldCount = Payload.Count(value => value.Value?.Value != null);
+            var fieldCount = Payload.DataSetFields.Count(value => value.Value?.Value != null);
             Debug.Assert(fieldCount <= ushort.MaxValue);
             binaryEncoder.WriteUInt16(null, (ushort)fieldCount);
 
             var fieldType = DataSetFlags1 & DataSetFlags1EncodingMask.FieldTypeUsedBits;
-            var values = Payload.ToList();
+            var values = Payload.DataSetFields.ToList();
             for (var i = 0; i < values.Count; i++)
             {
                 var value = values[i];
@@ -615,7 +619,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
 
                 // write field index corresponding to metadata
-                var fieldIndex = GetFieldIndex(metadata, value.Key, i);
+                var fieldIndex = GetFieldIndex(metadata, value.Name, i);
                 binaryEncoder.WriteUInt16(null, fieldIndex);
                 switch (fieldType)
                 {

@@ -162,6 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 else
                 {
+                    Debug.Assert(Subscription != null);
                     _subscriptionName = Subscription.DisplayName;
                     Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
                     EnsureSamplerRunning();

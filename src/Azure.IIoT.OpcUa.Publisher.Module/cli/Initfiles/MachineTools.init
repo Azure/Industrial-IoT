@@ -19,6 +19,7 @@ ExpandAndCreateOrUpdateDataSetWriterEntries_V2
         ]
     },
     "request": {
+        "flattenTypeInstance": true
     }
 }
 

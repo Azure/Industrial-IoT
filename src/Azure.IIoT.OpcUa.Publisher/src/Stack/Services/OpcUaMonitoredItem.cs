@@ -248,10 +248,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
-                    case ExtensionFieldItemModel efm:
-                        yield return new Field(owner, efm,
-                            factory.CreateLogger<Field>(), timeProvider);
-                        break;
                     default:
                         Debug.Fail($"Unexpected type of item {item}");
                         break;
@@ -548,11 +544,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             MonitoredItemNotifications notifications)
         {
             var lastValue = LastReceivedValue;
-            if (lastValue == null || Status?.Error != null)
+            if (lastValue == null)
             {
                 return TryGetErrorMonitoredItemNotifications(
-                    Status?.Error.StatusCode ?? StatusCodes.GoodNoData,
-                    notifications);
+                    StatusCodes.BadNoData, notifications);
+            }
+            if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
+            {
+                return TryGetErrorMonitoredItemNotifications(
+                    Status.Error.StatusCode, notifications);
             }
             return TryGetMonitoredItemNotifications(TimeProvider.GetUtcNow(),
                 lastValue, notifications);
@@ -1018,14 +1018,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="owner"></param>
         /// <param name="messageType"></param>
         /// <param name="notifications"></param>
-        /// <param name="session"></param>
         /// <param name="eventTypeName"></param>
         /// <param name="diagnosticsOnly"></param>
         /// <param name="timestamp"></param>
         protected void Publish(ISubscriber owner, MessageType messageType,
             IList<MonitoredItemNotificationModel> notifications,
-            ISession? session = null, string? eventTypeName = null,
-            bool diagnosticsOnly = false, DateTimeOffset? timestamp = null)
+            string? eventTypeName = null, bool diagnosticsOnly = false,
+            DateTimeOffset? timestamp = null)
         {
             if (Subscription is not OpcUaSubscription subscription)
             {
@@ -1034,9 +1033,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     this);
                 return;
             }
-            subscription.SendNotification(
-                owner, messageType, notifications, session, eventTypeName,
-                diagnosticsOnly, timestamp);
+            subscription.SendNotification(owner, messageType, notifications,
+                eventTypeName, diagnosticsOnly, timestamp);
         }
 
         /// <summary>
