@@ -33,7 +33,6 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Serialization;
@@ -761,8 +760,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// </summary>
         private void InitializePropertyAttributes()
         {
-            var typeAttribute = (StructureTypeIdAttribute?)
-                GetType().GetCustomAttribute(typeof(StructureTypeIdAttribute));
+            var typeAttribute = GetType().GetCustomAttribute<StructureTypeIdAttribute>();
             if (typeAttribute != null)
             {
                 TypeId = ExpandedNodeId.Parse(typeAttribute.ComplexTypeId);
@@ -773,16 +771,14 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var propertyList = new List<ComplexTypePropertyInfo>();
             foreach (var property in GetType().GetProperties())
             {
-                var fieldAttribute = (StructureFieldAttribute?)
-                    property.GetCustomAttribute(typeof(StructureFieldAttribute));
+                var fieldAttribute = property.GetCustomAttribute<StructureFieldAttribute>();
 
                 if (fieldAttribute == null)
                 {
                     continue;
                 }
 
-                var dataAttribute = (DataMemberAttribute?)
-                    property.GetCustomAttribute(typeof(DataMemberAttribute));
+                var dataAttribute = property.GetCustomAttribute<DataMemberAttribute>();
                 if (dataAttribute == null)
                 {
                     continue;

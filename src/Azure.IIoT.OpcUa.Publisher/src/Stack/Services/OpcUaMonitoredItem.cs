@@ -166,36 +166,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="copyEventHandlers"></param>
-        /// <param name="copyClientHandle"></param>
-        protected OpcUaMonitoredItem(OpcUaMonitoredItem item,
-            bool copyEventHandlers, bool copyClientHandle)
-            : base(item, copyEventHandlers, copyClientHandle)
-        {
-            Owner = item.Owner;
-            NodeId = item.NodeId;
-            TimeProvider = item.TimeProvider;
-            _logger = item._logger;
-
-            LastReceivedTime = item.LastReceivedTime;
-            LastReceivedValue = item.LastReceivedValue;
-            Valid = item.Valid;
-        }
-
-        /// <inheritdoc/>
-        public override abstract MonitoredItem CloneMonitoredItem(
-            bool copyEventHandlers, bool copyClientHandle);
-
-        /// <inheritdoc/>
-        public override object Clone()
-        {
-            return CloneMonitoredItem(true, true);
-        }
-
-        /// <summary>
         /// Create items
         /// </summary>
         /// <param name="client"></param>
@@ -256,10 +226,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (disposing && Valid)
+            {
+                Valid = false;
+            }
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -294,18 +267,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return IsLate = false;
             }
             return IsLate = !LastReceivedTime.HasValue || LastReceivedTime.Value < dateTime;
-        }
-
-        /// <summary>
-        /// Dispose
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing && Valid)
-            {
-                Valid = false;
-            }
         }
 
         /// <summary>
@@ -435,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public void LogRevisedSamplingRateAndQueueSize()
         {
-            if (!AttachedToSubscription || SamplingInterval < 0)
+            if (!AttachedToSubscription || SamplingInterval < TimeSpan.Zero)
             {
                 return;
             }
@@ -958,19 +919,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (item.AutoSetQueueSize == true)
             {
                 var publishingInterval = subscription.CurrentPublishingInterval;
-                if (publishingInterval == 0)
+                if (publishingInterval == TimeSpan.Zero)
                 {
                     publishingInterval = subscription.PublishingInterval;
                 }
                 var samplingInterval = Status.SamplingInterval;
-                if (samplingInterval == 0)
+                if (samplingInterval == TimeSpan.Zero)
                 {
                     samplingInterval = SamplingInterval;
                 }
-                if (samplingInterval > 0)
+                if (samplingInterval > TimeSpan.Zero)
                 {
                     queueSize = Math.Max(queueSize, (uint)Math.Ceiling(
-                        (double)publishingInterval / SamplingInterval)) + 1;
+                        publishingInterval.TotalMilliseconds / SamplingInterval.TotalMilliseconds))
+                        + 1;
                     if (queueSize != QueueSize && item.QueueSize != queueSize)
                     {
                         _logger.LogDebug("Auto-set queue size for {Item} to '{QueueSize}'.",

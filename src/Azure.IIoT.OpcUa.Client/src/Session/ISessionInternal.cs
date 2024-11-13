@@ -91,11 +91,6 @@ namespace Opc.Ua.Client
         event EventHandler SessionConfigurationChanged;
 
         /// <summary>
-        /// The factory which was used to create the session.
-        /// </summary>
-        ISessionFactory SessionFactory { get; }
-
-        /// <summary>
         /// Gets the endpoint used to connect to the server.
         /// </summary>
         ConfiguredEndpoint ConfiguredEndpoint { get; }
@@ -109,7 +104,7 @@ namespace Opc.Ua.Client
         /// Gets the period for wich the server will maintain the
         /// session if there is no communication from the client.
         /// </summary>
-        double SessionTimeout { get; }
+        TimeSpan SessionTimeout { get; }
 
         /// <summary>
         /// Gets the local handle assigned to the session.
@@ -142,11 +137,6 @@ namespace Opc.Ua.Client
         INodeCache NodeCache { get; }
 
         /// <summary>
-        /// Gets the locales that the server should use when returning localized text.
-        /// </summary>
-        StringCollection PreferredLocales { get; }
-
-        /// <summary>
         /// Gets the subscriptions owned by the session.
         /// </summary>
         IEnumerable<Subscription> Subscriptions { get; }
@@ -168,7 +158,7 @@ namespace Opc.Ua.Client
         /// This interval controls how much time elaspes before a communication error is detected.
         /// If everything is ok the KeepAlive event will be raised each time this period elapses.
         /// </remarks>
-        int KeepAliveInterval { get; set; }
+        TimeSpan KeepAliveInterval { get; set; }
 
         /// <summary>
         /// Returns true if the session is not receiving keep alives.
@@ -216,46 +206,13 @@ namespace Opc.Ua.Client
         /// Default <c>false</c>, set to <c>true</c> if subscriptions should
         /// be transferred after reconnect. Service must be supported by server.
         /// </remarks>
-        bool TransferSubscriptionsOnReconnect { get; set; }
-
-        /// <summary>
-        /// Raised before a reconnect operation completes.
-        /// </summary>
-        event RenewUserIdentityEventHandler RenewUserIdentity;
+        bool TransferSubscriptionsOnRecreate { get; set; }
 
         /// <summary>
         /// Updates the local copy of the server's namespace uri and server uri tables.
         /// </summary>
         /// <param name="ct">The cancellation token.</param>
         Task FetchNamespaceTablesAsync(CancellationToken ct = default);
-
-        /// <summary>
-        /// Establishes a session with the server.
-        /// </summary>
-        /// <param name="sessionName">The name to assign to the session.</param>
-        /// <param name="sessionTimeout">The session timeout.</param>
-        /// <param name="identity">The user identity.</param>
-        /// <param name="preferredLocales">The list of preferred locales.</param>
-        /// <param name="checkDomain">If set to <c>true</c> then the domain in the
-        /// certificate must match the endpoint used.</param>
-        /// <param name="ct">The cancellation token.</param>
-        Task OpenAsync(string sessionName, uint sessionTimeout, IUserIdentity identity,
-            IList<string>? preferredLocales, bool checkDomain, CancellationToken ct = default);
-
-        /// <summary>
-        /// Reads the value for a node.
-        /// </summary>
-        /// <param name="nodeId">The node Id.</param>
-        /// <param name="ct">The cancellation token for the request.</param>
-        Task<DataValue> ReadValueAsync(NodeId nodeId, CancellationToken ct = default);
-
-        /// <summary>
-        /// Reads the values for a node collection. Returns diagnostic errors.
-        /// </summary>
-        /// <param name="nodeIds">The node Id.</param>
-        /// <param name="ct">The cancellation token for the request.</param>
-        Task<(DataValueCollection, IList<ServiceResult>)> ReadValuesAsync(
-            IList<NodeId> nodeIds, CancellationToken ct = default);
 
         /// <summary>
         /// Adds a subscription to the session.
@@ -286,14 +243,6 @@ namespace Opc.Ua.Client
         Task<bool> RemoveSubscriptionsAsync(IEnumerable<Subscription> subscriptions, CancellationToken ct = default);
 
         /// <summary>
-        /// Transfers a list of subscriptions from another session.
-        /// </summary>
-        /// <param name="subscriptions">The list of subscriptions to transfer.</param>
-        /// <param name="sendInitialValues">Send the last value of each monitored item in the subscriptions.</param>
-        /// <param name="ct">The cancellation token for the request.</param>
-        Task<bool> TransferSubscriptionsAsync(SubscriptionCollection subscriptions, bool sendInitialValues, CancellationToken ct = default);
-
-        /// <summary>
         /// Calls the specified method and returns the output arguments.
         /// </summary>
         /// <param name="objectId">The NodeId of the object that provides the method.</param>
@@ -301,7 +250,7 @@ namespace Opc.Ua.Client
         /// <param name="ct">The cancellation token for the request.</param>
         /// <param name="args">The input arguments.</param>
         /// <returns>The list of output argument values.</returns>
-        Task<IList<object>> CallAsync(NodeId objectId, NodeId methodId, CancellationToken ct = default, params object[] args);
+        Task<IReadOnlyList<object>> CallAsync(NodeId objectId, NodeId methodId, CancellationToken ct = default, params object[] args);
 
         /// <summary>
         /// Sends an additional publish request.

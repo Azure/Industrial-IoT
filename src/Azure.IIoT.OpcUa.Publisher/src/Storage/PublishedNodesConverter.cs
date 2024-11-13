@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;

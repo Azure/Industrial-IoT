@@ -43,14 +43,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             schema.SchemaVersion ??= JsonSchemaVersion.Draft7;
 
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var writer = new JsonSchemaWriter(stream, new JsonWriterOptions { Indented = indented }))
             {
-                using (var writer = new JsonSchemaWriter(stream, new JsonWriterOptions { Indented = indented }))
-                {
-                    writer.Write(schema);
-                }
-                return Encoding.UTF8.GetString(stream.ToArray());
+                writer.Write(schema);
             }
+            return Encoding.UTF8.GetString(stream.ToArray());
         }
 
         /// <summary>

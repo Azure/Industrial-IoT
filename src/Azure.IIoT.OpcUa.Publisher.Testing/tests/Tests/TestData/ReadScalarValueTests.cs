@@ -649,7 +649,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.True(result.Value.IsBytes);
             AssertEqualValue(expected, result.Value);
             Assert.Equal("XmlElement", result.DataType);
-            var s = result.Value.ToString(null);
             var xml = result.Value.ConvertTo<XmlElement>();
             Assert.NotNull(xml);
         }

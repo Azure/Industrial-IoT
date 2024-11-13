@@ -101,39 +101,35 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             while (remainingChunks.Length == 1)
             {
-                using (var stream = Memory.GetStream())
+                using var stream = Memory.GetStream();
+                using var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true);
+                var writeSpan = remainingChunks;
+                while (true)
                 {
-                    using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
+                    WriteNetworkMessageHeaderFlags(encoder, isChunkMessage);
+                    WriteNetworkMessageHeader(encoder);
+
+                    if (!TryWritePayload(encoder, maxChunkSize, ref writeSpan,
+                        ref remainingChunks, ref isChunkMessage))
                     {
-                        var writeSpan = remainingChunks;
-                        while (true)
-                        {
-                            WriteNetworkMessageHeaderFlags(encoder, isChunkMessage);
-                            WriteNetworkMessageHeader(encoder);
-
-                            if (!TryWritePayload(encoder, maxChunkSize, ref writeSpan,
-                                ref remainingChunks, ref isChunkMessage))
-                            {
-                                encoder.Position = 0; // Restart writing
-                                continue;
-                            }
-
-                            WriteSecurityFooter(encoder);
-                            WriteSignature(encoder);
-                            break;
-                        }
-                        stream.SetLength(encoder.Position);
-
-                        var messageBuffer = stream.GetReadOnlySequence();
-
-                        // TODO: instead of copy using ToArray we shall include the
-                        // stream with the message and dispose it later when it is
-                        // consumed. To get here the bug in BinaryEncoder that it
-                        // disposes the underlying stream even if leaveOpen: true
-                        // is set must be fixed.
-                        messages.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
+                        encoder.Position = 0; // Restart writing
+                        continue;
                     }
+
+                    WriteSecurityFooter(encoder);
+                    WriteSignature(encoder);
+                    break;
                 }
+                stream.SetLength(encoder.Position);
+
+                var messageBuffer = stream.GetReadOnlySequence();
+
+                // TODO: instead of copy using ToArray we shall include the
+                // stream with the message and dispose it later when it is
+                // consumed. To get here the bug in BinaryEncoder that it
+                // disposes the underlying stream even if leaveOpen: true
+                // is set must be fixed.
+                messages.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
             }
             Debug.Assert(remainingChunks.Length == 0);
             return messages;
@@ -195,48 +191,44 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 throw new InvalidOperationException("Metadata is null or empty");
             }
-            using (var stream = Memory.GetStream())
+            using var stream = Memory.GetStream();
+            using var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true);
+            if (!IsProbe)
             {
-                using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
+                switch ((UADPDiscoveryAnnouncementType)DiscoveryType)
                 {
-                    if (!IsProbe)
-                    {
-                        switch ((UADPDiscoveryAnnouncementType)DiscoveryType)
-                        {
-                            case UADPDiscoveryAnnouncementType.DataSetMetaData:
-                                encoder.WriteUInt16(null, DataSetWriterId);
-                                encoder.WriteEncodeable(null, MetaData.ToStackModel(context),
-                                    typeof(Opc.Ua.DataSetMetaDataType));
-                                // temporary write StatusCode.Good
-                                encoder.WriteStatusCode(null, Opc.Ua.StatusCodes.Good);
-                                break;
-                            case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
-                            case UADPDiscoveryAnnouncementType.PublisherEndpoints:
-                            case UADPDiscoveryAnnouncementType.PubSubConnectionsConfiguration:
-                            case UADPDiscoveryAnnouncementType.ApplicationInformation:
-                                // not implemented
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch ((UADPDiscoveryProbeType)DiscoveryType)
-                        {
-                            case UADPDiscoveryProbeType.PublisherInformationProbe:
-                            case UADPDiscoveryProbeType.FindApplicationsProbe:
-                                // not implemented
-                                break;
-                        }
-                    }
-
-                    // TODO: instead of copy using ToArray we shall include the
-                    // stream with the message and dispose it later when it is
-                    // consumed. To get here the bug in BinaryEncoder that it
-                    // disposes the underlying stream even if leaveOpen: true
-                    // is set must be fixed.
-                    return new[] { new Message(stream.ToArray(), DataSetWriterId) };
+                    case UADPDiscoveryAnnouncementType.DataSetMetaData:
+                        encoder.WriteUInt16(null, DataSetWriterId);
+                        encoder.WriteEncodeable(null, MetaData.ToStackModel(context),
+                            typeof(Opc.Ua.DataSetMetaDataType));
+                        // temporary write StatusCode.Good
+                        encoder.WriteStatusCode(null, Opc.Ua.StatusCodes.Good);
+                        break;
+                    case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
+                    case UADPDiscoveryAnnouncementType.PublisherEndpoints:
+                    case UADPDiscoveryAnnouncementType.PubSubConnectionsConfiguration:
+                    case UADPDiscoveryAnnouncementType.ApplicationInformation:
+                        // not implemented
+                        break;
                 }
             }
+            else
+            {
+                switch ((UADPDiscoveryProbeType)DiscoveryType)
+                {
+                    case UADPDiscoveryProbeType.PublisherInformationProbe:
+                    case UADPDiscoveryProbeType.FindApplicationsProbe:
+                        // not implemented
+                        break;
+                }
+            }
+
+            // TODO: instead of copy using ToArray we shall include the
+            // stream with the message and dispose it later when it is
+            // consumed. To get here the bug in BinaryEncoder that it
+            // disposes the underlying stream even if leaveOpen: true
+            // is set must be fixed.
+            return new[] { new Message(stream.ToArray(), DataSetWriterId) };
         }
 
         /// <inheritdoc/>
@@ -248,40 +240,36 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return;
             }
             Debug.Assert(buffers.Count == 1);
-            using (var stream = Memory.GetStream(buffers[0]))
+            using var stream = Memory.GetStream(buffers[0]);
+            using var decoder = new Opc.Ua.BinaryDecoder(stream, context);
+            if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryAnnouncement) != 0)
             {
-                using (var decoder = new Opc.Ua.BinaryDecoder(stream, context))
+                switch ((UADPDiscoveryAnnouncementType)DiscoveryType)
                 {
-                    if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryAnnouncement) != 0)
-                    {
-                        switch ((UADPDiscoveryAnnouncementType)DiscoveryType)
-                        {
-                            case UADPDiscoveryAnnouncementType.DataSetMetaData:
-                                DataSetWriterId = decoder.ReadUInt16(null);
-                                var metaData = (Opc.Ua.DataSetMetaDataType)decoder.ReadEncodeable(null,
-                                    typeof(Opc.Ua.DataSetMetaDataType));
-                                MetaData = metaData.ToServiceModel(context);
-                                // temporary read
-                                var status = decoder.ReadStatusCode(null);
-                                break;
-                            case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
-                            case UADPDiscoveryAnnouncementType.PublisherEndpoints:
-                            case UADPDiscoveryAnnouncementType.PubSubConnectionsConfiguration:
-                            case UADPDiscoveryAnnouncementType.ApplicationInformation:
-                                // not implemented
-                                break;
-                        }
-                    }
-                    else if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryProbe) != 0)
-                    {
-                        switch ((UADPDiscoveryProbeType)DiscoveryType)
-                        {
-                            case UADPDiscoveryProbeType.PublisherInformationProbe:
-                            case UADPDiscoveryProbeType.FindApplicationsProbe:
-                                // not implemented
-                                break;
-                        }
-                    }
+                    case UADPDiscoveryAnnouncementType.DataSetMetaData:
+                        DataSetWriterId = decoder.ReadUInt16(null);
+                        var metaData = (Opc.Ua.DataSetMetaDataType)decoder.ReadEncodeable(null,
+                            typeof(Opc.Ua.DataSetMetaDataType));
+                        MetaData = metaData.ToServiceModel(context);
+                        // temporary read
+                        var status = decoder.ReadStatusCode(null);
+                        break;
+                    case UADPDiscoveryAnnouncementType.DataSetWriterConfiguration:
+                    case UADPDiscoveryAnnouncementType.PublisherEndpoints:
+                    case UADPDiscoveryAnnouncementType.PubSubConnectionsConfiguration:
+                    case UADPDiscoveryAnnouncementType.ApplicationInformation:
+                        // not implemented
+                        break;
+                }
+            }
+            else if ((ExtendedFlags2 & ExtendedFlags2EncodingMask.DiscoveryProbe) != 0)
+            {
+                switch ((UADPDiscoveryProbeType)DiscoveryType)
+                {
+                    case UADPDiscoveryProbeType.PublisherInformationProbe:
+                    case UADPDiscoveryProbeType.FindApplicationsProbe:
+                        // not implemented
+                        break;
                 }
             }
         }

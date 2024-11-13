@@ -360,11 +360,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             if (!string.IsNullOrEmpty(publishedNodesFile))
             {
-                File.WriteAllText(_publishedNodesFilePath, File.ReadAllText(publishedNodesFile)
+                var pnJson = File.ReadAllText(publishedNodesFile)
                     .Replace("\"{{UseReverseConnect}}\"", useReverseConnect ? "true" : "false", StringComparison.Ordinal)
                     .Replace("{{EndpointUrl}}", EndpointUrl, StringComparison.Ordinal)
                     .Replace("{{SecurityMode}}", (securityMode ?? SecurityMode.None).ToString(), StringComparison.Ordinal)
-                    .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal));
+                    .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
+                File.WriteAllText(_publishedNodesFilePath, pnJson);
             }
         }
 

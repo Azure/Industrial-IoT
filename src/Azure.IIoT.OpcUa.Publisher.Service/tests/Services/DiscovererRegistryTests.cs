@@ -28,192 +28,176 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     public class DiscovererRegistryTests
     {
         [Fact]
-        public async Task GetDiscovererWithMalformedId()
+        public async Task GetDiscovererWithMalformedIdAsync()
         {
             CreateDiscovererFixtures(out _, out _, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<DiscovererRegistry>();
+            });
+            var service = mock.Create<DiscovererRegistry>();
 
-                // Run
-                await Assert.ThrowsAsync<ArgumentException>(
-                    async () => await service.GetDiscovererAsync("test", default));
-            }
+            // Run
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await service.GetDiscovererAsync("test", default));
         }
 
         [Fact]
-        public async Task GetDiscovererThatDoesNotExist()
+        public async Task GetDiscovererThatDoesNotExistAsync()
         {
             CreateDiscovererFixtures(out _, out _, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<DiscovererRegistry>();
+            });
+            var service = mock.Create<DiscovererRegistry>();
 
-                // Run
-                await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    async () => await service.GetDiscovererAsync(HubResource.Format(null, "test", "test"), default));
-            }
+            // Run
+            await Assert.ThrowsAsync<ResourceNotFoundException>(
+                async () => await service.GetDiscovererAsync(HubResource.Format(null, "test", "test"), default));
         }
 
         [Fact]
-        public async Task GetDiscovererThatExists()
+        public async Task GetDiscovererThatExistsAsync()
         {
             CreateDiscovererFixtures(out _, out var discoverers, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<DiscovererRegistry>();
+            });
+            var service = mock.Create<DiscovererRegistry>();
 
-                // Run
-                var result = await service.GetDiscovererAsync(discoverers[0].Id, default);
+            // Run
+            var result = await service.GetDiscovererAsync(discoverers[0].Id, default);
 
-                // Assert
-                Assert.True(result.IsSameAs(discoverers[0]));
-            }
+            // Assert
+            Assert.True(result.IsSameAs(discoverers[0]));
         }
 
         [Fact]
-        public async Task ListAllDiscoverers()
+        public async Task ListAllDiscoverersAsync()
         {
             CreateDiscovererFixtures(out _, out var discoverers, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<DiscovererRegistry>();
+            });
+            var service = mock.Create<DiscovererRegistry>();
 
-                // Run
-                var records = await service.ListDiscoverersAsync(null, null, default);
+            // Run
+            var records = await service.ListDiscoverersAsync(null, null, default);
 
-                // Assert
-                Assert.True(discoverers.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(discoverers.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task ListAllDiscoverersUsingQuery()
+        public async Task ListAllDiscoverersUsingQueryAsync()
         {
             CreateDiscovererFixtures(out _, out var discoverers, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<DiscovererRegistry>();
+            });
+            var service = mock.Create<DiscovererRegistry>();
 
-                // Run
-                var records = await service.QueryDiscoverersAsync(null, null, default);
+            // Run
+            var records = await service.QueryDiscoverersAsync(null, null, default);
 
-                // Assert
-                Assert.True(discoverers.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(discoverers.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task QueryDiscoverersByDiscoveryModeReturnsNothingBecauseUnsupported()
+        public async Task QueryDiscoverersByDiscoveryModeReturnsNothingBecauseUnsupportedAsync()
         {
             CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<DiscovererRegistry>();
+
+            // Run
+            var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
             {
-                var service = mock.Create<DiscovererRegistry>();
+                Discovery = DiscoveryMode.Network
+            }, null, default);
 
-                // Run
-                var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
-                {
-                    Discovery = DiscoveryMode.Network
-                }, null, default);
-
-                // Assert
-                Assert.Empty(records.Items);
-            }
+            // Assert
+            Assert.Empty(records.Items);
         }
 
         [Fact]
-        public async Task QueryDiscoverersBySiteId()
+        public async Task QueryDiscoverersBySiteIdAsync()
         {
             CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<DiscovererRegistry>();
+
+            // Run
+            var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
             {
-                var service = mock.Create<DiscovererRegistry>();
+                SiteId = site
+            }, null, default);
 
-                // Run
-                var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
-                {
-                    SiteId = site
-                }, null, default);
-
-                // Assert
-                Assert.True(discoverers.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(discoverers.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task QueryDiscoverersByNoneExistantSiteId()
+        public async Task QueryDiscoverersByNoneExistantSiteIdAsync()
         {
             CreateDiscovererFixtures(out _, out _, out var modules, true);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<DiscovererRegistry>();
+
+            // Run
+            var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
             {
-                var service = mock.Create<DiscovererRegistry>();
+                SiteId = "test"
+            }, null, default);
 
-                // Run
-                var records = await service.QueryDiscoverersAsync(new DiscovererQueryModel
-                {
-                    SiteId = "test"
-                }, null, default);
-
-                // Assert
-                Assert.Empty(records.Items);
-            }
+            // Assert
+            Assert.Empty(records.Items);
         }
 
         /// <summary>

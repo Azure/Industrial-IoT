@@ -29,16 +29,11 @@
 
 namespace Opc.Ua.Client.ComplexTypes
 {
-    using Opc.Ua.Schema;
-    using Microsoft.Extensions.Logging;
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -116,7 +111,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 return result;
             }
             var (values, errors) = await session.ReadValuesAsync(
-                dictionaryIds.ToList(), ct).ConfigureAwait(false);
+                dictionaryIds, ct).ConfigureAwait(false);
 
             Debug.Assert(dictionaryIds.Count == values.Count);
             Debug.Assert(dictionaryIds.Count == values.Count);
@@ -150,7 +145,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <exception cref="ArgumentNullException">
         /// <paramref name="dictionaryId"/> is <c>null</c>.</exception>
         /// <exception cref="ServiceResultException"></exception>
-        internal async static Task<DataDictionary> LoadAsync(IComplexTypeContext context,
+        internal static async Task<DataDictionary> LoadAsync(IComplexTypeContext context,
             NodeId dictionaryId, string name, byte[]? schema = null,
             IDictionary<string, byte[]>? imports = null, CancellationToken ct = default)
         {

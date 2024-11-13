@@ -29,23 +29,10 @@
 
 namespace Opc.Ua
 {
-    using Opc.Ua.Client;
-    using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-
-    /// <summary>
-    /// Used to handle renews of user identity tokens before reconnect.
-    /// </summary>
-    /// <param name="session"></param>
-    /// <param name="identity"></param>
-    public delegate IUserIdentity RenewUserIdentityEventHandler(
-        ISession session, IUserIdentity identity);
 
     /// <summary>
     /// The client side interface with support for batching according
@@ -54,25 +41,16 @@ namespace Opc.Ua
     public class SessionBase : Opc.Ua.Client.Obsolete.SessionClient
     {
         /// <summary>
+        /// The operation limits are used to batch the service requests.
+        /// </summary>
+        public OperationLimits OperationLimits { get; } = new();
+
+        /// <summary>
         /// Intializes the object with a channel and default operation limits.
         /// </summary>
         /// <param name="channel"></param>
-        public SessionBase(ITransportChannel channel)
-            : base(channel)
+        public SessionBase(ITransportChannel? channel = null) : base(channel)
         {
-            _operationLimits = new OperationLimits();
-        }
-
-        /// <summary>
-        /// The operation limits are used to batch the service requests.
-        /// </summary>
-        public OperationLimits OperationLimits
-        {
-            get => _operationLimits;
-            protected internal set
-            {
-                _operationLimits = value ?? new OperationLimits();
-            }
         }
 
         /// <inheritdoc/>
@@ -864,7 +842,5 @@ namespace Opc.Ua
                 diagnosticInfo = diagnosticInfo.InnerDiagnosticInfo;
             }
         }
-
-        private OperationLimits _operationLimits;
     }
 }

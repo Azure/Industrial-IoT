@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     public class DiscoveryProcessorTests
     {
         [Fact]
-        public async Task ProcessDiscoveryWithNoResultsAndNoExistingApplications()
+        public async Task ProcessDiscoveryWithNoResultsAndNoExistingApplicationsAsync()
         {
             var found = new List<DiscoveryEventModel>();
             var fix = new Fixture();

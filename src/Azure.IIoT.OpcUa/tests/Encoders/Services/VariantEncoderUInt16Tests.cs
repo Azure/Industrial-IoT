@@ -505,6 +505,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);

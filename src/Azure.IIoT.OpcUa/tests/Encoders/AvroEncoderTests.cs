@@ -655,7 +655,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestExpandedNodeIdArray()
         {
             var context = new ServiceMessageContext();
-            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
             var expected = new ExpandedNodeId[] { new(123u, 0, "test.org", srv), new(456u, 0, "test.org", srv) };
             using var stream = new MemoryStream();
@@ -1591,15 +1591,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                 SchemaRank.Collection);
             var schema = valueSchema.CreateRoot();
 
-            using (var stream = new MemoryStream())
-            using (var encoder = new AvroEncoder(stream, schema, context, true))
-            {
-                encoder.WriteVariant(null, expected);
-                stream.Position = 0;
-                using var decoder = new AvroDecoder(stream, schema, context);
-                var variant = decoder.ReadVariant(null);
-                Assert.Equal(expected, variant);
-            }
+            using var stream = new MemoryStream();
+            using var encoder = new AvroEncoder(stream, schema, context, true);
+            encoder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, schema, context);
+            var variant = decoder.ReadVariant(null);
+            Assert.Equal(expected, variant);
         }
 
         [Theory]

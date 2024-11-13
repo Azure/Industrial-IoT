@@ -22,7 +22,7 @@ namespace Opc.Ua.Extensions
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        [return: NotNullIfNotNull("defaultValue")]
+        [return: NotNullIfNotNull(nameof(defaultValue))]
         public static T? GetValueOrDefault<T>(this DataValue dataValue,
             Func<T?, T?> convert, T? defaultValue = default)
         {
@@ -37,7 +37,7 @@ namespace Opc.Ua.Extensions
         /// <param name="dataValue"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        [return: NotNullIfNotNull("defaultValue")]
+        [return: NotNullIfNotNull(nameof(defaultValue))]
         public static T? GetValueOrDefault<T>(this DataValue dataValue,
             T? defaultValue = default)
         {

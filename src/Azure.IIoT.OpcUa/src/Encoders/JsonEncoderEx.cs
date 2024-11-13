@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -1702,7 +1701,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         /// <exception cref="EncodingException"></exception>
-        [return: NotNullIfNotNull("defaultValue")]
+        [return: NotNullIfNotNull(nameof(defaultValue))]
         private static T? ToTypedScalar<T>(object? value, T? defaultValue)
         {
             try

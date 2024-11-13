@@ -95,8 +95,8 @@ namespace Opc.Ua.Client.ComplexTypes
                     isUnionType = true;
                 }
 
-                if (field.TypeName.Namespace == Namespaces.OpcBinarySchema ||
-                    field.TypeName.Namespace == Namespaces.OpcUa)
+                if (field.TypeName.Namespace is Namespaces.OpcBinarySchema or
+                    Namespaces.OpcUa)
                 {
                     if (field.TypeName.Name == "Bit")
                     {
@@ -162,8 +162,8 @@ namespace Opc.Ua.Client.ComplexTypes
                     continue;
                 }
 
-                if (switchFieldBitPosition != 0 &&
-                    switchFieldBitPosition != 32)
+                if (switchFieldBitPosition is not 0 and
+                    not 32)
                 {
                     throw new DataTypeNotSupportedException(
                         "Bitwise option selectors must have 32 bits.");
@@ -325,8 +325,8 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <param name="typeName"></param>
         private static bool IsXmlBitType(this XmlQualifiedName typeName)
         {
-            if (typeName.Namespace == Namespaces.OpcBinarySchema ||
-                typeName.Namespace == Namespaces.OpcUa)
+            if (typeName.Namespace is Namespaces.OpcBinarySchema or
+                Namespaces.OpcUa)
             {
                 if (typeName.Name == "Bit")
                 {
@@ -345,8 +345,8 @@ namespace Opc.Ua.Client.ComplexTypes
         private static NodeId ToNodeId(this XmlQualifiedName typeName,
             Dictionary<XmlQualifiedName, NodeId> typeCollection)
         {
-            if (typeName.Namespace == Namespaces.OpcBinarySchema ||
-                typeName.Namespace == Namespaces.OpcUa)
+            if (typeName.Namespace is Namespaces.OpcBinarySchema or
+                Namespaces.OpcUa)
             {
                 switch (typeName.Name)
                 {

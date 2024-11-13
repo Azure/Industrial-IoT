@@ -61,8 +61,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// </summary>
         /// <param name="name"></param>
         /// <param name="structureDefinition"></param>
-        IComplexTypeFieldBuilder AddStructuredType(
-            QualifiedName name,
+        IComplexTypeFieldBuilder AddStructuredType(QualifiedName name,
             StructureDefinition structureDefinition);
     }
 }

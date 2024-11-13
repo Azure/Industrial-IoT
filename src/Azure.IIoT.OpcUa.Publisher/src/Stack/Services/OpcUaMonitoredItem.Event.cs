@@ -95,28 +95,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Template = template;
             }
 
-            /// <summary>
-            /// Copy constructor
-            /// </summary>
-            /// <param name="item"></param>
-            /// <param name="copyEventHandlers"></param>
-            /// <param name="copyClientHandle"></param>
-            protected Event(Event item, bool copyEventHandlers,
-                bool copyClientHandle)
-                : base(item, copyEventHandlers, copyClientHandle)
-            {
-                Fields = item.Fields;
-                TheResolvedRelativePath = item.TheResolvedRelativePath;
-                Template = item.Template;
-            }
-
-            /// <inheritdoc/>
-            public override MonitoredItem CloneMonitoredItem(
-                bool copyEventHandlers, bool copyClientHandle)
-            {
-                return new Event(this, copyEventHandlers, copyClientHandle);
-            }
-
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
@@ -251,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MonitoringMode = Template.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
-                SamplingInterval = 0;
+                SamplingInterval = TimeSpan.Zero;
                 UpdateQueueSize(subscription, Template);
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
@@ -317,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
-                if (samplingIntervalChanged && Status.SamplingInterval != 0)
+                if (samplingIntervalChanged && Status.SamplingInterval != TimeSpan.Zero)
                 {
                     // Not necessary as sampling interval will likely always stay 0
                     applyChanges |= UpdateQueueSize(Subscription, Template);

@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     ModuleId = _identity?.ModuleId
                 };
 
-                await SendRuntimeStateEvent(body, ct).ConfigureAwait(false);
+                await SendRuntimeStateEventAsync(body, ct).ConfigureAwait(false);
                 _logger.LogInformation("Restart announcement sent successfully.");
             }
 
@@ -391,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="runtimeStateEvent"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task SendRuntimeStateEvent(RuntimeStateEventModel runtimeStateEvent,
+        private async Task SendRuntimeStateEventAsync(RuntimeStateEventModel runtimeStateEvent,
             CancellationToken ct)
         {
             await Task.WhenAll(_events.Select(SendEventAsync)).ConfigureAwait(false);

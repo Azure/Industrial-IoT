@@ -242,12 +242,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var document = new XmlDocument();
             try
             {
-                using (var stream = new StringReader(xmlString))
-                using (var reader = XmlReader.Create(stream,
-                    Opc.Ua.Utils.DefaultXmlReaderSettings()))
-                {
-                    document.Load(reader);
-                }
+                using var stream = new StringReader(xmlString);
+                using var reader = XmlReader.Create(stream,
+                    Opc.Ua.Utils.DefaultXmlReaderSettings());
+                document.Load(reader);
             }
             catch (XmlException ex)
             {
@@ -275,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }
-            return ReadNodeId((ushort)namespaceIndex);
+            return ReadNodeId(namespaceIndex);
         }
 
         /// <inheritdoc/>

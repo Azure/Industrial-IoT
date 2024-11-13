@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task QuerySupervisorsBySiteId()
+        public async Task QuerySupervisorsBySiteIdAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 

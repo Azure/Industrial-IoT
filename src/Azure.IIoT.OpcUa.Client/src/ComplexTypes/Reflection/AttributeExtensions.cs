@@ -104,7 +104,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var builder = new CustomAttributeBuilder(
                 ctorInfo,
                 Array.Empty<object>(),  // constructor arguments
-                new []           // properties to assign
+                new[]           // properties to assign
                 {
                     attributeType.GetProperty("DefaultEncodingId")!,
                     attributeType.GetProperty("BaseDataType")!,
@@ -201,10 +201,8 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             string Name, int Value)
         {
             var attributeType = typeof(EnumMemberAttribute);
-            var ctorParams = new Type[] { typeof(string) };
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes)!;
-            var builder = new CustomAttributeBuilder(
-                ctorInfo,
+            var builder = new CustomAttributeBuilder(ctorInfo,
                 Array.Empty<object>(),  // constructor arguments
                 new[]           // properties to assign
                 {
@@ -290,8 +288,8 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var builtInType = (BuiltInType)Enum.ToObject(typeof(BuiltInType),
                 datatypeId.Identifier);
 
-            if (builtInType <= BuiltInType.DiagnosticInfo ||
-                builtInType == BuiltInType.Enumeration)
+            if (builtInType is <= BuiltInType.DiagnosticInfo or
+                BuiltInType.Enumeration)
             {
                 return builtInType;
             }

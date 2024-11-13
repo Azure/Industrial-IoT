@@ -32,9 +32,7 @@ namespace Opc.Ua.Client
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -178,14 +176,14 @@ namespace Opc.Ua.Client
         /// <param name="serverUri"></param>
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public async Task<ITransportWaitingConnection> WaitForConnection(
+        public async Task<ITransportWaitingConnection> WaitForConnectionAsync(
             Uri endpointUrl, string? serverUri, CancellationToken ct = default)
         {
             var tcs = new TaskCompletionSource<ITransportWaitingConnection>();
             var hashCode = RegisterWaitingConnection(endpointUrl, serverUri,
                 (_, e) => tcs.TrySetResult(e), ReverseConnectStrategy.Once);
 
-            Func<Task> listenForCancelTaskFnc = async () =>
+            async Task listenForCancelTaskFnc()
             {
                 if (ct == default)
                 {
@@ -199,7 +197,7 @@ namespace Opc.Ua.Client
                         scheduler: TaskScheduler.Current).ConfigureAwait(false);
                 }
                 tcs.TrySetCanceled();
-            };
+            }
 
             await Task.WhenAny(new Task[] {
                 tcs.Task,
@@ -365,7 +363,7 @@ namespace Opc.Ua.Client
             try
             {
                 _endpointUrls[endpointUrl] = info;
-                reverseConnectHost.CreateListener(endpointUrl, OnConnectionWaiting,
+                reverseConnectHost.CreateListener(endpointUrl, OnConnectionWaitingAsync,
                     OnConnectionStatusChanged);
             }
             catch (ArgumentException ae)
@@ -382,7 +380,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async Task OnConnectionWaiting(object sender, ConnectionWaitingEventArgs e)
+        private async Task OnConnectionWaitingAsync(object sender, ConnectionWaitingEventArgs e)
         {
             var startTime = HiResClock.TickCount;
             var endTime = startTime + _configuration.HoldTime;
@@ -442,10 +440,10 @@ namespace Opc.Ua.Client
                     .Where(r => (r.Strategy & ReverseConnectStrategy.Any) == 0))
                 {
                     if (registration.EndpointUrl.Scheme.Equals(e.EndpointUrl.Scheme,
-                            StringComparison.InvariantCulture) &&
+                            StringComparison.Ordinal) &&
                        (registration.ServerUri == e.ServerUri ||
                         registration.EndpointUrl.Authority.Equals(e.EndpointUrl.Authority,
-                            StringComparison.InvariantCulture)))
+                            StringComparison.Ordinal)))
                     {
                         callbackRegistration = registration;
                         e.Accepted = true;
@@ -464,7 +462,7 @@ namespace Opc.Ua.Client
                         .Where(r => (r.Strategy & ReverseConnectStrategy.Any) != 0))
                     {
                         if (registration.EndpointUrl.Scheme.Equals(
-                            e.EndpointUrl.Scheme, StringComparison.InvariantCulture))
+                            e.EndpointUrl.Scheme, StringComparison.Ordinal))
                         {
                             callbackRegistration = registration;
                             e.Accepted = true;

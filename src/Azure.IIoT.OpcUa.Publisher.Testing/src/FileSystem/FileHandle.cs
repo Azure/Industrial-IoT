@@ -17,8 +17,9 @@ namespace FileSystem
     /// <param name="NodeId"></param>
     public sealed record FileHandle(ParsedNodeId NodeId) : IDisposable
     {
-        bool IsOpenForWrite => _write != null;
-        bool IsOpenForRead => _reads.Count > 0;
+        private bool IsOpenForWrite => _write != null;
+
+        private bool IsOpenForRead => _reads.Count > 0;
 
         /// <summary>
         /// Length

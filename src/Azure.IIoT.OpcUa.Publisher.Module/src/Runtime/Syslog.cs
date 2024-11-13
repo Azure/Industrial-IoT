@@ -56,8 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 return;
             }
-            var messageBuilder = new StringBuilder(_initialLength)
-                .Append(_syslogMap[(int)logEntry.LogLevel])
+            var messageBuilder = new StringBuilder(kInitialLength)
+                .Append(kSyslogMap[(int)logEntry.LogLevel])
                 .Append(DateTimeOffset.UtcNow.ToString(_timestampFormat, CultureInfo.InvariantCulture));
             if (_includeScopes && scopeProvider != null && !string.IsNullOrEmpty(_serviceId))
             {
@@ -81,12 +81,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             _optionsReloadToken?.Dispose();
         }
 
-        private const int _initialLength = 256;
+        private const int kInitialLength = 256;
 
         /// <summary>
         /// Map of <see cref="LogLevel"/> to syslog severity.
         /// </summary>
-        private static readonly string[] _syslogMap = new[]
+        private static readonly string[] kSyslogMap = new[]
         {
             /* Trace */ "<7>",
             /* Debug */ "<7>",

@@ -44,10 +44,10 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// <param name="assemblyName"></param>
         public AssemblyModule(string? assemblyName = null)
         {
-            m_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
+            _assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
                 new AssemblyName(assemblyName ?? Guid.NewGuid().ToString()),
                 AssemblyBuilderAccess.Run);
-            ModuleBuilder = m_assemblyBuilder.DefineDynamicModule(kOpcTypesModuleName);
+            ModuleBuilder = _assemblyBuilder.DefineDynamicModule(kOpcTypesModuleName);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// </summary>
         public ModuleBuilder ModuleBuilder { get; }
 
-        private readonly AssemblyBuilder m_assemblyBuilder;
+        private readonly AssemblyBuilder _assemblyBuilder;
         private const string kOpcTypesModuleName = "Opc.Ua.ComplexTypes.Module";
     }
 }

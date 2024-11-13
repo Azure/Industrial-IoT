@@ -79,8 +79,8 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             setIl.Emit(OpCodes.Ldarg_0);
             setIl.Emit(OpCodes.Ldarg_1);
             setIl.Emit(OpCodes.Stfld, fieldBuilder);
-            if (_structureType == StructureType.Union ||
-                _structureType == StructureType.UnionWithSubtypedValues)
+            if (_structureType is StructureType.Union or
+                StructureType.UnionWithSubtypedValues)
             {
                 // set the union selector to the new field index
                 var unionField = typeof(UnionComplexType).GetField(

@@ -176,6 +176,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 

@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 }
                 if (pubSubMessage is JsonNetworkMessage message)
                 {
-                    foreach (JsonDataSetMessage dataSetMessage in message.Messages)
+                    foreach (var dataSetMessage in message.Messages.Cast<JsonDataSetMessage>())
                     {
                         var dataset = new DataSetMessageModel
                         {

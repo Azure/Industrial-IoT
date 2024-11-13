@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Json.More;
-    using Microsoft.VisualStudio.TestPlatform.Utilities;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -27,11 +26,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task RestartServerTest()
+        public async Task RestartServerTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(RestartServerTest);
+            const string name = nameof(RestartServerTestAsync);
             StartPublisher(name, "./Resources/Fixedvalue.json",
                 arguments: new string[] { "--mm=PubSub", "--dm=false" }, keepAliveInterval: 1);
             try
@@ -46,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 AssertFixedValueMessage(message);
                 Assert.NotNull(metadata);
 
-                await server.RestartAsync(WaitUntilDisconnected);
+                await server.RestartAsync(WaitUntilDisconnectedAsync);
                 _output.WriteLine("Restarted server");
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
@@ -64,11 +63,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task RestartServerWithHeartbeatTest()
+        public async Task RestartServerWithHeartbeatTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(RestartServerWithHeartbeatTest);
+            const string name = nameof(RestartServerWithHeartbeatTestAsync);
             StartPublisher(name, "./Resources/Heartbeat2.json",
                 arguments: new string[] { "--mm=PubSub", "--dm=false", "--bs=1" }, keepAliveInterval: 1);
             try
@@ -82,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var message = Assert.Single(messages).Message;
                 Assert.NotNull(metadata);
 
-                await server.RestartAsync(WaitUntilDisconnected);
+                await server.RestartAsync(WaitUntilDisconnectedAsync);
                 _output.WriteLine("Restarted server");
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1000,
@@ -104,11 +103,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task RestartServerWithCyclicReadTest()
+        public async Task RestartServerWithCyclicReadTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(RestartServerWithCyclicReadTest);
+            const string name = nameof(RestartServerWithCyclicReadTestAsync);
             StartPublisher(name, "./Resources/CyclicRead.json",
                 arguments: new string[] { "--mm=PubSub", "--dm=false" }, keepAliveInterval: 1);
             try
@@ -122,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var message = Assert.Single(messages).Message;
                 Assert.NotNull(metadata);
 
-                await server.RestartAsync(WaitUntilDisconnected);
+                await server.RestartAsync(WaitUntilDisconnectedAsync);
                 _output.WriteLine("Restarted server");
 
                 (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(10), 1000,
@@ -140,12 +139,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task SwitchServerWithSameWriterGroupTest()
+        public async Task SwitchServerWithSameWriterGroupTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
 
-            const string name = nameof(SwitchServerWithSameWriterGroupTest);
+            const string name = nameof(SwitchServerWithSameWriterGroupTestAsync);
             StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
@@ -205,11 +204,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task SwitchServerWithDifferentWriterGroupTest()
+        public async Task SwitchServerWithDifferentWriterGroupTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(SwitchServerWithDifferentWriterGroupTest);
+            const string name = nameof(SwitchServerWithDifferentWriterGroupTestAsync);
             StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
@@ -236,7 +235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 old.Dispose();
 
                 // Point to new server
-                const string name2 = nameof(SwitchServerWithDifferentWriterGroupTest) + "new";
+                const string name2 = nameof(SwitchServerWithDifferentWriterGroupTestAsync) + "new";
                 WritePublishedNodes(name2, "./Resources/DataItems2.json");
 
                 // Now we should have torn down the other subscription
@@ -275,12 +274,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(true, 100)]
         [InlineData(false, 1)]
         [InlineData(true, 1)]
-        public async Task AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod(bool differentPublishingInterval,
+        public async Task AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethodAsync(bool differentPublishingInterval,
             int maxMonitoredItems)
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethod);
+            const string name = nameof(AddNodeToDataSetWriterGroupWithNodeUsingDeviceMethodAsync);
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
             var testInput2 = GetEndpointsFromFile(name, "./Resources/DataItems2.json");
             if (!differentPublishingInterval)
@@ -348,11 +347,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task SwitchServerWithDifferentDataTest()
+        public async Task SwitchServerWithDifferentDataTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(SwitchServerWithDifferentDataTest);
+            const string name = nameof(SwitchServerWithDifferentDataTestAsync);
             StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
             try
             {
@@ -414,11 +413,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task SwitchSecuritySettingsTest()
+        public async Task SwitchSecuritySettingsTestAsync()
         {
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
-            const string name = nameof(SwitchSecuritySettingsTest);
+            const string name = nameof(SwitchSecuritySettingsTestAsync);
             StartPublisher(name, "./Resources/Fixedvalue.json", arguments: new string[] { "--mm=PubSub", "--dm=false", "--aa" },
                 securityMode: Models.SecurityMode.SignAndEncrypt);
             try
@@ -471,13 +470,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task RestartConfigurationTest()
+        public async Task RestartConfigurationTestAsync()
         {
             using var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             for (var cycles = 0; cycles < 3; cycles++)
             {
-                const string name = nameof(RestartConfigurationTest);
+                const string name = nameof(RestartConfigurationTestAsync);
                 StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
                 try
                 {
@@ -485,7 +484,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     // Act
                     await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(5), 1, messageType: "ua-data");
 
-                    const string name2 = nameof(RestartConfigurationTest) + "new";
+                    const string name2 = nameof(RestartConfigurationTestAsync) + "new";
                     WritePublishedNodes(name2, "./Resources/DataItems2.json");
                     var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                     for (var i = 0; i < 60 &&
@@ -519,7 +518,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             return default;
         }
 
-        private async Task WaitUntilDisconnected()
+        private async Task WaitUntilDisconnectedAsync()
         {
             using var cts = new CancellationTokenSource(60000);
             while (true)

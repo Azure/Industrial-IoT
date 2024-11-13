@@ -446,34 +446,32 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var chunks = new List<Message>();
             while (stream.Position != stream.Length)
             {
-                using (var binaryDecoder = new Opc.Ua.BinaryDecoder(stream, context))
+                using var binaryDecoder = new Opc.Ua.BinaryDecoder(stream, context);
+                ReadNetworkMessageHeaderFlags(binaryDecoder);
+
+                // decode network message header according to the header flags
+                if (!TryReadNetworkMessageHeader(binaryDecoder, chunks.Count == 0))
                 {
-                    ReadNetworkMessageHeaderFlags(binaryDecoder);
-
-                    // decode network message header according to the header flags
-                    if (!TryReadNetworkMessageHeader(binaryDecoder, chunks.Count == 0))
-                    {
-                        return false;
-                    }
-
-                    var buffers = ReadPayload(binaryDecoder, chunks).ToArray();
-
-                    ReadSecurityFooter(binaryDecoder);
-                    ReadSignature(binaryDecoder);
-
-                    // Processing completed
-                    if (buffers.Length != 0 || chunks.Count == 0)
-                    {
-                        if (buffers.Length > 0)
-                        {
-                            DecodePayloadChunks(context, buffers, resolver);
-                            // Process all messages in the buffer
-                        }
-                        break;
-                    }
-                    // Still not processed all chunks, continue reading
-                    continue;
+                    return false;
                 }
+
+                var buffers = ReadPayload(binaryDecoder, chunks).ToArray();
+
+                ReadSecurityFooter(binaryDecoder);
+                ReadSignature(binaryDecoder);
+
+                // Processing completed
+                if (buffers.Length != 0 || chunks.Count == 0)
+                {
+                    if (buffers.Length > 0)
+                    {
+                        DecodePayloadChunks(context, buffers, resolver);
+                        // Process all messages in the buffer
+                    }
+                    break;
+                }
+                // Still not processed all chunks, continue reading
+                continue;
             }
             return true;
         }
@@ -485,35 +483,33 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var chunks = new List<Message>();
             while (reader.TryPeek(out var buffer))
             {
-                using (var binaryDecoder = new Opc.Ua.BinaryDecoder(buffer.ToArray(), context))
+                using var binaryDecoder = new Opc.Ua.BinaryDecoder(buffer.ToArray(), context);
+                ReadNetworkMessageHeaderFlags(binaryDecoder);
+
+                // decode network message header according to the header flags
+                if (!TryReadNetworkMessageHeader(binaryDecoder, chunks.Count == 0))
                 {
-                    ReadNetworkMessageHeaderFlags(binaryDecoder);
-
-                    // decode network message header according to the header flags
-                    if (!TryReadNetworkMessageHeader(binaryDecoder, chunks.Count == 0))
-                    {
-                        return false;
-                    }
-
-                    var buffers = ReadPayload(binaryDecoder, chunks).ToArray();
-
-                    ReadSecurityFooter(binaryDecoder);
-                    ReadSignature(binaryDecoder);
-
-                    // Processing completed
-                    reader.Dequeue();
-                    if (buffers.Length != 0 || chunks.Count == 0)
-                    {
-                        if (buffers.Length > 0)
-                        {
-                            DecodePayloadChunks(context, buffers, resolver);
-                            // Process all messages in the buffer
-                        }
-                        break;
-                    }
-                    // Still not processed all chunks, continue reading
-                    continue;
+                    return false;
                 }
+
+                var buffers = ReadPayload(binaryDecoder, chunks).ToArray();
+
+                ReadSecurityFooter(binaryDecoder);
+                ReadSignature(binaryDecoder);
+
+                // Processing completed
+                reader.Dequeue();
+                if (buffers.Length != 0 || chunks.Count == 0)
+                {
+                    if (buffers.Length > 0)
+                    {
+                        DecodePayloadChunks(context, buffers, resolver);
+                        // Process all messages in the buffer
+                    }
+                    break;
+                }
+                // Still not processed all chunks, continue reading
+                continue;
             }
             return true;
         }
@@ -537,70 +533,66 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                 var networkMessageNumber = NetworkMessageNumber++;
 
-                using (var stream = Memory.GetStream())
+                using var stream = Memory.GetStream();
+                using var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true);
+                //
+                // Try to write all unless we are writing chunk messages.
+                // Write span is the span of chunks that should go into
+                // the current message. We start with all remaining chunks
+                // and then limit it when trying to write payload.
+                //
+                var writeSpan = remainingChunks;
+
+                //
+                // There is a maximum of 256 messages per network message
+                // due to the payload header count field being just a byte.
+                //
+                if (writeSpan.Length > byte.MaxValue)
                 {
-                    using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
-                    {
-                        //
-                        // Try to write all unless we are writing chunk messages.
-                        // Write span is the span of chunks that should go into
-                        // the current message. We start with all remaining chunks
-                        // and then limit it when trying to write payload.
-                        //
-                        var writeSpan = remainingChunks;
-
-                        //
-                        // There is a maximum of 256 messages per network message
-                        // due to the payload header count field being just a byte.
-                        //
-                        if (writeSpan.Length > byte.MaxValue)
-                        {
-                            writeSpan = writeSpan[..byte.MaxValue];
-                        }
-#if DEBUG
-                        var remaining = remainingChunks.Length;
-#endif
-                        while (true)
-                        {
-                            WriteNetworkMessageHeaderFlags(encoder, isChunkMessage);
-
-                            WriteGroupMessageHeader(encoder, networkMessageNumber);
-                            WritePayloadHeader(encoder, writeSpan, isChunkMessage);
-                            WriteExtendedNetworkMessageHeader(encoder);
-                            WriteSecurityHeader(encoder);
-
-                            if (!TryWritePayload(encoder, maxChunkSize, ref writeSpan,
-                                ref remainingChunks, ref isChunkMessage))
-                            {
-                                encoder.Position = 0; // Restart writing
-                                continue;
-                            }
-
-                            WriteSecurityFooter(encoder);
-                            WriteSignature(encoder);
-#if DEBUG
-                            //
-                            // Now remaining chunks should be equal (in case we are
-                            // writing a chunk message) or less than when we started.
-                            //
-                            Debug.Assert(
-                                (isChunkMessage && remaining == remainingChunks.Length) ||
-                                (!isChunkMessage && remaining > remainingChunks.Length));
-#endif
-                            break;
-                        }
-                        stream.SetLength(encoder.Position);
-
-                        var messageBuffer = stream.GetReadOnlySequence();
-
-                        // TODO: instead of copy using ToArray we shall include the
-                        // stream with the message and dispose it later when it is
-                        // consumed. To get here the bug in BinaryEncoder that it
-                        // disposes the underlying stream even if leaveOpen: true
-                        // is set must be fixed.
-                        messages.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
-                    }
+                    writeSpan = writeSpan[..byte.MaxValue];
                 }
+#if DEBUG
+                var remaining = remainingChunks.Length;
+#endif
+                while (true)
+                {
+                    WriteNetworkMessageHeaderFlags(encoder, isChunkMessage);
+
+                    WriteGroupMessageHeader(encoder, networkMessageNumber);
+                    WritePayloadHeader(encoder, writeSpan, isChunkMessage);
+                    WriteExtendedNetworkMessageHeader(encoder);
+                    WriteSecurityHeader(encoder);
+
+                    if (!TryWritePayload(encoder, maxChunkSize, ref writeSpan,
+                        ref remainingChunks, ref isChunkMessage))
+                    {
+                        encoder.Position = 0; // Restart writing
+                        continue;
+                    }
+
+                    WriteSecurityFooter(encoder);
+                    WriteSignature(encoder);
+#if DEBUG
+                    //
+                    // Now remaining chunks should be equal (in case we are
+                    // writing a chunk message) or less than when we started.
+                    //
+                    Debug.Assert(
+                        (isChunkMessage && remaining == remainingChunks.Length) ||
+                        (!isChunkMessage && remaining > remainingChunks.Length));
+#endif
+                    break;
+                }
+                stream.SetLength(encoder.Position);
+
+                var messageBuffer = stream.GetReadOnlySequence();
+
+                // TODO: instead of copy using ToArray we shall include the
+                // stream with the message and dispose it later when it is
+                // consumed. To get here the bug in BinaryEncoder that it
+                // disposes the underlying stream even if leaveOpen: true
+                // is set must be fixed.
+                messages.Add(new ReadOnlySequence<byte>(messageBuffer.ToArray()));
             }
             while (remainingChunks.Length > 0);
 
@@ -641,39 +633,35 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             IReadOnlyList<byte[]> buffers, IDataSetMetaDataResolver? resolver)
         {
             var payloadLength = buffers.Sum(b => b.Length);
-            using (var stream = new RecyclableMemoryStream(Memory, Guid.NewGuid(),
-                PublisherId + _sequenceNumber, payloadLength))
+            using var stream = new RecyclableMemoryStream(Memory, Guid.NewGuid(),
+                PublisherId + _sequenceNumber, payloadLength);
+            foreach (var buffer in buffers)
             {
-                foreach (var buffer in buffers)
+                stream.Write(buffer);
+            }
+            stream.Position = 0;
+            using var decoder = new Opc.Ua.BinaryDecoder(stream, context);
+            foreach (var message in Messages.Cast<UadpDataSetMessage>())
+            {
+                if (!message.TryDecode(decoder, resolver))
                 {
-                    stream.Write(buffer);
+                    return;
                 }
-                stream.Position = 0;
-                using (var decoder = new Opc.Ua.BinaryDecoder(stream, context))
+            }
+            //
+            // Read remaining messages from buffer if possible.
+            // This is the case if the payload header was missing
+            // and we must use the data set message decoder to
+            // sort out the offset and lengths of the encoding.
+            //
+            while (decoder.Position < payloadLength)
+            {
+                var extra = new UadpDataSetMessage();
+                if (!extra.TryDecode(decoder, resolver))
                 {
-                    foreach (UadpDataSetMessage message in Messages)
-                    {
-                        if (!message.TryDecode(decoder, resolver))
-                        {
-                            return;
-                        }
-                    }
-                    //
-                    // Read remaining messages from buffer if possible.
-                    // This is the case if the payload header was missing
-                    // and we must use the data set message decoder to
-                    // sort out the offset and lengths of the encoding.
-                    //
-                    while (decoder.Position < payloadLength)
-                    {
-                        var extra = new UadpDataSetMessage();
-                        if (!extra.TryDecode(decoder, resolver))
-                        {
-                            break;
-                        }
-                        Messages.Add(extra);
-                    }
+                    break;
                 }
+                Messages.Add(extra);
             }
         }
 
@@ -690,20 +678,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             for (var i = 0; i < Messages.Count; i++)
             {
                 var message = (UadpDataSetMessage)Messages[i];
-                using (var stream = Memory.GetStream())
-                {
-                    using (var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true))
-                    {
-                        message.Encode(encoder, resolver);
+                using var stream = Memory.GetStream();
+                using var encoder = new Opc.Ua.BinaryEncoder(stream, context, leaveOpen: true);
+                message.Encode(encoder, resolver);
 
-                        // TODO: instead of copy using ToArray we shall include the
-                        // stream with the message and dispose it later when it is
-                        // consumed. To get here the bug in BinaryEncoder that it
-                        // disposes the underlying stream even if leaveOpen: true
-                        // is set must be fixed.
-                        chunks[i] = new Message(stream.ToArray(), message.DataSetWriterId);
-                    }
-                }
+                // TODO: instead of copy using ToArray we shall include the
+                // stream with the message and dispose it later when it is
+                // consumed. To get here the bug in BinaryEncoder that it
+                // disposes the underlying stream even if leaveOpen: true
+                // is set must be fixed.
+                chunks[i] = new Message(stream.ToArray(), message.DataSetWriterId);
             }
             return chunks;
         }

@@ -460,10 +460,7 @@ namespace MemoryBuffer
             IMonitoredItem monitoredItem,
             out bool processed)
         {
-            processed = false;
-
             // check for valid handle.
-
             if (monitoredItem.ManagerHandle is not MemoryBufferState buffer)
             {
                 return base.DeleteMonitoredItem(
@@ -501,8 +498,6 @@ namespace MemoryBuffer
             MonitoringMode monitoringMode,
             out bool processed)
         {
-            processed = false;
-
             // check for valid handle.
 
             if (monitoredItem.ManagerHandle is not MemoryBufferState buffer)

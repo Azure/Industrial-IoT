@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     public class RuntimeStateReporterTests
     {
         [Fact]
-        public async Task ReportingDisabledTest()
+        public async Task ReportingDisabledTestAsync()
         {
             var client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task ClientNotInitializedTest()
+        public async Task ClientNotInitializedTestAsync()
         {
             var client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task ReportingTest()
+        public async Task ReportingTestAsync()
         {
             var _client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();

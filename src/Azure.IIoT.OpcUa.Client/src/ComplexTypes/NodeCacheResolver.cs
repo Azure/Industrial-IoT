@@ -61,7 +61,7 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         /// <inheritdoc/>
-        public async Task<Dictionary<NodeId, DataDictionary>> LoadDataTypeSystem(
+        public async Task<Dictionary<NodeId, DataDictionary>> LoadDataTypeSystemAsync(
             NodeId? dataTypeSystem = null, CancellationToken ct = default)
         {
             if (dataTypeSystem == null)
@@ -93,7 +93,7 @@ namespace Opc.Ua.Client.ComplexTypes
 
             // find namespace properties
             var namespaceReferences = await _context.NodeCache.FindReferencesAsync(
-                referenceNodeIds, new [] { ReferenceTypeIds.HasProperty },
+                referenceNodeIds, new[] { ReferenceTypeIds.HasProperty },
                 false, false, ct).ConfigureAwait(false);
             var namespaceNodes = namespaceReferences
                 .Where(n => n.BrowseName == BrowseNames.NamespaceUri)
@@ -120,7 +120,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 if (StatusCode.IsNotBad(errors[ii].StatusCode) &&
                     nameSpaceValues[ii]?.Value is string ns)
                 {
-                    namespaces[(NodeId)referenceNodeIds[ii]] = ns;
+                    namespaces[referenceNodeIds[ii]] = ns;
                 }
                 else
                 {
@@ -182,7 +182,7 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         /// <inheritdoc/>
-        internal async Task<IList<NodeId>> BrowseForEncodingsAsync(
+        internal async Task<IReadOnlyList<NodeId>> BrowseForEncodingsAsync(
             IReadOnlyList<ExpandedNodeId> nodeIds, string[] supportedEncodings,
             CancellationToken ct)
         {
@@ -191,7 +191,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 .Select(nodeId => ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris))
                 .ToList();
             var encodings = await _context.NodeCache.FindReferencesAsync(
-                source, new [] { ReferenceTypeIds.HasEncoding },
+                source, new[] { ReferenceTypeIds.HasEncoding },
                 false, false, ct).ConfigureAwait(false);
 
             // cache dictionary descriptions
@@ -199,7 +199,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, _context.NamespaceUris))
                 .ToList();
             var descriptions = await _context.NodeCache.FindReferencesAsync(
-                source, new [] { ReferenceTypeIds.HasDescription },
+                source, new[] { ReferenceTypeIds.HasDescription },
                 false, false, ct).ConfigureAwait(false);
             return encodings
                 .Where(r => supportedEncodings.Contains(r.BrowseName.Name))
@@ -209,7 +209,7 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         /// <inheritdoc/>
-        internal async Task<(IList<NodeId> encodings, ExpandedNodeId binaryEncodingId,
+        internal async Task<(IReadOnlyList<NodeId> encodings, ExpandedNodeId binaryEncodingId,
             ExpandedNodeId xmlEncodingId)> BrowseForEncodingsAsync(ExpandedNodeId nodeId,
             string[] supportedEncodings, CancellationToken ct = default)
         {
@@ -260,7 +260,7 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         /// <inheritdoc/>
-        public async Task<IList<INode>> LoadDataTypesAsync(
+        public async Task<IReadOnlyList<INode>> LoadDataTypesAsync(
             ExpandedNodeId dataType, bool nestedSubTypes = false,
             bool addRootNode = false, bool filterUATypes = true,
             CancellationToken ct = default)
@@ -288,7 +288,7 @@ namespace Opc.Ua.Client.ComplexTypes
             while (nodesToBrowse.Count > 0)
             {
                 var response = await _context.NodeCache.FindReferencesAsync(
-                    nodesToBrowse, new []
+                    nodesToBrowse, new[]
                     {
                         ReferenceTypeIds.HasSubtype
                     },

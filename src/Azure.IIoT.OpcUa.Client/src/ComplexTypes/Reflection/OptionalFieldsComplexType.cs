@@ -30,7 +30,6 @@
 namespace Opc.Ua.Client.ComplexTypes.Reflection
 {
     using System;
-    using System.Collections.Generic;
     using System.Text;
 
     /// <summary>

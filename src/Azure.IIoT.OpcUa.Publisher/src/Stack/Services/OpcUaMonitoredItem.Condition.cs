@@ -55,33 +55,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _conditionHandlingState = new ConditionHandlingState();
             }
 
-            /// <summary>
-            /// Copy constructor
-            /// </summary>
-            /// <param name="item"></param>
-            /// <param name="copyEventHandlers"></param>
-            /// <param name="copyClientHandle"></param>
-            private Condition(Condition item, bool copyEventHandlers,
-                bool copyClientHandle)
-                : base(item, copyEventHandlers, copyClientHandle)
-            {
-                _snapshotInterval = item._snapshotInterval;
-                _updateInterval = item._updateInterval;
-                _conditionHandlingState = item._conditionHandlingState;
-                _lastSentPendingConditions = item._lastSentPendingConditions;
-                if (item.TimerEnabled)
-                {
-                    EnableConditionTimer();
-                }
-            }
-
-            /// <inheritdoc/>
-            public override MonitoredItem CloneMonitoredItem(
-                bool copyEventHandlers, bool copyClientHandle)
-            {
-                return new Condition(this, copyEventHandlers, copyClientHandle);
-            }
-
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {

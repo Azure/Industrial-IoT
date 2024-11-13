@@ -73,6 +73,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return hash.ToHashCode();
         }
 
-        internal const string kMessageTypeName = "NetworkMessage";
+        internal const string MessageTypeName = "NetworkMessage";
     }
 }

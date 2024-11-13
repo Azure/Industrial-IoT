@@ -27,28 +27,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     public class EndpointRegistryTests
     {
         [Fact]
-        public async Task GetTwinThatDoesNotExist()
+        public async Task GetTwinThatDoesNotExistAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<ApplicationRegistry>();
+            });
+            var service = mock.Create<ApplicationRegistry>();
 
-                // Assert
-                await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    async () => await service.GetEndpointAsync("test", false, default));
-            }
+            // Assert
+            await Assert.ThrowsAsync<ResourceNotFoundException>(
+                async () => await service.GetEndpointAsync("test", false, default));
         }
 
         [Fact]
-        public async Task GetTwinThatExists()
+        public async Task GetTwinThatExistsAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
             var first = endpoints[0];
@@ -56,175 +54,161 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 first.Registration.EndpointUrl, first.Registration.Endpoint.SecurityMode,
                 first.Registration.Endpoint.SecurityPolicy);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<ApplicationRegistry>();
+            });
+            var service = mock.Create<ApplicationRegistry>();
 
-                // Run
-                var result = await service.GetEndpointAsync(id, false, default);
+            // Run
+            var result = await service.GetEndpointAsync(id, false, default);
 
-                // Assert
-                Assert.True(result.IsSameAs(endpoints[0]));
-            }
+            // Assert
+            Assert.True(result.IsSameAs(endpoints[0]));
         }
 
         [Fact]
-        public async Task ListAllTwins()
+        public async Task ListAllTwinsAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<ApplicationRegistry>();
+            });
+            var service = mock.Create<ApplicationRegistry>();
 
-                // Run
-                var records = await service.ListEndpointsAsync(null, false, null, default);
+            // Run
+            var records = await service.ListEndpointsAsync(null, false, null, default);
 
-                // Assert
-                Assert.True(endpoints.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(endpoints.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task ListAllTwinsUsingQuery()
+        public async Task ListAllTwinsUsingQueryAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<ApplicationRegistry>();
+            });
+            var service = mock.Create<ApplicationRegistry>();
 
-                // Run
-                var records = await service.QueryEndpointsAsync(null, false, null, default);
+            // Run
+            var records = await service.QueryEndpointsAsync(null, false, null, default);
 
-                // Assert
-                Assert.True(endpoints.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(endpoints.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task QueryTwinsBySignSecurityMode()
+        public async Task QueryTwinsBySignSecurityModeAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
             var count = endpoints.Count(x => x.Registration.Endpoint.SecurityMode == SecurityMode.Sign);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<ApplicationRegistry>();
+
+            // Run
+            var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
             {
-                var service = mock.Create<ApplicationRegistry>();
+                SecurityMode = SecurityMode.Sign
+            }, false, null, default);
 
-                // Run
-                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
-                {
-                    SecurityMode = SecurityMode.Sign
-                }, false, null, default);
-
-                // Assert
-                Assert.Equal(count, records.Items.Count);
-            }
+            // Assert
+            Assert.Equal(count, records.Items.Count);
         }
 
         [Fact]
-        public async Task QueryTwinsBySecurityPolicySameCase()
+        public async Task QueryTwinsBySecurityPolicySameCaseAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<ApplicationRegistry>();
+
+            // Run
+            var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
             {
-                var service = mock.Create<ApplicationRegistry>();
+                SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy
+            }, false, null, default);
 
-                // Run
-                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
-                {
-                    SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy
-                }, false, null, default);
-
-                // Assert
-                Assert.True(records.Items.Count >= 1);
-                Assert.True(records.Items[0].IsSameAs(endpoints[0]));
-            }
+            // Assert
+            Assert.True(records.Items.Count >= 1);
+            Assert.True(records.Items[0].IsSameAs(endpoints[0]));
         }
 
         [Fact]
-        public async Task QueryTwinsBySecurityPolicyDifferentCase()
+        public async Task QueryTwinsBySecurityPolicyDifferentCaseAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<ApplicationRegistry>();
+
+            // Run
+            var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
             {
-                var service = mock.Create<ApplicationRegistry>();
+                SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy.ToUpperInvariant()
+            }, false, null, default);
 
-                // Run
-                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
-                {
-                    SecurityPolicy = endpoints[0].Registration.Endpoint.SecurityPolicy.ToUpperInvariant()
-                }, false, null, default);
-
-                // Assert
-                Assert.Empty(records.Items);
-            }
+            // Assert
+            Assert.Empty(records.Items);
         }
 
         [Fact]
-        public async Task QueryTwinsByEndpointUrlDifferentCase()
+        public async Task QueryTwinsByEndpointUrlDifferentCaseAsync()
         {
             CreateEndpointFixtures(out var site, out var super, out var endpoints, out var devices);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(devices, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<ApplicationRegistry>();
+
+            // Run
+            var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
             {
-                var service = mock.Create<ApplicationRegistry>();
+                Url = endpoints[0].Registration.Endpoint.Url.ToUpperInvariant()
+            }, false, null, default);
 
-                // Run
-                var records = await service.QueryEndpointsAsync(new EndpointRegistrationQueryModel
-                {
-                    Url = endpoints[0].Registration.Endpoint.Url.ToUpperInvariant()
-                }, false, null, default);
-
-                // Assert
-                Assert.True(records.Items.Count >= 1);
-                Assert.True(records.Items[0].IsSameAs(endpoints[0]));
-            }
+            // Assert
+            Assert.True(records.Items.Count >= 1);
+            Assert.True(records.Items[0].IsSameAs(endpoints[0]));
         }
 
         /// <summary>

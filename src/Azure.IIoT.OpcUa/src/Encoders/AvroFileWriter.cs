@@ -27,6 +27,11 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// </summary>
     public sealed class AvroFileWriter : IFileWriter, IDisposable
     {
+        /// <summary>
+        /// Memory manager
+        /// </summary>
+        internal static RecyclableMemoryStreamManager Streams { get; } = new();
+
         /// <inheritdoc/>
         public bool SupportsContentType(string contentType)
         {
@@ -106,8 +111,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 _fileName = fileName;
                 _stream = stream;
                 _encoder = new BinaryEncoder(_stream);
-                _blockStream = kStreams.GetStream();
-                _compressedBlockStream = kStreams.GetStream();
+                _blockStream = Streams.GetStream();
+                _compressedBlockStream = Streams.GetStream();
                 _syncMarker = new byte[16];
 #pragma warning disable CA5394 // Do not use insecure randomness
                 Random.Shared.NextBytes(_syncMarker);
@@ -273,7 +278,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         private const int kBlockSize = 16000;
-        internal static readonly RecyclableMemoryStreamManager kStreams = new();
         private readonly ConcurrentDictionary<string, AvroFile> _files = new();
         private readonly IOptions<AvroFileWriterOptions> _options;
         private readonly ILogger _logger;

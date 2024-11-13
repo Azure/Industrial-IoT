@@ -39,12 +39,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendDataItemToMqttBrokerTest()
+        public async Task CanSendDataItemToMqttBrokerTestAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemToMqttBrokerTest), "./Resources/DataItems.json",
+                nameof(CanSendDataItemToMqttBrokerTestAsync), "./Resources/DataItems.json",
                 messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--mdt={TelemetryTopic}/metadatamessage", "--dm=False" },
                 version: MqttVersion.v311);
 
@@ -59,12 +59,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest()
+        public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTest), "./Resources/DataItems.json",
+                nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync), "./Resources/DataItems.json",
                 arguments: new string[] { "--dm", "--mm=DataSetMessages" },
                 version: MqttVersion.v5);
 
@@ -78,12 +78,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendDataItemAsDataSetMessagesToMqttBrokerWithCompliantEncodingTest()
+        public async Task CanSendDataItemAsDataSetMessagesToMqttBrokerWithCompliantEncodingTestAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemAsDataSetMessagesToMqttBrokerWithCompliantEncodingTest),
+                nameof(CanSendDataItemAsDataSetMessagesToMqttBrokerWithCompliantEncodingTestAsync),
                 "./Resources/DataItems.json", messageType: "ua-deltaframe",
                 arguments: new string[] { "-c", "--mm=DataSetMessages" },
                 version: MqttVersion.v311);
@@ -98,12 +98,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendDataItemAsRawDataSetsToMqttBrokerWithCompliantEncodingTest()
+        public async Task CanSendDataItemAsRawDataSetsToMqttBrokerWithCompliantEncodingTestAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendDataItemAsRawDataSetsToMqttBrokerWithCompliantEncodingTest),
+                nameof(CanSendDataItemAsRawDataSetsToMqttBrokerWithCompliantEncodingTestAsync),
                 "./Resources/DataItems.json", messageType: "ua-deltaframe",
                 arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets", "--mdt" },
                 version: MqttVersion.v5);
@@ -120,11 +120,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanEncodeWithoutReversibleEncodingTest()
+        public async Task CanEncodeWithoutReversibleEncodingTestAsync()
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithoutReversibleEncodingTest),
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithoutReversibleEncodingTestAsync),
                 "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--me=Json", "--dm=false" },
                 version: MqttVersion.v5);
 
@@ -158,11 +158,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanEncodeWithReversibleEncodingTest()
+        public async Task CanEncodeWithReversibleEncodingTestAsync()
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingTest),
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingTestAsync),
                 "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
                 arguments: new[] { "--mm=PubSub", "--me=JsonReversible", "--dm=False" },
                 version: MqttVersion.v311);
@@ -203,11 +203,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanEncodeEventWithCompliantEncodingTest()
+        public async Task CanEncodeEventWithCompliantEncodingTestAsync()
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeEventWithCompliantEncodingTest),
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeEventWithCompliantEncodingTestAsync),
                 "./Resources/SimpleEvents.json", messageType: "ua-data", arguments: new[] { "-c", "--mm=PubSub", "--me=Json" },
                 version: MqttVersion.v5);
 
@@ -241,11 +241,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTest()
+        public async Task CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestAsync()
         {
             // Arrange
             // Act
-            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTest),
+            var (metadata, result) = await ProcessMessagesAndMetadataAsync(nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestAsync),
                 "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
                 arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" },
                 version: MqttVersion.v311);
@@ -285,11 +285,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendPendingConditionsToMqttBrokerTest()
+        public async Task CanSendPendingConditionsToMqttBrokerTestAsync()
         {
             // Arrange
             // Act
-            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(nameof(CanSendPendingConditionsToMqttBrokerTest),
+            var (metadata, messages) = await ProcessMessagesAndMetadataAsync(nameof(CanSendPendingConditionsToMqttBrokerTestAsync),
                 "./Resources/PendingAlarms.json", BasicPubSubIntegrationTests.GetAlarmCondition, messageType: "ua-data",
                 arguments: new string[] { "--mm=PubSub", "--dm=False" }, version: MqttVersion.v311);
 

@@ -198,8 +198,7 @@ namespace DataAccess
         private BaseDataVariableState CreateVariable(ISystemContext context, UnderlyingSystemTag tag)
         {
             // create the variable type based on the tag type.
-            BaseDataVariableState variable = null;
-
+            BaseDataVariableState variable;
             switch (tag.TagType)
             {
                 case UnderlyingSystemTagType.Analog:

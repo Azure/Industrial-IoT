@@ -1272,7 +1272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string GetChecksum(string content)
         {
             var checksum = SHA256.HashData(Encoding.UTF8.GetBytes(content));
-            return BitConverter.ToString(checksum).Replace("-", string.Empty, StringComparison.Ordinal);
+            return Convert.ToHexString(checksum);
         }
 
         private const string kNullOrEmptyEndpointUrl

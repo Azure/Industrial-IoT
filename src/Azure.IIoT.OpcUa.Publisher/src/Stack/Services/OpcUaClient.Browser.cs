@@ -542,8 +542,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return cleanup;
             }
 
-            const int kMaxSearchDepth = 128;
-            const int kMaxReferencesPerNode = 1000;
+            private const int kMaxSearchDepth = 128;
+            private const int kMaxReferencesPerNode = 1000;
 
             private bool _disposed;
             private uint _sequenceNumber;

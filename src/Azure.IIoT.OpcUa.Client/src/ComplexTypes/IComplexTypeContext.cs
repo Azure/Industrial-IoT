@@ -64,14 +64,15 @@ namespace Opc.Ua.Client.ComplexTypes
         /// </summary>
         /// <param name="nodeId">The node Id.</param>
         /// <param name="ct">The cancellation token for the request.</param>
-        Task<DataValue> ReadValueAsync(NodeId nodeId, CancellationToken ct = default);
+        ValueTask<DataValue> ReadValueAsync(NodeId nodeId,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Reads the values for a node collection. Returns diagnostic errors.
         /// </summary>
         /// <param name="nodeIds">The node Id.</param>
         /// <param name="ct">The cancellation token for the request.</param>
-        Task<(DataValueCollection, IList<ServiceResult>)> ReadValuesAsync(
-            IList<NodeId> nodeIds, CancellationToken ct = default);
+        ValueTask<ResultSet<DataValue>> ReadValuesAsync(
+            IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
     }
 }

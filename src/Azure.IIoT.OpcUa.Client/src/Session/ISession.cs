@@ -30,7 +30,6 @@
 namespace Opc.Ua.Client
 {
     using System;
-    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -51,11 +50,6 @@ namespace Opc.Ua.Client
         EndpointDescription Endpoint { get; }
 
         /// <summary>
-        /// The factory which was used to create the session.
-        /// </summary>
-        ISessionFactory SessionFactory { get; }
-
-        /// <summary>
         /// Gets the endpoint used to connect to the server.
         /// </summary>
         ConfiguredEndpoint ConfiguredEndpoint { get; }
@@ -63,20 +57,20 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Whether a session has beed created with the server.
         /// </summary>
-        /// <value><c>true</c> if connected; otherwise, <c>false</c>.</value>
         bool Connected { get; }
 
         /// <summary>
         /// Gets the period for wich the server will maintain the
         /// session if there is no communication from the client.
         /// </summary>
-        double SessionTimeout { get; }
+        TimeSpan SessionTimeout { get; }
 
         /// <summary>
         /// Returns true if the session is not receiving keep alives.
         /// </summary>
         /// <remarks>
-        /// Set to true if the server does not respond for 2 times the KeepAliveInterval.
+        /// Set to true if the server does not respond for 2 times
+        /// the KeepAliveInterval.
         /// Set to false is communication recovers.
         /// </remarks>
         bool KeepAliveStopped { get; }
@@ -94,20 +88,26 @@ namespace Opc.Ua.Client
         ITransportChannel? NullableTransportChannel { get; }
 
         /// <summary>
+        /// Create or recreate session
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask OpenAsync(CancellationToken ct = default);
+
+        /// <summary>
         /// Reconnects to the server after a network failure
         /// using a waiting connection.
         /// </summary>
-        /// <param name="connection"></param>
         /// <param name="ct"></param>
-        Task ReconnectAsync(ITransportWaitingConnection? connection = null,
-            CancellationToken ct = default);
+        ValueTask ReconnectAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Closes the channel using async call.
         /// </summary>
         /// <param name="closeChannel"></param>
         /// <param name="ct"></param>
-        Task<StatusCode> CloseAsync(bool closeChannel, CancellationToken ct = default);
+        ValueTask<StatusCode> CloseAsync(bool closeChannel,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Detach the channel.

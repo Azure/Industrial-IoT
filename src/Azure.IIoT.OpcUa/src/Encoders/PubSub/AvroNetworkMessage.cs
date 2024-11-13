@@ -149,31 +149,29 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if (reader.TryPeek(out var buffer))
             {
-                using (var memoryStream = buffer.IsSingleSegment ?
+                using var memoryStream = buffer.IsSingleSegment ?
                     Memory.GetStream(buffer.FirstSpan) :
-                    Memory.GetStream(buffer.ToArray()))
+                    Memory.GetStream(buffer.ToArray());
+                var compression = UseGzipCompression ?
+                    new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
+                try
                 {
-                    var compression = UseGzipCompression ?
-                        new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
-                    try
-                    {
-                        using var decoder = new AvroDecoder((Stream?)compression ?? memoryStream,
-                            Schema, context);
+                    using var decoder = new AvroDecoder((Stream?)compression ?? memoryStream,
+                        Schema, context);
 
-                        if (!TryReadNetworkMessage(decoder) ||
-                            memoryStream.Position != memoryStream.Length)
-                        {
-                            return false;
-                        }
-
-                        // Complete the buffer
-                        reader.Dequeue();
-                        return true;
-                    }
-                    finally
+                    if (!TryReadNetworkMessage(decoder) ||
+                        memoryStream.Position != memoryStream.Length)
                     {
-                        compression?.Dispose();
+                        return false;
                     }
+
+                    // Complete the buffer
+                    reader.Dequeue();
+                    return true;
+                }
+                finally
+                {
+                    compression?.Dispose();
                 }
             }
             return false;
@@ -336,7 +334,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
                 // No header thus content must be single data set message
                 NetworkMessageContentMask |= NetworkMessageContentFlags.SingleDataSetMessage;
-                return (bool?)null;
+                return null;
             });
 
             if (!result.HasValue)

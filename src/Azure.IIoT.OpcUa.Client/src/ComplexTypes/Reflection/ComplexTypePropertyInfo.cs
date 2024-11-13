@@ -29,7 +29,6 @@
 
 namespace Opc.Ua.Client.ComplexTypes.Reflection
 {
-    using System;
     using System.Reflection;
     using System.Runtime.Serialization;
 

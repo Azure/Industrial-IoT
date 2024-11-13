@@ -154,9 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template,
             IOptions<OpcUaSubscriptionOptions> options, ILoggerFactory loggerFactory,
             IMetricsContext metrics, uint? parentId = null, TimeProvider? timeProvider = null)
-#if !OLD_STACK
-            : base (loggerFactory.CreateLogger<OpcUaSubscription>())
-#endif
+            : base(loggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;
             _options = options;
@@ -187,57 +185,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Copy constructor
         /// </summary>
         /// <param name="subscription"></param>
-        /// <param name="copyEventHandlers"></param>
-        private OpcUaSubscription(OpcUaSubscription subscription, bool copyEventHandlers)
-            : base(subscription, copyEventHandlers)
-        {
-            _options = subscription._options;
-            _loggerFactory = subscription._loggerFactory;
-            _timeProvider = subscription._timeProvider;
-            _metrics = subscription._metrics;
-            _firstDataChangeReceived = subscription._firstDataChangeReceived;
-
-            Template = subscription.Template;
-            Name = subscription.Name;
-
-            SubscriptionId = subscription.SubscriptionId;
-            _parentId = subscription._parentId;
-
-            _client = subscription._client;
-            _logger = subscription._logger;
-            _sequenceNumber = subscription._sequenceNumber;
-
-            _goodMonitoredItems = subscription._goodMonitoredItems;
-            _badMonitoredItems = subscription._badMonitoredItems;
-            _lateMonitoredItems = subscription._lateMonitoredItems;
-            _reportingItems = subscription._reportingItems;
-            _disabledItems = subscription._disabledItems;
-            _samplingItems = subscription._samplingItems;
-            _notAppliedItems = subscription._notAppliedItems;
-
-            _missingKeepAlives = subscription._missingKeepAlives;
-            _unassignedNotifications = subscription._unassignedNotifications;
-            _continuouslyMissingKeepAlives = subscription._continuouslyMissingKeepAlives;
-
-            Initialize();
-            _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-
-            InitializeMetrics();
-            _client.OnSubscriptionCreated(this);
-        }
-
-        /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="subscription"></param>
         /// <param name="parentId"></param>
         private OpcUaSubscription(OpcUaSubscription subscription, uint parentId)
-#if !OLD_STACK
             : base(subscription._loggerFactory.CreateLogger<OpcUaSubscription>())
-#endif
         {
             _options = subscription._options;
             _loggerFactory = subscription._loggerFactory;
@@ -261,18 +211,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             InitializeMetrics();
             ResetMonitoredItemWatchdogTimer(PublishingEnabled);
-        }
-
-        /// <inheritdoc/>
-        public override object Clone()
-        {
-            return new OpcUaSubscription(this, true);
-        }
-
-        /// <inheritdoc/>
-        public override Subscription CloneSubscription(bool copyEventHandlers)
-        {
-            return new OpcUaSubscription(this, copyEventHandlers);
         }
 
         /// <inheritdoc/>
@@ -792,7 +730,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DisplayName = Name + SubscriptionId;
                 PublishingEnabled = EnableImmediatePublishing;
                 KeepAliveCount = DesiredKeepAliveCount;
-                PublishingInterval = (int)DesiredPublishingInterval.TotalMilliseconds;
+                PublishingInterval = DesiredPublishingInterval;
                 MaxNotificationsPerPublish = DesiredMaxNotificationsPerPublish;
                 LifetimeCount = DesiredLifetimeCount;
                 Priority = DesiredPriority;
@@ -807,7 +745,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     PublishingEnabled ? "enabled" : "disabled", this, Session);
 
                 Debug.Assert(Session != null);
-                await CreateAsync(ct).ConfigureAwait(false);
+                await CreateAsync(false, ct).ConfigureAwait(false);
                 if (!Created)
                 {
                     Handle = null;
@@ -846,12 +784,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     modifySubscription = true;
                 }
 
-                if (PublishingInterval != (int)DesiredPublishingInterval.TotalMilliseconds)
+                if (PublishingInterval != DesiredPublishingInterval)
                 {
                     _logger.LogInformation(
                         "Change publishing interval to {New} in Subscription {Subscription}...",
                         DesiredPublishingInterval, this);
-                    PublishingInterval = (int)DesiredPublishingInterval.TotalMilliseconds;
+                    PublishingInterval = DesiredPublishingInterval;
                     modifySubscription = true;
                 }
 
@@ -1774,7 +1712,7 @@ Actual (revised) state/desired state:
         /// <param name="notification"></param>
         /// <param name="stringTable"></param>
         private void OnSubscriptionEventNotificationList(Subscription subscription,
-            EventNotificationList notification, IList<string>? stringTable)
+            EventNotificationList notification, IReadOnlyList<string>? stringTable)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -2048,7 +1986,7 @@ Actual (revised) state/desired state:
         /// <param name="notification"></param>
         /// <param name="stringTable"></param>
         private void OnSubscriptionDataChangeNotification(Subscription subscription,
-            DataChangeNotification notification, IList<string>? stringTable)
+            DataChangeNotification notification, IReadOnlyList<string>? stringTable)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -2227,8 +2165,8 @@ Actual (revised) state/desired state:
                 return;
             }
 
-            var keepAliveTimeout = TimeSpan.FromMilliseconds(
-                (CurrentPublishingInterval * (CurrentKeepAliveCount + 1)) + 1000);
+            var keepAliveTimeout =
+                (CurrentPublishingInterval * (CurrentKeepAliveCount + 1)) + TimeSpan.FromSeconds(1);
             try
             {
                 _keepAliveWatcher.Change(keepAliveTimeout, keepAliveTimeout);

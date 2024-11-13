@@ -6,7 +6,6 @@
 namespace Opc.Ua.Client
 {
     using Opc.Ua;
-    using Opc.Ua.Export;
     using BitFaster.Caching;
     using BitFaster.Caching.Lfu;
     using BitFaster.Caching.Lru;
@@ -283,10 +282,10 @@ namespace Opc.Ua.Client
         public async ValueTask LoadTypeHierarchyAync(IReadOnlyList<NodeId> typeIds,
             CancellationToken ct)
         {
-            var nodes = await FindReferencesAsync(typeIds, new []
+            var nodes = await FindReferencesAsync(typeIds, new[]
             {
                 ReferenceTypeIds.HasSubtype
-            },false, false, ct).ConfigureAwait(false);
+            }, false, false, ct).ConfigureAwait(false);
             if (nodes.Count > 0)
             {
                 if (nodes is not List<INode> subTypes)
@@ -346,10 +345,10 @@ namespace Opc.Ua.Client
             {
                 if (typeId.NamespaceIndex == 0 && typeId.IdType == Opc.Ua.IdType.Numeric)
                 {
-                    BuiltInType id = (BuiltInType)(int)(uint)typeId.Identifier;
-                    if (id > BuiltInType.Null &&
-                        id <= BuiltInType.Enumeration &&
-                        id != BuiltInType.DiagnosticInfo)
+                    var id = (BuiltInType)(int)(uint)typeId.Identifier;
+                    if (id is > BuiltInType.Null and
+                        <= BuiltInType.Enumeration and
+                        not BuiltInType.DiagnosticInfo)
                     {
                         return id;
                     }

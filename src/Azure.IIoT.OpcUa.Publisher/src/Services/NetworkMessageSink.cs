@@ -844,7 +844,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "Number of failures sending a network message.");
         }
 
-        static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
+        private static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
 
         private double UpTime => _timeProvider.GetElapsedTime(_startTime).TotalSeconds;

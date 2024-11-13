@@ -454,7 +454,7 @@ Options:
                 {
                     var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
 
-                    var publishInitFile = await LoadInitFile(server, publishInitProfile,
+                    var publishInitFile = await LoadInitFileAsync(server, publishInitProfile,
                         endpointUrl, ct).ConfigureAwait(false);
 
                     if (publishInitFile != null && publishProfile == null)
@@ -599,7 +599,7 @@ Options:
                         return;
                     }
 
-                    var publishInitFile = await LoadInitFile(server, name, endpointUrl,
+                    var publishInitFile = await LoadInitFileAsync(server, name, endpointUrl,
                         ct).ConfigureAwait(false);
 
                     //
@@ -671,7 +671,7 @@ Options:
             return null;
         }
 
-        private static async Task<string?> LoadInitFile(ServerWrapper server, string? initProfile,
+        private static async Task<string?> LoadInitFileAsync(ServerWrapper server, string? initProfile,
             string endpointUrl, CancellationToken ct)
         {
             const string initFile = "profile.init";

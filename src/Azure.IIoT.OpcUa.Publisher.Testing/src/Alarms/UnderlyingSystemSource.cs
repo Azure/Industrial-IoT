@@ -501,7 +501,7 @@ namespace Alarms
                     {
                         reason = "The alarm severity has increased.";
 
-                        var values = Enum.GetValues(typeof(EventSeverity));
+                        var values = Enum.GetValues<EventSeverity>();
 
                         for (var ii = 0; ii < values.Length; ii++)
                         {

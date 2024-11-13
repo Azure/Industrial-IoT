@@ -85,6 +85,30 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Gets the session managed by the handler.
+        /// </summary>
+        /// <value>The session.</value>
+        public Session? Session { get; private set; }
+
+        /// <summary>
+        /// The internal state of the reconnect handler.
+        /// </summary>
+        public ReconnectState State
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_reconnectTimer == null)
+                    {
+                        return ReconnectState.Disposed;
+                    }
+                    return _state;
+                }
+            }
+        }
+
+        /// <summary>
         /// Create a reconnect handler.
         /// </summary>
         /// <param name="loggerFactory"></param>
@@ -99,13 +123,14 @@ namespace Opc.Ua.Client
         {
             _logger = loggerFactory.CreateLogger<SessionReconnectHandler>();
             _reconnectAbort = reconnectAbort;
-            _reconnectTimer = new Timer(OnReconnectAsync, this, Timeout.Infinite, Timeout.Infinite);
+            _reconnectTimer = new Timer(OnReconnectAsync, this,
+                Timeout.Infinite, Timeout.Infinite);
             _state = ReconnectState.Ready;
             _cancelReconnect = false;
-            _updateFromServer = false;
             _baseReconnectPeriod = DefaultReconnectPeriod;
             _maxReconnectPeriod = maxReconnectPeriod < 0 ? -1 :
-                Math.Max(MinReconnectPeriod, Math.Min(maxReconnectPeriod, MaxReconnectPeriod));
+                Math.Max(MinReconnectPeriod, Math.Min(maxReconnectPeriod,
+                MaxReconnectPeriod));
             _random = new Random();
         }
 
@@ -138,30 +163,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Gets the session managed by the handler.
-        /// </summary>
-        /// <value>The session.</value>
-        public ISession? Session { get; private set; }
-
-        /// <summary>
-        /// The internal state of the reconnect handler.
-        /// </summary>
-        public ReconnectState State
-        {
-            get
-            {
-                lock (_lock)
-                {
-                    if (_reconnectTimer == null)
-                    {
-                        return ReconnectState.Disposed;
-                    }
-                    return _state;
-                }
-            }
-        }
-
-        /// <summary>
         /// Cancel a reconnect in progress.
         /// </summary>
         public void CancelReconnect()
@@ -188,12 +189,10 @@ namespace Opc.Ua.Client
         /// Begins the reconnect process using a reverse connection.
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="reverseConnectManager"></param>
         /// <param name="reconnectPeriod"></param>
         /// <param name="callback"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public ReconnectState BeginReconnect(ISession session,
-            ReverseConnectManager? reverseConnectManager, int reconnectPeriod,
+        public ReconnectState BeginReconnect(Session session, int reconnectPeriod,
             EventHandler callback)
         {
             lock (_lock)
@@ -228,18 +227,20 @@ namespace Opc.Ua.Client
                     _reconnectFailed = false;
                     _cancelReconnect = false;
                     _callback = callback;
-                    _reverseConnectManager = reverseConnectManager;
-                    _reconnectTimer.Change(JitteredReconnectPeriod(reconnectPeriod), Timeout.Infinite);
+                    _reconnectTimer.Change(JitteredReconnectPeriod(reconnectPeriod),
+                        Timeout.Infinite);
                     _reconnectPeriod = CheckedReconnectPeriod(reconnectPeriod, true);
                     _state = ReconnectState.Triggered;
                     return _state;
                 }
 
                 // if triggered, reset timer only if requested reconnect period is shorter
-                if (_state == ReconnectState.Triggered && reconnectPeriod < _baseReconnectPeriod)
+                if (_state == ReconnectState.Triggered &&
+                    reconnectPeriod < _baseReconnectPeriod)
                 {
                     _baseReconnectPeriod = reconnectPeriod;
-                    _reconnectTimer.Change(JitteredReconnectPeriod(reconnectPeriod), Timeout.Infinite);
+                    _reconnectTimer.Change(JitteredReconnectPeriod(reconnectPeriod),
+                        Timeout.Infinite);
                     _reconnectPeriod = CheckedReconnectPeriod(reconnectPeriod, true);
                 }
 
@@ -268,7 +269,8 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="reconnectPeriod"></param>
         /// <param name="exponentialBackoff"></param>
-        public virtual int CheckedReconnectPeriod(int reconnectPeriod, bool exponentialBackoff = false)
+        public virtual int CheckedReconnectPeriod(int reconnectPeriod,
+            bool exponentialBackoff = false)
         {
             // exponential backoff is controlled by _maxReconnectPeriod
             if (_maxReconnectPeriod > MinReconnectPeriod)
@@ -277,7 +279,8 @@ namespace Opc.Ua.Client
                 {
                     reconnectPeriod *= 2;
                 }
-                return Math.Min(Math.Max(reconnectPeriod, MinReconnectPeriod), _maxReconnectPeriod);
+                return Math.Min(Math.Max(reconnectPeriod, MinReconnectPeriod),
+                    _maxReconnectPeriod);
             }
 
             return Math.Max(reconnectPeriod, MinReconnectPeriod);
@@ -317,7 +320,8 @@ namespace Opc.Ua.Client
                     keepaliveRecovered = true;
                     // breaking change, the callback must only assign the new
                     // session if the property is != null
-                    _logger.LogInformation("Reconnect {Session} aborted, KeepAlive recovered.", session.SessionId);
+                    _logger.LogInformation("Reconnect {Session} aborted, KeepAlive recovered.",
+                        session.SessionId);
                     Session = null;
                 }
                 else
@@ -327,7 +331,7 @@ namespace Opc.Ua.Client
 
                 // do the reconnect or recover state.
                 if (keepaliveRecovered ||
-                    await DoReconnectAsync().ConfigureAwait(false))
+                    await DoReconnectAsync(default).ConfigureAwait(false))
                 {
                     lock (_lock)
                     {
@@ -342,7 +346,8 @@ namespace Opc.Ua.Client
             }
             catch (Exception exception)
             {
-                _logger.LogError("Unexpected error during reconnect: {Message}", Redact.Create(exception));
+                _logger.LogError("Unexpected error during reconnect: {Message}",
+                    Redact.Create(exception));
             }
 
             // schedule the next reconnect.
@@ -357,11 +362,19 @@ namespace Opc.Ua.Client
                     else
                     {
                         var elapsed = HiResClock.TickCount - reconnectStart;
-                        _logger.LogInformation("Reconnect period is {Period} ms, {Elapsed} ms elapsed in reconnect.", _reconnectPeriod, elapsed);
-                        var adjustedReconnectPeriod = CheckedReconnectPeriod(_reconnectPeriod - elapsed);
-                        adjustedReconnectPeriod = JitteredReconnectPeriod(adjustedReconnectPeriod);
+                        _logger.LogInformation(
+                            "Reconnect period is {Period} ms, {Elapsed} ms elapsed in reconnect.",
+                            _reconnectPeriod, elapsed);
+
+                        var adjustedReconnectPeriod =
+                            CheckedReconnectPeriod(_reconnectPeriod - elapsed);
+                        adjustedReconnectPeriod =
+                            JitteredReconnectPeriod(adjustedReconnectPeriod);
                         _reconnectTimer.Change(adjustedReconnectPeriod, Timeout.Infinite);
-                        _logger.LogInformation("Next adjusted reconnect scheduled in {Period} ms.", adjustedReconnectPeriod);
+                        _logger.LogInformation(
+                            "Next adjusted reconnect scheduled in {Period} ms.",
+                            adjustedReconnectPeriod);
+
                         _reconnectPeriod = CheckedReconnectPeriod(_reconnectPeriod, true);
                         _state = ReconnectState.Triggered;
                     }
@@ -372,10 +385,9 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Reconnects to the server.
         /// </summary>
-        private async Task<bool> DoReconnectAsync()
+        /// <param name="ct"></param>
+        private async Task<bool> DoReconnectAsync(CancellationToken ct)
         {
-            // helper to override operation timeout
-            ITransportChannel? transportChannel = null;
             Debug.Assert(Session != null);
 
             // try a reconnect.
@@ -383,19 +395,7 @@ namespace Opc.Ua.Client
             {
                 try
                 {
-                    if (_reverseConnectManager != null)
-                    {
-                        var connection = await _reverseConnectManager.WaitForConnection(
-                                new Uri(Session.Endpoint.EndpointUrl),
-                                Session.Endpoint.Server.ApplicationUri
-                            ).ConfigureAwait(false);
-
-                        await Session.ReconnectAsync(connection).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await Session.ReconnectAsync().ConfigureAwait(false);
-                    }
+                    await Session.ReconnectAsync(ct).ConfigureAwait(false);
 
                     // monitored items should start updating on their own.
                     return true;
@@ -408,14 +408,14 @@ namespace Opc.Ua.Client
                         _logger.LogWarning("Reconnect failed. Reason={Reason}.", sre.Result);
 
                         // check if the server endpoint could not be reached.
-                        if (sre.StatusCode == StatusCodes.BadTcpInternalError ||
-                            sre.StatusCode == StatusCodes.BadCommunicationError ||
-                            sre.StatusCode == StatusCodes.BadNotConnected ||
-                            sre.StatusCode == StatusCodes.BadRequestTimeout ||
-                            sre.StatusCode == StatusCodes.BadTimeout)
+                        if (sre.StatusCode is StatusCodes.BadTcpInternalError or
+                            StatusCodes.BadCommunicationError or
+                            StatusCodes.BadNotConnected or
+                            StatusCodes.BadRequestTimeout or
+                            StatusCodes.BadTimeout)
                         {
                             // check if reactivating is still an option.
-                            var timeout = Convert.ToInt32(Session.SessionTimeout) -
+                            var timeout = Session.SessionTimeout.Microseconds -
                                 (HiResClock.TickCount - Session.LastKeepAliveTickCount);
                             if (timeout > 0)
                             {
@@ -427,17 +427,17 @@ namespace Opc.Ua.Client
                         }
 
                         // check if the security configuration may have changed
-                        if (sre.StatusCode == StatusCodes.BadSecurityChecksFailed ||
-                            sre.StatusCode == StatusCodes.BadCertificateInvalid)
+                        if (sre.StatusCode is StatusCodes.BadSecurityChecksFailed or
+                            StatusCodes.BadCertificateInvalid)
                         {
-                            _updateFromServer = true;
                             _logger.LogInformation("Reconnect failed due to security check. " +
                                 "Request endpoint update from server. {Message}", sre.Message);
                         }
                         // recreate session immediately, use existing channel
                         else if (sre.StatusCode == StatusCodes.BadSessionIdInvalid)
                         {
-                            transportChannel = Session.NullableTransportChannel;
+                            // helper to override operation timeout
+                            var transportChannel = Session.NullableTransportChannel;
                             Session.DetachChannel();
                         }
                         else
@@ -460,58 +460,16 @@ namespace Opc.Ua.Client
             // re-create the session.
             try
             {
-                ISession session;
-                if (_reverseConnectManager != null)
-                {
-                    ITransportWaitingConnection? connection;
-                    do
-                    {
-                        connection = await _reverseConnectManager.WaitForConnection(
-                            new Uri(Session.Endpoint.EndpointUrl),
-                            Session.Endpoint.Server.ApplicationUri).ConfigureAwait(false);
-
-                        if (_updateFromServer)
-                        {
-                            var endpoint = Session.ConfiguredEndpoint;
-                            await endpoint.UpdateFromServerAsync(
-                                endpoint.EndpointUrl, connection,
-                                endpoint.Description.SecurityMode,
-                                endpoint.Description.SecurityPolicyUri).ConfigureAwait(false);
-                            _updateFromServer = false;
-                            connection = null;
-                        }
-                    } while (connection == null);
-
-                    session = await Session.SessionFactory.RecreateAsync(
-                        Session, connection).ConfigureAwait(false);
-                }
-                else
-                {
-                    if (_updateFromServer)
-                    {
-                        var endpoint = Session.ConfiguredEndpoint;
-                        await endpoint.UpdateFromServerAsync(
-                            endpoint.EndpointUrl,
-                            endpoint.Description.SecurityMode,
-                            endpoint.Description.SecurityPolicyUri).ConfigureAwait(false);
-                        _updateFromServer = false;
-                    }
-
-                    session = await Session.SessionFactory.RecreateAsync(
-                        Session, transportChannel).ConfigureAwait(false);
-                }
-                // note: the template session is not connected at this point
-                //       and must be disposed by the owner
-                Session = session;
+                await Session.OpenAsync(ct).ConfigureAwait(false);
                 return true;
             }
             catch (ServiceResultException sre)
             {
+                Session.DetachChannel();
                 if (sre.InnerResult?.StatusCode == StatusCodes.BadSecurityChecksFailed ||
                     sre.InnerResult?.StatusCode == StatusCodes.BadCertificateInvalid)
                 {
                     // schedule endpoint update and retry
-                    _updateFromServer = true;
                     if (_maxReconnectPeriod > MinReconnectPeriod &&
                         _reconnectPeriod >= _maxReconnectPeriod)
                     {
@@ -529,6 +487,7 @@ namespace Opc.Ua.Client
             }
             catch (Exception exception)
             {
+                Session.DetachChannel();
                 _logger.LogError("Could not reconnect the Session. {Message}",
                     Redact.Create(exception));
                 return false;
@@ -543,7 +502,6 @@ namespace Opc.Ua.Client
             _reconnectTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _state = ReconnectState.Ready;
             _cancelReconnect = false;
-            _updateFromServer = false;
         }
 
         private readonly object _lock = new();
@@ -555,10 +513,8 @@ namespace Opc.Ua.Client
         private ReconnectState _state;
         private bool _reconnectFailed;
         private bool _cancelReconnect;
-        private bool _updateFromServer;
         private int _reconnectPeriod;
         private int _baseReconnectPeriod;
         private EventHandler? _callback;
-        private ReverseConnectManager? _reverseConnectManager;
     }
 }

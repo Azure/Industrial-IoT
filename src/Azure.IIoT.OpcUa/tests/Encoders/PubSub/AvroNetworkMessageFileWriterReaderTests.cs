@@ -111,17 +111,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             ConvertToOpcUaUniversalTime(networkMessage);
             file.Seek(0, SeekOrigin.Begin);
-            using (var reader = new AvroFileReader(file))
-            {
-                var result = reader
-                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
-                        context, messageSchema: schema.ToJson()).ToList())
-                    .SelectMany(m => m.Cast<BaseNetworkMessage>().ToList())
-                    .SelectMany(m => m.Messages)
-                    .ToList();
+            using var reader = new AvroFileReader(file);
+            var result = reader
+                .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                    context, messageSchema: schema.ToJson()).ToList())
+                .SelectMany(m => m.Cast<BaseNetworkMessage>().ToList())
+                .SelectMany(m => m.Messages)
+                .ToList();
 
-                Assert.Equal(networkMessage.Messages, result);
-            }
+            Assert.Equal(networkMessage.Messages, result);
         }
 
         [Theory]
@@ -152,17 +150,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             ConvertToOpcUaUniversalTime(networkMessage);
             file.Seek(0, SeekOrigin.Begin);
-            using (var reader = new AvroFileReader(file))
-            {
-                var result = reader
-                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
-                        context, messageSchema: schema.ToJson()).ToList())
-                    .SelectMany(m => m.Cast<BaseNetworkMessage>().ToList())
-                    .SelectMany(m => m.Messages).Select(m => m.Payload)
-                    .ToList();
+            using var reader = new AvroFileReader(file);
+            var result = reader
+                .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                    context, messageSchema: schema.ToJson()).ToList())
+                .SelectMany(m => m.Cast<BaseNetworkMessage>().ToList())
+                .SelectMany(m => m.Messages).Select(m => m.Payload)
+                .ToList();
 
-                Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
-            }
+            Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
         }
 
         [Theory]
@@ -192,18 +188,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 
             ConvertToOpcUaUniversalTime(networkMessage);
             file.Seek(0, SeekOrigin.Begin);
-            using (var reader = new AvroFileReader(file))
-            {
-                var result = reader
-                    .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
-                         context, messageSchema: schema.ToJson()).ToList())
-                    .SelectMany(m => m.Cast<BaseNetworkMessage>())
-                    .SelectMany(m => m.Messages.Select(m => m.Payload))
-                    .ToList();
+            using var reader = new AvroFileReader(file);
+            var result = reader
+                .Stream((schema, stream) => PubSubMessage.Decode(stream, networkMessage.ContentType,
+                     context, messageSchema: schema.ToJson()).ToList())
+                .SelectMany(m => m.Cast<BaseNetworkMessage>())
+                .SelectMany(m => m.Messages.Select(m => m.Payload))
+                .ToList();
 
-                var expected = networkMessage.Messages.Select(m => m.Payload).ToList();
-                Assert.All(expected, (p, i) => Assert.True(result[i].Equals(p)));
-            }
+            var expected = networkMessage.Messages.Select(m => m.Payload).ToList();
+            Assert.All(expected, (p, i) => Assert.True(result[i].Equals(p)));
         }
 
         /// <summary>

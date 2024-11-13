@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // Read and decompress block
             var buffer = new byte[_blockSize];
             _decoder.ReadFixed(buffer, 0, buffer.Length);
-            _currentBlockStream = AvroFileWriter.kStreams.GetStream(
+            _currentBlockStream = AvroFileWriter.Streams.GetStream(
                 _codec.Decompress(buffer, (int)_blockSize));
 
             // Read sync marker

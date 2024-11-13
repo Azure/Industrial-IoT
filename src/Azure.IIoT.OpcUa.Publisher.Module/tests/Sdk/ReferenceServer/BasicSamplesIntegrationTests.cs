@@ -113,11 +113,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(HeartbeatBehavior.WatchdogLKV)]
         [InlineData(HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)]
         [InlineData(HeartbeatBehavior.PeriodicLKV)]
-        public async Task CanSendHeartbeatWithMIErrorToIoTHubTest(HeartbeatBehavior behavior)
+        public async Task CanSendHeartbeatWithMIErrorToIoTHubTestAsync(HeartbeatBehavior behavior)
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTest),
+            var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTestAsync),
                 "./Resources/HeartbeatErrors.json",
                 TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--hbb={behavior}" });
 

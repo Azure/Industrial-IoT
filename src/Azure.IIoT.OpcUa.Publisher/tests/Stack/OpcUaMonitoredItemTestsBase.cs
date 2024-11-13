@@ -17,7 +17,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
 
     public abstract class OpcUaMonitoredItemTestsBase
     {
@@ -46,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return session;
         }
 
-        internal async Task<OpcUaMonitoredItem> GetMonitoredItem(BaseMonitoredItemModel template,
+        internal async Task<OpcUaMonitoredItem> GetMonitoredItemAsync(BaseMonitoredItemModel template,
             NamespaceTable namespaceUris = null)
         {
             var session = SetupMockedSession(namespaceUris).Object;
@@ -66,18 +65,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         internal sealed class SimpleSubscription : Subscription
         {
             public SimpleSubscription()
-				: base(Log.Console<SimpleSubscription>())
+                : base(Log.Console<SimpleSubscription>())
             {
-            }
-
-            public SimpleSubscription(Subscription template, bool copyEventHandlers)
-                : base(template, copyEventHandlers)
-            {
-            }
-
-            public override Subscription CloneSubscription(bool copyEventHandlers)
-            {
-                throw new NotImplementedException();
             }
         }
     }

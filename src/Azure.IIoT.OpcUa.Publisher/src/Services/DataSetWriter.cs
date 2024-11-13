@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="writerNames"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            public async static ValueTask<DataSetWriterSubscription> CreateAsync(WriterGroupDataSource group,
+            public static async ValueTask<DataSetWriterSubscription> CreateAsync(WriterGroupDataSource group,
                 DataSetWriter dataSetWriter, ILoggerFactory loggerFactory, HashSet<string> writerNames,
                 CancellationToken ct)
             {
@@ -1206,7 +1206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // If the Property is EngineeringUnits, the unit of the Field Value
                             // shall match the unit of the FieldMetaData.
                             Properties = null, // TODO: Add engineering units etc. to properties
-                            BuiltInType = (byte)builtInType
+                            BuiltInType = builtInType
                         });
                     }
                     return fields;

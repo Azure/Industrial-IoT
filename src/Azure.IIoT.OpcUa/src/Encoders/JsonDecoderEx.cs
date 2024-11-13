@@ -486,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         return null;
                     }
-                    var index = 0u;
+                    uint index;
                     if (TryGetToken("Uri", out var uri))
                     {
                         if (uri.Type == JTokenType.Integer)

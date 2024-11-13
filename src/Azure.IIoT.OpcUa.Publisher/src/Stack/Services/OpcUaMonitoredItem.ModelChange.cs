@@ -52,28 +52,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _fields = GetEventFields().ToArray();
             }
 
-            /// <summary>
-            /// Copy constructor
-            /// </summary>
-            /// <param name="item"></param>
-            /// <param name="copyEventHandlers"></param>
-            /// <param name="copyClientHandle"></param>
-            private ModelChangeEventItem(ModelChangeEventItem item, bool copyEventHandlers,
-                bool copyClientHandle)
-                : base(item, copyEventHandlers, copyClientHandle)
-            {
-                Template = item.Template;
-                _client = item._client;
-                _fields = item._fields;
-            }
-
-            /// <inheritdoc/>
-            public override MonitoredItem CloneMonitoredItem(
-                bool copyEventHandlers, bool copyClientHandle)
-            {
-                return new ModelChangeEventItem(this, copyEventHandlers, copyClientHandle);
-            }
-
             /// <inheritdoc/>
             protected override void Dispose(bool disposing)
             {
@@ -192,7 +170,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 AttributeId = Attributes.EventNotifier;
                 MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
-                SamplingInterval = 0;
+                SamplingInterval = TimeSpan.Zero;
                 UpdateQueueSize(subscription, Template);
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
@@ -288,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
-                if (samplingIntervalChanged && Status.SamplingInterval != 0)
+                if (samplingIntervalChanged && Status.SamplingInterval != TimeSpan.Zero)
                 {
                     // Not necessary as sampling interval will likely always stay 0
                     applyChanges |= UpdateQueueSize(Subscription, Template);

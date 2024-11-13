@@ -174,17 +174,15 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             else
             {
-                using (var binaryReader = new BinaryReader(Stream,
-                    Encoding.UTF8, true))
+                using var binaryReader = new BinaryReader(Stream,
+                    Encoding.UTF8, true);
+                var bytes = binaryReader.ReadBytes((int)length);
+                if (bytes.Length != length)
                 {
-                    var bytes = binaryReader.ReadBytes((int)length);
-                    if (bytes.Length != length)
-                    {
-                        throw new DecodingException(
-                            "Could not read as many bytes from stream as expected!");
-                    }
-                    return GetString(bytes);
+                    throw new DecodingException(
+                        "Could not read as many bytes from stream as expected!");
                 }
+                return GetString(bytes);
             }
 
             static string GetString(ReadOnlySpan<byte> bytes)

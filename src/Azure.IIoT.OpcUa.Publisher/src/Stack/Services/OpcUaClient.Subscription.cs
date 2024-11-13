@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Client;
 
     internal sealed partial class OpcUaClient
     {

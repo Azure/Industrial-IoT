@@ -20,31 +20,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     public class OpcUaMonitoredItemTests : OpcUaMonitoredItemTestsBase
     {
         [Fact]
-        public async Task SetDefaultValuesWhenPropertiesAreNullInBaseTemplate()
+        public async Task SetDefaultValuesWhenPropertiesAreNullInBaseTemplateAsync()
         {
             var template = new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 DiscardNew = null
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
 
             Assert.Equal(Attributes.Value, monitoredItem.AttributeId);
             Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItem.MonitoringMode);
-            Assert.Equal(1000, monitoredItem.SamplingInterval);
+            Assert.Equal(TimeSpan.FromSeconds(1), monitoredItem.SamplingInterval);
             Assert.True(monitoredItem.DiscardOldest);
             Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
-        public async Task SetSkipFirstBeforeFirstNotificationProcessedSucceedsTests()
+        public async Task SetSkipFirstBeforeFirstNotificationProcessedSucceedsTestsAsync()
         {
             var template = new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
             Assert.False(monitoredItem.TrySetSkipFirst(true));
             Assert.True(monitoredItem.TrySetSkipFirst(false));
             Assert.True(monitoredItem.TrySetSkipFirst(true));
@@ -58,14 +58,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task SetSkipFirstAfterFirstNotificationProcessedFailsTests()
+        public async Task SetSkipFirstAfterFirstNotificationProcessedFailsTestsAsync()
         {
             var template = new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 SkipFirst = true
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
             Assert.True(monitoredItem.SkipMonitoredItemNotification());
             Assert.False(monitoredItem.TrySetSkipFirst(true));
             // This is allowed since it does not matter
@@ -77,20 +77,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task NotsetSkipFirstAfterFirstNotificationProcessedFailsSettingTests()
+        public async Task NotsetSkipFirstAfterFirstNotificationProcessedFailsSettingTestsAsync()
         {
             var template = new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258"
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
             Assert.False(monitoredItem.SkipMonitoredItemNotification());
             Assert.False(monitoredItem.TrySetSkipFirst(true));
             Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
-        public async Task SetBaseValuesWhenPropertiesAreSetInBaseTemplate()
+        public async Task SetBaseValuesWhenPropertiesAreSetInBaseTemplateAsync()
         {
             var template = new DataMonitoredItemModel
             {
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
-            var monitoredItem = await GetMonitoredItem(template) as OpcUaMonitoredItem.DataChange;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
 
             Assert.Equal("DisplayName", monitoredItem.DisplayName);
             Assert.Equal((uint)NodeAttribute.Value, monitoredItem.AttributeId);
@@ -115,14 +115,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItem.MonitoringMode);
             Assert.Equal("i=2258", monitoredItem.StartNodeId);
             Assert.Equal(10u, monitoredItem.QueueSize);
-            Assert.Equal(10000, monitoredItem.SamplingInterval);
+            Assert.Equal(TimeSpan.FromSeconds(10), monitoredItem.SamplingInterval);
             Assert.False(monitoredItem.DiscardOldest);
             Assert.Null(monitoredItem.Handle);
             Assert.True(monitoredItem.SkipMonitoredItemNotification());
         }
 
         [Fact]
-        public async Task SetDataChangeFilterWhenBaseTemplateIsDataTemplate()
+        public async Task SetDataChangeFilterWhenBaseTemplateIsDataTemplateAsync()
         {
             var template = new DataMonitoredItemModel
             {
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     DeadbandValue = 10.0
                 }
             };
-            var monitoredItem = await GetMonitoredItem(template);
+            var monitoredItem = await GetMonitoredItemAsync(template);
 
             Assert.NotNull(monitoredItem.Filter);
             Assert.IsType<DataChangeFilter>(monitoredItem.Filter);
@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task SetEventFilterWhenBaseTemplateIsEventTemplate()
+        public async Task SetEventFilterWhenBaseTemplateIsEventTemplateAsync()
         {
             var template = new EventMonitoredItemModel
             {
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     }
                 }
             };
-            var monitoredItem = await GetMonitoredItem(template);
+            var monitoredItem = await GetMonitoredItemAsync(template);
 
             Assert.NotNull(monitoredItem.Filter);
             Assert.IsType<EventFilter>(monitoredItem.Filter);
@@ -195,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate()
+        public async Task AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplateAsync()
         {
             var template = new EventMonitoredItemModel
             {
@@ -207,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     UpdateInterval = 20
                 }
             };
-            var monitoredItem = await GetMonitoredItem(template);
+            var monitoredItem = await GetMonitoredItemAsync(template);
 
             Assert.NotNull(monitoredItem.Filter);
             Assert.IsType<EventFilter>(monitoredItem.Filter);
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed()
+        public async Task SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsedAsync()
         {
             var template = new EventMonitoredItemModel
             {
@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 "http://opcfoundation.org/UA/Diagnostics",
                 "http://opcfoundation.org/Quickstarts/SimpleEvents"
             });
-            var eventItem = await GetMonitoredItem(template, namespaceTable) as OpcUaMonitoredItem.Event;
+            var eventItem = await GetMonitoredItemAsync(template, namespaceTable) as OpcUaMonitoredItem.Event;
 
             Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
@@ -274,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task UseDefaultFieldNameWhenNamespaceTableIsEmpty()
+        public async Task UseDefaultFieldNameWhenNamespaceTableIsEmptyAsync()
         {
             var namespaceUris = new NamespaceTable();
             namespaceUris.Append("http://test");
@@ -318,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 }
             };
 
-            var eventItem = await GetMonitoredItem(template, namespaceUris) as OpcUaMonitoredItem.Event;
+            var eventItem = await GetMonitoredItemAsync(template, namespaceUris) as OpcUaMonitoredItem.Event;
 
             Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);

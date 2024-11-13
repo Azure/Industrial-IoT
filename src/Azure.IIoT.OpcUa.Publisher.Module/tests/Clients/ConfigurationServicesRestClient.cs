@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Grpc.Core.Metadata;
 
     /// <summary>
     /// Implementation of file system services over http

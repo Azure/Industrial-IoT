@@ -483,9 +483,9 @@ namespace Reference
                     var dataItemFolder = CreateFolder(daFolder, "DataAccess_DataItem", "DataItem");
                     const string daDataItem = "DataAccess_DataIte_";
 
-                    foreach (var name in Enum.GetNames(typeof(BuiltInType)))
+                    foreach (var name in Enum.GetNames<BuiltInType>())
                     {
-                        var item = CreateDataItemVariable(dataItemFolder, daDataItem + name, name, (BuiltInType)Enum.Parse(typeof(BuiltInType), name), ValueRanks.Scalar);
+                        var item = CreateDataItemVariable(dataItemFolder, daDataItem + name, name, Enum.Parse<BuiltInType>(name), ValueRanks.Scalar);
 
                         // set initial value to String.Empty for String node.
                         if (name == nameof(BuiltInType.String))
@@ -499,9 +499,9 @@ namespace Reference
                     var analogItemFolder = CreateFolder(daFolder, "DataAccess_AnalogType", "AnalogType");
                     const string daAnalogItem = "DataAccess_AnalogType_";
 
-                    foreach (var name in Enum.GetNames(typeof(BuiltInType)))
+                    foreach (var name in Enum.GetNames<BuiltInType>())
                     {
-                        var builtInType = (BuiltInType)Enum.Parse(typeof(BuiltInType), name);
+                        var builtInType = Enum.Parse<BuiltInType>(name);
                         if (IsAnalogType(builtInType))
                         {
                             var item = CreateAnalogItemVariable(analogItemFolder, daAnalogItem + name, name, builtInType, ValueRanks.Scalar);

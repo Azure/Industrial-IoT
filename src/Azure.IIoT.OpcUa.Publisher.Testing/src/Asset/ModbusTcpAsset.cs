@@ -22,7 +22,7 @@ namespace Asset
     /// <summary>
     /// See https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/
     /// </summary>
-    sealed class ModbusTcpAsset : IAsset, IAssetFactory
+    internal sealed class ModbusTcpAsset : IAsset, IAssetFactory
     {
         private ModbusTcpAsset(Uri address, ILogger logger)
         {

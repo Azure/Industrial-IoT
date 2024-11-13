@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             else
             {
-                Push(context => BrowseAsync(context));
+                Push(BrowseAsync);
             }
             return refs;
         }
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             else
             {
-                Push(context => BrowseAsync(context));
+                Push(BrowseAsync);
             }
             return refs;
         }
@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Initialize
             _visited.Clear();
             _browseStack.Push(new BrowseFrame(_root));
-            Push(context => BrowseAsync(context));
+            Push(BrowseAsync);
         }
 
         /// <summary>

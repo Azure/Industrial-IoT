@@ -584,11 +584,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             var content = GetFileContent(sourcePath);
 
-            using (var fileStream = new FileStream(destinationPath, FileMode.OpenOrCreate,
-                FileAccess.Write, FileShare.ReadWrite))
-            {
-                fileStream.Write(Encoding.UTF8.GetBytes(content));
-            }
+            using var fileStream = new FileStream(destinationPath, FileMode.OpenOrCreate,
+                FileAccess.Write, FileShare.ReadWrite);
+            fileStream.Write(Encoding.UTF8.GetBytes(content));
 
             static string GetFileContent(string path)
             {

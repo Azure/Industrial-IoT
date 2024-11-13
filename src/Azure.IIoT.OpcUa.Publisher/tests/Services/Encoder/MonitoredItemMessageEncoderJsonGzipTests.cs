@@ -125,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
             messages = new List<OpcUaSubscriptionNotification>
             {
-                new OpcUaSubscriptionNotification(messages[0], messages.SelectMany(n => n.Notifications).ToList())
+                new (messages[0], messages.SelectMany(n => n.Notifications).ToList())
             };
 
             using var encoder = GetEncoder();

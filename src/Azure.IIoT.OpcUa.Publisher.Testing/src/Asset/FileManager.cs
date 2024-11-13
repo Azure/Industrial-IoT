@@ -194,7 +194,7 @@ namespace Asset
                 if (data?.Length > 0)
                 {
                     var buffer = new byte[data.Length];
-                    handle.Stream.Read(data, 0, data.Length);
+                    handle.Stream.ReadExactly(data);
                     data = buffer;
                 }
                 else

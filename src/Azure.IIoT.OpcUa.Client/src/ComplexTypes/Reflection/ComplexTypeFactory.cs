@@ -29,8 +29,6 @@
 
 namespace Opc.Ua.Client.ComplexTypes.Reflection
 {
-    using System;
-
     /// <summary>
     /// Factory function for the default complex type builder
     /// using classes created with Reflection.Emit.
@@ -54,6 +52,6 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
                 targetNamespace, targetNamespaceIndex, moduleName);
         }
 
-        readonly AssemblyModule _moduleFactory;
+        private readonly AssemblyModule _moduleFactory;
     }
 }

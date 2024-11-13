@@ -5,12 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
-    using Autofac.Features.Indexed;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using FluentAssertions;
-    using Google.Protobuf.WellKnownTypes;
     using Json.More;
     using System;
     using System.Collections.Generic;

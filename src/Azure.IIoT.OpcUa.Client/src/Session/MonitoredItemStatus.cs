@@ -64,7 +64,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The sampling interval.
         /// </summary>
-        public double SamplingInterval { get; private set; }
+        public TimeSpan SamplingInterval { get; private set; }
 
         /// <summary>
         /// The length of the queue used to buffer values.
@@ -112,15 +112,17 @@ namespace Opc.Ua.Client
             ArgumentNullException.ThrowIfNull(result);
 
             MonitoringMode = request.MonitoringMode;
+            SamplingInterval = TimeSpan.FromMilliseconds(
+                request.RequestedParameters.SamplingInterval);
             _clientHandle = request.RequestedParameters.ClientHandle;
-            SamplingInterval = request.RequestedParameters.SamplingInterval;
             _queueSize = request.RequestedParameters.QueueSize;
             Error = error;
 
             if (ServiceResult.IsGood(error))
             {
                 Id = result.MonitoredItemId;
-                SamplingInterval = result.RevisedSamplingInterval;
+                SamplingInterval =
+                    TimeSpan.FromMilliseconds(result.RevisedSamplingInterval);
                 _queueSize = result.RevisedQueueSize;
 
                 if (result.FilterResult != null)
@@ -169,10 +171,12 @@ namespace Opc.Ua.Client
             if (ServiceResult.IsGood(error))
             {
                 _clientHandle = request.RequestedParameters.ClientHandle;
-                SamplingInterval = request.RequestedParameters.SamplingInterval;
+                SamplingInterval = TimeSpan.FromMilliseconds(
+                    request.RequestedParameters.SamplingInterval);
                 _queueSize = request.RequestedParameters.QueueSize;
 
-                SamplingInterval = result.RevisedSamplingInterval;
+                SamplingInterval = TimeSpan.FromMilliseconds(
+                    result.RevisedSamplingInterval);
                 _queueSize = result.RevisedQueueSize;
 
                 if (result.FilterResult != null)

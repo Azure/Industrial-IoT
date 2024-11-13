@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteDataSet(string? fieldName, DataSet dataSet)
         {
             var fieldContentMask = dataSet.DataSetFieldContentMask;
-            if ((fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData)) ||
+            if (fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData) ||
                 fieldContentMask == 0)
             {
                 foreach (var (Name, Value) in dataSet.DataSetFields)

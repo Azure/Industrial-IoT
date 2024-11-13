@@ -37,22 +37,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendAddressSpaceDataToUnifiedNamespace()
+        public async Task CanSendAddressSpaceDataToUnifiedNamespaceAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendAddressSpaceDataToUnifiedNamespace), "./Resources/DataItems1.json",
+                nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync), "./Resources/DataItems1.json",
                 messageCollectionTimeout: TimeSpan.FromMinutes(1), messageCount: 10,
                 arguments: new string[] { "--mm=SingleRawDataSet", "--uns=UseBrowseNamesWithNamespaceIndex" }, version: MqttVersion.v5);
 
             // Assert
             Assert.NotEmpty(messages);
             var currentTimes = messages.Where(m => m.Topic
-                .EndsWith("CanSendAddressSpaceDataToUnifiedNamespace/Objects/Server/ServerStatus/CurrentTime",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync) + "/Objects/Server/ServerStatus/CurrentTime",
                 StringComparison.InvariantCulture)).ToList();
             var outputs = messages.Where(m => m.Topic
-                .EndsWith("CanSendAddressSpaceDataToUnifiedNamespace/Objects/23:Boilers/23:Boiler \\x231/23:DrumX001/23:LIX001/23:Output",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync) + "/Objects/23:Boilers/23:Boiler \\x231/23:DrumX001/23:LIX001/23:Output",
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
@@ -74,22 +74,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendAddressSpaceDataToUnifiedNamespaceRaw()
+        public async Task CanSendAddressSpaceDataToUnifiedNamespaceRawAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendAddressSpaceDataToUnifiedNamespaceRaw), "./Resources/DataItems1.json",
+                nameof(CanSendAddressSpaceDataToUnifiedNamespaceRawAsync), "./Resources/DataItems1.json",
                 messageCollectionTimeout: TimeSpan.FromMinutes(1), messageCount: 10,
                 arguments: new string[] { "--mm=SingleRawDataSet", "--uns=UseBrowseNames" }, version: MqttVersion.v311);
 
             // Assert
             Assert.NotEmpty(messages);
             var currentTimes = messages.Where(m => m.Topic
-                .EndsWith("CanSendAddressSpaceDataToUnifiedNamespaceRaw/Objects/Server/ServerStatus/CurrentTime",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceRawAsync) + "/Objects/Server/ServerStatus/CurrentTime",
                 StringComparison.InvariantCulture)).ToList();
             var outputs = messages.Where(m => m.Topic
-                .EndsWith("CanSendAddressSpaceDataToUnifiedNamespaceRaw/Objects/Boilers/Boiler \\x231/DrumX001/LIX001/Output",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceRawAsync) + "/Objects/Boilers/Boiler \\x231/DrumX001/LIX001/Output",
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
@@ -111,21 +111,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSets()
+        public async Task CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSetsAsync()
         {
             // Arrange
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSets), "./Resources/UnifiedNamespace.json",
+                nameof(CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSetsAsync), "./Resources/UnifiedNamespace.json",
                 messageCollectionTimeout: TimeSpan.FromMinutes(1), messageCount: 10, version: MqttVersion.v5);
 
             // Assert
             Assert.NotEmpty(messages);
             var currentTimes = messages.Where(m => m.Topic
-                .EndsWith("CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSets/Objects/Server/ServerStatus/CurrentTime",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSetsAsync) + "/Objects/Server/ServerStatus/CurrentTime",
                 StringComparison.InvariantCulture)).ToList();
             var outputs = messages.Where(m => m.Topic
-                .EndsWith("CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSets/Objects/Boilers/Boiler \\x231/DrumX001/LIX001/Output",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespacePerWriterWithRawDataSetsAsync) + "/Objects/Boilers/Boiler \\x231/DrumX001/LIX001/Output",
                 StringComparison.InvariantCulture)).ToList();
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendModelChangeEventsToUnifiedNamespace()
+        public async Task CanSendModelChangeEventsToUnifiedNamespaceAsync()
         {
             // TODO: Fix
             await Task.Delay(1);

@@ -741,20 +741,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 var t = Template.Replace("<<name>>", "sim" + i, StringComparison.Ordinal);
 
                 var stream = new MemoryStream(Encoding.UTF8.GetBytes(t));
-                await using (var c1 = stream.ConfigureAwait(false))
+                await using var c1 = stream.ConfigureAwait(false);
+                var request = new PublishedNodeCreateAssetRequestModel<Stream>
                 {
-                    var request = new PublishedNodeCreateAssetRequestModel<Stream>
-                    {
-                        Configuration = stream,
-                        Entry = asset
-                    };
+                    Configuration = stream,
+                    Entry = asset
+                };
 
-                    var result = await service.CreateOrUpdateAssetAsync(
-                        request, ct).ConfigureAwait(false);
+                var result = await service.CreateOrUpdateAssetAsync(
+                    request, ct).ConfigureAwait(false);
 
-                    AssertResult(result);
-                    assets.Add(result.Result!);
-                }
+                AssertResult(result);
+                assets.Add(result.Result!);
             }
 
             var firstAsset = assets[0];

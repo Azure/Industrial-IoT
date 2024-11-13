@@ -203,10 +203,11 @@ elseif ($ClusterType -eq "k3d") {
             New-Item -ItemType Directory -Path $fullPath2 | Out-Null
         }
         $volumeMapping2 = "$($fullPath2):/storage/user@all"
-        $env:K3D_FIX_MOUNTS = 1
+        $env:K3D_FIX_MOUNTS=1
         k3d cluster create $Name `
             --agents 3 `
             --servers 1 `
+            --volume $volumeMapping1 `
             --volume $volumeMapping2 `
             --wait
         if ($LASTEXITCODE -ne 0) {

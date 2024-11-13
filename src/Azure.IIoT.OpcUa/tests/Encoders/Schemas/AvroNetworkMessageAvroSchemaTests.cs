@@ -165,11 +165,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         private static async ValueTask<T> LoadAsync<T>(string file)
         {
             var serializer = new NewtonsoftJsonSerializer();
-            await using (var fs = new FileStream(file, FileMode.Open,
-                FileAccess.Read, FileShare.Read))
-            {
-                return await JsonSerializer.DeserializeAsync<T>(fs);
-            }
+            await using var fs = new FileStream(file, FileMode.Open,
+                FileAccess.Read, FileShare.Read);
+            return await JsonSerializer.DeserializeAsync<T>(fs);
         }
 
         private static readonly JsonSerializerOptions kIndented = new()

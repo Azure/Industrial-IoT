@@ -112,31 +112,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TheResolvedNodeId = template.StartNodeId;
             }
 
-            /// <summary>
-            /// Copy constructor
-            /// </summary>
-            /// <param name="item"></param>
-            /// <param name="copyEventHandlers"></param>
-            /// <param name="copyClientHandle"></param>
-            protected DataChange(DataChange item, bool copyEventHandlers,
-                bool copyClientHandle)
-                : base(item, copyEventHandlers, copyClientHandle)
-            {
-                TheResolvedNodeId = item.TheResolvedNodeId;
-                TheResolvedRelativePath = item.TheResolvedRelativePath;
-                Template = item.Template;
-                _fieldId = item._fieldId;
-                _skipDataChangeNotification = item._skipDataChangeNotification;
-                _registeredForReading = false;
-            }
-
-            /// <inheritdoc/>
-            public override MonitoredItem CloneMonitoredItem(
-                bool copyEventHandlers, bool copyClientHandle)
-            {
-                return new DataChange(this, copyEventHandlers, copyClientHandle);
-            }
-
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {
@@ -252,8 +227,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 StartNodeId = nodeId;
                 MonitoringMode = Template.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
-                SamplingInterval = (int)Template.SamplingInterval.
-                    GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                SamplingInterval = Template.SamplingInterval
+                    ?? TimeSpan.FromSeconds(1);
                 UpdateQueueSize(subscription, Template);
                 Filter = Template.DataChangeFilter.ToStackModel() ??
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
@@ -323,18 +298,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Template = updated;
                 }
 
-                if ((Template.SamplingInterval ?? TimeSpan.FromSeconds(1)) !=
-                    (Template.SamplingInterval ?? TimeSpan.FromSeconds(1)))
+                var currentSamplingInterval = Template.SamplingInterval ?? TimeSpan.FromSeconds(1);
+                var samplingInterval = model.Template.SamplingInterval ?? TimeSpan.FromSeconds(1);
+                if (currentSamplingInterval != samplingInterval)
                 {
                     _logger.LogDebug("{Item}: Changing sampling interval from {Old} to {New}",
-                        this, Template.SamplingInterval.GetValueOrDefault(
-                            TimeSpan.FromSeconds(1)).TotalMilliseconds,
-                        model.Template.SamplingInterval.GetValueOrDefault(
-                            TimeSpan.FromSeconds(1)).TotalMilliseconds);
+                        this, currentSamplingInterval, samplingInterval);
                     Template = Template with { SamplingInterval = model.Template.SamplingInterval };
-                    SamplingInterval =
-                        (int)Template.SamplingInterval.GetValueOrDefault(
-                            TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                    SamplingInterval = samplingInterval;
                     itemChange = true;
                 }
 
@@ -505,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return true;
             }
 
-            enum SkipSetting
+            private enum SkipSetting
             {
                 /// <summary> Default </summary>
                 DontSkip,

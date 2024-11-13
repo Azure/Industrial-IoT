@@ -7,8 +7,6 @@ namespace Opc.Ua.Extensions
 {
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Extensions.Logging.Abstractions;
-    using Microsoft.Extensions.Primitives;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;

@@ -38,6 +38,7 @@ namespace DeterministicAlarms
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class DeterministicAlarmsNodeManager : CustomNodeManager2
     {
@@ -569,9 +570,7 @@ namespace DeterministicAlarms
             OperationContext context,
             IList<IEventMonitoredItem> monitoredItems)
         {
-            var serverSystemContext = SystemContext.Copy(context);
-
-            foreach (MonitoredItem monitoredItem in monitoredItems)
+            foreach (var monitoredItem in monitoredItems.Cast<MonitoredItem>())
             {
                 if (monitoredItem == null)
                 {

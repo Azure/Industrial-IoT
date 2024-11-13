@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Net;
     using System.Runtime.CompilerServices;
-    using System.Security.Cryptography.X509Certificates;
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Channels;
@@ -34,8 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
-    internal sealed partial class OpcUaClient : DefaultSessionFactory,
-        IOpcUaClientDiagnostics, IDisposable
+    internal sealed partial class OpcUaClient : IOpcUaClientDiagnostics, IDisposable
     {
         /// <summary>
         /// Client namespace
@@ -110,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Last diagnostic information on this client
         /// </summary>
-        internal ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
+        internal ChannelDiagnosticModel LastDiagnostics { get; private set; }
 
         /// <summary>
         /// No complex type loading ever
@@ -137,8 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _session?.Connected ?? false;
 
         /// <inheritdoc/>
-        public EndpointConnectivityState State
-            => _lastState;
+        public EndpointConnectivityState State { get; private set; }
 
         /// <inheritdoc/>
         public int BadPublishRequestCount
@@ -161,10 +158,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => _session?.MinPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
-        public int ReconnectCount => _numberOfConnectionRetries;
+        public int ReconnectCount { get; private set; }
 
         /// <inheritdoc/>
-        public int ConnectCount => _numberofSuccessfulConnections;
+        public int ConnectCount { get; private set; }
 
         /// <summary>
         /// Disconnected state
@@ -199,9 +196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IOptions<OpcUaClientOptions> options,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             string? sessionName = null)
-#if !OLD_STACK
-			: base(loggerFactory)
-#endif
         {
             _timeProvider = timeProvider;
             if (connection?.Connection?.Endpoint?.Url == null)
@@ -213,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _subscriptionOptions = subscriptionOptions;
             _connection = connection.Connection;
             _diagnosticsCb = diagnosticsCallback;
-            _lastDiagnostics = new ChannelDiagnosticModel
+            LastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
                 TimeStamp = _timeProvider.GetUtcNow()
@@ -237,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = _loggerFactory.CreateLogger<OpcUaClient>();
             _tokens = new Dictionary<string, CancellationTokenSource>();
-            _lastState = EndpointConnectivityState.Disconnected;
+            State = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
 
             OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
@@ -279,13 +273,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _maxReconnectPeriod = TimeSpan.FromSeconds(30);
             }
-#if OLD_STACK
-            _reconnectHandler = new SessionReconnectHandler(true,
-                (int)_maxReconnectPeriod.TotalMilliseconds);
-#else
             _reconnectHandler = new SessionReconnectHandler(_loggerFactory, true,
                 (int)_maxReconnectPeriod.TotalMilliseconds);
-#endif
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
@@ -307,18 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_sessionName} [state:{_lastState}|refs:{_refCount}]";
-        }
-
-        /// <inheritdoc/>
-        public override Session Create(ITransportChannel channel, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate,
-            EndpointDescriptionCollection? availableEndpoints,
-            StringCollection? discoveryProfileUris)
-        {
-            return new OpcUaSession(this, _serializer, _loggerFactory,
-                _timeProvider, channel, configuration, endpoint,
-                clientCertificate, availableEndpoints, discoveryProfileUris);
+            return $"{_sessionName} [state:{State}|refs:{_refCount}]";
         }
 
         /// <summary>
@@ -393,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 await CloseSessionAsync(shutdown).ConfigureAwait(false);
 
-                _lastState = EndpointConnectivityState.Disconnected;
+                State = EndpointConnectivityState.Disconnected;
 
                 if (_diagnosticsDumper != null)
                 {
@@ -860,7 +838,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
                                             Debug.Assert(_session != null);
                                             var state = _reconnectHandler.BeginReconnect(_session,
-                                                _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
+                                                GetMinReconnectPeriod(), (sender, evt) =>
                                                 {
                                                     if (ReferenceEquals(sender, _reconnectHandler))
                                                     {
@@ -920,7 +898,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             {
                                                 // Case 3)
                                                 _logger.LogInformation("{Client}: Client RECONNECTED!", this);
-                                                _numberOfConnectionRetries++;
+                                                ReconnectCount++;
                                             }
 
                                             // If not already ready, signal we are ready again and ...
@@ -1164,7 +1142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ITransportWaitingConnection? connection = null;
                     if (_reverseConnectManager != null)
                     {
-                        connection = await _reverseConnectManager.WaitForConnection(
+                        connection = await _reverseConnectManager.WaitForConnectionAsync(
                             endpointUrl, null, ct).ConfigureAwait(false);
                     }
 
@@ -1235,33 +1213,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             preferredLocales.Add(CultureInfo.CurrentCulture.Name);
                         }
                     }
-                    var sessionTimeout = SessionTimeout ?? TimeSpan.FromSeconds(30);
-                    var session = await CreateAsync(_configuration,
-                        _reverseConnectManager, endpoint,
-                        // Update endpoint through discovery
-                        updateBeforeConnect: _reverseConnectManager != null,
-                        checkDomain: false, // Domain must match on connect
-                        _sessionName, (uint)sessionTimeout.TotalMilliseconds,
-                        userIdentity, preferredLocales, ct).ConfigureAwait(false) as OpcUaSession;
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var session = new OpcUaSession(this, _serializer, _sessionName, _configuration,
+                        endpoint, _loggerFactory, _timeProvider, userIdentity, preferredLocales,
+                        null, SessionTimeout, false, null, null, _reverseConnectManager, null, connection);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    try
+                    {
+                        await session.OpenAsync(ct).ConfigureAwait(false);
 
-                    Debug.Assert(session != null);
-                    session.RenewUserIdentity += (_, _) => userIdentity;
+                        // Assign the createdSubscriptions session
+                        var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
+                        Debug.Assert(isNew);
+                        _logger.LogInformation(
+                            "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
+                            this, _sessionName, endpointUrl, _connection.Endpoint.Url);
 
-                    // Assign the createdSubscriptions session
-                    var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
-                    Debug.Assert(isNew);
-                    _logger.LogInformation(
-                        "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
-                        this, _sessionName, endpointUrl, _connection.Endpoint.Url);
-
-                    _logger.LogInformation("{Client} Client CONNECTED to {EndpointUrl}!",
-                        this, endpointUrl);
-                    return true;
+                        _logger.LogInformation("{Client} Client CONNECTED to {EndpointUrl}!",
+                            this, endpointUrl);
+                        return true;
+                    }
+                    catch
+                    {
+                        session.Dispose();
+                        throw;
+                    }
                 }
                 catch (Exception ex)
                 {
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
-                    _numberOfConnectionRetries++;
+                    ReconnectCount++;
                     _logger.LogInformation(
                         "#{Attempt} - {Client}: Failed to connect to {EndpointUrl}: {Message}...",
                         ++attempt, this, endpointUrl, ex.Message);
@@ -1396,7 +1377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="sr"></param>
         /// <param name="action"></param>
-        void TriggerReconnect(ServiceResult sr, string action)
+        private void TriggerReconnect(ServiceResult sr, string action)
         {
             if (Interlocked.Increment(ref _reconnectRequired) == 1)
             {
@@ -1444,7 +1425,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 isNewSession = true;
 
                 kSessions.Add(1, _metrics.TagList);
-                _numberofSuccessfulConnections++;
+                ConnectCount++;
             }
 
             UpdatePublishRequestCounts();
@@ -1495,7 +1476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var now = _timeProvider.GetUtcNow();
 
-            var lastDiagnostics = _lastDiagnostics;
+            var lastDiagnostics = LastDiagnostics;
             var elapsed = now - lastDiagnostics.TimeStamp;
 
             var channelChanged = false;
@@ -1551,18 +1532,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var localIpAddress = socket?.LocalEndpoint?.GetIPAddress()?.ToString();
             var localPort = socket?.LocalEndpoint?.GetPort();
 
-            if (_lastDiagnostics.SessionCreated == session.CreatedAt &&
-                _lastDiagnostics.SessionId == sessionId &&
-                _lastDiagnostics.RemoteIpAddress == remoteIpAddress &&
-                _lastDiagnostics.RemotePort == remotePort &&
-                _lastDiagnostics.LocalIpAddress == localIpAddress &&
-                _lastDiagnostics.LocalPort == localPort &&
+            if (LastDiagnostics.SessionCreated == session.CreatedAt &&
+                LastDiagnostics.SessionId == sessionId &&
+                LastDiagnostics.RemoteIpAddress == remoteIpAddress &&
+                LastDiagnostics.RemotePort == remotePort &&
+                LastDiagnostics.LocalIpAddress == localIpAddress &&
+                LastDiagnostics.LocalPort == localPort &&
                 !channelChanged)
             {
                 return;
             }
 
-            _lastDiagnostics = new ChannelDiagnosticModel
+            LastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
                 TimeStamp = now,
@@ -1582,7 +1563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Server = ToChannelKey(token?.ServerInitializationVector,
                     token?.ServerEncryptingKey, token?.ServerSigningKey)
             };
-            _diagnosticsCb(_lastDiagnostics);
+            _diagnosticsCb(LastDiagnostics);
 
             _logger.LogInformation("Channel diagnostics for session {SessionId} updated.",
                 sessionId);
@@ -1660,7 +1641,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private void NotifyConnectivityStateChange(EndpointConnectivityState state)
         {
-            var previous = _lastState;
+            var previous = State;
             if (previous == state)
             {
                 return;
@@ -1676,7 +1657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     this, _connection.Endpoint!.Url, previous);
                 return;
             }
-            _lastState = state;
+            State = state;
 
             if (state == EndpointConnectivityState.Ready)
             {
@@ -1743,111 +1724,109 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            using (var client = connection != null ?
+            using var client = connection != null ?
                 DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
-                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration))
+                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
+            var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
+            var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
+            discoveryUrl ??= uri;
+
+            logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
+                "Selecting endpoint {EndpointUri} with SecurityMode " +
+                "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
+                context, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
+                    ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
+
+            var filtered = endpoints
+                .Where(ep =>
+                    SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
+                    ep.SecurityMode.IsSame(securityMode) &&
+                    (securityPolicy == null ||
+                     string.Equals(ep.SecurityPolicyUri,
+                        securityPolicy,
+                        StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(ep.SecurityPolicyUri,
+                        "http://opcfoundation.org/UA/SecurityPolicy#" + securityPolicy,
+                        StringComparison.OrdinalIgnoreCase)))
+                //
+                // The security level is a relative measure assigned by the server
+                // to the endpoints that it returns. Clients should always pick the
+                // highest level unless they have a reason not too. Some servers
+                // however, mess this up a bit. So group SecurityLevel also by
+                // security mode and then pick the highest in that group.
+                //
+                .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
+                .ToList();
+
+            //
+            // Try to find endpoint that matches scheme and endpoint url path
+            // but fall back to match just the scheme. We need to match only
+            // scheme to support the reverse connect (indicated by connection
+            // being not null here).
+            //
+            var selected = filtered.Find(ep => Match(ep, uri, true, true))
+                        ?? filtered.Find(ep => Match(ep, uri, true, false));
+            if (connection != null)
             {
-                var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-                var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
-                discoveryUrl ??= uri;
-
-                logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
-                    "Selecting endpoint {EndpointUri} with SecurityMode " +
-                    "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-                    context, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
-                        ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
-
-                var filtered = endpoints
-                    .Where(ep =>
-                        SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
-                        ep.SecurityMode.IsSame(securityMode) &&
-                        (securityPolicy == null ||
-                         string.Equals(ep.SecurityPolicyUri,
-                            securityPolicy,
-                            StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(ep.SecurityPolicyUri,
-                            "http://opcfoundation.org/UA/SecurityPolicy#" + securityPolicy,
-                            StringComparison.OrdinalIgnoreCase)))
-                    //
-                    // The security level is a relative measure assigned by the server
-                    // to the endpoints that it returns. Clients should always pick the
-                    // highest level unless they have a reason not too. Some servers
-                    // however, mess this up a bit. So group SecurityLevel also by
-                    // security mode and then pick the highest in that group.
-                    //
-                    .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
-                    .ToList();
-
                 //
-                // Try to find endpoint that matches scheme and endpoint url path
-                // but fall back to match just the scheme. We need to match only
-                // scheme to support the reverse connect (indicated by connection
-                // being not null here).
+                // Only allow same uri scheme (which must also be opc.tcp)
+                // for when reverse connection is used.
                 //
-                var selected = filtered.Find(ep => Match(ep, uri, true, true))
-                            ?? filtered.Find(ep => Match(ep, uri, true, false));
-                if (connection != null)
+                if (selected != null)
                 {
-                    //
-                    // Only allow same uri scheme (which must also be opc.tcp)
-                    // for when reverse connection is used.
-                    //
-                    if (selected != null)
-                    {
-                        logger.LogInformation(
-                            "{Client}: Endpoint {Endpoint} selected via reverse connect!",
-                            context, ToString(selected));
-                    }
-                    return selected;
+                    logger.LogInformation(
+                        "{Client}: Endpoint {Endpoint} selected via reverse connect!",
+                        context, ToString(selected));
                 }
+                return selected;
+            }
+
+            if (selected == null)
+            {
+                //
+                // Fall back to first supported endpoint matching absolute path
+                // then fall back to first endpoint (backwards compatibilty)
+                //
+                selected = filtered.Find(ep => Match(ep, uri, false, true))
+                        ?? filtered.Find(ep => Match(ep, uri, false, false));
 
                 if (selected == null)
                 {
-                    //
-                    // Fall back to first supported endpoint matching absolute path
-                    // then fall back to first endpoint (backwards compatibilty)
-                    //
-                    selected = filtered.Find(ep => Match(ep, uri, false, true))
-                            ?? filtered.Find(ep => Match(ep, uri, false, false));
-
-                    if (selected == null)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
+            }
 
-                //
-                // Adjust the host name and port to the host name and port
-                // that was use to successfully connect the discovery client
-                //
-                var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
-                if (selectedUrl != null && discoveryUrl != null &&
-                    selectedUrl.Scheme == discoveryUrl.Scheme)
+            //
+            // Adjust the host name and port to the host name and port
+            // that was use to successfully connect the discovery client
+            //
+            var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
+            if (selectedUrl != null && discoveryUrl != null &&
+                selectedUrl.Scheme == discoveryUrl.Scheme)
+            {
+                selected.EndpointUrl = new UriBuilder(selectedUrl)
                 {
-                    selected.EndpointUrl = new UriBuilder(selectedUrl)
-                    {
-                        Host = discoveryUrl.DnsSafeHost,
-                        Port = discoveryUrl.Port
-                    }.ToString();
-                }
+                    Host = discoveryUrl.DnsSafeHost,
+                    Port = discoveryUrl.Port
+                }.ToString();
+            }
 
-                logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", context,
-                    ToString(selected));
-                return selected;
+            logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", context,
+                ToString(selected));
+            return selected;
 
-                static string ToString(EndpointDescription ep) =>
-    $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
-                // Match endpoint returned against desired endpoint url
-                static bool Match(EndpointDescription endpointDescription,
-                    Uri endpointUrl, bool includeScheme, bool includePath)
-                {
-                    var url = Utils.ParseUri(endpointDescription.EndpointUrl);
-                    return url != null &&
-                        (!includeScheme || string.Equals(url.Scheme,
-                            endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
-                        (!includePath || string.Equals(url.AbsolutePath,
-                            endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
-                }
+            static string ToString(EndpointDescription ep) =>
+$"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
+            // Match endpoint returned against desired endpoint url
+            static bool Match(EndpointDescription endpointDescription,
+                Uri endpointUrl, bool includeScheme, bool includePath)
+            {
+                var url = Utils.ParseUri(endpointDescription.EndpointUrl);
+                return url != null &&
+                    (!includeScheme || string.Equals(url.Scheme,
+                        endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
+                    (!includePath || string.Equals(url.AbsolutePath,
+                        endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
             }
         }
 
@@ -1986,7 +1965,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (OperationCanceledException) { }
         }
-        private readonly static JsonSerializerOptions kIndented = new()
+        private static readonly JsonSerializerOptions kIndented = new()
         {
             WriteIndented = true
         };
@@ -2048,7 +2027,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void InitializeMetrics()
         {
             _meter.CreateObservableGauge("iiot_edge_publisher_client_connectivity_state",
-                () => new Measurement<int>((int)_lastState, _metrics.TagList),
+                () => new Measurement<int>((int)State, _metrics.TagList),
                 description: "Client connectivity state.");
             _meter.CreateObservableGauge("iiot_edge_publisher_client_keep_alive_counter",
                 () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
@@ -2066,10 +2045,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 () => new Measurement<int>(_browsers.Count, _metrics.TagList),
                 description: "Number of active browsers.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_retry_count",
-                () => new Measurement<int>(_numberOfConnectionRetries, _metrics.TagList),
+                () => new Measurement<int>(ReconnectCount, _metrics.TagList),
                 description: "Number of connectivity retries on this connection.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_connectivity_count",
-                () => new Measurement<int>(_numberofSuccessfulConnections, _metrics.TagList),
+                () => new Measurement<int>(ConnectCount, _metrics.TagList),
                 description: "Number of sessions established as a total for the client.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_ref_count",
                 () => new Measurement<int>(_refCount, _metrics.TagList),
@@ -2100,15 +2079,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaSession? _session;
         private IDisposable? _disconnectLock;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private EndpointConnectivityState _lastState;
-        private int _numberOfConnectionRetries;
-        private int _numberofSuccessfulConnections;
         private bool _disposed;
         private int _refCount;
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
         private int _namespaceTableChanges;
-        private ChannelDiagnosticModel _lastDiagnostics;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;

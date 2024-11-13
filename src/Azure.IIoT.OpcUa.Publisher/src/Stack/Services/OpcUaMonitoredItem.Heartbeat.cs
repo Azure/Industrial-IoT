@@ -60,31 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? HeartbeatBehavior.WatchdogLKV;
             }
 
-            /// <summary>
-            /// Copy constructor
-            /// </summary>
-            /// <param name="item"></param>
-            /// <param name="copyEventHandlers"></param>
-            /// <param name="copyClientHandle"></param>
-            private Heartbeat(Heartbeat item, bool copyEventHandlers,
-                bool copyClientHandle)
-                : base(item, copyEventHandlers, copyClientHandle)
-            {
-                _heartbeatInterval = item._heartbeatInterval;
-                _heartbeatBehavior = item._heartbeatBehavior;
-                if (item.TimerEnabled)
-                {
-                    EnableHeartbeatTimer();
-                }
-            }
-
-            /// <inheritdoc/>
-            public override MonitoredItem CloneMonitoredItem(
-                bool copyEventHandlers, bool copyClientHandle)
-            {
-                return new Heartbeat(this, copyEventHandlers, copyClientHandle);
-            }
-
             /// <inheritdoc/>
             public override bool Equals(object? obj)
             {

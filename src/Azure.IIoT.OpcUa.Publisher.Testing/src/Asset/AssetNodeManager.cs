@@ -551,7 +551,7 @@ namespace Asset
                              !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://",
                                 StringComparison.InvariantCulture)))
                     {
-                        var nodesetFile = string.Empty;
+                        string? nodesetFile;
                         if (Path.IsPathFullyQualified(opcuaCompanionSpecUrl.OriginalString))
                         {
                             // absolute file path
@@ -598,7 +598,7 @@ namespace Asset
                             !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://",
                                 StringComparison.InvariantCulture)))
                     {
-                        var nodesetFile = string.Empty;
+                        string? nodesetFile;
                         if (Path.IsPathFullyQualified(opcuaCompanionSpecUrl.OriginalString))
                         {
                             // absolute file path

@@ -85,11 +85,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     return string.Empty;
                 }
                 // Create file only if it is the default file.
-                using (var fileStream = new FileStream(_fileName,
-                    _fileMode, FileAccess.Read, FileShare.Read))
-                {
-                    return fileStream.ReadAsString(Encoding.UTF8);
-                }
+                using var fileStream = new FileStream(_fileName,
+                    _fileMode, FileAccess.Read, FileShare.Read);
+                return fileStream.ReadAsString(Encoding.UTF8);
             }
             catch (Exception e)
             {
@@ -117,15 +115,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
 
                 try
                 {
-                    using (var fileStream = new FileStream(_fileName,
+                    using var fileStream = new FileStream(_fileName,
                         _fileMode,
                         FileAccess.Write,
                         // We will require that there is no other process using the file.
-                        FileShare.None))
-                    {
-                        fileStream.SetLength(0);
-                        fileStream.Write(Encoding.UTF8.GetBytes(content));
-                    }
+                        FileShare.None);
+                    fileStream.SetLength(0);
+                    fileStream.Write(Encoding.UTF8.GetBytes(content));
                 }
                 catch (IOException e)
                 {
@@ -138,15 +134,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     // We will fall back to writing with ReadWrite access.
                     try
                     {
-                        using (var fileStream = new FileStream(_fileName,
+                        using var fileStream = new FileStream(_fileName,
                             _fileMode,
                             FileAccess.Write,
                             // Relaxing requirements.
-                            FileShare.ReadWrite))
-                        {
-                            fileStream.SetLength(0);
-                            fileStream.Write(Encoding.UTF8.GetBytes(content));
-                        }
+                            FileShare.ReadWrite);
+                        fileStream.SetLength(0);
+                        fileStream.Write(Encoding.UTF8.GetBytes(content));
                         return;
                     }
                     catch (Exception)

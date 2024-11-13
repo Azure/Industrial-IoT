@@ -790,11 +790,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 #if !NO_WATCHDOG
         private int _counter;
 #endif
-        private readonly static Counter<int> kDiscoverAsync = Diagnostics.Meter.CreateCounter<int>(
+        private static readonly Counter<int> kDiscoverAsync = Diagnostics.Meter.CreateCounter<int>(
             "iiot_edge_discovery_discover", "calls", "call to discover");
-        private readonly static Counter<int> kCancelAsync = Diagnostics.Meter.CreateCounter<int>(
+        private static readonly Counter<int> kCancelAsync = Diagnostics.Meter.CreateCounter<int>(
             "iiot_edge_discovery_cancel", "calls", "call to cancel");
-        private readonly static Counter<int> kDiscoverServersAsync = Diagnostics.Meter.CreateCounter<int>(
+        private static readonly Counter<int> kDiscoverServersAsync = Diagnostics.Meter.CreateCounter<int>(
             "iiot_edge_discovery_discover_servers", "calls", "call to discoverServersAsync");
 
         /// <summary> Progress reporting every 3 seconds </summary>

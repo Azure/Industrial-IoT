@@ -18,9 +18,12 @@ namespace Opc.Ua.Client.Obsolete
         /// Intializes the object with a channel and default operation limits.
         /// </summary>
         /// <param name="channel"></param>
-        public SessionClient(ITransportChannel channel)
-            : base(channel)
+        public SessionClient(ITransportChannel? channel = null)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            : base(channel ?? new NullChannel())
+#pragma warning restore CA2000 // Dispose objects before losing scope
         {
+            DetachChannel();
         }
 
         /// <inheritdoc/>
@@ -84,8 +87,8 @@ namespace Opc.Ua.Client.Obsolete
         }
 
         /// <inheritdoc/>
-        public override ResponseHeader EndActivateSession(IAsyncResult result,
-            out byte[] serverNonce, out StatusCodeCollection results, out DiagnosticInfoCollection diagnosticInfos)
+        public override ResponseHeader EndActivateSession(IAsyncResult result, out byte[] serverNonce,
+            out StatusCodeCollection results, out DiagnosticInfoCollection diagnosticInfos)
         {
             throw NotSupported(nameof(EndActivateSession));
         }

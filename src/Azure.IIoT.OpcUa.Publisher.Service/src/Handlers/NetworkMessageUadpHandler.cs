@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 }
                 if (pubSubMessage is UadpNetworkMessage message)
                 {
-                    foreach (UadpDataSetMessage dataSetMessage in message.Messages)
+                    foreach (var dataSetMessage in message.Messages.Cast<UadpDataSetMessage>())
                     {
                         var dataset = new DataSetMessageModel
                         {

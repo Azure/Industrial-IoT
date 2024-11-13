@@ -68,7 +68,7 @@ namespace Asset
         /// <param name="logger"></param>
         /// <param name="asset"></param>
         /// <returns></returns>
-        public abstract static bool TryConnect(Uri tdBase,
+        public static abstract bool TryConnect(Uri tdBase,
             ILogger logger, [NotNullWhen(true)] out IAsset? asset);
     }
 }

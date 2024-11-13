@@ -995,13 +995,12 @@ namespace Azure.IIoT.OpcUa.Encoders
         private void ValidatedWriteArray(Action writer)
         {
             var currentSchema = GetFieldSchema(null);
-            if (currentSchema is not ArraySchema arr)
+            if (currentSchema is not ArraySchema)
             {
                 throw new EncodingException(
                     $"Writing array field but schema {currentSchema.ToJson()} is not " +
                     "array schema.", Schema.ToJson());
             }
-
             writer();
             ValidatedPop(currentSchema);
         }

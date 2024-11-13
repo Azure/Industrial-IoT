@@ -34,10 +34,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Utils
         {
             var content = GetFileContent(sourcePath);
 
-            using (var fileStream = new FileStream(destinationPath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
-            {
-                fileStream.Write(Encoding.UTF8.GetBytes(content));
-            }
+            using var fileStream = new FileStream(destinationPath,
+                FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            fileStream.Write(Encoding.UTF8.GetBytes(content));
         }
     }
 }

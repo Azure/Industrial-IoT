@@ -164,11 +164,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var path2 = Path.Combine(path, Path.GetRandomFileName());
             Directory.CreateDirectory(path2);
 
-            var directoryNodeId = $"nsu=FileSystem;s=1:{path}";
             var directories = await services.GetDirectoriesAsync(_connection, new FileSystemObjectModel
             {
                 NodeId = $"nsu=FileSystem;s=1:{root}",
-                BrowsePath = new List<string> { $"nsu=FileSystem;{p1}", $"nsu=FileSystem;{p2}", $"nsu=FileSystem;{p3}" }
+                BrowsePath = new List<string>
+                {
+                    $"nsu=FileSystem;{p1}",
+                    $"nsu=FileSystem;{p2}",
+                    $"nsu=FileSystem;{p3}"
+                }
             }, ct).ConfigureAwait(false);
 
             Assert.Null(directories.ErrorInfo);

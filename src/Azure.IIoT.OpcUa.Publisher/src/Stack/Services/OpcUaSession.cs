@@ -79,25 +79,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="client"></param>
         /// <param name="serializer"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="timeProvider"></param>
-        /// <param name="channel"></param>
+        /// <param name="sessionName"></param>
         /// <param name="configuration"></param>
         /// <param name="endpoint"></param>
+        /// <param name="loggerFactory"></param>
+        /// <param name="timeProvider"></param>
+        /// <param name="identity"></param>
+        /// <param name="preferredLocales"></param>
         /// <param name="clientCertificate"></param>
+        /// <param name="sessionTimeout"></param>
+        /// <param name="checkDomain"></param>
         /// <param name="availableEndpoints"></param>
         /// <param name="discoveryProfileUris"></param>
-        public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
-            ILoggerFactory loggerFactory, TimeProvider timeProvider,
-            ITransportChannel channel, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate = null,
+        /// <param name="reverseConnectManager"></param>
+        /// <param name="channel"></param>
+        /// <param name="connection"></param>
+        public OpcUaSession(OpcUaClient client, IJsonSerializer serializer, string sessionName,
+            ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
+            ILoggerFactory loggerFactory, TimeProvider timeProvider, IUserIdentity? identity,
+            IReadOnlyList<string>? preferredLocales, X509Certificate2? clientCertificate,
+            TimeSpan? sessionTimeout, bool checkDomain,
             EndpointDescriptionCollection? availableEndpoints = null,
-            StringCollection? discoveryProfileUris = null)
-            : base(channel, configuration, endpoint, clientCertificate,
-#if !OLD_STACK
-                  loggerFactory,
-#endif
-                  availableEndpoints, discoveryProfileUris)
+            StringCollection? discoveryProfileUris = null,
+            ReverseConnectManager? reverseConnectManager = null,
+            ITransportChannel? channel = null, ITransportWaitingConnection? connection = null)
+            : base(sessionName, configuration, endpoint, loggerFactory, identity,
+                  preferredLocales, clientCertificate, sessionTimeout, checkDomain,
+                  availableEndpoints, discoveryProfileUris, reverseConnectManager, channel,
+                  connection)
         {
             _logger = loggerFactory.CreateLogger<OpcUaSession>();
             _client = client;
@@ -107,32 +116,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, serializer);
-        }
-
-        /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="channel"></param>
-        /// <param name="template"></param>
-        /// <param name="copyEventHandlers"></param>
-        private OpcUaSession(OpcUaSession session,
-            ITransportChannel channel, Session template, bool copyEventHandlers)
-            : base(channel, template, copyEventHandlers)
-        {
-            _logger = session._logger;
-            _client = session._client;
-            _serializer = session._serializer;
-            _timeProvider = session._timeProvider;
-            CreatedAt = _timeProvider.GetUtcNow();
-
-            _complexTypeSystem = session._complexTypeSystem;
-            _history = session._history;
-            _limits = session._limits;
-            _server = session._server;
-
-            Initialize();
-            Codec = new JsonVariantEncoder(MessageContext, _serializer);
         }
 
         /// <inheritdoc/>
@@ -168,13 +151,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             Debug.Assert(SubscriptionHandles.Count == 0);
-        }
-
-        /// <inheritdoc/>
-        public override Session CloneSession(ITransportChannel channel,
-            bool copyEventHandlers)
-        {
-            return new OpcUaSession(this, channel, this, copyEventHandlers);
         }
 
         /// <inheritdoc/>
@@ -672,9 +648,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void Initialize()
         {
-            SessionFactory = _client;
-            TransferSubscriptionsOnReconnect = !_client.DisableTransferSubscriptionOnReconnect;
-            DeleteSubscriptionsOnClose = !TransferSubscriptionsOnReconnect;
+            TransferSubscriptionsOnRecreate = !_client.DisableTransferSubscriptionOnReconnect;
+            DeleteSubscriptionsOnClose = !TransferSubscriptionsOnRecreate;
 
             PublishError +=
                 _client.Session_HandlePublishError;
@@ -686,20 +661,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Session_SessionConfigurationChanged;
 
             var keepAliveInterval =
-                (int)(_client.KeepAliveInterval ?? kDefaultKeepAliveInterval).TotalMilliseconds;
-            if (keepAliveInterval <= 0)
+                _client.KeepAliveInterval ?? kDefaultKeepAliveInterval;
+            if (keepAliveInterval <= TimeSpan.Zero)
             {
-                keepAliveInterval = kDefaultKeepAliveInterval.Milliseconds;
+                keepAliveInterval = kDefaultKeepAliveInterval;
             }
-            var operationTimeout =
-                (int)(_client.OperationTimeout ?? kDefaultOperationTimeout).TotalMilliseconds;
-            if (operationTimeout <= 0)
+            var operationTimeout = _client.OperationTimeout ?? kDefaultOperationTimeout;
+            if (operationTimeout <= TimeSpan.Zero)
             {
-                operationTimeout = kDefaultOperationTimeout.Milliseconds;
+                operationTimeout = kDefaultOperationTimeout;
             }
 
             KeepAliveInterval = keepAliveInterval;
-            OperationTimeout = operationTimeout;
+            OperationTimeout = (int)operationTimeout.TotalMilliseconds;
             _defaultOperationTimeout = operationTimeout;
         }
 
@@ -1249,21 +1223,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             var timeout = Subscriptions
                 .Select(s => s.CurrentPublishingInterval * s.CurrentKeepAliveCount)
-                .DefaultIfEmpty(0)
+                .DefaultIfEmpty(TimeSpan.Zero)
                 .Max() * 2;
             if (timeout < _defaultOperationTimeout)
             {
                 timeout = _defaultOperationTimeout;
             }
-            if (timeout > kMaxOperationTimeout.TotalMilliseconds)
+            if (timeout > kMaxOperationTimeout)
             {
-                timeout = kMaxOperationTimeout.TotalMilliseconds;
+                timeout = kMaxOperationTimeout;
             }
-            if (OperationTimeout != timeout)
+            if (TimeSpan.FromMilliseconds(OperationTimeout) != timeout)
             {
-                OperationTimeout = (int)timeout;
+                OperationTimeout = (int)timeout.TotalMilliseconds;
                 _logger.LogInformation("Operation timeout updated to {Timeout}.",
-                    TimeSpan.FromMilliseconds(timeout));
+                    timeout);
             }
         }
 
@@ -1280,7 +1254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (Connected)
                 {
                     var complexTypeSystem = new ComplexTypeSystem(this);
-                    await complexTypeSystem.Load().ConfigureAwait(false);
+                    await complexTypeSystem.LoadAsync().ConfigureAwait(false);
 
                     if (Connected)
                     {
@@ -1425,7 +1399,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private Task<ComplexTypeSystem>? _complexTypeSystem;
         private bool _disposed;
         private bool? _diagnosticsEnabled;
-        private int _defaultOperationTimeout;
+        private TimeSpan _defaultOperationTimeout;
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;

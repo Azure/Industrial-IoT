@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
@@ -53,31 +52,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Value = new DataValue(StatusCodes.GoodNoData)
                 };
-            }
-
-            /// <summary>
-            /// Copy constructor
-            /// </summary>
-            /// <param name="item"></param>
-            /// <param name="copyEventHandlers"></param>
-            /// <param name="copyClientHandle"></param>
-            private CyclicRead(CyclicRead item, bool copyEventHandlers,
-                bool copyClientHandle)
-                : base(item, copyEventHandlers, copyClientHandle)
-            {
-                _client = item._client;
-                _subscriptionName = item._subscriptionName;
-                if (_subscriptionName != null)
-                {
-                    EnsureSamplerRunning();
-                }
-            }
-
-            /// <inheritdoc/>
-            public override MonitoredItem CloneMonitoredItem(
-                bool copyEventHandlers, bool copyClientHandle)
-            {
-                return new CyclicRead(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -183,8 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (_sampler == null)
                     {
                         Debug.Assert(_subscriptionName != null);
-                        _sampler = _client.Sample(
-                            TimeSpan.FromMilliseconds(SamplingInterval),
+                        _sampler = _client.Sample(SamplingInterval,
                             Template.CyclicReadMaxAge ?? TimeSpan.Zero,
                             new ReadValueId
                             {

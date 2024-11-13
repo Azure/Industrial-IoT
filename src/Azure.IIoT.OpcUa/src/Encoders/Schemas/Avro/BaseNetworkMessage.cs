@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName = SchemaUtils.Escape(typeName) + PubSub.BaseNetworkMessage.kMessageTypeName;
+            typeName = SchemaUtils.Escape(typeName) + PubSub.BaseNetworkMessage.MessageTypeName;
             return MakeUnique(typeName);
         }
 

@@ -39,7 +39,7 @@ namespace Opc.Ua.Client
     [KnownType(typeof(DataChangeFilter))]
     [KnownType(typeof(EventFilter))]
     [KnownType(typeof(AggregateFilter))]
-    public class MonitoredItem : ICloneable
+    public abstract class MonitoredItem : IDisposable
     {
         /// <summary>
         /// A display name for the monitored item.
@@ -48,13 +48,15 @@ namespace Opc.Ua.Client
         public string? DisplayName { get; set; }
 
         /// <summary>
-        /// The start node for the browse path that identifies the node to monitor.
+        /// The start node for the browse path that
+        /// identifies the node to monitor.
         /// </summary>
         [DataMember(Order = 2)]
         public NodeId StartNodeId { get; set; }
 
         /// <summary>
-        /// The node class of the node being monitored (affects the type of filter available).
+        /// The node class of the node being monitored
+        /// (affects the type of filter available).
         /// </summary>
         [DataMember(Order = 4)]
         public NodeClass NodeClass { get; set; }
@@ -87,17 +89,15 @@ namespace Opc.Ua.Client
         /// The sampling interval.
         /// </summary>
         [DataMember(Order = 9)]
-        public int SamplingInterval
+        public TimeSpan SamplingInterval
         {
-            get { return _samplingInterval; }
-
+            get => _samplingInterval;
             set
             {
                 if (_samplingInterval != value)
                 {
                     AttributesModified = true;
                 }
-
                 _samplingInterval = value;
             }
         }
@@ -108,7 +108,7 @@ namespace Opc.Ua.Client
         [DataMember(Order = 10)]
         public MonitoringFilter? Filter
         {
-            get { return _filter; }
+            get => _filter;
             set
             {
                 // validate filter against node class.
@@ -125,15 +125,13 @@ namespace Opc.Ua.Client
         [DataMember(Order = 11)]
         public uint QueueSize
         {
-            get { return _queueSize; }
-
+            get => _queueSize;
             set
             {
                 if (_queueSize != value)
                 {
                     AttributesModified = true;
                 }
-
                 _queueSize = value;
             }
         }
@@ -144,15 +142,13 @@ namespace Opc.Ua.Client
         [DataMember(Order = 12)]
         public bool DiscardOldest
         {
-            get { return _discardOldest; }
-
+            get => _discardOldest;
             set
             {
                 if (_discardOldest != value)
                 {
                     AttributesModified = true;
                 }
-
                 _discardOldest = value;
             }
         }
@@ -183,7 +179,8 @@ namespace Opc.Ua.Client
         public NodeId? ResolvedNodeId => StartNodeId;
 
         /// <summary>
-        /// Whether the monitoring attributes have been modified since the item was created.
+        /// Whether the monitoring attributes have been modified
+        /// since the item was created.
         /// </summary>
         public bool AttributesModified { get; private set; }
 
@@ -195,96 +192,32 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        public MonitoredItem()
+        protected MonitoredItem()
         {
             StartNodeId = NodeId.Null;
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
-            _samplingInterval = -1;
-            _discardOldest = true;
             AttributesModified = true;
             Status = new MonitoredItemStatus();
             ClientHandle = Utils.IncrementIdentifier(ref s_globalClientHandle);
-        }
-
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        /// <param name="template">The template used to specify the
-        /// monitoring parameters.</param>
-        /// <param name="copyEventHandlers">if set to <c>true</c>
-        /// the event handlers are copied.</param>
-        /// <param name="copyClientHandle">if set to <c>true</c> the
-        /// clientHandle is of the template copied.</param>
-        public MonitoredItem(MonitoredItem template,
-            bool copyEventHandlers, bool copyClientHandle)
-        {
-            var displayName = template.DisplayName;
-            if (displayName != null)
-            {
-                // remove any existing numeric suffix.
-                var index = displayName.LastIndexOf(' ');
-
-                if (index != -1)
-                {
-                    try
-                    {
-                        displayName = displayName[..index];
-                    }
-                    catch
-                    {
-                        // not a numeric suffix.
-                    }
-                }
-            }
-
-            Status = new MonitoredItemStatus();
-            ClientHandle = copyClientHandle ? template.ClientHandle :
-                Utils.IncrementIdentifier(ref s_globalClientHandle);
-
-            Handle = template.Handle;
-            DisplayName = Utils.Format("{0} {1}", displayName, ClientHandle);
-            StartNodeId = template.StartNodeId;
-            AttributeId = template.AttributeId;
-            IndexRange = template.IndexRange;
-            Encoding = template.Encoding;
-            MonitoringMode = template.MonitoringMode;
-
-            // this ensures the state is consistent with the node class.
-            NodeClass = template.NodeClass;
-
-            _samplingInterval = template._samplingInterval;
-            _filter = (MonitoringFilter)Utils.Clone(template._filter);
-            _queueSize = template._queueSize;
-            _discardOldest = template._discardOldest;
-            AttributesModified = true;
+            _samplingInterval = TimeSpan.MinValue;
+            _discardOldest = true;
         }
 
         /// <inheritdoc/>
-        public virtual object Clone()
+        public void Dispose()
         {
-            return MemberwiseClone();
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
-        /// Creates a deep copy of the object.
+        /// Dispose monitored item
         /// </summary>
-        public new object MemberwiseClone()
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
         {
-            return new MonitoredItem(this, false, false);
-        }
-
-        /// <summary>
-        /// Clones a monitored item or the subclass with an option to copy
-        /// event handlers.
-        /// </summary>
-        /// <param name="copyEventHandlers"></param>
-        /// <param name="copyClientHandle"></param>
-        /// <returns>A cloned instance of the monitored item.</returns>
-        public virtual MonitoredItem CloneMonitoredItem(bool copyEventHandlers,
-            bool copyClientHandle)
-        {
-            return new MonitoredItem(this, copyEventHandlers, copyClientHandle);
+            _disposedValue = true;
         }
 
         /// <summary>
@@ -299,7 +232,8 @@ namespace Opc.Ua.Client
             MonitoredItemCreateResult result, int index,
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
-            ServiceResult error = ServiceResult.Good;
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
+            var error = ServiceResult.Good;
 
             if (StatusCode.IsBad(result.StatusCode))
             {
@@ -323,7 +257,8 @@ namespace Opc.Ua.Client
             MonitoredItemModifyResult result, int index,
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
-            ServiceResult error = ServiceResult.Good;
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
+            var error = ServiceResult.Good;
 
             if (StatusCode.IsBad(result.StatusCode))
             {
@@ -341,6 +276,7 @@ namespace Opc.Ua.Client
         /// <param name="clientHandle"></param>
         public void SetTransferResult(uint clientHandle)
         {
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
             // ensure the global counter is not duplicating future handle ids
             Utils.LowerLimitIdentifier(ref s_globalClientHandle, clientHandle);
             ClientHandle = clientHandle;
@@ -358,13 +294,12 @@ namespace Opc.Ua.Client
         public void SetDeleteResult(StatusCode result, int index,
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
-            ServiceResult error = ServiceResult.Good;
-
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
+            var error = ServiceResult.Good;
             if (StatusCode.IsBad(result))
             {
                 error = ClientBase.GetResult(result, index, diagnosticInfos, responseHeader);
             }
-
             Status.SetDeleteResult(error);
         }
 
@@ -398,7 +333,7 @@ namespace Opc.Ua.Client
                     {
                         NodeClass = NodeClass.Variable;
                     }
-                    else if (NodeClass != NodeClass.Variable && NodeClass != NodeClass.VariableType)
+                    else if (NodeClass is not NodeClass.Variable and not NodeClass.VariableType)
                     {
                         throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed,
                             "DataChangeFilter may not be specified for nodes of class '{0}'.",
@@ -410,7 +345,7 @@ namespace Opc.Ua.Client
                     {
                         NodeClass = NodeClass.Object;
                     }
-                    else if (NodeClass != NodeClass.Object && NodeClass != NodeClass.View)
+                    else if (NodeClass is not NodeClass.Object and not NodeClass.View)
                     {
                         throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed,
                             "EventFilter may not be specified for nodes of class '{0}'.",
@@ -426,10 +361,11 @@ namespace Opc.Ua.Client
             }
         }
 
-        private int _samplingInterval;
+        private TimeSpan _samplingInterval;
         private MonitoringFilter? _filter;
         private uint _queueSize;
         private bool _discardOldest;
         private static long s_globalClientHandle;
+        private bool _disposedValue;
     }
 }

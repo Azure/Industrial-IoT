@@ -46,7 +46,7 @@ namespace Opc.Ua
         /// <inheritdoc/>
         public int GetHashCode(NodeId obj)
         {
-            if (ReferenceEquals(obj, null))
+            if (obj is null)
             {
                 return 0;
             }

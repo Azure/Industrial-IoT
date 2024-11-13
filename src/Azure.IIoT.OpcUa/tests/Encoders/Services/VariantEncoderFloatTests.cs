@@ -186,6 +186,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
                 encoded);
@@ -199,6 +200,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -211,8 +213,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123f);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123f),
-                encoded);
+            Assert.Equal(_serializer.FromObject(-123.123f), encoded);
         }
 
         [Fact]

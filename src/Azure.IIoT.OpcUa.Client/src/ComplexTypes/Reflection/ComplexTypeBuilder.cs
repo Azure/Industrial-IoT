@@ -63,9 +63,9 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         {
             TargetNamespace = targetNamespace;
             TargetNamespaceIndex = targetNamespaceIndex;
-            m_moduleName = FindModuleName(moduleName,
-                targetNamespace, targetNamespaceIndex);
-            m_moduleBuilder = moduleFactory.ModuleBuilder;
+            _moduleName = FindModuleName(moduleName,
+                targetNamespace);
+            _moduleBuilder = moduleFactory.ModuleBuilder;
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         {
             ArgumentNullException.ThrowIfNull(enumDefinition);
 
-            var enumBuilder = m_moduleBuilder.DefineEnum(
+            var enumBuilder = _moduleBuilder.DefineEnum(
                 GetFullQualifiedTypeName(typeName),
                 TypeAttributes.Public,
                 typeof(int));
@@ -125,7 +125,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
                 default:
                     throw new DataTypeNotSupportedException("Unsupported structure type");
             }
-            var structureBuilder = m_moduleBuilder.DefineType(
+            var structureBuilder = _moduleBuilder.DefineType(
                 GetFullQualifiedTypeName(name),
                 TypeAttributes.Public | TypeAttributes.Class,
                 baseType);
@@ -140,9 +140,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// </summary>
         /// <param name="moduleName"></param>
         /// <param name="targetNamespace"></param>
-        /// <param name="targetNamespaceIndex"></param>
-        private static string? FindModuleName(string? moduleName, string targetNamespace,
-            int targetNamespaceIndex)
+        private static string? FindModuleName(string? moduleName, string targetNamespace)
         {
             if (string.IsNullOrWhiteSpace(moduleName))
             {
@@ -164,7 +162,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
         /// <param name="browseName">The browse name of the type.</param>
         private string GetFullQualifiedTypeName(QualifiedName browseName)
         {
-            var result = "Opc.Ua.ComplexTypes." + m_moduleName + ".";
+            var result = "Opc.Ua.ComplexTypes." + _moduleName + ".";
             if (browseName.NamespaceIndex > 1)
             {
                 result += browseName.NamespaceIndex + ".";
@@ -172,7 +170,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             return result + browseName.Name;
         }
 
-        private readonly ModuleBuilder m_moduleBuilder;
-        private readonly string? m_moduleName;
+        private readonly ModuleBuilder _moduleBuilder;
+        private readonly string? _moduleName;
     }
 }

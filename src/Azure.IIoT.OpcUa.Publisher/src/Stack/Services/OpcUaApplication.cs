@@ -40,14 +40,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public event CertificateValidationEventHandler Validate
         {
-            add
-            {
-                Value.CertificateValidator.CertificateValidation += value;
-            }
-            remove
-            {
-                Value.CertificateValidator.CertificateValidation -= value;
-            }
+            add => Value.CertificateValidator.CertificateValidation += value;
+            remove => Value.CertificateValidator.CertificateValidation -= value;
         }
 
         private string Password =>
@@ -509,7 +503,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .AsClient();
                 try
                 {
-                    var appConfig = await BuildSecurityConfiguration(appBuilder,
+                    var appConfig = await BuildSecurityConfigurationAsync(appBuilder,
                         _options.Value.Security, appInstance.ApplicationConfiguration, hostname)
                         .ConfigureAwait(false);
 
@@ -772,7 +766,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="hostname"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        private async ValueTask<ApplicationConfiguration> BuildSecurityConfiguration(
+        private async ValueTask<ApplicationConfiguration> BuildSecurityConfigurationAsync(
             IApplicationConfigurationBuilderClientSelected applicationConfigurationBuilder,
             SecurityOptions securityOptions, ApplicationConfiguration applicationConfiguration,
             string? hostname = null)

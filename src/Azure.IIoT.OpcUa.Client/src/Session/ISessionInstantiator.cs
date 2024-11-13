@@ -29,7 +29,8 @@
 
 namespace Opc.Ua.Client
 {
-    using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -46,13 +47,19 @@ namespace Opc.Ua.Client
         /// <param name="configuration"></param>
         /// <param name="endpoint"></param>
         /// <param name="clientCertificate"></param>
+        /// <param name="sessionName"></param>
+        /// <param name="sessionTimeout"></param>
+        /// <param name="identity"></param>
+        /// <param name="preferredLocales"></param>
+        /// <param name="checkDomain"></param>
         /// <param name="availableEndpoints"></param>
         /// <param name="discoveryProfileUris"></param>
-        Session Create(
-            ITransportChannel channel,
-            ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint,
-            X509Certificate2? clientCertificate,
+        /// <returns></returns>
+        Session Create(ITransportChannel? channel,
+            ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
+            X509Certificate2? clientCertificate, string sessionName,
+            TimeSpan sessionTimeout, IUserIdentity? identity,
+            IReadOnlyList<string>? preferredLocales, bool checkDomain,
             EndpointDescriptionCollection? availableEndpoints = null,
             StringCollection? discoveryProfileUris = null);
     }

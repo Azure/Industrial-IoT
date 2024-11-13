@@ -130,7 +130,7 @@ namespace Opc.Ua.Test
             ITypeTable typeTree)
         {
             var builtInType = Ua.TypeInfo.GetBuiltInType(dataType, typeTree);
-            var num = 0;
+            int num;
             switch (valueRank)
             {
                 case -2:
@@ -410,7 +410,7 @@ namespace Opc.Ua.Test
                     {
                         obj = GetBoundaryValue(typeof(T));
                     }
-                    obj ??= GetRandom(typeof(T));
+                    obj ??= GetRandom<T>();
                 }
                 while (obj == null);
                 array[i] = (T)obj;
