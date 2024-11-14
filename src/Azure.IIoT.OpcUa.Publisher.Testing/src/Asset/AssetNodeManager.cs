@@ -135,10 +135,8 @@ namespace Asset
             lock (Lock)
             {
                 // in the create address space call, we add all our nodes
-
-                IList<IReference>? objectsFolderReferences = null;
                 if (!externalReferences.TryGetValue(Opc.Ua.ObjectIds.ObjectsFolder,
-                    out objectsFolderReferences))
+                    out var objectsFolderReferences))
                 {
                     externalReferences[Opc.Ua.ObjectIds.ObjectsFolder]
                         = objectsFolderReferences = new List<IReference>();
@@ -326,7 +324,7 @@ namespace Asset
             NodeHandle handle, MonitoredItem monitoredItem)
         {
             if (TryGetBinding(handle.Node, out var assetInterface, out var assetTag)
-                && handle.Node is BaseVariableState source)
+                && handle.Node is BaseVariableState)
             {
                 assetInterface.Unobserve(assetTag, monitoredItem.Id);
             }
@@ -621,18 +619,16 @@ namespace Asset
         private static void LoadNamespaceUrisFromNodesetXml(List<string> namespaceUris,
             string nodesetFile)
         {
-            using (FileStream stream = new(nodesetFile, FileMode.Open, FileAccess.Read))
-            {
-                var nodeSet = UANodeSet.Read(stream);
+            using var stream = new FileStream(nodesetFile, FileMode.Open, FileAccess.Read);
+            var nodeSet = UANodeSet.Read(stream);
 
-                if (nodeSet.NamespaceUris?.Length > 0)
+            if (nodeSet.NamespaceUris?.Length > 0)
+            {
+                foreach (var ns in nodeSet.NamespaceUris)
                 {
-                    foreach (var ns in nodeSet.NamespaceUris)
+                    if (!namespaceUris.Contains(ns))
                     {
-                        if (!namespaceUris.Contains(ns))
-                        {
-                            namespaceUris.Add(ns);
-                        }
+                        namespaceUris.Add(ns);
                     }
                 }
             }
@@ -670,24 +666,22 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
 
         private void AddNodesFromNodesetXml(string nodesetFile)
         {
-            using (Stream stream = new FileStream(nodesetFile, FileMode.Open))
+            using var stream = new FileStream(nodesetFile, FileMode.Open);
+            var nodeSet = UANodeSet.Read(stream);
+
+            var predefinedNodes = new NodeStateCollection();
+
+            nodeSet.Import(SystemContext, predefinedNodes);
+
+            for (var i = 0; i < predefinedNodes.Count; i++)
             {
-                var nodeSet = UANodeSet.Read(stream);
-
-                var predefinedNodes = new NodeStateCollection();
-
-                nodeSet.Import(SystemContext, predefinedNodes);
-
-                for (var i = 0; i < predefinedNodes.Count; i++)
+                try
                 {
-                    try
-                    {
-                        AddPredefinedNode(SystemContext, predefinedNodes[i]);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error");
-                    }
+                    AddPredefinedNode(SystemContext, predefinedNodes[i]);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error");
                 }
             }
         }

@@ -1,31 +1,7 @@
-/* ========================================================================
- * Copyright (c) 2005-2022 The OPC Foundation, Inc. All rights reserved.
- *
- * OPC Foundation MIT License 1.00
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * The complete license agreement can be found here:
- * http://opcfoundation.org/License/MIT/1.00/
- * ======================================================================*/
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Client.ComplexTypes
 {
@@ -127,7 +103,7 @@ namespace Opc.Ua.Client.ComplexTypes
                     {
                         return false;
                     }
-                    return await LoadDictionaryDataTypes(serverEnumTypes, serverStructTypes,
+                    return await LoadDictionaryDataTypesAsync(serverEnumTypes, serverStructTypes,
                         true, ct).ConfigureAwait(false);
                 }
                 return true;
@@ -195,9 +171,11 @@ namespace Opc.Ua.Client.ComplexTypes
         /// Loads all custom types at this time to avoid
         /// complexity when resolving type dependencies.
         /// </remarks>
-        private async Task<bool> LoadDictionaryDataTypes(IReadOnlyList<INode> serverEnumTypes,
+        private async Task<bool> LoadDictionaryDataTypesAsync(IReadOnlyList<INode> serverEnumTypes,
             IReadOnlyList<INode> serverStructTypes, bool fullTypeList, CancellationToken ct)
         {
+            Debug.Assert(serverStructTypes != null); // TODO: Remove this argument if not needed
+
             // build a type dictionary with all known new types
             var allEnumTypes = fullTypeList ? serverEnumTypes :
                 await _typeResolver.LoadDataTypesAsync(DataTypeIds.Enumeration,
@@ -254,7 +232,7 @@ namespace Opc.Ua.Client.ComplexTypes
                     var lastStructureCount = 0;
                     while (structureList.Count > 0 &&
                         structureList.Count != lastStructureCount &&
-                        loopCounter < MaxLoopCount)
+                        loopCounter < kMaxLoopCount)
                     {
                         loopCounter++;
                         lastStructureCount = structureList.Count;
@@ -333,7 +311,7 @@ namespace Opc.Ua.Client.ComplexTypes
                                     ExpandedNodeId? xmlEncodingId;
                                     (encodingIds, binaryEncodingId, xmlEncodingId) =
                                         await _typeResolver.BrowseForEncodingsAsync(
-                                            typeId, _supportedEncodings, ct).ConfigureAwait(false);
+                                            typeId, kSupportedEncodings, ct).ConfigureAwait(false);
                                     try
                                     {
                                         (complexType, missingTypeIds) = await AddStructuredTypeAsync(
@@ -522,7 +500,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 .Select(n => n.NodeId)
                 .ToList();
             _ = await _typeResolver.BrowseForEncodingsAsync(nodeIds,
-                _supportedEncodings, ct).ConfigureAwait(false);
+                kSupportedEncodings, ct).ConfigureAwait(false);
 
             // create structured types for all namespaces
             var loopCounter = 0;
@@ -559,7 +537,7 @@ namespace Opc.Ua.Client.ComplexTypes
                             {
                                 (var encodingIds, var binaryEncodingId, var xmlEncodingId)
                                     = await _typeResolver.BrowseForEncodingsAsync(
-                                        structType.NodeId, _supportedEncodings,
+                                        structType.NodeId, kSupportedEncodings,
                                         ct).ConfigureAwait(false);
                                 try
                                 {
@@ -638,7 +616,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 //
                 if (retryAddStructType &&
                     structTypesWorkList.Count != structTypesToDoList.Count &&
-                    loopCounter < MaxLoopCount)
+                    loopCounter < kMaxLoopCount)
                 {
                     structTypesWorkList = structTypesToDoList;
                     structTypesToDoList = new List<INode>();
@@ -1020,7 +998,9 @@ namespace Opc.Ua.Client.ComplexTypes
 
         private static bool IsRecursiveDataType(ExpandedNodeId structureDataType,
             ExpandedNodeId fieldDataType)
-            => fieldDataType.Equals(structureDataType);
+        {
+            return fieldDataType.Equals(structureDataType);
+        }
 
         /// <summary>
         /// Determine the type of a field in a StructureField definition.
@@ -1191,8 +1171,8 @@ namespace Opc.Ua.Client.ComplexTypes
             }
         }
 
-        private const int MaxLoopCount = 100;
-        private static readonly string[] _supportedEncodings = new string[]
+        private const int kMaxLoopCount = 100;
+        private static readonly string[] kSupportedEncodings = new string[]
         {
             BrowseNames.DefaultBinary,
             BrowseNames.DefaultXml,

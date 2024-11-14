@@ -415,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestExpandedNodeIdOpaque()
         {
             var context = new ServiceMessageContext();
-            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true);

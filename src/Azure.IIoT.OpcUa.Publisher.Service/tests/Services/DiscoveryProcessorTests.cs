@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 .Append(Supervisor)
                 .Append(Publisher), _serializer);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 // Setup
                 builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
@@ -70,17 +70,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
                 builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
                 builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
-            }))
-            {
-                var service = mock.Create<DiscoveryProcessor>();
+            });
+            var service = mock.Create<DiscoveryProcessor>();
 
-                // Run
-                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
+            // Run
+            await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
-                // Assert
-                Assert.Single(registry.Devices);
-                Assert.Equal(gateway, registry.Devices.First().Id);
-            }
+            // Assert
+            Assert.Single(registry.Devices);
+            Assert.Equal(gateway, registry.Devices.First().Id);
         }
 
         [Fact]

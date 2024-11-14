@@ -115,6 +115,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return hash.ToHashCode();
         }
 
-        internal const string kMessageTypeName = "DataSetMessage";
+        internal const string MessageTypeName = "DataSetMessage";
     }
 }

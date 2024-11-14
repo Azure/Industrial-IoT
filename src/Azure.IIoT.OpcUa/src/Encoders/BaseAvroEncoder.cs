@@ -1396,7 +1396,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Lookup
         /// </summary>
         internal static readonly FrozenDictionary<(SchemaRank, BuiltInType), int> _variableUnionId =
-            BaseAvroDecoder._variantUnionFieldIds
+            BaseAvroDecoder.VariantUnionFieldIds
                 .ToArray()
                 .Select((f, i) => System.Collections.Generic.KeyValuePair.Create(f, i))
                 .ToFrozenDictionary();

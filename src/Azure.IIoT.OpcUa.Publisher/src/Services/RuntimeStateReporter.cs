@@ -294,16 +294,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Debug.Assert(certificates.Count > 0);
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        using (var certificate = certificates[0])
-                        {
-                            //
-                            // https://github.com/dotnet/runtime/issues/45680)
-                            // On Windows the certificate in 'result' gives an error
-                            // when used with kestrel: "No credentials are available"
-                            //
-                            Certificate = new X509Certificate2(
-                                certificate.Export(X509ContentType.Pkcs12));
-                        }
+                        using var certificate = certificates[0];
+                        //
+                        // https://github.com/dotnet/runtime/issues/45680)
+                        // On Windows the certificate in 'result' gives an error
+                        // when used with kestrel: "No credentials are available"
+                        //
+                        Certificate = new X509Certificate2(
+                            certificate.Export(X509ContentType.Pkcs12));
                     }
                     else
                     {

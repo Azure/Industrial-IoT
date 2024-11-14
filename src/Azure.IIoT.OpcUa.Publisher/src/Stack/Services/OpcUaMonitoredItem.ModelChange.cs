@@ -282,7 +282,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnNodeChange(object? sender, Change<Node> e)
             {
                 Publish(Owner, MessageType.Event,
-                    CreateEvent(_nodeChangeType, e).ToList(),
+                    CreateEvent(kNodeChangeType, e).ToList(),
                     eventTypeName: EventTypeName);
             }
 
@@ -294,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
             {
                 Publish(Owner, MessageType.Event,
-                    CreateEvent(_refChangeType, e).ToList(),
+                    CreateEvent(kRefChangeType, e).ToList(),
                     eventTypeName: EventTypeName);
             }
 
@@ -421,9 +421,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            private static readonly ExpandedNodeId _refChangeType
+            private static readonly ExpandedNodeId kRefChangeType
                 = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
-            private static readonly ExpandedNodeId _nodeChangeType
+            private static readonly ExpandedNodeId kNodeChangeType
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
             private readonly PublishedFieldMetaDataModel[] _fields;
             private readonly OpcUaClient _client;

@@ -462,7 +462,7 @@ Options:
                         publishProfile = "Empty";
                     }
 
-                    var publishedNodesFilePath = await LoadPnJson(server, publishProfile,
+                    var publishedNodesFilePath = await LoadPnJsonAsync(server, publishProfile,
                         endpointUrl, ct).ConfigureAwait(false);
 
                     // Start publisher module
@@ -592,7 +592,7 @@ Options:
                     var name = Path.GetFileNameWithoutExtension(publishProfile);
                     var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
 
-                    var publishedNodesFilePath = await LoadPnJson(server, name, endpointUrl,
+                    var publishedNodesFilePath = await LoadPnJsonAsync(server, name, endpointUrl,
                         ct).ConfigureAwait(false);
                     if (publishedNodesFilePath == null)
                     {
@@ -638,7 +638,7 @@ Options:
             }
         }
 
-        private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,
+        private static async Task<string?> LoadPnJsonAsync(ServerWrapper server, string? publishProfile,
             string endpointUrl, CancellationToken ct)
         {
             const string publishedNodesFilePath = "profile.json";

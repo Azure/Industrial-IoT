@@ -361,12 +361,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Read Union discriminator for the variant
                 return ReadUnion(fieldName, fieldId =>
                 {
-                    if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
+                    if (fieldId < 0 || fieldId >= VariantUnionFieldIds.Length)
                     {
                         throw new DecodingException(
                             $"Cannot decode unknown variant union field {fieldId}.");
                     }
-                    var (valueRank, builtInType) = _variantUnionFieldIds[fieldId];
+                    var (valueRank, builtInType) = VariantUnionFieldIds[fieldId];
                     return ReadVariantValue(builtInType, valueRank);
                 });
             }
@@ -1205,7 +1205,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         // TODO: Decide whether the opc ua types are records with single field
-        internal static ReadOnlySpan<(SchemaRank, BuiltInType)> _variantUnionFieldIds
+        internal static ReadOnlySpan<(SchemaRank, BuiltInType)> VariantUnionFieldIds
             => new (SchemaRank, BuiltInType)[]
         {
             (SchemaRank.Scalar, BuiltInType.Null),

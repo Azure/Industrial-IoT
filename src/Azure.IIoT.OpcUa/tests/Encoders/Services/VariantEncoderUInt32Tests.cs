@@ -227,6 +227,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -505,6 +506,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -562,6 +564,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -590,6 +593,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -618,6 +622,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);

@@ -180,11 +180,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
-        public async Task CanSendEventToIoTHubTest()
+        public async Task CanSendEventToIoTHubTestAsync()
         {
             // Arrange
             // Act
-            var messages = await ProcessMessagesAsync(nameof(CanSendEventToIoTHubTest),
+            var messages = await ProcessMessagesAsync(nameof(CanSendEventToIoTHubTestAsync),
                 "./Resources/SimpleEvents.json");
 
             // Assert

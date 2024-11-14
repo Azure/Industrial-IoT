@@ -1,31 +1,7 @@
-/* ========================================================================
- * Copyright (c) 2005-2021 The OPC Foundation, Inc. All rights reserved.
- *
- * OPC Foundation MIT License 1.00
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * The complete license agreement can be found here:
- * http://opcfoundation.org/License/MIT/1.00/
- * ======================================================================*/
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Client
 {
@@ -216,21 +192,13 @@ namespace Opc.Ua.Client
         /// Raised to indicate that the state of the subscription
         /// has changed.
         /// </summary>
-        public event SubscriptionStateChangedEventHandler StateChanged
-        {
-            add => _stateChanged += value;
-            remove => _stateChanged -= value;
-        }
+        public event SubscriptionStateChangedEventHandler? StateChanged;
 
         /// <summary>
         /// Raised to indicate the publishing state for the subscription
         /// has stopped or resumed (see PublishingStopped property).
         /// </summary>
-        public event PublishStateChangedEventHandler PublishStatusChanged
-        {
-            add => _publishStatusChanged += value;
-            remove => _publishStatusChanged -= value;
-        }
+        public event PublishStateChangedEventHandler? PublishStatusChanged;
 
         /// <summary>
         /// Gets or sets the fast data change callback.
@@ -406,7 +374,7 @@ namespace Opc.Ua.Client
         /// </summary>
         public void ChangesCompleted()
         {
-            _stateChanged?.Invoke(this, new SubscriptionStateChangedEventArgs(_changeMask));
+            StateChanged?.Invoke(this, new SubscriptionStateChangedEventArgs(_changeMask));
             _changeMask = SubscriptionChangeMask.None;
         }
 
@@ -821,16 +789,17 @@ namespace Opc.Ua.Client
         public async Task ConditionRefreshAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
-            var methodsToCall = new CallMethodRequestCollection();
-            methodsToCall.Add(new CallMethodRequest()
+            var methodsToCall = new CallMethodRequestCollection
             {
-                MethodId = MethodIds.ConditionType_ConditionRefresh,
-                InputArguments = new VariantCollection() { new Variant(Id) }
-            });
+                new CallMethodRequest()
+                {
+                    MethodId = MethodIds.ConditionType_ConditionRefresh,
+                    InputArguments = new VariantCollection() { new Variant(Id) }
+                }
+            };
 
             Debug.Assert(Session != null);
-            var response = await Session.CallAsync(null, methodsToCall,
-                ct).ConfigureAwait(false);
+            await Session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -969,7 +938,7 @@ namespace Opc.Ua.Client
                 // check if a publish error was previously reported.
                 if (PublishingStopped)
                 {
-                    callback = _publishStatusChanged;
+                    callback = PublishStatusChanged;
                 }
 
                 var now = DateTime.UtcNow;
@@ -1393,7 +1362,7 @@ namespace Opc.Ua.Client
         private void HandleOnKeepAliveStopped()
         {
             // check if a publish has arrived.
-            var callback = _publishStatusChanged;
+            var callback = PublishStatusChanged;
 
             Interlocked.Increment(ref _publishLateCount);
 
@@ -1624,7 +1593,7 @@ namespace Opc.Ua.Client
 
                     session = Session;
                     subscriptionId = Id;
-                    callback = _publishStatusChanged;
+                    callback = PublishStatusChanged;
                 }
 
                 // process new keep alive messages.
@@ -2023,8 +1992,6 @@ namespace Opc.Ua.Client
         private readonly LinkedList<NotificationMessage> _messageCache;
         private readonly AsyncAutoResetEvent _messageWorkerEvent;
         private readonly int _maxMessageCount;
-        private event PublishStateChangedEventHandler? _publishStatusChanged;
-        private event SubscriptionStateChangedEventHandler? _stateChanged;
 
         private const int kMinKeepAliveTimerInterval = 1000;
         private const int kKeepAliveTimerMargin = 1000;

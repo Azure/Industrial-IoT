@@ -13,7 +13,7 @@ namespace Opc.Ua.Client
     public class NodeCacheTests
     {
         [Fact]
-        public async Task GetNodeTest()
+        public async Task GetNodeTestAsync()
         {
             var expected = new Node();
             var id = new NodeId("test", 0);
@@ -34,7 +34,7 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task GetNodeThrowsTest()
+        public async Task GetNodeThrowsTestAsync()
         {
             var expected = new Node();
             var id = new NodeId("test", 0);

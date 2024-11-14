@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task TestCreateUpdateWithoutNodeIdThrows()
+        public async Task TestCreateUpdateWithoutNodeIdThrowsAsync()
         {
             await using var configService = InitPublisherConfigService();
 
@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task TestCreateUpdateWithWithNodeIdAsDataSetField()
+        public async Task TestCreateUpdateWithWithNodeIdAsDataSetFieldAsync()
         {
             await using var configService = InitPublisherConfigService();
 

@@ -693,7 +693,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (!_diagnosticsEnabled.HasValue)
             {
                 // Check whether enabled and if not enabled enable it
-                var diagnosticsEnabled = await ReadValueAsync(
+                var diagnosticsEnabled = await ReadValueAsync(null,
                     VariableIds.Server_ServerDiagnostics_EnabledFlag, ct).ConfigureAwait(false);
                 _diagnosticsEnabled = diagnosticsEnabled.Value as bool?;
                 if (_diagnosticsEnabled == false)
@@ -1330,8 +1330,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logScope = new LogScope(activity, Stopwatch.StartNew(),
                         outer._logger);
-                    _logScope.logger.LogDebug("Session activity {Activity} started...",
-                        _logScope.name);
+                    _logScope.Logger.LogDebug("Session activity {Activity} started...",
+                        _logScope.Name);
                 }
             }
 
@@ -1340,9 +1340,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _activity?.Dispose();
 
-                _logScope?.logger.LogDebug(
+                _logScope?.Logger.LogDebug(
                     "Session activity {Activity} completed in {Elapsed} with {Status}.",
-                    _logScope.name, _logScope.sw.Elapsed,
+                    _logScope.Name, _logScope.Sw.Elapsed,
                         Error?.ResponseHeader?.ServiceResult == null ? "Good" :
                     StatusCodes.GetBrowseName(Error.ResponseHeader.ServiceResult.CodeBits));
             }
@@ -1387,7 +1387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return result;
             }
 
-            private sealed record class LogScope(string name, Stopwatch sw, ILogger logger);
+            private sealed record class LogScope(string Name, Stopwatch Sw, ILogger Logger);
             private readonly Activity? _activity;
             private readonly LogScope? _logScope;
         }

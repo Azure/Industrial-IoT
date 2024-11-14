@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestAvroFileWriter3()
+        public async Task TestAvroFileWriter3Async()
         {
             var file = Path.GetTempFileName();
             try

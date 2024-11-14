@@ -1,39 +1,14 @@
-/* ========================================================================
- * Copyright (c) 2005-2020 The OPC Foundation, Inc. All rights reserved.
- *
- * OPC Foundation MIT License 1.00
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- *
- * The complete license agreement can be found here:
- * http://opcfoundation.org/License/MIT/1.00/
- * ======================================================================*/
-
-#define PERIODIC_TIMER
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Client
 {
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Redaction;
+    using Opc.Ua.Types.Utils;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -222,25 +197,7 @@ namespace Opc.Ua.Client
         /// the KeepAliveInterval or if another error was reported.
         /// Set to false is communication is ok or recovered.
         /// </remarks>
-        public bool KeepAliveStopped
-        {
-            get
-            {
-                var lastKeepAliveErrorStatusCode = _lastKeepAliveErrorStatusCode;
-                if (StatusCode.IsGood(lastKeepAliveErrorStatusCode) ||
-                    lastKeepAliveErrorStatusCode == StatusCodes.BadNoCommunication)
-                {
-                    var delta = TimeSpan.FromMilliseconds(
-                        HiResClock.TickCount - LastKeepAliveTickCount);
-
-                    // add a guard band to allow for network lag.
-                    return (_keepAliveInterval + kKeepAliveGuardBand) <= delta;
-                }
-
-                // another error was reported which caused keep alive to stop.
-                return true;
-            }
-        }
+        public bool KeepAliveStopped { get; private set; }
 
         /// <summary>
         /// Gets the TickCount in ms of the last keep alive based
@@ -427,7 +384,9 @@ namespace Opc.Ua.Client
             Identity = identity ?? new UserIdentity();
 
             _logger = LoggerFactory.CreateLogger<Session>();
-            //_connection = connection;
+            _keepAliveTimer = new Timer(_ => _keepAliveTrigger.Set());
+            _keepAliveWorker = KeepAliveWorkerAsync(_cts.Token);
+            _connection = connection;
             _configuration = configuration;
             _instanceCertificate = clientCertificate;
             _reverseConnectManager = reverseConnectManager;
@@ -504,25 +463,34 @@ namespace Opc.Ua.Client
         {
             if (disposing)
             {
-                StopKeepAliveTimer();
-
-                _keepAliveTimer?.Dispose();
-                _keepAliveTimer = null;
-                _nodeCache.Clear();
-
-                List<Subscription>? subscriptions = null;
-                lock (SyncRoot)
+                try
                 {
-                    subscriptions = new List<Subscription>(_subscriptions);
-                    _subscriptions.Clear();
-                }
+                    StopKeepAliveTimer();
+                    _cts.Cancel();
+                    _keepAliveTrigger.Set();
+                    _nodeCache.Clear();
 
-                foreach (var subscription in subscriptions)
-                {
-                    subscription.Dispose();
+                    List<Subscription>? subscriptions = null;
+                    lock (SyncRoot)
+                    {
+                        subscriptions = new List<Subscription>(_subscriptions);
+                        _subscriptions.Clear();
+                    }
+
+                    foreach (var subscription in subscriptions)
+                    {
+                        subscription.Dispose();
+                    }
+                    subscriptions.Clear();
+
+                    // Should not throw
+                    _keepAliveWorker.GetAwaiter().GetResult();
                 }
-                subscriptions.Clear();
-                _connecting.Dispose();
+                finally
+                {
+                    _keepAliveTimer.Dispose();
+                    _connecting.Dispose();
+                }
             }
 
             base.Dispose(disposing);
@@ -1176,7 +1144,7 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public async Task FetchNamespaceTablesAsync(CancellationToken ct)
         {
-            var (values, errors) = await ReadValuesAsync(new[]
+            var (values, errors) = await ReadValuesAsync(null, new[]
             {
                 VariableIds.Server_NamespaceArray,
                 VariableIds.Server_ServerArray
@@ -1373,8 +1341,8 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async ValueTask<DataValue> ReadValueAsync(NodeId nodeId,
-            CancellationToken ct)
+        public async ValueTask<DataValue> ReadValueAsync(RequestHeader? header,
+            NodeId nodeId, CancellationToken ct)
         {
             var itemsToRead = new ReadValueIdCollection
             {
@@ -1385,7 +1353,7 @@ namespace Opc.Ua.Client
                 }
             };
             // read from server.
-            var readResponse = await ReadAsync(null, 0, TimestampsToReturn.Both,
+            var readResponse = await ReadAsync(header, 0, TimestampsToReturn.Both,
                 itemsToRead, ct).ConfigureAwait(false);
 
             var values = readResponse.Results;
@@ -1403,7 +1371,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ResultSet<DataValue>> ReadValuesAsync(
+        public async ValueTask<ResultSet<DataValue>> ReadValuesAsync(RequestHeader? header,
             IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
         {
             if (nodeIds.Count == 0)
@@ -1422,7 +1390,7 @@ namespace Opc.Ua.Client
             // read from server.
             var errors = new List<ServiceResult>(itemsToRead.Count);
 
-            var readResponse = await ReadAsync(null, 0, TimestampsToReturn.Both,
+            var readResponse = await ReadAsync(header, 0, TimestampsToReturn.Both,
                 itemsToRead, ct).ConfigureAwait(false);
 
             var values = readResponse.Results;
@@ -2080,7 +2048,7 @@ namespace Opc.Ua.Client
             {
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead
             };
-            var (values, errors) = await ReadValuesAsync(nodeIds, ct).ConfigureAwait(false);
+            var (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
             var index = 0;
             OperationLimits.MaxNodesPerRead = Extract(ref index, values, errors);
 
@@ -2101,7 +2069,7 @@ namespace Opc.Ua.Client
         VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints
             };
 
-            (values, errors) = await ReadValuesAsync(nodeIds, ct).ConfigureAwait(false);
+            (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
             index = 0;
             OperationLimits.MaxNodesPerHistoryReadData = Extract(ref index, values, errors);
             OperationLimits.MaxNodesPerHistoryReadEvents = Extract(ref index, values, errors);
@@ -2131,48 +2099,26 @@ namespace Opc.Ua.Client
             }
         }
 
+        /// <inheritdoc/>
+        protected override void RequestCompleted(IServiceRequest request,
+            IServiceResponse response, string serviceName)
+        {
+            if (ServiceResult.IsGood(response.ResponseHeader.ServiceResult))
+            {
+                LastKeepAliveTickCount = HiResClock.TickCount;
+                _keepAliveTimer.Change(_keepAliveCounter, _keepAliveCounter);
+            }
+            base.RequestCompleted(request, response, serviceName);
+        }
+
         /// <summary>
-        /// Starts a timer to check that the connection to the server is still available.
+        /// Starts a timer to check that the connection to the server
+        /// is still available.
         /// </summary>
         private void StartKeepAliveTimer()
         {
-            var keepAliveInterval = _keepAliveInterval;
-
-            _lastKeepAliveErrorStatusCode = StatusCodes.Good;
-            Interlocked.Exchange(ref _lastKeepAliveTime, DateTime.UtcNow.Ticks);
             LastKeepAliveTickCount = HiResClock.TickCount;
-
-            _serverState = ServerState.Unknown;
-
-            var nodesToRead = new ReadValueIdCollection() {
-                // read the server state.
-                new ReadValueId {
-                    NodeId = Variables.Server_ServerStatus_State,
-                    AttributeId = Attributes.Value,
-                    DataEncoding = null,
-                    IndexRange = null
-                }
-            };
-
-            // restart the publish timer.
-            lock (SyncRoot)
-            {
-                StopKeepAliveTimer();
-
-#if PERIODIC_TIMER
-                // start periodic timer loop
-                var keepAliveTimer = new PeriodicTimer(keepAliveInterval);
-                _ = Task.Run(() => OnKeepAliveAsync(keepAliveTimer, nodesToRead));
-                _keepAliveTimer = keepAliveTimer;
-            }
-#else
-                // start timer
-                _keepAliveTimer = new Timer(OnKeepAlive, nodesToRead, keepAliveInterval, keepAliveInterval);
-            }
-
-            // send initial keep alive.
-            OnKeepAlive(nodesToRead);
-#endif
+            _keepAliveTimer.Change(_keepAliveCounter, _keepAliveCounter);
         }
 
         /// <summary>
@@ -2180,235 +2126,118 @@ namespace Opc.Ua.Client
         /// </summary>
         private void StopKeepAliveTimer()
         {
-            _keepAliveTimer?.Dispose();
-            _keepAliveTimer = null;
+            _keepAliveTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
-#if PERIODIC_TIMER
         /// <summary>
         /// Sends a keep alive by reading from the server.
         /// </summary>
-        /// <param name="keepAliveTimer"></param>
-        /// <param name="nodesToRead"></param>
-        private async Task OnKeepAliveAsync(PeriodicTimer keepAliveTimer, ReadValueIdCollection nodesToRead)
+        /// <param name="ct"></param>
+        private async Task KeepAliveWorkerAsync(CancellationToken ct)
         {
-            // trigger first keep alive
-            OnSendKeepAlive(nodesToRead);
+            long _lastKeepAliveTime = 0;
+            ServiceResult _lastKeepAliveError;
+            ServerState _serverState;
 
-            while (await keepAliveTimer.WaitForNextTickAsync().ConfigureAwait(false))
+            while (!ct.IsCancellationRequested)
             {
-                OnSendKeepAlive(nodesToRead);
-            }
-
-            _logger.LogTrace("Session {Id}: KeepAlive PeriodicTimer exit.", SessionId);
-        }
-#else
-        /// <summary>
-        /// Sends a keep alive by reading from the server.
-        /// </summary>
-        private void OnKeepAlive(object state)
-        {
-            ReadValueIdCollection nodesToRead = (ReadValueIdCollection)state;
-            OnSendKeepAlive(nodesToRead);
-        }
-#endif
-
-        /// <summary>
-        /// Sends a keep alive by reading from the server.
-        /// </summary>
-        /// <param name="nodesToRead"></param>
-        private void OnSendKeepAlive(ReadValueIdCollection nodesToRead)
-        {
-            try
-            {
-                // check if session has been closed.
-                if (!Connected || _keepAliveTimer == null)
+                await _keepAliveTrigger.WaitAsync().ConfigureAwait(false);
+                if (ct.IsCancellationRequested)
                 {
-                    return;
+                    break;
                 }
-
-                // check if session has been closed.
-                if (Connecting)
+                if (!Connected || Connecting)
                 {
-                    _logger.LogWarning(
-                        "Session {Id}: KeepAlive ignored while (re-)connecting.",
+                    _logger.LogDebug("Session {Id}: KeepAlive ignored while (re-)connecting.",
                         SessionId);
-                    return;
+                    continue;
                 }
-
-                // raise error if keep alives are not coming back.
-                if (KeepAliveStopped && !OnKeepAliveError(
-                    ServiceResult.Create(StatusCodes.BadNoCommunication,
-                    "Server not responding to keep alive requests.")))
-                {
-                    return;
-                }
-
-                var requestHeader = new RequestHeader
-                {
-                    RequestHandle = Utils.IncrementIdentifier(ref _keepAliveCounter),
-                    TimeoutHint = (uint)(KeepAliveInterval.TotalMilliseconds * 2),
-                    ReturnDiagnostics = 0
-                };
-                var result = BeginRead(requestHeader, 0, TimestampsToReturn.Neither,
-                    nodesToRead, OnKeepAliveComplete, nodesToRead);
-
-                AsyncRequestStarted(result, requestHeader.RequestHandle, DataTypes.ReadRequest);
-            }
-            catch (ServiceResultException sre) when (sre.StatusCode == StatusCodes.BadNotConnected)
-            {
-                // recover from error condition when secure channel is still alive
-                OnKeepAliveError(sre.Result);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Could not send keep alive request: {ErrorType} {Message}",
-                    e.GetType().FullName, e.Message);
-            }
-        }
-
-        /// <summary>
-        /// Checks if a notification has arrived. Sends a publish if it has not.
-        /// </summary>
-        /// <param name="result"></param>
-        private void OnKeepAliveComplete(IAsyncResult result)
-        {
-            var nodesToRead = (ReadValueIdCollection?)result.AsyncState;
-
-            AsyncRequestCompleted(result, 0, DataTypes.ReadRequest);
-            try
-            {
-                // read the server status.
-                var values = new DataValueCollection();
-                var diagnosticInfos = new DiagnosticInfoCollection();
-
-                var responseHeader = EndRead(
-                    result,
-                    out values,
-                    out diagnosticInfos);
-
-                ValidateResponse(values, nodesToRead);
-                ValidateDiagnosticInfos(diagnosticInfos, nodesToRead);
-
-                // validate value returned.
-                var error = ValidateDataValue(values[0], typeof(int), 0,
-                    diagnosticInfos, responseHeader);
-
-                if (ServiceResult.IsBad(error))
-                {
-                    throw new ServiceResultException(error);
-                }
-
-                // send notification that keep alive completed.
-                OnKeepAlive((ServerState)(int)values[0].Value, responseHeader.Timestamp);
-
-                return;
-            }
-            catch (ServiceResultException sre)
-            {
-                // recover from error condition when secure channel is still alive
-                OnKeepAliveError(sre.Result);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Unexpected keep alive error occurred: {Message}", e.Message);
-            }
-        }
-
-        /// <summary>
-        /// Called when the server returns a keep alive response.
-        /// </summary>
-        /// <param name="currentState"></param>
-        /// <param name="currentTime"></param>
-        protected virtual void OnKeepAlive(ServerState currentState, DateTime currentTime)
-        {
-            // restart publishing if keep alives recovered.
-            if (KeepAliveStopped)
-            {
-                // ignore if already reconnecting.
-                if (Connecting)
-                {
-                    return;
-                }
-
-                _lastKeepAliveErrorStatusCode = StatusCodes.Good;
-                Interlocked.Exchange(ref _lastKeepAliveTime, DateTime.UtcNow.Ticks);
-                LastKeepAliveTickCount = HiResClock.TickCount;
-
-                lock (_outstandingRequests)
-                {
-                    for (var index = _outstandingRequests.First; index != null; index = index.Next)
-                    {
-                        if (index.Value.RequestTypeId == DataTypes.PublishRequest)
-                        {
-                            index.Value.Defunct = true;
-                        }
-                    }
-                }
-
-                StartPublishing(OperationTimeout, false);
-            }
-            else
-            {
-                _lastKeepAliveErrorStatusCode = StatusCodes.Good;
-                Interlocked.Exchange(ref _lastKeepAliveTime, DateTime.UtcNow.Ticks);
-                LastKeepAliveTickCount = HiResClock.TickCount;
-            }
-
-            // save server state.
-            _serverState = currentState;
-
-            var callback = KeepAlive;
-
-            if (callback != null)
-            {
                 try
                 {
-                    callback(this, new KeepAliveEventArgs(ServiceResult.Good,
-                        currentState, currentTime));
+                    var serverState = await ReadValueAsync(new RequestHeader
+                    {
+                        RequestHandle = Utils.IncrementIdentifier(ref _keepAliveCounter),
+                        TimeoutHint = (uint)(KeepAliveInterval.TotalMilliseconds * 2),
+                        ReturnDiagnostics = 0
+                    }, VariableIds.Server_ServerStatus_State, ct).ConfigureAwait(false);
+
+                    if (serverState.Value is not int state)
+                    {
+                        throw ServiceResultException.Create(StatusCodes.BadDataUnavailable,
+                            "Keep alive returned invalid server state");
+                    }
+
+                    _serverState = (ServerState)state;
+                    _lastKeepAliveError = ServiceResult.Good;
+                    _lastKeepAliveTime = DateTime.UtcNow.Ticks;
+                    LastKeepAliveTickCount = HiResClock.TickCount;
+
+                    // send notification that keep alive completed.
+                    KeepAliveHandler(serverState.ServerTimestamp);
+                }
+                catch (ServiceResultException sre)
+                {
+                    _serverState = ServerState.Unknown;
+                    _lastKeepAliveError = sre.Result;
+                    if (sre.StatusCode == StatusCodes.BadNoCommunication)
+                    {
+                        //keep alive read timed out
+                        var delta = HiResClock.TickCount - LastKeepAliveTickCount;
+                        _logger.LogInformation("KEEP ALIVE LATE: {Late}ms, " +
+                            "EndpointUrl={Url}, RequestCount={Good}/{Outstanding}",
+                            delta, Endpoint?.EndpointUrl, GoodPublishRequestCount,
+                            OutstandingRequestCount);
+                    }
+                    KeepAliveHandler(DateTime.UtcNow);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e,
-                        "Session: Unexpected error invoking KeepAliveCallback.");
+                    _logger.LogError("Could not send keep alive request: {ErrorType} {Message}",
+                        e.GetType().FullName, e.Message);
                 }
-            }
-        }
 
-        /// <summary>
-        /// Called when a error occurs during a keep alive.
-        /// </summary>
-        /// <param name="result"></param>
-        protected virtual bool OnKeepAliveError(ServiceResult result)
-        {
-            _lastKeepAliveErrorStatusCode = result.StatusCode;
-            if (result.StatusCode == StatusCodes.BadNoCommunication)
-            {
-                //keep alive read timed out
-                var delta = HiResClock.TickCount - LastKeepAliveTickCount;
-                _logger.LogInformation("KEEP ALIVE LATE: {Late}ms, " +
-                    "EndpointUrl={Url}, RequestCount={Good}/{Outstanding}",
-                    delta, Endpoint?.EndpointUrl, GoodPublishRequestCount,
-                    OutstandingRequestCount);
-            }
+                bool KeepAliveHandler(DateTime currentTime)
+                {
+                    var lastKeepAliveErrorStatusCode = _lastKeepAliveError;
+                    if (ServiceResult.IsGood(_lastKeepAliveError) ||
+                        _lastKeepAliveError.StatusCode == StatusCodes.BadNoCommunication)
+                    {
+                        var delta = TimeSpan.FromMilliseconds(
+                            HiResClock.TickCount - LastKeepAliveTickCount);
 
-            var callback = KeepAlive;
-            if (callback != null)
-            {
-                try
-                {
-                    var args = new KeepAliveEventArgs(result,
-                        ServerState.Unknown, DateTime.UtcNow);
-                    callback(this, args);
-                    return !args.CancelKeepAlive;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        "Unexpected error invoking KeepAliveCallback.");
+                        // add a guard band to allow for network lag.
+                        KeepAliveStopped = (_keepAliveInterval + kKeepAliveGuardBand) <= delta;
+                    }
+                    else
+                    {
+                        // another error was reported which caused keep alive to stop.
+                        KeepAliveStopped = true;
+                    }
+
+                    var callback = KeepAlive;
+                    if (callback != null)
+                    {
+                        try
+                        {
+                            var args = new KeepAliveEventArgs(_lastKeepAliveError,
+                                _serverState, currentTime);
+                            callback(this, args);
+                            return !args.CancelKeepAlive;
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e,
+                                "Session: Unexpected error invoking KeepAliveCallback.");
+                        }
+                    }
+                    return false;
                 }
             }
-            return true;
+            _logger.LogTrace("Session {Id}: KeepAlive Worker exit.", SessionId);
         }
 
         /// <summary>
@@ -3222,7 +3051,7 @@ namespace Opc.Ua.Client
             }
             var endpoint = ConfiguredEndpoint;
             var updateFromEndpoint = endpoint.UpdateBeforeConnect || _updateFromServer;
-            while (_connection == null)
+            while (!IsConnected(_connection))
             {
                 ct.ThrowIfCancellationRequested();
                 _connection = await _reverseConnectManager.WaitForConnectionAsync(
@@ -3234,8 +3063,13 @@ namespace Opc.Ua.Client
                         _connection, endpoint.Description.SecurityMode,
                         endpoint.Description.SecurityPolicyUri, ct).ConfigureAwait(false);
                     _updateFromServer = updateFromEndpoint = false;
-                    _connection = null;
                 }
+            }
+
+            static bool IsConnected(ITransportWaitingConnection? connection)
+            {
+                var socket = connection?.Handle as Bindings.IMessageSocket;
+                return socket?.RemoteEndpoint != null;
             }
         }
 
@@ -3385,7 +3219,7 @@ namespace Opc.Ua.Client
                     case StatusCodes.BadSessionIdInvalid:
                     case StatusCodes.BadSecureChannelIdInvalid:
                     case StatusCodes.BadSecureChannelClosed:
-                        OnKeepAliveError(error);
+                        // OnKeepAliveError(error);
                         return;
                     // Servers may return this error when overloaded
                     case StatusCodes.BadTooManyOperations:
@@ -3805,9 +3639,11 @@ namespace Opc.Ua.Client
             bool moreNotifications, NotificationMessage notificationMessage)
         {
             Subscription? subscription = null;
-
-            // send notification that the server is alive.
-            OnKeepAlive(_serverState, responseHeader.Timestamp);
+            if (moreNotifications) // more notifications are available.
+            {
+                // queue another publish request.
+                // BeginPublish(OperationTimeout);
+            }
 
             // collect the current set of acknowledgements.
             lock (_acknowledgementsToSendLock)
@@ -4242,11 +4078,6 @@ namespace Opc.Ua.Client
             public bool Defunct;
         }
 
-#if PERIODIC_TIMER
-        private PeriodicTimer? _keepAliveTimer;
-#else
-        private Timer? _keepAliveTimer;
-#endif
         private const int kMinPublishRequestCountMax = 100;
         private const int kMaxPublishRequestCountMax = ushort.MaxValue;
         private const int kDefaultPublishRequestCount = 1;
@@ -4262,9 +4093,6 @@ namespace Opc.Ua.Client
         private uint _maxRequestMessageSize;
         private long _publishCounter;
         private int _tooManyPublishRequests;
-        private long _lastKeepAliveTime;
-        private StatusCode _lastKeepAliveErrorStatusCode;
-        private ServerState _serverState;
         private TimeSpan _keepAliveInterval = TimeSpan.FromSeconds(5);
         private long _keepAliveCounter;
         private int _minPublishRequestCount = kDefaultPublishRequestCount;
@@ -4274,6 +4102,10 @@ namespace Opc.Ua.Client
         private bool _updateFromServer;
         private SubscriptionAcknowledgementCollection _acknowledgementsToSend = new();
         private ITransportWaitingConnection? _connection;
+        private readonly AsyncAutoResetEvent _keepAliveTrigger = new();
+        private readonly Timer _keepAliveTimer;
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Task _keepAliveWorker;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly object _acknowledgementsToSendLock = new();
         private readonly List<Subscription> _subscriptions = new();

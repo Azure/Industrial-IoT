@@ -1994,7 +1994,7 @@ Actual (revised) state/desired state:
             var firstDataChangeReceived = _firstDataChangeReceived;
             _firstDataChangeReceived = true;
             var session = Session;
-            if (session is not IOpcUaSession sessionContext)
+            if (session is not IOpcUaSession)
             {
                 _logger.LogWarning(
                     "DataChange for subscription {Subscription} received without session {Session}.",

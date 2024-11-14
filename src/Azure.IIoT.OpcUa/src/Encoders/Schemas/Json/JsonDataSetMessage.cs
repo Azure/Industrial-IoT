@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += BaseDataSetMessage.kMessageTypeName;
+            typeName += BaseDataSetMessage.MessageTypeName;
             if (uniqueNames != null)
             {
                 var uniqueName = typeName;
