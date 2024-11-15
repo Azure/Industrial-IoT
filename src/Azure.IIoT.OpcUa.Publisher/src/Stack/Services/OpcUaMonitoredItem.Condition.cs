@@ -77,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = $"Condition Item '{Template.StartNodeId}'";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
                 }
                 return str;
             }

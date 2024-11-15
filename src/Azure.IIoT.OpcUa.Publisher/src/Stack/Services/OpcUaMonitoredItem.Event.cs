@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = $"Event Item '{Template.StartNodeId}'";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
                 }
                 return str;
             }
@@ -272,9 +272,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryCompleteChanges(Subscription subscription, ref bool applyChanges)
             {
                 var msgContext = subscription.Session?.MessageContext;
-                if (Status?.FilterResult is EventFilterResult evr && msgContext != null)
+                if (FilterResult is EventFilterResult evr && msgContext != null)
                 {
-                    if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
+                    if (ServiceResult.IsNotGood(Error))
                     {
                         _logger.LogError("Event filter applied with result {Result} for {Item}",
                             evr.AsJson(msgContext), this);
@@ -295,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
-                if (samplingIntervalChanged && Status.SamplingInterval != TimeSpan.Zero)
+                if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)
                 {
                     // Not necessary as sampling interval will likely always stay 0
                     applyChanges |= UpdateQueueSize(Subscription, Template);

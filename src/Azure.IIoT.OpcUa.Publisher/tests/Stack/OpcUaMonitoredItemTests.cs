@@ -117,7 +117,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(10u, monitoredItem.QueueSize);
             Assert.Equal(TimeSpan.FromSeconds(10), monitoredItem.SamplingInterval);
             Assert.False(monitoredItem.DiscardOldest);
-            Assert.Null(monitoredItem.Handle);
             Assert.True(monitoredItem.SkipMonitoredItemNotification());
         }
 

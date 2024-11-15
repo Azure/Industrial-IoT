@@ -130,19 +130,44 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// The subscription that owns the monitored item.
+        /// The identifier assigned by the server.
         /// </summary>
-        public Subscription? Subscription { get; internal set; }
-
-        /// <summary>
-        /// A local handle assigned to the monitored item.
-        /// </summary>
-        public object? Handle { get; set; }
+        public uint ServerId { get; set; }
 
         /// <summary>
         /// Whether the item has been created on the server.
         /// </summary>
-        public bool Created => Status.Created;
+        public bool Created => ServerId != 0;
+
+        /// <summary>
+        /// Any error condition associated with the monitored item.
+        /// </summary>
+        public ServiceResult Error { get; private set; }
+
+        /// <summary>
+        /// Filter result
+        /// </summary>
+        public MonitoringFilterResult? FilterResult { get; private set; }
+
+        /// <summary>
+        /// The monitoring mode.
+        /// </summary>
+        public MonitoringMode CurrentMonitoringMode { get; internal set; }
+
+        /// <summary>
+        /// The sampling interval.
+        /// </summary>
+        public TimeSpan CurrentSamplingInterval { get; private set; }
+
+        /// <summary>
+        /// The length of the queue used to buffer values.
+        /// </summary>
+        public uint CurrentQueueSize { get; private set; }
+
+        /// <summary>
+        /// The subscription that owns the monitored item.
+        /// </summary>
+        public Subscription? Subscription { get; internal set; }
 
         /// <summary>
         /// The identifier assigned by the client.
@@ -161,11 +186,6 @@ namespace Opc.Ua.Client
         public bool AttributesModified { get; private set; }
 
         /// <summary>
-        /// The status associated with the monitored item.
-        /// </summary>
-        public MonitoredItemStatus Status { get; }
-
-        /// <summary>
         /// Initializes a new instance.
         /// </summary>
         protected MonitoredItem()
@@ -174,7 +194,9 @@ namespace Opc.Ua.Client
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
             AttributesModified = true;
-            Status = new MonitoredItemStatus();
+            CurrentMonitoringMode = MonitoringMode.Disabled;
+            Error = ServiceResult.Good;
+
             ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
             _samplingInterval = TimeSpan.MinValue;
             _discardOldest = true;
@@ -217,7 +239,26 @@ namespace Opc.Ua.Client
                     diagnosticInfos, responseHeader);
             }
 
-            Status.SetCreateResult(request, result, error);
+            CurrentMonitoringMode = request.MonitoringMode;
+            CurrentSamplingInterval = TimeSpan.FromMilliseconds(
+                request.RequestedParameters.SamplingInterval);
+            ClientHandle = request.RequestedParameters.ClientHandle;
+            CurrentQueueSize = request.RequestedParameters.QueueSize;
+            Error = error;
+
+            if (ServiceResult.IsGood(error))
+            {
+                ServerId = result.MonitoredItemId;
+                CurrentSamplingInterval =
+                    TimeSpan.FromMilliseconds(result.RevisedSamplingInterval);
+                CurrentQueueSize = result.RevisedQueueSize;
+
+                if (result.FilterResult != null)
+                {
+                    FilterResult = Utils.Clone(result.FilterResult.Body)
+                        as MonitoringFilterResult;
+                }
+            }
             AttributesModified = false;
         }
 
@@ -235,14 +276,31 @@ namespace Opc.Ua.Client
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
             var error = ServiceResult.Good;
-
             if (StatusCode.IsBad(result.StatusCode))
             {
                 error = ClientBase.GetResult(result.StatusCode, index,
                     diagnosticInfos, responseHeader);
             }
 
-            Status.SetModifyResult(request, result, error);
+            Error = error;
+
+            if (ServiceResult.IsGood(error))
+            {
+                ClientHandle = request.RequestedParameters.ClientHandle;
+                CurrentSamplingInterval = TimeSpan.FromMilliseconds(
+                    request.RequestedParameters.SamplingInterval);
+                CurrentQueueSize = request.RequestedParameters.QueueSize;
+
+                CurrentSamplingInterval = TimeSpan.FromMilliseconds(
+                    result.RevisedSamplingInterval);
+                CurrentQueueSize = result.RevisedQueueSize;
+
+                if (result.FilterResult != null)
+                {
+                    FilterResult = Utils.Clone(result.FilterResult.Body)
+                        as MonitoringFilterResult;
+                }
+            }
             AttributesModified = false;
         }
 
@@ -253,11 +311,9 @@ namespace Opc.Ua.Client
         public void SetTransferResult(uint clientHandle)
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
+
             // ensure the global counter is not duplicating future handle ids
             Utils.LowerLimitIdentifier(ref _globalClientHandle, clientHandle);
-            ClientHandle = clientHandle;
-            Status.SetTransferResult(this);
-            AttributesModified = false;
         }
 
         /// <summary>
@@ -276,7 +332,8 @@ namespace Opc.Ua.Client
             {
                 error = ClientBase.GetResult(result, index, diagnosticInfos, responseHeader);
             }
-            Status.SetDeleteResult(error);
+            ServerId = 0;
+            Error = error;
         }
 
         /// <summary>

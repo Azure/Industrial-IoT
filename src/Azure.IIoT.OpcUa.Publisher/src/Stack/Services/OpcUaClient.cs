@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public int MinPublishRequestCount
-            => _session?.MinPublishRequestCount ?? 0;
+            => _session?.MinPublishWorkerCount ?? 0;
 
         /// <inheritdoc/>
         public int ReconnectCount { get; private set; }
@@ -1106,8 +1106,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // The stack will choose a value based on the subscription
             // count that is between min and max.
             //
-            session.MinPublishRequestCount = minPublishRequests;
-            session.MaxPublishRequestCount = maxPublishRequests;
+            session.MinPublishWorkerCount = minPublishRequests;
+            session.MaxPublishWorkerCount = maxPublishRequests;
 
             if (createdSubscriptions > 0 && minPublishRequests > PublishWorkerCount)
             {

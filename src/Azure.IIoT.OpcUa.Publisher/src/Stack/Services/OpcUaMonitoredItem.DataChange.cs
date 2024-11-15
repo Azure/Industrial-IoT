@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = $"Data Item '{Template.StartNodeId}'";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
                 }
                 return str;
             }
@@ -248,9 +248,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var msgContext = subscription.Session?.MessageContext;
                 if (Filter is AggregateFilter &&
-                    Status?.FilterResult is AggregateFilterResult afr && msgContext != null)
+                    FilterResult is AggregateFilterResult afr && msgContext != null)
                 {
-                    if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
+                    if (ServiceResult.IsNotGood(Error))
                     {
                         _logger.LogError("Aggregate filter applied with result {Result} for {Item}",
                             afr.AsJson(msgContext), this);

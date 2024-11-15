@@ -128,8 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var session = _client._session;
                         if (session == null)
                         {
-                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected,
-                                TimeSpan.Zero);
+                            await SendAsync(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected,
+                                TimeSpan.Zero).ConfigureAwait(false);
                             continue;
                         }
 
@@ -151,22 +151,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         if (values.ErrorInfo != null)
                         {
-                            NotifyAll(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode, sw.Elapsed);
+                            await SendAsync(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode,
+                                sw.Elapsed).ConfigureAwait(false);
                             continue;
                         }
 
                         // Notify clients of the values
-                        NotifyAll(sequenceNumber, values, sw.Elapsed);
+                        await SendAsync(sequenceNumber, values, sw.Elapsed).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
                     catch (ServiceResultException sre)
                     {
-                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode, sw.Elapsed);
+                        await SendAsync(sequenceNumber, nodesToRead,
+                            sre.StatusCode, sw.Elapsed).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
                         var error = new ServiceResult(ex).StatusCode;
-                        NotifyAll(sequenceNumber, nodesToRead, error.Code, sw.Elapsed);
+                        await SendAsync(sequenceNumber, nodesToRead,
+                            error.Code, sw.Elapsed).ConfigureAwait(false);
                     }
                 }
             }
@@ -177,20 +180,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="seq"></param>
             /// <param name="values"></param>
             /// <param name="elapsed"></param>
-            private void NotifyAll(uint seq, ServiceResponse<ReadValueId, DataValue> values,
+            private ValueTask SendAsync(uint seq, ServiceResponse<ReadValueId, DataValue> values,
                 TimeSpan elapsed)
             {
                 if (_client._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
                     is not OpcUaSubscription target)
                 {
-                    return;
+                    return ValueTask.CompletedTask;
                 }
 
                 var missed = GetMissed(elapsed);
-                target.OnSubscriptionCylicReadNotification(target, values
+                return target.OnSubscriptionCylicReadNotificationAsync(seq,
+                    _client._timeProvider.GetUtcNow().UtcDateTime, values
                     .Select(i => new SampledDataValueModel(
-                        SetOverflow(i.Result, missed > 0), ((SampledNodeId)i.Request.Handle).ClientHandle, missed))
-                    .ToList(), seq, _client._timeProvider.GetUtcNow().UtcDateTime);
+                        SetOverflow(i.Result, missed > 0),
+                            ((SampledNodeId)i.Request.Handle).ClientHandle, missed))
+                    .ToList());
 
                 static DataValue SetOverflow(DataValue result, bool overflowBit)
                 {
@@ -206,20 +211,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="nodesToRead"></param>
             /// <param name="statusCode"></param>
             /// <param name="elapsed"></param>
-            private void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
+            private ValueTask SendAsync(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
                 TimeSpan elapsed)
             {
                 if (_client._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
                     is not OpcUaSubscription target)
                 {
-                    return;
+                    return ValueTask.CompletedTask;
                 }
 
                 var missed = GetMissed(elapsed);
-                target.OnSubscriptionCylicReadNotification(target, nodesToRead
+                return target.OnSubscriptionCylicReadNotificationAsync(seq,
+                    _client._timeProvider.GetUtcNow().UtcDateTime, nodesToRead
                     .Select(i => new SampledDataValueModel(
-                        SetOverflow(statusCode, missed > 0), ((SampledNodeId)i.Handle).ClientHandle, missed))
-                    .ToList(), seq, _client._timeProvider.GetUtcNow().UtcDateTime);
+                        SetOverflow(statusCode, missed > 0),
+                            ((SampledNodeId)i.Handle).ClientHandle, missed))
+                    .ToList());
 
                 static DataValue SetOverflow(uint statusCode, bool overflowBit)
                 {

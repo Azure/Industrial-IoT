@@ -8,44 +8,44 @@ namespace Opc.Ua.Client
     using System;
 
     /// <summary>
-    /// Flags indicating what has changed in a publish state change.
+    /// Flags indicating the publish state.
     /// </summary>
     [Flags]
-    public enum PublishStateChangedMask
+    public enum PublishState
     {
         /// <summary>
         /// The publish state has not changed.
         /// </summary>
-        None = 0x00,
+        None = 0,
 
         /// <summary>
         /// The publishing stopped.
         /// </summary>
-        Stopped = 0x01,
+        Stopped = 1 << 0,
 
         /// <summary>
         /// The publishing recovered.
         /// </summary>
-        Recovered = 0x02,
+        Recovered = 1 << 1,
 
         /// <summary>
         /// A keep alive message was received.
         /// </summary>
-        KeepAlive = 0x04,
+        KeepAlive = 1 << 2,
 
         /// <summary>
         /// A republish for a missing message was issued.
         /// </summary>
-        Republish = 0x08,
+        Republish = 1 << 3,
 
         /// <summary>
         /// The publishing was transferred to another node.
         /// </summary>
-        Transferred = 0x10,
+        Transferred = 1 << 4,
 
         /// <summary>
         /// The publishing was timed out
         /// </summary>
-        Timeout = 0x20,
+        Timeout = 1 << 5,
     }
 }

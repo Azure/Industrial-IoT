@@ -207,7 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         };
                         eventItem.DisplayName = displayName;
                         eventItem.StartNodeId = new NodeId(nodeId, 0);
-                        eventItem.Handle = eventItem;
                         eventItem.Valid = true;
                         eventItem.TryGetMonitoredItemNotifications(DateTimeOffset.UtcNow, eventFieldList, notifications);
                     }
@@ -231,7 +230,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         };
                         dataItem.DisplayName = displayName;
                         dataItem.StartNodeId = new NodeId(nodeId, 0);
-                        dataItem.Handle = dataItem;
                         dataItem.Valid = true;
                         dataItem.TryGetMonitoredItemNotifications(DateTimeOffset.UtcNow,
                             monitoredItemNotification, notifications);

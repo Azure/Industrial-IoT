@@ -209,6 +209,7 @@ elseif ($ClusterType -eq "k3d") {
             --servers 1 `
             --volume $volumeMapping1 `
             --volume $volumeMapping2 `
+            --env K3D_FIX_MOUNTS=1@all `
             --wait
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red

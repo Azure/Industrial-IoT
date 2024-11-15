@@ -655,7 +655,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             KeepAliveInterval = keepAliveInterval;
             OperationTimeout = operationTimeout;
-            _defaultOperationTimeout = operationTimeout;
         }
 
         /// <summary>
@@ -1341,7 +1340,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private Task<ComplexTypeSystem>? _complexTypeSystem;
         private bool _disposed;
         private bool? _diagnosticsEnabled;
-        private TimeSpan _defaultOperationTimeout;
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;

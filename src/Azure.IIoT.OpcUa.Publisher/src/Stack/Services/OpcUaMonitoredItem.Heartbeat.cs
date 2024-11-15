@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     $"(with {Template.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV} Heartbeat) ";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
                 }
                 return str;
             }
@@ -283,9 +283,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var lastValue = lastNotification?.Value;
-                if (lastValue == null && ServiceResult.IsNotGood(Status.Error))
+                if (lastValue == null && ServiceResult.IsNotGood(Error))
                 {
-                    lastValue = new DataValue(Status.Error.StatusCode);
+                    lastValue = new DataValue(Error.StatusCode);
                 }
 
                 if (lastValue == null)

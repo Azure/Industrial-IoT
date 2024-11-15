@@ -565,29 +565,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnMonitoredItemSemanticsChanged()
+            public ValueTask OnMonitoredItemSemanticsChangedAsync()
             {
                 if (!IsMetadataDisabled)
                 {
                     // Reload metadata
                     _metaDataLoader.Value.Reload();
                 }
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionKeepAlive(OpcUaSubscriptionNotification notification)
+            public ValueTask OnSubscriptionKeepAliveAsync(OpcUaSubscriptionNotification notification)
             {
                 Interlocked.Increment(ref _group._keepAliveCount);
                 if (_sendKeepAlives)
                 {
                     CallMessageReceiverDelegates(notification);
                 }
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionDataChangeReceived(OpcUaSubscriptionNotification notification)
+            public ValueTask OnSubscriptionDataChangeReceivedAsync(OpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(ProcessKeyFrame(notification));
+                return ValueTask.CompletedTask;
 
                 OpcUaSubscriptionNotification ProcessKeyFrame(OpcUaSubscriptionNotification notification)
                 {
@@ -606,7 +609,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges, int overflows,
+            public ValueTask OnSubscriptionDataDiagnosticsChangeAsync(bool liveData, int valueChanges, int overflows,
                 int heartbeats)
             {
                 lock (_lock)
@@ -633,16 +636,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _group._dataChanges.Count++;
                     }
                 }
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
+            public ValueTask OnSubscriptionCyclicReadCompletedAsync(OpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(notification);
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflows)
+            public ValueTask OnSubscriptionCyclicReadDiagnosticsChangeAsync(int valuesSampled, int overflows)
             {
                 lock (_lock)
                 {
@@ -664,16 +669,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._sampledValues.Count += valuesSampled;
                     _group._cyclicReads.Count++;
                 }
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
+            public ValueTask OnSubscriptionEventReceivedAsync(OpcUaSubscriptionNotification notification)
             {
                 CallMessageReceiverDelegates(notification);
+                return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int events, int overflows,
+            public ValueTask OnSubscriptionEventDiagnosticsChangeAsync(bool liveData, int events, int overflows,
                 int modelChanges)
             {
                 lock (_lock)
@@ -703,6 +710,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _group._events.Count++;
                     }
                 }
+                return ValueTask.CompletedTask;
             }
 
             /// <summary>

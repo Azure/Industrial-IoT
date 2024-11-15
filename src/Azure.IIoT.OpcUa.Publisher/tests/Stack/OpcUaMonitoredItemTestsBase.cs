@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     public abstract class OpcUaMonitoredItemTestsBase
     {
@@ -67,6 +68,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             public SimpleSubscription()
                 : base(null!, Log.Console<SimpleSubscription>())
             {
+            }
+
+            protected override ValueTask OnDataChangeNotificationAsync(
+                uint sequenceNumber, DateTime publishTime, DataChangeNotification notification,
+                PublishState publishStateMask, IReadOnlyList<string> stringTable)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
+                DateTime publishTime, EventNotificationList notification,
+                PublishState publishStateMask, IReadOnlyList<string> stringTable)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
+                DateTime publishTime, PublishState publishStateMask)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
+                DateTime publishTime, StatusChangeNotification notification,
+                PublishState publishStateMask, IReadOnlyList<string> stringTable)
+            {
+                throw new NotImplementedException();
             }
         }
     }

@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Assigned monitored item id on server
         /// </summary>
-        public uint? RemoteId => Created ? Status.Id : null;
+        public uint? RemoteId => Created ? ServerId : null;
 
         /// <summary>
         /// The item is valid once added to the subscription. Contract:
@@ -81,9 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Status code
         /// </summary>
-        public StatusCode StatusCode => Status == null ?
-            StatusCodes.BadNotConnected :
-                (Status.Error?.StatusCode ?? StatusCodes.Good);
+        public StatusCode StatusCode => Error.StatusCode;
 
         /// <summary>
         /// Event name
@@ -359,24 +357,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogDebug(
                     "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
-                    this, subscription.Id, Status.Error);
+                    this, subscription.Id, Error);
                 // Complete removal
                 return true;
             }
 
             Debug.Assert(subscription == Subscription);
 
-            if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+            if (CurrentMonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
                 _logger.LogDebug("{Item}: Item is disabled while trying to complete.", this);
                 return true;
             }
 
-            if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
+            if (StatusCode.IsNotGood(Error.StatusCode))
             {
                 _logger.LogWarning("Error adding monitored item {Item} " +
                     "to subscription #{SubscriptionId} due to {Status}.",
-                    this, subscription.Id, Status.Error);
+                    this, subscription.Id, Error);
 
                 // Not needed, mode changes applied after
                 // applyChanges = true;
@@ -384,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             if (OnSamplingIntervalOrQueueSizeRevised(
-                SamplingInterval != Status.SamplingInterval, QueueSize != Status.QueueSize))
+                SamplingInterval != CurrentSamplingInterval, QueueSize != CurrentQueueSize))
             {
                 applyChanges = true;
             }
@@ -401,27 +399,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             Debug.Assert(Subscription != null);
-            if (SamplingInterval != Status.SamplingInterval &&
-                QueueSize != Status.QueueSize && Status.QueueSize != 0)
+            if (SamplingInterval != CurrentSamplingInterval &&
+                QueueSize != CurrentQueueSize && CurrentQueueSize != 0)
             {
                 _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
                     "to {CurrentSamplingInterval} and QueueSize from {QueueSize} " +
                     "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                    SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
+                    SamplingInterval, CurrentSamplingInterval, QueueSize, CurrentQueueSize,
                     Subscription.Id, StartNodeId, DisplayName);
             }
-            else if (SamplingInterval != Status.SamplingInterval)
+            else if (SamplingInterval != CurrentSamplingInterval)
             {
                 _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
                     "to {CurrentSamplingInterval} for #{SubscriptionId}|{Item}('{Name}').",
-                    SamplingInterval, Status.SamplingInterval,
+                    SamplingInterval, CurrentSamplingInterval,
                     Subscription.Id, StartNodeId, DisplayName);
             }
-            else if (QueueSize != Status.QueueSize && Status.QueueSize != 0)
+            else if (QueueSize != CurrentQueueSize && CurrentQueueSize != 0)
             {
                 _logger.LogInformation("Server revised QueueSize from {QueueSize} " +
                     "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                    QueueSize, Status.QueueSize,
+                    QueueSize, CurrentQueueSize,
                     Subscription.Id, StartNodeId, DisplayName);
             }
             else
@@ -433,7 +431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger.LogDebug("SamplingInterval set to {SamplingInterval} and QueueSize " +
                 "to {QueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                Status.SamplingInterval, Status.QueueSize,
+                CurrentSamplingInterval, CurrentQueueSize,
                 Subscription.Id, StartNodeId, DisplayName);
         }
 
@@ -454,8 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return null;
             }
-            var currentMode = Status?.MonitoringMode
-                ?? Opc.Ua.MonitoringMode.Disabled;
+            var currentMode = CurrentMonitoringMode;
             var desiredMode = MonitoringMode;
             return currentMode != desiredMode ? desiredMode : null;
         }
@@ -510,10 +507,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return TryGetErrorMonitoredItemNotifications(
                     StatusCodes.BadNoData, notifications);
             }
-            if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
+            if (ServiceResult.IsNotGood(Error))
             {
-                return TryGetErrorMonitoredItemNotifications(
-                    Status.Error.StatusCode, notifications);
+                return TryGetErrorMonitoredItemNotifications(Error.StatusCode,
+                    notifications);
             }
             return TryGetMonitoredItemNotifications(TimeProvider.GetUtcNow(),
                 lastValue, notifications);
@@ -923,7 +920,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     publishingInterval = subscription.PublishingInterval;
                 }
-                var samplingInterval = Status.SamplingInterval;
+                var samplingInterval = CurrentSamplingInterval;
                 if (samplingInterval == TimeSpan.Zero)
                 {
                     samplingInterval = SamplingInterval;

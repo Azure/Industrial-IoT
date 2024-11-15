@@ -53,11 +53,6 @@ namespace Opc.Ua.Client
         public string SessionName { get; }
 
         /// <summary>
-        /// Gets the local handle assigned to the session.
-        /// </summary>
-        public object? Handle { get; set; }
-
-        /// <summary>
         /// Gets the user identity currently used for the session.
         /// </summary>
         public IUserIdentity Identity { get; }
@@ -116,7 +111,7 @@ namespace Opc.Ua.Client
                 }
                 if (operationTimeout == 0)
                 {
-                    return TimeSpan.FromSeconds(5);
+                    return kDefaultOperationTimeout;
                 }
                 return TimeSpan.FromMilliseconds(operationTimeout);
             }
@@ -230,11 +225,6 @@ namespace Opc.Ua.Client
         public int GoodPublishRequestCount => _goodPublishRequestCount;
 
         /// <summary>
-        /// Get the number of current publishing workers
-        /// </summary>
-        public int PublishWorkerCount { get; private set; }
-
-        /// <summary>
         /// Publish workers in failed state
         /// </summary>
         public int BadPublishRequestCount => _badPublishRequestCount;
@@ -243,55 +233,18 @@ namespace Opc.Ua.Client
         /// Gets and sets the minimum number of publish requests to be
         /// used in the session.
         /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public int MinPublishRequestCount
-        {
-            get => _minPublishRequestCount;
-            set
-            {
-                lock (SyncRoot)
-                {
-                    if (value is >= kDefaultPublishRequestCount and
-                        <= kMinPublishRequestCountMax)
-                    {
-                        _minPublishRequestCount = value;
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(MinPublishRequestCount),
-                            "Minimum publish request count must be between " +
-                            $"{kDefaultPublishRequestCount} and {kMinPublishRequestCountMax}.");
-                    }
-                }
-            }
-        }
+        public int MinPublishWorkerCount { get; set; } = 1;
 
         /// <summary>
         /// Gets and sets the maximum number of publish requests to
         /// be used in the session.
         /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public int MaxPublishRequestCount
-        {
-            get => Math.Max(_minPublishRequestCount, _maxPublishRequestCount);
-            set
-            {
-                lock (SyncRoot)
-                {
-                    if (value is >= kDefaultPublishRequestCount and
-                        <= kMaxPublishRequestCountMax)
-                    {
-                        _maxPublishRequestCount = value;
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(MaxPublishRequestCount),
-                            "Maximum publish request count must be between " +
-                            $"{kDefaultPublishRequestCount} and {kMaxPublishRequestCountMax}.");
-                    }
-                }
-            }
-        }
+        public int MaxPublishWorkerCount { get; set; } = 15;
+
+        /// <summary>
+        /// Get the number of current publishing workers
+        /// </summary>
+        public int PublishWorkerCount { get; private set; }
 
         /// <summary>
         /// Session is in the process of connecting as indicated
@@ -421,64 +374,6 @@ namespace Opc.Ua.Client
         public override int GetHashCode()
         {
             return HashCode.Combine(ConfiguredEndpoint, SessionName, SessionId);
-        }
-
-        /// <summary>
-        /// Closes the session and the underlying channel.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                try
-                {
-                    StopKeepAliveTimer();
-                    _cts.Cancel();
-                    _publishControl.Set();
-                    _keepAliveTrigger.Set();
-                    _nodeCache.Clear();
-
-                    List<Subscription>? subscriptions = null;
-                    lock (SyncRoot)
-                    {
-                        subscriptions = new List<Subscription>(_subscriptions);
-                        _subscriptions.Clear();
-                    }
-
-                    foreach (var subscription in subscriptions)
-                    {
-                        subscription.Dispose();
-                    }
-                    subscriptions.Clear();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Exception during dispose");
-                }
-            }
-
-            base.Dispose(disposing);
-
-            if (disposing)
-            {
-                try
-                {
-                    // Should not throw
-                    _keepAliveWorker.GetAwaiter().GetResult();
-                    _publishController.GetAwaiter().GetResult();
-                    _connected.Reset();
-                }
-                finally
-                {
-                    // suppress spurious events
-                    KeepAlive = null;
-                    PublishSequenceNumbersToAcknowledge = null;
-
-                    _keepAliveTimer.Dispose();
-                    _connecting.Dispose();
-                }
-            }
         }
 
         /// <inheritdoc/>
@@ -1812,44 +1707,128 @@ namespace Opc.Ua.Client
             return true;
         }
 
-        /// <inheritdoc/>
-        public async Task<bool> RemoveSubscriptionsAsync(
-            IEnumerable<Subscription> subscriptions, CancellationToken ct)
-        {
-            ArgumentNullException.ThrowIfNull(subscriptions);
-            var subscriptionsToDelete = new List<Subscription>();
-            var removed = false;
-            lock (SyncRoot)
-            {
-                foreach (var subscription in subscriptions)
-                {
-                    if (_subscriptions.Remove(subscription))
-                    {
-                        if (subscription.Created)
-                        {
-                            subscriptionsToDelete.Add(subscription);
-                        }
-                        removed = true;
-                    }
-                }
-            }
-            foreach (var subscription in subscriptionsToDelete)
-            {
-                await subscription.DeleteAsync(true, ct).ConfigureAwait(false);
-            }
-            if (removed)
-            {
-                TriggerPublishController();
-            }
-            return removed;
-        }
-
         /// <summary>
         /// Trigger publish controller
         /// </summary>
         public void TriggerPublishController()
         {
             _publishControl.Set();
+        }
+
+        /// <summary>
+        /// Closes the session and the underlying channel.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    StopKeepAliveTimer();
+                    _cts.Cancel();
+                    _publishControl.Set();
+                    _keepAliveTrigger.Set();
+                    _nodeCache.Clear();
+
+                    List<Subscription>? subscriptions = null;
+                    lock (SyncRoot)
+                    {
+                        subscriptions = new List<Subscription>(_subscriptions);
+                        _subscriptions.Clear();
+                    }
+
+                    foreach (var subscription in subscriptions)
+                    {
+                        subscription.Dispose();
+                    }
+                    subscriptions.Clear();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception during dispose");
+                }
+            }
+
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                try
+                {
+                    // Should not throw
+                    _keepAliveWorker.GetAwaiter().GetResult();
+                    _publishController.GetAwaiter().GetResult();
+                    _connected.Reset();
+                }
+                finally
+                {
+                    // suppress spurious events
+                    KeepAlive = null;
+                    PublishSequenceNumbersToAcknowledge = null;
+
+                    _keepAliveTimer.Dispose();
+                    _connecting.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle keep alive
+        /// </summary>
+        /// <param name="serviceResult"></param>
+        /// <param name="serverState"></param>
+        /// <param name="currentTime"></param>
+        /// <returns></returns>
+        protected virtual void OnKeepAlive(ServiceResult serviceResult, ServerState serverState,
+            DateTime currentTime)
+        {
+            var callback = KeepAlive;
+            if (callback != null)
+            {
+                try
+                {
+                    callback(this, new KeepAliveEventArgs(serviceResult,
+                        serverState, currentTime));
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Session: Unexpected error invoking KeepAliveCallback.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Collect acknoledgements to send
+        /// </summary>
+        /// <returns></returns>
+        protected virtual SubscriptionAcknowledgementCollection GetAcknowledgementsToSend()
+        {
+            Debug.Assert(_acknowledgementsToSendLock.CurrentCount == 0);
+            var callback = PublishSequenceNumbersToAcknowledge;
+            SubscriptionAcknowledgementCollection acknowledgementsToSend;
+            if (callback != null)
+            {
+                try
+                {
+                    var deferredAcknowledgementsToSend =
+                        new SubscriptionAcknowledgementCollection();
+                    callback(this, new PublishSequenceNumbersToAcknowledgeEventArgs(
+                        _acknowledgementsToSend, deferredAcknowledgementsToSend));
+                    acknowledgementsToSend = _acknowledgementsToSend;
+                    _acknowledgementsToSend = deferredAcknowledgementsToSend;
+                    return acknowledgementsToSend;
+                }
+                catch (Exception e2)
+                {
+                    _logger.LogError(e2, "Unexpected error invoking " +
+                        "PublishSequenceNumbersToAcknowledgeEventArgs.");
+                }
+            }
+            // send all ack values, clear list
+            acknowledgementsToSend = _acknowledgementsToSend;
+            _acknowledgementsToSend = new SubscriptionAcknowledgementCollection();
+            return acknowledgementsToSend;
         }
 
         /// <summary>
@@ -1880,82 +1859,6 @@ namespace Opc.Ua.Client
             IReadOnlyList<SoftwareCertificate> softwareCertificates)
         {
             // always accept valid certificates.
-        }
-
-        /// <summary>
-        /// Read operation limits
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async ValueTask FetchOperationLimitsAsync(CancellationToken ct)
-        {
-            // First we read the node read max to optimize the second read.
-            var nodeIds = new[]
-            {
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead
-            };
-            var (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
-            var index = 0;
-        OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
-
-            nodeIds = new[]
-            {
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
-        VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-        VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-        VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
-        VariableIds.Server_ServerCapabilities_MaxStringLength,
-        VariableIds.Server_ServerCapabilities_MaxArrayLength,
-        VariableIds.Server_ServerCapabilities_MaxByteStringLength,
-        VariableIds.Server_ServerCapabilities_MinSupportedSampleRate
-            };
-
-            (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
-            index = 0;
-        OperationLimits.MaxNodesPerHistoryReadData = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerHistoryReadEvents = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerWrite = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerHistoryUpdateData = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerHistoryUpdateEvents = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerMethodCall = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerBrowse = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerRegisterNodes = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerNodeManagement = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxMonitoredItemsPerCall = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxNodesPerTranslatePathsToNodeIds = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxBrowseContinuationPoints = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxHistoryContinuationPoints = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxQueryContinuationPoints = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxStringLength = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxArrayLength = Get<uint>(ref index, values, errors);
-        OperationLimits.MaxByteStringLength = Get<uint>(ref index, values, errors);
-        OperationLimits.MinSupportedSampleRate = Get<double>(ref index, values, errors);
-
-            // Helper extraction
-            static T Get<T>(ref int index, IReadOnlyList<DataValue> values,
-                IReadOnlyList<ServiceResult> errors) where T : struct
-            {
-                var value = values[index];
-                var error = errors.Count > 0 ? errors[index] : ServiceResult.Good;
-                index++;
-                if (ServiceResult.IsNotBad(error) && value.Value is T retVal)
-                {
-                    return retVal;
-                }
-                return default;
-            }
         }
 
         /// <inheritdoc/>
@@ -2058,7 +1961,7 @@ namespace Opc.Ua.Client
                             e.GetType().FullName, e.Message);
                     }
 
-                    bool KeepAliveHandler(DateTime currentTime, ServerState serverState)
+                    void KeepAliveHandler(DateTime currentTime, ServerState serverState)
                     {
                         var lastKeepAliveErrorStatusCode = lastKeepAliveError;
                         if (ServiceResult.IsGood(lastKeepAliveError) ||
@@ -2076,23 +1979,7 @@ namespace Opc.Ua.Client
                             KeepAliveStopped = true;
                         }
 
-                        var callback = KeepAlive;
-                        if (callback != null)
-                        {
-                            try
-                            {
-                                var args = new KeepAliveEventArgs(lastKeepAliveError,
-                                    serverState, currentTime);
-                                callback(this, args);
-                                return !args.CancelKeepAlive;
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e,
-                                    "Session: Unexpected error invoking KeepAliveCallback.");
-                            }
-                        }
-                        return false;
+                        OnKeepAlive(lastKeepAliveError, serverState, currentTime);
                     }
                 }
             }
@@ -2720,36 +2607,79 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Collect acknoledgements to send
+        /// Read operation limits
         /// </summary>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        protected virtual SubscriptionAcknowledgementCollection GetAcknowledgementsToSend()
+        private async ValueTask FetchOperationLimitsAsync(CancellationToken ct)
         {
-            Debug.Assert(_acknowledgementsToSendLock.CurrentCount == 0);
-            var callback = PublishSequenceNumbersToAcknowledge;
-            SubscriptionAcknowledgementCollection acknowledgementsToSend;
-            if (callback != null)
+            // First we read the node read max to optimize the second read.
+            var nodeIds = new[]
             {
-                try
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead
+            };
+            var (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
+            var index = 0;
+            OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
+
+            nodeIds = new[]
+            {
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
+        VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
+        VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+        VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
+        VariableIds.Server_ServerCapabilities_MaxStringLength,
+        VariableIds.Server_ServerCapabilities_MaxArrayLength,
+        VariableIds.Server_ServerCapabilities_MaxByteStringLength,
+        VariableIds.Server_ServerCapabilities_MinSupportedSampleRate
+            };
+
+            (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
+            index = 0;
+            OperationLimits.MaxNodesPerHistoryReadData = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerHistoryReadEvents = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerWrite = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerHistoryUpdateData = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerHistoryUpdateEvents = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerMethodCall = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerBrowse = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerRegisterNodes = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerNodeManagement = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItemsPerCall = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerTranslatePathsToNodeIds = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxBrowseContinuationPoints = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxHistoryContinuationPoints = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxQueryContinuationPoints = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxStringLength = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxArrayLength = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxByteStringLength = Get<uint>(ref index, values, errors);
+            OperationLimits.MinSupportedSampleRate = Get<double>(ref index, values, errors);
+
+            // Helper extraction
+            static T Get<T>(ref int index, IReadOnlyList<DataValue> values,
+                IReadOnlyList<ServiceResult> errors) where T : struct
+            {
+                var value = values[index];
+                var error = errors.Count > 0 ? errors[index] : ServiceResult.Good;
+                index++;
+                if (ServiceResult.IsNotBad(error) && value.Value is T retVal)
                 {
-                    var deferredAcknowledgementsToSend =
-                        new SubscriptionAcknowledgementCollection();
-                    callback(this, new PublishSequenceNumbersToAcknowledgeEventArgs(
-                        _acknowledgementsToSend, deferredAcknowledgementsToSend));
-                    acknowledgementsToSend = _acknowledgementsToSend;
-                    _acknowledgementsToSend = deferredAcknowledgementsToSend;
-                    return acknowledgementsToSend;
+                    return retVal;
                 }
-                catch (Exception e2)
-                {
-                    _logger.LogError(e2, "Unexpected error invoking " +
-                        "PublishSequenceNumbersToAcknowledgeEventArgs.");
-                }
+                return default;
             }
-            // send all ack values, clear list
-            acknowledgementsToSend = _acknowledgementsToSend;
-            _acknowledgementsToSend = new SubscriptionAcknowledgementCollection();
-            return acknowledgementsToSend;
         }
 
         /// <summary>
@@ -2808,9 +2738,9 @@ namespace Opc.Ua.Client
                     // many requests errors
                     if (publishWorkers.Any(w => w.TooManyPublishRequests))
                     {
-                        if (_maxPublishRequestCount > 1)
+                        if (MaxPublishWorkerCount > 1)
                         {
-                            _maxPublishRequestCount--;
+                            MaxPublishWorkerCount--;
                         }
                     }
                     PublishWorkerCount = publishWorkers.Count;
@@ -2836,13 +2766,17 @@ namespace Opc.Ua.Client
                     // request count. If max is below min, we honor the
                     // min publish request count.
                     //
-                    if (publishCount > _maxPublishRequestCount)
+                    if (publishCount > MaxPublishWorkerCount)
                     {
-                        publishCount = _maxPublishRequestCount;
+                        publishCount = MaxPublishWorkerCount;
                     }
-                    if (publishCount < _minPublishRequestCount)
+                    if (publishCount < MinPublishWorkerCount)
                     {
-                        publishCount = _minPublishRequestCount;
+                        publishCount = MinPublishWorkerCount;
+                    }
+                    if (publishCount <= 0)
+                    {
+                        publishCount = 1;
                     }
                 }
                 return publishCount;
@@ -3740,16 +3674,14 @@ namespace Opc.Ua.Client
                     // TODO: Validate this against spec
                     //
                     var timeout = _session._subscriptions
-                        .Select(s =>
-                            s.CurrentPublishingInterval * s.CurrentKeepAliveCount)
-                        .Max() * 2;
+                        .Max(s => s.CurrentPublishingInterval * s.CurrentKeepAliveCount) * 2;
                     if (timeout < _session.OperationTimeout)
                     {
                         timeout = _session.OperationTimeout;
                     }
-                    if (timeout > TimeSpan.FromMinutes(5))
+                    if (timeout > kMaxOperationTimeout)
                     {
-                        timeout = TimeSpan.FromMinutes(5);
+                        timeout = kMaxOperationTimeout;
                     }
                     var newTimeout = (uint)timeout.TotalMilliseconds;
                     if (newTimeout < currentTimeout)
@@ -3765,11 +3697,11 @@ namespace Opc.Ua.Client
             private readonly CancellationTokenSource _cts;
         }
 
-        private const int kMinPublishRequestCountMax = 100;
-        private const int kMaxPublishRequestCountMax = ushort.MaxValue;
-        private const int kDefaultPublishRequestCount = 1;
         private const int kPublishRequestSequenceNumberOutOfOrderThreshold = 10;
         private const int kPublishRequestSequenceNumberOutdatedThreshold = 100;
+        private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);
         private static readonly TimeSpan kKeepAliveGuardBand = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan kReconnectTimeout = TimeSpan.FromSeconds(15);
         private X509Certificate2? _instanceCertificate;
@@ -3779,10 +3711,8 @@ namespace Opc.Ua.Client
         private X509Certificate2? _serverCertificate;
         private uint _maxRequestMessageSize;
         private long _publishCounter;
-        private TimeSpan _keepAliveInterval = TimeSpan.FromSeconds(5);
         private long _keepAliveCounter;
-        private int _minPublishRequestCount = kDefaultPublishRequestCount;
-        private int _maxPublishRequestCount = kMaxPublishRequestCountMax;
+        private TimeSpan _keepAliveInterval = kDefaultKeepAliveInterval;
 #pragma warning disable IDE0032 // Use auto property
         private int _goodPublishRequestCount;
         private int _badPublishRequestCount;

@@ -116,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = "Model Change Item";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
                 }
                 return str;
             }
@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
-                if (samplingIntervalChanged && Status.SamplingInterval != TimeSpan.Zero)
+                if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)
                 {
                     // Not necessary as sampling interval will likely always stay 0
                     applyChanges |= UpdateQueueSize(Subscription, Template);

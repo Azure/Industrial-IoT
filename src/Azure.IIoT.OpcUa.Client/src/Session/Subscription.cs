@@ -16,53 +16,6 @@ namespace Opc.Ua.Client
     using System.Collections.Concurrent;
 
     /// <summary>
-    /// The delegate used to receive data change notifications via a
-    /// direct function call instead of a .NET Event.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="notification"></param>
-    /// <param name="stringTable"></param>
-    public delegate void FastDataChangeNotificationEventHandler(
-        Subscription subscription, DataChangeNotification notification,
-        IReadOnlyList<string> stringTable);
-
-    /// <summary>
-    /// The delegate used to receive event notifications via a
-    /// direct function call instead of a .NET Event.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="notification"></param>
-    /// <param name="stringTable"></param>
-    public delegate void FastEventNotificationEventHandler(
-        Subscription subscription, EventNotificationList notification,
-        IReadOnlyList<string> stringTable);
-
-    /// <summary>
-    /// The delegate used to receive keep alive notifications via
-    /// a direct function call instead of a .NET Event.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="notification"></param>
-    public delegate void FastKeepAliveNotificationEventHandler(
-        Subscription subscription, NotificationData notification);
-
-    /// <summary>
-    /// The delegate used to receive subscription state change notifications.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="e"></param>
-    public delegate void SubscriptionStateChangedEventHandler(
-        Subscription subscription, SubscriptionStateChangedEventArgs e);
-
-    /// <summary>
-    /// The delegate used to receive publish state change notifications.
-    /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="e"></param>
-    public delegate void PublishStateChangedEventHandler(
-        Subscription subscription, PublishStateChangedEventArgs e);
-
-    /// <summary>
     /// A subscription.
     /// </summary>
     public abstract class Subscription : IDisposable
@@ -115,7 +68,7 @@ namespace Opc.Ua.Client
         /// The timestamps to return with the notification messages.
         /// </summary>
         [DataMember(Order = 8)]
-        public TimestampsToReturn TimestampsToReturn { get; set; }
+        public TimestampsToReturn TimestampsToReturn { get; set; } = TimestampsToReturn.Both;
 
         /// <summary>
         /// The minimum lifetime for subscriptions
@@ -162,53 +115,6 @@ namespace Opc.Ua.Client
         public uint CurrentLifetimeCount { get; private set; }
 
         /// <summary>
-        /// Raised to indicate that the state of the subscription
-        /// has changed.
-        /// </summary>
-        public event SubscriptionStateChangedEventHandler? StateChanged;
-
-        /// <summary>
-        /// Raised to indicate the publishing state for the subscription
-        /// has stopped or resumed (see PublishingStopped property).
-        /// </summary>
-        public event PublishStateChangedEventHandler? PublishStatusChanged;
-
-        /// <summary>
-        /// Gets or sets the fast data change callback.
-        /// </summary>
-        /// <value>The fast data change callback.</value>
-        /// <remarks>
-        /// Only one callback is allowed at a time but it is more
-        /// efficient to call than an event.
-        /// </remarks>
-        public FastDataChangeNotificationEventHandler? FastDataChangeCallback { get; set; }
-
-        /// <summary>
-        /// Gets or sets the fast event callback.
-        /// </summary>
-        /// <value>The fast event callback.</value>
-        /// <remarks>
-        /// Only one callback is allowed at a time but it is more
-        /// efficient to call than an event.
-        /// </remarks>
-        public FastEventNotificationEventHandler? FastEventCallback { get; set; }
-
-        /// <summary>
-        /// Gets or sets the fast keep alive callback.
-        /// </summary>
-        /// <value>The keep alive change callback.</value>
-        /// <remarks>
-        /// Only one callback is allowed at a time but it is more
-        /// efficient to call than an event.
-        /// </remarks>
-        public FastKeepAliveNotificationEventHandler? FastKeepAliveCallback { get; set; }
-
-        /// <summary>
-        /// Back compat
-        /// </summary>
-        public static bool DisableMonitoredItemCache { get => true; set { } }
-
-        /// <summary>
         /// The items to monitor.
         /// </summary>
         public IEnumerable<MonitoredItem> MonitoredItems
@@ -235,10 +141,9 @@ namespace Opc.Ua.Client
                     {
                         return true;
                     }
-
                     foreach (var monitoredItem in _monitoredItems.Values)
                     {
-                        if (Created && !monitoredItem.Status.Created)
+                        if (Created && !monitoredItem.Created)
                         {
                             return true;
                         }
@@ -248,7 +153,6 @@ namespace Opc.Ua.Client
                             return true;
                         }
                     }
-
                     return false;
                 }
             }
@@ -274,11 +178,6 @@ namespace Opc.Ua.Client
         public Session Session { get; }
 
         /// <summary>
-        /// A local handle assigned to the subscription
-        /// </summary>
-        public object? Handle { get; set; }
-
-        /// <summary>
         /// The unique identifier assigned by the server.
         /// </summary>
         public uint Id { get; private set; }
@@ -292,6 +191,22 @@ namespace Opc.Ua.Client
         /// Whether publishing is currently enabled.
         /// </summary>
         public bool CurrentPublishingEnabled { get; private set; }
+
+        /// <summary>
+        /// Returns true if the subscription is not receiving publishes.
+        /// </summary>
+        public bool PublishingStopped
+        {
+            get
+            {
+                var timeSinceLastNotification = HiResClock.TickCount - _lastNotificationTickCount;
+                if (timeSinceLastNotification > _keepAliveInterval + kKeepAliveTimerMargin)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
 
         /// <summary>
         /// Create subscription
@@ -325,51 +240,375 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// An overrideable version of the Dispose.
+        /// Changes the publishing enabled state for the subscription.
         /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
+        /// <param name="enabled"></param>
+        /// <param name="ct"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        public async Task SetPublishingModeAsync(bool enabled, CancellationToken ct)
         {
-            if (disposing)
+            VerifySubscriptionState(true);
+
+            // modify the subscription.
+            UInt32Collection subscriptionIds = new uint[] { Id };
+
+            var response = await Session.SetPublishingModeAsync(
+                null, enabled, new uint[] { Id }, ct).ConfigureAwait(false);
+
+            // validate response.
+            ClientBase.ValidateResponse(response.Results, subscriptionIds);
+            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, subscriptionIds);
+
+            if (StatusCode.IsBad(response.Results[0]))
             {
-                try
+                throw new ServiceResultException(
+                    ClientBase.GetResult(response.Results[0], 0,
+                    response.DiagnosticInfos, response.ResponseHeader));
+            }
+
+            // update current state.
+            CurrentPublishingEnabled = PublishingEnabled = enabled;
+        }
+
+        /// <summary>
+        /// Applies any changes to the subscription items.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task ApplyChangesAsync(CancellationToken ct)
+        {
+            await DeleteItemsAsync(ct).ConfigureAwait(false);
+            await ModifyItemsAsync(ct).ConfigureAwait(false);
+            await CreateItemsAsync(ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates all items on the server that have not already been created.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task<IReadOnlyList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+
+            var requestItems = new MonitoredItemCreateRequestCollection();
+            var itemsToCreate = new List<MonitoredItem>();
+
+            lock (_cache)
+            {
+                foreach (var monitoredItem in _monitoredItems.Values)
                 {
-                    _publishTimer.Dispose();
-                    _messages.Writer.TryComplete();
-                    _cts.Cancel();
-                    _messageWorkerTask.GetAwaiter().GetResult();
+                    // ignore items that have been created.
+                    if (monitoredItem.Created)
+                    {
+                        continue;
+                    }
+
+                    // build item request.
+                    var request = new MonitoredItemCreateRequest();
+
+                    request.ItemToMonitor.NodeId = monitoredItem.ResolvedNodeId;
+                    request.ItemToMonitor.AttributeId = monitoredItem.AttributeId;
+                    request.ItemToMonitor.IndexRange = monitoredItem.IndexRange;
+                    request.ItemToMonitor.DataEncoding = monitoredItem.Encoding;
+
+                    request.MonitoringMode = monitoredItem.MonitoringMode;
+
+                    request.RequestedParameters.ClientHandle = monitoredItem.ClientHandle;
+                    request.RequestedParameters.SamplingInterval =
+                        monitoredItem.SamplingInterval.TotalMilliseconds;
+                    request.RequestedParameters.QueueSize = monitoredItem.QueueSize;
+                    request.RequestedParameters.DiscardOldest = monitoredItem.DiscardOldest;
+
+                    if (monitoredItem.Filter != null)
+                    {
+                        request.RequestedParameters.Filter =
+                            new ExtensionObject(monitoredItem.Filter);
+                    }
+
+                    requestItems.Add(request);
+                    itemsToCreate.Add(monitoredItem);
                 }
-                finally
+            }
+
+            if (requestItems.Count == 0)
+            {
+                return itemsToCreate;
+            }
+
+            // create monitored items.
+            var response = await Session.CreateMonitoredItemsAsync(null, Id,
+                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
+            var results = response.Results;
+            ClientBase.ValidateResponse(results, itemsToCreate);
+            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToCreate);
+
+            // update results.
+            for (var index = 0; index < results.Count; index++)
+            {
+                itemsToCreate[index].SetCreateResult(requestItems[index],
+                    results[index], index, response.DiagnosticInfos,
+                    response.ResponseHeader);
+            }
+
+            // return the list of items affected by the change.
+            return itemsToCreate;
+        }
+
+        /// <summary>
+        /// Modifies all items that have been changed.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task<IReadOnlyList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+
+            var requestItems = new MonitoredItemModifyRequestCollection();
+            var itemsToModify = new List<MonitoredItem>();
+
+            lock (_cache)
+            {
+                foreach (var monitoredItem in _monitoredItems.Values)
                 {
-                    _cts.Dispose();
+                    // ignore items that have been created or modified.
+                    if (!monitoredItem.Created || !monitoredItem.AttributesModified)
+                    {
+                        continue;
+                    }
+
+                    // build item request.
+                    var request = new MonitoredItemModifyRequest
+                    {
+                        MonitoredItemId = monitoredItem.ServerId
+                    };
+                    request.RequestedParameters.ClientHandle = monitoredItem.ClientHandle;
+                    request.RequestedParameters.SamplingInterval =
+                        monitoredItem.SamplingInterval.TotalMilliseconds;
+                    request.RequestedParameters.QueueSize = monitoredItem.QueueSize;
+                    request.RequestedParameters.DiscardOldest = monitoredItem.DiscardOldest;
+
+                    if (monitoredItem.Filter != null)
+                    {
+                        request.RequestedParameters.Filter = new ExtensionObject(monitoredItem.Filter);
+                    }
+
+                    requestItems.Add(request);
+                    itemsToModify.Add(monitoredItem);
+                }
+            }
+            if (requestItems.Count == 0)
+            {
+                return itemsToModify;
+            }
+
+            // modify the subscription.
+            var response = await Session.ModifyMonitoredItemsAsync(null, Id,
+                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
+
+            var results = response.Results;
+            ClientBase.ValidateResponse(results, itemsToModify);
+            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToModify);
+
+            // update results.
+            for (var index = 0; index < results.Count; index++)
+            {
+                itemsToModify[index].SetModifyResult(requestItems[index], results[index],
+                    index, response.DiagnosticInfos, response.ResponseHeader);
+            }
+
+            // return the list of items affected by the change.
+            return itemsToModify;
+        }
+
+        /// <summary>
+        /// Deletes all items that have been marked for deletion.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task<IReadOnlyList<MonitoredItem>> DeleteItemsAsync(
+            CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+            if (_deletedItems.Count == 0)
+            {
+                return new List<MonitoredItem>();
+            }
+            var itemsToDelete = _deletedItems.ToList();
+            _deletedItems.Clear();
+            try
+            {
+                var monitoredItemIds = new UInt32Collection();
+                foreach (var monitoredItem in itemsToDelete)
+                {
+                    monitoredItemIds.Add(monitoredItem.ServerId);
+                }
+
+                var response = await Session.DeleteMonitoredItemsAsync(null, Id,
+                    monitoredItemIds, ct).ConfigureAwait(false);
+                var results = response.Results;
+                ClientBase.ValidateResponse(results, monitoredItemIds);
+                ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos,
+                    monitoredItemIds);
+                // update results.
+                for (var index = 0; index < results.Count; index++)
+                {
+                    itemsToDelete[index].SetDeleteResult(results[index], index,
+                        response.DiagnosticInfos, response.ResponseHeader);
+                }
+
+                // return the list of items affected by the change.
+                return itemsToDelete;
+            }
+            catch
+            {
+                _deletedItems.AddRange(itemsToDelete);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Tells the server to refresh all conditions being monitored
+        /// by the subscription.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task ConditionRefreshAsync(CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+            var methodsToCall = new CallMethodRequestCollection
+            {
+                new CallMethodRequest()
+                {
+                    MethodId = MethodIds.ConditionType_ConditionRefresh,
+                    InputArguments = new VariantCollection() { new Variant(Id) }
+                }
+            };
+            await Session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Adds an item to the subscription.
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
+        public void AddItem(MonitoredItem monitoredItem)
+        {
+            ArgumentNullException.ThrowIfNull(monitoredItem);
+            lock (_cache)
+            {
+                if (_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
+                {
+                    return;
+                }
+
+                _monitoredItems.TryAdd(monitoredItem.ClientHandle, monitoredItem);
+                monitoredItem.Subscription = this;
+            }
+        }
+
+        /// <summary>
+        /// Adds items to the subscription.
+        /// </summary>
+        /// <param name="monitoredItems"></param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
+        public void AddItems(IEnumerable<MonitoredItem> monitoredItems)
+        {
+            ArgumentNullException.ThrowIfNull(monitoredItems);
+            lock (_cache)
+            {
+                foreach (var monitoredItem in monitoredItems)
+                {
+                    if (!_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
+                    {
+                        _monitoredItems.TryAdd(monitoredItem.ClientHandle, monitoredItem);
+                        monitoredItem.Subscription = this;
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// Sends a notification that the state of the subscription
-        /// has changed.
+        /// Removes an item from the subscription.
         /// </summary>
-        public void ChangesCompleted()
+        /// <param name="monitoredItem"></param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
+        public void RemoveItem(MonitoredItem monitoredItem)
         {
-            StateChanged?.Invoke(this, new SubscriptionStateChangedEventArgs(_changeMask));
-            _changeMask = SubscriptionChangeMask.None;
+            ArgumentNullException.ThrowIfNull(monitoredItem);
+
+            lock (_cache)
+            {
+                if (!_monitoredItems.TryRemove(monitoredItem.ClientHandle, out _))
+                {
+                    return;
+                }
+
+                monitoredItem.Subscription = null;
+            }
+
+            if (monitoredItem.Created)
+            {
+                _deletedItems.Add(monitoredItem);
+            }
         }
 
         /// <summary>
-        /// Returns true if the subscription is not receiving publishes.
+        /// Removes items from the subscription.
         /// </summary>
-        public bool PublishingStopped
+        /// <param name="monitoredItems"></param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
+        public void RemoveItems(IEnumerable<MonitoredItem> monitoredItems)
         {
-            get
+            ArgumentNullException.ThrowIfNull(monitoredItems);
+            lock (_cache)
             {
-                var timeSinceLastNotification = HiResClock.TickCount - _lastNotificationTickCount;
-                if (timeSinceLastNotification > _keepAliveInterval + kKeepAliveTimerMargin)
+                foreach (var monitoredItem in monitoredItems)
                 {
-                    return true;
+                    if (_monitoredItems.TryRemove(monitoredItem.ClientHandle, out _))
+                    {
+                        monitoredItem.Subscription = null;
+
+                        if (monitoredItem.Created)
+                        {
+                            _deletedItems.Add(monitoredItem);
+                        }
+                    }
                 }
-                return false;
             }
+        }
+
+        /// <summary>
+        /// Creates a subscription on the server and adds all monitored items.
+        /// </summary>
+        /// <param name="forceCreate"></param>
+        /// <param name="ct"></param>
+        public async Task CreateAsync(bool forceCreate, CancellationToken ct)
+        {
+            if (!forceCreate)
+            {
+                VerifySubscriptionState(false);
+            }
+            else
+            {
+                OnSubscriptionDeleteCompleted();
+            }
+
+            // create the subscription.
+            var revisedMaxKeepAliveCount = KeepAliveCount;
+            var revisedLifetimeCount = LifetimeCount;
+
+            AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
+
+            var response = await Session.CreateSubscriptionAsync(null,
+                PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
+                revisedMaxKeepAliveCount, MaxNotificationsPerPublish, PublishingEnabled,
+                Priority, ct).ConfigureAwait(false);
+
+            OnSubscriptionUpdateComplete(true, response.SubscriptionId,
+                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
+                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
+
+            await CreateItemsAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -422,8 +661,6 @@ namespace Opc.Ua.Client
             {
                 OnSubscriptionDeleteCompleted();
             }
-
-            ChangesCompleted();
         }
 
         /// <summary>
@@ -446,238 +683,98 @@ namespace Opc.Ua.Client
             OnSubscriptionUpdateComplete(false, 0,
                 TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
                 response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
-            ChangesCompleted();
         }
 
         /// <summary>
-        /// Changes the publishing enabled state for the subscription.
+        /// An overrideable version of the Dispose.
         /// </summary>
-        /// <param name="enabled"></param>
-        /// <param name="ct"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        public async Task SetPublishingModeAsync(bool enabled, CancellationToken ct)
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
         {
-            VerifySubscriptionState(true);
-
-            // modify the subscription.
-            UInt32Collection subscriptionIds = new uint[] { Id };
-
-            var response = await Session.SetPublishingModeAsync(
-                null, enabled, new uint[] { Id }, ct).ConfigureAwait(false);
-
-            // validate response.
-            ClientBase.ValidateResponse(response.Results, subscriptionIds);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, subscriptionIds);
-
-            if (StatusCode.IsBad(response.Results[0]))
+            if (disposing)
             {
-                throw new ServiceResultException(
-                    ClientBase.GetResult(response.Results[0], 0,
-                    response.DiagnosticInfos, response.ResponseHeader));
-            }
-
-            // update current state.
-            CurrentPublishingEnabled = PublishingEnabled = enabled;
-            _changeMask |= SubscriptionChangeMask.Modified;
-
-            ChangesCompleted();
-        }
-
-        /// <summary>
-        /// Applies any changes to the subscription items.
-        /// </summary>
-        /// <param name="ct"></param>
-        public async Task ApplyChangesAsync(CancellationToken ct)
-        {
-            await DeleteItemsAsync(ct).ConfigureAwait(false);
-            await ModifyItemsAsync(ct).ConfigureAwait(false);
-            await CreateItemsAsync(ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Creates all items on the server that have not already been created.
-        /// </summary>
-        /// <param name="ct"></param>
-        public async Task<IReadOnlyList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
-        {
-            VerifySubscriptionState(true);
-
-            var requestItems = new MonitoredItemCreateRequestCollection();
-            var itemsToCreate = new List<MonitoredItem>();
-
-            lock (_cache)
-            {
-                foreach (var monitoredItem in _monitoredItems.Values)
+                try
                 {
-                    // ignore items that have been created.
-                    if (monitoredItem.Status.Created)
-                    {
-                        continue;
-                    }
-
-                    // build item request.
-                    var request = new MonitoredItemCreateRequest();
-
-                    request.ItemToMonitor.NodeId = monitoredItem.ResolvedNodeId;
-                    request.ItemToMonitor.AttributeId = monitoredItem.AttributeId;
-                    request.ItemToMonitor.IndexRange = monitoredItem.IndexRange;
-                    request.ItemToMonitor.DataEncoding = monitoredItem.Encoding;
-
-                    request.MonitoringMode = monitoredItem.MonitoringMode;
-
-                    request.RequestedParameters.ClientHandle = monitoredItem.ClientHandle;
-                    request.RequestedParameters.SamplingInterval =
-                        monitoredItem.SamplingInterval.TotalMilliseconds;
-                    request.RequestedParameters.QueueSize = monitoredItem.QueueSize;
-                    request.RequestedParameters.DiscardOldest = monitoredItem.DiscardOldest;
-
-                    if (monitoredItem.Filter != null)
-                    {
-                        request.RequestedParameters.Filter =
-                            new ExtensionObject(monitoredItem.Filter);
-                    }
-
-                    requestItems.Add(request);
-                    itemsToCreate.Add(monitoredItem);
+                    _publishTimer.Dispose();
+                    _messages.Writer.TryComplete();
+                    _cts.Cancel();
+                    _messageWorkerTask.GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    _cts.Dispose();
                 }
             }
-
-            if (requestItems.Count == 0)
-            {
-                return itemsToCreate;
-            }
-
-            // create monitored items.
-            var response = await Session.CreateMonitoredItemsAsync(null, Id,
-                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
-            var results = response.Results;
-            ClientBase.ValidateResponse(results, itemsToCreate);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToCreate);
-
-            // update results.
-            for (var index = 0; index < results.Count; index++)
-            {
-                itemsToCreate[index].SetCreateResult(requestItems[index],
-                    results[index], index, response.DiagnosticInfos, response.ResponseHeader);
-            }
-
-            _changeMask |= SubscriptionChangeMask.ItemsCreated;
-            ChangesCompleted();
-
-            // return the list of items affected by the change.
-            return itemsToCreate;
         }
 
         /// <summary>
-        /// Modifies all items that have been changed.
+        /// Process status change notification
         /// </summary>
-        /// <param name="ct"></param>
-        public async Task<IReadOnlyList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
+        /// <param name="sequenceNumber"></param>
+        /// <param name="publishTime"></param>
+        /// <param name="notification"></param>
+        /// <param name="publishStateMask"></param>
+        /// <param name="stringTable"></param>
+        /// <returns></returns>
+        protected virtual ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, StatusChangeNotification notification,
+            PublishState publishStateMask, IReadOnlyList<string> stringTable)
         {
-            VerifySubscriptionState(true);
-
-            var requestItems = new MonitoredItemModifyRequestCollection();
-            var itemsToModify = new List<MonitoredItem>();
-
-            lock (_cache)
-            {
-                foreach (var monitoredItem in _monitoredItems.Values)
-                {
-                    // ignore items that have been created or modified.
-                    if (!monitoredItem.Status.Created || !monitoredItem.AttributesModified)
-                    {
-                        continue;
-                    }
-
-                    // build item request.
-                    var request = new MonitoredItemModifyRequest
-                    {
-                        MonitoredItemId = monitoredItem.Status.Id
-                    };
-                    request.RequestedParameters.ClientHandle = monitoredItem.ClientHandle;
-                    request.RequestedParameters.SamplingInterval =
-                        monitoredItem.SamplingInterval.TotalMilliseconds;
-                    request.RequestedParameters.QueueSize = monitoredItem.QueueSize;
-                    request.RequestedParameters.DiscardOldest = monitoredItem.DiscardOldest;
-
-                    if (monitoredItem.Filter != null)
-                    {
-                        request.RequestedParameters.Filter = new ExtensionObject(monitoredItem.Filter);
-                    }
-
-                    requestItems.Add(request);
-                    itemsToModify.Add(monitoredItem);
-                }
-            }
-            if (requestItems.Count == 0)
-            {
-                return itemsToModify;
-            }
-
-            // modify the subscription.
-            var response = await Session.ModifyMonitoredItemsAsync(null, Id,
-                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
-
-            var results = response.Results;
-            ClientBase.ValidateResponse(results, itemsToModify);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToModify);
-
-            // update results.
-            for (var index = 0; index < results.Count; index++)
-            {
-                itemsToModify[index].SetModifyResult(requestItems[index], results[index],
-                    index, response.DiagnosticInfos, response.ResponseHeader);
-            }
-
-            _changeMask |= SubscriptionChangeMask.ItemsModified;
-            ChangesCompleted();
-
-            // return the list of items affected by the change.
-            return itemsToModify;
+            // TODO
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
-        /// Deletes all items that have been marked for deletion.
+        /// Process keep alive notification
         /// </summary>
-        /// <param name="ct"></param>
-        public async Task<IReadOnlyList<MonitoredItem>> DeleteItemsAsync(CancellationToken ct)
+        /// <param name="sequenceNumber"></param>
+        /// <param name="publishTime"></param>
+        /// <param name="publishStateMask"></param>
+        /// <returns></returns>
+        protected abstract ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, PublishState publishStateMask);
+
+        /// <summary>
+        /// Process data change notification
+        /// </summary>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="publishTime"></param>
+        /// <param name="notification"></param>
+        /// <param name="publishStateMask"></param>
+        /// <param name="stringTable"></param>
+        /// <returns></returns>
+        protected abstract ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, DataChangeNotification notification,
+            PublishState publishStateMask, IReadOnlyList<string> stringTable);
+
+        /// <summary>
+        /// Process event notification
+        /// </summary>
+        /// <param name="sequenceNumber"></param>
+        /// <param name="publishTime"></param>
+        /// <param name="notification"></param>
+        /// <param name="publishStateMask"></param>
+        /// <param name="stringTable"></param>
+        /// <returns></returns>
+        protected abstract ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, EventNotificationList notification,
+            PublishState publishStateMask, IReadOnlyList<string> stringTable);
+
+        /// <summary>
+        /// On publish state changed
+        /// </summary>
+        /// <param name="stateMask"></param>
+        /// <returns></returns>
+        protected virtual void OnPublishStateChanged(PublishState stateMask)
         {
-            VerifySubscriptionState(true);
-
-            if (_deletedItems.Count == 0)
+            if (stateMask.HasFlag(PublishState.Stopped))
             {
-                return new List<MonitoredItem>();
+                _logger.LogInformation("Subscription {Id} STOPPED!", Id);
             }
-
-            var itemsToDelete = _deletedItems;
-            _deletedItems = new List<MonitoredItem>();
-
-            var monitoredItemIds = new UInt32Collection();
-
-            foreach (var monitoredItem in itemsToDelete)
+            if (stateMask.HasFlag(PublishState.Recovered))
             {
-                monitoredItemIds.Add(monitoredItem.Status.Id);
+                _logger.LogInformation("Subscription {Id} RECOVERED!", Id);
             }
-
-            var response = await Session.DeleteMonitoredItemsAsync(null, Id,
-                monitoredItemIds, ct).ConfigureAwait(false);
-
-            var results = response.Results;
-            ClientBase.ValidateResponse(results, monitoredItemIds);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItemIds);
-
-            // update results.
-            for (var index = 0; index < results.Count; index++)
-            {
-                itemsToDelete[index].SetDeleteResult(results[index], index,
-                    response.DiagnosticInfos, response.ResponseHeader);
-            }
-
-            _changeMask |= SubscriptionChangeMask.ItemsDeleted;
-            ChangesCompleted();
-
-            // return the list of items affected by the change.
-            return itemsToDelete;
         }
 
         /// <summary>
@@ -703,7 +800,7 @@ namespace Opc.Ua.Client
             var monitoredItemIds = new UInt32Collection();
             foreach (var monitoredItem in monitoredItems)
             {
-                monitoredItemIds.Add(monitoredItem.Status.Id);
+                monitoredItemIds.Add(monitoredItem.ServerId);
             }
 
             var response = await Session.SetMonitoringModeAsync(null, Id,
@@ -729,15 +826,11 @@ namespace Opc.Ua.Client
                 }
                 else
                 {
-                    monitoredItems[index].MonitoringMode = monitoringMode;
-                    monitoredItems[index].Status.SetMonitoringMode(monitoringMode);
+                    monitoredItems[index].CurrentMonitoringMode = monitoringMode;
                     error = ServiceResult.Good;
                 }
                 errors.Add(error);
             }
-            // raise state changed event.
-            _changeMask |= SubscriptionChangeMask.ItemsModified;
-            ChangesCompleted();
 
             // return empty list if no errors occurred.
             if (noErrors)
@@ -748,58 +841,19 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Tells the server to refresh all conditions being monitored
-        /// by the subscription.
+        /// Returns the monitored item identified by the client handle.
         /// </summary>
-        /// <param name="ct"></param>
-        public async Task ConditionRefreshAsync(CancellationToken ct)
+        /// <param name="clientHandle"></param>
+        protected MonitoredItem? FindItemByClientHandle(uint clientHandle)
         {
-            VerifySubscriptionState(true);
-            var methodsToCall = new CallMethodRequestCollection
+            lock (_cache)
             {
-                new CallMethodRequest()
+                if (_monitoredItems.TryGetValue(clientHandle, out var monitoredItem))
                 {
-                    MethodId = MethodIds.ConditionType_ConditionRefresh,
-                    InputArguments = new VariantCollection() { new Variant(Id) }
+                    return monitoredItem;
                 }
-            };
-            await Session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Creates a subscription on the server and adds all monitored items.
-        /// </summary>
-        /// <param name="forceCreate"></param>
-        /// <param name="ct"></param>
-        public async Task CreateAsync(bool forceCreate, CancellationToken ct)
-        {
-            if (!forceCreate)
-            {
-                VerifySubscriptionState(false);
+                return null;
             }
-            else
-            {
-                OnSubscriptionDeleteCompleted();
-            }
-
-            // create the subscription.
-            var revisedMaxKeepAliveCount = KeepAliveCount;
-            var revisedLifetimeCount = LifetimeCount;
-
-            AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
-
-            var response = await Session.CreateSubscriptionAsync(null,
-                PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
-                revisedMaxKeepAliveCount, MaxNotificationsPerPublish, PublishingEnabled,
-                Priority, ct).ConfigureAwait(false);
-
-            OnSubscriptionUpdateComplete(true, response.SubscriptionId,
-                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
-                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
-
-            await CreateItemsAsync(ct).ConfigureAwait(false);
-
-            ChangesCompleted();
         }
 
         /// <summary>
@@ -815,14 +869,19 @@ namespace Opc.Ua.Client
             uint? subscriptionId, CancellationToken ct)
         {
             StopKeepAliveTimer();
-
             if (subscriptionId.HasValue)
             {
-                // ---- This could be done always
+                // sets state to 'Created'
+                Id = subscriptionId.Value;
+            }
 
+            // ---- This could be done always
+            var synchronizeHandles = subscriptionId.HasValue;
+            if (synchronizeHandles)
+            {
                 // handle the case when the client restarts and loads the saved
                 // subscriptions from storage
-                var (success, handles) =
+                var (success, handleMap) =
                     await GetMonitoredItemsAsync(ct).ConfigureAwait(false);
                 if (!success)
                 {
@@ -832,28 +891,23 @@ namespace Opc.Ua.Client
                 }
 
                 var monitoredItemsCount = _monitoredItems.Count;
-                if (handles.Count != monitoredItemsCount)
+                if (handleMap.Count != monitoredItemsCount)
                 {
                     // invalid state
                     _logger.LogError("SubscriptionId {Id}: Number of Monitored Items " +
                         "on client and server do not match after transfer {Old}!={New}",
-                        Id, handles.Count, monitoredItemsCount);
+                        Id, handleMap.Count, monitoredItemsCount);
                     return false;
                 }
-
-                // ----
-
-                // sets state to 'Created'
-                Id = subscriptionId.Value;
 
                 lock (_cache)
                 {
                     var currentItems = _monitoredItems.Values.ToList();
                     _monitoredItems.Clear();
-                    var serverClientHandleMap = handles.ToDictionary();
+                    var serverClientHandleMap = handleMap.ToDictionary();
                     foreach (var monitoredItem in _monitoredItems.Values)
                     {
-                        if (serverClientHandleMap.TryGetValue(monitoredItem.Status.Id,
+                        if (serverClientHandleMap.TryGetValue(monitoredItem.ServerId,
                             out var clientHandle))
                         {
                             _monitoredItems[clientHandle] = monitoredItem;
@@ -866,153 +920,17 @@ namespace Opc.Ua.Client
                         }
                     }
                 }
+            }
+
+            if (subscriptionId.HasValue)
+            {
                 await ModifyItemsAsync(ct).ConfigureAwait(false);
             }
 
             // save available sequence numbers
             _availableSequenceNumbers = availableSequenceNumbers;
-            _changeMask |= SubscriptionChangeMask.Transferred;
-            ChangesCompleted();
             StartKeepAliveTimer();
             return true;
-        }
-
-        /// <summary>
-        /// Adds an item to the subscription.
-        /// </summary>
-        /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        public void AddItem(MonitoredItem monitoredItem)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItem);
-
-            lock (_cache)
-            {
-                if (_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
-                {
-                    return;
-                }
-
-                _monitoredItems.TryAdd(monitoredItem.ClientHandle, monitoredItem);
-                monitoredItem.Subscription = this;
-            }
-
-            _changeMask |= SubscriptionChangeMask.ItemsAdded;
-            ChangesCompleted();
-        }
-
-        /// <summary>
-        /// Adds items to the subscription.
-        /// </summary>
-        /// <param name="monitoredItems"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        public void AddItems(IEnumerable<MonitoredItem> monitoredItems)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItems);
-
-            var added = false;
-
-            lock (_cache)
-            {
-                foreach (var monitoredItem in monitoredItems)
-                {
-                    if (!_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
-                    {
-                        _monitoredItems.TryAdd(monitoredItem.ClientHandle, monitoredItem);
-                        monitoredItem.Subscription = this;
-                        added = true;
-                    }
-                }
-            }
-
-            if (added)
-            {
-                _changeMask |= SubscriptionChangeMask.ItemsAdded;
-                ChangesCompleted();
-            }
-        }
-
-        /// <summary>
-        /// Removes an item from the subscription.
-        /// </summary>
-        /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        public void RemoveItem(MonitoredItem monitoredItem)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItem);
-
-            lock (_cache)
-            {
-                if (!_monitoredItems.TryRemove(monitoredItem.ClientHandle, out _))
-                {
-                    return;
-                }
-
-                monitoredItem.Subscription = null;
-            }
-
-            if (monitoredItem.Status.Created)
-            {
-                _deletedItems.Add(monitoredItem);
-            }
-
-            _changeMask |= SubscriptionChangeMask.ItemsRemoved;
-            ChangesCompleted();
-        }
-
-        /// <summary>
-        /// Removes items from the subscription.
-        /// </summary>
-        /// <param name="monitoredItems"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        public void RemoveItems(IEnumerable<MonitoredItem> monitoredItems)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItems);
-
-            var changed = false;
-
-            lock (_cache)
-            {
-                foreach (var monitoredItem in monitoredItems)
-                {
-                    if (_monitoredItems.TryRemove(monitoredItem.ClientHandle, out _))
-                    {
-                        monitoredItem.Subscription = null;
-
-                        if (monitoredItem.Status.Created)
-                        {
-                            _deletedItems.Add(monitoredItem);
-                        }
-                        changed = true;
-                    }
-                }
-            }
-
-            if (changed)
-            {
-                _changeMask |= SubscriptionChangeMask.ItemsRemoved;
-                ChangesCompleted();
-            }
-        }
-
-        /// <summary>
-        /// Returns the monitored item identified by the client handle.
-        /// </summary>
-        /// <param name="clientHandle"></param>
-        public MonitoredItem? FindItemByClientHandle(uint clientHandle)
-        {
-            lock (_cache)
-            {
-                if (_monitoredItems.TryGetValue(clientHandle, out var monitoredItem))
-                {
-                    return monitoredItem;
-                }
-                return null;
-            }
         }
 
         /// <summary>
@@ -1030,7 +948,7 @@ namespace Opc.Ua.Client
             // send notification that publishing received a keep alive or has to republish.
             if (PublishingStopped)
             {
-                OnPublishStateChanged(PublishStateChangedMask.Recovered);
+                OnPublishStateChanged(PublishState.Recovered);
             }
 
             _availableSequenceNumbers = availableSequenceNumbers;
@@ -1126,7 +1044,7 @@ namespace Opc.Ua.Client
             if (PublishingStopped)
             {
                 Interlocked.Increment(ref _publishLateCount);
-                OnPublishStateChanged(PublishStateChangedMask.Stopped);
+                OnPublishStateChanged(PublishState.Stopped);
 
                 // try trigger the publishing controller
                 Session.TriggerPublishController();
@@ -1151,16 +1069,11 @@ namespace Opc.Ua.Client
             CurrentLifetimeCount = revisedLifetimeCount;
 
             CurrentPriority = Priority;
-            if (!created)
-            {
-                _changeMask |= SubscriptionChangeMask.Modified;
-            }
-            else
+            if (created)
             {
                 CurrentPublishingEnabled = PublishingEnabled;
                 Id = subscriptionId;
                 StartKeepAliveTimer();
-                _changeMask |= SubscriptionChangeMask.Created;
             }
 
             if (KeepAliveCount != revisedKeepAliveCount)
@@ -1225,7 +1138,6 @@ namespace Opc.Ua.Client
                 }
             }
             _deletedItems.Clear();
-            _changeMask |= SubscriptionChangeMask.Deleted;
         }
 
         /// <summary>
@@ -1266,7 +1178,7 @@ namespace Opc.Ua.Client
                             if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
                             {
                                 await OnNotificationReceivedAsync(republish.NotificationMessage,
-                                    PublishStateChangedMask.Republish).ConfigureAwait(false);
+                                    PublishState.Republish).ConfigureAwait(false);
                             }
                             else
                             {
@@ -1297,7 +1209,7 @@ namespace Opc.Ua.Client
                     }
                     _lastSequenceNumberProcessed = curSeqNum;
                     await OnNotificationReceivedAsync(incoming.Message,
-                        PublishStateChangedMask.None).ConfigureAwait(false);
+                        PublishState.None).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
@@ -1305,7 +1217,7 @@ namespace Opc.Ua.Client
             {
                 _logger.LogCritical(ex,
                     "SubscriptionId {Id}: Error processing messages. Processor is exiting!!!", Id);
-                OnPublishStateChanged(PublishStateChangedMask.Stopped);
+                OnPublishStateChanged(PublishState.Stopped);
             }
         }
 
@@ -1316,13 +1228,13 @@ namespace Opc.Ua.Client
         /// <param name="publishStateMask"></param>
         /// <returns></returns>
         private async ValueTask OnNotificationReceivedAsync(NotificationMessage message,
-            PublishStateChangedMask publishStateMask)
+            PublishState publishStateMask)
         {
             try
             {
                 if (message.NotificationData.Count == 0)
                 {
-                    publishStateMask |= PublishStateChangedMask.KeepAlive;
+                    publishStateMask |= PublishState.KeepAlive;
                     await OnKeepAliveNotificationAsync(message.SequenceNumber,
                         message.PublishTime, publishStateMask).ConfigureAwait(false);
                 }
@@ -1349,11 +1261,11 @@ namespace Opc.Ua.Client
                                 var mask = publishStateMask;
                                 if (statusChanged.Status == StatusCodes.GoodSubscriptionTransferred)
                                 {
-                                    mask |= PublishStateChangedMask.Transferred;
+                                    mask |= PublishState.Transferred;
                                 }
                                 else if (statusChanged.Status == StatusCodes.BadTimeout)
                                 {
-                                    mask |= PublishStateChangedMask.Timeout;
+                                    mask |= PublishState.Timeout;
                                 }
                                 await OnStatusChangeNotificationAsync(message.SequenceNumber,
                                     message.PublishTime, statusChanged, mask,
@@ -1366,99 +1278,6 @@ namespace Opc.Ua.Client
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SubscriptionId {Id}: Error dispatching notification data.", Id);
-            }
-        }
-
-        /// <summary>
-        /// On status change
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="statusChanged"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="stringTable"></param>
-        /// <returns></returns>
-        protected virtual ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, StatusChangeNotification statusChanged,
-            PublishStateChangedMask publishStateMask, IReadOnlyList<string> stringTable)
-        {
-            _logger.LogWarning("StatusChangeNotification received with Status " +
-                "= {Status} for SubscriptionId={Id}.",
-                statusChanged.Status.ToString(), Id);
-            OnPublishStateChanged(publishStateMask);
-            return ValueTask.CompletedTask;
-        }
-
-        /// <summary>
-        /// Process keep alive
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="publishStateMask"></param>
-        /// <returns></returns>
-        protected virtual ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, PublishStateChangedMask publishStateMask)
-        {
-            var keepAlive = new NotificationData
-            {
-                PublishTime = publishTime,
-                SequenceNumber = sequenceNumber
-            };
-            OnPublishStateChanged(publishStateMask);
-            FastKeepAliveCallback?.Invoke(this, keepAlive);
-            return ValueTask.CompletedTask;
-        }
-
-        /// <summary>
-        /// Process data change
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="datachange"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="stringTable"></param>
-        /// <returns></returns>
-        protected virtual ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, DataChangeNotification datachange,
-            PublishStateChangedMask publishStateMask, IReadOnlyList<string> stringTable)
-        {
-            datachange.PublishTime = publishTime;
-            datachange.SequenceNumber = sequenceNumber;
-            OnPublishStateChanged(publishStateMask);
-            FastDataChangeCallback?.Invoke(this, datachange, stringTable);
-            return ValueTask.CompletedTask;
-        }
-
-        /// <summary>
-        /// Process event data
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="events"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="stringTable"></param>
-        /// <returns></returns>
-        protected virtual ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, EventNotificationList events,
-            PublishStateChangedMask publishStateMask, IReadOnlyList<string> stringTable)
-        {
-            events.PublishTime = publishTime;
-            events.SequenceNumber = sequenceNumber;
-            OnPublishStateChanged(publishStateMask);
-            FastEventCallback?.Invoke(this, events, stringTable);
-            return ValueTask.CompletedTask;
-        }
-
-        /// <summary>
-        /// On publish state changed
-        /// </summary>
-        /// <param name="stateMask"></param>
-        /// <returns></returns>
-        private void OnPublishStateChanged(PublishStateChangedMask stateMask)
-        {
-            if (stateMask != PublishStateChangedMask.None)
-            {
-                PublishStatusChanged?.Invoke(this, new PublishStateChangedEventArgs(stateMask));
             }
         }
 
@@ -1576,13 +1395,14 @@ namespace Opc.Ua.Client
             }
         }
 
-        private List<MonitoredItem> _deletedItems = new();
-        private SubscriptionChangeMask _changeMask;
+        private const int kMinKeepAliveTimerInterval = 1000;
+        private const int kKeepAliveTimerMargin = 1000;
         private int _lastNotificationTickCount;
         private int _keepAliveInterval;
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
         private IReadOnlyList<uint>? _availableSequenceNumbers;
+        private readonly List<MonitoredItem> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();
         private readonly ILogger _logger;
@@ -1590,8 +1410,5 @@ namespace Opc.Ua.Client
         private readonly Task _messageWorkerTask;
         private readonly Channel<IncomingMessage> _messages;
         private readonly ConcurrentDictionary<uint, MonitoredItem> _monitoredItems = new();
-
-        private const int kMinKeepAliveTimerInterval = 1000;
-        private const int kKeepAliveTimerMargin = 1000;
     }
 }
