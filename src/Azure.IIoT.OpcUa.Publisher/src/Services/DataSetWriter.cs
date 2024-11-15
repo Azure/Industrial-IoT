@@ -1061,8 +1061,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _writer._logger.LogDebug("Loading Metadata {Major}.{Minor} for {Writer}...",
                         dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
 
-                    var fieldMask = _writer._writer.Writer.DataSetFieldContentMask;
-                    var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
+                    var metaData = await subscription.CollectMetaDataAsync(_writer,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
                     _writer._logger.LogInformation(
@@ -1070,6 +1069,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id,
                         sw.Elapsed);
 
+                    var fieldMask = _writer._writer.Writer.DataSetFieldContentMask;
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {

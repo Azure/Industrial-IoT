@@ -761,7 +761,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     var dtNode = await session.NodeCache.FindAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
-                                        v.DataTypeDefinition.Body is DataTypeDefinition t)
+                                        v.DataTypeDefinition?.Body is DataTypeDefinition t)
                                     {
                                         types ??= new Dictionary<ExpandedNodeId, DataTypeDefinition>();
                                         types.Add(dtNode.NodeId, t);

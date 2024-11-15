@@ -141,10 +141,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var value = m.GetProperty("Payload");
 
                 // Variant encoding is the default
-                var eventId = value.GetProperty(BasicPubSubIntegrationTests.kEventId).GetProperty("Value");
-                var message = value.GetProperty(BasicPubSubIntegrationTests.kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(BasicPubSubIntegrationTests.kCycleIdUri).GetProperty("Value");
-                var currentStep = value.GetProperty(BasicPubSubIntegrationTests.kCurrentStepUri).GetProperty("Value");
+                var eventId = value.GetProperty(BasicPubSubIntegrationTests.EventId).GetProperty("Value");
+                var message = value.GetProperty(BasicPubSubIntegrationTests.Message).GetProperty("Value");
+                var cycleId = value.GetProperty(BasicPubSubIntegrationTests.CycleIdUri).GetProperty("Value");
+                var currentStep = value.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -176,20 +176,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.All(messages, m =>
             {
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(BasicPubSubIntegrationTests.kEventId).GetProperty("Value");
+                var eventId = body.GetProperty(BasicPubSubIntegrationTests.EventId).GetProperty("Value");
                 Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
                 Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
 
-                var message = body.GetProperty(BasicPubSubIntegrationTests.kMessage).GetProperty("Value");
+                var message = body.GetProperty(BasicPubSubIntegrationTests.Message).GetProperty("Value");
                 Assert.Equal("LocalizedText", message.GetProperty("Type").GetString());
                 Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
                 Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.kCycleIdUri).GetProperty("Value");
+                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.CycleIdUri).GetProperty("Value");
                 Assert.Equal("String", cycleId.GetProperty("Type").GetString());
                 Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
 
-                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.kCurrentStepUri).GetProperty("Value");
+                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri).GetProperty("Value");
                 body = currentStep.GetProperty("Body");
                 Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
                 Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
@@ -224,10 +224,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var value = m.GetProperty("Payload");
 
                 // Variant encoding is the default
-                var eventId = value.GetProperty(BasicPubSubIntegrationTests.kEventId).GetProperty("Value");
-                var message = value.GetProperty(BasicPubSubIntegrationTests.kMessage).GetProperty("Value");
-                var cycleId = value.GetProperty(BasicPubSubIntegrationTests.kCycleIdExpanded).GetProperty("Value");
-                var currentStep = value.GetProperty(BasicPubSubIntegrationTests.kCurrentStepExpanded).GetProperty("Value");
+                var eventId = value.GetProperty(BasicPubSubIntegrationTests.EventId).GetProperty("Value");
+                var message = value.GetProperty(BasicPubSubIntegrationTests.Message).GetProperty("Value");
+                var cycleId = value.GetProperty(BasicPubSubIntegrationTests.CycleIdExpanded).GetProperty("Value");
+                var currentStep = value.GetProperty(BasicPubSubIntegrationTests.CurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
                 Assert.Equal(JsonValueKind.String, message.ValueKind);
@@ -259,20 +259,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.All(messages, m =>
             {
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(BasicPubSubIntegrationTests.kEventId).GetProperty("Value");
+                var eventId = body.GetProperty(BasicPubSubIntegrationTests.EventId).GetProperty("Value");
                 Assert.Equal(15, eventId.GetProperty("Type").GetInt32());
                 Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
 
-                var message = body.GetProperty(BasicPubSubIntegrationTests.kMessage).GetProperty("Value");
+                var message = body.GetProperty(BasicPubSubIntegrationTests.Message).GetProperty("Value");
                 Assert.Equal(21, message.GetProperty("Type").GetInt32());
                 Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
                 Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.kCycleIdExpanded).GetProperty("Value");
+                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.CycleIdExpanded).GetProperty("Value");
                 Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
                 Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
 
-                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.kCurrentStepExpanded).GetProperty("Value");
+                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.CurrentStepExpanded).GetProperty("Value");
                 body = currentStep.GetProperty("Body");
                 Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
                 Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());

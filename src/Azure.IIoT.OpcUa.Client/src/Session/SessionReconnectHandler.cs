@@ -115,25 +115,12 @@ namespace Opc.Ua.Client
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
+            lock (_lock)
             {
-                lock (_lock)
+                if (_state != ReconnectState.Disposed)
                 {
-                    if (_state != ReconnectState.Disposed)
-                    {
-                        _reconnectTimer.Dispose();
-                        _state = ReconnectState.Disposed;
-                    }
+                    _reconnectTimer.Dispose();
+                    _state = ReconnectState.Disposed;
                 }
             }
         }
@@ -228,7 +215,7 @@ namespace Opc.Ua.Client
         /// Returns the reconnect period with a random jitter.
         /// </summary>
         /// <param name="reconnectPeriod"></param>
-        public virtual int JitteredReconnectPeriod(int reconnectPeriod)
+        public int JitteredReconnectPeriod(int reconnectPeriod)
         {
             // The factors result in a jitter of 10%.
             const int jitterResolution = 1000;
@@ -245,7 +232,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="reconnectPeriod"></param>
         /// <param name="exponentialBackoff"></param>
-        public virtual int CheckedReconnectPeriod(int reconnectPeriod,
+        public int CheckedReconnectPeriod(int reconnectPeriod,
             bool exponentialBackoff = false)
         {
             // exponential backoff is controlled by _maxReconnectPeriod

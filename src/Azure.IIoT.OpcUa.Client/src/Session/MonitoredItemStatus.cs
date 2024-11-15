@@ -46,13 +46,11 @@ namespace Opc.Ua.Client
         /// The length of the queue used to buffer values.
         /// </summary>
         public uint QueueSize { get; private set; }
-#if ZOMBIE
 
         /// <summary>
         /// The length of the queue used to buffer values.
         /// </summary>
-        public uint ClientHandle => _clientHandle;
-#endif
+        public uint ClientHandle { get; private set; }
 
         /// <summary>
         /// Creates a empty object.
@@ -90,7 +88,7 @@ namespace Opc.Ua.Client
             MonitoringMode = request.MonitoringMode;
             SamplingInterval = TimeSpan.FromMilliseconds(
                 request.RequestedParameters.SamplingInterval);
-            _clientHandle = request.RequestedParameters.ClientHandle;
+            ClientHandle = request.RequestedParameters.ClientHandle;
             QueueSize = request.RequestedParameters.QueueSize;
             Error = error;
 
@@ -121,7 +119,7 @@ namespace Opc.Ua.Client
             ArgumentNullException.ThrowIfNull(monitoredItem);
 
             MonitoringMode = monitoredItem.MonitoringMode;
-            _clientHandle = monitoredItem.ClientHandle;
+            ClientHandle = monitoredItem.ClientHandle;
             SamplingInterval = monitoredItem.SamplingInterval;
             QueueSize = monitoredItem.QueueSize;
             FilterResult = null;
@@ -146,7 +144,7 @@ namespace Opc.Ua.Client
 
             if (ServiceResult.IsGood(error))
             {
-                _clientHandle = request.RequestedParameters.ClientHandle;
+                ClientHandle = request.RequestedParameters.ClientHandle;
                 SamplingInterval = TimeSpan.FromMilliseconds(
                     request.RequestedParameters.SamplingInterval);
                 QueueSize = request.RequestedParameters.QueueSize;
@@ -172,7 +170,5 @@ namespace Opc.Ua.Client
             Id = 0;
             Error = error;
         }
-
-        private uint _clientHandle;
     }
 }

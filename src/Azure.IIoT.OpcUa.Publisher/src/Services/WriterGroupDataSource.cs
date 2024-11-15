@@ -398,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private int ConnectCount => UsedClients
             .Sum(s => s.ConnectCount);
         private int OutstandingRequestCount => UsedClients
-            .Sum(s => s.OutstandingRequestCount);
+            .Sum(s => s.PublishWorkerCount);
         private int GoodPublishRequestCount => UsedClients
             .Sum(s => s.GoodPublishRequestCount);
         private int BadPublishRequestCount => UsedClients

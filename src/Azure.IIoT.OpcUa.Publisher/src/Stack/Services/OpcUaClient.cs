@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
-        internal OperationLimits? LimitOverrides { get; set; }
+        internal Opc.Ua.Client.OperationLimits? LimitOverrides { get; set; }
 
         /// <summary>
         /// Last diagnostic information on this client
@@ -139,15 +139,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public int BadPublishRequestCount
-            => _session?.DefunctRequestCount ?? 0;
+            => _session?.BadPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int GoodPublishRequestCount
             => _session?.GoodPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
-        public int OutstandingRequestCount
-            => _session?.OutstandingRequestCount ?? 0;
+        public int PublishWorkerCount
+            => _session?.PublishWorkerCount ?? 0;
 
         /// <inheritdoc/>
         public int SubscriptionCount
@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             LingerTimeout =
                 _options.Value.LingerTimeoutDuration;
             LimitOverrides
-                = new OperationLimits
+                = new Opc.Ua.Client.OperationLimits
                 {
                     MaxNodesPerRead =
                         (uint)(_options.Value.MaxNodesPerReadOverride ?? 0),
@@ -1109,9 +1109,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.MinPublishRequestCount = minPublishRequests;
             session.MaxPublishRequestCount = maxPublishRequests;
 
-            if (createdSubscriptions > 0 && minPublishRequests > OutstandingRequestCount)
+            if (createdSubscriptions > 0 && minPublishRequests > PublishWorkerCount)
             {
-                session.StartPublishing(session.OperationTimeout, false);
+                session.TriggerPublishController();
             }
         }
 
@@ -1249,32 +1249,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             return false;
-        }
-
-        /// <summary>
-        /// Handle publish errors
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="e"></param>
-        internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
-        {
-            if (_disconnectLock == null && session == _session)
-            {
-                switch (e.Status.Code)
-                {
-                    case StatusCodes.BadSessionIdInvalid:
-                    case StatusCodes.BadSecureChannelClosed:
-                    case StatusCodes.BadSessionClosed:
-                    case StatusCodes.BadConnectionClosed:
-                    case StatusCodes.BadNoCommunication:
-                        TriggerReconnect(e.Status, "Publish");
-                        return;
-                    default:
-                        _logger.LogInformation("{Client}: Publish error: {Error}...",
-                            this, e.Status);
-                        break;
-                }
-            }
         }
 
         /// <summary>
@@ -1614,7 +1588,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // When shutting down, delete all subscriptions
                         session.DeleteSubscriptionsOnClose = true;
                     }
-                    session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 
                     _logger.LogDebug("{Client}: Successfully closed session {Session}.",
@@ -2002,7 +1975,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             public int GoodPublishRequestCount
                 => 0;
             /// <inheritdoc/>
-            public int OutstandingRequestCount
+            public int PublishWorkerCount
                 => 0;
             /// <inheritdoc/>
             public int SubscriptionCount
@@ -2063,7 +2036,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
                 () => new Measurement<int>(MinPublishRequestCount, _metrics.TagList),
                 description: "Number of min publish requests that should be queued.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_outstanding_requests_count",
-                () => new Measurement<int>(OutstandingRequestCount, _metrics.TagList),
+                () => new Measurement<int>(PublishWorkerCount, _metrics.TagList),
                 description: "Number of outstanding requests.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_publish_timeout_count",
                 () => new Measurement<int>(_publishTimeoutCounter, _metrics.TagList),

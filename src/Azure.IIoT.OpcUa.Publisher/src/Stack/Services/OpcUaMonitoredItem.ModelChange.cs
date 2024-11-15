@@ -357,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
                 yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
 
-                static PublishedFieldMetaDataModel Create(string fieldName, NodeId? dataType = null,
+                static PublishedFieldMetaDataModel Create(string fieldName,
                     BuiltInType builtInType = BuiltInType.ExtensionObject)
                 {
                     return new PublishedFieldMetaDataModel

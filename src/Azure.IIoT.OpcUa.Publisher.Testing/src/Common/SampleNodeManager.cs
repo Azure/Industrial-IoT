@@ -455,7 +455,7 @@ namespace Opc.Ua.Sample
                 }
                 */
 
-                IList<IReference> references = new List<IReference>();
+                var references = new List<IReference>();
                 source.GetReferences(SystemContext, references);
 
                 for (var ii = 0; ii < references.Count; ii++)
@@ -3039,7 +3039,7 @@ namespace Opc.Ua.Sample
             // does nothing.
         }
 
-        private IList<string> _namespaceUris;
+        private List<string> _namespaceUris;
         private ushort[] _namespaceIndexes;
         private Timer _samplingTimer;
         private readonly List<DataChangeMonitoredItem> _sampledItems;

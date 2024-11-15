@@ -42,6 +42,7 @@ namespace Asset
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Diagnostics;
 
     public class AssetNodeManager : CustomNodeManager2
     {
@@ -268,6 +269,8 @@ namespace Asset
         {
             lock (Lock)
             {
+                _logger.LogDebug("Data change for {AssetTag}", assetTag);
+
                 variable.Value = value;
                 variable.StatusCode = statusCode;
                 variable.Timestamp = timestamp;
@@ -736,6 +739,8 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private AssetTag AddAssetTagForTdProperty(ThingDescription td, string propertyName,
             Property property, string form, string assetId)
         {
+            _logger.LogDebug("Add asset for Property {Property}", property);
+
             // check if we need to create a new asset first
             if (!_tags.TryGetValue(assetId, out var tagList))
             {
@@ -809,6 +814,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                 _assets.Add(td.Name, assetInterface);
             }
 
+            Debug.Assert(assetInterface != null);
             return td.Name;
         }
 

@@ -111,12 +111,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => Template.EnableImmediatePublishing
             ?? _options.Value.EnableImmediatePublishing
             ?? false;
-
-        public bool EnableSequentialPublishing
-            => Template.EnableSequentialPublishing
-            ?? _options.Value.EnableSequentialPublishing
-            ?? true;
-
         public bool DesiredRepublishAfterTransfer
             => Template.RepublishAfterTransfer
             ?? _options.Value.DefaultRepublishAfterTransfer
@@ -145,16 +139,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Subscription
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="session"></param>
         /// <param name="template"></param>
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
         /// <param name="parentId"></param>
         /// <param name="timeProvider"></param>
-        internal OpcUaSubscription(OpcUaClient client, SubscriptionModel template,
-            IOptions<OpcUaSubscriptionOptions> options, ILoggerFactory loggerFactory,
-            IMetricsContext metrics, uint? parentId = null, TimeProvider? timeProvider = null)
-            : base(loggerFactory.CreateLogger<OpcUaSubscription>())
+        internal OpcUaSubscription(OpcUaClient client, OpcUaSession session,
+            SubscriptionModel template, IOptions<OpcUaSubscriptionOptions> options,
+            ILoggerFactory loggerFactory, IMetricsContext metrics, uint? parentId = null,
+            TimeProvider? timeProvider = null)
+            : base(session, loggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;
             _options = options;
@@ -187,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscription"></param>
         /// <param name="parentId"></param>
         private OpcUaSubscription(OpcUaSubscription subscription, uint parentId)
-            : base(subscription._loggerFactory.CreateLogger<OpcUaSubscription>())
+            : base(subscription.Session, subscription._loggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _options = subscription._options;
             _loggerFactory = subscription._loggerFactory;
@@ -274,7 +270,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     ResetMonitoredItemWatchdogTimer(false);
-                    _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    _keepAliveWatcher.Change(
+                        Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                     FastDataChangeCallback = null;
                     FastEventCallback = null;
@@ -347,16 +344,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
 
-                Debug.Assert(Session != null);
-
                 ResetKeepAliveTimer();
                 ResetMonitoredItemWatchdogTimer(false);
 
                 // Does not throw
                 await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
-
                 _logger.LogInformation("Closed Subscription {Subscription}.", this);
-                Debug.Assert(Session == null);
             }
             finally
             {
@@ -500,15 +493,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// subscriptions
         /// </summary>
         /// <param name="owner"></param>
-        /// <param name="dataSetFieldContentMask"></param>
         /// <param name="dataSetMetaData"></param>
         /// <param name="minorVersion"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
         internal async ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
-            ISubscriber owner, DataSetFieldContentFlags? dataSetFieldContentMask,
-            DataSetMetaDataModel dataSetMetaData, uint minorVersion, CancellationToken ct)
+            ISubscriber owner, DataSetMetaDataModel dataSetMetaData, uint minorVersion,
+            CancellationToken ct)
         {
             Debug.Assert(IsRoot);
             if (Session is not OpcUaSession session)
@@ -583,7 +575,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? kMaxMonitoredItemPerSubscriptionDefault;
             }
 
-            Debug.Assert(Session != null);
             if (Session is not OpcUaSession session)
             {
                 throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
@@ -677,9 +668,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Does not throw
             await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
 
-            Debug.Assert(Session == null);
             session.AddSubscription(this); // Re-add the subscription now
-            Debug.Assert(Session == session);
         }
 
         /// <summary>
@@ -738,20 +727,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // TODO: use a channel and reorder task before calling OnMessage
                 // to order or else republish is called too often
                 RepublishAfterTransfer = DesiredRepublishAfterTransfer;
-                SequentialPublishing = EnableSequentialPublishing;
 
                 _logger.LogInformation(
                     "Creating new {State} subscription {Subscription} in session {Session}.",
                     PublishingEnabled ? "enabled" : "disabled", this, Session);
 
-                Debug.Assert(Session != null);
                 await CreateAsync(false, ct).ConfigureAwait(false);
                 if (!Created)
                 {
                     Handle = null;
                     var session = Session;
                     await session.RemoveSubscriptionAsync(this, ct).ConfigureAwait(false);
-                    Debug.Assert(Session == null);
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
                         $"Failed to create subscription {this} in session {session}");
                 }
@@ -1502,7 +1488,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await Session.RemoveSubscriptionAsync(this).ConfigureAwait(false);
                 }
-                Debug.Assert(Session == null, "Subscription should not be part of session");
                 Debug.Assert(!CurrentlyMonitored.Any(), "Not all items removed.");
                 _logger.LogInformation("Subscription '{Subscription}' closed.", this);
             }
@@ -2625,7 +2610,7 @@ Actual (revised) state/desired state:
                 () => new Measurement<long>(_currentSequenceNumber, _metrics.TagList),
                 description: "Sequence number of the next notification to acknoledge in subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_publish_requests_per_subscription",
-                () => new Measurement<double>(Ratio(State.OutstandingRequestCount, State.SubscriptionCount),
+                () => new Measurement<double>(Ratio(State.PublishWorkerCount, State.SubscriptionCount),
                 _metrics.TagList), description: "Good publish requests per subsciption.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_good_publish_requests_per_subscription",
                 () => new Measurement<double>(Ratio(State.GoodPublishRequestCount, State.SubscriptionCount),

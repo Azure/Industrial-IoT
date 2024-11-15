@@ -601,7 +601,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly Mock<IMessageSource> _triggerMock;
-        private readonly IPublisher _publisher;
+        private readonly PublisherService _publisher;
         private readonly Mock<IDiagnosticCollector> _diagnostic;
     }
 }

@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var contentType = string.Empty;
             var contentEncoding = string.Empty;
             var routingInfo = string.Empty;
-            IReadOnlyList<ReadOnlySequence<byte>> buffers = null;
+            List<ReadOnlySequence<byte>> buffers = null;
             _message.Setup(c => c.SetRetain(It.Is<bool>(v => v)))
                 .Returns(_message.Object);
             _message.Setup(c => c.AddProperty(It.IsAny<string>(), It.IsAny<string>()))

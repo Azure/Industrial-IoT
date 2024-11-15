@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithAlreadyExistingApplications()
+        public async Task ProcessDiscoveryWithAlreadyExistingApplicationsAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithNoExistingApplications()
+        public async Task ProcessDiscoveryWithNoExistingApplicationsAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var created,
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryThrowsWithMultipleSites()
+        public async Task ProcessDiscoveryThrowsWithMultipleSitesAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithOneExistingApplication()
+        public async Task ProcessDiscoveryWithOneExistingApplicationAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var created,
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications()
+        public async Task ProcessDiscoveryWithDifferentDiscoverersSameSiteApplicationsAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -193,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExisting()
+        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
+        public async Task ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabledAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
+        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabledAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting()
+        public async Task ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExistingAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -328,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithNoResultsAndExisting()
+        public async Task ProcessDiscoveryWithNoResultsAndExistingAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -354,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithOneEndpointResultsAndExisting()
+        public async Task ProcessDiscoveryWithOneEndpointResultsAndExistingAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,

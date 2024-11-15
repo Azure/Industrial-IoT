@@ -468,7 +468,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 PublishingInterval = b.Header.GetNormalizedDataSetPublishingInterval(),
                                                 MaxNotificationsPerPublish = null,
                                                 EnableImmediatePublishing = null,
-                                                EnableSequentialPublishing = null,
                                                 LifeTimeCount = null,
                                                 UseDeferredAcknoledgements = null
                                                 // ...

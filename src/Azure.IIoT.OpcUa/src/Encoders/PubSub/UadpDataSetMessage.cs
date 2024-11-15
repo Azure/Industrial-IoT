@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 case 0:
                     Debug.Assert(Payload.DataSetFields.Count <= ushort.MaxValue);
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
-                    foreach (var (Name, Value) in Payload.DataSetFields)
+                    foreach (var (_, Value) in Payload.DataSetFields)
                     {
                         binaryEncoder.WriteVariant(null, Value?.WrappedValue ?? default);
                     }
@@ -532,7 +532,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
                     Debug.Assert(Payload.DataSetFields.Count <= ushort.MaxValue);
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
-                    foreach (var (Name, Value) in Payload.DataSetFields)
+                    foreach (var (_, Value) in Payload.DataSetFields)
                     {
                         binaryEncoder.WriteDataValue(null, Value);
                     }

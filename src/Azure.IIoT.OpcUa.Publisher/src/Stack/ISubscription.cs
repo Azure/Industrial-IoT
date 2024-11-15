@@ -33,15 +33,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Collect metadata
         /// </summary>
         /// <param name="owner"></param>
-        /// <param name="fieldMask"></param>
         /// <param name="dataSetMetaData"></param>
         /// <param name="minorVersion"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
-            ISubscriber owner, DataSetFieldContentFlags? fieldMask,
-            DataSetMetaDataModel dataSetMetaData, uint minorVersion,
-            CancellationToken ct = default);
+            ISubscriber owner, DataSetMetaDataModel dataSetMetaData,
+            uint minorVersion, CancellationToken ct = default);
 
         /// <summary>
         /// Create a keep alive notification

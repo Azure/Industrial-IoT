@@ -110,7 +110,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             _logger = loggerFactory.CreateLogger<OpcUaSession>();
             _client = client;
-            _serializer = serializer;
             _timeProvider = timeProvider;
             CreatedAt = _timeProvider.GetUtcNow();
 
@@ -126,14 +125,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var sessionName = SessionName;
 
-                PublishError -=
-                    _client.Session_HandlePublishError;
                 PublishSequenceNumbersToAcknowledge -=
                     _client.Session_PublishSequenceNumbersToAcknowledge;
                 KeepAlive -=
                     _client.Session_KeepAlive;
-                SessionConfigurationChanged -=
-                    Session_SessionConfigurationChanged;
 
                 _disposed = true;
                 CloseChannel(); // Ensure channel is closed
@@ -620,16 +615,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Called when session configuration changed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Session_SessionConfigurationChanged(object? sender, EventArgs e)
-        {
-            PreloadComplexTypeSystem();
-        }
-
-        /// <summary>
         /// Preload type system
         /// </summary>
         private void PreloadComplexTypeSystem()
@@ -651,14 +636,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             TransferSubscriptionsOnRecreate = !_client.DisableTransferSubscriptionOnReconnect;
             DeleteSubscriptionsOnClose = !TransferSubscriptionsOnRecreate;
 
-            PublishError +=
-                _client.Session_HandlePublishError;
             PublishSequenceNumbersToAcknowledge +=
                 _client.Session_PublishSequenceNumbersToAcknowledge;
             KeepAlive +=
                 _client.Session_KeepAlive;
-            SessionConfigurationChanged +=
-                Session_SessionConfigurationChanged;
 
             var keepAliveInterval =
                 _client.KeepAliveInterval ?? kDefaultKeepAliveInterval;
@@ -673,7 +654,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             KeepAliveInterval = keepAliveInterval;
-            OperationTimeout = (int)operationTimeout.TotalMilliseconds;
+            OperationTimeout = operationTimeout;
             _defaultOperationTimeout = operationTimeout;
         }
 
@@ -1207,41 +1188,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Set appropriate operation timeouts
-        /// </summary>
-        /// <param name="closing"></param>
-        internal void UpdateOperationTimeout(bool closing)
-        {
-            //
-            // The OperationTimeout while publishing should be twice the
-            // value for PublishingInterval * KeepAliveCount
-            //
-            if (closing)
-            {
-                OperationTimeout = 2000; // Update to 2 seconds for closing
-                return;
-            }
-            var timeout = Subscriptions
-                .Select(s => s.CurrentPublishingInterval * s.CurrentKeepAliveCount)
-                .DefaultIfEmpty(TimeSpan.Zero)
-                .Max() * 2;
-            if (timeout < _defaultOperationTimeout)
-            {
-                timeout = _defaultOperationTimeout;
-            }
-            if (timeout > kMaxOperationTimeout)
-            {
-                timeout = kMaxOperationTimeout;
-            }
-            if (TimeSpan.FromMilliseconds(OperationTimeout) != timeout)
-            {
-                OperationTimeout = (int)timeout.TotalMilliseconds;
-                _logger.LogInformation("Operation timeout updated to {Timeout}.",
-                    timeout);
-            }
-        }
-
-        /// <summary>
         /// Load complex type system
         /// </summary>
         /// <returns></returns>
@@ -1250,7 +1196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(!_client.DisableComplexTypeLoading);
             return Task.Run(async () =>
             {
-                var nodeCache = NodeCache;
                 if (Connected)
                 {
                     var complexTypeSystem = new ComplexTypeSystem(this);
@@ -1261,9 +1206,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogInformation(
                             "{Session}: Complex type system loaded into client.", this);
 
-                        // Clear cache to release memory.
-                        // TODO: we should have a real node cache here
-                        nodeCache.Clear();
                         return complexTypeSystem;
                     }
                 }
@@ -1403,7 +1345,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;
-        private readonly IJsonSerializer _serializer;
         private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);

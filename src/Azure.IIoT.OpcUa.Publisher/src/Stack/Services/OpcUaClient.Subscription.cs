@@ -306,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             // representation and add it to the session.
                             //
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                            var subscription = new OpcUaSubscription(this,
+                            var subscription = new OpcUaSubscription(this, session,
                                 add, _subscriptionOptions, _loggerFactory,
                                 new OpcUaClientTagList(_connection, _metrics),
                                 null, _timeProvider);
@@ -381,7 +381,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             // Finish
-            session.UpdateOperationTimeout(false);
             UpdatePublishRequestCounts();
 
             if (updates + removals + additions == 0)
@@ -431,7 +430,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="delay"></param>
         private void RescheduleSynchronization(TimeSpan delay)
         {
-            Debug.Assert(delay <= Timeout.InfiniteTimeSpan, delay.ToString());
             Debug.Assert(_subscriptionLock.CurrentCount == 0, "Must be locked");
 
             if (delay == Timeout.InfiniteTimeSpan)
@@ -559,17 +557,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public async ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
-                ISubscriber owner, DataSetFieldContentFlags? fieldMask,
-                DataSetMetaDataModel dataSetMetaData, uint minorVersion,
-                CancellationToken ct = default)
+                ISubscriber owner, DataSetMetaDataModel dataSetMetaData,
+                uint minorVersion, CancellationToken ct = default)
             {
                 if (!_outer.TryGetSubscription(Subscription, out var subscription))
                 {
                     throw new ServiceResultException(StatusCodes.BadNoSubscription,
                         "Subscription not found");
                 }
-                return await subscription.CollectMetaDataAsync(owner, fieldMask,
-                    dataSetMetaData, minorVersion, ct).ConfigureAwait(false);
+                return await subscription.CollectMetaDataAsync(owner, dataSetMetaData,
+                    minorVersion, ct).ConfigureAwait(false);
             }
 
             /// <summary>

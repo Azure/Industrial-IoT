@@ -83,18 +83,6 @@ namespace Opc.Ua.Client
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and
-        /// unmanaged resources; <c>false</c> to release only unmanaged
-        /// resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
             _cts.Dispose();
             DisposeHosts();
         }

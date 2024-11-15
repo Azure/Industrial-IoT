@@ -646,10 +646,7 @@ namespace Asset
             return false;
 
             [DoesNotReturn]
-            static void ThrowBadResponse()
-            {
-                throw new ServiceResultException("Bad response");
-            }
+            static void ThrowBadResponse() => throw new ServiceResultException("Bad response");
 
             static ServiceResult ToServiceResult(byte errorCode)
             {

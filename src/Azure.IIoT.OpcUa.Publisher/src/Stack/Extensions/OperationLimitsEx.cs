@@ -3,9 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Extensions
+namespace Opc.Ua.Client
 {
-    using Opc.Ua;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
 

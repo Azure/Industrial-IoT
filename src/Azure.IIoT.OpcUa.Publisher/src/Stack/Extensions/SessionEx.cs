@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using Opc.Ua.Client;
     using NodeClass = Publisher.Models.NodeClass;
     using System;
     using System.Collections.Generic;

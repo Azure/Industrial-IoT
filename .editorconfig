@@ -10,6 +10,7 @@ insert_final_newline = true
 
 # C# files
 [*.cs]
+dotnet_diagnostic.IDE0055.severity = none
 
 #### Core EditorConfig Options ####
 
