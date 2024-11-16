@@ -14,6 +14,7 @@ namespace Opc.Ua.Client
     using System.Threading.Channels;
     using System.Linq;
     using System.Collections.Concurrent;
+    using System.Collections.Immutable;
 
     /// <summary>
     /// A subscription.
@@ -205,6 +206,30 @@ namespace Opc.Ua.Client
                     return true;
                 }
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Last sequence number that was acknoledged by the session
+        /// </summary>
+        internal uint LastSequenceNumberAcknoledged
+        {
+            get
+            {
+                lock (_cache)
+                {
+                    return _lastSequenceNumberAcknoledged;
+                }
+            }
+            set
+            {
+                lock (_cache)
+                {
+                    if (value > _lastSequenceNumberAcknoledged)
+                    {
+                        _lastSequenceNumberAcknoledged = value;
+                    }
+                }
             }
         }
 
@@ -708,6 +733,14 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Last sequence number that was processed by the subscription
+        /// </summary>
+        public virtual uint GetLastSequenceNumberProcessed()
+        {
+            return _lastSequenceNumberProcessed;
+        }
+
+        /// <summary>
         /// Process status change notification
         /// </summary>
         /// <param name="sequenceNumber"></param>
@@ -922,13 +955,16 @@ namespace Opc.Ua.Client
                 }
             }
 
+            // save available sequence numbers
+            if (availableSequenceNumbers != null)
+            {
+                _availableInRetransmissionQueue = availableSequenceNumbers;
+            }
+
             if (subscriptionId.HasValue)
             {
                 await ModifyItemsAsync(ct).ConfigureAwait(false);
             }
-
-            // save available sequence numbers
-            _availableSequenceNumbers = availableSequenceNumbers;
             StartKeepAliveTimer();
             return true;
         }
@@ -951,7 +987,10 @@ namespace Opc.Ua.Client
                 OnPublishStateChanged(PublishState.Recovered);
             }
 
-            _availableSequenceNumbers = availableSequenceNumbers;
+            if (availableSequenceNumbers != null)
+            {
+                _availableInRetransmissionQueue = availableSequenceNumbers;
+            }
             _lastNotificationTickCount = HiResClock.TickCount;
             await _messages.Writer.WriteAsync(new IncomingMessage(
                 message, stringTable, DateTime.UtcNow)).ConfigureAwait(false);
@@ -1154,15 +1193,14 @@ namespace Opc.Ua.Client
             {
                 await foreach (var incoming in _messages.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                 {
-                    var prevSeqNum = _lastSequenceNumberProcessed;
+                    var prevSeqNum = GetLastSequenceNumberProcessed();
                     var curSeqNum = incoming.Message.SequenceNumber;
                     if (prevSeqNum != 0)
                     {
                         for (var missing = prevSeqNum + 1; missing < curSeqNum; missing++)
                         {
                             // Try to republish missing messages from retransmission queue
-                            var available = _availableSequenceNumbers;
-                            if (available?.Contains(missing) != true)
+                            if (_availableInRetransmissionQueue.Contains(missing))
                             {
                                 _logger.LogWarning("SubscriptionId {Id}: Message with sequence number " +
                                     "#{SeqNumber} is not in server retransmission queue and was dropped.",
@@ -1395,13 +1433,14 @@ namespace Opc.Ua.Client
             }
         }
 
+        private IReadOnlyList<uint> _availableInRetransmissionQueue = Array.Empty<uint>();
         private const int kMinKeepAliveTimerInterval = 1000;
         private const int kKeepAliveTimerMargin = 1000;
         private int _lastNotificationTickCount;
         private int _keepAliveInterval;
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
-        private IReadOnlyList<uint>? _availableSequenceNumbers;
+        private uint _lastSequenceNumberAcknoledged;
         private readonly List<MonitoredItem> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();

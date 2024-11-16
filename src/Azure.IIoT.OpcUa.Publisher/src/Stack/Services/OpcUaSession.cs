@@ -118,17 +118,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        protected override void OnKeepAlive(ServiceResult serviceResult,
+            ServerState serverState, DateTime currentTime)
+        {
+            _client.Session_KeepAlive(this, serviceResult);
+            base.OnKeepAlive(serviceResult, serverState, currentTime);
+        }
+
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
             if (disposing && !_disposed)
             {
                 var sessionName = SessionName;
-
-                PublishSequenceNumbersToAcknowledge -=
-                    _client.Session_PublishSequenceNumbersToAcknowledge;
-                KeepAlive -=
-                    _client.Session_KeepAlive;
 
                 _disposed = true;
                 CloseChannel(); // Ensure channel is closed
@@ -635,11 +638,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             TransferSubscriptionsOnRecreate = !_client.DisableTransferSubscriptionOnReconnect;
             DeleteSubscriptionsOnClose = !TransferSubscriptionsOnRecreate;
-
-            PublishSequenceNumbersToAcknowledge +=
-                _client.Session_PublishSequenceNumbersToAcknowledge;
-            KeepAlive +=
-                _client.Session_KeepAlive;
 
             var keepAliveInterval =
                 _client.KeepAliveInterval ?? kDefaultKeepAliveInterval;
@@ -1347,6 +1345,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
-        private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);
     }
 }

@@ -1251,12 +1251,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return false;
         }
 
+#if TODO
         /// <summary>
         /// Feed back acknoledgements
         /// </summary>
         /// <param name="context"></param>
         /// <param name="e"></param>
-        internal void Session_PublishSequenceNumbersToAcknowledge(ISession context,
+        internal void Session_PublishSequenceNumbersToAcknowledge(Session context,
             PublishSequenceNumbersToAcknowledgeEventArgs e)
         {
             if (context is not OpcUaSession session)
@@ -1308,14 +1309,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Handles a keep alive event from a session and triggers a reconnect
         /// if necessary.
         /// </summary>
         /// <param name="session"></param>
-        /// <param name="e"></param>
-        internal void Session_KeepAlive(ISession session, KeepAliveEventArgs e)
+        /// <param name="serviceResult"></param>
+        internal void Session_KeepAlive(OpcUaSession session, ServiceResult serviceResult)
         {
             if (_disposed)
             {
@@ -1330,10 +1332,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 // start reconnect sequence on communication error.
                 Interlocked.Increment(ref _keepAliveCounter);
-                if (ServiceResult.IsBad(e.Status))
+                if (ServiceResult.IsBad(serviceResult))
                 {
                     _keepAliveCounter = 0;
-                    TriggerReconnect(e.Status, "Keep alive");
+                    TriggerReconnect(serviceResult, "Keep alive");
                 }
                 else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
                 {
@@ -1378,7 +1380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Update session state
         /// </summary>
         /// <param name="session"></param>
-        private async ValueTask<bool> UpdateSessionAsync(ISession session)
+        private async ValueTask<bool> UpdateSessionAsync(Session session)
         {
             _publishTimeoutCounter = 0;
             Debug.Assert(session is OpcUaSession);

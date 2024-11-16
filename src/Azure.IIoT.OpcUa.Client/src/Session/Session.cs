@@ -20,25 +20,8 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Manages a session with a server.
     /// </summary>
-    public class Session : SessionBase, ISession, IComplexTypeContext,
-        INodeCacheContext
+    public class Session : SessionBase, IComplexTypeContext, INodeCacheContext
     {
-        /// <summary>
-        /// Raised when a keep alive arrives from the server or an
-        /// error is detected.
-        /// </summary>
-        /// <remarks>
-        /// Once a session is created a timer will periodically read
-        /// the server state and current time. If this read operation
-        /// succeeds this event will be raised each time the keep alive
-        /// period elapses. If an error is detected (KeepAliveStopped
-        /// == true) then this event will be raised as well.
-        /// </remarks>
-        public event KeepAliveEventHandler? KeepAlive;
-
-        /// <inheritdoc/>
-        public event PublishSequenceNumbersToAcknowledgeEventHandler? PublishSequenceNumbersToAcknowledge;
-
         /// <inheritdoc/>
         public ILoggerFactory LoggerFactory { get; }
 
@@ -253,7 +236,7 @@ namespace Opc.Ua.Client
         private bool Connecting => _connecting.CurrentCount == 0;
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="ISession"/> class. The application
+        /// Constructs a new instance of the <see cref="Session"/> class. The application
         /// configuration is used to look up the certificate if none is provided.
         /// </summary>
         /// <param name="sessionName">The name to assign to the session.</param>
@@ -889,13 +872,13 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public override Task<StatusCode> CloseAsync(CancellationToken ct)
+        public sealed override Task<StatusCode> CloseAsync(CancellationToken ct)
         {
             return CloseAsync(true, ct).AsTask();
         }
 
         /// <inheritdoc/>
-        public override void DetachChannel()
+        public sealed override void DetachChannel()
         {
             // Overriding to remove any existing connection that was used
             // to create the channel
@@ -1763,10 +1746,6 @@ namespace Opc.Ua.Client
                 }
                 finally
                 {
-                    // suppress spurious events
-                    KeepAlive = null;
-                    PublishSequenceNumbersToAcknowledge = null;
-
                     _keepAliveTimer.Dispose();
                     _connecting.Dispose();
                 }
@@ -1783,52 +1762,7 @@ namespace Opc.Ua.Client
         protected virtual void OnKeepAlive(ServiceResult serviceResult, ServerState serverState,
             DateTime currentTime)
         {
-            var callback = KeepAlive;
-            if (callback != null)
-            {
-                try
-                {
-                    callback(this, new KeepAliveEventArgs(serviceResult,
-                        serverState, currentTime));
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Session: Unexpected error invoking KeepAliveCallback.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Collect acknoledgements to send
-        /// </summary>
-        /// <returns></returns>
-        protected virtual SubscriptionAcknowledgementCollection GetAcknowledgementsToSend()
-        {
-            Debug.Assert(_acknowledgementsToSendLock.CurrentCount == 0);
-            var callback = PublishSequenceNumbersToAcknowledge;
-            SubscriptionAcknowledgementCollection acknowledgementsToSend;
-            if (callback != null)
-            {
-                try
-                {
-                    var deferredAcknowledgementsToSend =
-                        new SubscriptionAcknowledgementCollection();
-                    callback(this, new PublishSequenceNumbersToAcknowledgeEventArgs(
-                        _acknowledgementsToSend, deferredAcknowledgementsToSend));
-                    acknowledgementsToSend = _acknowledgementsToSend;
-                    _acknowledgementsToSend = deferredAcknowledgementsToSend;
-                    return acknowledgementsToSend;
-                }
-                catch (Exception e2)
-                {
-                    _logger.LogError(e2, "Unexpected error invoking " +
-                        "PublishSequenceNumbersToAcknowledgeEventArgs.");
-                }
-            }
-            // send all ack values, clear list
-            acknowledgementsToSend = _acknowledgementsToSend;
-            _acknowledgementsToSend = new SubscriptionAcknowledgementCollection();
-            return acknowledgementsToSend;
+            // TODO: Implement automatic reconnect handling
         }
 
         /// <summary>
@@ -1862,7 +1796,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        protected override void RequestCompleted(IServiceRequest request,
+        protected sealed override void RequestCompleted(IServiceRequest request,
             IServiceResponse response, string serviceName)
         {
             var sr = response?.ResponseHeader?.ServiceResult;
@@ -2877,21 +2811,6 @@ namespace Opc.Ua.Client
                         remaining.Add(subscriptions[index]);
                         continue;
                     }
-                    await _acknowledgementsToSendLock.WaitAsync(ct).ConfigureAwait(false);
-                    try
-                    {
-                        // create ack for available sequence numbers
-                        foreach (var sequenceNumber in
-                            transferResults[index].AvailableSequenceNumbers)
-                        {
-                            AddAcknowledgementToSend(_acknowledgementsToSend,
-                                subscriptionIds[index], sequenceNumber);
-                        }
-                    }
-                    finally
-                    {
-                        _acknowledgementsToSendLock.Release();
-                    }
                 }
                 return remaining;
             }
@@ -3151,29 +3070,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Add acks to send to server to ack
-        /// </summary>
-        /// <param name="acknowledgementsToSend"></param>
-        /// <param name="subscriptionId"></param>
-        /// <param name="sequenceNumber"></param>
-        private void AddAcknowledgementToSend(
-            SubscriptionAcknowledgementCollection acknowledgementsToSend,
-            uint subscriptionId, uint sequenceNumber)
-        {
-            ArgumentNullException.ThrowIfNull(acknowledgementsToSend);
-
-            Debug.Assert(_acknowledgementsToSendLock.CurrentCount == 0);
-
-            var acknowledgement = new SubscriptionAcknowledgement
-            {
-                SubscriptionId = subscriptionId,
-                SequenceNumber = sequenceNumber
-            };
-
-            acknowledgementsToSend.Add(acknowledgement);
-        }
-
-        /// <summary>
         /// Validates the server nonce and security parameters of user identity.
         /// </summary>
         /// <param name="identity"></param>
@@ -3378,18 +3274,17 @@ namespace Opc.Ua.Client
                         await _session._connected.WaitAsync(ct).ConfigureAwait(false);
                     }
 
-                    // collect the current set if acknowledgements.
-                    var acknowledgementsToSend = await GetAcknowledgementsAsync(ct).ConfigureAwait(false);
+
                     var publishCounter = Utils.IncrementIdentifier(ref _session._publishCounter);
                     try
                     {
-                        timeoutHint = GetPublishTimeout(timeoutHint);
+                        var acks = GetReadyToAcknoledge();
                         var response = await _session.PublishAsync(new RequestHeader
                         {
-                            TimeoutHint = timeoutHint,
+                            TimeoutHint = RevisePublishTimeout(ref timeoutHint),
                             ReturnDiagnostics = (uint)(int)_session.ReturnDiagnostics,
                             RequestHandle = publishCounter
-                        }, acknowledgementsToSend, ct).ConfigureAwait(false);
+                        }, acks, ct).ConfigureAwait(false);
 
                         var subscriptionId = response.SubscriptionId;
                         var notificationMessage = response.NotificationMessage;
@@ -3398,12 +3293,11 @@ namespace Opc.Ua.Client
 
                         var acknowledgeResults = response.Results;
                         var acknowledgeDiagnosticInfos = response.DiagnosticInfos;
-                        ClientBase.ValidateResponse(acknowledgeResults, acknowledgementsToSend);
-                        ClientBase.ValidateDiagnosticInfos(acknowledgeDiagnosticInfos, acknowledgementsToSend);
+                        ClientBase.ValidateResponse(acknowledgeResults, acks);
+                        ClientBase.ValidateDiagnosticInfos(acknowledgeDiagnosticInfos, acks);
                         TooManyPublishRequests = false;
 
-                        await ProcessAcknowledgementsAsync(subscriptionId, notificationMessage,
-                            availableSequenceNumbers, ct).ConfigureAwait(false);
+                        CommitAcknowledgements(acks, acknowledgeResults);
 
                         // Get the subscription with the provided identifier
                         var subscription = _session.GetSubscription(subscriptionId);
@@ -3451,13 +3345,6 @@ namespace Opc.Ua.Client
                         // raise an error event.
                         var error = new ServiceResult(e);
                         Interlocked.Increment(ref _session._badPublishRequestCount);
-
-                        // try to acknowledge the notifications again in the next publish.
-                        if (acknowledgementsToSend != null)
-                        {
-                            await RollbackAcknoledgementsAsync(acknowledgementsToSend,
-                                ct).ConfigureAwait(false);
-                        }
 
                         // ignore errors if reconnecting.
                         if (_session.Connecting)
@@ -3516,142 +3403,55 @@ namespace Opc.Ua.Client
             }
 
             /// <summary>
-            /// Process acknoledgements
+            /// Get acks that are ready to send
             /// </summary>
-            /// <param name="subscriptionId"></param>
-            /// <param name="notificationMessage"></param>
-            /// <param name="availableSequenceNumbers"></param>
-            /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask ProcessAcknowledgementsAsync(uint subscriptionId,
-                NotificationMessage notificationMessage, List<uint>? availableSequenceNumbers,
-                CancellationToken ct)
+            private SubscriptionAcknowledgementCollection GetReadyToAcknoledge()
             {
-                // collect the current set of acknowledgements.
-                await _session._acknowledgementsToSendLock.WaitAsync(ct).ConfigureAwait(false);
-                try
+                var acks = new SubscriptionAcknowledgementCollection();
+                lock (_session.SyncRoot)
                 {
-                    // clear out acknowledgements for messages that the server does not
-                    // have any more.
-                    var acknowledgementsToSend = new SubscriptionAcknowledgementCollection();
-                    uint latestSequenceNumberToSend = 0;
-
-                    // create an acknowledgement to be sent back to the server.
-                    if (notificationMessage.NotificationData.Count > 0)
+                    if (_session._subscriptions.Count == 0)
                     {
-                        _session.AddAcknowledgementToSend(acknowledgementsToSend,
-                            subscriptionId, notificationMessage.SequenceNumber);
-                        UpdateLatestSequenceNumberToSend(ref latestSequenceNumberToSend,
-                            notificationMessage.SequenceNumber);
-                        availableSequenceNumbers?.Remove(notificationMessage.SequenceNumber);
+                        return acks;
                     }
-
-                    // match an acknowledgement to be sent back to the server.
-                    for (var index = 0; index < _session._acknowledgementsToSend.Count; index++)
+                    foreach (var subscription in _session._subscriptions)
                     {
-                        var acknowledgement = _session._acknowledgementsToSend[index];
-                        if (acknowledgement.SubscriptionId != subscriptionId)
+                        var latest = subscription.GetLastSequenceNumberProcessed();
+                        var processed = subscription.LastSequenceNumberAcknoledged;
+                        if (latest != 0 && latest > processed)
                         {
-                            acknowledgementsToSend.Add(acknowledgement);
-                        }
-                        else if (availableSequenceNumbers?.Remove(acknowledgement.SequenceNumber) != false)
-                        {
-                            acknowledgementsToSend.Add(acknowledgement);
-                            UpdateLatestSequenceNumberToSend(ref latestSequenceNumberToSend,
-                                acknowledgement.SequenceNumber);
-                        }
-                        // a publish response may by processed out of order,
-                        // allow for a tolerance until the sequence number is removed.
-                        else if (Math.Abs(
-                            (int)(acknowledgement.SequenceNumber - latestSequenceNumberToSend))
-                                < kPublishRequestSequenceNumberOutOfOrderThreshold)
-                        {
-                            acknowledgementsToSend.Add(acknowledgement);
-                        }
-                        else
-                        {
-                            _logger.LogWarning(
-                                "SessionId {Id}, SubscriptionId {SubscriptionId}, Sequence number=" +
-                                "{SeqNumber} was not received in the available sequence numbers.",
-                                _session.SessionId, subscriptionId, acknowledgement.SequenceNumber);
-                        }
-                    }
-
-                    // Check for outdated sequence numbers. May have been not acked due to
-                    // a network glitch.
-                    if (latestSequenceNumberToSend != 0 && availableSequenceNumbers?.Count > 0)
-                    {
-                        foreach (var sequenceNumber in availableSequenceNumbers)
-                        {
-                            if ((int)(latestSequenceNumberToSend - sequenceNumber)
-                                > kPublishRequestSequenceNumberOutdatedThreshold)
+                            acks.Add(new SubscriptionAcknowledgement
                             {
-                                _session.AddAcknowledgementToSend(acknowledgementsToSend,
-                                    subscriptionId, sequenceNumber);
-                                _logger.LogWarning("SessionId {Id}, SubscriptionId {SubscriptionId}, " +
-                                    "Sequence number={SeqNumber}was outdated, acknowledged.",
-                                    _session.SessionId, subscriptionId, sequenceNumber);
-                            }
+                                SequenceNumber = latest,
+                                SubscriptionId = subscription.Id
+                            });
                         }
                     }
-                    _session._acknowledgementsToSend = acknowledgementsToSend;
-                    if (notificationMessage.IsEmpty)
-                    {
-                        _logger.LogTrace("Empty notification message received for SessionId {Id} " +
-                            "with PublishTime {PublishTime}", _session.SessionId,
-                            notificationMessage.PublishTime.ToLocalTime());
-                    }
                 }
-                finally
-                {
-                    _session._acknowledgementsToSendLock.Release();
-                }
-            }
-
-            private async ValueTask<SubscriptionAcknowledgementCollection> GetAcknowledgementsAsync(
-                CancellationToken ct)
-            {
-                await _session._acknowledgementsToSendLock.WaitAsync(ct).ConfigureAwait(false);
-                try
-                {
-                    return _session.GetAcknowledgementsToSend();
-                }
-                finally
-                {
-                    _session._acknowledgementsToSendLock.Release();
-                }
-            }
-
-            private async ValueTask RollbackAcknoledgementsAsync(
-                SubscriptionAcknowledgementCollection acknowledgementsToSend, CancellationToken ct)
-            {
-                await _session._acknowledgementsToSendLock.WaitAsync(ct).ConfigureAwait(false);
-                try
-                {
-                    // Re-add acknoledgements that failed to send
-                    _session._acknowledgementsToSend.AddRange(acknowledgementsToSend);
-                }
-                finally
-                {
-                    _session._acknowledgementsToSendLock.Release();
-                }
+                return acks;
             }
 
             /// <summary>
-            /// Helper to update the latest sequence number to send.
-            /// Handles wrap around of sequence numbers.
+            /// Commit after successful send
             /// </summary>
-            /// <param name="latestSequenceNumberToSend"></param>
-            /// <param name="sequenceNumber"></param>
-            private static void UpdateLatestSequenceNumberToSend(
-                ref uint latestSequenceNumberToSend, uint sequenceNumber)
+            /// <param name="acks"></param>
+            /// <param name="acknowledgeResults"></param>
+            private void CommitAcknowledgements(SubscriptionAcknowledgementCollection acks,
+                StatusCodeCollection acknowledgeResults)
             {
-                // Handle wrap around with subtraction and test result is int.
-                // Assume sequence numbers to ack do not differ by more than uint.Max / 2
-                if (latestSequenceNumberToSend == 0 ||
-                    ((int)(sequenceNumber - latestSequenceNumberToSend)) > 0)
+                Debug.Assert(acks.Count == acknowledgeResults.Count); // Tested before
+                lock (_session.SyncRoot)
                 {
-                    latestSequenceNumberToSend = sequenceNumber;
+                    foreach (var subscription in _session._subscriptions)
+                    {
+                        var processed = subscription.LastSequenceNumberAcknoledged;
+                        var acked = acks.FindIndex(x => x.SubscriptionId == subscription.Id);
+                        if (acked != -1 && StatusCode.IsGood(acknowledgeResults[acked]))
+                        {
+                            subscription.LastSequenceNumberAcknoledged = acks[acked].SequenceNumber;
+                        }
+                    }
                 }
             }
 
@@ -3660,7 +3460,7 @@ namespace Opc.Ua.Client
             /// </summary>
             /// <param name="currentTimeout"></param>
             /// <returns>The timeout hint to use for the publish request</returns>
-            private uint GetPublishTimeout(uint currentTimeout)
+            private uint RevisePublishTimeout(ref uint currentTimeout)
             {
                 lock (_session.SyncRoot)
                 {
@@ -3684,11 +3484,11 @@ namespace Opc.Ua.Client
                         timeout = kMaxOperationTimeout;
                     }
                     var newTimeout = (uint)timeout.TotalMilliseconds;
-                    if (newTimeout < currentTimeout)
+                    if (newTimeout > currentTimeout)
                     {
-                        newTimeout = currentTimeout;
+                        currentTimeout = newTimeout;
                     }
-                    return newTimeout;
+                    return currentTimeout;
                 }
             }
 
@@ -3697,8 +3497,6 @@ namespace Opc.Ua.Client
             private readonly CancellationTokenSource _cts;
         }
 
-        private const int kPublishRequestSequenceNumberOutOfOrderThreshold = 10;
-        private const int kPublishRequestSequenceNumberOutdatedThreshold = 100;
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);
@@ -3718,7 +3516,6 @@ namespace Opc.Ua.Client
         private int _badPublishRequestCount;
 #pragma warning restore IDE0032 // Use auto property
         private bool _updateFromServer;
-        private SubscriptionAcknowledgementCollection _acknowledgementsToSend = new();
         private ITransportWaitingConnection? _connection;
         private readonly Nito.AsyncEx.AsyncManualResetEvent _connected = new();
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _publishControl = new();
@@ -3728,7 +3525,6 @@ namespace Opc.Ua.Client
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _keepAliveWorker;
         private readonly ReverseConnectManager? _reverseConnectManager;
-        private readonly SemaphoreSlim _acknowledgementsToSendLock = new(1, 1);
         private readonly List<Subscription> _subscriptions = new();
         private readonly IReadOnlyList<string> _preferredLocales;
         private readonly ApplicationConfiguration _configuration;
