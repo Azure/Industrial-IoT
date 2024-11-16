@@ -15,6 +15,7 @@ namespace Opc.Ua.Client
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -289,7 +290,7 @@ namespace Opc.Ua.Client
             _logger = LoggerFactory.CreateLogger<Session>();
             _keepAliveTimer = new Timer(_ => _keepAliveTrigger.Set());
             _keepAliveWorker = KeepAliveWorkerAsync(_cts.Token);
-            _publishController = PublishControllerAsync(_cts.Token);
+
             _connection = connection;
             _configuration = configuration;
             _instanceCertificate = clientCertificate;
@@ -319,6 +320,14 @@ namespace Opc.Ua.Client
                 SessionId = null,
                 UserIdentity = null
             };
+
+            _publishController = PublishControllerAsync(_cts.Token);
+            _acks = Channel.CreateUnboundedPrioritized<SubscriptionAcknowledgement>(
+                new UnboundedPrioritizedChannelOptions<SubscriptionAcknowledgement>
+                {
+                    Comparer = Comparer<SubscriptionAcknowledgement>
+                        .Create((x, y) => x.SequenceNumber.CompareTo(y.SequenceNumber))
+                });
         }
 
         /// <inheritdoc/>
@@ -1699,6 +1708,18 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Queue ack for completed notifications
+        /// </summary>
+        /// <param name="ack"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal ValueTask QueueAcknowledgementAsync(
+            SubscriptionAcknowledgement ack, CancellationToken ct)
+        {
+            return _acks.Writer.WriteAsync(ack, ct);
+        }
+
+        /// <summary>
         /// Closes the session and the underlying channel.
         /// </summary>
         /// <param name="disposing"></param>
@@ -1748,6 +1769,7 @@ namespace Opc.Ua.Client
                 {
                     _keepAliveTimer.Dispose();
                     _connecting.Dispose();
+                    _cts.Dispose();
                 }
             }
         }
@@ -3267,6 +3289,7 @@ namespace Opc.Ua.Client
             private async Task PublishWorkerAsync(CancellationToken ct)
             {
                 var timeoutHint = 0u;
+                var noWait = true;
                 while (!ct.IsCancellationRequested)
                 {
                     if (!_session._connected.IsSet)
@@ -3274,14 +3297,29 @@ namespace Opc.Ua.Client
                         await _session._connected.WaitAsync(ct).ConfigureAwait(false);
                     }
 
-
+                    var throttleDuration = RevisePublishTimeout(ref timeoutHint);
+                    var acks = GetReadyToAcknoledge();
+                    if (acks.Count == 0 && !noWait)
+                    {
+                        // Throttle publishing as we wait for acks to arrive
+                        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                        if (throttleDuration != 0)
+                        {
+                            _logger.LogInformation(
+                                "PUBLISH #{Handle} - Waiting {Time}ms for acks to arrive.",
+                                Index, throttleDuration);
+                            cts.CancelAfter(throttleDuration);
+                        }
+                        await _session._acks.Reader.WaitToReadAsync(
+                            cts.Token).ConfigureAwait(false);
+                        acks = GetReadyToAcknoledge();
+                    }
                     var publishCounter = Utils.IncrementIdentifier(ref _session._publishCounter);
                     try
                     {
-                        var acks = GetReadyToAcknoledge();
                         var response = await _session.PublishAsync(new RequestHeader
                         {
-                            TimeoutHint = RevisePublishTimeout(ref timeoutHint),
+                            TimeoutHint = timeoutHint,
                             ReturnDiagnostics = (uint)(int)_session.ReturnDiagnostics,
                             RequestHandle = publishCounter
                         }, acks, ct).ConfigureAwait(false);
@@ -3297,8 +3335,6 @@ namespace Opc.Ua.Client
                         ClientBase.ValidateDiagnosticInfos(acknowledgeDiagnosticInfos, acks);
                         TooManyPublishRequests = false;
 
-                        CommitAcknowledgements(acks, acknowledgeResults);
-
                         // Get the subscription with the provided identifier
                         var subscription = _session.GetSubscription(subscriptionId);
                         if (subscription != null)
@@ -3309,30 +3345,32 @@ namespace Opc.Ua.Client
                             // Validate publish time and reject old values.
                             if (DateTime.UtcNow >= notificationMessage.PublishTime.Add(publishTimeout))
                             {
-                                _logger.LogTrace("PublishTime {PublishTime} in publish " +
-                                    "response is too old for SubscriptionId {SubscriptionId}.",
-                                    notificationMessage.PublishTime, subscription.Id);
+                                _logger.LogTrace("PUBLISH #{Handle}-{Id} - PublishTime {PublishTime} in " +
+                                    "publish response is too old for SubscriptionId {SubscriptionId}.",
+                                    Index, publishCounter, notificationMessage.PublishTime, subscription.Id);
                             }
+
                             // Validate publish time and reject old values.
                             if (notificationMessage.PublishTime > DateTime.UtcNow.Add(publishTimeout))
                             {
-                                _logger.LogTrace("PublishTime {PublishTime} in publish response " +
-                                    "is newer than actual time for SubscriptionId {SubscriptionId}.",
-                                    notificationMessage.PublishTime, subscription.Id);
+                                _logger.LogTrace("PUBLISH #{Handle}-{Id} - PublishTime {PublishTime} in " +
+                                    "publish response is newer than actual time for SubscriptionId {SubscriptionId}.",
+                                    Index, publishCounter, notificationMessage.PublishTime, subscription.Id);
                             }
 
                             // deliver to subscription
                             await subscription.OnPublishReceivedAsync(availableSequenceNumbers,
-                                notificationMessage,
-                                response.ResponseHeader.StringTable).ConfigureAwait(false);
+                                notificationMessage, response.ResponseHeader.StringTable).ConfigureAwait(false);
                             Interlocked.Increment(ref _session._goodPublishRequestCount);
                         }
                         else
                         {
                             // ignore messages with a subscription that has been deleted.
                             // Do not delete publish requests of stale subscriptions
-                            _logger.LogWarning("Received Publish Response for Unknown SubscriptionId=" +
-                                "{SubscriptionId}. Ignored.", subscriptionId);
+                            _logger.LogWarning(
+                                "PUBLISH #{Handle}-{Id} - Received Publish Response " +
+                                "for Unknown SubscriptionId={SubscriptionId}. Ignored.",
+                                Index, publishCounter, subscriptionId);
                             Interlocked.Increment(ref _session._badPublishRequestCount);
                         }
                     }
@@ -3346,12 +3384,15 @@ namespace Opc.Ua.Client
                         var error = new ServiceResult(e);
                         Interlocked.Increment(ref _session._badPublishRequestCount);
 
+                        // Rollback acks we collected
+                        acks.ForEach(ack => _session._acks.Writer.TryWrite(ack));
+
                         // ignore errors if reconnecting.
                         if (_session.Connecting)
                         {
                             _logger.LogWarning(
-                                "Publish abandoned after error due to reconnect: {Message}",
-                                e.Message);
+                                "PUBLISH #{Handle}-{Id} - Publish abandoned after error due to reconnect: {Message}",
+                                Index, publishCounter, e.Message);
                             continue;
                         }
 
@@ -3380,22 +3421,22 @@ namespace Opc.Ua.Client
                             case StatusCodes.BadServerTooBusy:
                                 // throttle the next publish to reduce server load
                                 _logger.LogInformation(
-                                    "PUBLISH #{Handle} - Server busy, throttling worker.",
-                                    publishCounter);
-                                await Task.Delay(100, ct).ConfigureAwait(false);
+                                    "PUBLISH #{Handle}-{Id} - Server busy, throttling worker.",
+                                    Index, publishCounter);
+                                await Task.Delay(throttleDuration, ct).ConfigureAwait(false);
                                 break;
                             case StatusCodes.BadTimeout:
                             case StatusCodes.BadRequestTimeout:
                                 // Timed out - retry with larger timeout
                                 timeoutHint += 1000; // Increase by seconds
                                 _logger.LogInformation(
-                                    "PUBLISH #{Handle} - Timed out, increasing timeout to {Timeout}.",
-                                    publishCounter, timeoutHint);
+                                    "PUBLISH #{Handle}}-{Id} - Timed out, increasing timeout to {Timeout}.",
+                                    Index, publishCounter, timeoutHint);
                                 break;
                             default:
                                 _logger.LogError(e,
-                                    "PUBLISH #{Handle} - Unhandled error {Status} during Publish.",
-                                    publishCounter, error.StatusCode);
+                                    "PUBLISH #{Handle}-{Id} - Unhandled error {Status} during Publish.",
+                                    Index, publishCounter, error.StatusCode);
                                 break;
                         }
                     }
@@ -3409,72 +3450,55 @@ namespace Opc.Ua.Client
             private SubscriptionAcknowledgementCollection GetReadyToAcknoledge()
             {
                 var acks = new SubscriptionAcknowledgementCollection();
-                lock (_session.SyncRoot)
+
+                // TODO: Is this something that we can get from ops limit?
+                var maxAcks = _session._acks.Reader.Count
+                    / Math.Max(_session.PublishWorkerCount, 1);
+                for (var i = 0; i < maxAcks
+                    && _session._acks.Reader.TryRead(out var ack); i++)
                 {
-                    if (_session._subscriptions.Count == 0)
-                    {
-                        return acks;
-                    }
-                    foreach (var subscription in _session._subscriptions)
-                    {
-                        var latest = subscription.GetLastSequenceNumberProcessed();
-                        var processed = subscription.LastSequenceNumberAcknoledged;
-                        if (latest != 0 && latest > processed)
-                        {
-                            acks.Add(new SubscriptionAcknowledgement
-                            {
-                                SequenceNumber = latest,
-                                SubscriptionId = subscription.Id
-                            });
-                        }
-                    }
+                    acks.Add(ack);
                 }
                 return acks;
-            }
-
-            /// <summary>
-            /// Commit after successful send
-            /// </summary>
-            /// <param name="acks"></param>
-            /// <param name="acknowledgeResults"></param>
-            private void CommitAcknowledgements(SubscriptionAcknowledgementCollection acks,
-                StatusCodeCollection acknowledgeResults)
-            {
-                Debug.Assert(acks.Count == acknowledgeResults.Count); // Tested before
-                lock (_session.SyncRoot)
-                {
-                    foreach (var subscription in _session._subscriptions)
-                    {
-                        var processed = subscription.LastSequenceNumberAcknoledged;
-                        var acked = acks.FindIndex(x => x.SubscriptionId == subscription.Id);
-                        if (acked != -1 && StatusCode.IsGood(acknowledgeResults[acked]))
-                        {
-                            subscription.LastSequenceNumberAcknoledged = acks[acked].SequenceNumber;
-                        }
-                    }
-                }
             }
 
             /// <summary>
             /// Calculate the publish timeout to use
             /// </summary>
             /// <param name="currentTimeout"></param>
-            /// <returns>The timeout hint to use for the publish request</returns>
-            private uint RevisePublishTimeout(ref uint currentTimeout)
+            /// <returns>Max time to throttle the publish</returns>
+            private int RevisePublishTimeout(ref uint currentTimeout)
             {
                 lock (_session.SyncRoot)
                 {
                     if (_session._subscriptions.Count == 0)
                     {
-                        return currentTimeout;
+                        return 0;
+                    }
+
+                    var timeout = TimeSpan.Zero;
+                    var minPublishInterval = Timeout.Infinite;
+                    foreach (var s in _session._subscriptions)
+                    {
+                        var publishingInterval = s.CurrentPublishingInterval;
+                        var pi = (int)publishingInterval.Milliseconds;
+                        if (minPublishInterval > pi)
+                        {
+                            minPublishInterval = pi;
+                        }
+                        var keepAlive =
+                            publishingInterval * s.CurrentKeepAliveCount;
+                        if (timeout < keepAlive)
+                        {
+                            timeout = keepAlive;
+                        }
                     }
                     //
                     // The timeout while publishing should be twice the
                     // value for PublishingInterval * KeepAliveCount
                     // TODO: Validate this against spec
                     //
-                    var timeout = _session._subscriptions
-                        .Max(s => s.CurrentPublishingInterval * s.CurrentKeepAliveCount) * 2;
+                    timeout *= 2;
                     if (timeout < _session.OperationTimeout)
                     {
                         timeout = _session.OperationTimeout;
@@ -3488,7 +3512,7 @@ namespace Opc.Ua.Client
                     {
                         currentTimeout = newTimeout;
                     }
-                    return currentTimeout;
+                    return minPublishInterval;
                 }
             }
 
@@ -3517,6 +3541,7 @@ namespace Opc.Ua.Client
 #pragma warning restore IDE0032 // Use auto property
         private bool _updateFromServer;
         private ITransportWaitingConnection? _connection;
+        private readonly Channel<SubscriptionAcknowledgement> _acks;
         private readonly Nito.AsyncEx.AsyncManualResetEvent _connected = new();
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _publishControl = new();
         private readonly Task _publishController;

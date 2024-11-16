@@ -210,30 +210,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Last sequence number that was acknoledged by the session
-        /// </summary>
-        internal uint LastSequenceNumberAcknoledged
-        {
-            get
-            {
-                lock (_cache)
-                {
-                    return _lastSequenceNumberAcknoledged;
-                }
-            }
-            set
-            {
-                lock (_cache)
-                {
-                    if (value > _lastSequenceNumberAcknoledged)
-                    {
-                        _lastSequenceNumberAcknoledged = value;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Create subscription
         /// </summary>
         /// <param name="session"></param>
@@ -733,14 +709,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Last sequence number that was processed by the subscription
-        /// </summary>
-        public virtual uint GetLastSequenceNumberProcessed()
-        {
-            return _lastSequenceNumberProcessed;
-        }
-
-        /// <summary>
         /// Process status change notification
         /// </summary>
         /// <param name="sequenceNumber"></param>
@@ -1193,36 +1161,14 @@ namespace Opc.Ua.Client
             {
                 await foreach (var incoming in _messages.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                 {
-                    var prevSeqNum = GetLastSequenceNumberProcessed();
+                    var prevSeqNum = _lastSequenceNumberProcessed;
                     var curSeqNum = incoming.Message.SequenceNumber;
                     if (prevSeqNum != 0)
                     {
                         for (var missing = prevSeqNum + 1; missing < curSeqNum; missing++)
                         {
                             // Try to republish missing messages from retransmission queue
-                            if (_availableInRetransmissionQueue.Contains(missing))
-                            {
-                                _logger.LogWarning("SubscriptionId {Id}: Message with sequence number " +
-                                    "#{SeqNumber} is not in server retransmission queue and was dropped.",
-                                    Id, missing);
-                                continue;
-                            }
-
-                            _logger.LogInformation("SubscriptionId {Id}: Republishing missing message " +
-                                "with sequence number #{Missing} to catch up to message " +
-                                "with sequence number #{SeqNumber}...", Id, missing, curSeqNum);
-                            var republish = await Session.RepublishAsync(null, Id, missing,
-                                ct).ConfigureAwait(false);
-                            if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
-                            {
-                                await OnNotificationReceivedAsync(republish.NotificationMessage,
-                                    PublishState.Republish).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("SubscriptionId {Id}: Republishing message with " +
-                                    "sequence number #{SeqNumber} failed.", Id, missing);
-                            }
+                            await TryRepublishAsync(missing, curSeqNum, ct).ConfigureAwait(false);
                         }
                         if (prevSeqNum >= curSeqNum)
                         {
@@ -1247,7 +1193,7 @@ namespace Opc.Ua.Client
                     }
                     _lastSequenceNumberProcessed = curSeqNum;
                     await OnNotificationReceivedAsync(incoming.Message,
-                        PublishState.None).ConfigureAwait(false);
+                        PublishState.None, ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
@@ -1257,6 +1203,33 @@ namespace Opc.Ua.Client
                     "SubscriptionId {Id}: Error processing messages. Processor is exiting!!!", Id);
                 OnPublishStateChanged(PublishState.Stopped);
             }
+
+            async Task TryRepublishAsync(uint missing, uint curSeqNum, CancellationToken ct)
+            {
+                if (_availableInRetransmissionQueue.Contains(missing))
+                {
+                    _logger.LogWarning("SubscriptionId {Id}: Message with sequence number " +
+                        "#{SeqNumber} is not in server retransmission queue and was dropped.",
+                        Id, missing);
+                    return;
+                }
+                _logger.LogInformation("SubscriptionId {Id}: Republishing missing message " +
+                    "with sequence number #{Missing} to catch up to message " +
+                    "with sequence number #{SeqNumber}...", Id, missing, curSeqNum);
+                var republish = await Session.RepublishAsync(null, Id, missing,
+                    ct).ConfigureAwait(false);
+
+                if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
+                {
+                    await OnNotificationReceivedAsync(republish.NotificationMessage,
+                        PublishState.Republish, ct).ConfigureAwait(false);
+                }
+                else
+                {
+                    _logger.LogWarning("SubscriptionId {Id}: Republishing message with " +
+                        "sequence number #{SeqNumber} failed.", Id, missing);
+                }
+            }
         }
 
         /// <summary>
@@ -1264,9 +1237,10 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="message"></param>
         /// <param name="publishStateMask"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async ValueTask OnNotificationReceivedAsync(NotificationMessage message,
-            PublishState publishStateMask)
+            PublishState publishStateMask, CancellationToken ct)
         {
             try
             {
@@ -1278,44 +1252,65 @@ namespace Opc.Ua.Client
                 }
                 else
                 {
-                    var noNotificationsReceived = 0;
+#if PARALLEL_DISPATCH
+                    await Task.WhenAll(message.NotificationData.Select(
+                        notificationData => DispatchAsync(message, publishStateMask,
+                            notificationData))).ConfigureAwait(false);
+#else
                     foreach (var notificationData in message.NotificationData)
                     {
-                        switch (notificationData.Body)
-                        {
-                            case DataChangeNotification datachange:
-                                noNotificationsReceived += datachange.MonitoredItems.Count;
-                                await OnDataChangeNotificationAsync(message.SequenceNumber,
-                                    message.PublishTime, datachange, publishStateMask,
-                                    message.StringTable).ConfigureAwait(false);
-                                break;
-                            case EventNotificationList events:
-                                noNotificationsReceived += events.Events.Count;
-                                await OnEventDataNotificationAsync(message.SequenceNumber,
-                                    message.PublishTime, events, publishStateMask,
-                                    message.StringTable).ConfigureAwait(false);
-                                break;
-                            case StatusChangeNotification statusChanged:
-                                var mask = publishStateMask;
-                                if (statusChanged.Status == StatusCodes.GoodSubscriptionTransferred)
-                                {
-                                    mask |= PublishState.Transferred;
-                                }
-                                else if (statusChanged.Status == StatusCodes.BadTimeout)
-                                {
-                                    mask |= PublishState.Timeout;
-                                }
-                                await OnStatusChangeNotificationAsync(message.SequenceNumber,
-                                    message.PublishTime, statusChanged, mask,
-                                    message.StringTable).ConfigureAwait(false);
-                                break;
-                        }
+                        await DispatchAsync(message, publishStateMask,
+                            notificationData).ConfigureAwait(false);
                     }
+#endif
                 }
+                await Session.QueueAcknowledgementAsync(new SubscriptionAcknowledgement
+                {
+                    SequenceNumber = message.SequenceNumber,
+                    SubscriptionId = Id
+                }, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "SubscriptionId {Id}: Error dispatching notification data.", Id);
+                _logger.LogError(ex,
+                    "SubscriptionId {Id}: Error dispatching notification data.", Id);
+            }
+
+            async Task DispatchAsync(NotificationMessage message,
+                PublishState publishStateMask, ExtensionObject? notificationData)
+            {
+                if (notificationData == null)
+                {
+                    return;
+                }
+                switch (notificationData.Body)
+                {
+                    case DataChangeNotification datachange:
+                        await OnDataChangeNotificationAsync(message.SequenceNumber,
+                            message.PublishTime, datachange, publishStateMask,
+                            message.StringTable).ConfigureAwait(false);
+                        break;
+                    case EventNotificationList events:
+                        await OnEventDataNotificationAsync(message.SequenceNumber,
+                            message.PublishTime, events, publishStateMask,
+                            message.StringTable).ConfigureAwait(false);
+                        break;
+                    case StatusChangeNotification statusChanged:
+                        var mask = publishStateMask;
+                        if (statusChanged.Status ==
+                            StatusCodes.GoodSubscriptionTransferred)
+                        {
+                            mask |= PublishState.Transferred;
+                        }
+                        else if (statusChanged.Status == StatusCodes.BadTimeout)
+                        {
+                            mask |= PublishState.Timeout;
+                        }
+                        await OnStatusChangeNotificationAsync(message.SequenceNumber,
+                            message.PublishTime, statusChanged, mask,
+                            message.StringTable).ConfigureAwait(false);
+                        break;
+                }
             }
         }
 
@@ -1440,7 +1435,6 @@ namespace Opc.Ua.Client
         private int _keepAliveInterval;
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
-        private uint _lastSequenceNumberAcknoledged;
         private readonly List<MonitoredItem> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();
