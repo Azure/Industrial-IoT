@@ -293,7 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Message source
             /// </summary>
-            public IMessageSource Source { get; }
+            public IWriterGroupControl Controller { get; }
 
             /// <summary>
             /// Current writer group job version
@@ -315,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 WriterGroup = writerGroup with { Id = id };
                 Id = id;
                 _scope = _outer._factory.Create(WriterGroup);
-                Source = _scope.WriterGroup.Source;
+                Controller = _scope.WriterGroup;
             }
 
             /// <summary>
@@ -333,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var context = new WriterGroupJob(outer, version, id, writerGroup);
                 try
                 {
-                    await context.Source.StartAsync(ct).ConfigureAwait(false);
+                    await context.Controller.StartAsync(ct).ConfigureAwait(false);
                     return context;
                 }
                 catch (Exception ex)
@@ -358,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var newWriterGroup = writerGroup with { Id = Id };
 
-                    await Source.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
+                    await Controller.UpdateAsync(newWriterGroup, ct).ConfigureAwait(false);
 
                     // Update inner state if successful
                     WriterGroup = newWriterGroup;

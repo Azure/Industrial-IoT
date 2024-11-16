@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IWriterGroupDiagnostics
         {
             /// <inheritdoc/>
-            public IWriterGroup WriterGroup => _scope.Resolve<IWriterGroup>();
+            public IWriterGroupControl WriterGroup => _scope.Resolve<IWriterGroupControl>();
 
             /// <inheritdoc/>
             public TagList TagList { get; }

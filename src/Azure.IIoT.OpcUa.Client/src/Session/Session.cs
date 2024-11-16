@@ -1708,7 +1708,8 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Queue ack for completed notifications
+        /// Subscriptionss queue acknoledgements for completed
+        /// notifications as soon as they are dispatched / handled.
         /// </summary>
         /// <param name="ack"></param>
         /// <param name="ct"></param>
@@ -3283,36 +3284,32 @@ namespace Opc.Ua.Client
             /// publish responses to the subscriptions contained in this session.
             /// The publish worker tasks have a controller that reduces or
             /// increases the number of workers as new subscriptions are added
-            /// or subscriptions are removed.
+            /// or subscriptions are removed. Once the message has been delivered
+            /// to the subscription, the subscription will queue acknowledges
+            /// to the worker which it will send.
             /// </summary>
             /// <param name="ct"></param>
             private async Task PublishWorkerAsync(CancellationToken ct)
             {
                 var timeoutHint = 0u;
-                var noWait = true;
+                var moreNotifications = true; // Dont wait first time we enter the loop.
+                _logger.LogInformation("PUBLISH #{Handle} - publish worker STARTED.", Index);
                 while (!ct.IsCancellationRequested)
                 {
                     if (!_session._connected.IsSet)
                     {
+                        _logger.LogInformation(
+                            "PUBLISH #{Handle} - publish worker PAUSED.", Index);
                         await _session._connected.WaitAsync(ct).ConfigureAwait(false);
+                        _logger.LogInformation(
+                            "PUBLISH #{Handle} - publish worker RESUMED.", Index);
                     }
-
-                    var throttleDuration = RevisePublishTimeout(ref timeoutHint);
-                    var acks = GetReadyToAcknoledge();
-                    if (acks.Count == 0 && !noWait)
+                    var minPublishInterval = RevisePublishTimeout(ref timeoutHint);
+                    var acks = GetAcksReadyToSend();
+                    if (acks.Count == 0 && !moreNotifications)
                     {
                         // Throttle publishing as we wait for acks to arrive
-                        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                        if (throttleDuration != 0)
-                        {
-                            _logger.LogInformation(
-                                "PUBLISH #{Handle} - Waiting {Time}ms for acks to arrive.",
-                                Index, throttleDuration);
-                            cts.CancelAfter(throttleDuration);
-                        }
-                        await _session._acks.Reader.WaitToReadAsync(
-                            cts.Token).ConfigureAwait(false);
-                        acks = GetReadyToAcknoledge();
+                        acks = await WaitForAcksAsync(minPublishInterval, ct).ConfigureAwait(false);
                     }
                     var publishCounter = Utils.IncrementIdentifier(ref _session._publishCounter);
                     try
@@ -3324,9 +3321,9 @@ namespace Opc.Ua.Client
                             RequestHandle = publishCounter
                         }, acks, ct).ConfigureAwait(false);
 
+                        moreNotifications = response.MoreNotifications;
                         var subscriptionId = response.SubscriptionId;
                         var notificationMessage = response.NotificationMessage;
-                        var moreNotifications = response.MoreNotifications;
                         var availableSequenceNumbers = response.AvailableSequenceNumbers;
 
                         var acknowledgeResults = response.Results;
@@ -3339,25 +3336,6 @@ namespace Opc.Ua.Client
                         var subscription = _session.GetSubscription(subscriptionId);
                         if (subscription != null)
                         {
-                            var publishTimeout =
-                                subscription.CurrentPublishingInterval * subscription.CurrentLifetimeCount;
-
-                            // Validate publish time and reject old values.
-                            if (DateTime.UtcNow >= notificationMessage.PublishTime.Add(publishTimeout))
-                            {
-                                _logger.LogTrace("PUBLISH #{Handle}-{Id} - PublishTime {PublishTime} in " +
-                                    "publish response is too old for SubscriptionId {SubscriptionId}.",
-                                    Index, publishCounter, notificationMessage.PublishTime, subscription.Id);
-                            }
-
-                            // Validate publish time and reject old values.
-                            if (notificationMessage.PublishTime > DateTime.UtcNow.Add(publishTimeout))
-                            {
-                                _logger.LogTrace("PUBLISH #{Handle}-{Id} - PublishTime {PublishTime} in " +
-                                    "publish response is newer than actual time for SubscriptionId {SubscriptionId}.",
-                                    Index, publishCounter, notificationMessage.PublishTime, subscription.Id);
-                            }
-
                             // deliver to subscription
                             await subscription.OnPublishReceivedAsync(availableSequenceNumbers,
                                 notificationMessage, response.ResponseHeader.StringTable).ConfigureAwait(false);
@@ -3367,7 +3345,7 @@ namespace Opc.Ua.Client
                         {
                             // ignore messages with a subscription that has been deleted.
                             // Do not delete publish requests of stale subscriptions
-                            _logger.LogWarning(
+                            _logger.LogInformation(
                                 "PUBLISH #{Handle}-{Id} - Received Publish Response " +
                                 "for Unknown SubscriptionId={SubscriptionId}. Ignored.",
                                 Index, publishCounter, subscriptionId);
@@ -3383,7 +3361,6 @@ namespace Opc.Ua.Client
                         // raise an error event.
                         var error = new ServiceResult(e);
                         Interlocked.Increment(ref _session._badPublishRequestCount);
-
                         // Rollback acks we collected
                         acks.ForEach(ack => _session._acks.Writer.TryWrite(ack));
 
@@ -3413,6 +3390,7 @@ namespace Opc.Ua.Client
                             case StatusCodes.BadSessionIdInvalid:
                             case StatusCodes.BadSecureChannelIdInvalid:
                             case StatusCodes.BadSecureChannelClosed:
+                                // TODO
                                 // OnKeepAliveError(error);
                                 break;
                             // Servers may return this error when overloaded
@@ -3420,17 +3398,17 @@ namespace Opc.Ua.Client
                             case StatusCodes.BadTcpServerTooBusy:
                             case StatusCodes.BadServerTooBusy:
                                 // throttle the next publish to reduce server load
-                                _logger.LogInformation(
+                                _logger.LogDebug(
                                     "PUBLISH #{Handle}-{Id} - Server busy, throttling worker.",
                                     Index, publishCounter);
-                                await Task.Delay(throttleDuration, ct).ConfigureAwait(false);
+                                moreNotifications = false; // throttle
                                 break;
                             case StatusCodes.BadTimeout:
                             case StatusCodes.BadRequestTimeout:
                                 // Timed out - retry with larger timeout
                                 timeoutHint += 1000; // Increase by seconds
-                                _logger.LogInformation(
-                                    "PUBLISH #{Handle}}-{Id} - Timed out, increasing timeout to {Timeout}.",
+                                _logger.LogDebug(
+                                    "PUBLISH #{Handle}-{Id} - Timed out, increasing timeout to {Timeout}.",
                                     Index, publishCounter, timeoutHint);
                                 break;
                             default:
@@ -3441,23 +3419,73 @@ namespace Opc.Ua.Client
                         }
                     }
                 }
+                _logger.LogInformation("PUBLISH #{Handle} - publish worker STOPPED.", Index);
+            }
+
+            /// <summary>
+            /// Wait until acks arrive and return them
+            /// </summary>
+            /// <param name="maxWaitTime"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task<SubscriptionAcknowledgementCollection> WaitForAcksAsync(
+                int maxWaitTime, CancellationToken ct)
+            {
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var sw = Stopwatch.StartNew();
+                if (maxWaitTime != 0 && maxWaitTime != Timeout.Infinite)
+                {
+                    _logger.LogInformation(
+                        "PUBLISH #{Handle} - Waiting max {Time}ms for acks to arrive.",
+                        Index, maxWaitTime);
+                    cts.CancelAfter(maxWaitTime);
+                }
+                else
+                {
+                    _logger.LogDebug("PUBLISH #{Handle} - Waiting for acks to arrive.",
+                        Index);
+                }
+                try
+                {
+                    var firstAck = await _session._acks.Reader.ReadAsync(
+                        cts.Token).ConfigureAwait(false);
+                    var acks = GetAcksReadyToSend();
+                    acks.Insert(0, firstAck);
+                    _logger.LogInformation(
+                        "PUBLISH #{Handle} - Publish {Count} acks after pausing {Duration}.",
+                        Index, acks.Count, sw.Elapsed);
+                    return acks;
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    _logger.LogInformation(
+                        "PUBLISH #{Handle} - Publish with no acks after waiting {Duration}.",
+                        Index, sw.Elapsed);
+                    return new SubscriptionAcknowledgementCollection();
+                }
             }
 
             /// <summary>
             /// Get acks that are ready to send
             /// </summary>
             /// <returns></returns>
-            private SubscriptionAcknowledgementCollection GetReadyToAcknoledge()
+            private SubscriptionAcknowledgementCollection GetAcksReadyToSend()
             {
                 var acks = new SubscriptionAcknowledgementCollection();
 
                 // TODO: Is this something that we can get from ops limit?
-                var maxAcks = _session._acks.Reader.Count
-                    / Math.Max(_session.PublishWorkerCount, 1);
+                var available = _session._acks.Reader.Count;
+                var maxAcks = available / Math.Max(_session.PublishWorkerCount, 1);
                 for (var i = 0; i < maxAcks
                     && _session._acks.Reader.TryRead(out var ack); i++)
                 {
                     acks.Add(ack);
+                }
+                if (acks.Count != 0)
+                {
+                    _logger.LogDebug(
+                        "PUBLISH #{Handle} - Acknoledging {Count} of {Total} messages.",
+                        Index, acks.Count, available);
                 }
                 return acks;
             }
@@ -3481,16 +3509,21 @@ namespace Opc.Ua.Client
                     foreach (var s in _session._subscriptions)
                     {
                         var publishingInterval = s.CurrentPublishingInterval;
-                        var pi = (int)publishingInterval.Milliseconds;
-                        if (minPublishInterval > pi)
-                        {
-                            minPublishInterval = pi;
-                        }
-                        var keepAlive =
-                            publishingInterval * s.CurrentKeepAliveCount;
+                        var keepAlive = publishingInterval * s.CurrentKeepAliveCount;
                         if (timeout < keepAlive)
                         {
                             timeout = keepAlive;
+                        }
+
+                        var pi = (int)publishingInterval.TotalMilliseconds;
+                        if (pi <= 0)
+                        {
+                            continue;
+                        }
+                        if (minPublishInterval > pi ||
+                            minPublishInterval == Timeout.Infinite)
+                        {
+                            minPublishInterval = pi;
                         }
                     }
                     //

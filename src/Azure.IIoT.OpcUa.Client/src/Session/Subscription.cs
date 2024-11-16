@@ -1082,40 +1082,6 @@ namespace Opc.Ua.Client
                 Id = subscriptionId;
                 StartKeepAliveTimer();
             }
-
-            if (KeepAliveCount != revisedKeepAliveCount)
-            {
-                _logger.LogInformation(
-                    "SubscriptionId {Id}: Keep alive count was revised from {Old} to {New}",
-                    Id, KeepAliveCount, revisedKeepAliveCount);
-            }
-
-            if (LifetimeCount != revisedLifetimeCount)
-            {
-                _logger.LogInformation(
-                    "SubscriptionId {Id}: Lifetime count was revised from {Old} to {New}",
-                    Id, LifetimeCount, revisedLifetimeCount);
-            }
-
-            if (PublishingInterval != revisedPublishingInterval)
-            {
-                _logger.LogInformation(
-                    "SubscriptionId {Id}: Publishing interval was revised from {Old} to {New}",
-                    Id, PublishingInterval, revisedPublishingInterval);
-            }
-
-            if (revisedLifetimeCount < revisedKeepAliveCount * 3)
-            {
-                _logger.LogInformation(
-                    "SubscriptionId {Id}: Revised lifetime counter (value={Lifetime}) " +
-                    "is less than three times the keep alive count (value={KeepAlive})",
-                    Id, revisedLifetimeCount, revisedKeepAliveCount);
-            }
-
-            if (CurrentPriority == 0)
-            {
-                _logger.LogInformation("SubscriptionId {Id}: priority was set to 0.", Id);
-            }
         }
 
         /// <summary>
