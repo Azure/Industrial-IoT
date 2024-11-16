@@ -3306,7 +3306,7 @@ namespace Opc.Ua.Client
                     }
                     var minPublishInterval = RevisePublishTimeout(ref timeoutHint);
                     var acks = GetAcksReadyToSend();
-                    if (acks.Count == 0 && !moreNotifications)
+                    if (acks.Count == 0 && !moreNotifications && minPublishInterval != 0)
                     {
                         // Throttle publishing as we wait for acks to arrive
                         acks = await WaitForAcksAsync(minPublishInterval, ct).ConfigureAwait(false);
@@ -3350,6 +3350,7 @@ namespace Opc.Ua.Client
                                 "for Unknown SubscriptionId={SubscriptionId}. Ignored.",
                                 Index, publishCounter, subscriptionId);
                             Interlocked.Increment(ref _session._badPublishRequestCount);
+                            moreNotifications = true;
                         }
                     }
                     catch (OperationCanceledException)
@@ -3410,6 +3411,7 @@ namespace Opc.Ua.Client
                                 _logger.LogDebug(
                                     "PUBLISH #{Handle}-{Id} - Timed out, increasing timeout to {Timeout}.",
                                     Index, publishCounter, timeoutHint);
+                                moreNotifications = true;
                                 break;
                             default:
                                 _logger.LogError(e,
@@ -3431,10 +3433,18 @@ namespace Opc.Ua.Client
             private async Task<SubscriptionAcknowledgementCollection> WaitForAcksAsync(
                 int maxWaitTime, CancellationToken ct)
             {
+                Debug.Assert(maxWaitTime != 0, "Checked before entering");
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 var sw = Stopwatch.StartNew();
-                if (maxWaitTime != 0 && maxWaitTime != Timeout.Infinite)
+                if (maxWaitTime != Timeout.Infinite)
                 {
+                    var workers = _session.PublishWorkerCount;
+                    if (workers == 0)
+                    {
+                        Debug.Fail("Must have at least this worker here.");
+                        workers = 1;
+                    }
+                    maxWaitTime /= workers;
                     _logger.LogInformation(
                         "PUBLISH #{Handle} - Waiting max {Time}ms for acks to arrive.",
                         Index, maxWaitTime);
