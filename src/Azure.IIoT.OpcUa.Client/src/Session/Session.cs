@@ -26,6 +26,11 @@ namespace Opc.Ua.Client
         public ILoggerFactory LoggerFactory { get; }
 
         /// <summary>
+        /// Get time provider to use
+        /// </summary>
+        public TimeProvider TimeProvider { get; }
+
+        /// <summary>
         /// Gets the endpoint used to connect to the server.
         /// </summary>
         public ConfiguredEndpoint ConfiguredEndpoint { get; }
@@ -129,17 +134,14 @@ namespace Opc.Ua.Client
         public bool DeleteSubscriptionsOnClose { get; set; } = true;
 
         /// <summary>
-        /// If the subscriptions are transferred when a session is
-        /// recreated.
+        /// No complex type loading ever
         /// </summary>
-        /// <remarks>
-        /// TODO: Cleanup - Not reconnected. Wrong name, but leaving
-        /// for backcompat.
-        /// Default <c>false</c>, set to <c>true</c> if subscriptions
-        /// should be transferred after recreating the session.
-        /// Service must be supported by server.
-        /// </remarks>
-        public bool TransferSubscriptionsOnRecreate { get; set; }
+        public bool DisableComplexTypeLoading { get; set; }
+
+        /// <summary>
+        /// Disable complex type preloading when session is opened.
+        /// </summary>
+        public bool DisableComplexTypePreloading { get; set; }
 
         /// <summary>
         /// Gets or Sets how frequently the server is pinged to see if
@@ -182,7 +184,14 @@ namespace Opc.Ua.Client
         /// Session is in the process of connecting as indicated
         /// by the connect lock being taken
         /// </summary>
-        internal bool Connecting => _connecting.CurrentCount == 0;
+        internal bool Connecting
+            => _connecting.CurrentCount == 0;
+
+        /// <summary>
+        /// Type system has loaded
+        /// </summary>
+        public bool IsTypeSystemLoaded
+            => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
 
         /// <summary>
         /// Constructs a new instance of the <see cref="Session"/> class. The application
@@ -206,6 +215,7 @@ namespace Opc.Ua.Client
         /// the call to GetEndpoints request.</param>
         /// <param name="reverseConnectManager">Reverse connect manager if the session
         /// established over a reverse connection</param>
+        /// <param name="timeProvider"></param>
         /// <param name="channel">The channel that should be used to communicate with the
         /// server in the initial open call.</param>
         /// <param name="connection">An established reverse connection that should be
@@ -216,7 +226,7 @@ namespace Opc.Ua.Client
             X509Certificate2? clientCertificate = null, TimeSpan? sessionTimeout = null,
             bool checkDomain = true, EndpointDescriptionCollection? availableEndpoints = null,
             StringCollection? discoveryProfileUris = null,
-            ReverseConnectManager? reverseConnectManager = null,
+            ReverseConnectManager? reverseConnectManager = null, TimeProvider? timeProvider = null,
             ITransportChannel? channel = null, ITransportWaitingConnection? connection = null)
             : base(channel)
         {
@@ -229,6 +239,7 @@ namespace Opc.Ua.Client
                     "The application configuration for the session is missing fields.");
             }
 
+            TimeProvider = timeProvider ?? TimeProvider.System;
             MessageContext = channel?.MessageContext ?? configuration.CreateMessageContext();
             LoggerFactory = loggerFactory;
             ConfiguredEndpoint = endpoint;
@@ -353,6 +364,7 @@ namespace Opc.Ua.Client
             {
                 _subscriptions.Pause();
                 StopKeepAliveTimer();
+                _complexTypeSystem = null;
                 var previousSessionId = SessionId;
                 var previousAuthenticationToken = AuthenticationToken;
 
@@ -569,6 +581,9 @@ namespace Opc.Ua.Client
 
                     await _subscriptions.RecreateSubscriptionsAsync(previousSessionId,
                         ct).ConfigureAwait(false);
+
+                    // Preload complex type system
+                    PrefetchComplexTypeSystem();
 
                     // call session created callback, which was already set in base class only.
                     SessionCreated(sessionId, authenticationToken);
@@ -834,6 +849,37 @@ namespace Opc.Ua.Client
             // to create the channel
             _connection = null;
             base.DetachChannel();
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
+            CancellationToken ct)
+        {
+            if (DisableComplexTypeLoading)
+            {
+                return null;
+            }
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                try
+                {
+                    _complexTypeSystem ??= LoadComplexTypeSystemAsync();
+                    return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    // Throw any cancellation token exception
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "{Session}: Attempt #{Attempt}. Failed to get complex type system.",
+                        SessionId, attempt);
+                    _complexTypeSystem = LoadComplexTypeSystemAsync();
+                }
+            }
+            return null;
         }
 
         /// <inheritdoc/>
@@ -2479,6 +2525,46 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Preload type system
+        /// </summary>
+        private void PrefetchComplexTypeSystem()
+        {
+            Debug.Assert(Connected);
+            if (_complexTypeSystem == null &&
+                !DisableComplexTypeLoading &&
+                !DisableComplexTypePreloading)
+            {
+                _complexTypeSystem = LoadComplexTypeSystemAsync();
+            }
+        }
+
+        /// <summary>
+        /// Load complex type system
+        /// </summary>
+        /// <returns></returns>
+        private Task<ComplexTypeSystem> LoadComplexTypeSystemAsync()
+        {
+            Debug.Assert(!DisableComplexTypeLoading);
+            return Task.Run(async () =>
+            {
+                if (Connected)
+                {
+                    var complexTypeSystem = new ComplexTypeSystem(this);
+                    await complexTypeSystem.LoadAsync().ConfigureAwait(false);
+
+                    if (Connected)
+                    {
+                        _logger.LogInformation(
+                            "{Session}: Complex type system loaded into client.", this);
+
+                        return complexTypeSystem;
+                    }
+                }
+                throw new ServiceResultException(StatusCodes.BadNotConnected);
+            }, _cts.Token);
+        }
+
+        /// <summary>
         /// Validates the server certificate returned.
         /// </summary>
         /// <param name="serverCertificateData"></param>
@@ -2880,6 +2966,7 @@ namespace Opc.Ua.Client
         private bool _updateFromServer;
         private TimeSpan _keepAliveInterval = kDefaultKeepAliveInterval;
         private ITransportWaitingConnection? _connection;
+        private Task<ComplexTypeSystem>? _complexTypeSystem;
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _keepAliveTrigger = new();
         private readonly Timer _keepAliveTimer;
         private readonly CancellationTokenSource _cts = new();

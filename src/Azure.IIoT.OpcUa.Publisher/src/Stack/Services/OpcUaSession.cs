@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -42,12 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Time the session was created
         /// </summary>
         internal DateTimeOffset CreatedAt { get; }
-
-        /// <summary>
-        /// Type system has loaded
-        /// </summary>
-        internal bool IsTypeSystemLoaded
-            => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
 
         /// <summary>
         /// Get list of subscription handles registered in the session
@@ -105,13 +98,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ITransportChannel? channel = null, ITransportWaitingConnection? connection = null)
             : base(sessionName, configuration, endpoint, loggerFactory, identity,
                   preferredLocales, clientCertificate, sessionTimeout, checkDomain,
-                  availableEndpoints, discoveryProfileUris, reverseConnectManager, channel,
-                  connection)
+                  availableEndpoints, discoveryProfileUris, reverseConnectManager,
+                  timeProvider, channel, connection)
         {
             _logger = loggerFactory.CreateLogger<OpcUaSession>();
             _client = client;
-            _timeProvider = timeProvider;
-            CreatedAt = _timeProvider.GetUtcNow();
+            CreatedAt = TimeProvider.GetUtcNow();
 
             Initialize();
             Codec = new JsonVariantEncoder(MessageContext, serializer);
@@ -174,30 +166,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
-            CancellationToken ct = default)
-        {
-            if (_limits != null)
-            {
-                return _limits;
-            }
-            _limits = await FetchOperationLimitsAsync(new RequestHeader(),
-                ct).ConfigureAwait(false);
-            return _limits ?? new OperationLimitsModel();
-        }
-
-        /// <inheritdoc/>
         public async ValueTask<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             NamespaceFormat namespaceFormat, CancellationToken ct = default)
         {
             if (_server != null && namespaceFormat == NamespaceFormat.Uri)
             {
                 return _server;
-            }
-            if (_limits == null)
-            {
-                _limits = await FetchOperationLimitsAsync(new RequestHeader(),
-                    ct).ConfigureAwait(false);
             }
             var server = await FetchServerCapabilitiesAsync(new RequestHeader(),
                 namespaceFormat, ct).ConfigureAwait(false);
@@ -207,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             return server ?? new ServerCapabilitiesModel
             {
-                OperationLimits = _limits ?? new OperationLimitsModel()
+                OperationLimits = OperationLimits.ToServiceModel()
             };
         }
 
@@ -226,38 +200,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _history = history;
             }
             return history ?? new HistoryServerCapabilitiesModel();
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(CancellationToken ct)
-        {
-            if (_client.DisableComplexTypeLoading)
-            {
-                return null;
-            }
-            for (var attempt = 0; attempt < 2; attempt++)
-            {
-                try
-                {
-                    Debug.Assert(_complexTypeSystem != null);
-                    return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (ct.IsCancellationRequested)
-                {
-                    // Throw any cancellation token exception
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        "{Session}: Attempt #{Attempt}. Failed to get complex type system.",
-                        this, attempt);
-
-                    // Try again. TODO: Throttle using a timer or so...
-                    _complexTypeSystem = LoadComplexTypeSystemAsync();
-                }
-            }
-            return null;
         }
 
         /// <inheritdoc/>
@@ -613,22 +555,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // Update operation limits with configuration provided overrides
             OperationLimits.Override(_client.LimitOverrides);
-
-            PreloadComplexTypeSystem();
-        }
-
-        /// <summary>
-        /// Preload type system
-        /// </summary>
-        private void PreloadComplexTypeSystem()
-        {
-            if (_complexTypeSystem == null &&
-                Connected &&
-                !_client.DisableComplexTypeLoading &&
-                !_client.DisableComplexTypePreloading)
-            {
-                _complexTypeSystem = LoadComplexTypeSystemAsync();
-            }
         }
 
         /// <summary>
@@ -636,8 +562,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         private void Initialize()
         {
-            TransferSubscriptionsOnRecreate = !_client.DisableTransferSubscriptionOnReconnect;
-            DeleteSubscriptionsOnClose = !TransferSubscriptionsOnRecreate;
+            Subscriptions.TransferSubscriptionsOnRecreate
+                = !_client.DisableTransferSubscriptionOnReconnect;
+            DeleteSubscriptionsOnClose =
+                !Subscriptions.TransferSubscriptionsOnRecreate;
+
+            DisableComplexTypeLoading = _client.DisableComplexTypeLoading;
+            DisableComplexTypePreloading = _client.DisableComplexTypePreloading;
 
             var keepAliveInterval =
                 _client.KeepAliveInterval ?? kDefaultKeepAliveInterval;
@@ -876,108 +807,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Read operation limits
-        /// </summary>
-        /// <param name="header"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task<OperationLimitsModel?> FetchOperationLimitsAsync(RequestHeader header,
-            CancellationToken ct)
-        {
-            // Fetch limits into the session using the new api
-            var maxNodesPerRead = Validate32(OperationLimits.MaxNodesPerRead);
-
-            // Read once more to ensure we have all we need and also correctly show what is not provided.
-            var nodes = new[] {
-                Variables.Server_ServerCapabilities_MaxArrayLength,
-                Variables.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-                Variables.Server_ServerCapabilities_MaxByteStringLength,
-                Variables.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-                Variables.Server_ServerCapabilities_MaxQueryContinuationPoints,
-                Variables.Server_ServerCapabilities_MaxStringLength,
-                Variables.Server_ServerCapabilities_MinSupportedSampleRate,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
-                Variables.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall
-            };
-
-            var values = Enumerable.Empty<DataValue>();
-            foreach (var chunk in nodes.Batch(Math.Max(1, (int)maxNodesPerRead!)))
-            {
-                // Group the reads
-                var requests = new ReadValueIdCollection(chunk
-                    .Select(n => new ReadValueId
-                    {
-                        NodeId = n,
-                        AttributeId = Attributes.Value
-                    }));
-                var response = await ReadAsync(header, 0,
-                    Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
-                var results = response.Validate(response.Results, d => d.StatusCode,
-                    response.DiagnosticInfos, requests);
-                results.ThrowIfError();
-                values = values.Concat(results.Select(r => r.Result));
-            }
-
-            var value = values.ToList();
-            return new OperationLimitsModel
-            {
-                MaxArrayLength =
-                    Validate32(value[0].GetValueOrDefault<uint?>()),
-                MaxBrowseContinuationPoints =
-                    Validate16(value[1].GetValueOrDefault<ushort?>()),
-                MaxByteStringLength =
-                    Validate32(value[2].GetValueOrDefault<uint?>()),
-                MaxHistoryContinuationPoints =
-                    Validate16(value[3].GetValueOrDefault<ushort?>()),
-                MaxQueryContinuationPoints =
-                    Validate16(value[4].GetValueOrDefault<ushort?>()),
-                MaxStringLength =
-                    Validate32(value[5].GetValueOrDefault<uint?>()),
-                MinSupportedSampleRate =
-                    value[6].GetValueOrDefault<double?>(),
-                MaxNodesPerHistoryReadData =
-                    Validate32(value[7].GetValueOrDefault<uint?>()),
-                MaxNodesPerHistoryReadEvents =
-                    Validate32(value[8].GetValueOrDefault<uint?>()),
-                MaxNodesPerWrite =
-                    Validate32(value[9].GetValueOrDefault<uint?>()),
-                MaxNodesPerRead =
-                    Validate32(value[9].GetValueOrDefault<uint?>(), OperationLimits.MaxNodesPerRead),
-                MaxNodesPerHistoryUpdateData =
-                    Validate32(value[10].GetValueOrDefault<uint?>()),
-                MaxNodesPerHistoryUpdateEvents =
-                    Validate32(value[11].GetValueOrDefault<uint?>()),
-                MaxNodesPerMethodCall =
-                    Validate32(value[12].GetValueOrDefault<uint?>()),
-                MaxNodesPerBrowse =
-                    Validate32(value[13].GetValueOrDefault<uint?>(), OperationLimits.MaxNodesPerBrowse),
-                MaxNodesPerRegisterNodes =
-                    Validate32(value[14].GetValueOrDefault<uint?>()),
-                MaxNodesPerTranslatePathsToNodeIds =
-                    Validate32(value[15].GetValueOrDefault<uint?>()),
-                MaxNodesPerNodeManagement =
-                    Validate32(value[16].GetValueOrDefault<uint?>()),
-                MaxMonitoredItemsPerCall =
-                    Validate32(value[17].GetValueOrDefault<uint?>())
-            };
-
-            static uint? Validate32(uint? v, uint max = 0) => v == null ? null :
-                Math.Min(max == 0 ? int.MaxValue : max, v is > 0 and < int.MaxValue ? v.Value : int.MaxValue);
-            static ushort? Validate16(ushort? v, ushort max = 0) => v == null ? null :
-                Math.Min(max == 0 ? ushort.MaxValue : max, v > 0 ? v.Value : ushort.MaxValue);
-        }
-
-        /// <summary>
         /// Read the server capabilities if available
         /// </summary>
         /// <param name="requestHeader"></param>
@@ -1036,7 +865,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 v.Select(q => q.AsString(MessageContext, namespaceFormat)).ToList());
             return new ServerCapabilitiesModel
             {
-                OperationLimits = _limits ?? new OperationLimitsModel(),
+                OperationLimits = OperationLimits.ToServiceModel(),
                 ModellingRules =
                     modellingRules.Count == 0 ? null : modellingRules,
                 SupportedLocales =
@@ -1185,32 +1014,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Load complex type system
-        /// </summary>
-        /// <returns></returns>
-        private Task<ComplexTypeSystem> LoadComplexTypeSystemAsync()
-        {
-            Debug.Assert(!_client.DisableComplexTypeLoading);
-            return Task.Run(async () =>
-            {
-                if (Connected)
-                {
-                    var complexTypeSystem = new ComplexTypeSystem(this);
-                    await complexTypeSystem.LoadAsync().ConfigureAwait(false);
-
-                    if (Connected)
-                    {
-                        _logger.LogInformation(
-                            "{Session}: Complex type system loaded into client.", this);
-
-                        return complexTypeSystem;
-                    }
-                }
-                throw new ServiceResultException(StatusCodes.BadNotConnected);
-            }, _cts.Token);
-        }
-
-        /// <summary>
         /// Begin request
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1224,7 +1027,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var error = new T();
                 error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
-                error.ResponseHeader.Timestamp = _timeProvider.GetUtcNow().UtcDateTime;
+                error.ResponseHeader.Timestamp = TimeProvider.GetUtcNow().UtcDateTime;
                 var text = error.ResponseHeader.StringTable.Count;
                 error.ResponseHeader.StringTable.Add("Session not connected.");
                 var locale = error.ResponseHeader.StringTable.Count;
@@ -1243,7 +1046,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 header.RequestHandle = NewRequestHandle();
                 header.AuthenticationToken = AuthenticationToken;
-                header.Timestamp = _timeProvider.GetUtcNow().UtcDateTime;
+                header.Timestamp = TimeProvider.GetUtcNow().UtcDateTime;
             }
             return activity;
         }
@@ -1332,16 +1135,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private ServerCapabilitiesModel? _server;
-        private OperationLimitsModel? _limits;
         private SessionDiagnosticsModel? _lastDiagnostics;
         private HistoryServerCapabilitiesModel? _history;
-        private Task<ComplexTypeSystem>? _complexTypeSystem;
         private bool _disposed;
         private bool? _diagnosticsEnabled;
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;
-        private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);

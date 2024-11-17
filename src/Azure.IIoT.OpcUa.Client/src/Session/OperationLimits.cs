@@ -41,7 +41,7 @@ namespace Opc.Ua.Client
         /// Min supported sampling rate
         /// </summary>
         [DataMember(Order = 240)]
-        public double? MinSupportedSampleRate { get; set; }
+        public double MinSupportedSampleRate { get; set; }
 
         /// <summary>
         /// Max array length supported

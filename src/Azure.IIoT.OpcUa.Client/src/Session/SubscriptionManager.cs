@@ -30,9 +30,6 @@ namespace Opc.Ua.Client
         IDisposable
     {
         /// <inheritdoc/>
-        public bool DeleteSubscriptionsOnClose { get; set; } = true;
-
-        /// <inheritdoc/>
         public bool TransferSubscriptionsOnRecreate { get; set; }
 
         /// <inheritdoc/>

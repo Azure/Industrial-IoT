@@ -54,19 +54,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         IVariantEncoder Codec { get; }
 
         /// <summary>
+        /// Operation limits
+        /// </summary>
+        Opc.Ua.Client.OperationLimits OperationLimits { get; }
+
+        /// <summary>
         /// Get complex type system for the session
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Get operation limits
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
             CancellationToken ct = default);
 
         /// <summary>

@@ -121,8 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return (int)bufferSize.Value;
                 }
-                var caps = await session.GetOperationLimitsAsync(
-                    ct).ConfigureAwait(false);
+                var caps = session.OperationLimits;
                 bufferSize = caps.MaxByteStringLength;
                 if (bufferSize > 0 && bufferSize < int.MaxValue)
                 {

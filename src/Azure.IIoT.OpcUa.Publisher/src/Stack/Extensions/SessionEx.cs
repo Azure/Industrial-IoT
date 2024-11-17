@@ -213,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             var searchContext = browse.ToDictionary(b => b,
                 _ => new Stack<(Queue<ReferenceDescription> Next, HashSet<ExpandedNodeId> Seen)>());
 
-            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            var limits = session.OperationLimits;
             foreach (var batch in searchContext.Keys.Batch(limits.GetMaxNodesPerRead()))
             {
                 var response = await session.Services.ReadAsync(requestHeader,
@@ -448,7 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 // Nothing to do
                 return ((StatusCode)StatusCodes.GoodNoData).CreateResultModel();
             }
-            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            var limits = session.OperationLimits;
             var resolveBrowsePathsBatches = resolveBrowsePaths
                 .Batch(limits.GetMaxNodesPerTranslatePathsToNodeIds());
             foreach (var batch in resolveBrowsePathsBatches)
@@ -1389,7 +1389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             ViewDescription? view, BrowseDescriptionCollection nodesToBrowse,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
-            var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
+            var limits = session.OperationLimits;
             var maxContinuationPoints = limits.GetMaxBrowseContinuationPoints();
             foreach (var nodesToBrowseBatch in nodesToBrowse.Batch(limits.GetMaxNodesPerBrowse()))
             {

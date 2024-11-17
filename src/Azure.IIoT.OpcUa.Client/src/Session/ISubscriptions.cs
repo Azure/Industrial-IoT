@@ -16,15 +16,6 @@ namespace Opc.Ua.Client
     public interface ISubscriptions
     {
         /// <summary>
-        /// If the subscriptions are deleted when a session is closed.
-        /// </summary>
-        /// <remarks>
-        /// Default <c>true</c>, set to <c>false</c> if subscriptions
-        /// need to be transferred or for durable subscriptions.
-        /// </remarks>
-        bool DeleteSubscriptionsOnClose { get; set; }
-
-        /// <summary>
         /// If the subscriptions are transferred when a session is
         /// recreated.
         /// </summary>
