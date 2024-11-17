@@ -11,7 +11,7 @@ namespace Opc.Ua.Client
     /// Extended operation limits
     /// </summary>
     [DataContract(Namespace = Namespaces.OpcUaConfig)]
-    public sealed class OperationLimits : Opc.Ua.OperationLimits
+    public sealed class Limits : Opc.Ua.OperationLimits
     {
         /// <summary>
         /// Max browse continuation points
@@ -60,5 +60,53 @@ namespace Opc.Ua.Client
         /// </summary>
         [DataMember(Order = 270)]
         public uint MaxByteStringLength { get; set; }
+
+        /// <summary>
+        /// Max sessions the server can handle
+        /// </summary>
+        [DataMember(Order = 300)]
+        public uint MaxSessions { get; set; }
+
+        /// <summary>
+        /// Max subscriptions the server can handle
+        /// </summary>
+        [DataMember(Order = 310)]
+        public uint MaxSubscriptions { get; set; }
+
+        /// <summary>
+        /// Max monitored items the server can handle
+        /// </summary>
+        [DataMember(Order = 320)]
+        public uint MaxMonitoredItems { get; set; }
+
+        /// <summary>
+        /// Max subscriptions per session
+        /// </summary>
+        [DataMember(Order = 330)]
+        public uint MaxSubscriptionsPerSession { get; set; }
+
+        /// <summary>
+        /// Max monitored items per subscription
+        /// </summary>
+        [DataMember(Order = 340)]
+        public uint MaxMonitoredItemsPerSubscription { get; set; }
+
+        /// <summary>
+        /// Max select clause parameters
+        /// </summary>
+        [DataMember(Order = 350)]
+        public uint MaxSelectClauseParameters { get; set; }
+
+        /// <summary>
+        /// Max where clause parameters
+        /// </summary>
+        [DataMember(Order = 360)]
+        public uint MaxWhereClauseParameters { get; set; }
+
+        /// <summary>
+        /// Max monitored items queue size
+        /// </summary>
+        [DataMember(Order = 370)]
+        public uint MaxMonitoredItemsQueueSize { get; set; }
     }
 }

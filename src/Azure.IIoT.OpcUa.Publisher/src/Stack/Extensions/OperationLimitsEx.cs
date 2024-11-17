@@ -20,7 +20,7 @@ namespace Opc.Ua.Client
         /// <param name="limits"></param>
         /// <param name="update"></param>
         /// <returns></returns>
-        public static void Override(this OperationLimits limits, OperationLimits? update)
+        public static void Override(this Limits limits, Limits? update)
         {
             if (update == null)
             {
@@ -60,7 +60,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerBrowse(this OperationLimits model)
+        public static int GetMaxNodesPerBrowse(this Limits model)
         {
             var cur = model.MaxNodesPerBrowse;
             return Math.Min(Math.Max((int)cur, 1), kMaxBrowseNodes);
@@ -71,7 +71,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxBrowseContinuationPoints(this OperationLimits model)
+        public static int GetMaxBrowseContinuationPoints(this Limits model)
         {
             var cur = model.MaxBrowseContinuationPoints;
             return Math.Min(Math.Max((int)cur, 1), kMaxBrowseContinuationPoints);
@@ -82,7 +82,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerRead(this OperationLimits model)
+        public static int GetMaxNodesPerRead(this Limits model)
         {
             var cur = model.MaxNodesPerRead;
             return Math.Min(Math.Max((int)cur, 1), kMaxReadNodes);
@@ -93,7 +93,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerTranslatePathsToNodeIds(this OperationLimits model)
+        public static int GetMaxNodesPerTranslatePathsToNodeIds(this Limits model)
         {
             var cur = model.MaxNodesPerTranslatePathsToNodeIds;
             return Math.Min(Math.Max((int)cur, 1), kMaxNodesPerTranslate);
@@ -104,7 +104,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerRegisterNodes(this OperationLimits model)
+        public static int GetMaxNodesPerRegisterNodes(this Limits model)
         {
             var cur = model.MaxNodesPerRegisterNodes;
             return Math.Min(Math.Max((int)cur, 1), kMaxNodesPerRegister);
@@ -115,7 +115,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxMonitoredItemsPerCall(this OperationLimits model)
+        public static int GetMaxMonitoredItemsPerCall(this Limits model)
         {
             var cur = model.MaxMonitoredItemsPerCall;
             return Math.Min(Math.Max((int)cur, 1), kMaxMonitoredItemsPerCall);
@@ -126,7 +126,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="l"></param>
         /// <returns></returns>
-        public static OperationLimitsModel ToServiceModel(this OperationLimits l)
+        public static OperationLimitsModel ToServiceModel(this Limits l)
         {
             return new OperationLimitsModel
             {

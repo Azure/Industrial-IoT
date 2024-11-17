@@ -866,34 +866,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new ServerCapabilitiesModel
             {
                 OperationLimits = OperationLimits.ToServiceModel(),
-                ModellingRules =
-                    modellingRules.Count == 0 ? null : modellingRules,
-                SupportedLocales =
-                    config.LocaleIdArray.GetValueOrDefault(
+                ModellingRules = modellingRules.Count == 0 ? null : modellingRules,
+                SupportedLocales = config.LocaleIdArray.GetValueOrDefault(
                         v => v == null || v.Length == 0 ? null : v),
-                ServerProfiles =
-                    config.ServerProfileArray.GetValueOrDefault(
+                ServerProfiles = config.ServerProfileArray.GetValueOrDefault(
                         v => v == null || v.Length == 0 ? null : v),
-                AggregateFunctions =
-                    aggregateFunctions.Count == 0 ? null : aggregateFunctions,
-                MaxSessions =
-                    config.MaxSessions.GetValueOrDefault(),
-                MaxSubscriptions =
-                    config.MaxSubscriptions.GetValueOrDefault(),
-                MaxMonitoredItems =
-                    config.MaxMonitoredItems.GetValueOrDefault(),
-                MaxMonitoredItemsPerSubscription =
-                    config.MaxMonitoredItemsPerSubscription.GetValueOrDefault(),
-                MaxMonitoredItemsQueueSize =
-                    config.MaxMonitoredItemsQueueSize.GetValueOrDefault(),
-                MaxSubscriptionsPerSession =
-                    config.MaxSubscriptionsPerSession.GetValueOrDefault(),
-                MaxWhereClauseParameters =
-                    config.MaxWhereClauseParameters.GetValueOrDefault(),
-                MaxSelectClauseParameters =
-                    config.MaxSelectClauseParameters.GetValueOrDefault(),
+                AggregateFunctions = aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+                MaxSessions = Null(OperationLimits.MaxSessions),
+                MaxSubscriptions = Null(OperationLimits.MaxSubscriptions),
+                MaxMonitoredItems = Null(OperationLimits.MaxMonitoredItems),
+                MaxMonitoredItemsPerSubscription = Null(OperationLimits.MaxMonitoredItemsPerSubscription),
+                MaxMonitoredItemsQueueSize = Null(OperationLimits.MaxMonitoredItemsQueueSize),
+                MaxSubscriptionsPerSession = Null(OperationLimits.MaxSubscriptionsPerSession),
+                MaxWhereClauseParameters = Null(OperationLimits.MaxWhereClauseParameters),
+                MaxSelectClauseParameters = Null(OperationLimits.MaxSelectClauseParameters),
                 ConformanceUnits = conformanceUnits
             };
+            static T? Null<T>(T v) where T : struct
+                => EqualityComparer<T>.Default.Equals(default) ? null : v;
         }
 
         /// <summary>

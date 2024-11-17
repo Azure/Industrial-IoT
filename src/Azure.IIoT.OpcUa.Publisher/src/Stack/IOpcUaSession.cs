@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Operation limits
         /// </summary>
-        Opc.Ua.Client.OperationLimits OperationLimits { get; }
+        Opc.Ua.Client.Limits OperationLimits { get; }
 
         /// <summary>
         /// Get complex type system for the session

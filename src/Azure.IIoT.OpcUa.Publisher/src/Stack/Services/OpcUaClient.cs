@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
-        internal Opc.Ua.Client.OperationLimits? LimitOverrides { get; set; }
+        internal Opc.Ua.Client.Limits? LimitOverrides { get; set; }
 
         /// <summary>
         /// Last diagnostic information on this client
@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             LingerTimeout =
                 _options.Value.LingerTimeoutDuration;
             LimitOverrides
-                = new Opc.Ua.Client.OperationLimits
+                = new Opc.Ua.Client.Limits
                 {
                     MaxNodesPerRead =
                         (uint)(_options.Value.MaxNodesPerReadOverride ?? 0),

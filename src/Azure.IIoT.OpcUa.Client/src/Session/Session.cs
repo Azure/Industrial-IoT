@@ -2484,7 +2484,15 @@ namespace Opc.Ua.Client
         VariableIds.Server_ServerCapabilities_MaxStringLength,
         VariableIds.Server_ServerCapabilities_MaxArrayLength,
         VariableIds.Server_ServerCapabilities_MaxByteStringLength,
-        VariableIds.Server_ServerCapabilities_MinSupportedSampleRate
+        VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
+        VariableIds.Server_ServerCapabilities_MaxSessions,
+        VariableIds.Server_ServerCapabilities_MaxSubscriptions,
+        VariableIds.Server_ServerCapabilities_MaxMonitoredItems,
+        VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription,
+        VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize,
+        VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession,
+        VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters,
+        VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters
             };
 
             (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
@@ -2508,6 +2516,16 @@ namespace Opc.Ua.Client
             OperationLimits.MaxArrayLength = Get<uint>(ref index, values, errors);
             OperationLimits.MaxByteStringLength = Get<uint>(ref index, values, errors);
             OperationLimits.MinSupportedSampleRate = Get<double>(ref index, values, errors);
+
+            OperationLimits.MaxSessions = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxSubscriptions = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItems = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItemsPerSubscription = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItemsQueueSize = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxSubscriptionsPerSession = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxWhereClauseParameters = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxSelectClauseParameters = Get<uint>(ref index, values, errors);
+
 
             // Helper extraction
             static T Get<T>(ref int index, IReadOnlyList<DataValue> values,

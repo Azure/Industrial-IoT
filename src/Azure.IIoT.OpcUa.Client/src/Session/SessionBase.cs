@@ -19,7 +19,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The operation limits are used to batch the service requests.
         /// </summary>
-        public OperationLimits OperationLimits { get; } = new();
+        public Limits OperationLimits { get; } = new();
 
         /// <summary>
         /// Intializes the object with a channel and default operation limits.

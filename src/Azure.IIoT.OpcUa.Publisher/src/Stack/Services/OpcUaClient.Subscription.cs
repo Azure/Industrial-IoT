@@ -191,8 +191,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Get the max item per subscription as well as max
                 var caps = await session.GetServerCapabilitiesAsync(
                     NamespaceFormat.Uri, ct).ConfigureAwait(false);
-                var delay = await subscription.SyncAsync(caps.MaxMonitoredItemsPerSubscription,
-                    caps.OperationLimits, ct).ConfigureAwait(false);
+                var delay = await subscription.SyncAsync(session.OperationLimits,
+                    ct).ConfigureAwait(false);
                 RescheduleSynchronization(delay);
             }
             catch (Exception ex)
@@ -239,10 +239,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ct).ConfigureAwait(false);
 
             // Get the max item per subscription as well as max
-            var caps = await session.GetServerCapabilitiesAsync(
-                NamespaceFormat.Uri, ct).ConfigureAwait(false);
-            var maxMonitoredItems = caps.MaxMonitoredItemsPerSubscription;
-            var limits = caps.OperationLimits;
             var delay = Timeout.InfiniteTimeSpan;
 
             //
@@ -316,8 +312,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             session.Subscriptions.Add(subscription);
 
                             // Sync the subscription which will get it to go live.
-                            var delay = await subscription.SyncAsync(maxMonitoredItems,
-                                caps.OperationLimits, ct).ConfigureAwait(false);
+                            var delay = await subscription.SyncAsync(session.OperationLimits,
+                                ct).ConfigureAwait(false);
                             Interlocked.Increment(ref additions);
                             Debug.Assert(session == subscription.Session);
 
@@ -346,8 +342,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         try
                         {
                             var subscription = existing[update];
-                            var delay = await subscription.SyncAsync(maxMonitoredItems,
-                                caps.OperationLimits, ct).ConfigureAwait(false);
+                            var delay = await subscription.SyncAsync(session.OperationLimits,
+                                ct).ConfigureAwait(false);
                             Interlocked.Increment(ref updates);
                             Debug.Assert(session == subscription.Session);
                             s2r[update].ForEach(r => r.Dirty = false);

@@ -542,13 +542,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create or update the subscription now using the currently configured
         /// subscription configuration template.
         /// </summary>
-        /// <param name="maxMonitoredItemsPerSubscription"></param>
         /// <param name="limits"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        internal async ValueTask<TimeSpan> SyncAsync(uint? maxMonitoredItemsPerSubscription,
-            OperationLimitsModel limits, CancellationToken ct)
+        internal async ValueTask<TimeSpan> SyncAsync(Limits limits, CancellationToken ct)
         {
             Debug.Assert(IsRoot);
             if (_disposed)
@@ -557,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Subscription was disposed.");
             }
 
-            var maxMonitoredItems = maxMonitoredItemsPerSubscription ?? 0u;
+            var maxMonitoredItems = limits.MaxMonitoredItemsPerSubscription;
             if (maxMonitoredItems <= 0)
             {
                 maxMonitoredItems = _options.Value.MaxMonitoredItemPerSubscription
@@ -812,7 +810,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
         private async ValueTask<TimeSpan> SynchronizeMonitoredItemsAsync(
-            Partition partition, OperationLimitsModel operationLimits, CancellationToken ct)
+            Partition partition, Opc.Ua.Client.Limits operationLimits, CancellationToken ct)
         {
             if (Session is not OpcUaSession session)
             {
