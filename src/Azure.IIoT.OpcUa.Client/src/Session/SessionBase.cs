@@ -5,7 +5,10 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Logging;
+    using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,16 +20,26 @@ namespace Opc.Ua.Client
     public class SessionBase : Opc.Ua.Client.Obsolete.SessionClient
     {
         /// <summary>
+        /// Logger factory
+        /// </summary>
+        public ILoggerFactory LoggerFactory { get; }
+
+        /// <summary>
         /// The operation limits are used to batch the service requests.
         /// </summary>
         public Limits OperationLimits { get; } = new();
 
         /// <summary>
-        /// Intializes the object with a channel and default operation limits.
+        /// Intializes the object with a channel and logger factory.
         /// </summary>
+        /// <param name="loggerFactory"></param>
         /// <param name="channel"></param>
-        public SessionBase(ITransportChannel? channel = null) : base(channel)
+        public SessionBase(ILoggerFactory loggerFactory, ITransportChannel? channel = null)
+            : base(channel)
         {
+            LoggerFactory = loggerFactory;
+            _logger = LoggerFactory.CreateLogger<SessionBase>();
+            _activitySource = new ActivitySource("Opc.Ua.Client.SessionBase");
         }
 
         /// <inheritdoc/>
@@ -34,9 +47,19 @@ namespace Opc.Ua.Client
             ViewDescription? view, uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
         {
-            BrowseResponse? response = null;
+            using var activity = new SessionActivity<BrowseResponse>(this,
+                nameof(BrowseAsync));
 
+            BrowseResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerBrowse;
+            if (operationLimit == 0 || operationLimit >= nodesToBrowse.Count)
+            {
+                response = await base.BrowseAsync(requestHeader, view,
+                    requestedMaxReferencesPerNode, nodesToBrowse, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<BrowseResult, BrowseResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 nodesToBrowse.Count, operationLimit);
@@ -51,7 +74,7 @@ namespace Opc.Ua.Client
                 response = await base.BrowseAsync(requestHeader, view,
                     requestedMaxReferencesPerNode,
                     nodesToBrowseBatch, ct).ConfigureAwait(false);
-
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -65,7 +88,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -78,9 +102,19 @@ namespace Opc.Ua.Client
         public override async Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
             RequestHeader? requestHeader, BrowsePathCollection browsePaths, CancellationToken ct)
         {
-            TranslateBrowsePathsToNodeIdsResponse? response = null;
+            using var activity = new SessionActivity<TranslateBrowsePathsToNodeIdsResponse>(this,
+                nameof(TranslateBrowsePathsToNodeIdsAsync));
 
+            TranslateBrowsePathsToNodeIdsResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds;
+            if (operationLimit == 0 || operationLimit >= browsePaths.Count)
+            {
+                response = await base.TranslateBrowsePathsToNodeIdsAsync(requestHeader,
+                    browsePaths, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<BrowsePathResult, BrowsePathResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 browsePaths.Count, operationLimit);
@@ -92,14 +126,11 @@ namespace Opc.Ua.Client
                     requestHeader.RequestHandle = 0;
                 }
 
-                response = await base.TranslateBrowsePathsToNodeIdsAsync(
-                    requestHeader,
-                    batchBrowsePaths,
-                    ct).ConfigureAwait(false);
-
+                response = await base.TranslateBrowsePathsToNodeIdsAsync(requestHeader,
+                    batchBrowsePaths, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-
                 ClientBase.ValidateResponse(batchResults, batchBrowsePaths);
                 ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchBrowsePaths);
 
@@ -110,7 +141,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -124,11 +156,22 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, NodeIdCollection nodesToRegister,
             CancellationToken ct)
         {
-            RegisterNodesResponse? response = null;
-            var registeredNodeIds = new NodeIdCollection();
+            using var activity = new SessionActivity<RegisterNodesResponse>(this,
+                nameof(RegisterNodesAsync));
 
+            RegisterNodesResponse? response = null;
+            var operationLimit = OperationLimits.MaxNodesPerRegisterNodes;
+            if (operationLimit == 0 || operationLimit >= nodesToRegister.Count)
+            {
+                response = await base.RegisterNodesAsync(requestHeader, nodesToRegister,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
+            var registeredNodeIds = new NodeIdCollection();
             foreach (var batchNodesToRegister in nodesToRegister
-                .Batch<NodeId, NodeIdCollection>(OperationLimits.MaxNodesPerRegisterNodes))
+                .Batch<NodeId, NodeIdCollection>(operationLimit))
             {
                 if (requestHeader != null)
                 {
@@ -137,6 +180,7 @@ namespace Opc.Ua.Client
 
                 response = await base.RegisterNodesAsync(requestHeader,
                     batchNodesToRegister, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
 
                 var batchRegisteredNodeIds = response.RegisteredNodeIds;
                 ClientBase.ValidateResponse(batchRegisteredNodeIds, batchNodesToRegister);
@@ -145,7 +189,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.RegisteredNodeIds = registeredNodeIds;
             return response;
@@ -156,10 +201,21 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, NodeIdCollection nodesToUnregister,
             CancellationToken ct)
         {
+            using var activity = new SessionActivity<UnregisterNodesResponse>(this,
+                nameof(UnregisterNodesAsync));
+
             UnregisterNodesResponse? response = null;
+            var operationLimit = OperationLimits.MaxNodesPerRegisterNodes;
+            if (operationLimit == 0 || operationLimit >= nodesToUnregister.Count)
+            {
+                response = await base.UnregisterNodesAsync(requestHeader, nodesToUnregister,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
 
             foreach (var batchNodesToUnregister in nodesToUnregister
-                .Batch<NodeId, NodeIdCollection>(OperationLimits.MaxNodesPerRegisterNodes))
+                .Batch<NodeId, NodeIdCollection>(operationLimit))
             {
                 if (requestHeader != null)
                 {
@@ -167,10 +223,12 @@ namespace Opc.Ua.Client
                 }
                 response = await base.UnregisterNodesAsync(requestHeader,
                     batchNodesToUnregister, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
             }
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             return response;
         }
@@ -180,9 +238,18 @@ namespace Opc.Ua.Client
             double maxAge, TimestampsToReturn timestampsToReturn,
             ReadValueIdCollection nodesToRead, CancellationToken ct)
         {
-            ReadResponse? response = null;
+            using var activity = new SessionActivity<ReadResponse>(this, nameof(ReadAsync));
 
+            ReadResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerRead;
+            if (operationLimit == 0 || operationLimit >= nodesToRead.Count)
+            {
+                response = await base.ReadAsync(requestHeader, maxAge, timestampsToReturn,
+                    nodesToRead, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<DataValue, DataValueCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 nodesToRead.Count, operationLimit);
@@ -196,6 +263,7 @@ namespace Opc.Ua.Client
 
                 response = await base.ReadAsync(requestHeader, maxAge, timestampsToReturn,
                     batchAttributesToRead, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -208,7 +276,8 @@ namespace Opc.Ua.Client
             }
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -223,9 +292,20 @@ namespace Opc.Ua.Client
             TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
             HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
         {
-            HistoryReadResponse? response = null;
+            using var activity = new SessionActivity<HistoryReadResponse>(this,
+                nameof(HistoryReadAsync));
 
+            HistoryReadResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerHistoryReadData;
+            if (operationLimit == 0 || operationLimit >= nodesToRead.Count)
+            {
+                response = await base.HistoryReadAsync(requestHeader, historyReadDetails,
+                    timestampsToReturn, releaseContinuationPoints, nodesToRead,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             if (historyReadDetails?.Body is ReadEventDetails)
             {
                 operationLimit = OperationLimits.MaxNodesPerHistoryReadEvents;
@@ -242,12 +322,10 @@ namespace Opc.Ua.Client
                     requestHeader.RequestHandle = 0;
                 }
 
-                response = await base.HistoryReadAsync(requestHeader,
-                    historyReadDetails,
-                    timestampsToReturn,
-                    releaseContinuationPoints,
-                    batchNodesToRead, ct).ConfigureAwait(false);
-
+                response = await base.HistoryReadAsync(requestHeader, historyReadDetails,
+                    timestampsToReturn, releaseContinuationPoints, batchNodesToRead,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -261,7 +339,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -274,13 +353,21 @@ namespace Opc.Ua.Client
         public override async Task<WriteResponse> WriteAsync(RequestHeader? requestHeader,
             WriteValueCollection nodesToWrite, CancellationToken ct)
         {
-            WriteResponse? response = null;
+            using var activity = new SessionActivity<WriteResponse>(this, nameof(WriteAsync));
 
+            WriteResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerWrite;
+            if (operationLimit == 0 || operationLimit >= nodesToWrite.Count)
+            {
+                response = await base.WriteAsync(requestHeader, nodesToWrite,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<StatusCode, StatusCodeCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 nodesToWrite.Count, operationLimit);
-
             foreach (var batchNodesToWrite in nodesToWrite
                 .Batch<WriteValue, WriteValueCollection>(operationLimit))
             {
@@ -291,7 +378,7 @@ namespace Opc.Ua.Client
 
                 response = await base.WriteAsync(requestHeader,
                     batchNodesToWrite, ct).ConfigureAwait(false);
-
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -305,7 +392,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -319,13 +407,23 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, ExtensionObjectCollection historyUpdateDetails,
             CancellationToken ct)
         {
-            HistoryUpdateResponse? response = null;
+            using var activity = new SessionActivity<HistoryUpdateResponse>(this,
+                nameof(HistoryUpdateAsync));
 
             var operationLimit = OperationLimits.MaxNodesPerHistoryUpdateData;
             if (historyUpdateDetails.Count > 0 &&
                 historyUpdateDetails[0].TypeId == DataTypeIds.UpdateEventDetails)
             {
                 operationLimit = OperationLimits.MaxNodesPerHistoryUpdateEvents;
+            }
+
+            HistoryUpdateResponse? response = null;
+            if (operationLimit == 0 || operationLimit >= historyUpdateDetails.Count)
+            {
+                response = await base.HistoryUpdateAsync(requestHeader, historyUpdateDetails,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
             }
 
             InitResponseCollections<HistoryUpdateResult, HistoryUpdateResultCollection>(
@@ -341,6 +439,7 @@ namespace Opc.Ua.Client
 
                 response = await base.HistoryUpdateAsync(requestHeader,
                     batchHistoryUpdateDetails, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -353,7 +452,8 @@ namespace Opc.Ua.Client
             }
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -365,9 +465,18 @@ namespace Opc.Ua.Client
         public override async Task<CallResponse> CallAsync(RequestHeader? requestHeader,
             CallMethodRequestCollection methodsToCall, CancellationToken ct)
         {
-            CallResponse? response = null;
+            using var activity = new SessionActivity<CallResponse>(this, nameof(CallAsync));
 
+            CallResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerMethodCall;
+            if (operationLimit == 0 || operationLimit >= methodsToCall.Count)
+            {
+                response = await base.CallAsync(requestHeader, methodsToCall,
+                    ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<CallMethodResult, CallMethodResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 methodsToCall.Count, operationLimit);
@@ -381,7 +490,7 @@ namespace Opc.Ua.Client
 
                 response = await base.CallAsync(requestHeader,
                     batchMethodsToCall, ct).ConfigureAwait(false);
-
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -394,7 +503,8 @@ namespace Opc.Ua.Client
             }
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -405,15 +515,23 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public override async Task<CreateMonitoredItemsResponse> CreateMonitoredItemsAsync(
-            RequestHeader? requestHeader,
-            uint subscriptionId,
+            RequestHeader? requestHeader, uint subscriptionId,
             TimestampsToReturn timestampsToReturn,
-            MonitoredItemCreateRequestCollection itemsToCreate,
-            CancellationToken ct)
+            MonitoredItemCreateRequestCollection itemsToCreate, CancellationToken ct)
         {
-            CreateMonitoredItemsResponse? response = null;
+            using var activity = new SessionActivity<CreateMonitoredItemsResponse>(this,
+                nameof(CreateMonitoredItemsAsync));
 
+            CreateMonitoredItemsResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
+            if (operationLimit == 0 || operationLimit >= itemsToCreate.Count)
+            {
+                response = await base.CreateMonitoredItemsAsync(requestHeader, subscriptionId,
+                    timestampsToReturn, itemsToCreate, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<MonitoredItemCreateResult, MonitoredItemCreateResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 itemsToCreate.Count, operationLimit);
@@ -425,11 +543,9 @@ namespace Opc.Ua.Client
                     requestHeader.RequestHandle = 0;
                 }
 
-                response = await base.CreateMonitoredItemsAsync(requestHeader,
-                    subscriptionId,
-                    timestampsToReturn,
-                    batchItemsToCreate, ct).ConfigureAwait(false);
-
+                response = await base.CreateMonitoredItemsAsync(requestHeader, subscriptionId,
+                    timestampsToReturn, batchItemsToCreate, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -443,7 +559,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -457,8 +574,19 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, TimestampsToReturn timestampsToReturn,
             MonitoredItemModifyRequestCollection itemsToModify, CancellationToken ct)
         {
+            using var activity = new SessionActivity<ModifyMonitoredItemsResponse>(this,
+                nameof(ModifyMonitoredItemsAsync));
+
             ModifyMonitoredItemsResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
+            if (operationLimit == 0 || operationLimit >= itemsToModify.Count)
+            {
+                response = await base.ModifyMonitoredItemsAsync(requestHeader, subscriptionId,
+                    timestampsToReturn, itemsToModify, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<MonitoredItemModifyResult, MonitoredItemModifyResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 itemsToModify.Count, operationLimit);
@@ -470,11 +598,9 @@ namespace Opc.Ua.Client
                     requestHeader.RequestHandle = 0;
                 }
 
-                response = await base.ModifyMonitoredItemsAsync(requestHeader,
-                    subscriptionId,
-                    timestampsToReturn,
-                    batchItemsToModify, ct).ConfigureAwait(false);
-
+                response = await base.ModifyMonitoredItemsAsync(requestHeader, subscriptionId,
+                    timestampsToReturn, batchItemsToModify, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -488,7 +614,8 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -502,9 +629,19 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, MonitoringMode monitoringMode,
             UInt32Collection monitoredItemIds, CancellationToken ct)
         {
-            SetMonitoringModeResponse? response = null;
+            using var activity = new SessionActivity<SetMonitoringModeResponse>(this,
+                nameof(SetMonitoringModeResponse));
 
+            SetMonitoringModeResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
+            if (operationLimit == 0 || operationLimit >= monitoredItemIds.Count)
+            {
+                response = await base.SetMonitoringModeAsync(requestHeader, subscriptionId,
+                    monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<StatusCode, StatusCodeCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 monitoredItemIds.Count, operationLimit);
@@ -516,11 +653,9 @@ namespace Opc.Ua.Client
                     requestHeader.RequestHandle = 0;
                 }
 
-                response = await base.SetMonitoringModeAsync(requestHeader,
-                    subscriptionId,
-                    monitoringMode,
-                    batchMonitoredItemIds, ct).ConfigureAwait(false);
-
+                response = await base.SetMonitoringModeAsync(requestHeader, subscriptionId,
+                    monitoringMode, batchMonitoredItemIds, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -533,7 +668,8 @@ namespace Opc.Ua.Client
             }
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
@@ -547,9 +683,19 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, uint triggeringItemId,
             UInt32Collection linksToAdd, UInt32Collection linksToRemove, CancellationToken ct)
         {
-            SetTriggeringResponse? response = null;
+            using var activity = new SessionActivity<SetTriggeringResponse>(this,
+                nameof(SetTriggeringAsync));
 
+            SetTriggeringResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
+            if (operationLimit == 0 || operationLimit >= linksToAdd.Count + linksToRemove.Count)
+            {
+                response = await base.SetTriggeringAsync(requestHeader, subscriptionId,
+                    triggeringItemId, linksToAdd, linksToRemove, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<StatusCode, StatusCodeCollection>(
                 out var addResults, out var addDiagnosticInfos, out var stringTable,
                 linksToAdd.Count, operationLimit);
@@ -583,13 +729,9 @@ namespace Opc.Ua.Client
                     requestHeader.RequestHandle = 0;
                 }
 
-                response = await base.SetTriggeringAsync(requestHeader,
-                    subscriptionId,
-                    triggeringItemId,
-                    batchLinksToAdd,
-                    batchLinksToRemove,
-                    ct).ConfigureAwait(false);
-
+                response = await base.SetTriggeringAsync(requestHeader, subscriptionId,
+                    triggeringItemId, batchLinksToAdd, batchLinksToRemove, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchAddResults = response.AddResults;
                 var batchAddDiagnosticInfos = response.AddDiagnosticInfos;
                 var batchRemoveResults = response.RemoveResults;
@@ -622,13 +764,10 @@ namespace Opc.Ua.Client
                     }
 
                     var batchLinksToAdd = new UInt32Collection();
-                    response = await base.SetTriggeringAsync(requestHeader,
-                        subscriptionId,
-                        triggeringItemId,
-                        batchLinksToAdd,
-                        batchLinksToRemove,
+                    response = await base.SetTriggeringAsync(requestHeader, subscriptionId,
+                        triggeringItemId, batchLinksToAdd, batchLinksToRemove,
                         ct).ConfigureAwait(false);
-
+                    activity.OnResponse(response);
                     var batchAddResults = response.AddResults;
                     var batchAddDiagnosticInfos = response.AddDiagnosticInfos;
                     var batchRemoveResults = response.RemoveResults;
@@ -641,7 +780,8 @@ namespace Opc.Ua.Client
 
                     AddResponses<StatusCode, StatusCodeCollection>(
                         ref addResults, ref addDiagnosticInfos, ref stringTable,
-                        batchAddResults, batchAddDiagnosticInfos, response.ResponseHeader.StringTable);
+                        batchAddResults, batchAddDiagnosticInfos,
+                        response.ResponseHeader.StringTable);
 
                     AddResponses<StatusCode, StatusCodeCollection>(
                         ref removeResults, ref removeDiagnosticInfos, ref stringTable,
@@ -651,7 +791,8 @@ namespace Opc.Ua.Client
             }
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.AddResults = addResults;
             response.AddDiagnosticInfos = addDiagnosticInfos;
@@ -666,13 +807,22 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, UInt32Collection monitoredItemIds,
             CancellationToken ct)
         {
-            DeleteMonitoredItemsResponse? response = null;
+            using var activity = new SessionActivity<DeleteMonitoredItemsResponse>(this,
+                nameof(DeleteMonitoredItemsAsync));
 
+            DeleteMonitoredItemsResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
+            if (operationLimit == 0 || operationLimit >= monitoredItemIds.Count)
+            {
+                response = await base.DeleteMonitoredItemsAsync(requestHeader, subscriptionId,
+                    monitoredItemIds, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
+                return response;
+            }
+
             InitResponseCollections<StatusCode, StatusCodeCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 monitoredItemIds.Count, operationLimit);
-
             foreach (var batchMonitoredItemIds in monitoredItemIds
                 .Batch<uint, UInt32Collection>(operationLimit))
             {
@@ -683,6 +833,7 @@ namespace Opc.Ua.Client
 
                 response = await base.DeleteMonitoredItemsAsync(requestHeader,
                     subscriptionId, batchMonitoredItemIds, ct).ConfigureAwait(false);
+                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -696,13 +847,73 @@ namespace Opc.Ua.Client
 
             if (response == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo, "Nothing to do");
+                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
+                    "Nothing to do");
             }
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
 
             return response;
+        }
+
+        /// <summary>
+        /// Session activity
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        private readonly struct SessionActivity<T> : IDisposable where T : IServiceResponse
+        {
+            /// <inheritdoc/>
+            public SessionActivity(SessionBase outer, string activity)
+            {
+                _activity = outer._activitySource.StartActivity(activity[0..^5]);
+
+                if (outer._logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logScope = new LogScope(activity, Stopwatch.StartNew(),
+                        outer._logger);
+                    _logScope.Logger.LogDebug("Session activity {Activity} started...",
+                        _logScope.Name);
+                }
+            }
+
+            /// <summary>
+            /// Add response to activity
+            /// </summary>
+            /// <param name="response"></param>
+            public void OnResponse(T response)
+            {
+                var result = response?.ResponseHeader?.ServiceResult;
+                if (_logScope != null)
+                {
+                    if (result == null || ServiceResult.IsGood(result))
+                    {
+                        _logScope.Logger.LogDebug(
+                            "Session activity {Activity} response after {Elapsed}.",
+                            _logScope.Name, _logScope.Sw.Elapsed);
+                    }
+                    else
+                    {
+                        _logScope.Logger.LogError(
+      "Session activity {Activity} response failed with {StatusCode} in {Elapsed}.",
+                            _logScope.Name, result, _logScope.Sw.Elapsed);
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                _activity?.Dispose();
+
+                _logScope?.Logger.LogDebug(
+                    "Session activity {Activity} completed in {Elapsed}.",
+                    _logScope.Name, _logScope.Sw.Elapsed);
+            }
+
+            private sealed record class LogScope(string Name, Stopwatch Sw, ILogger Logger);
+            private readonly Activity? _activity;
+            private readonly LogScope? _logScope;
         }
 
         /// <summary>
@@ -818,5 +1029,8 @@ namespace Opc.Ua.Client
                 diagnosticInfo = diagnosticInfo.InnerDiagnosticInfo;
             }
         }
+
+        private readonly ActivitySource _activitySource;
+        private readonly ILogger _logger;
     }
 }

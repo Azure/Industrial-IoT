@@ -22,9 +22,6 @@ namespace Opc.Ua.Client
     /// </summary>
     public class Session : SessionBase, IComplexTypeContext, INodeCacheContext
     {
-        /// <inheritdoc/>
-        public ILoggerFactory LoggerFactory { get; }
-
         /// <summary>
         /// Get time provider to use
         /// </summary>
@@ -228,7 +225,7 @@ namespace Opc.Ua.Client
             StringCollection? discoveryProfileUris = null,
             ReverseConnectManager? reverseConnectManager = null, TimeProvider? timeProvider = null,
             ITransportChannel? channel = null, ITransportWaitingConnection? connection = null)
-            : base(channel)
+            : base(loggerFactory, channel)
         {
             ArgumentNullException.ThrowIfNull(configuration);
             if (configuration.ClientConfiguration == null ||
@@ -241,7 +238,6 @@ namespace Opc.Ua.Client
 
             TimeProvider = timeProvider ?? TimeProvider.System;
             MessageContext = channel?.MessageContext ?? configuration.CreateMessageContext();
-            LoggerFactory = loggerFactory;
             ConfiguredEndpoint = endpoint;
             SessionName = sessionName;
             Identity = identity ?? new UserIdentity();
