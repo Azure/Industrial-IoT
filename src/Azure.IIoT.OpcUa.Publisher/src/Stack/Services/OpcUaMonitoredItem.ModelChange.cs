@@ -384,10 +384,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     // Start the browser
-                    if (_browser == null && Subscription != null)
+                    if (_browser == null &&
+                        Subscription is OpcUaSubscription subscription)
                     {
                         _browser = _client.Browse(Template.RebrowsePeriod ??
-                            TimeSpan.FromHours(12), Subscription.DisplayName);
+                            TimeSpan.FromHours(12), subscription);
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;

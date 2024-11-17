@@ -150,7 +150,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SubscriptionModel template, IOptions<OpcUaSubscriptionOptions> options,
             ILoggerFactory loggerFactory, IMetricsContext metrics, uint? parentId = null,
             TimeProvider? timeProvider = null)
-            : base(session, loggerFactory.CreateLogger<OpcUaSubscription>())
+            : base(session, (IAcknoledgementQueue)session.Subscriptions,
+                  loggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;
             _options = options;
@@ -182,7 +183,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscription"></param>
         /// <param name="parentId"></param>
         private OpcUaSubscription(OpcUaSubscription subscription, uint parentId)
-            : base(subscription.Session, subscription._loggerFactory.CreateLogger<OpcUaSubscription>())
+            : base(subscription.Session, (IAcknoledgementQueue)subscription.Session.Subscriptions,
+                  subscription._loggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _options = subscription._options;
             _loggerFactory = subscription._loggerFactory;
@@ -655,7 +657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Does not throw
             await CloseCurrentSubscriptionAsync().ConfigureAwait(false);
 
-            session.AddSubscription(this); // Re-add the subscription now
+            session.Subscriptions.Add(this); // Re-add the subscription now
         }
 
         /// <summary>
@@ -722,7 +724,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!Created)
                 {
                     var session = Session;
-                    await session.RemoveSubscriptionAsync(this, ct).ConfigureAwait(false);
+                    await session.Subscriptions.RemoveAsync(this, ct).ConfigureAwait(false);
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
                         $"Failed to create subscription {this} in session {session}");
                 }
@@ -1350,7 +1352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     subscription = new OpcUaSubscription(this, parentId: SubscriptionId);
                     _childId = subscription.SubscriptionId;
-                    session.AddSubscription(subscription);
+                    session.Subscriptions.Add(subscription);
                     return subscription;
                 }
 
@@ -1454,7 +1456,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (Session != null)
                 {
-                    await Session.RemoveSubscriptionAsync(this).ConfigureAwait(false);
+                    await Session.Subscriptions.RemoveAsync(this).ConfigureAwait(false);
                 }
                 Debug.Assert(!CurrentlyMonitored.Any(), "Not all items removed.");
                 _logger.LogInformation("Subscription '{Subscription}' closed.", this);

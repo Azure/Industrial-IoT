@@ -13,7 +13,6 @@ namespace Opc.Ua.Client
     using System.Threading.Tasks;
     using System.Threading.Channels;
     using System.Linq;
-    using System.Collections.Concurrent;
     using System.Collections.Immutable;
 
     /// <summary>
@@ -69,7 +68,8 @@ namespace Opc.Ua.Client
         /// The timestamps to return with the notification messages.
         /// </summary>
         [DataMember(Order = 8)]
-        public TimestampsToReturn TimestampsToReturn { get; set; } = TimestampsToReturn.Both;
+        public TimestampsToReturn TimestampsToReturn { get; set; }
+            = TimestampsToReturn.Both;
 
         /// <summary>
         /// The minimum lifetime for subscriptions
@@ -116,13 +116,19 @@ namespace Opc.Ua.Client
         public uint CurrentLifetimeCount { get; private set; }
 
         /// <summary>
+        /// Whether publishing is currently enabled.
+        /// </summary>
+        [DataMember(Name = "CurrentPublishingEnabled", Order = 23)]
+        public bool CurrentPublishingEnabled { get; private set; }
+
+        /// <summary>
         /// The items to monitor.
         /// </summary>
         public IEnumerable<MonitoredItem> MonitoredItems
         {
             get
             {
-                lock (_cache)
+                lock (_monitoredItems)
                 {
                     return new List<MonitoredItem>(_monitoredItems.Values);
                 }
@@ -189,11 +195,6 @@ namespace Opc.Ua.Client
         public bool Created => Id != 0;
 
         /// <summary>
-        /// Whether publishing is currently enabled.
-        /// </summary>
-        public bool CurrentPublishingEnabled { get; private set; }
-
-        /// <summary>
         /// Returns true if the subscription is not receiving publishes.
         /// </summary>
         public bool PublishingStopped
@@ -213,11 +214,14 @@ namespace Opc.Ua.Client
         /// Create subscription
         /// </summary>
         /// <param name="session"></param>
+        /// <param name="completion"></param>
         /// <param name="logger"></param>
-        protected Subscription(Session session, ILogger logger)
+        protected Subscription(Session session, IAcknoledgementQueue completion,
+            ILogger logger)
         {
             _logger = logger;
             Session = session;
+            _completion = completion;
             _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
                 new UnboundedPrioritizedChannelOptions<IncomingMessage>
                 {
@@ -292,7 +296,6 @@ namespace Opc.Ua.Client
 
             var requestItems = new MonitoredItemCreateRequestCollection();
             var itemsToCreate = new List<MonitoredItem>();
-
             lock (_cache)
             {
                 foreach (var monitoredItem in _monitoredItems.Values)
@@ -304,27 +307,27 @@ namespace Opc.Ua.Client
                     }
 
                     // build item request.
-                    var request = new MonitoredItemCreateRequest();
-
-                    request.ItemToMonitor.NodeId = monitoredItem.ResolvedNodeId;
-                    request.ItemToMonitor.AttributeId = monitoredItem.AttributeId;
-                    request.ItemToMonitor.IndexRange = monitoredItem.IndexRange;
-                    request.ItemToMonitor.DataEncoding = monitoredItem.Encoding;
-
-                    request.MonitoringMode = monitoredItem.MonitoringMode;
-
-                    request.RequestedParameters.ClientHandle = monitoredItem.ClientHandle;
-                    request.RequestedParameters.SamplingInterval =
-                        monitoredItem.SamplingInterval.TotalMilliseconds;
-                    request.RequestedParameters.QueueSize = monitoredItem.QueueSize;
-                    request.RequestedParameters.DiscardOldest = monitoredItem.DiscardOldest;
-
-                    if (monitoredItem.Filter != null)
+                    var request = new MonitoredItemCreateRequest
                     {
-                        request.RequestedParameters.Filter =
-                            new ExtensionObject(monitoredItem.Filter);
-                    }
-
+                        ItemToMonitor = new ReadValueId
+                        {
+                            NodeId = monitoredItem.ResolvedNodeId,
+                            AttributeId = monitoredItem.AttributeId,
+                            IndexRange = monitoredItem.IndexRange,
+                            DataEncoding = monitoredItem.Encoding
+                        },
+                        MonitoringMode = monitoredItem.MonitoringMode,
+                        RequestedParameters = new MonitoringParameters
+                        {
+                            ClientHandle = monitoredItem.ClientHandle,
+                            SamplingInterval =
+                                monitoredItem.SamplingInterval.TotalMilliseconds,
+                            QueueSize = monitoredItem.QueueSize,
+                            DiscardOldest = monitoredItem.DiscardOldest,
+                            Filter = monitoredItem.Filter == null ? null :
+                                new ExtensionObject(monitoredItem.Filter)
+                        }
+                    };
                     requestItems.Add(request);
                     itemsToCreate.Add(monitoredItem);
                 }
@@ -378,19 +381,18 @@ namespace Opc.Ua.Client
                     // build item request.
                     var request = new MonitoredItemModifyRequest
                     {
-                        MonitoredItemId = monitoredItem.ServerId
+                        MonitoredItemId = monitoredItem.ServerId,
+                        RequestedParameters = new MonitoringParameters
+                        {
+                            ClientHandle = monitoredItem.ClientHandle,
+                            SamplingInterval =
+                                monitoredItem.SamplingInterval.TotalMilliseconds,
+                            QueueSize = monitoredItem.QueueSize,
+                            DiscardOldest = monitoredItem.DiscardOldest,
+                            Filter = monitoredItem.Filter == null ? null :
+                                new ExtensionObject(monitoredItem.Filter)
+                        }
                     };
-                    request.RequestedParameters.ClientHandle = monitoredItem.ClientHandle;
-                    request.RequestedParameters.SamplingInterval =
-                        monitoredItem.SamplingInterval.TotalMilliseconds;
-                    request.RequestedParameters.QueueSize = monitoredItem.QueueSize;
-                    request.RequestedParameters.DiscardOldest = monitoredItem.DiscardOldest;
-
-                    if (monitoredItem.Filter != null)
-                    {
-                        request.RequestedParameters.Filter = new ExtensionObject(monitoredItem.Filter);
-                    }
-
                     requestItems.Add(request);
                     itemsToModify.Add(monitoredItem);
                 }
@@ -435,12 +437,8 @@ namespace Opc.Ua.Client
             _deletedItems.Clear();
             try
             {
-                var monitoredItemIds = new UInt32Collection();
-                foreach (var monitoredItem in itemsToDelete)
-                {
-                    monitoredItemIds.Add(monitoredItem.ServerId);
-                }
-
+                var monitoredItemIds = new UInt32Collection(
+                    itemsToDelete.Select(monitoredItem => monitoredItem.ServerId));
                 var response = await Session.DeleteMonitoredItemsAsync(null, Id,
                     monitoredItemIds, ct).ConfigureAwait(false);
                 var results = response.Results;
@@ -538,7 +536,7 @@ namespace Opc.Ua.Client
 
             lock (_cache)
             {
-                if (!_monitoredItems.TryRemove(monitoredItem.ClientHandle, out _))
+                if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
                 {
                     return;
                 }
@@ -565,7 +563,7 @@ namespace Opc.Ua.Client
             {
                 foreach (var monitoredItem in monitoredItems)
                 {
-                    if (_monitoredItems.TryRemove(monitoredItem.ClientHandle, out _))
+                    if (_monitoredItems.Remove(monitoredItem.ClientHandle))
                     {
                         monitoredItem.Subscription = null;
 
@@ -1052,9 +1050,6 @@ namespace Opc.Ua.Client
             {
                 Interlocked.Increment(ref _publishLateCount);
                 OnPublishStateChanged(PublishState.Stopped);
-
-                // try trigger the publishing controller
-                Session.TriggerPublishController();
             }
         }
 
@@ -1230,11 +1225,12 @@ namespace Opc.Ua.Client
                     }
 #endif
                 }
-                await Session.QueueAcknowledgementAsync(new SubscriptionAcknowledgement
-                {
-                    SequenceNumber = message.SequenceNumber,
-                    SubscriptionId = Id
-                }, ct).ConfigureAwait(false);
+                await _completion.QueueAsync(
+                    new SubscriptionAcknowledgement
+                    {
+                        SequenceNumber = message.SequenceNumber,
+                        SubscriptionId = Id
+                    }, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -1401,6 +1397,7 @@ namespace Opc.Ua.Client
         private int _keepAliveInterval;
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
+        private readonly IAcknoledgementQueue _completion;
         private readonly List<MonitoredItem> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();
@@ -1408,6 +1405,6 @@ namespace Opc.Ua.Client
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _messageWorkerTask;
         private readonly Channel<IncomingMessage> _messages;
-        private readonly ConcurrentDictionary<uint, MonitoredItem> _monitoredItems = new();
+        private readonly Dictionary<uint, MonitoredItem> _monitoredItems = new();
     }
 }

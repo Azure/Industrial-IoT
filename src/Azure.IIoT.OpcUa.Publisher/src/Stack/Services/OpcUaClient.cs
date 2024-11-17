@@ -139,23 +139,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public int BadPublishRequestCount
-            => _session?.BadPublishRequestCount ?? 0;
+            => _session?.Subscriptions.BadPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int GoodPublishRequestCount
-            => _session?.GoodPublishRequestCount ?? 0;
+            => _session?.Subscriptions.GoodPublishRequestCount ?? 0;
 
         /// <inheritdoc/>
         public int PublishWorkerCount
-            => _session?.PublishWorkerCount ?? 0;
+            => _session?.Subscriptions.PublishWorkerCount ?? 0;
 
         /// <inheritdoc/>
         public int SubscriptionCount
-            => _session?.Subscriptions.Count(s => s.Created) ?? 0;
+            => _session?.Subscriptions.Items.Count(s => s.Created) ?? 0;
 
         /// <inheritdoc/>
         public int MinPublishRequestCount
-            => _session?.MinPublishWorkerCount ?? 0;
+            => _session?.Subscriptions.MinPublishWorkerCount ?? 0;
 
         /// <inheritdoc/>
         public int ReconnectCount { get; private set; }
@@ -1106,12 +1106,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // The stack will choose a value based on the subscription
             // count that is between min and max.
             //
-            session.MinPublishWorkerCount = minPublishRequests;
-            session.MaxPublishWorkerCount = maxPublishRequests;
+            session.Subscriptions.MinPublishWorkerCount = minPublishRequests;
+            session.Subscriptions.MaxPublishWorkerCount = maxPublishRequests;
 
             if (createdSubscriptions > 0 && minPublishRequests > PublishWorkerCount)
             {
-                session.TriggerPublishController();
+                session.Subscriptions.Update();
             }
         }
 
@@ -1605,7 +1605,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     session.Dispose();
                     kSessions.Add(-1, _metrics.TagList);
                 }
-                Debug.Assert(session.SubscriptionCount == 0);
+                Debug.Assert(session.Subscriptions.Count == 0);
             }
         }
 
@@ -2083,8 +2083,8 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly Action<ChannelDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<(string, TimeSpan, TimeSpan), Sampler> _samplers = new();
-        private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
+        private readonly Dictionary<(OpcUaSubscription, TimeSpan, TimeSpan), Sampler> _samplers = new();
+        private readonly Dictionary<(OpcUaSubscription, TimeSpan), Browser> _browsers = new();
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kDefaultConnectTimeout = TimeSpan.FromMinutes(1);

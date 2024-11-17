@@ -313,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
                             // Add the subscription to the session
-                            session.AddSubscription(subscription);
+                            session.Subscriptions.Add(subscription);
 
                             // Sync the subscription which will get it to go live.
                             var delay = await subscription.SyncAsync(maxMonitoredItems,

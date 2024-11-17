@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 lock (SyncRoot)
                 {
-                    return Subscriptions
+                    return Subscriptions.Items
                         .OfType<OpcUaSubscription>()
                         .ToDictionary(k => k.SubscriptionId);
                 }
