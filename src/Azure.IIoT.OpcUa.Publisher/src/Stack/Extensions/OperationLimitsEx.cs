@@ -8,6 +8,7 @@ namespace Opc.Ua.Client
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
+    using System.Numerics;
 
     /// <summary>
     /// Operation limits extensions
@@ -150,8 +151,7 @@ namespace Opc.Ua.Client
                 MaxNodesPerNodeManagement = Null(l.MaxNodesPerNodeManagement),
                 MaxMonitoredItemsPerCall = Null(l.MaxMonitoredItemsPerCall),
             };
-            static T? Null<T>(T v) where T : struct
-                => EqualityComparer<T>.Default.Equals(default) ? null : v;
+            static T? Null<T>(T v) where T : struct, INumberBase<T> => T.IsZero(v) ? null : v;
         }
 
 

@@ -17,19 +17,19 @@ namespace Opc.Ua.Client
         /// Max browse continuation points
         /// </summary>
         [DataMember(Order = 200)]
-        public uint MaxBrowseContinuationPoints { get; set; }
+        public ushort MaxBrowseContinuationPoints { get; set; }
 
         /// <summary>
         /// Max query continuation points
         /// </summary>
         [DataMember(Order = 210)]
-        public uint MaxQueryContinuationPoints { get; set; }
+        public ushort MaxQueryContinuationPoints { get; set; }
 
         /// <summary>
         /// Max history continuation points
         /// </summary>
         [DataMember(Order = 220)]
-        public uint MaxHistoryContinuationPoints { get; set; }
+        public ushort MaxHistoryContinuationPoints { get; set; }
 
         /// <summary>
         /// Max nodes that can be part of a browse path

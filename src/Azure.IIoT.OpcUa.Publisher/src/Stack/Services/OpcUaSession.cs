@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Numerics;
 
     /// <summary>
     /// OPC UA session extends the SDK session
@@ -882,8 +883,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxSelectClauseParameters = Null(OperationLimits.MaxSelectClauseParameters),
                 ConformanceUnits = conformanceUnits
             };
-            static T? Null<T>(T v) where T : struct
-                => EqualityComparer<T>.Default.Equals(default) ? null : v;
+            static T? Null<T>(T v) where T : struct, INumberBase<T> => T.IsZero(v) ? null : v;
         }
 
         /// <summary>

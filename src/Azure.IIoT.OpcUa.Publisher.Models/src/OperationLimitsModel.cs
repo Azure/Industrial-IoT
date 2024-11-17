@@ -25,21 +25,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "maxBrowseContinuationPoints", Order = 1,
             EmitDefaultValue = false)]
-        public uint? MaxBrowseContinuationPoints { get; set; }
+        public ushort? MaxBrowseContinuationPoints { get; set; }
 
         /// <summary>
         /// Max query continuation points
         /// </summary>
         [DataMember(Name = "maxQueryContinuationPoints", Order = 2,
             EmitDefaultValue = false)]
-        public uint? MaxQueryContinuationPoints { get; set; }
+        public ushort? MaxQueryContinuationPoints { get; set; }
 
         /// <summary>
         /// Max history continuation points
         /// </summary>
         [DataMember(Name = "maxHistoryContinuationPoints", Order = 3,
             EmitDefaultValue = false)]
-        public uint? MaxHistoryContinuationPoints { get; set; }
+        public ushort? MaxHistoryContinuationPoints { get; set; }
 
         /// <summary>
         /// Max array length supported

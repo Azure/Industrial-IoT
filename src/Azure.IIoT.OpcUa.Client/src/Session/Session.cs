@@ -2509,14 +2509,13 @@ namespace Opc.Ua.Client
             OperationLimits.MaxNodesPerNodeManagement = Get<uint>(ref index, values, errors);
             OperationLimits.MaxMonitoredItemsPerCall = Get<uint>(ref index, values, errors);
             OperationLimits.MaxNodesPerTranslatePathsToNodeIds = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxBrowseContinuationPoints = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxHistoryContinuationPoints = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxQueryContinuationPoints = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxBrowseContinuationPoints = Get<ushort>(ref index, values, errors);
+            OperationLimits.MaxHistoryContinuationPoints = Get<ushort>(ref index, values, errors);
+            OperationLimits.MaxQueryContinuationPoints = Get<ushort>(ref index, values, errors);
             OperationLimits.MaxStringLength = Get<uint>(ref index, values, errors);
             OperationLimits.MaxArrayLength = Get<uint>(ref index, values, errors);
             OperationLimits.MaxByteStringLength = Get<uint>(ref index, values, errors);
             OperationLimits.MinSupportedSampleRate = Get<double>(ref index, values, errors);
-
             OperationLimits.MaxSessions = Get<uint>(ref index, values, errors);
             OperationLimits.MaxSubscriptions = Get<uint>(ref index, values, errors);
             OperationLimits.MaxMonitoredItems = Get<uint>(ref index, values, errors);
