@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// The item is valid once added to the subscription. Contract:
         /// The item will be invalid until the subscription calls
-        /// <see cref="AddTo(Subscription, IOpcUaSession, out bool)"/>
+        /// <see cref="Initialize(out bool)"/>
         /// to add it to the subscription. After removal the item
         /// is still Valid, but not Created. The item is
         /// again invalid after <see cref="IDisposable.Dispose"/> is
@@ -150,12 +150,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create item
         /// </summary>
+        /// <param name="subscription"></param>
         /// <param name="owner"></param>
         /// <param name="logger"></param>
         /// <param name="nodeId"></param>
         /// <param name="timeProvider"></param>
-        protected OpcUaMonitoredItem(ISubscriber owner,
-            ILogger logger, string nodeId, TimeProvider timeProvider)
+        protected OpcUaMonitoredItem(Subscription subscription, ISubscriber owner,
+            ILogger logger, string nodeId, TimeProvider timeProvider) : base(subscription)
         {
             Owner = owner;
             NodeId = nodeId;
@@ -167,12 +168,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create items
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="subscription"></param>
         /// <param name="items"></param>
         /// <param name="factory"></param>
         /// <param name="timeProvider"></param>
         /// <returns></returns>
         public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client,
-            IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
+            Subscription subscription, IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
             ILoggerFactory factory, TimeProvider timeProvider)
         {
             foreach (var (owner, item) in items)
@@ -183,36 +185,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (dmi.SamplingUsingCyclicRead == true &&
                             client != null)
                         {
-                            yield return new CyclicRead(owner, client, dmi,
+                            yield return new CyclicRead(subscription, owner, client, dmi,
                                 factory.CreateLogger<CyclicRead>(), timeProvider);
                         }
                         else if (dmi.HeartbeatInterval != null)
                         {
-                            yield return new Heartbeat(owner, dmi,
+                            yield return new Heartbeat(subscription, owner, dmi,
                                 factory.CreateLogger<Heartbeat>(), timeProvider);
                         }
                         else
                         {
-                            yield return new DataChange(owner, dmi,
+                            yield return new DataChange(subscription, owner, dmi,
                                 factory.CreateLogger<DataChange>(), timeProvider);
                         }
                         break;
                     case EventMonitoredItemModel emi:
                         if (emi.ConditionHandling?.SnapshotInterval != null)
                         {
-                            yield return new Condition(owner, emi,
+                            yield return new Condition(subscription, owner, emi,
                                 factory.CreateLogger<Condition>(), timeProvider);
                         }
                         else
                         {
-                            yield return new Event(owner, emi,
+                            yield return new Event(subscription, owner, emi,
                                 factory.CreateLogger<Event>(), timeProvider);
                         }
                         break;
                     case MonitoredAddressSpaceModel mam:
                         if (client != null)
                         {
-                            yield return new ModelChangeEventItem(owner, mam, client,
+                            yield return new ModelChangeEventItem(subscription, owner, mam, client,
                                 factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
@@ -270,19 +272,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Add the item to the subscription
         /// </summary>
-        /// <param name="subscription"></param>
-        /// <param name="session"></param>
         /// <param name="metadataChanged"></param>
         /// <returns></returns>
-        public virtual bool AddTo(Subscription subscription, IOpcUaSession session,
-            out bool metadataChanged)
+        public virtual bool Initialize(out bool metadataChanged)
         {
             if (Valid)
             {
-                subscription.AddItem(this);
+                Subscription.AddMonitoredItem(new OpcUaSubscription.Precreated(this));
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription #{SubscriptionId}.",
-                    this, subscription.Id);
+                    this, Subscription.Id);
                 metadataChanged = true;
                 return true;
             }
@@ -309,28 +308,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Finalize merge
         /// </summary>
         public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith { get; }
-
-        /// <summary>
-        /// Remove from subscription
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <param name="metadataChanged"></param>
-        /// <returns></returns>
-        public virtual bool RemoveFrom(Subscription subscription,
-            out bool metadataChanged)
-        {
-            if (AttachedToSubscription)
-            {
-                subscription.RemoveItem(this);
-                _logger.LogDebug(
-                    "Removed monitored item {Item} from subscription #{SubscriptionId}.",
-                    this, subscription.Id);
-                metadataChanged = true;
-                return true;
-            }
-            metadataChanged = false;
-            return false;
-        }
 
         /// <summary>
         /// Finalize remove from

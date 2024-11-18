@@ -14,18 +14,13 @@ namespace Opc.Ua.Client
     using System.Threading.Channels;
     using System.Linq;
     using System.Collections.Immutable;
+    using System.Diagnostics;
 
     /// <summary>
     /// A subscription.
     /// </summary>
-    public abstract class Subscription : IDisposable
+    public abstract class Subscription : IAsyncDisposable
     {
-        /// <summary>
-        /// A display name for the subscription.
-        /// </summary>
-        [DataMember(Order = 1)]
-        public string DisplayName { get; set; }
-
         /// <summary>
         /// The publishing interval.
         /// </summary>
@@ -216,7 +211,7 @@ namespace Opc.Ua.Client
         /// <param name="session"></param>
         /// <param name="completion"></param>
         /// <param name="logger"></param>
-        protected Subscription(Session session, IAcknoledgementQueue completion,
+        protected Subscription(Session session, IAckQueue completion,
             ILogger logger)
         {
             _logger = logger;
@@ -230,18 +225,15 @@ namespace Opc.Ua.Client
             _publishTimer = new Timer(OnKeepAlive);
             _messageWorkerTask = ProcessMessagesAsync(_cts.Token);
 
-            DisplayName = "Subscription";
             TimestampsToReturn = TimestampsToReturn.Both;
             RepublishAfterTransfer = false;
         }
 
-        /// <summary>
-        /// Frees any unmanaged resources.
-        /// </summary>
-        public void Dispose()
+        /// <inheritdoc/>
+        public ValueTask DisposeAsync()
         {
-            Dispose(true);
             GC.SuppressFinalize(this);
+            return DisposeAsync(true);
         }
 
         /// <summary>
@@ -276,6 +268,21 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Add an item to the subscription
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public MonitoredItem AddMonitoredItem(MonitoredItemOptions? options = null)
+        {
+            var monitoredItem = CreateMonitoredItem(options);
+            lock (_cache)
+            {
+                _monitoredItems.Add(monitoredItem.ClientHandle, monitoredItem);
+            }
+            return monitoredItem;
+        }
+
+        /// <summary>
         /// Applies any changes to the subscription items.
         /// </summary>
         /// <param name="ct"></param>
@@ -287,10 +294,136 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Tells the server to refresh all conditions being monitored
+        /// by the subscription.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task ConditionRefreshAsync(CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+            var methodsToCall = new CallMethodRequestCollection
+            {
+                new CallMethodRequest()
+                {
+                    MethodId = MethodIds.ConditionType_ConditionRefresh,
+                    InputArguments = new VariantCollection() { new Variant(Id) }
+                }
+            };
+            await Session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates a subscription on the server and adds all monitored items.
+        /// </summary>
+        /// <param name="forceCreate"></param>
+        /// <param name="ct"></param>
+        public async Task CreateAsync(bool forceCreate, CancellationToken ct)
+        {
+            if (!forceCreate)
+            {
+                VerifySubscriptionState(false);
+            }
+            else
+            {
+                Reset();
+            }
+
+            // create the subscription.
+            var revisedMaxKeepAliveCount = KeepAliveCount;
+            var revisedLifetimeCount = LifetimeCount;
+
+            AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
+
+            var response = await Session.CreateSubscriptionAsync(null,
+                PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
+                revisedMaxKeepAliveCount, MaxNotificationsPerPublish, PublishingEnabled,
+                Priority, ct).ConfigureAwait(false);
+
+            OnSubscriptionUpdateComplete(true, response.SubscriptionId,
+                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
+                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
+
+            await CreateItemsAsync(ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Deletes a subscription on the server, but keeps the subscription in the session.
+        /// </summary>
+        /// <param name="silent"></param>
+        /// <param name="ct"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        public async Task DeleteAsync(bool silent, CancellationToken ct)
+        {
+            if (!silent)
+            {
+                VerifySubscriptionState(true);
+            }
+            // nothing to do if not created.
+            if (!Created)
+            {
+                return;
+            }
+            try
+            {
+                // delete the subscription.
+                UInt32Collection subscriptionIds = new uint[] { Id };
+
+                var response = await Session.DeleteSubscriptionsAsync(null, subscriptionIds,
+                    ct).ConfigureAwait(false);
+
+                // validate response.
+                ClientBase.ValidateResponse(response.Results, subscriptionIds);
+                ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, subscriptionIds);
+
+                if (StatusCode.IsBad(response.Results[0]))
+                {
+                    throw new ServiceResultException(
+                        ClientBase.GetResult(response.Results[0], 0, response.DiagnosticInfos,
+                        response.ResponseHeader));
+                }
+            }
+
+            // suppress exception if silent flag is set.
+            catch (Exception e)
+            {
+                if (!silent)
+                {
+                    throw new ServiceResultException(e, StatusCodes.BadUnexpectedError);
+                }
+            }
+            finally
+            {
+                OnSubscriptionDeleteCompleted();
+            }
+        }
+
+        /// <summary>
+        /// Modifies a subscription on the server.
+        /// </summary>
+        /// <param name="ct"></param>
+        public async Task ModifyAsync(CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+
+            // modify the subscription.
+            var revisedKeepAliveCount = KeepAliveCount;
+            var revisedLifetimeCounter = LifetimeCount;
+
+            AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
+            var response = await Session.ModifySubscriptionAsync(null, Id,
+                PublishingInterval.TotalMilliseconds, revisedLifetimeCounter,
+                revisedKeepAliveCount, MaxNotificationsPerPublish, Priority,
+                ct).ConfigureAwait(false);
+            OnSubscriptionUpdateComplete(false, 0,
+                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
+                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
+        }
+
+        /// <summary>
         /// Creates all items on the server that have not already been created.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task<IReadOnlyList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
+        internal async Task<IReadOnlyList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
@@ -361,7 +494,7 @@ namespace Opc.Ua.Client
         /// Modifies all items that have been changed.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task<IReadOnlyList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
+        internal async Task<IReadOnlyList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
@@ -425,35 +558,24 @@ namespace Opc.Ua.Client
         /// Deletes all items that have been marked for deletion.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task<IReadOnlyList<MonitoredItem>> DeleteItemsAsync(
-            CancellationToken ct)
+        internal async Task DeleteItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
             if (_deletedItems.Count == 0)
             {
-                return new List<MonitoredItem>();
+                return;
             }
             var itemsToDelete = _deletedItems.ToList();
             _deletedItems.Clear();
             try
             {
-                var monitoredItemIds = new UInt32Collection(
-                    itemsToDelete.Select(monitoredItem => monitoredItem.ServerId));
+                var monitoredItemIds = new UInt32Collection(itemsToDelete);
                 var response = await Session.DeleteMonitoredItemsAsync(null, Id,
                     monitoredItemIds, ct).ConfigureAwait(false);
                 var results = response.Results;
                 ClientBase.ValidateResponse(results, monitoredItemIds);
                 ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos,
                     monitoredItemIds);
-                // update results.
-                for (var index = 0; index < results.Count; index++)
-                {
-                    itemsToDelete[index].SetDeleteResult(results[index], index,
-                        response.DiagnosticInfos, response.ResponseHeader);
-                }
-
-                // return the list of items affected by the change.
-                return itemsToDelete;
             }
             catch
             {
@@ -463,232 +585,10 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Tells the server to refresh all conditions being monitored
-        /// by the subscription.
-        /// </summary>
-        /// <param name="ct"></param>
-        public async Task ConditionRefreshAsync(CancellationToken ct)
-        {
-            VerifySubscriptionState(true);
-            var methodsToCall = new CallMethodRequestCollection
-            {
-                new CallMethodRequest()
-                {
-                    MethodId = MethodIds.ConditionType_ConditionRefresh,
-                    InputArguments = new VariantCollection() { new Variant(Id) }
-                }
-            };
-            await Session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Adds an item to the subscription.
-        /// </summary>
-        /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        public void AddItem(MonitoredItem monitoredItem)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItem);
-            lock (_cache)
-            {
-                if (_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
-                {
-                    return;
-                }
-
-                _monitoredItems.TryAdd(monitoredItem.ClientHandle, monitoredItem);
-                monitoredItem.Subscription = this;
-            }
-        }
-
-        /// <summary>
-        /// Adds items to the subscription.
-        /// </summary>
-        /// <param name="monitoredItems"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        public void AddItems(IEnumerable<MonitoredItem> monitoredItems)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItems);
-            lock (_cache)
-            {
-                foreach (var monitoredItem in monitoredItems)
-                {
-                    if (!_monitoredItems.ContainsKey(monitoredItem.ClientHandle))
-                    {
-                        _monitoredItems.TryAdd(monitoredItem.ClientHandle, monitoredItem);
-                        monitoredItem.Subscription = this;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Removes an item from the subscription.
-        /// </summary>
-        /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        public void RemoveItem(MonitoredItem monitoredItem)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItem);
-
-            lock (_cache)
-            {
-                if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
-                {
-                    return;
-                }
-
-                monitoredItem.Subscription = null;
-            }
-
-            if (monitoredItem.Created)
-            {
-                _deletedItems.Add(monitoredItem);
-            }
-        }
-
-        /// <summary>
-        /// Removes items from the subscription.
-        /// </summary>
-        /// <param name="monitoredItems"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        public void RemoveItems(IEnumerable<MonitoredItem> monitoredItems)
-        {
-            ArgumentNullException.ThrowIfNull(monitoredItems);
-            lock (_cache)
-            {
-                foreach (var monitoredItem in monitoredItems)
-                {
-                    if (_monitoredItems.Remove(monitoredItem.ClientHandle))
-                    {
-                        monitoredItem.Subscription = null;
-
-                        if (monitoredItem.Created)
-                        {
-                            _deletedItems.Add(monitoredItem);
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a subscription on the server and adds all monitored items.
-        /// </summary>
-        /// <param name="forceCreate"></param>
-        /// <param name="ct"></param>
-        public async Task CreateAsync(bool forceCreate, CancellationToken ct)
-        {
-            if (!forceCreate)
-            {
-                VerifySubscriptionState(false);
-            }
-            else
-            {
-                OnSubscriptionDeleteCompleted();
-            }
-
-            // create the subscription.
-            var revisedMaxKeepAliveCount = KeepAliveCount;
-            var revisedLifetimeCount = LifetimeCount;
-
-            AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
-
-            var response = await Session.CreateSubscriptionAsync(null,
-                PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
-                revisedMaxKeepAliveCount, MaxNotificationsPerPublish, PublishingEnabled,
-                Priority, ct).ConfigureAwait(false);
-
-            OnSubscriptionUpdateComplete(true, response.SubscriptionId,
-                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
-                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
-
-            await CreateItemsAsync(ct).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Deletes a subscription on the server.
-        /// </summary>
-        /// <param name="silent"></param>
-        /// <param name="ct"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        public async Task DeleteAsync(bool silent, CancellationToken ct)
-        {
-            if (!silent)
-            {
-                VerifySubscriptionState(true);
-            }
-            // nothing to do if not created.
-            if (!Created)
-            {
-                return;
-            }
-            try
-            {
-                // delete the subscription.
-                UInt32Collection subscriptionIds = new uint[] { Id };
-
-                var response = await Session.DeleteSubscriptionsAsync(null, subscriptionIds,
-                    ct).ConfigureAwait(false);
-
-                // validate response.
-                ClientBase.ValidateResponse(response.Results, subscriptionIds);
-                ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, subscriptionIds);
-
-                if (StatusCode.IsBad(response.Results[0]))
-                {
-                    throw new ServiceResultException(
-                        ClientBase.GetResult(response.Results[0], 0, response.DiagnosticInfos,
-                        response.ResponseHeader));
-                }
-            }
-
-            // suppress exception if silent flag is set.
-            catch (Exception e)
-            {
-                if (!silent)
-                {
-                    throw new ServiceResultException(e, StatusCodes.BadUnexpectedError);
-                }
-            }
-            // always put object in disconnected state even if an error occurs.
-            finally
-            {
-                OnSubscriptionDeleteCompleted();
-            }
-        }
-
-        /// <summary>
-        /// Modifies a subscription on the server.
-        /// </summary>
-        /// <param name="ct"></param>
-        public async Task ModifyAsync(CancellationToken ct)
-        {
-            VerifySubscriptionState(true);
-
-            // modify the subscription.
-            var revisedKeepAliveCount = KeepAliveCount;
-            var revisedLifetimeCounter = LifetimeCount;
-
-            AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
-            var response = await Session.ModifySubscriptionAsync(null, Id,
-                PublishingInterval.TotalMilliseconds, revisedLifetimeCounter,
-                revisedKeepAliveCount, MaxNotificationsPerPublish, Priority,
-                ct).ConfigureAwait(false);
-            OnSubscriptionUpdateComplete(false, 0,
-                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
-                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
-        }
-
-        /// <summary>
-        /// An overrideable version of the Dispose.
+        /// Dispose subscription
         /// </summary>
         /// <param name="disposing"></param>
-        protected virtual void Dispose(bool disposing)
+        protected virtual async ValueTask DisposeAsync(bool disposing)
         {
             if (disposing)
             {
@@ -697,7 +597,8 @@ namespace Opc.Ua.Client
                     _publishTimer.Dispose();
                     _messages.Writer.TryComplete();
                     _cts.Cancel();
-                    _messageWorkerTask.GetAwaiter().GetResult();
+
+                    await _messageWorkerTask.ConfigureAwait(false);
                 }
                 finally
                 {
@@ -707,6 +608,36 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Create monitored item
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        protected abstract MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options);
+
+        /// <summary>
+        /// Removes an item from the subscription.
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
+        internal void RemoveItem(MonitoredItem monitoredItem)
+        {
+            Debug.Assert(monitoredItem != null);
+            lock (_cache)
+            {
+                if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
+                {
+                    return;
+                }
+            }
+
+            if (monitoredItem.Created)
+            {
+                _deletedItems.Add(monitoredItem.ServerId);
+            }
+        }
+
+        /// <summary>S
         /// Process status change notification
         /// </summary>
         /// <param name="sequenceNumber"></param>
@@ -1077,6 +1008,18 @@ namespace Opc.Ua.Client
                 Id = subscriptionId;
                 StartKeepAliveTimer();
             }
+
+            _logger.LogInformation(@"Successfully {Action} subscription {Subscription}'.
+Actual (revised) state/desired state:
+# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}
+# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}
+# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}
+# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}", created ? "created" : "modified",
+                this,
+                CurrentPublishingEnabled, PublishingEnabled,
+                CurrentPublishingInterval, PublishingInterval,
+                CurrentKeepAliveCount, KeepAliveCount,
+                CurrentLifetimeCount, LifetimeCount);
         }
 
         /// <summary>
@@ -1094,15 +1037,33 @@ namespace Opc.Ua.Client
             CurrentPublishingEnabled = false;
             CurrentPriority = 0;
 
+            foreach (var monitoredItem in MonitoredItems)
+            {
+                monitoredItem.Dispose();
+            }
+            _deletedItems.Clear();
+        }
+
+        /// <summary>
+        /// Reset the subscription
+        /// </summary>
+        private void Reset()
+        {
+            _lastSequenceNumberProcessed = 0;
+            _lastNotificationTickCount = 0;
+
+            Id = 0;
+            CurrentPublishingInterval = TimeSpan.Zero;
+            CurrentKeepAliveCount = 0;
+            CurrentPublishingEnabled = false;
+            CurrentPriority = 0;
+
             // update items.
             lock (_cache)
             {
-                var responseHeader = new ResponseHeader();
-                var diagnosticInfo = new DiagnosticInfoCollection();
                 foreach (var monitoredItem in _monitoredItems.Values)
                 {
-                    monitoredItem.SetDeleteResult(StatusCodes.Good, 0,
-                        diagnosticInfo, responseHeader);
+                    monitoredItem.Reset();
                 }
             }
             _deletedItems.Clear();
@@ -1153,8 +1114,8 @@ namespace Opc.Ua.Client
                         }
                     }
                     _lastSequenceNumberProcessed = curSeqNum;
-                    await OnNotificationReceivedAsync(incoming.Message,
-                        PublishState.None, ct).ConfigureAwait(false);
+                    await OnNotificationReceivedAsync(incoming.Message, PublishState.None,
+                        ct).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException) { }
@@ -1163,7 +1124,11 @@ namespace Opc.Ua.Client
                 _logger.LogCritical(ex,
                     "SubscriptionId {Id}: Error processing messages. Processor is exiting!!!", Id);
                 OnPublishStateChanged(PublishState.Stopped);
+
+                // Do not call complete here as we do not want the subscription to be removed
+                throw;
             }
+            await _completion.CompleteAsync(this, default).ConfigureAwait(false);
 
             async Task TryRepublishAsync(uint missing, uint curSeqNum, CancellationToken ct)
             {
@@ -1397,8 +1362,8 @@ namespace Opc.Ua.Client
         private int _keepAliveInterval;
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
-        private readonly IAcknoledgementQueue _completion;
-        private readonly List<MonitoredItem> _deletedItems = new();
+        private readonly IAckQueue _completion;
+        private readonly List<uint> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();
         private readonly ILogger _logger;

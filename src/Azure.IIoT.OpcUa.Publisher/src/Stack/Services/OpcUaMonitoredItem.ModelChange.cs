@@ -37,15 +37,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create model change item
             /// </summary>
+            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="client"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public ModelChangeEventItem(ISubscriber owner,
+            public ModelChangeEventItem(Subscription subscription, ISubscriber owner,
                 MonitoredAddressSpaceModel template, OpcUaClient client,
                 ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
-                base(owner, logger, template.StartNodeId, timeProvider)
+                base(subscription, owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
                 _client = client;
@@ -156,10 +157,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 
             /// <inheritdoc/>
-            public override bool AddTo(Subscription subscription,
-                IOpcUaSession session, out bool metadataChanged)
+            public override bool Initialize(out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
+                var nodeId = NodeId.ToNodeId(Subscription.Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     metadataChanged = false;
@@ -171,12 +171,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
                 SamplingInterval = TimeSpan.Zero;
-                UpdateQueueSize(subscription, Template);
+                UpdateQueueSize(Subscription, Template);
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
-                return base.AddTo(subscription, session, out metadataChanged);
+                return base.Initialize(out metadataChanged);
 
                 static MonitoringFilter GetEventFilter()
                 {
@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                    return Create(client, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();

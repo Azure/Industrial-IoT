@@ -7,8 +7,6 @@ namespace Opc.Ua.Client
 {
     using Opc.Ua;
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Subscriptions in a session
@@ -27,6 +25,11 @@ namespace Opc.Ua.Client
         bool TransferSubscriptionsOnRecreate { get; set; }
 
         /// <summary>
+        /// Return diagnostics mask to use when sending publish requests.
+        /// </summary>
+        DiagnosticsMasks ReturnDiagnostics { get; set; }
+
+        /// <summary>
         /// Gets and sets the maximum number of publish requests to
         /// be used in the session.
         /// </summary>
@@ -37,11 +40,6 @@ namespace Opc.Ua.Client
         /// used in the session.
         /// </summary>
         int MinPublishWorkerCount { get; set; }
-
-        /// <summary>
-        /// Return diagnostics mask to use when sending publish requests.
-        /// </summary>
-        DiagnosticsMasks ReturnDiagnostics { get; set; }
 
         /// <summary>
         /// Number of subscriptions
@@ -67,22 +65,6 @@ namespace Opc.Ua.Client
         /// Bad publish requests
         /// </summary>
         int BadPublishRequestCount { get; }
-
-        /// <summary>
-        /// Add subscription
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        bool Add(Subscription subscription);
-
-        /// <summary>
-        /// Remove subscription
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask<bool> RemoveAsync(Subscription subscription,
-            CancellationToken ct = default);
 
         /// <summary>
         /// Update subscriptions

@@ -422,7 +422,7 @@ namespace Opc.Ua.Client
             // re-create the session.
             try
             {
-                await Session.OpenAsync(ct).ConfigureAwait(false);
+                await Session.OpenAsync(null, ct).ConfigureAwait(false);
                 return true;
             }
             catch (ServiceResultException sre)

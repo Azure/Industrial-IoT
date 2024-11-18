@@ -9,6 +9,7 @@ namespace Opc.Ua.Client
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace Opc.Ua.Client
     /// The client side interface with support for batching according
     /// to operation limits.
     /// </summary>
-    public class SessionBase : Opc.Ua.Client.Obsolete.SessionClient
+    public abstract class SessionServices : Opc.Ua.Client.Obsolete.SessionClient
     {
         /// <summary>
         /// Logger factory
@@ -25,21 +26,135 @@ namespace Opc.Ua.Client
         public ILoggerFactory LoggerFactory { get; }
 
         /// <summary>
+        /// Logger factory
+        /// </summary>
+        public IMeterFactory MeterFactory { get; }
+
+        /// <summary>
         /// The operation limits are used to batch the service requests.
         /// </summary>
         public Limits OperationLimits { get; } = new();
 
         /// <summary>
+        /// Whether to log all activity to the logger
+        /// </summary>
+        public bool TraceActivityUsingLogger { get; set; }
+
+        /// <summary>
         /// Intializes the object with a channel and logger factory.
         /// </summary>
         /// <param name="loggerFactory"></param>
+        /// <param name="meterFactory"></param>
+        /// <param name="activitySource"></param>
         /// <param name="channel"></param>
-        public SessionBase(ILoggerFactory loggerFactory, ITransportChannel? channel = null)
+        protected SessionServices(ILoggerFactory loggerFactory, IMeterFactory meterFactory,
+            ActivitySource? activitySource = null, ITransportChannel? channel = null)
             : base(channel)
         {
             LoggerFactory = loggerFactory;
-            _logger = LoggerFactory.CreateLogger<SessionBase>();
-            _activitySource = new ActivitySource("Opc.Ua.Client.SessionBase");
+            MeterFactory = meterFactory;
+            _logger = LoggerFactory.CreateLogger<SessionServices>();
+            _activitySource = activitySource;
+        }
+
+        /// <inheritdoc/>
+        public override async Task<ActivateSessionResponse> ActivateSessionAsync(
+            RequestHeader? requestHeader, SignatureData clientSignature,
+            SignedSoftwareCertificateCollection clientSoftwareCertificates, StringCollection localeIds,
+            ExtensionObject userIdentityToken, SignatureData userTokenSignature, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(ActivateSessionAsync));
+            return await base.ActivateSessionAsync(requestHeader, clientSignature,
+                clientSoftwareCertificates, localeIds, userIdentityToken, userTokenSignature,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<CloseSessionResponse> CloseSessionAsync(RequestHeader? requestHeader,
+            bool deleteSubscriptions, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(CloseSessionAsync));
+            return await base.CloseSessionAsync(requestHeader, deleteSubscriptions,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<CancelResponse> CancelAsync(RequestHeader? requestHeader,
+            uint requestHandle, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(CancelAsync));
+            return await base.CancelAsync(requestHeader, requestHandle, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<CreateSubscriptionResponse> CreateSubscriptionAsync(
+            RequestHeader? requestHeader, double requestedPublishingInterval, uint requestedLifetimeCount,
+            uint requestedMaxKeepAliveCount, uint maxNotificationsPerPublish, bool publishingEnabled,
+            byte priority, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(CreateSubscriptionAsync));
+            return await base.CreateSubscriptionAsync(requestHeader, requestedPublishingInterval,
+                requestedLifetimeCount, requestedMaxKeepAliveCount, maxNotificationsPerPublish,
+                publishingEnabled, priority, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<ModifySubscriptionResponse> ModifySubscriptionAsync(
+            RequestHeader? requestHeader, uint subscriptionId, double requestedPublishingInterval,
+            uint requestedLifetimeCount, uint requestedMaxKeepAliveCount, uint maxNotificationsPerPublish,
+            byte priority, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(ModifySubscriptionAsync));
+            return await base.ModifySubscriptionAsync(requestHeader, subscriptionId,
+                requestedPublishingInterval, requestedLifetimeCount, requestedMaxKeepAliveCount,
+                maxNotificationsPerPublish, priority, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<SetPublishingModeResponse> SetPublishingModeAsync(
+            RequestHeader? requestHeader, bool publishingEnabled, UInt32Collection subscriptionIds,
+            CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(SetPublishingModeAsync));
+            return await base.SetPublishingModeAsync(requestHeader, publishingEnabled,
+                subscriptionIds, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<PublishResponse> PublishAsync(RequestHeader? requestHeader,
+            SubscriptionAcknowledgementCollection subscriptionAcknowledgements, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(PublishAsync));
+            return await base.PublishAsync(requestHeader, subscriptionAcknowledgements,
+                ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<RepublishResponse> RepublishAsync(RequestHeader? requestHeader,
+            uint subscriptionId, uint retransmitSequenceNumber, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(RepublishAsync));
+            return await base.RepublishAsync(requestHeader, subscriptionId,
+                retransmitSequenceNumber, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<TransferSubscriptionsResponse> TransferSubscriptionsAsync(
+            RequestHeader? requestHeader, UInt32Collection subscriptionIds, bool sendInitialValues,
+            CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(TransferSubscriptionsAsync));
+            return await base.TransferSubscriptionsAsync(requestHeader, subscriptionIds,
+                sendInitialValues, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<DeleteSubscriptionsResponse> DeleteSubscriptionsAsync(
+            RequestHeader? requestHeader, UInt32Collection subscriptionIds, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(DeleteSubscriptionsAsync));
+            return await base.DeleteSubscriptionsAsync(requestHeader, subscriptionIds,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -47,34 +162,26 @@ namespace Opc.Ua.Client
             ViewDescription? view, uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
         {
-            using var activity = new SessionActivity<BrowseResponse>(this,
-                nameof(BrowseAsync));
-
-            BrowseResponse? response = null;
+            using var activity = StartActivity(nameof(BrowseAsync));
             var operationLimit = OperationLimits.MaxNodesPerBrowse;
             if (operationLimit == 0 || operationLimit >= nodesToBrowse.Count)
             {
-                response = await base.BrowseAsync(requestHeader, view,
+                return await base.BrowseAsync(requestHeader, view,
                     requestedMaxReferencesPerNode, nodesToBrowse, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<BrowseResult, BrowseResultCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                nodesToBrowse.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            BrowseResponse? response = null;
+            InitResponseCollections<BrowseResult, BrowseResultCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, nodesToBrowse.Count, operationLimit);
             foreach (var nodesToBrowseBatch in nodesToBrowse
                 .Batch<BrowseDescription, BrowseDescriptionCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.BrowseAsync(requestHeader, view,
                     requestedMaxReferencesPerNode,
                     nodesToBrowseBatch, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -86,15 +193,52 @@ namespace Opc.Ua.Client
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
+            return response;
+        }
 
+        /// <inheritdoc/>
+        public override async Task<BrowseNextResponse> BrowseNextAsync(RequestHeader? requestHeader,
+            bool releaseContinuationPoints, ByteStringCollection continuationPoints, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(BrowseNextAsync));
+
+            var operationLimit = OperationLimits.MaxBrowseContinuationPoints;
+            if (operationLimit == 0 || operationLimit >= continuationPoints.Count)
+            {
+                return await base.BrowseNextAsync(requestHeader, releaseContinuationPoints,
+                    continuationPoints, ct).ConfigureAwait(false);
+            }
+
+            requestHeader ??= new RequestHeader();
+            BrowseNextResponse? response = null;
+            InitResponseCollections<BrowseResult, BrowseResultCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, continuationPoints.Count, operationLimit);
+            foreach (var continuationPointsBatch in continuationPoints
+                .Batch<byte[], ByteStringCollection>(operationLimit))
+            {
+                requestHeader.RequestHandle = 0;
+                response = await base.BrowseNextAsync(requestHeader, releaseContinuationPoints,
+                    continuationPointsBatch, ct).ConfigureAwait(false);
+
+                var batchResults = response.Results;
+                var batchDiagnosticInfos = response.DiagnosticInfos;
+
+                ClientBase.ValidateResponse(batchResults, continuationPointsBatch);
+                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, continuationPointsBatch);
+
+                AddResponses<BrowseResult, BrowseResultCollection>(
+                    ref results, ref diagnosticInfos, ref stringTable, batchResults,
+                    batchDiagnosticInfos, response.ResponseHeader.StringTable);
+            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
+            response.Results = results;
+            response.DiagnosticInfos = diagnosticInfos;
+            response.ResponseHeader.StringTable = stringTable;
             return response;
         }
 
@@ -102,33 +246,26 @@ namespace Opc.Ua.Client
         public override async Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
             RequestHeader? requestHeader, BrowsePathCollection browsePaths, CancellationToken ct)
         {
-            using var activity = new SessionActivity<TranslateBrowsePathsToNodeIdsResponse>(this,
-                nameof(TranslateBrowsePathsToNodeIdsAsync));
+            using var activity = StartActivity(nameof(TranslateBrowsePathsToNodeIdsAsync));
 
-            TranslateBrowsePathsToNodeIdsResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds;
             if (operationLimit == 0 || operationLimit >= browsePaths.Count)
             {
-                response = await base.TranslateBrowsePathsToNodeIdsAsync(requestHeader,
+                return await base.TranslateBrowsePathsToNodeIdsAsync(requestHeader,
                     browsePaths, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<BrowsePathResult, BrowsePathResultCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                browsePaths.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            TranslateBrowsePathsToNodeIdsResponse? response = null;
+            InitResponseCollections<BrowsePathResult, BrowsePathResultCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, browsePaths.Count, operationLimit);
             foreach (var batchBrowsePaths in browsePaths
                 .Batch<BrowsePath, BrowsePathCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.TranslateBrowsePathsToNodeIdsAsync(requestHeader,
                     batchBrowsePaths, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
                 ClientBase.ValidateResponse(batchResults, batchBrowsePaths);
@@ -139,15 +276,10 @@ namespace Opc.Ua.Client
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -156,42 +288,32 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, NodeIdCollection nodesToRegister,
             CancellationToken ct)
         {
-            using var activity = new SessionActivity<RegisterNodesResponse>(this,
-                nameof(RegisterNodesAsync));
+            using var activity = StartActivity(nameof(RegisterNodesAsync));
 
-            RegisterNodesResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerRegisterNodes;
             if (operationLimit == 0 || operationLimit >= nodesToRegister.Count)
             {
-                response = await base.RegisterNodesAsync(requestHeader, nodesToRegister,
+                return await base.RegisterNodesAsync(requestHeader, nodesToRegister,
                     ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
+            requestHeader ??= new RequestHeader();
+            RegisterNodesResponse? response = null;
             var registeredNodeIds = new NodeIdCollection();
             foreach (var batchNodesToRegister in nodesToRegister
                 .Batch<NodeId, NodeIdCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.RegisterNodesAsync(requestHeader,
                     batchNodesToRegister, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
 
                 var batchRegisteredNodeIds = response.RegisteredNodeIds;
                 ClientBase.ValidateResponse(batchRegisteredNodeIds, batchNodesToRegister);
                 registeredNodeIds.AddRange(batchRegisteredNodeIds);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.RegisteredNodeIds = registeredNodeIds;
             return response;
         }
@@ -201,35 +323,26 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, NodeIdCollection nodesToUnregister,
             CancellationToken ct)
         {
-            using var activity = new SessionActivity<UnregisterNodesResponse>(this,
-                nameof(UnregisterNodesAsync));
+            using var activity = StartActivity(nameof(UnregisterNodesAsync));
 
-            UnregisterNodesResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerRegisterNodes;
             if (operationLimit == 0 || operationLimit >= nodesToUnregister.Count)
             {
-                response = await base.UnregisterNodesAsync(requestHeader, nodesToUnregister,
+                return await base.UnregisterNodesAsync(requestHeader, nodesToUnregister,
                     ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
+            requestHeader ??= new RequestHeader();
+            UnregisterNodesResponse? response = null;
             foreach (var batchNodesToUnregister in nodesToUnregister
                 .Batch<NodeId, NodeIdCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
+                requestHeader.RequestHandle = 0;
                 response = await base.UnregisterNodesAsync(requestHeader,
                     batchNodesToUnregister, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
             }
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             return response;
         }
 
@@ -238,32 +351,26 @@ namespace Opc.Ua.Client
             double maxAge, TimestampsToReturn timestampsToReturn,
             ReadValueIdCollection nodesToRead, CancellationToken ct)
         {
-            using var activity = new SessionActivity<ReadResponse>(this, nameof(ReadAsync));
+            using var activity = StartActivity(nameof(ReadAsync));
 
-            ReadResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerRead;
             if (operationLimit == 0 || operationLimit >= nodesToRead.Count)
             {
-                response = await base.ReadAsync(requestHeader, maxAge, timestampsToReturn,
+                return await base.ReadAsync(requestHeader, maxAge, timestampsToReturn,
                     nodesToRead, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<DataValue, DataValueCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                nodesToRead.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            ReadResponse? response = null;
+            InitResponseCollections<DataValue, DataValueCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, nodesToRead.Count, operationLimit);
             foreach (var batchAttributesToRead in nodesToRead
                 .Batch<ReadValueId, ReadValueIdCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.ReadAsync(requestHeader, maxAge, timestampsToReturn,
                     batchAttributesToRead, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -274,15 +381,11 @@ namespace Opc.Ua.Client
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -292,40 +395,34 @@ namespace Opc.Ua.Client
             TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
             HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
         {
-            using var activity = new SessionActivity<HistoryReadResponse>(this,
-                nameof(HistoryReadAsync));
+            using var activity = StartActivity(nameof(HistoryReadAsync));
 
-            HistoryReadResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerHistoryReadData;
-            if (operationLimit == 0 || operationLimit >= nodesToRead.Count)
-            {
-                response = await base.HistoryReadAsync(requestHeader, historyReadDetails,
-                    timestampsToReturn, releaseContinuationPoints, nodesToRead,
-                    ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
-            }
-
             if (historyReadDetails?.Body is ReadEventDetails)
             {
                 operationLimit = OperationLimits.MaxNodesPerHistoryReadEvents;
             }
 
+            if (operationLimit == 0 || operationLimit >= nodesToRead.Count)
+            {
+                return await base.HistoryReadAsync(requestHeader, historyReadDetails,
+                    timestampsToReturn, releaseContinuationPoints, nodesToRead,
+                    ct).ConfigureAwait(false);
+            }
+
+            requestHeader ??= new RequestHeader();
+            HistoryReadResponse? response = null;
             InitResponseCollections<HistoryReadResult, HistoryReadResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 nodesToRead.Count, operationLimit);
             foreach (var batchNodesToRead in nodesToRead
                 .Batch<HistoryReadValueId, HistoryReadValueIdCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.HistoryReadAsync(requestHeader, historyReadDetails,
                     timestampsToReturn, releaseContinuationPoints, batchNodesToRead,
                     ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -337,15 +434,10 @@ namespace Opc.Ua.Client
                     batchResults, batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -353,32 +445,26 @@ namespace Opc.Ua.Client
         public override async Task<WriteResponse> WriteAsync(RequestHeader? requestHeader,
             WriteValueCollection nodesToWrite, CancellationToken ct)
         {
-            using var activity = new SessionActivity<WriteResponse>(this, nameof(WriteAsync));
+            using var activity = StartActivity(nameof(WriteAsync));
 
-            WriteResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerWrite;
             if (operationLimit == 0 || operationLimit >= nodesToWrite.Count)
             {
-                response = await base.WriteAsync(requestHeader, nodesToWrite,
+                return await base.WriteAsync(requestHeader, nodesToWrite,
                     ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<StatusCode, StatusCodeCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                nodesToWrite.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            WriteResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, nodesToWrite.Count, operationLimit);
             foreach (var batchNodesToWrite in nodesToWrite
                 .Batch<WriteValue, WriteValueCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.WriteAsync(requestHeader,
                     batchNodesToWrite, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -390,15 +476,10 @@ namespace Opc.Ua.Client
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -407,8 +488,7 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, ExtensionObjectCollection historyUpdateDetails,
             CancellationToken ct)
         {
-            using var activity = new SessionActivity<HistoryUpdateResponse>(this,
-                nameof(HistoryUpdateAsync));
+            using var activity = StartActivity(nameof(HistoryUpdateAsync));
 
             var operationLimit = OperationLimits.MaxNodesPerHistoryUpdateData;
             if (historyUpdateDetails.Count > 0 &&
@@ -417,29 +497,24 @@ namespace Opc.Ua.Client
                 operationLimit = OperationLimits.MaxNodesPerHistoryUpdateEvents;
             }
 
-            HistoryUpdateResponse? response = null;
             if (operationLimit == 0 || operationLimit >= historyUpdateDetails.Count)
             {
-                response = await base.HistoryUpdateAsync(requestHeader, historyUpdateDetails,
+                return await base.HistoryUpdateAsync(requestHeader, historyUpdateDetails,
                     ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
+            requestHeader ??= new RequestHeader();
+            HistoryUpdateResponse? response = null;
             InitResponseCollections<HistoryUpdateResult, HistoryUpdateResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 historyUpdateDetails.Count, operationLimit);
             foreach (var batchHistoryUpdateDetails in historyUpdateDetails
                 .Batch<ExtensionObject, ExtensionObjectCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.HistoryUpdateAsync(requestHeader,
                     batchHistoryUpdateDetails, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -450,11 +525,8 @@ namespace Opc.Ua.Client
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
@@ -465,32 +537,26 @@ namespace Opc.Ua.Client
         public override async Task<CallResponse> CallAsync(RequestHeader? requestHeader,
             CallMethodRequestCollection methodsToCall, CancellationToken ct)
         {
-            using var activity = new SessionActivity<CallResponse>(this, nameof(CallAsync));
+            using var activity = StartActivity(nameof(CallAsync));
 
-            CallResponse? response = null;
             var operationLimit = OperationLimits.MaxNodesPerMethodCall;
             if (operationLimit == 0 || operationLimit >= methodsToCall.Count)
             {
-                response = await base.CallAsync(requestHeader, methodsToCall,
+                return await base.CallAsync(requestHeader, methodsToCall,
                     ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<CallMethodResult, CallMethodResultCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                methodsToCall.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            CallResponse? response = null;
+            InitResponseCollections<CallMethodResult, CallMethodResultCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, methodsToCall.Count, operationLimit);
             foreach (var batchMethodsToCall in methodsToCall
                 .Batch<CallMethodRequest, CallMethodRequestCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.CallAsync(requestHeader,
                     batchMethodsToCall, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -501,54 +567,42 @@ namespace Opc.Ua.Client
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
         /// <inheritdoc/>
         public override async Task<CreateMonitoredItemsResponse> CreateMonitoredItemsAsync(
-            RequestHeader? requestHeader, uint subscriptionId,
-            TimestampsToReturn timestampsToReturn,
+            RequestHeader? requestHeader, uint subscriptionId, TimestampsToReturn timestampsToReturn,
             MonitoredItemCreateRequestCollection itemsToCreate, CancellationToken ct)
         {
-            using var activity = new SessionActivity<CreateMonitoredItemsResponse>(this,
-                nameof(CreateMonitoredItemsAsync));
+            using var activity = StartActivity(nameof(CreateMonitoredItemsAsync));
 
-            CreateMonitoredItemsResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
             if (operationLimit == 0 || operationLimit >= itemsToCreate.Count)
             {
-                response = await base.CreateMonitoredItemsAsync(requestHeader, subscriptionId,
+                return await base.CreateMonitoredItemsAsync(requestHeader, subscriptionId,
                     timestampsToReturn, itemsToCreate, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
+            requestHeader ??= new RequestHeader();
+            CreateMonitoredItemsResponse? response = null;
             InitResponseCollections<MonitoredItemCreateResult, MonitoredItemCreateResultCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                itemsToCreate.Count, operationLimit);
+                out var results, out var diagnosticInfos, out var stringTable, itemsToCreate.Count,
+                operationLimit);
             foreach (var batchItemsToCreate in itemsToCreate
                 .Batch<MonitoredItemCreateRequest, MonitoredItemCreateRequestCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.CreateMonitoredItemsAsync(requestHeader, subscriptionId,
                     timestampsToReturn, batchItemsToCreate, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-
                 ClientBase.ValidateResponse(batchResults, batchItemsToCreate);
                 ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchItemsToCreate);
 
@@ -557,15 +611,10 @@ namespace Opc.Ua.Client
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -574,36 +623,29 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, TimestampsToReturn timestampsToReturn,
             MonitoredItemModifyRequestCollection itemsToModify, CancellationToken ct)
         {
-            using var activity = new SessionActivity<ModifyMonitoredItemsResponse>(this,
-                nameof(ModifyMonitoredItemsAsync));
+            using var activity = StartActivity(nameof(ModifyMonitoredItemsAsync));
 
-            ModifyMonitoredItemsResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
             if (operationLimit == 0 || operationLimit >= itemsToModify.Count)
             {
-                response = await base.ModifyMonitoredItemsAsync(requestHeader, subscriptionId,
+                return await base.ModifyMonitoredItemsAsync(requestHeader, subscriptionId,
                     timestampsToReturn, itemsToModify, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
+            requestHeader ??= new RequestHeader();
+            ModifyMonitoredItemsResponse? response = null;
             InitResponseCollections<MonitoredItemModifyResult, MonitoredItemModifyResultCollection>(
                 out var results, out var diagnosticInfos, out var stringTable,
                 itemsToModify.Count, operationLimit);
             foreach (var batchItemsToModify in itemsToModify
                 .Batch<MonitoredItemModifyRequest, MonitoredItemModifyRequestCollection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.ModifyMonitoredItemsAsync(requestHeader, subscriptionId,
                     timestampsToReturn, batchItemsToModify, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-
                 ClientBase.ValidateResponse(batchResults, batchItemsToModify);
                 ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchItemsToModify);
 
@@ -612,15 +654,10 @@ namespace Opc.Ua.Client
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -629,33 +666,26 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, MonitoringMode monitoringMode,
             UInt32Collection monitoredItemIds, CancellationToken ct)
         {
-            using var activity = new SessionActivity<SetMonitoringModeResponse>(this,
-                nameof(SetMonitoringModeResponse));
+            using var activity = StartActivity(nameof(SetMonitoringModeResponse));
 
-            SetMonitoringModeResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
             if (operationLimit == 0 || operationLimit >= monitoredItemIds.Count)
             {
-                response = await base.SetMonitoringModeAsync(requestHeader, subscriptionId,
+                return await base.SetMonitoringModeAsync(requestHeader, subscriptionId,
                     monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<StatusCode, StatusCodeCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                monitoredItemIds.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            SetMonitoringModeResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, monitoredItemIds.Count, operationLimit);
             foreach (var batchMonitoredItemIds in monitoredItemIds
                 .Batch<uint, UInt32Collection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.SetMonitoringModeAsync(requestHeader, subscriptionId,
                     monitoringMode, batchMonitoredItemIds, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -666,15 +696,11 @@ namespace Opc.Ua.Client
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
@@ -683,26 +709,22 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, uint triggeringItemId,
             UInt32Collection linksToAdd, UInt32Collection linksToRemove, CancellationToken ct)
         {
-            using var activity = new SessionActivity<SetTriggeringResponse>(this,
-                nameof(SetTriggeringAsync));
+            using var activity = StartActivity(nameof(SetTriggeringAsync));
 
-            SetTriggeringResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
             if (operationLimit == 0 || operationLimit >= linksToAdd.Count + linksToRemove.Count)
             {
-                response = await base.SetTriggeringAsync(requestHeader, subscriptionId,
+                return await base.SetTriggeringAsync(requestHeader, subscriptionId,
                     triggeringItemId, linksToAdd, linksToRemove, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<StatusCode, StatusCodeCollection>(
-                out var addResults, out var addDiagnosticInfos, out var stringTable,
-                linksToAdd.Count, operationLimit);
-            InitResponseCollections<StatusCode, StatusCodeCollection>(
-                out var removeResults, out var removeDiagnosticInfos, out _,
-                linksToRemove.Count, operationLimit);
-
+            requestHeader ??= new RequestHeader();
+            SetTriggeringResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var addResults,
+                out var addDiagnosticInfos, out var stringTable, linksToAdd.Count,
+                operationLimit);
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var removeResults,
+                out var removeDiagnosticInfos, out _, linksToRemove.Count, operationLimit);
             foreach (var batchLinksToAdd in linksToAdd
                 .Batch<uint, UInt32Collection>(operationLimit))
             {
@@ -724,14 +746,10 @@ namespace Opc.Ua.Client
                     batchLinksToRemove = new UInt32Collection();
                 }
 
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.SetTriggeringAsync(requestHeader, subscriptionId,
                     triggeringItemId, batchLinksToAdd, batchLinksToRemove, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
+
                 var batchAddResults = response.AddResults;
                 var batchAddDiagnosticInfos = response.AddDiagnosticInfos;
                 var batchRemoveResults = response.RemoveResults;
@@ -758,16 +776,12 @@ namespace Opc.Ua.Client
                 foreach (var batchLinksToRemove in linksToRemove
                     .Batch<uint, UInt32Collection>(operationLimit))
                 {
-                    if (requestHeader != null)
-                    {
-                        requestHeader.RequestHandle = 0;
-                    }
-
+                    requestHeader.RequestHandle = 0;
                     var batchLinksToAdd = new UInt32Collection();
                     response = await base.SetTriggeringAsync(requestHeader, subscriptionId,
                         triggeringItemId, batchLinksToAdd, batchLinksToRemove,
                         ct).ConfigureAwait(false);
-                    activity.OnResponse(response);
+
                     var batchAddResults = response.AddResults;
                     var batchAddDiagnosticInfos = response.AddDiagnosticInfos;
                     var batchRemoveResults = response.RemoveResults;
@@ -789,11 +803,8 @@ namespace Opc.Ua.Client
                         response.ResponseHeader.StringTable);
                 }
             }
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.AddResults = addResults;
             response.AddDiagnosticInfos = addDiagnosticInfos;
             response.RemoveResults = removeResults;
@@ -807,33 +818,25 @@ namespace Opc.Ua.Client
             RequestHeader? requestHeader, uint subscriptionId, UInt32Collection monitoredItemIds,
             CancellationToken ct)
         {
-            using var activity = new SessionActivity<DeleteMonitoredItemsResponse>(this,
-                nameof(DeleteMonitoredItemsAsync));
+            using var activity = StartActivity(nameof(DeleteMonitoredItemsAsync));
 
-            DeleteMonitoredItemsResponse? response = null;
             var operationLimit = OperationLimits.MaxMonitoredItemsPerCall;
             if (operationLimit == 0 || operationLimit >= monitoredItemIds.Count)
             {
-                response = await base.DeleteMonitoredItemsAsync(requestHeader, subscriptionId,
+                return await base.DeleteMonitoredItemsAsync(requestHeader, subscriptionId,
                     monitoredItemIds, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
-                return response;
             }
 
-            InitResponseCollections<StatusCode, StatusCodeCollection>(
-                out var results, out var diagnosticInfos, out var stringTable,
-                monitoredItemIds.Count, operationLimit);
+            requestHeader ??= new RequestHeader();
+            DeleteMonitoredItemsResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, monitoredItemIds.Count, operationLimit);
             foreach (var batchMonitoredItemIds in monitoredItemIds
                 .Batch<uint, UInt32Collection>(operationLimit))
             {
-                if (requestHeader != null)
-                {
-                    requestHeader.RequestHandle = 0;
-                }
-
+                requestHeader.RequestHandle = 0;
                 response = await base.DeleteMonitoredItemsAsync(requestHeader,
                     subscriptionId, batchMonitoredItemIds, ct).ConfigureAwait(false);
-                activity.OnResponse(response);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
@@ -845,75 +848,281 @@ namespace Opc.Ua.Client
                     batchDiagnosticInfos, response.ResponseHeader.StringTable);
             }
 
-            if (response == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNothingToDo,
-                    "Nothing to do");
-            }
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             response.Results = results;
             response.DiagnosticInfos = diagnosticInfos;
             response.ResponseHeader.StringTable = stringTable;
-
             return response;
         }
 
-        /// <summary>
-        /// Session activity
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private readonly struct SessionActivity<T> : IDisposable where T : IServiceResponse
+        /// <inheritdoc/>
+        public override async Task<AddNodesResponse> AddNodesAsync(RequestHeader? requestHeader,
+            AddNodesItemCollection nodesToAdd, CancellationToken ct)
         {
-            /// <inheritdoc/>
-            public SessionActivity(SessionBase outer, string activity)
-            {
-                _activity = outer._activitySource.StartActivity(activity[0..^5]);
+            using var activity = StartActivity(nameof(AddNodesAsync));
 
-                if (outer._logger.IsEnabled(LogLevel.Debug))
+            var operationLimit = OperationLimits.MaxNodesPerNodeManagement;
+            if (operationLimit == 0 || operationLimit >= nodesToAdd.Count)
+            {
+                return await base.AddNodesAsync(requestHeader, nodesToAdd,
+                    ct).ConfigureAwait(false);
+            }
+
+            requestHeader ??= new RequestHeader();
+            AddNodesResponse? response = null;
+            InitResponseCollections<AddNodesResult, AddNodesResultCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, nodesToAdd.Count, operationLimit);
+            foreach (var batchNodesToAdd in nodesToAdd
+                .Batch<AddNodesItem, AddNodesItemCollection>(operationLimit))
+            {
+                requestHeader.RequestHandle = 0;
+                response = await base.AddNodesAsync(requestHeader, batchNodesToAdd,
+                    ct).ConfigureAwait(false);
+                var batchResults = response.Results;
+                var batchDiagnosticInfos = response.DiagnosticInfos;
+                ClientBase.ValidateResponse(batchResults, batchNodesToAdd);
+                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToAdd);
+
+                AddResponses<AddNodesResult, AddNodesResultCollection>(ref results,
+                    ref diagnosticInfos, ref stringTable, batchResults, batchDiagnosticInfos,
+                    response.ResponseHeader.StringTable);
+            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
+            response.Results = results;
+            response.DiagnosticInfos = diagnosticInfos;
+            response.ResponseHeader.StringTable = stringTable;
+            return response;
+        }
+
+        /// <inheritdoc/>
+        public override async Task<AddReferencesResponse> AddReferencesAsync(RequestHeader? requestHeader,
+            AddReferencesItemCollection referencesToAdd, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(AddReferencesAsync));
+
+            var operationLimit = OperationLimits.MaxNodesPerNodeManagement;
+            if (operationLimit == 0 || operationLimit >= referencesToAdd.Count)
+            {
+                return await base.AddReferencesAsync(requestHeader, referencesToAdd,
+                    ct).ConfigureAwait(false);
+            }
+
+            requestHeader ??= new RequestHeader();
+            AddReferencesResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, referencesToAdd.Count,
+                operationLimit);
+            foreach (var batchReferencesToAdd in referencesToAdd
+                .Batch<AddReferencesItem, AddReferencesItemCollection>(operationLimit))
+            {
+                requestHeader.RequestHandle = 0;
+                response = await base.AddReferencesAsync(requestHeader, batchReferencesToAdd,
+                    ct).ConfigureAwait(false);
+
+                var batchResults = response.Results;
+                var batchDiagnosticInfos = response.DiagnosticInfos;
+                ClientBase.ValidateResponse(batchResults, batchReferencesToAdd);
+                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchReferencesToAdd);
+
+                AddResponses<StatusCode, StatusCodeCollection>(ref results, ref diagnosticInfos,
+                    ref stringTable, batchResults, batchDiagnosticInfos,
+                    response.ResponseHeader.StringTable);
+            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
+            response.Results = results;
+            response.DiagnosticInfos = diagnosticInfos;
+            response.ResponseHeader.StringTable = stringTable;
+            return response;
+        }
+
+        /// <inheritdoc/>
+        public override async Task<DeleteNodesResponse> DeleteNodesAsync(RequestHeader? requestHeader,
+            DeleteNodesItemCollection nodesToDelete, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(DeleteNodesAsync));
+
+            var operationLimit = OperationLimits.MaxNodesPerNodeManagement;
+            if (operationLimit == 0 || operationLimit >= nodesToDelete.Count)
+            {
+                return await base.DeleteNodesAsync(requestHeader, nodesToDelete,
+                    ct).ConfigureAwait(false);
+            }
+
+            requestHeader ??= new RequestHeader();
+            DeleteNodesResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, nodesToDelete.Count, operationLimit);
+            foreach (var batchNodesToDelete in nodesToDelete
+                .Batch<DeleteNodesItem, DeleteNodesItemCollection>(operationLimit))
+            {
+                requestHeader.RequestHandle = 0;
+                response = await base.DeleteNodesAsync(requestHeader,
+                    batchNodesToDelete, ct).ConfigureAwait(false);
+
+                var batchResults = response.Results;
+                var batchDiagnosticInfos = response.DiagnosticInfos;
+                ClientBase.ValidateResponse(batchResults, batchNodesToDelete);
+                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToDelete);
+
+                AddResponses<StatusCode, StatusCodeCollection>(ref results, ref diagnosticInfos,
+                    ref stringTable, batchResults, batchDiagnosticInfos,
+                    response.ResponseHeader.StringTable);
+            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
+            response.Results = results;
+            response.DiagnosticInfos = diagnosticInfos;
+            response.ResponseHeader.StringTable = stringTable;
+            return response;
+        }
+
+        /// <inheritdoc/>
+        public override async Task<DeleteReferencesResponse> DeleteReferencesAsync(
+            RequestHeader? requestHeader, DeleteReferencesItemCollection referencesToDelete,
+            CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(DeleteReferencesAsync));
+
+            var operationLimit = OperationLimits.MaxNodesPerNodeManagement;
+            if (operationLimit == 0 || operationLimit >= referencesToDelete.Count)
+            {
+                return await base.DeleteReferencesAsync(requestHeader, referencesToDelete,
+                    ct).ConfigureAwait(false);
+            }
+
+            requestHeader ??= new RequestHeader();
+            DeleteReferencesResponse? response = null;
+            InitResponseCollections<StatusCode, StatusCodeCollection>(out var results,
+                out var diagnosticInfos, out var stringTable, referencesToDelete.Count,
+                operationLimit);
+            foreach (var batchReferencesToDelete in referencesToDelete
+                .Batch<DeleteReferencesItem, DeleteReferencesItemCollection>(operationLimit))
+            {
+                requestHeader.RequestHandle = 0;
+                response = await base.DeleteReferencesAsync(requestHeader,
+                    batchReferencesToDelete, ct).ConfigureAwait(false);
+
+                var batchResults = response.Results;
+                var batchDiagnosticInfos = response.DiagnosticInfos;
+                ClientBase.ValidateResponse(batchResults, batchReferencesToDelete);
+                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchReferencesToDelete);
+
+                AddResponses<StatusCode, StatusCodeCollection>(ref results, ref diagnosticInfos,
+                    ref stringTable, batchResults, batchDiagnosticInfos,
+                    response.ResponseHeader.StringTable);
+            }
+
+            Debug.Assert(response != null, "Empty ops should have been covered in fast path");
+            response.Results = results;
+            response.DiagnosticInfos = diagnosticInfos;
+            response.ResponseHeader.StringTable = stringTable;
+            return response;
+        }
+
+        /// <inheritdoc/>
+        protected override void RequestCompleted(IServiceRequest? request, IServiceResponse? response,
+            string serviceName)
+        {
+            var requestHandle = response?.ResponseHeader?.RequestHandle;
+            requestHandle ??= request?.RequestHeader?.RequestHandle;
+            var timestamp = request?.RequestHeader?.Timestamp;
+            var result = response?.ResponseHeader?.ServiceResult;
+            if (TraceActivityUsingLogger)
+            {
+                var duration = timestamp != null ? DateTime.UtcNow - timestamp : TimeSpan.Zero;
+                if (result == null || ServiceResult.IsGood(result))
                 {
-                    _logScope = new LogScope(activity, Stopwatch.StartNew(),
-                        outer._logger);
-                    _logScope.Logger.LogDebug("Session activity {Activity} started...",
-                        _logScope.Name);
+                    _logger.LogInformation("{Activity}#{Handle} success received after {Elapsed}.",
+                        serviceName, requestHandle, duration);
+                }
+                else
+                {
+                    _logger.LogError("{Activity}#{Handle} failed with {StatusCode} in {Elapsed}.",
+                        serviceName, requestHandle, result, duration);
                 }
             }
-
-            /// <summary>
-            /// Add response to activity
-            /// </summary>
-            /// <param name="response"></param>
-            public void OnResponse(T response)
+            var context = Activity.Current;
+            if (context == null)
             {
-                var result = response?.ResponseHeader?.ServiceResult;
-                if (_logScope != null)
-                {
-                    if (result == null || ServiceResult.IsGood(result))
-                    {
-                        _logScope.Logger.LogDebug(
-                            "Session activity {Activity} response after {Elapsed}.",
-                            _logScope.Name, _logScope.Sw.Elapsed);
-                    }
-                    else
-                    {
-                        _logScope.Logger.LogError(
-      "Session activity {Activity} response failed with {StatusCode} in {Elapsed}.",
-                            _logScope.Name, result, _logScope.Sw.Elapsed);
-                    }
-                }
+                return;
+            }
+            context.AddEvent(new ActivityEvent("Completed", tags: new ActivityTagsCollection
+            {
+                System.Collections.Generic.KeyValuePair.Create("RequestHandle", (object?)requestHandle),
+                System.Collections.Generic.KeyValuePair.Create("ServiceResult", (object?)result)
+            }));
+        }
+
+        /// <inheritdoc/>
+        protected override void UpdateRequestHeader(IServiceRequest request, bool useDefaults,
+            string serviceName)
+        {
+            request.RequestHeader ??= new RequestHeader();
+            if (request.RequestHeader.ReturnDiagnostics == 0)
+            {
+                request.RequestHeader.ReturnDiagnostics = (uint)(int)ReturnDiagnostics;
+            }
+            if (request.RequestHeader.TimeoutHint == 0)
+            {
+                request.RequestHeader.TimeoutHint = (uint)OperationTimeout;
+            }
+            request.RequestHeader.RequestHandle = NewRequestHandle();
+            request.RequestHeader.AuthenticationToken = AuthenticationToken;
+            request.RequestHeader.Timestamp = DateTime.UtcNow;
+            request.RequestHeader.AuditEntryId = CreateAuditLogEntry(request);
+
+            if (TraceActivityUsingLogger)
+            {
+                _logger.LogInformation("{Activity}#{Handle} started...", serviceName,
+                    request.RequestHeader.RequestHandle);
+            }
+            var context = Activity.Current;
+            if (context == null)
+            {
+                return;
             }
 
-            /// <inheritdoc/>
-            public void Dispose()
+            context.AddEvent(new ActivityEvent("Started", tags: new ActivityTagsCollection
             {
-                _activity?.Dispose();
+                System.Collections.Generic.KeyValuePair.Create("RequestHandle",
+                    (object?)request.RequestHeader.RequestHandle),
+                System.Collections.Generic.KeyValuePair.Create("AuditEntryId",
+                    (object?)request.RequestHeader.AuditEntryId)
+            }));
+            var traceData = new AdditionalParametersType();
+            // Determine the trace flag based on the 'Recorded' status.
+            var traceFlags = (context.ActivityTraceFlags & ActivityTraceFlags.Recorded) != 0
+                ? "01" : "00";
 
-                _logScope?.Logger.LogDebug(
-                    "Session activity {Activity} completed in {Elapsed}.",
-                    _logScope.Name, _logScope.Sw.Elapsed);
+            // Construct the traceparent header, adhering to the W3C Trace Context format.
+            var traceparent = $"00-{context.TraceId}-{context.SpanId}-{traceFlags}";
+            traceData.Parameters.Add(new Opc.Ua.KeyValuePair
+            {
+                Key = "traceparent",
+                Value = traceparent
+            });
+            if (request.RequestHeader.AdditionalHeader == null)
+            {
+                request.RequestHeader.AdditionalHeader = new ExtensionObject(traceData);
             }
+            else if (request.RequestHeader.AdditionalHeader.Body is
+                AdditionalParametersType existingParameters)
+            {
+                // Merge the trace data into the existing parameters.
+                existingParameters.Parameters.AddRange(traceData.Parameters);
+            }
+        }
 
-            private sealed record class LogScope(string Name, Stopwatch Sw, ILogger Logger);
-            private readonly Activity? _activity;
-            private readonly LogScope? _logScope;
+        /// <summary>
+        /// Helper to start activity
+        /// </summary>
+        /// <param name="activity"></param>
+        /// <returns></returns>
+        private Activity? StartActivity(string activity)
+        {
+            return _activitySource?.StartActivity(activity[..^5]);
         }
 
         /// <summary>
@@ -1030,7 +1239,7 @@ namespace Opc.Ua.Client
             }
         }
 
-        private readonly ActivitySource _activitySource;
+        private readonly ActivitySource? _activitySource;
         private readonly ILogger _logger;
     }
 }

@@ -167,7 +167,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The subscription that owns the monitored item.
         /// </summary>
-        public Subscription? Subscription { get; internal set; }
+        public Subscription Subscription { get; }
 
         /// <summary>
         /// The identifier assigned by the client.
@@ -188,8 +188,9 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        protected MonitoredItem()
+        protected MonitoredItem(Subscription subscription)
         {
+            Subscription = subscription;
             StartNodeId = NodeId.Null;
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
@@ -215,6 +216,8 @@ namespace Opc.Ua.Client
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
+            Subscription.RemoveItem(this);
+            ServerId = 0;
             _disposedValue = true;
         }
 
@@ -226,7 +229,7 @@ namespace Opc.Ua.Client
         /// <param name="index"></param>
         /// <param name="diagnosticInfos"></param>
         /// <param name="responseHeader"></param>
-        public void SetCreateResult(MonitoredItemCreateRequest request,
+        internal void SetCreateResult(MonitoredItemCreateRequest request,
             MonitoredItemCreateResult result, int index,
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
@@ -270,7 +273,7 @@ namespace Opc.Ua.Client
         /// <param name="index"></param>
         /// <param name="diagnosticInfos"></param>
         /// <param name="responseHeader"></param>
-        public void SetModifyResult(MonitoredItemModifyRequest request,
+        internal void SetModifyResult(MonitoredItemModifyRequest request,
             MonitoredItemModifyResult result, int index,
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
@@ -308,7 +311,7 @@ namespace Opc.Ua.Client
         /// Updates the object with the results of a transfer subscription request.
         /// </summary>
         /// <param name="clientHandle"></param>
-        public void SetTransferResult(uint clientHandle)
+        internal void SetTransferResult(uint clientHandle)
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
 
@@ -319,21 +322,11 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Updates the object with the results of a delete monitored item request.
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="index"></param>
-        /// <param name="diagnosticInfos"></param>
-        /// <param name="responseHeader"></param>
-        public void SetDeleteResult(StatusCode result, int index,
-            DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
+        internal void Reset()
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
-            var error = ServiceResult.Good;
-            if (StatusCode.IsBad(result))
-            {
-                error = ClientBase.GetResult(result, index, diagnosticInfos, responseHeader);
-            }
             ServerId = 0;
-            Error = error;
+            Error = ServiceResult.Good;
         }
 
         /// <summary>

@@ -26,8 +26,8 @@ namespace Opc.Ua.Client
     /// The queued acknowledgements are then sent by the workers the
     /// next publish cycle.
     /// </summary>
-    public sealed class SubscriptionManager : ISubscriptions, IAcknoledgementQueue,
-        IDisposable
+    public sealed class SubscriptionManager : ISubscriptions, IAckQueue,
+        IAsyncDisposable
     {
         /// <inheritdoc/>
         public bool TransferSubscriptionsOnRecreate { get; set; }
@@ -95,7 +95,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             try
             {
@@ -111,10 +111,10 @@ namespace Opc.Ua.Client
 
                 foreach (var subscription in subscriptions)
                 {
-                    subscription.Dispose();
+                    await subscription.DisposeAsync().ConfigureAwait(false);
                 }
                 subscriptions.Clear();
-                _publishController.GetAwaiter().GetResult();
+                await _publishController.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -126,6 +126,14 @@ namespace Opc.Ua.Client
             }
         }
 
+        /// <summary>
+        /// Trigger publish controller
+        /// </summary>
+        public void Update()
+        {
+            _publishControl.Set();
+        }
+
         /// <inheritdoc/>
         public ValueTask QueueAsync(
             SubscriptionAcknowledgement ack, CancellationToken ct)
@@ -134,7 +142,28 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public bool Add(Subscription subscription)
+        public ValueTask CompleteAsync(
+            Subscription subscription, CancellationToken ct)
+        {
+            lock (_subscriptionLock)
+            {
+                if (!_subscriptions.Remove(subscription))
+                {
+                    return ValueTask.CompletedTask;
+                }
+            }
+            _logger.LogInformation("Subscription {Id} REMOVED.",
+                subscription.Id);
+            Update();
+            return ValueTask.CompletedTask;
+        }
+
+        /// <summary>
+        /// Add subscription to subscription list
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        internal bool Add(Subscription subscription)
         {
             ArgumentNullException.ThrowIfNull(subscription);
             lock (_subscriptionLock)
@@ -151,72 +180,10 @@ namespace Opc.Ua.Client
 
                 _subscriptions.Add(subscription);
             }
+            _logger.LogInformation("Subscription {Id} ADDED.",
+                subscription.Id);
             Update();
             return true;
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask<bool> RemoveAsync(Subscription subscription,
-            CancellationToken ct = default)
-        {
-            ArgumentNullException.ThrowIfNull(subscription);
-            if (subscription.Created)
-            {
-                await subscription.DeleteAsync(false, ct).ConfigureAwait(false);
-            }
-            return Remove(subscription);
-        }
-
-        /// <summary>
-        /// Remove deleted subscription
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        public bool Remove(Subscription subscription)
-        {
-            ArgumentNullException.ThrowIfNull(subscription);
-            if (subscription.Created)
-            {
-                return false;
-            }
-            lock (_subscriptionLock)
-            {
-                if (!_subscriptions.Remove(subscription))
-                {
-                    return false;
-                }
-            }
-            Update();
-            return true;
-        }
-
-        /// <summary>
-        /// Get subscription with the specified id
-        /// </summary>
-        /// <param name="subscriptionId"></param>
-        /// <returns></returns>
-        public Subscription? GetById(uint subscriptionId)
-        {
-            lock (_subscriptionLock)
-            {
-                // find the subscription.
-                foreach (var subscription in _subscriptions)
-                {
-                    if (subscription.Id == subscriptionId)
-                    {
-                        return subscription;
-                    }
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Trigger publish controller
-        /// </summary>
-        public void Update()
-        {
-            _publishControl.Set();
         }
 
         /// <summary>
@@ -332,6 +299,27 @@ namespace Opc.Ua.Client
                 }
                 return remaining;
             }
+        }
+
+        /// <summary>
+        /// Get subscription with the specified id
+        /// </summary>
+        /// <param name="subscriptionId"></param>
+        /// <returns></returns>
+        private Subscription? GetById(uint subscriptionId)
+        {
+            lock (_subscriptionLock)
+            {
+                // find the subscription.
+                foreach (var subscription in _subscriptions)
+                {
+                    if (subscription.Id == subscriptionId)
+                    {
+                        return subscription;
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>

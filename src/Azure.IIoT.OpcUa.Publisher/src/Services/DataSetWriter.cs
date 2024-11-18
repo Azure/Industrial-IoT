@@ -831,7 +831,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _logger.LogWarning("No metadata available for {Writer} - dropping notification.",
                                 this);
                             Interlocked.Increment(ref _group._messagesWithoutMetadata);
-                            return;
                         }
                     }
 
@@ -890,8 +889,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 DataSetWriterContext CreateMessageContext(string topic, QoS? qos, bool? retain,
-                            TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata,
-                            MonitoredItemNotificationModel? single)
+                    TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata,
+                    MonitoredItemNotificationModel? single)
                 {
                     _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     return new DataSetWriterContext

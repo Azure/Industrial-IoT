@@ -95,13 +95,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public DataChange(ISubscriber owner, DataMonitoredItemModel template,
+            public DataChange(Subscription subscription, ISubscriber owner, DataMonitoredItemModel template,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(owner, logger, template.StartNodeId, timeProvider)
+                base(subscription, owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
 
@@ -210,10 +211,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool AddTo(Subscription subscription, IOpcUaSession session,
-                out bool metadataChanged)
+            public override bool Initialize(out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
+                var nodeId = NodeId.ToNodeId(Subscription.Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     metadataChanged = false;
@@ -229,10 +229,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? Opc.Ua.MonitoringMode.Reporting;
                 SamplingInterval = Template.SamplingInterval
                     ?? TimeSpan.FromSeconds(1);
-                UpdateQueueSize(subscription, Template);
+                UpdateQueueSize(Subscription, Template);
                 Filter = Template.DataChangeFilter.ToStackModel() ??
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
-                        session.MessageContext);
+                        Subscription.Session.MessageContext);
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
                 }
-                return base.AddTo(subscription, session, out metadataChanged);
+                return base.Initialize(out metadataChanged);
             }
 
             /// <inheritdoc/>
@@ -382,7 +382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                    return Create(client, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();

@@ -39,13 +39,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create condition item
             /// </summary>
+            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Condition(ISubscriber owner, EventMonitoredItemModel template,
+            public Condition(Subscription subscription, ISubscriber owner, EventMonitoredItemModel template,
                 ILogger<Event> logger, TimeProvider timeProvider) :
-                base(owner, template, logger, timeProvider)
+                base(subscription, owner, template, logger, timeProvider)
             {
                 _snapshotInterval = template.ConditionHandling?.SnapshotInterval
                     ?? throw new ArgumentException("Invalid snapshot interval");
@@ -151,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
                             "item {Name} on subscription {Subscription} due to receiving " +
                             "a RefreshRequired event", this, Template.DisplayName,
-                            Subscription.DisplayName);
+                            Subscription.Id);
                         try
                         {
                             Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
@@ -160,14 +161,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.DisplayName, Subscription.DisplayName, e.Message);
+                                this, Template.DisplayName, Subscription.Id, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} has completed", this,
-                                Template.DisplayName, Subscription.DisplayName);
+                                Template.DisplayName, Subscription.Id);
                         }
                         return true;
                     }

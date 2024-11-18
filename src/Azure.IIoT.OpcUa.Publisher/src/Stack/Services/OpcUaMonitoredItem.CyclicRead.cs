@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -31,15 +32,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create cyclic read item
             /// </summary>
+            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="client"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public CyclicRead(ISubscriber owner, OpcUaClient client,
+            public CyclicRead(Subscription subscription, ISubscriber owner, OpcUaClient client,
                 DataMonitoredItemModel template, ILogger<CyclicRead> logger,
                 TimeProvider timeProvider) :
-                base(owner, template with
+                base(subscription, owner, template with
                 {
                     // Always ensure item is disabled
                     MonitoringMode = Publisher.Models.MonitoringMode.Disabled

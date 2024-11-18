@@ -84,13 +84,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create wrapper
             /// </summary>
+            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Event(ISubscriber owner, EventMonitoredItemModel template,
-                ILogger<Event> logger, TimeProvider timeProvider) :
-                base(owner, logger, template.StartNodeId, timeProvider)
+            public Event(Subscription subscription, ISubscriber owner,
+                EventMonitoredItemModel template, ILogger<Event> logger,
+                TimeProvider timeProvider) :
+                base(subscription, owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
             }
@@ -214,10 +216,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
-            public override bool AddTo(Subscription subscription,
-                IOpcUaSession session, out bool metadataChanged)
+            public override bool Initialize(out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
+                var nodeId = NodeId.ToNodeId(Subscription.Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     metadataChanged = false;
@@ -230,11 +231,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
                 SamplingInterval = TimeSpan.Zero;
-                UpdateQueueSize(subscription, Template);
+                UpdateQueueSize(Subscription, Template);
                 DiscardOldest = !(Template.DiscardNew ?? false);
                 Valid = true;
 
-                return base.AddTo(subscription, session, out metadataChanged);
+                return base.Initialize(out metadataChanged);
             }
 
             /// <inheritdoc/>
@@ -325,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                    return Create(client, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();

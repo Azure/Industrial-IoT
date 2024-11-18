@@ -51,11 +51,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var session = SetupMockedSession(namespaceUris).Object;
             var subscriber = new Mock<ISubscriber>();
-            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!,
+            await using var subscription = new SimpleSubscription();
+            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, subscription,
                 (subscriber.Object, template).YieldReturn(),
                 Log.ConsoleFactory(), TimeProvider.System).Single();
-            using var subscription = new SimpleSubscription();
-            monitoredItemWrapper.AddTo(subscription, session, out _);
+            monitoredItemWrapper.Initialize(out _);
             if (monitoredItemWrapper.FinalizeAddTo != null)
             {
                 await monitoredItemWrapper.FinalizeAddTo(session, default);
@@ -68,6 +68,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             public SimpleSubscription()
                 : base(null!, null!, Log.Console<SimpleSubscription>())
             {
+            }
+
+            protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions options)
+            {
+                throw new NotImplementedException();
             }
 
             protected override ValueTask OnDataChangeNotificationAsync(

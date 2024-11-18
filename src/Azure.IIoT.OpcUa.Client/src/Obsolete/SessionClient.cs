@@ -796,6 +796,12 @@ namespace Opc.Ua.Client.Obsolete
             throw NotSupported(nameof(EndDeleteSubscriptions));
         }
 
+        /// <inheritdoc/>
+        protected sealed override void UpdateRequestHeader(IServiceRequest request, bool useDefaults)
+        {
+            throw NotSupported(nameof(UpdateRequestHeader));
+        }
+
         /// <summary>
         /// Throw not supported exception
         /// </summary>

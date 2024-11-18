@@ -11,6 +11,7 @@ namespace Opc.Ua.Client
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
@@ -20,7 +21,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Manages a session with a server.
     /// </summary>
-    public class Session : SessionBase, IComplexTypeContext, INodeCacheContext
+    public abstract class Session : SessionServices, IComplexTypeContext, INodeCacheContext
     {
         /// <summary>
         /// Get time provider to use
@@ -38,9 +39,19 @@ namespace Opc.Ua.Client
         public string SessionName { get; }
 
         /// <summary>
+        /// Time the session was created
+        /// </summary>
+        public DateTimeOffset CreatedAt { get; }
+
+        /// <summary>
+        /// Time the session was connected
+        /// </summary>
+        public DateTimeOffset? ConnectedSince { get; private set; }
+
+        /// <summary>
         /// Gets the user identity currently used for the session.
         /// </summary>
-        public IUserIdentity Identity { get; }
+        public IUserIdentity Identity { get; private set; }
 
         /// <summary>
         /// Subscriptions in the session
@@ -178,6 +189,11 @@ namespace Opc.Ua.Client
         public int LastKeepAliveTickCount { get; private set; }
 
         /// <summary>
+        /// Number of namespace table changes
+        /// </summary>
+        public int NamespaceTableChanges => _namespaceTableChanges;
+
+        /// <summary>
         /// Session is in the process of connecting as indicated
         /// by the connect lock being taken
         /// </summary>
@@ -194,75 +210,49 @@ namespace Opc.Ua.Client
         /// Constructs a new instance of the <see cref="Session"/> class. The application
         /// configuration is used to look up the certificate if none is provided.
         /// </summary>
-        /// <param name="sessionName">The name to assign to the session.</param>
         /// <param name="configuration">The configuration for the client application.</param>
         /// <param name="endpoint">The endpoint used to initialize the channel.</param>
         /// <param name="loggerFactory">A logger factory to use</param>
-        /// <param name="identity">The user identity to use for the initial session
-        /// open call. Default will be anonymous user</param>
-        /// <param name="preferredLocales">The list of preferred locales.</param>
-        /// <param name="clientCertificate">The certificate to use for the session. If
-        /// set no certificates will be loaded from the certificate store</param>
-        /// <param name="sessionTimeout">The session timeout.</param>
-        /// <param name="checkDomain">If set to <c>true</c> then the domain in the server
-        /// certificate must match the endpoint that was used.</param>
-        /// <param name="availableEndpoints">The list of available endpoints returned by
-        /// server in GetEndpoints response.</param>
-        /// <param name="discoveryProfileUris">The value of profileUris that was used
-        /// the call to GetEndpoints request.</param>
-        /// <param name="reverseConnectManager">Reverse connect manager if the session
-        /// established over a reverse connection</param>
-        /// <param name="timeProvider"></param>
-        /// <param name="channel">The channel that should be used to communicate with the
-        /// server in the initial open call.</param>
-        /// <param name="connection">An established reverse connection that should be
-        /// used on initial open call</param>
-        public Session(string sessionName, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, ILoggerFactory loggerFactory,
-            IUserIdentity? identity = null, IReadOnlyList<string>? preferredLocales = null,
-            X509Certificate2? clientCertificate = null, TimeSpan? sessionTimeout = null,
-            bool checkDomain = true, EndpointDescriptionCollection? availableEndpoints = null,
-            StringCollection? discoveryProfileUris = null,
-            ReverseConnectManager? reverseConnectManager = null, TimeProvider? timeProvider = null,
-            ITransportChannel? channel = null, ITransportWaitingConnection? connection = null)
-            : base(loggerFactory, channel)
+        /// <param name="timeprovider">Time provider</param>
+        /// <param name="options">Session options</param>
+        /// <param name="reverseConnectManager">Reverse connect manager</param>
+        protected Session(ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
+            SessionOptions options, ILoggerFactory loggerFactory, TimeProvider timeprovider,
+            ReverseConnectManager? reverseConnectManager = null) : base(loggerFactory,
+                options.Meter ?? ClientApplication.DefaultMeterFactory, options.ActivitySource,
+                options.Channel)
         {
-            ArgumentNullException.ThrowIfNull(configuration);
-            if (configuration.ClientConfiguration == null ||
-                configuration.SecurityConfiguration == null ||
-                configuration.CertificateValidator == null)
-            {
-                throw new ServiceResultException(StatusCodes.BadConfigurationError,
-                    "The application configuration for the session is missing fields.");
-            }
-
-            TimeProvider = timeProvider ?? TimeProvider.System;
-            MessageContext = channel?.MessageContext ?? configuration.CreateMessageContext();
+            TimeProvider = timeprovider;
+            CreatedAt = TimeProvider.GetUtcNow();
+            MessageContext = options.Channel?.MessageContext
+                ?? configuration.CreateMessageContext();
             ConfiguredEndpoint = endpoint;
-            SessionName = sessionName;
-            Identity = identity ?? new UserIdentity();
+            SessionName = options.SessionName ?? Guid.NewGuid().ToString();
+            Identity = options.Identity ?? new UserIdentity();
 
+            _meter = MeterFactory.Create(new MeterOptions("Session") { Version = "1.0.0" });
             _logger = LoggerFactory.CreateLogger<Session>();
             _keepAliveTimer = new Timer(_ => _keepAliveTrigger.Set());
             _keepAliveWorker = KeepAliveWorkerAsync(_cts.Token);
-
-            _connection = connection;
             _configuration = configuration;
-            _instanceCertificate = clientCertificate;
             _reverseConnectManager = reverseConnectManager;
-            _checkDomain = checkDomain;
-            _discoveryServerEndpoints = availableEndpoints;
-            _discoveryProfileUris = discoveryProfileUris;
-            if (sessionTimeout.HasValue && sessionTimeout != TimeSpan.Zero)
+
+            _connection = options.Connection;
+            _instanceCertificate = options.ClientCertificate;
+            _checkDomain = options.CheckDomain;
+            _discoveryServerEndpoints = options.AvailableEndpoints;
+            _discoveryProfileUris = options.DiscoveryProfileUris;
+            if (options.SessionTimeout.HasValue &&
+                options.SessionTimeout != TimeSpan.Zero)
             {
-                SessionTimeout = sessionTimeout.Value;
+                SessionTimeout = options.SessionTimeout.Value;
             }
             else
             {
                 SessionTimeout = TimeSpan.FromMilliseconds(
                     configuration.ClientConfiguration.DefaultSessionTimeout);
             }
-            _preferredLocales = preferredLocales ?? new[] { CultureInfo.CurrentCulture.Name };
+            _preferredLocales = options.PreferredLocales ?? new[] { CultureInfo.CurrentCulture.Name };
             _nodeCache = new NodeCache(this);
             _subscriptions = new SubscriptionManager(this, LoggerFactory);
             _systemContext = new SystemContext
@@ -317,7 +307,13 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async ValueTask OpenAsync(CancellationToken ct)
+        public override string ToString()
+        {
+            return $"{SessionName} (Id:{SessionId})";
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask OpenAsync(OpenOptions? options = null, CancellationToken ct = default)
         {
             var securityPolicyUri = ConfiguredEndpoint.Description.SecurityPolicyUri;
             // catch security policies which are not supported by core
@@ -329,6 +325,10 @@ namespace Opc.Ua.Client
             }
 
             // get identity token.
+            if (options?.Identity != null)
+            {
+                Identity = options.Identity;
+            }
             var identityToken = Identity.GetIdentityToken();
             // check that the user identity is supported by the endpoint.
             var identityPolicy = ConfiguredEndpoint.Description.FindUserTokenPolicy(
@@ -355,6 +355,7 @@ namespace Opc.Ua.Client
                     !string.IsNullOrEmpty(identityPolicy.SecurityPolicyUri);
             }
 
+            ConnectedSince = null;
             await _connecting.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -583,6 +584,7 @@ namespace Opc.Ua.Client
 
                     // call session created callback, which was already set in base class only.
                     SessionCreated(sessionId, authenticationToken);
+                    ConnectedSince = TimeProvider.GetUtcNow();
                 }
                 catch (Exception)
                 {
@@ -698,7 +700,7 @@ namespace Opc.Ua.Client
                     // retry.
                     try
                     {
-                        await OpenAsync(ct).ConfigureAwait(false);
+                        await OpenAsync(null, ct).ConfigureAwait(false);
                         return;
                     }
                     catch (ServiceResultException sre)
@@ -756,95 +758,6 @@ namespace Opc.Ua.Client
                     }
                 }
             }
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask<StatusCode> CloseAsync(bool closeChannel,
-            CancellationToken ct)
-        {
-            // check if already called.
-            if (Disposed)
-            {
-                return StatusCodes.Good;
-            }
-            await _connecting.WaitAsync(ct).ConfigureAwait(false);
-            try
-            {
-                _subscriptions.Pause();
-                // stop the keep alive timer.
-                StopKeepAliveTimer();
-
-                // check if correctly connected.
-                var connected = Connected;
-
-                StatusCode result = StatusCodes.Good;
-                // close the session with the server.
-                if (connected && !KeepAliveStopped)
-                {
-                    try
-                    {
-                        // close the session and delete all subscriptions if
-                        // specified.
-                        var timeout = closeChannel ?
-                            TimeSpan.FromSeconds(2) : _keepAliveInterval;
-                        var requestHeader = new RequestHeader()
-                        {
-                            TimeoutHint = timeout > TimeSpan.Zero ?
-                                (uint)timeout.TotalMilliseconds :
-                                (uint)OperationTimeout.TotalMilliseconds
-                        };
-                        var response = await base.CloseSessionAsync(requestHeader,
-                            DeleteSubscriptionsOnClose, ct).ConfigureAwait(false);
-                        // raised notification indicating the session is closed.
-                        SessionCreated(null, null);
-                    }
-                    // don't throw errors on disconnect, but return them
-                    // so the caller can log the error.
-                    catch (ServiceResultException sre)
-                    {
-                        _logger.LogDebug(sre, "Error closing session.");
-                        result = sre.StatusCode;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogInformation(ex, "Unexpected error closing session.");
-                        result = StatusCodes.Bad;
-                    }
-                }
-
-                if (closeChannel)
-                {
-                    try
-                    {
-                        await CloseChannelAsync(ct).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        // eat this - we do not care about it.
-                        _logger.LogDebug(ex, "Error closing channel.");
-                    }
-                }
-                return result;
-            }
-            finally
-            {
-                _connecting.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public sealed override Task<StatusCode> CloseAsync(CancellationToken ct)
-        {
-            return CloseAsync(true, ct).AsTask();
-        }
-
-        /// <inheritdoc/>
-        public sealed override void DetachChannel()
-        {
-            // Overriding to remove any existing connection that was used
-            // to create the channel
-            _connection = null;
-            base.DetachChannel();
         }
 
         /// <inheritdoc/>
@@ -987,6 +900,26 @@ namespace Opc.Ua.Client
             StartKeepAliveTimer();
         }
 
+        /// <summary>
+        /// Create a new subscription inside the session. The subscription will
+        /// not be created as part of this call. It must be explicitly created
+        /// using CreateAsync. Disposing the session will remove it from the
+        /// session but not from the server. The subscription must also explicitly
+        /// be deleted using DeleteAsync to remove it from the server.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public Subscription AddSubscription(SubscriptionOptions? options)
+        {
+            var subscription = CreateSubscription(options, _subscriptions);
+            if (!_subscriptions.Add(subscription))
+            {
+                throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
+                    "Failed to add subscription.");
+            }
+            return subscription;
+        }
+
         /// <inheritdoc/>
         public async Task FetchNamespaceTablesAsync(CancellationToken ct)
         {
@@ -1000,7 +933,9 @@ namespace Opc.Ua.Client
             if ((errors.Count == 0 || !ServiceResult.IsBad(errors[0])) &&
                 values[0].Value is string[] namespaces)
             {
+                var oldTables = NamespaceUris.ToArray();
                 NamespaceUris.Update(namespaces);
+                LogNamespaceTableChanges(oldTables, namespaces);
             }
             else
             {
@@ -1018,6 +953,46 @@ namespace Opc.Ua.Client
                 _logger.LogError(
                     "Session {Id}: Failed to read ServerArray node: {Status} ",
                     SessionId, errors[1]);
+            }
+            void LogNamespaceTableChanges(string[] oldTable, string[] newTable)
+            {
+                if (oldTable.Length <= 1)
+                {
+                    return; // First time or root namespace only only
+                }
+                var tableChanged = false;
+                for (var i = 0; i < Math.Max(oldTable.Length, newTable.Length); i++)
+                {
+                    if (i < oldTable.Length && i < newTable.Length)
+                    {
+                        if (oldTable[i] == newTable[i])
+                        {
+                            continue;
+                        }
+                        tableChanged = true;
+                        _logger.LogWarning(
+                            "Session {Id}: Namespace index #{Index} changed from {Old} to {New}",
+                            SessionId, i, oldTable[i], newTable[i]);
+                    }
+                    else if (i < oldTable.Length)
+                    {
+                        tableChanged = true;
+                        _logger.LogWarning(
+                            "Session {Id}: Namespace index #{Index} removed {Old}",
+                            SessionId, i, oldTable[i]);
+                    }
+                    else
+                    {
+                        tableChanged = true;
+                        _logger.LogWarning(
+                            "Session {Id}: Namespace index #{Index} added {New}",
+                            SessionId, i, newTable[i]);
+                    }
+                }
+                if (tableChanged)
+                {
+                    Interlocked.Increment(ref _namespaceTableChanges);
+                }
             }
         }
 
@@ -1616,6 +1591,96 @@ namespace Opc.Ua.Client
                 referencesList, errors);
         }
 
+        /// <inheritdoc/>
+        public async ValueTask<StatusCode> CloseAsync(bool closeChannel,
+            CancellationToken ct)
+        {
+            // check if already called.
+            if (Disposed)
+            {
+                return StatusCodes.Good;
+            }
+            await _connecting.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                _subscriptions.Pause();
+                // stop the keep alive timer.
+                StopKeepAliveTimer();
+
+                // check if correctly connected.
+                var connected = Connected;
+                ConnectedSince = null;
+
+                StatusCode result = StatusCodes.Good;
+                // close the session with the server.
+                if (connected && !KeepAliveStopped)
+                {
+                    try
+                    {
+                        // close the session and delete all subscriptions if
+                        // specified.
+                        var timeout = closeChannel ?
+                            TimeSpan.FromSeconds(2) : _keepAliveInterval;
+                        var requestHeader = new RequestHeader()
+                        {
+                            TimeoutHint = timeout > TimeSpan.Zero ?
+                                (uint)timeout.TotalMilliseconds :
+                                (uint)OperationTimeout.TotalMilliseconds
+                        };
+                        var response = await base.CloseSessionAsync(requestHeader,
+                            DeleteSubscriptionsOnClose, ct).ConfigureAwait(false);
+                        // raised notification indicating the session is closed.
+                        SessionCreated(null, null);
+                    }
+                    // don't throw errors on disconnect, but return them
+                    // so the caller can log the error.
+                    catch (ServiceResultException sre)
+                    {
+                        _logger.LogDebug(sre, "Error closing session.");
+                        result = sre.StatusCode;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInformation(ex, "Unexpected error closing session.");
+                        result = StatusCodes.Bad;
+                    }
+                }
+
+                if (closeChannel)
+                {
+                    try
+                    {
+                        await CloseChannelAsync(ct).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        // eat this - we do not care about it.
+                        _logger.LogDebug(ex, "Error closing channel.");
+                    }
+                }
+                return result;
+            }
+            finally
+            {
+                _connecting.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public sealed override Task<StatusCode> CloseAsync(CancellationToken ct)
+        {
+            return CloseAsync(true, ct).AsTask();
+        }
+
+        /// <inheritdoc/>
+        public sealed override void DetachChannel()
+        {
+            // Overriding to remove any existing connection that was used
+            // to create the channel
+            _connection = null;
+            base.DetachChannel();
+        }
+
         /// <summary>
         /// Closes the session and the underlying channel.
         /// </summary>
@@ -1646,15 +1711,24 @@ namespace Opc.Ua.Client
                 {
                     // Should not throw
                     _keepAliveWorker.GetAwaiter().GetResult();
+                    _subscriptions.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
                 finally
                 {
-                    _subscriptions.Dispose();
                     _keepAliveTimer.Dispose();
                     _cts.Dispose();
+                    _meter.Dispose();
                 }
             }
         }
+
+        /// <summary>
+        /// Create subscription
+        /// </summary>
+        /// <param name="options">The subscription options to pass</param>
+        /// <param name="queue">The completion queue</param>
+        /// <returns></returns>
+        protected abstract Subscription CreateSubscription(SubscriptionOptions? options, IAckQueue queue);
 
         /// <summary>
         /// Handle keep alive
@@ -1700,8 +1774,8 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        protected sealed override void RequestCompleted(IServiceRequest request,
-            IServiceResponse response, string serviceName)
+        protected sealed override void RequestCompleted(IServiceRequest? request,
+            IServiceResponse? response, string serviceName)
         {
             var sr = response?.ResponseHeader?.ServiceResult;
             if (sr != null && ServiceResult.IsGood(sr))
@@ -2626,8 +2700,7 @@ namespace Opc.Ua.Client
             {
                 _logger.LogInformation("Server signature is null or empty.");
 
-                //throw ServiceResultException.Create(
-                //    StatusCodes.BadSecurityChecksFailed,
+                //throw ServiceResultException.Create(StatusCodes.BadSecurityChecksFailed,
                 //    "Server signature is null or empty.");
             }
 
@@ -2980,6 +3053,7 @@ namespace Opc.Ua.Client
         private TimeSpan _keepAliveInterval = kDefaultKeepAliveInterval;
         private ITransportWaitingConnection? _connection;
         private Task<ComplexTypeSystem>? _complexTypeSystem;
+        private int _namespaceTableChanges;
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _keepAliveTrigger = new();
         private readonly Timer _keepAliveTimer;
         private readonly CancellationTokenSource _cts = new();
@@ -2995,5 +3069,6 @@ namespace Opc.Ua.Client
         private readonly SemaphoreSlim _connecting = new(1, 1);
         private readonly NodeCache _nodeCache;
         private readonly ILogger _logger;
+        private readonly Meter _meter;
     }
 }

@@ -46,13 +46,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create data item with heartbeat
             /// </summary>
+            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="dataTemplate"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Heartbeat(ISubscriber owner, DataMonitoredItemModel dataTemplate,
+            public Heartbeat(Subscription subscription, ISubscriber owner, DataMonitoredItemModel dataTemplate,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(owner, dataTemplate, logger, timeProvider)
+                base(subscription, owner, dataTemplate, logger, timeProvider)
             {
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);

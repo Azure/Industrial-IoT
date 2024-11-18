@@ -12,7 +12,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Message acknoledgement queue
     /// </summary>
-    public interface IAcknoledgementQueue
+    public interface IAckQueue
     {
         /// <summary>
         /// Subscriptionss queue acknoledgements for completed
@@ -22,6 +22,15 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask QueueAsync(SubscriptionAcknowledgement ack,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Complete subscription
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask CompleteAsync(Subscription subscription,
             CancellationToken ct = default);
     }
 }

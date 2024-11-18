@@ -817,7 +817,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                     break;
                                 case ConnectionEvent.SubscriptionSyncOne:
-                                    var subscriptionToSync = context as OpcUaSubscription;
+                                    var subscriptionToSync = context as VirtualSubscription;
                                     Debug.Assert(subscriptionToSync != null);
                                     await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
                                     break;
@@ -985,15 +985,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(_session == null);
             }
 
-            static void NotifySubscriptions(OpcUaSession? session, bool disconnected)
+            void NotifySubscriptions(OpcUaSession? session, bool disconnected)
             {
                 if (session == null)
                 {
                     return;
                 }
-                foreach (var h in session.SubscriptionHandles.Values)
+                lock (_cache)
                 {
-                    h.NotifySessionConnectionState(disconnected);
+                    foreach (var h in _cache.Values)
+                    {
+                        h.NotifySessionConnectionState(disconnected);
+                    }
                 }
             }
 
@@ -1009,48 +1012,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     reconnectPeriod = _maxReconnectPeriod;
                 }
                 return (int)reconnectPeriod.TotalMilliseconds;
-            }
-        }
-
-        /// <summary>
-        /// Log namespace table changes
-        /// </summary>
-        /// <param name="oldTable"></param>
-        /// <param name="newTable"></param>
-        private void LogNamespaceTableChanges(string[] oldTable, string[] newTable)
-        {
-            var tableChanged = false;
-            for (var i = 0; i < Math.Max(oldTable.Length, newTable.Length); i++)
-            {
-                if (i < oldTable.Length && i < newTable.Length)
-                {
-                    if (oldTable[i] == newTable[i])
-                    {
-                        continue;
-                    }
-                    tableChanged = true;
-                    _logger.LogWarning(
-                        "{Client}: Namespace index #{Index} changed from {Old} to {New}",
-                        this, i, oldTable[i], newTable[i]);
-                }
-                else if (i < oldTable.Length)
-                {
-                    tableChanged = true;
-                    _logger.LogWarning(
-                        "{Client}: Namespace index #{Index} removed {Old}",
-                        this, i, oldTable[i]);
-                }
-                else
-                {
-                    tableChanged = true;
-                    _logger.LogWarning(
-                        "{Client}: Namespace index #{Index} added {New}",
-                        this, i, newTable[i]);
-                }
-            }
-            if (tableChanged)
-            {
-                Interlocked.Increment(ref _namespaceTableChanges);
             }
         }
 
@@ -1214,13 +1175,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                     }
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                    var session = new OpcUaSession(this, _serializer, _sessionName, _configuration,
-                        endpoint, _loggerFactory, _timeProvider, userIdentity, preferredLocales,
-                        null, SessionTimeout, false, null, null, _reverseConnectManager, null, connection);
+                    var session = new OpcUaSession(this, _serializer, _configuration,
+                        endpoint, new SessionOptions
+                        {
+                            SessionName = _sessionName,
+                            Connection = connection,
+                            SessionTimeout = SessionTimeout,
+                            Identity = userIdentity,
+                            CheckDomain = false,
+                            PreferredLocales = preferredLocales,
+
+                        }, _loggerFactory, _timeProvider, _reverseConnectManager);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     try
                     {
-                        await session.OpenAsync(ct).ConfigureAwait(false);
+                        await session.OpenAsync(null, ct).ConfigureAwait(false);
 
                         // Assign the createdSubscriptions session
                         var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
@@ -1250,66 +1219,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             return false;
         }
-
-#if TODO
-        /// <summary>
-        /// Feed back acknoledgements
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="e"></param>
-        internal void Session_PublishSequenceNumbersToAcknowledge(Session context,
-            PublishSequenceNumbersToAcknowledgeEventArgs e)
-        {
-            if (context is not OpcUaSession session)
-            {
-                return;
-            }
-
-            // Reset timeout counter
-            _publishTimeoutCounter = 0;
-
-            var acks = e.AcknowledgementsToSend
-                .Concat(e.DeferredAcknowledgementsToSend)
-                .ToHashSet();
-            if (acks.Count == 0)
-            {
-                return;
-            }
-            e.AcknowledgementsToSend.Clear();
-            e.DeferredAcknowledgementsToSend.Clear();
-
-            foreach (var subscription in session.SubscriptionHandles.Values)
-            {
-                if (!subscription.TryGetCurrentPosition(out var sid, out var seq))
-                {
-                    // No deferrals
-                    e.AcknowledgementsToSend.AddRange(acks.Where(a => a.SubscriptionId == sid));
-                }
-                else
-                {
-                    // Ack all messages before this one for the subscriptoin
-                    e.AcknowledgementsToSend.AddRange(acks.Where(a => a.SubscriptionId == sid
-                        && (int)a.SequenceNumber <= (int)seq));
-                }
-            }
-            e.DeferredAcknowledgementsToSend.AddRange(acks.Except(e.AcknowledgementsToSend));
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogTrace(
-                    "{Client}: #{ThreadId} - Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})",
-                    this, Environment.CurrentManagedThreadId, ToString(e.AcknowledgementsToSend),
-                    ToString(e.DeferredAcknowledgementsToSend), session.GoodPublishRequestCount);
-                static string ToString(SubscriptionAcknowledgementCollection acks)
-                {
-                    return acks.Count == 0 ? "no" : acks
-                        .OrderBy(a => a.SubscriptionId)
-                        .Select(a => $"{a.SubscriptionId}:{a.SequenceNumber}")
-                        .Aggregate((a, b) => $"{a}, {b}");
-                }
-            }
-        }
-#endif
 
         /// <summary>
         /// Handles a keep alive event from a session and triggers a reconnect
@@ -1391,7 +1300,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _reconnectingSession = null;
             }
 
-            var oldTable = _session?.NamespaceUris.ToArray();
             Debug.Assert(_reconnectingSession == null);
             var isNewSession = false;
             if (!ReferenceEquals(_session, session))
@@ -1406,18 +1314,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             UpdatePublishRequestCounts();
             NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-            UpdateNamespaceTableAndSessionDiagnostics(_session, oldTable);
+            UpdateNamespaceTableAndSessionDiagnostics(_session);
             return isNewSession;
 
-            void UpdateNamespaceTableAndSessionDiagnostics(OpcUaSession session,
-                string[]? oldTable)
+            void UpdateNamespaceTableAndSessionDiagnostics(OpcUaSession session)
             {
-                if (oldTable != null)
-                {
-                    var newTable = session.NamespaceUris.ToArray();
-                    LogNamespaceTableChanges(oldTable, newTable);
-                }
-
                 lock (_channelLock)
                 {
                     UpdateConnectionDiagnosticFromSession(session);
@@ -2008,7 +1909,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
                 () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
                 description: "Number of successful keep alives since last keep alive error.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_namespace_change_count",
-                () => new Measurement<int>(_namespaceTableChanges, _metrics.TagList),
+                () => new Measurement<int>(_session?.NamespaceTableChanges ?? 0, _metrics.TagList),
                 description: "Number of namespace table changes detected by the client.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscriptions",
                 () => new Measurement<int>(SubscriptionCount, _metrics.TagList),
@@ -2058,7 +1959,6 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private int _refCount;
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
-        private int _namespaceTableChanges;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
