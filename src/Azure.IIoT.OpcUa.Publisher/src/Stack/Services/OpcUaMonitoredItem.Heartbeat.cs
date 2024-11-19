@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MonitoredItemNotification monitoredItemNotification,
                 MonitoredItemNotifications notifications)
             {
-                Debug.Assert(Valid);
+                Debug.Assert(!Disposed);
                 var result = base.ProcessMonitoredItemNotification(publishTime,
                     monitoredItemNotification, notifications);
 
@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not Heartbeat model || !Valid)
+                if (item is not Heartbeat model || Disposed)
                 {
                     return false;
                 }
@@ -162,26 +162,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryCompleteChanges(Subscription subscription,
                 ref bool applyChanges)
             {
-                if (_disposed)
-                {
-                    _logger.LogError("{Item}: Item was moved to another subscription " +
-                        "and the timer is handled by the new subscription now.", this);
-                    return false;
-                }
                 var result = base.TryCompleteChanges(subscription, ref applyChanges);
+                var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                        == HeartbeatBehavior.WatchdogLKG;
+                if (!result && lkg)
                 {
-                    var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
-                            == HeartbeatBehavior.WatchdogLKG;
-                    if (!AttachedToSubscription || (!result && lkg))
-                    {
-                        // Stop heartbeat
-                        DisableHeartbeatTimer();
-                    }
-                    else
-                    {
-                        Debug.Assert(AttachedToSubscription);
-                        EnableHeartbeatTimer();
-                    }
+                    // Stop heartbeat
+                    DisableHeartbeatTimer();
+                }
+                else
+                {
+                    EnableHeartbeatTimer();
                 }
                 return result;
             }
@@ -261,14 +252,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void SendHeartbeatNotifications(object? sender, ElapsedEventArgs e)
             {
-                if (!Valid)
+                if (Disposed)
                 {
-                    return;
-                }
-
-                if (!AttachedToSubscription)
-                {
-                    _logger.LogInformation("{Item}: Missing subscription.", this);
                     return;
                 }
 

@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         //
                         // We check if there are any other subscribers registered with the
                         // same subscription configuration that we want to apply. If there
-                        // arenot - we update the subscription (safely) with the new
+                        // are not - we update the subscription (safely) with the new
                         // desired template configuration. Essentially original behavior
                         // before 2.9.12.
                         //
@@ -132,9 +132,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             [NotNullWhen(true)] out VirtualSubscription? subscription)
         {
             // Fast lookup
-            lock (_cache)
+            lock (_subscriptions)
             {
-                if (_cache.TryGetValue(template, out subscription))
+                if (_subscriptions.TryGetValue(template, out subscription))
                 {
                     return true;
                 }
@@ -187,9 +187,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// within a session as a result of the trigger call or when a session
         /// is reconnected/recreated.
         /// </summary>
+        /// <param name="connected"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task SyncAsync(CancellationToken ct = default)
+        internal async Task SyncAsync(bool connected, CancellationToken ct = default)
         {
             var session = _session;
             if (session == null)
@@ -201,9 +202,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var additions = 0;
             var updates = 0;
             Dictionary<SubscriptionModel, VirtualSubscription> existing;
-            lock (_cache)
+            lock (_subscriptions)
             {
-                existing = _cache.ToDictionary();
+                existing = _subscriptions.ToDictionary();
             }
 
             _logger.LogDebug(
@@ -238,9 +239,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         try
                         {
-                            lock (_cache)
+                            lock (_subscriptions)
                             {
-                                _cache.Remove(close.Template);
+                                _subscriptions.Remove(close.Template);
                             }
                             if (_s2r.TryRemove(close.Template, out var r))
                             {
@@ -272,18 +273,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             // Create a new virtual subscription with the subscription
                             // configuration template that as of yet has no representation
                             //
-                            var subscription = new VirtualSubscription(this, session,
-                                add, _subscriptionOptions);
-                            lock (_cache)
+                            var subscription = new VirtualSubscription(this, add,
+                                _subscriptionOptions);
+                            lock (_subscriptions)
                             {
-                                _cache.Add(add, subscription);
+                                _subscriptions.Add(add, subscription);
                             }
 
                             // Sync the subscription which will get it to go live.
                             var delay = await subscription.SyncAsync(session.OperationLimits,
                                 ct).ConfigureAwait(false);
                             Interlocked.Increment(ref additions);
-                            Debug.Assert(session == subscription.Session);
 
                             s2r[add].ForEach(r => r.Dirty = false);
                             return delay;
@@ -304,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 delay = delays.DefaultIfEmpty(Timeout.InfiniteTimeSpan).Min();
                 // Update any items where subscriber signalled the item was updated
                 delays = await Task.WhenAll(s2r.Keys.Intersect(existing.Keys)
-                    .Where(u => s2r[u].Any(b => b.Dirty))
+                    .Where(u => s2r[u].Any(b => b.Dirty || connected))
                     .Select(async update =>
                     {
                         try
@@ -313,7 +313,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             var delay = await subscription.SyncAsync(session.OperationLimits,
                                 ct).ConfigureAwait(false);
                             Interlocked.Increment(ref updates);
-                            Debug.Assert(session == subscription.Session);
                             s2r[update].ForEach(r => r.Dirty = false);
                             return delay;
                         }
@@ -581,8 +580,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             public SubscriptionModel Template { get; private set; }
 
-            public OpcUaSession Session { get; }
-
             /// <summary>
             /// Unique subscription identifier in the process
             /// </summary>
@@ -650,20 +647,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ?? false;
 
             /// <summary>
-            /// Subscription
+            /// Create a virtual subscription that contains one or more subscriptions
+            /// partitioned by max supported monitored items.
             /// </summary>
             /// <param name="client"></param>
-            /// <param name="session"></param>
             /// <param name="template"></param>
             /// <param name="options"></param>
-            internal VirtualSubscription(OpcUaClient client, OpcUaClient.OpcUaSession session,
-                SubscriptionModel template, IOptions<OpcUaSubscriptionOptions> options)
+            internal VirtualSubscription(OpcUaClient client, SubscriptionModel template,
+                IOptions<OpcUaSubscriptionOptions> options)
             {
                 _client = client;
                 _options = options;
 
                 Id = Opc.Ua.SequenceNumber.Increment32(ref _lastIndex);
-                Session = session;
                 Template = template;
                 Name = Template.CreateSubscriptionId();
             }
@@ -808,7 +804,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ISubscriber owner, DataSetMetaDataModel dataSetMetaData, uint minorVersion,
                 CancellationToken ct)
             {
-                if (Session is not OpcUaSession session)
+                var session = _client._session;
+                if (session == null)
                 {
                     throw ServiceResultException.Create(StatusCodes.BadSessionIdInvalid,
                         "Session not connected.");
@@ -871,7 +868,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <summary>
             /// Create or update the subscription now using the currently configured
-            /// subscription configuration template.
+            /// subscription configuration template and session inside the client.
             /// </summary>
             /// <param name="limits"></param>
             /// <param name="ct"></param>
@@ -886,10 +883,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         ?? kMaxMonitoredItemPerSubscriptionDefault;
                 }
 
-                if (Session is not OpcUaSession session)
+                var session = _client._session;
+                if (session?.Connected != true)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
-                        "Session not of expected type.");
+                    return TimeSpan.FromSeconds(5);
                 }
 
                 var retryDelay = Timeout.InfiniteTimeSpan;
@@ -901,11 +898,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _lock.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
-                    var subscriptions = _subscriptions.ToList();
+                    var subscriptions = _subscriptions.Where(s => s.Session == session).ToList();
                     //
                     // Force recreate subscriptions that are marked as such. Only need to
-                    // do this for subscriptions that are below or equal the partition
-                    // count.
+                    // do this for subscriptions that are below or equal the partition count.
                     //
                     var clamp = Math.Min(partitions.Count, subscriptions.Count);
                     for (var i = 0; i < clamp; i++)
@@ -915,6 +911,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             continue;
                         }
+                        _client._logger.LogInformation(
+                            "{Client}: Force recreate {Subscription} ...", _client, subscription);
                         await subscription.DeleteAsync(true, ct).ConfigureAwait(false);
                         await subscription.DisposeAsync().ConfigureAwait(false);
                         subscriptions[i] = (OpcUaSubscription)session.AddSubscription(this);
@@ -1055,7 +1053,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Dictionary<ISubscriber, Registration> _registrations = new();
         private readonly ConcurrentDictionary<SubscriptionModel, List<Registration>> _s2r = new();
-        private readonly Dictionary<SubscriptionModel, VirtualSubscription> _cache = new();
+        private readonly Dictionary<SubscriptionModel, VirtualSubscription> _subscriptions = new();
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
     }
 }

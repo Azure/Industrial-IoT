@@ -8,7 +8,6 @@ namespace Opc.Ua.Client
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
-    using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Channels;
@@ -24,13 +23,11 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The publishing interval.
         /// </summary>
-        [DataMember(Order = 2)]
         public TimeSpan PublishingInterval { get; set; }
 
         /// <summary>
         /// The keep alive count.
         /// </summary>
-        [DataMember(Order = 3)]
         public uint KeepAliveCount { get; set; }
 
         /// <summary>
@@ -38,38 +35,32 @@ namespace Opc.Ua.Client
         /// publish interval.
         /// LifetimeCount shall be at least 3*KeepAliveCount.
         /// </summary>
-        [DataMember(Order = 4)]
         public uint LifetimeCount { get; set; }
 
         /// <summary>
         /// The maximum number of notifications per publish request.
         /// </summary>
-        [DataMember(Order = 5)]
         public uint MaxNotificationsPerPublish { get; set; }
 
         /// <summary>
         /// Whether publishing is enabled.
         /// </summary>
-        [DataMember(Order = 6)]
         public bool PublishingEnabled { get; set; }
 
         /// <summary>
         /// The priority assigned to subscription.
         /// </summary>
-        [DataMember(Order = 7)]
         public byte Priority { get; set; }
 
         /// <summary>
         /// The timestamps to return with the notification messages.
         /// </summary>
-        [DataMember(Order = 8)]
         public TimestampsToReturn TimestampsToReturn { get; set; }
             = TimestampsToReturn.Both;
 
         /// <summary>
         /// The minimum lifetime for subscriptions
         /// </summary>
-        [DataMember(Order = 12)]
         public TimeSpan MinLifetimeInterval { get; set; }
 
         /// <summary>
@@ -83,37 +74,31 @@ namespace Opc.Ua.Client
         /// be recovered with a republish. The setting is used
         /// after a subscription transfer.
         /// </remarks>
-        [DataMember(Name = "RepublishAfterTransfer", Order = 15)]
         public bool RepublishAfterTransfer { get; set; }
 
         /// <summary>
         /// Current priority
         /// </summary>
-        [DataMember(Name = "CurrentPriority", Order = 19)]
         public byte CurrentPriority { get; private set; }
 
         /// <summary>
         /// The current publishing interval.
         /// </summary>
-        [DataMember(Name = "CurrentPublishInterval", Order = 20)]
         public TimeSpan CurrentPublishingInterval { get; private set; }
 
         /// <summary>
         /// The current keep alive count.
         /// </summary>
-        [DataMember(Name = "CurrentKeepAliveCount", Order = 21)]
         public uint CurrentKeepAliveCount { get; private set; }
 
         /// <summary>
         /// The current lifetime count.
         /// </summary>
-        [DataMember(Name = "CurrentLifetimeCount", Order = 22)]
         public uint CurrentLifetimeCount { get; private set; }
 
         /// <summary>
         /// Whether publishing is currently enabled.
         /// </summary>
-        [DataMember(Name = "CurrentPublishingEnabled", Order = 23)]
         public bool CurrentPublishingEnabled { get; private set; }
 
         /// <summary>
@@ -182,7 +167,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The unique identifier assigned by the server.
         /// </summary>
-        public uint Id { get; private set; }
+        protected internal uint Id { get; private set; }
 
         /// <summary>
         /// Whether the subscription has been created on the server.
@@ -234,6 +219,12 @@ namespace Opc.Ua.Client
         {
             GC.SuppressFinalize(this);
             return DisposeAsync(true);
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return $"{Session.SessionId}:{Id}";
         }
 
         /// <summary>
@@ -630,7 +621,6 @@ namespace Opc.Ua.Client
                     return;
                 }
             }
-
             if (monitoredItem.Created)
             {
                 _deletedItems.Add(monitoredItem.ServerId);
@@ -699,11 +689,11 @@ namespace Opc.Ua.Client
         {
             if (stateMask.HasFlag(PublishState.Stopped))
             {
-                _logger.LogInformation("Subscription {Id} STOPPED!", Id);
+                _logger.LogInformation("{Subscription} STOPPED!", this);
             }
             if (stateMask.HasFlag(PublishState.Recovered))
             {
-                _logger.LogInformation("Subscription {Id} RECOVERED!", Id);
+                _logger.LogInformation("{Subscription} RECOVERED!", this);
             }
         }
 
@@ -815,8 +805,8 @@ namespace Opc.Ua.Client
                     await GetMonitoredItemsAsync(ct).ConfigureAwait(false);
                 if (!success)
                 {
-                    _logger.LogError("SubscriptionId {Id}: The server failed to respond " +
-                        "to GetMonitoredItems after transfer.", Id);
+                    _logger.LogError("{Subscription}: The server failed to respond " +
+                        "to GetMonitoredItems after transfer.", this);
                     return false;
                 }
 
@@ -824,9 +814,9 @@ namespace Opc.Ua.Client
                 if (handleMap.Count != monitoredItemsCount)
                 {
                     // invalid state
-                    _logger.LogError("SubscriptionId {Id}: Number of Monitored Items " +
+                    _logger.LogError("{Subscription}: Number of Monitored Items " +
                         "on client and server do not match after transfer {Old}!={New}",
-                        Id, handleMap.Count, monitoredItemsCount);
+                        this, handleMap.Count, monitoredItemsCount);
                     return false;
                 }
 
@@ -937,7 +927,7 @@ namespace Opc.Ua.Client
             catch (ServiceResultException sre)
             {
                 _logger.LogError(sre,
-                    "SubscriptionId {Id}: Failed to call GetMonitoredItems on server", Id);
+                    "{Subscription}: Failed to call GetMonitoredItems on server", this);
                 return (false, Array.Empty<(uint, uint)>());
             }
         }
@@ -1101,14 +1091,14 @@ Actual (revised) state/desired state:
                             }
                             if (curSeqNum == prevSeqNum)
                             {
-                                _logger.LogDebug("SubscriptionId {Id}: Received duplicate message " +
-                                    "with sequence number #{SeqNumber}.", Id, curSeqNum);
+                                _logger.LogDebug("{Subscription}: Received duplicate message " +
+                                    "with sequence number #{SeqNumber}.", this, curSeqNum);
                             }
                             else
                             {
-                                _logger.LogDebug("SubscriptionId {Id}: Received older message with " +
+                                _logger.LogDebug("{Subscription}: Received older message with " +
                                     "sequence number #{SeqNumber} but already processed message with " +
-                                    "sequence number #{Old}.", Id, curSeqNum, prevSeqNum);
+                                    "sequence number #{Old}.", this, curSeqNum, prevSeqNum);
                             }
                             continue;
                         }
@@ -1122,7 +1112,7 @@ Actual (revised) state/desired state:
             catch (Exception ex)
             {
                 _logger.LogCritical(ex,
-                    "SubscriptionId {Id}: Error processing messages. Processor is exiting!!!", Id);
+                    "{Subscription}: Error processing messages. Processor is exiting!!!", this);
                 OnPublishStateChanged(PublishState.Stopped);
 
                 // Do not call complete here as we do not want the subscription to be removed
@@ -1134,14 +1124,14 @@ Actual (revised) state/desired state:
             {
                 if (_availableInRetransmissionQueue.Contains(missing))
                 {
-                    _logger.LogWarning("SubscriptionId {Id}: Message with sequence number " +
+                    _logger.LogWarning("{Subscription}: Message with sequence number " +
                         "#{SeqNumber} is not in server retransmission queue and was dropped.",
-                        Id, missing);
+                        this, missing);
                     return;
                 }
-                _logger.LogInformation("SubscriptionId {Id}: Republishing missing message " +
+                _logger.LogInformation("{Subscription}: Republishing missing message " +
                     "with sequence number #{Missing} to catch up to message " +
-                    "with sequence number #{SeqNumber}...", Id, missing, curSeqNum);
+                    "with sequence number #{SeqNumber}...", this, missing, curSeqNum);
                 var republish = await Session.RepublishAsync(null, Id, missing,
                     ct).ConfigureAwait(false);
 
@@ -1152,8 +1142,8 @@ Actual (revised) state/desired state:
                 }
                 else
                 {
-                    _logger.LogWarning("SubscriptionId {Id}: Republishing message with " +
-                        "sequence number #{SeqNumber} failed.", Id, missing);
+                    _logger.LogWarning("{Subscription}: Republishing message with " +
+                        "sequence number #{SeqNumber} failed.", this, missing);
                 }
             }
         }
@@ -1200,7 +1190,7 @@ Actual (revised) state/desired state:
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "SubscriptionId {Id}: Error dispatching notification data.", Id);
+                    "{Subscription}: Error dispatching notification data.", this);
             }
 
             async Task DispatchAsync(NotificationMessage message,
@@ -1254,8 +1244,8 @@ Actual (revised) state/desired state:
             // keep alive count must be at least 1, 10 is a good default.
             if (keepAliveCount == 0)
             {
-                _logger.LogInformation("SubscriptionId {Id}: Adjusted KeepAliveCount " +
-                    "from {Old} to {New}.", Id, keepAliveCount, kDefaultKeepAlive);
+                _logger.LogInformation("{Subscription}: Adjusted KeepAliveCount " +
+                    "from {Old} to {New}.", this, keepAliveCount, kDefaultKeepAlive);
                 keepAliveCount = kDefaultKeepAlive;
             }
 
@@ -1266,9 +1256,9 @@ Actual (revised) state/desired state:
                     MinLifetimeInterval < Session.SessionTimeout)
                 {
                     _logger.LogWarning(
-                        "SubscriptionId {Id}: A smaller minimum LifetimeInterval " +
+                        "{Subscription}: A smaller minimum LifetimeInterval " +
                         "{Counter}ms than session timeout {Timeout}ms configured.",
-                        Id, MinLifetimeInterval, Session.SessionTimeout);
+                        this, MinLifetimeInterval, Session.SessionTimeout);
                 }
 
                 var minLifetimeInterval = (uint)MinLifetimeInterval.TotalMilliseconds;
@@ -1283,16 +1273,16 @@ Actual (revised) state/desired state:
                         lifetimeCount++;
                     }
                     _logger.LogInformation(
-                        "SubscriptionId {Id}: Adjusted LifetimeCount to value={New}.",
-                        Id, lifetimeCount);
+                        "{Subscription}: Adjusted LifetimeCount to value={New}.",
+                        this, lifetimeCount);
                 }
 
                 if (lifetimeCount * PublishingInterval < Session.SessionTimeout)
                 {
                     _logger.LogWarning(
-                        "SubscriptionId {Id}: Lifetime {LifeTime}ms configured is less " +
+                        "{Subscription}: Lifetime {LifeTime}ms configured is less " +
                         "than session timeout {Timeout}ms.",
-                        Id, lifetimeCount * PublishingInterval, Session.SessionTimeout);
+                        this, lifetimeCount * PublishingInterval, Session.SessionTimeout);
                 }
             }
             else if (lifetimeCount == 0)
@@ -1300,8 +1290,8 @@ Actual (revised) state/desired state:
                 // don't know what the sampling interval will be - use something large
                 // enough to ensure the user does not experience unexpected drop outs.
                 _logger.LogInformation(
-                    "SubscriptionId {Id}: Adjusted LifetimeCount from {Old} to {New}. ",
-                    Id, lifetimeCount, kDefaultLifeTime);
+                    "{Subscription}: Adjusted LifetimeCount from {Old} to {New}. ",
+                    this, lifetimeCount, kDefaultLifeTime);
                 lifetimeCount = kDefaultLifeTime;
             }
 
@@ -1310,8 +1300,8 @@ Actual (revised) state/desired state:
             if (lifetimeCount < minLifeTimeCount)
             {
                 _logger.LogInformation(
-                    "SubscriptionId {Id}: Adjusted LifetimeCount from {Old} to {New}.",
-                    Id, lifetimeCount, minLifeTimeCount);
+                    "{Subscription}: Adjusted LifetimeCount from {Old} to {New}.",
+                    this, lifetimeCount, minLifeTimeCount);
                 lifetimeCount = minLifeTimeCount;
             }
         }
@@ -1362,11 +1352,11 @@ Actual (revised) state/desired state:
         private int _keepAliveInterval;
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
+        private readonly ILogger _logger;
         private readonly IAckQueue _completion;
         private readonly List<uint> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();
-        private readonly ILogger _logger;
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _messageWorkerTask;
         private readonly Channel<IncomingMessage> _messages;

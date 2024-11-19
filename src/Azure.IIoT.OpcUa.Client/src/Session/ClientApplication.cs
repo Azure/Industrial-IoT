@@ -12,10 +12,26 @@ namespace Opc.Ua.Client
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Client application
+    /// Simple client that can be used to connect a session to a
+    /// server and subscribe to data changes and events.
     /// </summary>
     public class ClientApplication
     {
+        /// <summary>
+        /// Gets or sets the data change callback.
+        /// </summary>
+        public DataChangeNotificationHandler? DataChangeCallback { get; set; }
+
+        /// <summary>
+        /// Gets or sets the event callback.
+        /// </summary>
+        public EventNotificationHandler? EventCallback { get; set; }
+
+        /// <summary>
+        /// Gets or sets the keep alive callback.
+        /// </summary>
+        public KeepAliveNotificationHandler? KeepAliveCallback { get; set; }
+
         /// <summary>
         /// Configuration
         /// </summary>
@@ -43,8 +59,9 @@ namespace Opc.Ua.Client
         /// <param name="loggerFactory"></param>
         /// <param name="reverseConnectManager"></param>
         /// <param name="timeProvider"></param>
-        public ClientApplication(ApplicationConfiguration configuration, ILoggerFactory loggerFactory,
-            ReverseConnectManager? reverseConnectManager = null, TimeProvider? timeProvider = null)
+        public ClientApplication(ApplicationConfiguration configuration,
+            ILoggerFactory loggerFactory, ReverseConnectManager? reverseConnectManager = null,
+            TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(configuration);
             if (configuration.ClientConfiguration == null ||
@@ -64,6 +81,8 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Create session
         /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         public virtual Session CreateSession(ConfiguredEndpoint endpoint,
             SessionOptions? options = null)
@@ -113,7 +132,10 @@ namespace Opc.Ua.Client
                 DateTime publishTime, DataChangeNotification notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
-             // TODO   (Session as ClientSession)?.Application.OnDataChange?.(publishTime);
+                notification.PublishTime = publishTime;
+                notification.SequenceNumber = sequenceNumber;
+                (Session as ClientSession)?.Application.DataChangeCallback?.Invoke(
+                    this, notification, stringTable);
                 return ValueTask.CompletedTask;
             }
 
@@ -122,6 +144,10 @@ namespace Opc.Ua.Client
                 DateTime publishTime, EventNotificationList notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
+                notification.PublishTime = publishTime;
+                notification.SequenceNumber = sequenceNumber;
+                (Session as ClientSession)?.Application.EventCallback?.Invoke(
+                    this, notification, stringTable);
                 return ValueTask.CompletedTask;
             }
 
@@ -129,13 +155,20 @@ namespace Opc.Ua.Client
             protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, PublishState publishStateMask)
             {
+                (Session as ClientSession)?.Application.KeepAliveCallback?.Invoke(
+                    this, new NotificationData
+                    {
+                        SequenceNumber = sequenceNumber,
+                        PublishTime = publishTime
+                    });
                 return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
             protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options)
             {
-                return new ClientItem(this);
+                return new ClientItem(this, ((ClientSession)Session).Application.LoggerFactory
+                    .CreateLogger<ClientItem>());
             }
         }
 
@@ -143,7 +176,8 @@ namespace Opc.Ua.Client
         private sealed class ClientItem : MonitoredItem
         {
             /// <inheritdoc/>
-            public ClientItem(ClientSubscription subscription) : base(subscription)
+            public ClientItem(ClientSubscription subscription, ILogger logger)
+                : base(subscription, logger)
             {
             }
         }
@@ -162,5 +196,31 @@ namespace Opc.Ua.Client
             {
             }
         }
+
+        /// <summary>
+        /// The delegate used to receive data change notifications.
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="notification"></param>
+        /// <param name="stringTable"></param>
+        public delegate void DataChangeNotificationHandler(Subscription subscription,
+            DataChangeNotification notification, IReadOnlyList<string> stringTable);
+
+        /// <summary>
+        /// The delegate used to receive event notifications.
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="notification"></param>
+        /// <param name="stringTable"></param>
+        public delegate void EventNotificationHandler(Subscription subscription,
+            EventNotificationList notification, IReadOnlyList<string> stringTable);
+
+        /// <summary>
+        /// The delegate used to receive keep alive notifications.
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="notification"></param>
+        public delegate void KeepAliveNotificationHandler(Subscription subscription,
+            NotificationData notification);
     }
 }

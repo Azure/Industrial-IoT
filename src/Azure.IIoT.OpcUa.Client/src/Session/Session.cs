@@ -24,19 +24,14 @@ namespace Opc.Ua.Client
     public abstract class Session : SessionServices, IComplexTypeContext, INodeCacheContext
     {
         /// <summary>
-        /// Get time provider to use
+        /// Gets the name assigned to the session.
         /// </summary>
-        public TimeProvider TimeProvider { get; }
+        public string SessionName { get; }
 
         /// <summary>
         /// Gets the endpoint used to connect to the server.
         /// </summary>
         public ConfiguredEndpoint ConfiguredEndpoint { get; }
-
-        /// <summary>
-        /// Gets the name assigned to the session.
-        /// </summary>
-        public string SessionName { get; }
 
         /// <summary>
         /// Time the session was created
@@ -219,10 +214,9 @@ namespace Opc.Ua.Client
         protected Session(ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
             SessionOptions options, ILoggerFactory loggerFactory, TimeProvider timeprovider,
             ReverseConnectManager? reverseConnectManager = null) : base(loggerFactory,
-                options.Meter ?? ClientApplication.DefaultMeterFactory, options.ActivitySource,
-                options.Channel)
+                options.Meter ?? ClientApplication.DefaultMeterFactory,
+                options.ActivitySource, timeprovider, options.Channel)
         {
-            TimeProvider = timeprovider;
             CreatedAt = TimeProvider.GetUtcNow();
             MessageContext = options.Channel?.MessageContext
                 ?? configuration.CreateMessageContext();
@@ -909,14 +903,11 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
         public Subscription AddSubscription(SubscriptionOptions? options)
         {
             var subscription = CreateSubscription(options, _subscriptions);
-            if (!_subscriptions.Add(subscription))
-            {
-                throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
-                    "Failed to add subscription.");
-            }
+            _subscriptions.Add(subscription);
             return subscription;
         }
 
@@ -1691,11 +1682,9 @@ namespace Opc.Ua.Client
             {
                 try
                 {
-                    StopKeepAliveTimer();
                     _cts.Cancel();
-                    _subscriptions.Pause();
-                    _keepAliveTrigger.Set();
-                    _nodeCache.Clear();
+                    StopKeepAliveTimer();
+                    _subscriptions.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
@@ -1710,11 +1699,12 @@ namespace Opc.Ua.Client
                 try
                 {
                     // Should not throw
+                    _keepAliveTrigger.Set();
                     _keepAliveWorker.GetAwaiter().GetResult();
-                    _subscriptions.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
                 finally
                 {
+                    _nodeCache.Clear();
                     _keepAliveTimer.Dispose();
                     _cts.Dispose();
                     _meter.Dispose();

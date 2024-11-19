@@ -89,8 +89,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     throw new ArgumentException("Invalid subscription options");
                 }
                 return new OpcUaSubscription(_client, this, subscription,
-                    _client._subscriptionOptions, LoggerFactory,
-                    new OpcUaClientTagList(_client._connection, _client._metrics));
+                    _client._subscriptionOptions, LoggerFactory, new OpcUaClientTagList(
+                        _client._connection, _client._metrics), TimeProvider);
             }
 
             /// <inheritdoc/>

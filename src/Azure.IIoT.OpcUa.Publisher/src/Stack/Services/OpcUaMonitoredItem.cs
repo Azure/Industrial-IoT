@@ -53,15 +53,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public uint? RemoteId => Created ? ServerId : null;
 
         /// <summary>
-        /// The item is valid once added to the subscription. Contract:
-        /// The item will be invalid until the subscription calls
-        /// <see cref="Initialize(out bool)"/>
-        /// to add it to the subscription. After removal the item
-        /// is still Valid, but not Created. The item is
-        /// again invalid after <see cref="IDisposable.Dispose"/> is
-        /// called.
+        /// Whether the item is disposed
         /// </summary>
-        public bool Valid { get; protected internal set; }
+        public bool Disposed { get; private set; }
 
         /// <summary>
         /// Item is good
@@ -92,11 +86,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// The owner of the item that is to be notified of changes
         /// </summary>
         public ISubscriber Owner { get; }
-
-        /// <summary>
-        /// Whether the item is part of a subscription or not
-        /// </summary>
-        public bool AttachedToSubscription => Subscription != null;
 
         /// <summary>
         /// Registered read node updater. If this property is null then
@@ -156,7 +145,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="nodeId"></param>
         /// <param name="timeProvider"></param>
         protected OpcUaMonitoredItem(Subscription subscription, ISubscriber owner,
-            ILogger logger, string nodeId, TimeProvider timeProvider) : base(subscription)
+            ILogger logger, string nodeId, TimeProvider timeProvider) :
+            base(subscription, logger)
         {
             Owner = owner;
             NodeId = nodeId;
@@ -228,9 +218,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && Valid)
+            if (disposing)
             {
-                Valid = false;
+                Disposed = true;
             }
             base.Dispose(disposing);
         }
@@ -262,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         public virtual bool WasLastValueReceivedBefore(DateTimeOffset dateTime)
         {
-            if (!Valid || !AttachedToSubscription)
+            if (Disposed)
             {
                 return IsLate = false;
             }
@@ -276,12 +266,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         public virtual bool Initialize(out bool metadataChanged)
         {
-            if (Valid)
+            if (!Disposed)
             {
                 Subscription.AddMonitoredItem(new OpcUaSubscription.Precreated(this));
                 _logger.LogDebug(
-                    "Added monitored item {Item} to subscription #{SubscriptionId}.",
-                    this, Subscription.Id);
+                    "Added monitored item {Item} to subscription {Subscription}.",
+                    this, Subscription);
                 metadataChanged = true;
                 return true;
             }
@@ -323,20 +313,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public virtual bool TryCompleteChanges(Subscription subscription,
             ref bool applyChanges)
         {
-            if (!Valid)
+            if (Disposed)
             {
-                _logger.LogError("{Item}: Item was disposed or moved to another subscription",
-                    this);
+                _logger.LogError("{Item}: Item was disposed.", this);
                 return false;
-            }
-
-            if (!AttachedToSubscription)
-            {
-                _logger.LogDebug(
-                    "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
-                    this, subscription.Id, Error);
-                // Complete removal
-                return true;
             }
 
             Debug.Assert(subscription == Subscription);
@@ -350,8 +330,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (StatusCode.IsNotGood(Error.StatusCode))
             {
                 _logger.LogWarning("Error adding monitored item {Item} " +
-                    "to subscription #{SubscriptionId} due to {Status}.",
-                    this, subscription.Id, Error);
+                    "to subscription {Subscription} due to {Status}.",
+                    this, subscription, Error);
 
                 // Not needed, mode changes applied after
                 // applyChanges = true;
@@ -367,52 +347,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Log revised sampling rate and queue size
-        /// </summary>
-        public void LogRevisedSamplingRateAndQueueSize()
-        {
-            if (!AttachedToSubscription || SamplingInterval < TimeSpan.Zero)
-            {
-                return;
-            }
-            Debug.Assert(Subscription != null);
-            if (SamplingInterval != CurrentSamplingInterval &&
-                QueueSize != CurrentQueueSize && CurrentQueueSize != 0)
-            {
-                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
-                    "to {CurrentSamplingInterval} and QueueSize from {QueueSize} " +
-                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                    SamplingInterval, CurrentSamplingInterval, QueueSize, CurrentQueueSize,
-                    Subscription.Id, StartNodeId, DisplayName);
-            }
-            else if (SamplingInterval != CurrentSamplingInterval)
-            {
-                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
-                    "to {CurrentSamplingInterval} for #{SubscriptionId}|{Item}('{Name}').",
-                    SamplingInterval, CurrentSamplingInterval,
-                    Subscription.Id, StartNodeId, DisplayName);
-            }
-            else if (QueueSize != CurrentQueueSize && CurrentQueueSize != 0)
-            {
-                _logger.LogInformation("Server revised QueueSize from {QueueSize} " +
-                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                    QueueSize, CurrentQueueSize,
-                    Subscription.Id, StartNodeId, DisplayName);
-            }
-            else
-            {
-                _logger.LogDebug("Server accepted configuration " +
-                    "unchanged for #{SubscriptionId}|{Item}('{Name}').",
-                    Subscription.Id, StartNodeId, DisplayName);
-            }
-
-            _logger.LogDebug("SamplingInterval set to {SamplingInterval} and QueueSize " +
-                "to {QueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                CurrentSamplingInterval, CurrentQueueSize,
-                Subscription.Id, StartNodeId, DisplayName);
-        }
-
-        /// <summary>
         /// Called on all items after monitoring mode was changed
         /// successfully.
         /// </summary>
@@ -425,7 +359,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public virtual Opc.Ua.MonitoringMode? GetMonitoringModeChange()
         {
-            if (!AttachedToSubscription || !Valid)
+            if (Disposed)
             {
                 return null;
             }
@@ -453,7 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             DateTimeOffset publishTime, IEncodeable encodeablePayload,
             MonitoredItemNotifications notifications)
         {
-            if (!Valid)
+            if (Disposed)
             {
                 return false;
             }
@@ -547,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             metadataChanged = false;
             updated = template;
 
-            if (!Valid)
+            if (Disposed)
             {
                 return false;
             }

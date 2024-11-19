@@ -65,9 +65,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="options"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="metrics"></param>
+        /// <param name="timeProvider"></param>
         internal OpcUaSubscription(OpcUaClient client, OpcUaClient.OpcUaSession session,
             OpcUaClient.VirtualSubscription owner, IOptions<OpcUaSubscriptionOptions> options,
-            ILoggerFactory loggerFactory, IMetricsContext metrics)
+            ILoggerFactory loggerFactory, IMetricsContext metrics, TimeProvider timeProvider)
             : base(session, (IAckQueue)session.Subscriptions,
                   loggerFactory.CreateLogger<OpcUaSubscription>())
         {
@@ -75,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _options = options;
             _loggerFactory = loggerFactory;
             _metrics = metrics;
-            _timeProvider = session.TimeProvider;
+            _timeProvider = timeProvider;
             _owner = owner;
             _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
 
@@ -145,17 +146,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             return pre.Item;
         }
-        // For now
-        internal class Precreated : Opc.Ua.Client.MonitoredItemOptions
-        {
-            public Precreated(MonitoredItem precreated) {
-                Item = precreated;
-            }
-            /// <summary>
-            /// Precreated item
-            /// </summary>
-            public MonitoredItem Item { get;}
-        }
 
         /// <summary>
         /// Notify session disconnected/reconnecting. This is called
@@ -221,8 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var shouldEnable = MonitoredItems
                 .OfType<OpcUaMonitoredItem>()
-                .Any(m => m.AttachedToSubscription
-                    && m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
+                .Any(m => m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             if (PublishingEnabled ^ shouldEnable)
             {
                 await SetPublishingModeAsync(shouldEnable, ct).ConfigureAwait(false);
@@ -268,7 +257,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 ResetMonitoredItemWatchdogTimer(PublishingEnabled);
-                Debug.Assert(Id != 0);
                 Debug.Assert(Created);
 
                 _firstDataChangeReceived = false;
@@ -501,7 +489,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 desired.Remove(theDesiredUpdate);
                 Debug.Assert(toUpdate.GetType() == theDesiredUpdate.GetType());
-                Debug.Assert(toUpdate.Subscription == this);
                 try
                 {
                     if (toUpdate.MergeWith(theDesiredUpdate, session, out var metadata))
@@ -537,7 +524,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var removed = 0;
             foreach (var toRemove in remove)
             {
-                Debug.Assert(toRemove.Subscription == this);
                 try
                 {
                     toRemove.Dispose();
@@ -693,9 +679,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            Debug.Assert(remove.All(m => !m.AttachedToSubscription),
-                "All removed items should be detached now");
-            var set = desiredMonitoredItems.Where(m => m.Valid).ToList();
+            Debug.Assert(remove.All(m => m.Disposed), "All removed items should be invalid now");
+            var set = desiredMonitoredItems.Where(m => !m.Disposed).ToList();
             _logger.LogDebug(
                 "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
                 set.Count, desiredMonitoredItems.Count - set.Count, this);
@@ -813,8 +798,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     errorsDuringSync++;
                 }
             }
-
-            set.ForEach(item => item.LogRevisedSamplingRateAndQueueSize());
 
             var goodMonitoredItems =
                 Math.Max(set.Count - badMonitoredItems, 0);
@@ -1673,6 +1656,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 delay = Timeout.InfiniteTimeSpan;
             }
             return delay.Value;
+        }
+
+        /// <summary>
+        /// For now use this wrapper to add the item to the subscription
+        /// </summary>
+        internal class Precreated : Opc.Ua.Client.MonitoredItemOptions
+        {
+            public Precreated(MonitoredItem precreated)
+            {
+                Item = precreated;
+            }
+            /// <summary>
+            /// Precreated item
+            /// </summary>
+            public MonitoredItem Item { get; }
         }
 
         private int HeartbeatsEnabled

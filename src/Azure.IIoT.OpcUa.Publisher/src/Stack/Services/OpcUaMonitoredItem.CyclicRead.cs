@@ -128,19 +128,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override Func<CancellationToken, Task>? FinalizeMonitoringModeChange => async _ =>
+            public override Func<CancellationToken, Task>? FinalizeMonitoringModeChange => _ =>
             {
-                if (!AttachedToSubscription)
-                {
-                    // Disabling sampling
-                    await StopSamplerAsync().ConfigureAwait(false);
-                }
-                else
-                {
-                    Debug.Assert(Subscription != null);
-                    Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
-                    EnsureSamplerRunning();
-                }
+                Debug.Assert(Subscription != null);
+                Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
+                EnsureSamplerRunning();
+                return Task.CompletedTask;
             };
 
             /// <summary>
@@ -172,29 +165,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            /// <summary>
-            /// Stop sampling
-            /// </summary>
-            /// <returns></returns>
-            private async Task StopSamplerAsync()
-            {
-                var sampler = _sampler;
-                lock (_lock)
-                {
-                    _sampler = null;
-                }
-                if (sampler != null)
-                {
-                    await sampler.DisposeAsync().ConfigureAwait(false);
-                    _logger.LogDebug("Item {Item} unregistered from sampler.", this);
-                }
-            }
-
             /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(DateTimeOffset timestamp,
                 IEncodeable encodeablePayload, MonitoredItemNotifications notifications)
             {
-                if (!Valid || encodeablePayload is not SampledDataValueModel cyclicReadNotification)
+                if (Disposed || encodeablePayload is not SampledDataValueModel cyclicReadNotification)
                 {
                     return false;
                 }

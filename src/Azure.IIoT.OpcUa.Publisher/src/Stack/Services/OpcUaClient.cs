@@ -795,9 +795,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             }
 
                                             Debug.Assert(_session != null);
-
                                             // Sync subscriptions
-                                            await SyncAsync(ct).ConfigureAwait(false);
+                                            await SyncAsync(true, ct).ConfigureAwait(false);
 
                                             // Allow access to session now
                                             Debug.Assert(_disconnectLock != null);
@@ -822,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.SubscriptionSyncAll:
-                                    await SyncAsync(ct).ConfigureAwait(false);
+                                    await SyncAsync(false, ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
                                     switch (currentSessionState)
@@ -908,7 +907,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
 
-                                            await SyncAsync(ct).ConfigureAwait(false);
+                                            await SyncAsync(isNew, ct).ConfigureAwait(false);
 
                                             _reconnectRequired = 0;
                                             reconnectPeriod = GetMinReconnectPeriod();
@@ -991,9 +990,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-                lock (_cache)
+                lock (_subscriptions)
                 {
-                    foreach (var h in _cache.Values)
+                    foreach (var h in _subscriptions.Values)
                     {
                         h.NotifySessionConnectionState(disconnected);
                     }

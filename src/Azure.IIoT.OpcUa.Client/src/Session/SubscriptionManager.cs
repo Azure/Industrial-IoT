@@ -48,7 +48,7 @@ namespace Opc.Ua.Client
             {
                 lock (_subscriptionLock)
                 {
-                    return new ReadOnlyList<Subscription>(_subscriptions);
+                    return _subscriptions.ToList();
                 }
             }
         }
@@ -152,8 +152,7 @@ namespace Opc.Ua.Client
                     return ValueTask.CompletedTask;
                 }
             }
-            _logger.LogInformation("Subscription {Id} REMOVED.",
-                subscription.Id);
+            _logger.LogInformation("{Subscription} REMOVED.", subscription);
             Update();
             return ValueTask.CompletedTask;
         }
@@ -163,27 +162,20 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="subscription"></param>
         /// <returns></returns>
-        internal bool Add(Subscription subscription)
+        /// <exception cref="ServiceResultException"></exception>
+        internal void Add(Subscription subscription)
         {
-            ArgumentNullException.ThrowIfNull(subscription);
+            Debug.Assert(subscription.Session == _session);
             lock (_subscriptionLock)
             {
-                if (subscription.Session != _session)
+                if (!_subscriptions.Add(subscription))
                 {
-                    return false;
+                    throw ServiceResultException.Create(StatusCodes.BadAlreadyExists,
+                        "Failed to add subscription.");
                 }
-
-                if (_subscriptions.Contains(subscription))
-                {
-                    return false;
-                }
-
-                _subscriptions.Add(subscription);
             }
-            _logger.LogInformation("Subscription {Id} ADDED.",
-                subscription.Id);
+            _logger.LogInformation("{Subscription} ADDED.", subscription);
             Update();
-            return true;
         }
 
         /// <summary>
@@ -274,7 +266,7 @@ namespace Opc.Ua.Client
                     if (transferResults[index].StatusCode == StatusCodes.BadNothingToDo)
                     {
                         _logger.LogDebug(
-                            "SubscriptionId {Id} is already member of the session.",
+                            "Subscription {Id} is already member of the session.",
                             subscriptionIds[index]);
                         // Done
                         continue;
@@ -282,7 +274,7 @@ namespace Opc.Ua.Client
                     else if (!StatusCode.IsGood(transferResults[index].StatusCode))
                     {
                         _logger.LogError(
-                            "SubscriptionId {Id} failed to transfer, StatusCode={Status}",
+                            "Subscription {Id} failed to transfer, StatusCode={Status}",
                             subscriptionIds[index], transferResults[index].StatusCode);
                         remaining.Add(subscriptions[index]);
                         continue;
@@ -579,6 +571,13 @@ namespace Opc.Ua.Client
                         // raise an error event.
                         publishLatency.Stop();
                         var error = new ServiceResult(e);
+
+                        if (error.Code == StatusCodes.BadRequestInterrupted &&
+                            ct.IsCancellationRequested)
+                        {
+                            break;
+                        }
+
                         Interlocked.Increment(ref _outer._badPublishRequestCount);
                         // Rollback acks we collected
                         acks.ForEach(ack => _outer._acks.Writer.TryWrite(ack));
@@ -801,7 +800,7 @@ namespace Opc.Ua.Client
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _publishControl = new();
         private readonly Task _publishController;
         private readonly object _subscriptionLock = new();
-        private readonly List<Subscription> _subscriptions = new();
+        private readonly HashSet<Subscription> _subscriptions = new();
         private readonly CancellationTokenSource _cts = new();
         private readonly ISessionClient _session;
         private readonly ILoggerFactory _loggerFactory;

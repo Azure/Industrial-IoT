@@ -5,66 +5,54 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Logging;
     using System;
-    using System.Runtime.Serialization;
 
     /// <summary>
     /// A monitored item.
     /// </summary>
-    [DataContract(Namespace = Namespaces.OpcUaXsd)]
-    [KnownType(typeof(DataChangeFilter))]
-    [KnownType(typeof(EventFilter))]
-    [KnownType(typeof(AggregateFilter))]
     public abstract class MonitoredItem : IDisposable
     {
         /// <summary>
         /// A display name for the monitored item.
         /// </summary>
-        [DataMember(Order = 1)]
         public string? DisplayName { get; set; }
 
         /// <summary>
         /// The start node for the browse path that
         /// identifies the node to monitor.
         /// </summary>
-        [DataMember(Order = 2)]
         public NodeId StartNodeId { get; set; }
 
         /// <summary>
         /// The node class of the node being monitored
         /// (affects the type of filter available).
         /// </summary>
-        [DataMember(Order = 4)]
         public NodeClass NodeClass { get; set; }
 
         /// <summary>
         /// The attribute to monitor.
         /// </summary>
-        [DataMember(Order = 5)]
         public uint AttributeId { get; set; }
 
         /// <summary>
         /// The range of array indexes to monitor.
         /// </summary>
-        [DataMember(Order = 6)]
         public string? IndexRange { get; set; }
 
         /// <summary>
         /// The encoding to use when returning notifications.
         /// </summary>
-        [DataMember(Order = 7)]
         public QualifiedName? Encoding { get; set; }
 
         /// <summary>
         /// The monitoring mode.
         /// </summary>
-        [DataMember(Order = 8)]
         public MonitoringMode MonitoringMode { get; set; }
 
         /// <summary>
         /// The sampling interval.
         /// </summary>
-        [DataMember(Order = 9)]
         public TimeSpan SamplingInterval
         {
             get => _samplingInterval;
@@ -81,7 +69,6 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The filter to use to select values to return.
         /// </summary>
-        [DataMember(Order = 10)]
         public MonitoringFilter? Filter
         {
             get => _filter;
@@ -98,7 +85,6 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The length of the queue used to buffer values.
         /// </summary>
-        [DataMember(Order = 11)]
         public uint QueueSize
         {
             get => _queueSize;
@@ -115,7 +101,6 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Whether to discard the oldest entries in the queue when it is full.
         /// </summary>
-        [DataMember(Order = 12)]
         public bool DiscardOldest
         {
             get => _discardOldest;
@@ -165,11 +150,6 @@ namespace Opc.Ua.Client
         public uint CurrentQueueSize { get; private set; }
 
         /// <summary>
-        /// The subscription that owns the monitored item.
-        /// </summary>
-        public Subscription Subscription { get; }
-
-        /// <summary>
         /// The identifier assigned by the client.
         /// </summary>
         public uint ClientHandle { get; private set; }
@@ -183,12 +163,19 @@ namespace Opc.Ua.Client
         /// Whether the monitoring attributes have been modified
         /// since the item was created.
         /// </summary>
-        public bool AttributesModified { get; private set; }
+        internal bool AttributesModified { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance.
+        /// The subscription that owns the monitored item.
         /// </summary>
-        protected MonitoredItem(Subscription subscription)
+        protected Subscription Subscription { get; }
+
+        /// <summary>
+        /// Create monitored item
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="logger"></param>
+        protected MonitoredItem(Subscription subscription, ILogger logger)
         {
             Subscription = subscription;
             StartNodeId = NodeId.Null;
@@ -201,6 +188,9 @@ namespace Opc.Ua.Client
             ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
             _samplingInterval = TimeSpan.MinValue;
             _discardOldest = true;
+            _logger = logger;
+
+            _logger.LogDebug("{Item} CREATED.", this);
         }
 
         /// <inheritdoc/>
@@ -210,6 +200,13 @@ namespace Opc.Ua.Client
             GC.SuppressFinalize(this);
         }
 
+        /// <inheritdoc/>
+        public override string? ToString()
+        {
+            return
+$"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString()})";
+        }
+
         /// <summary>
         /// Dispose monitored item
         /// </summary>
@@ -217,6 +214,7 @@ namespace Opc.Ua.Client
         protected virtual void Dispose(bool disposing)
         {
             Subscription.RemoveItem(this);
+            _logger.LogDebug("{Item} REMOVED.", this);
             ServerId = 0;
             _disposedValue = true;
         }
@@ -262,6 +260,7 @@ namespace Opc.Ua.Client
                         as MonitoringFilterResult;
                 }
             }
+            LogRevisedSamplingRateAndQueueSize(true);
             AttributesModified = false;
         }
 
@@ -304,7 +303,47 @@ namespace Opc.Ua.Client
                         as MonitoringFilterResult;
                 }
             }
+            LogRevisedSamplingRateAndQueueSize(false);
             AttributesModified = false;
+        }
+
+        /// <summary>
+        /// Log revised sampling rate and queue size
+        /// </summary>
+        public void LogRevisedSamplingRateAndQueueSize(bool created)
+        {
+            if (SamplingInterval != CurrentSamplingInterval &&
+                QueueSize != CurrentQueueSize && CurrentQueueSize != 0)
+            {
+                _logger.LogInformation(
+                    "{Item}: {Action} SamplingInterval was " +
+                    "revised from {SamplingInterval} to {CurrentSamplingInterval} " +
+                    "and QueueSize from {QueueSize} to {CurrentQueueSize}.",
+                    this, created ? "CREATED" : "UPDATED",
+                    SamplingInterval, CurrentSamplingInterval, QueueSize, CurrentQueueSize);
+            }
+            else if (SamplingInterval != CurrentSamplingInterval)
+            {
+                _logger.LogInformation(
+                    "{Item}: {Action} SamplingInterval was " +
+                    "revised from {SamplingInterval} to {CurrentSamplingInterval}.",
+                    this, created ? "CREATED" : "UPDATED",
+                    SamplingInterval, CurrentSamplingInterval);
+            }
+            else if (QueueSize != CurrentQueueSize && CurrentQueueSize != 0)
+            {
+                _logger.LogInformation(
+                    "{Item}: {Action} QueueSize was " +
+                    "revised from {QueueSize} to {CurrentQueueSize}.",
+                    this, created ? "CREATED" : "UPDATED",
+                    QueueSize, CurrentQueueSize);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "{Item}: {Action} with desired configuration.",
+                    this, created ? "CREATED" : "UPDATED");
+            }
         }
 
         /// <summary>
@@ -314,6 +353,7 @@ namespace Opc.Ua.Client
         internal void SetTransferResult(uint clientHandle)
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
+            _logger.LogDebug("{Item}: TRANSFERED.", this);
 
             // ensure the global counter is not duplicating future handle ids
             Utils.LowerLimitIdentifier(ref _globalClientHandle, clientHandle);
@@ -325,6 +365,7 @@ namespace Opc.Ua.Client
         internal void Reset()
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
+            _logger.LogDebug("{Item}: RESET.",this);
             ServerId = 0;
             Error = ServiceResult.Good;
         }
@@ -393,5 +434,6 @@ namespace Opc.Ua.Client
         private bool _discardOldest;
         private static long _globalClientHandle;
         private bool _disposedValue;
+        private readonly ILogger _logger;
     }
 }

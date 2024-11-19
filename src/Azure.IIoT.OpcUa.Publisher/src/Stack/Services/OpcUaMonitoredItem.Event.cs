@@ -233,7 +233,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SamplingInterval = TimeSpan.Zero;
                 UpdateQueueSize(Subscription, Template);
                 DiscardOldest = !(Template.DiscardNew ?? false);
-                Valid = true;
 
                 return base.Initialize(out metadataChanged);
             }
@@ -243,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not Event model || !Valid)
+                if (item is not Event model || Disposed)
                 {
                     return false;
                 }
@@ -384,7 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
                 EventFieldList eventFields)
             {
-                Debug.Assert(Valid);
+                Debug.Assert(!Disposed);
                 Debug.Assert(Template != null);
 
                 //

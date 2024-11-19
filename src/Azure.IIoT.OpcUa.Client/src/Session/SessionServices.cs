@@ -41,18 +41,26 @@ namespace Opc.Ua.Client
         public bool TraceActivityUsingLogger { get; set; }
 
         /// <summary>
+        /// Get time provider to use
+        /// </summary>
+        protected TimeProvider TimeProvider { get; }
+
+        /// <summary>
         /// Intializes the object with a channel and logger factory.
         /// </summary>
         /// <param name="loggerFactory"></param>
         /// <param name="meterFactory"></param>
         /// <param name="activitySource"></param>
         /// <param name="channel"></param>
+        /// <param name="timeProvider"></param>
         protected SessionServices(ILoggerFactory loggerFactory, IMeterFactory meterFactory,
-            ActivitySource? activitySource = null, ITransportChannel? channel = null)
+            ActivitySource? activitySource = null, TimeProvider? timeProvider = null,
+            ITransportChannel? channel = null)
             : base(channel)
         {
             LoggerFactory = loggerFactory;
             MeterFactory = meterFactory;
+            TimeProvider = timeProvider ?? TimeProvider.System;
             _logger = LoggerFactory.CreateLogger<SessionServices>();
             _activitySource = activitySource;
         }

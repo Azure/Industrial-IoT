@@ -106,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override bool ProcessEventNotification(DateTimeOffset publishTime,
                 EventFieldList eventFields, MonitoredItemNotifications notifications)
             {
-                Debug.Assert(Valid);
+                Debug.Assert(!Disposed);
                 Debug.Assert(Template != null);
 
                 if (_disposed)
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
                             "item {Name} on subscription {Subscription} due to receiving " +
                             "a RefreshRequired event", this, Template.DisplayName,
-                            Subscription.Id);
+                            Subscription);
                         try
                         {
                             Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
@@ -161,14 +161,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.DisplayName, Subscription.Id, e.Message);
+                                this, Template.DisplayName, Subscription, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} has completed", this,
-                                Template.DisplayName, Subscription.Id);
+                                Template.DisplayName, Subscription);
                         }
                         return true;
                     }
@@ -216,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not Condition model || !Valid)
+                if (item is not Condition model || Disposed)
                 {
                     return false;
                 }
@@ -244,22 +244,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 itemChange |= base.MergeWith(model, session, out metadataChanged);
                 return itemChange;
-            }
-
-            /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges)
-            {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges);
-                if (!AttachedToSubscription || !result)
-                {
-                    DisableConditionTimer();
-                }
-                else
-                {
-                    EnableConditionTimer();
-                }
-                return result;
             }
 
             /// <summary>

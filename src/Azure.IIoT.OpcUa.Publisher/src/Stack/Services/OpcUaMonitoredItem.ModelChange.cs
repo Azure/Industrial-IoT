@@ -127,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not ModelChangeEventItem || !Valid)
+                if (item is not ModelChangeEventItem || Disposed)
                 {
                     return false;
                 }
@@ -144,17 +144,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override Func<CancellationToken, Task>? FinalizeCompleteChanges => async _ =>
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges)
             {
-                if (!AttachedToSubscription)
-                {
-                    await StopBrowserAsync().ConfigureAwait(false);
-                }
-                else
-                {
-                    EnsureBrowserStarted();
-                }
-            };
+                var result = base.TryCompleteChanges(subscription, ref applyChanges);
+                EnsureBrowserStarted();
+                return result;
+            }
 
             /// <inheritdoc/>
             public override bool Initialize(out bool metadataChanged)
@@ -174,7 +170,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 UpdateQueueSize(Subscription, Template);
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
-                Valid = true;
 
                 return base.Initialize(out metadataChanged);
 
@@ -211,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // Rebrowse and find changes or just process and send the changes
-                Debug.Assert(Valid);
+                Debug.Assert(!Disposed);
                 Debug.Assert(Template != null);
 
                 var evFilter = Filter as EventFilter;

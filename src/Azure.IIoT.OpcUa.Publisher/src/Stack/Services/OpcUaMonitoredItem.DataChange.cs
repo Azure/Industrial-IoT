@@ -234,7 +234,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
                         Subscription.Session.MessageContext);
                 DiscardOldest = !(Template.DiscardNew ?? false);
-                Valid = true;
 
                 if (!TrySetSkipFirst(Template.SkipFirst ?? false))
                 {
@@ -286,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                  out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not DataChange model || !Valid)
+                if (item is not DataChange model || Disposed)
                 {
                     return false;
                 }
@@ -425,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
                 DataValue dataValue, int? overflow = null)
             {
-                Debug.Assert(Valid);
+                Debug.Assert(!Disposed);
                 Debug.Assert(Template != null);
 
                 return new MonitoredItemNotificationModel
