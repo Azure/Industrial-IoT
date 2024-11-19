@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var session = SetupMockedSession(namespaceUris).Object;
             var subscriber = new Mock<ISubscriber>();
-            await using var subscription = new SimpleSubscription();
+            await using var subscription = new SimpleSubscription(session);
             var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, subscription,
                 (subscriber.Object, template).YieldReturn(),
                 Log.ConsoleFactory(), TimeProvider.System).Single();
@@ -65,9 +65,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
         internal sealed class SimpleSubscription : Subscription
         {
-            public SimpleSubscription()
+            public SimpleSubscription(IOpcUaSession session)
                 : base(null!, null!, Log.Console<SimpleSubscription>())
             {
+                _session = session;
             }
 
             protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions options)
@@ -101,6 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             {
                 throw new NotImplementedException();
             }
+            private readonly IOpcUaSession _session;
         }
     }
 }
