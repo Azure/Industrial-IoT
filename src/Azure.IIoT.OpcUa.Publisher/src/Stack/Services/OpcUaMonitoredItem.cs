@@ -81,6 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Event name
         /// </summary>
         public virtual string? EventTypeName { get; }
+        public IOpcUaSession Session { get; }
 
         /// <summary>
         /// The owner of the item that is to be notified of changes
@@ -142,12 +143,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscription"></param>
         /// <param name="owner"></param>
         /// <param name="logger"></param>
+        /// <param name="session"></param>
         /// <param name="nodeId"></param>
         /// <param name="timeProvider"></param>
-        protected OpcUaMonitoredItem(Subscription subscription, ISubscriber owner,
-            ILogger logger, string nodeId, TimeProvider timeProvider) :
-            base(subscription, logger)
+        protected OpcUaMonitoredItem(IManagedSubscription subscription,
+            ISubscriber owner, ILogger logger, IOpcUaSession session,
+            string nodeId, TimeProvider timeProvider) : base(subscription, logger)
         {
+            Session = session;
             Owner = owner;
             NodeId = nodeId;
             TimeProvider = timeProvider;
@@ -158,13 +161,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create items
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="session"></param>
         /// <param name="subscription"></param>
         /// <param name="items"></param>
         /// <param name="factory"></param>
         /// <param name="timeProvider"></param>
         /// <returns></returns>
-        public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client,
-            Subscription subscription, IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
+        public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client, IOpcUaSession session,
+            IManagedSubscription subscription, IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
             ILoggerFactory factory, TimeProvider timeProvider)
         {
             foreach (var (owner, item) in items)
@@ -176,36 +180,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             client != null)
                         {
                             yield return new CyclicRead(subscription, owner, client, dmi,
-                                factory.CreateLogger<CyclicRead>(), timeProvider);
+                                session, factory.CreateLogger<CyclicRead>(), timeProvider);
                         }
                         else if (dmi.HeartbeatInterval != null)
                         {
                             yield return new Heartbeat(subscription, owner, dmi,
-                                factory.CreateLogger<Heartbeat>(), timeProvider);
+                                session, factory.CreateLogger<Heartbeat>(), timeProvider);
                         }
                         else
                         {
                             yield return new DataChange(subscription, owner, dmi,
-                                factory.CreateLogger<DataChange>(), timeProvider);
+                                session, factory.CreateLogger<DataChange>(), timeProvider);
                         }
                         break;
                     case EventMonitoredItemModel emi:
                         if (emi.ConditionHandling?.SnapshotInterval != null)
                         {
                             yield return new Condition(subscription, owner, emi,
-                                factory.CreateLogger<Condition>(), timeProvider);
+                                session, factory.CreateLogger<Condition>(), timeProvider);
                         }
                         else
                         {
                             yield return new Event(subscription, owner, emi,
-                                factory.CreateLogger<Event>(), timeProvider);
+                                session, factory.CreateLogger<Event>(), timeProvider);
                         }
                         break;
                     case MonitoredAddressSpaceModel mam:
                         if (client != null)
                         {
                             yield return new ModelChangeEventItem(subscription, owner, mam, client,
-                                factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
+                                session, factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
                     default:
@@ -282,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Finalize add
         /// </summary>
-        public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeAddTo { get; }
+        public virtual Func<CancellationToken, Task>? FinalizeAddTo { get; }
 
         /// <summary>
         /// Merge item in the subscription with this item
@@ -307,19 +311,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Complete changes previously made and provide callback
         /// </summary>
-        /// <param name="subscription"></param>
         /// <param name="applyChanges"></param>
         /// <returns></returns>
-        public virtual bool TryCompleteChanges(Subscription subscription,
-            ref bool applyChanges)
+        public virtual bool TryCompleteChanges(ref bool applyChanges)
         {
             if (Disposed)
             {
                 _logger.LogError("{Item}: Item was disposed.", this);
                 return false;
             }
-
-            Debug.Assert(subscription == Subscription);
 
             if (CurrentMonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
@@ -331,7 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogWarning("Error adding monitored item {Item} " +
                     "to subscription {Subscription} due to {Status}.",
-                    this, subscription, Error);
+                    this, Subscription, Error);
 
                 // Not needed, mode changes applied after
                 // applyChanges = true;
@@ -821,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="item"></param>
-        protected bool UpdateQueueSize(Subscription subscription, BaseMonitoredItemModel item)
+        protected bool UpdateQueueSize(IManagedSubscription subscription, BaseMonitoredItemModel item)
         {
             var queueSize = item.QueueSize ?? 1;
             if (item.AutoSetQueueSize == true)

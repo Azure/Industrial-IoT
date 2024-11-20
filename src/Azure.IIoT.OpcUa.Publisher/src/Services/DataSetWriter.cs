@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Active subscription
             /// </summary>
-            public ISubscription? Subscription { get; private set; }
+            public ISubscriptionRegistration? Subscription { get; private set; }
 
             /// <summary>
             /// Create subscription from a DataSetWriterModel template

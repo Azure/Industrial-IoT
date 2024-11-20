@@ -64,7 +64,7 @@ namespace Opc.Ua.Client
         /// Gets the session managed by the handler.
         /// </summary>
         /// <value>The session.</value>
-        public Session? Session { get; private set; }
+        public SessionBase? Session { get; private set; }
 
         /// <summary>
         /// The internal state of the reconnect handler.
@@ -155,7 +155,7 @@ namespace Opc.Ua.Client
         /// <param name="reconnectPeriod"></param>
         /// <param name="callback"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public ReconnectState BeginReconnect(Session session, int reconnectPeriod,
+        public ReconnectState BeginReconnect(SessionBase session, int reconnectPeriod,
             EventHandler callback)
         {
             lock (_lock)

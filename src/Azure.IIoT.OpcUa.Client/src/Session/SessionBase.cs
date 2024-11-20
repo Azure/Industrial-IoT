@@ -21,12 +21,14 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Manages a session with a server.
     /// </summary>
-    public abstract class Session : SessionServices, IComplexTypeContext, INodeCacheContext
+    public abstract class SessionBase : SessionServices, ISession,
+        ISubscriptionContext, IComplexTypeContext, INodeCacheContext,
+        ISubscriptionManagerContext
     {
         /// <summary>
         /// Gets the name assigned to the session.
         /// </summary>
-        public string SessionName { get; }
+        public string Name { get; }
 
         /// <summary>
         /// Gets the endpoint used to connect to the server.
@@ -43,46 +45,22 @@ namespace Opc.Ua.Client
         /// </summary>
         public DateTimeOffset? ConnectedSince { get; private set; }
 
-        /// <summary>
-        /// Gets the user identity currently used for the session.
-        /// </summary>
+        /// <inheritdoc/>
         public IUserIdentity Identity { get; private set; }
 
-        /// <summary>
-        /// Subscriptions in the session
-        /// </summary>
-        public ISubscriptions Subscriptions => _subscriptions;
+        /// <inheritdoc/>
+        public ISubscriptionManager Subscriptions => _subscriptions;
 
-        /// <summary>
-        /// Override the client message context with a stable session wide
-        /// message context.
-        /// </summary>
+        /// <inheritdoc/>
         public new IServiceMessageContext MessageContext { get; }
 
-        /// <summary>
-        /// Gets the table of namespace uris known to the server.
-        /// </summary>
-        public NamespaceTable NamespaceUris => MessageContext.NamespaceUris;
-
-        /// <summary>
-        /// Server uris
-        /// </summary>
-        private StringTable ServerUris => MessageContext.ServerUris;
-
-        /// <summary>
-        /// Gets the system context for use with the session.
-        /// </summary>
+        /// <inheritdoc/>
         public ISystemContext SystemContext => _systemContext;
 
-        /// <summary>
-        /// Gets the factory used to create encodeable objects that
-        /// the server understands.
-        /// </summary>
+        /// <inheritdoc/>
         public IEncodeableFactory Factory => MessageContext.Factory;
 
-        /// <summary>
-        /// Gets the cache of nodes fetched from the server.
-        /// </summary>
+        /// <inheritdoc/>
         public INodeCache NodeCache => _nodeCache;
 
         /// <summary>
@@ -183,6 +161,9 @@ namespace Opc.Ua.Client
         /// </summary>
         public int LastKeepAliveTickCount { get; private set; }
 
+        /// <inheritdoc/>
+        public NamespaceTable NamespaceUris => MessageContext.NamespaceUris;
+
         /// <summary>
         /// Number of namespace table changes
         /// </summary>
@@ -196,22 +177,27 @@ namespace Opc.Ua.Client
             => _connecting.CurrentCount == 0;
 
         /// <summary>
+        /// Server uris
+        /// </summary>
+        private StringTable ServerUris => MessageContext.ServerUris;
+
+        /// <summary>
         /// Type system has loaded
         /// </summary>
         public bool IsTypeSystemLoaded
             => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="Session"/> class. The application
+        /// Constructs a new instance of the <see cref="SessionBase"/> class. The application
         /// configuration is used to look up the certificate if none is provided.
         /// </summary>
         /// <param name="configuration">The configuration for the client application.</param>
         /// <param name="endpoint">The endpoint used to initialize the channel.</param>
+        /// <param name="options">Session options</param>
         /// <param name="loggerFactory">A logger factory to use</param>
         /// <param name="timeprovider">Time provider</param>
-        /// <param name="options">Session options</param>
         /// <param name="reverseConnectManager">Reverse connect manager</param>
-        protected Session(ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
+        protected SessionBase(ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
             SessionOptions options, ILoggerFactory loggerFactory, TimeProvider timeprovider,
             ReverseConnectManager? reverseConnectManager = null) : base(loggerFactory,
                 options.Meter ?? ClientApplication.DefaultMeterFactory,
@@ -221,11 +207,11 @@ namespace Opc.Ua.Client
             MessageContext = options.Channel?.MessageContext
                 ?? configuration.CreateMessageContext();
             ConfiguredEndpoint = endpoint;
-            SessionName = options.SessionName ?? Guid.NewGuid().ToString();
+            Name = options.SessionName ?? Guid.NewGuid().ToString();
             Identity = options.Identity ?? new UserIdentity();
 
             _meter = MeterFactory.Create(new MeterOptions("Session") { Version = "1.0.0" });
-            _logger = LoggerFactory.CreateLogger<Session>();
+            _logger = LoggerFactory.CreateLogger<SessionBase>();
             _keepAliveTimer = new Timer(_ => _keepAliveTrigger.Set());
             _keepAliveWorker = KeepAliveWorkerAsync(_cts.Token);
             _configuration = configuration;
@@ -246,9 +232,12 @@ namespace Opc.Ua.Client
                 SessionTimeout = TimeSpan.FromMilliseconds(
                     configuration.ClientConfiguration.DefaultSessionTimeout);
             }
-            _preferredLocales = options.PreferredLocales ?? new[] { CultureInfo.CurrentCulture.Name };
+            _preferredLocales = options.PreferredLocales ?? new[]
+            {
+                CultureInfo.CurrentCulture.Name
+            };
             _nodeCache = new NodeCache(this);
-            _subscriptions = new SubscriptionManager(this, LoggerFactory);
+            _subscriptions = new SubscriptionManager(this, LoggerFactory, ReturnDiagnostics);
             _systemContext = new SystemContext
             {
                 SystemHandle = this,
@@ -270,14 +259,14 @@ namespace Opc.Ua.Client
                 return true;
             }
 
-            if (obj is Session session)
+            if (obj is SessionBase session)
             {
                 if (!ConfiguredEndpoint.Equals(session.Endpoint))
                 {
                     return false;
                 }
 
-                if (!SessionName.Equals(session.SessionName,
+                if (!Name.Equals(session.Name,
                     StringComparison.Ordinal))
                 {
                     return false;
@@ -297,13 +286,13 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return HashCode.Combine(ConfiguredEndpoint, SessionName, SessionId);
+            return HashCode.Combine(ConfiguredEndpoint, Name, SessionId);
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{SessionName} (Id:{SessionId})";
+            return $"{Name} (Id:{SessionId})";
         }
 
         /// <inheritdoc/>
@@ -360,7 +349,7 @@ namespace Opc.Ua.Client
                 var previousAuthenticationToken = AuthenticationToken;
 
                 _logger.LogInformation("{Action} session {Session} ({Id})...",
-                    SessionId != null ? "Recreating" : "Opening", SessionName,
+                    SessionId != null ? "Recreating" : "Opening", Name,
                     SessionId);
 
                 // Ensure channel and optionally a reverse connection exists
@@ -369,7 +358,7 @@ namespace Opc.Ua.Client
                 if (transportChannel == null)
                 {
                     _logger.LogInformation("Creating new channel for session {Name}",
-                        SessionName);
+                        Name);
                     TransportChannel = await CreateChannelAsync(ct).ConfigureAwait(false);
                 }
 
@@ -442,7 +431,7 @@ namespace Opc.Ua.Client
                     {
                         response = await CreateSessionAsync(null, clientDescription,
                             ConfiguredEndpoint.Description.Server.ApplicationUri,
-                            ConfiguredEndpoint.EndpointUrl.ToString(), SessionName, clientNonce,
+                            ConfiguredEndpoint.EndpointUrl.ToString(), Name, clientNonce,
                             null, SessionTimeout.TotalMilliseconds,
                             (uint)MessageContext.MaxMessageSize, ct).ConfigureAwait(false);
                         successCreateSession = true;
@@ -460,7 +449,7 @@ namespace Opc.Ua.Client
                 {
                     response = await CreateSessionAsync(null, clientDescription,
                         ConfiguredEndpoint.Description.Server.ApplicationUri,
-                        ConfiguredEndpoint.EndpointUrl.ToString(), SessionName, clientNonce,
+                        ConfiguredEndpoint.EndpointUrl.ToString(), Name, clientNonce,
                         clientCertificateChainData ?? clientCertificateData,
                         SessionTimeout.TotalMilliseconds, (uint)MessageContext.MaxMessageSize,
                         ct).ConfigureAwait(false);
@@ -892,23 +881,6 @@ namespace Opc.Ua.Client
             }
             _subscriptions.Update();
             StartKeepAliveTimer();
-        }
-
-        /// <summary>
-        /// Create a new subscription inside the session. The subscription will
-        /// not be created as part of this call. It must be explicitly created
-        /// using CreateAsync. Disposing the session will remove it from the
-        /// session but not from the server. The subscription must also explicitly
-        /// be deleted using DeleteAsync to remove it from the server.
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        public Subscription AddSubscription(SubscriptionOptions? options)
-        {
-            var subscription = CreateSubscription(options, _subscriptions);
-            _subscriptions.Add(subscription);
-            return subscription;
         }
 
         /// <inheritdoc/>
@@ -1712,13 +1684,9 @@ namespace Opc.Ua.Client
             }
         }
 
-        /// <summary>
-        /// Create subscription
-        /// </summary>
-        /// <param name="options">The subscription options to pass</param>
-        /// <param name="queue">The completion queue</param>
-        /// <returns></returns>
-        protected abstract Subscription CreateSubscription(SubscriptionOptions? options, IAckQueue queue);
+        /// <inheritdoc/>
+        public abstract IManagedSubscription CreateSubscription(
+            SubscriptionOptions? options, IAckQueue queue);
 
         /// <summary>
         /// Handle keep alive
@@ -2584,7 +2552,6 @@ namespace Opc.Ua.Client
             OperationLimits.MaxSubscriptionsPerSession = Get<uint>(ref index, values, errors);
             OperationLimits.MaxWhereClauseParameters = Get<uint>(ref index, values, errors);
             OperationLimits.MaxSelectClauseParameters = Get<uint>(ref index, values, errors);
-
 
             // Helper extraction
             static T Get<T>(ref int index, IReadOnlyList<DataValue> values,

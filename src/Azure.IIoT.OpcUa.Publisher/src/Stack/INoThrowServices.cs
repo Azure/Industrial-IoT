@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// Session services provided by the client and referenced from the
     /// session handle.
     /// </summary>
-    public interface ISessionServices
+    public interface INoThrowServices
     {
         /// <summary>
         /// Add nodes

@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.ModelChangeEventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Event))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
-    internal sealed class OpcUaSubscription : Subscription
+    internal sealed class OpcUaSubscription : SubscriptionBase
     {
         /// <summary>
         /// Whether the subscription is online
@@ -57,6 +57,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => MonitoredItems.OfType<OpcUaMonitoredItem>();
 
         /// <summary>
+        /// Owning session
+        /// </summary>
+        internal OpcUaClient.OpcUaSession Session { get; }
+
+        /// <summary>
         /// Subscription
         /// </summary>
         /// <param name="client"></param>
@@ -73,6 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                   loggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;
+            Session = session;
             _options = options;
             _loggerFactory = loggerFactory;
             _metrics = metrics;
@@ -206,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (ChangesPending)
             {
-                await ApplyChangesAsync(ct).ConfigureAwait(false);
+                await ApplyMonitoredItemChangesAsync(ct).ConfigureAwait(false);
             }
 
             var shouldEnable = MonitoredItems
@@ -249,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Creating new {State} subscription {Subscription} in session {Session}.",
                     PublishingEnabled ? "enabled" : "disabled", this, Session);
 
-                await CreateAsync(false, ct).ConfigureAwait(false);
+                await CreateOrUpdateAsync(ct).ConfigureAwait(false);
                 if (!Created)
                 {
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
@@ -318,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (modifySubscription)
                 {
-                    await ModifyAsync(ct).ConfigureAwait(false);
+                    await CreateOrUpdateAsync(ct).ConfigureAwait(false);
                     _logger.LogInformation(
                         "Subscription {Subscription} in session {Session} successfully modified.",
                         this, Session);
@@ -336,7 +342,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
         internal async ValueTask<TimeSpan> SynchronizeMonitoredItemsAsync(
-            OpcUaClient.Partition partition, Opc.Ua.Client.Limits operationLimits, CancellationToken ct)
+            OpcUaClient.Partition partition, Opc.Ua.Client.Limits operationLimits,
+            CancellationToken ct)
         {
             if (Session is not OpcUaClient.OpcUaSession session)
             {
@@ -347,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Get the items assigned to this subscription.
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var desired = OpcUaMonitoredItem
-                .Create(_client, this, partition.Items, _loggerFactory, _timeProvider)
+                .Create(_client, Session, this, partition.Items, _loggerFactory, _timeProvider)
                 .ToHashSet();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -557,7 +564,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         if (toAdd.FinalizeAddTo != null && metadata)
                         {
-                            await toAdd.FinalizeAddTo(session, ct).ConfigureAwait(false);
+                            await toAdd.FinalizeAddTo(ct).ConfigureAwait(false);
                         }
                         added++;
                         applyChanges = true;
@@ -580,7 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (applyChanges)
             {
-                await ApplyChangesAsync(ct).ConfigureAwait(false);
+                await ApplyMonitoredItemChangesAsync(ct).ConfigureAwait(false);
                 if (MonitoredItemCount == 0 && !_owner.EnableImmediatePublishing)
                 {
                     await SetPublishingModeAsync(false, ct).ConfigureAwait(false);
@@ -672,7 +679,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 desiredMonitoredItems.Count, remove.Count, this);
             foreach (var monitoredItem in desiredMonitoredItems.Concat(remove))
             {
-                if (!monitoredItem.TryCompleteChanges(this, ref applyChanges))
+                if (!monitoredItem.TryCompleteChanges(ref applyChanges))
                 {
                     // Apply more changes in future passes
                     badMonitoredItems++;
@@ -697,7 +704,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (applyChanges)
             {
                 // Apply any additional changes
-                await ApplyChangesAsync(ct).ConfigureAwait(false);
+                await ApplyMonitoredItemChangesAsync(ct).ConfigureAwait(false);
             }
 
             Debug.Assert(set.Select(m => m.ClientHandle).Distinct().Count() == set.Count,

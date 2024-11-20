@@ -1,0 +1,139 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Opc.Ua.Client
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    /// <summary>
+    /// Subscription services
+    /// </summary>
+    public interface ISubscription
+    {
+        /// <summary>
+        /// Monitored item count
+        /// </summary>
+        uint MonitoredItemCount { get; }
+
+        /// <summary>
+        /// Monitored items
+        /// </summary>
+        IEnumerable<MonitoredItem> MonitoredItems { get; }
+
+        /// <summary>
+        /// Created subscription
+        /// </summary>
+        bool Created { get; }
+
+        /// <summary>
+        /// Set keep alive count
+        /// </summary>
+        uint KeepAliveCount { get; set; }
+
+        /// <summary>
+        /// The current keep alive count on the server
+        /// </summary>
+        uint CurrentKeepAliveCount { get; }
+
+        /// <summary>
+        /// The life time of the subscription in counts of
+        /// publish interval.
+        /// LifetimeCount shall be at least 3*KeepAliveCount.
+        /// </summary>
+        uint LifetimeCount { get; set; }
+
+        /// <summary>
+        /// The current lifetime count on the server
+        /// </summary>
+        uint CurrentLifetimeCount { get; }
+
+        /// <summary>
+        /// Set desired priority of the subscription
+        /// </summary>
+        byte Priority { get; set; }
+
+        /// <summary>
+        /// The current priority of the subscription
+        /// </summary>
+        byte CurrentPriority { get; }
+
+        /// <summary>
+        /// Set desired publishing enabled
+        /// </summary>
+        bool PublishingEnabled { get; set; }
+
+        /// <summary>
+        /// The current publishing enabled state
+        /// </summary>
+        bool CurrentPublishingEnabled { get; }
+
+        /// <summary>
+        /// Set desired publishing interval
+        /// </summary>
+        TimeSpan PublishingInterval { get; set; }
+
+        /// <summary>
+        /// The current publishing interval on the server
+        /// </summary>
+        TimeSpan CurrentPublishingInterval { get; }
+
+        /// <summary>
+        /// Set max notifications per publish
+        /// </summary>
+        uint MaxNotificationsPerPublish { get; set; }
+
+        /// <summary>
+        /// Set min lifetime interval
+        /// </summary>
+        TimeSpan MinLifetimeInterval { get; set; }
+
+        /// <summary>
+        /// Create or update the subscription
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task CreateOrUpdateAsync(CancellationToken ct = default);
+
+        /// <summary>
+        /// Set publishing mode --- TODO: This should be a property and applied at CreateOrUpdate
+        /// </summary>
+        /// <param name="enabled"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SetPublishingModeAsync(bool enabled, CancellationToken ct = default);
+
+        /// <summary>
+        /// Add a monitored item to the subscription
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        MonitoredItem AddMonitoredItem(MonitoredItemOptions? options = null);
+
+        /// <summary>
+        /// Apply monitored item changes
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task ApplyMonitoredItemChangesAsync(CancellationToken ct = default);
+
+        /// <summary>
+        /// Refresh all conditions
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task ConditionRefreshAsync(CancellationToken ct = default);
+
+        /// <summary>
+        /// Delete the subscription on the server
+        /// </summary>
+        /// <param name="silent"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task DeleteAsync(bool silent, CancellationToken ct = default);
+    }
+}

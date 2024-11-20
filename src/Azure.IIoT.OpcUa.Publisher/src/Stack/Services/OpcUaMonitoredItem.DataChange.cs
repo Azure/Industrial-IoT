@@ -34,7 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
-                    (TheResolvedNodeId == Template.StartNodeId || string.IsNullOrEmpty(TheResolvedNodeId)) ?
+                    (TheResolvedNodeId == Template.StartNodeId ||
+                        string.IsNullOrEmpty(TheResolvedNodeId)) ?
                     (Template.StartNodeId, Template.RelativePath.ToArray(),
                         (v, context) => TheResolvedNodeId = NodeId
                             = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
@@ -42,12 +43,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
                 => Template.RegisterRead == true && !_registeredForReading &&
-                    !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (v, context) =>
-                    {
-                        NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
-                        // We only want to register the node once for reading inside a session
-                        _registeredForReading = true;
-                    }
+                    !string.IsNullOrEmpty(TheResolvedNodeId) ?
+                    (TheResolvedNodeId,
+                        (v, context) =>
+                        {
+                            NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
+                            // We only want to register the node once for reading inside a session
+                            _registeredForReading = true;
+                        }
             ) : null;
 
             /// <inheritdoc/>
@@ -98,11 +101,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
+            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public DataChange(Subscription subscription, ISubscriber owner, DataMonitoredItemModel template,
+            public DataChange(IManagedSubscription subscription, ISubscriber owner,
+                DataMonitoredItemModel template, IOpcUaSession session,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(subscription, owner, logger, template.StartNodeId, timeProvider)
+                base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
             {
                 Template = template;
 
@@ -213,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override bool Initialize(out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(Subscription.Session.MessageContext);
+                var nodeId = NodeId.ToNodeId(Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     metadataChanged = false;
@@ -232,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 UpdateQueueSize(Subscription, Template);
                 Filter = Template.DataChangeFilter.ToStackModel() ??
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
-                        Subscription.Session.MessageContext);
+                        Session.MessageContext);
                 DiscardOldest = !(Template.DiscardNew ?? false);
 
                 if (!TrySetSkipFirst(Template.SkipFirst ?? false))
@@ -243,9 +248,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription, ref bool applyChanges)
+            public override bool TryCompleteChanges(ref bool applyChanges)
             {
-                var msgContext = subscription.Session?.MessageContext;
+                var msgContext = Session?.MessageContext;
                 if (Filter is AggregateFilter &&
                     FilterResult is AggregateFilterResult afr && msgContext != null)
                 {
@@ -260,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             afr.AsJson(msgContext), this);
                     }
                 }
-                return base.TryCompleteChanges(subscription, ref applyChanges);
+                return base.TryCompleteChanges(ref applyChanges);
             }
 
             /// <inheritdoc/>
@@ -381,7 +386,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(client, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
+                    return Create(client, Session, Subscription,
+                        Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();

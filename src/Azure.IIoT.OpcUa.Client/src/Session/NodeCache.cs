@@ -17,11 +17,12 @@ namespace Opc.Ua.Client
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Node cache inside the session object. The node cache consists of two LRU caches.
-    /// These caches contain nodes and references (Read and browse). Cache entries expire
-    /// after not being accessed for a certain time. The cache is thread-safe and can be
-    /// accessed by multiple readers. It is also limited to a capacity at which point
-    /// least recently used entries will be evicted.
+    /// Node cache inside the session object. The node cache consists of two
+    /// LRU caches. These caches contain nodes and references (Read and browse).
+    /// Cache entries expire after not being accessed for a certain time.
+    /// The cache is thread-safe and can be accessed by multiple readers.
+    /// It is also limited to a capacity at which point least recently used
+    /// entries will be evicted.
     /// </summary>
     internal sealed class NodeCache : INodeCache
     {

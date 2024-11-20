@@ -49,11 +49,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="dataTemplate"></param>
+            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Heartbeat(Subscription subscription, ISubscriber owner, DataMonitoredItemModel dataTemplate,
+            public Heartbeat(IManagedSubscription subscription, ISubscriber owner,
+                DataMonitoredItemModel dataTemplate, IOpcUaSession session,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(subscription, owner, dataTemplate, logger, timeProvider)
+                base(subscription, owner, dataTemplate, session, logger, timeProvider)
             {
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);
@@ -159,10 +161,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges)
+            public override bool TryCompleteChanges(ref bool applyChanges)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges);
+                var result = base.TryCompleteChanges(ref applyChanges);
                 var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                         == HeartbeatBehavior.WatchdogLKG;
                 if (!result && lkg)

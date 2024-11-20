@@ -18,17 +18,17 @@ namespace Opc.Ua.Client
     /// The client side interface with support for batching according
     /// to operation limits.
     /// </summary>
-    public abstract class SessionServices : Opc.Ua.Client.Obsolete.SessionClient
+    public abstract class SessionServices : Opc.Ua.Client.Obsolete.SessionClient,
+        IServiceContext, ISessionServices, ISubscriptionServices
     {
-        /// <summary>
-        /// Logger factory
-        /// </summary>
+        /// <inheritdoc/>
         public ILoggerFactory LoggerFactory { get; }
 
-        /// <summary>
-        /// Logger factory
-        /// </summary>
+        /// <inheritdoc/>
         public IMeterFactory MeterFactory { get; }
+
+        /// <inheritdoc/>
+        public TimeProvider TimeProvider { get; }
 
         /// <summary>
         /// The operation limits are used to batch the service requests.
@@ -39,11 +39,6 @@ namespace Opc.Ua.Client
         /// Whether to log all activity to the logger
         /// </summary>
         public bool TraceActivityUsingLogger { get; set; }
-
-        /// <summary>
-        /// Get time provider to use
-        /// </summary>
-        protected TimeProvider TimeProvider { get; }
 
         /// <summary>
         /// Intializes the object with a channel and logger factory.
@@ -315,7 +310,6 @@ namespace Opc.Ua.Client
                 response = await base.RegisterNodesAsync(requestHeader,
                     batchNodesToRegister, ct).ConfigureAwait(false);
 
-
                 var batchRegisteredNodeIds = response.RegisteredNodeIds;
                 ClientBase.ValidateResponse(batchRegisteredNodeIds, batchNodesToRegister);
                 registeredNodeIds.AddRange(batchRegisteredNodeIds);
@@ -348,7 +342,6 @@ namespace Opc.Ua.Client
                 requestHeader.RequestHandle = 0;
                 response = await base.UnregisterNodesAsync(requestHeader,
                     batchNodesToUnregister, ct).ConfigureAwait(false);
-
             }
             Debug.Assert(response != null, "Empty ops should have been covered in fast path");
             return response;

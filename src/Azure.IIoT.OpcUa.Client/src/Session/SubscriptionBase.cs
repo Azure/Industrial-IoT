@@ -18,8 +18,11 @@ namespace Opc.Ua.Client
     /// <summary>
     /// A subscription.
     /// </summary>
-    public abstract class Subscription : IAsyncDisposable
+    public abstract class SubscriptionBase : IManagedSubscription
     {
+        /// <inheritdoc/>
+        public uint Id { get; private set; }
+
         /// <summary>
         /// The publishing interval.
         /// </summary>
@@ -51,12 +54,6 @@ namespace Opc.Ua.Client
         /// The priority assigned to subscription.
         /// </summary>
         public byte Priority { get; set; }
-
-        /// <summary>
-        /// The timestamps to return with the notification messages.
-        /// </summary>
-        public TimestampsToReturn TimestampsToReturn { get; set; }
-            = TimestampsToReturn.Both;
 
         /// <summary>
         /// The minimum lifetime for subscriptions
@@ -160,16 +157,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// The session that owns the subscription item.
-        /// </summary>
-        public Session Session { get; }
-
-        /// <summary>
-        /// The unique identifier assigned by the server.
-        /// </summary>
-        protected internal uint Id { get; private set; }
-
-        /// <summary>
         /// Whether the subscription has been created on the server.
         /// </summary>
         public bool Created => Id != 0;
@@ -196,11 +183,11 @@ namespace Opc.Ua.Client
         /// <param name="session"></param>
         /// <param name="completion"></param>
         /// <param name="logger"></param>
-        protected Subscription(Session session, IAckQueue completion,
+        protected SubscriptionBase(ISubscriptionContext session, IAckQueue completion,
             ILogger logger)
         {
             _logger = logger;
-            Session = session;
+            _session = session;
             _completion = completion;
             _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
                 new UnboundedPrioritizedChannelOptions<IncomingMessage>
@@ -210,7 +197,6 @@ namespace Opc.Ua.Client
             _publishTimer = new Timer(OnKeepAlive);
             _messageWorkerTask = ProcessMessagesAsync(_cts.Token);
 
-            TimestampsToReturn = TimestampsToReturn.Both;
             RepublishAfterTransfer = false;
         }
 
@@ -224,7 +210,7 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{Session.SessionId}:{Id}";
+            return $"{_session}:{Id}";
         }
 
         /// <summary>
@@ -240,7 +226,7 @@ namespace Opc.Ua.Client
             // modify the subscription.
             UInt32Collection subscriptionIds = new uint[] { Id };
 
-            var response = await Session.SetPublishingModeAsync(
+            var response = await _session.SetPublishingModeAsync(
                 null, enabled, new uint[] { Id }, ct).ConfigureAwait(false);
 
             // validate response.
@@ -277,7 +263,7 @@ namespace Opc.Ua.Client
         /// Applies any changes to the subscription items.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ApplyChangesAsync(CancellationToken ct)
+        public async Task ApplyMonitoredItemChangesAsync(CancellationToken ct)
         {
             await DeleteItemsAsync(ct).ConfigureAwait(false);
             await ModifyItemsAsync(ct).ConfigureAwait(false);
@@ -300,41 +286,27 @@ namespace Opc.Ua.Client
                     InputArguments = new VariantCollection() { new Variant(Id) }
                 }
             };
-            await Session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
+            await _session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Creates a subscription on the server and adds all monitored items.
         /// </summary>
-        /// <param name="forceCreate"></param>
         /// <param name="ct"></param>
-        public async Task CreateAsync(bool forceCreate, CancellationToken ct)
+        public Task CreateOrUpdateAsync(CancellationToken ct)
         {
-            if (!forceCreate)
+            if (Created)
             {
-                VerifySubscriptionState(false);
+                return ModifyAsync(ct);
             }
-            else
-            {
-                Reset();
-            }
+            return CreateAsync(ct);
+        }
 
-            // create the subscription.
-            var revisedMaxKeepAliveCount = KeepAliveCount;
-            var revisedLifetimeCount = LifetimeCount;
-
-            AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
-
-            var response = await Session.CreateSubscriptionAsync(null,
-                PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
-                revisedMaxKeepAliveCount, MaxNotificationsPerPublish, PublishingEnabled,
-                Priority, ct).ConfigureAwait(false);
-
-            OnSubscriptionUpdateComplete(true, response.SubscriptionId,
-                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
-                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
-
-            await CreateItemsAsync(ct).ConfigureAwait(false);
+        /// <inheritdoc/>
+        public async ValueTask RecreateAsync(CancellationToken ct)
+        {
+            Reset();
+            await CreateAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -359,7 +331,7 @@ namespace Opc.Ua.Client
                 // delete the subscription.
                 UInt32Collection subscriptionIds = new uint[] { Id };
 
-                var response = await Session.DeleteSubscriptionsAsync(null, subscriptionIds,
+                var response = await _session.DeleteSubscriptionsAsync(null, subscriptionIds,
                     ct).ConfigureAwait(false);
 
                 // validate response.
@@ -388,20 +360,168 @@ namespace Opc.Ua.Client
             }
         }
 
+        /// <inheritdoc/>
+        public async ValueTask<bool> TransferAsync(uint? subscriptionId,
+            IReadOnlyList<uint>? availableSequenceNumbers, CancellationToken ct)
+        {
+            StopKeepAliveTimer();
+            if (subscriptionId.HasValue)
+            {
+                // sets state to 'Created'
+                Id = subscriptionId.Value;
+            }
+
+            // ---- This could be done always
+            var synchronizeHandles = subscriptionId.HasValue;
+            if (synchronizeHandles)
+            {
+                // handle the case when the client restarts and loads the saved
+                // subscriptions from storage
+                var (success, handleMap) =
+                    await GetMonitoredItemsAsync(ct).ConfigureAwait(false);
+                if (!success)
+                {
+                    _logger.LogError("{Subscription}: The server failed to respond " +
+                        "to GetMonitoredItems after transfer.", this);
+                    return false;
+                }
+
+                var monitoredItemsCount = _monitoredItems.Count;
+                if (handleMap.Count != monitoredItemsCount)
+                {
+                    // invalid state
+                    _logger.LogError("{Subscription}: Number of Monitored Items " +
+                        "on client and server do not match after transfer {Old}!={New}",
+                        this, handleMap.Count, monitoredItemsCount);
+                    return false;
+                }
+
+                lock (_cache)
+                {
+                    var currentItems = _monitoredItems.Values.ToList();
+                    _monitoredItems.Clear();
+                    var serverClientHandleMap = handleMap.ToDictionary();
+                    foreach (var monitoredItem in _monitoredItems.Values)
+                    {
+                        if (serverClientHandleMap.TryGetValue(monitoredItem.ServerId,
+                            out var clientHandle))
+                        {
+                            _monitoredItems[clientHandle] = monitoredItem;
+                            monitoredItem.SetTransferResult(clientHandle);
+                        }
+                        else
+                        {
+                            // modify client handle on server
+                            _monitoredItems[monitoredItem.ClientHandle] = monitoredItem;
+                        }
+                    }
+                }
+            }
+
+            // save available sequence numbers
+            if (availableSequenceNumbers != null)
+            {
+                _availableInRetransmissionQueue = availableSequenceNumbers;
+            }
+
+            if (subscriptionId.HasValue)
+            {
+                await ModifyItemsAsync(ct).ConfigureAwait(false);
+            }
+            StartKeepAliveTimer();
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask OnPublishReceivedAsync(NotificationMessage message,
+            IReadOnlyList<uint>? availableSequenceNumbers,
+            IReadOnlyList<string> stringTable)
+        {
+            // Reset the keep alive timer
+            _publishTimer.Change(_keepAliveInterval, _keepAliveInterval);
+
+            // send notification that publishing received a keep alive
+            // or has to republish.
+            if (PublishingStopped)
+            {
+                OnPublishStateChanged(PublishState.Recovered);
+            }
+
+            if (availableSequenceNumbers != null)
+            {
+                _availableInRetransmissionQueue = availableSequenceNumbers;
+            }
+            _lastNotificationTickCount = HiResClock.TickCount;
+            await _messages.Writer.WriteAsync(new IncomingMessage(
+                message, stringTable, DateTime.UtcNow)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Dispose subscription
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual async ValueTask DisposeAsync(bool disposing)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    _publishTimer.Dispose();
+                    _messages.Writer.TryComplete();
+                    _cts.Cancel();
+
+                    await _messageWorkerTask.ConfigureAwait(false);
+                }
+                finally
+                {
+                    _cts.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create monitored item
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        protected abstract MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options);
+
+        /// <summary>
+        /// Creates a subscription on the server and adds all monitored items.
+        /// </summary>
+        /// <param name="ct"></param>
+        internal async Task CreateAsync(CancellationToken ct)
+        {
+            // create the subscription.
+            var revisedMaxKeepAliveCount = KeepAliveCount;
+            var revisedLifetimeCount = LifetimeCount;
+
+            AdjustCounts(ref revisedMaxKeepAliveCount, ref revisedLifetimeCount);
+
+            var response = await _session.CreateSubscriptionAsync(null,
+                PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
+                revisedMaxKeepAliveCount, MaxNotificationsPerPublish, PublishingEnabled,
+                Priority, ct).ConfigureAwait(false);
+
+            OnSubscriptionUpdateComplete(true, response.SubscriptionId,
+                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
+                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
+
+            await CreateItemsAsync(ct).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Modifies a subscription on the server.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ModifyAsync(CancellationToken ct)
+        internal async Task ModifyAsync(CancellationToken ct)
         {
-            VerifySubscriptionState(true);
-
             // modify the subscription.
             var revisedKeepAliveCount = KeepAliveCount;
             var revisedLifetimeCounter = LifetimeCount;
 
             AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
-            var response = await Session.ModifySubscriptionAsync(null, Id,
+            var response = await _session.ModifySubscriptionAsync(null, Id,
                 PublishingInterval.TotalMilliseconds, revisedLifetimeCounter,
                 revisedKeepAliveCount, MaxNotificationsPerPublish, Priority,
                 ct).ConfigureAwait(false);
@@ -463,8 +583,8 @@ namespace Opc.Ua.Client
             }
 
             // create monitored items.
-            var response = await Session.CreateMonitoredItemsAsync(null, Id,
-                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
+            var response = await _session.CreateMonitoredItemsAsync(null, Id,
+                TimestampsToReturn.Both, requestItems, ct).ConfigureAwait(false);
             var results = response.Results;
             ClientBase.ValidateResponse(results, itemsToCreate);
             ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, itemsToCreate);
@@ -527,8 +647,8 @@ namespace Opc.Ua.Client
             }
 
             // modify the subscription.
-            var response = await Session.ModifyMonitoredItemsAsync(null, Id,
-                TimestampsToReturn, requestItems, ct).ConfigureAwait(false);
+            var response = await _session.ModifyMonitoredItemsAsync(null, Id,
+                TimestampsToReturn.Both, requestItems, ct).ConfigureAwait(false);
 
             var results = response.Results;
             ClientBase.ValidateResponse(results, itemsToModify);
@@ -561,7 +681,7 @@ namespace Opc.Ua.Client
             try
             {
                 var monitoredItemIds = new UInt32Collection(itemsToDelete);
-                var response = await Session.DeleteMonitoredItemsAsync(null, Id,
+                var response = await _session.DeleteMonitoredItemsAsync(null, Id,
                     monitoredItemIds, ct).ConfigureAwait(false);
                 var results = response.Results;
                 ClientBase.ValidateResponse(results, monitoredItemIds);
@@ -576,42 +696,12 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Dispose subscription
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual async ValueTask DisposeAsync(bool disposing)
-        {
-            if (disposing)
-            {
-                try
-                {
-                    _publishTimer.Dispose();
-                    _messages.Writer.TryComplete();
-                    _cts.Cancel();
-
-                    await _messageWorkerTask.ConfigureAwait(false);
-                }
-                finally
-                {
-                    _cts.Dispose();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Create monitored item
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        protected abstract MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options);
-
-        /// <summary>
         /// Removes an item from the subscription.
         /// </summary>
         /// <param name="monitoredItem"></param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        internal void RemoveItem(MonitoredItem monitoredItem)
+        public void RemoveItem(MonitoredItem monitoredItem)
         {
             Debug.Assert(monitoredItem != null);
             lock (_cache)
@@ -723,7 +813,7 @@ namespace Opc.Ua.Client
                 monitoredItemIds.Add(monitoredItem.ServerId);
             }
 
-            var response = await Session.SetMonitoringModeAsync(null, Id,
+            var response = await _session.SetMonitoringModeAsync(null, Id,
                 monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
             var results = response.Results;
             ClientBase.ValidateResponse(results, monitoredItemIds);
@@ -777,113 +867,6 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Called after the subscription was transferred.
-        /// </summary>
-        /// <param name="availableSequenceNumbers">A list of sequence number ranges
-        /// that identify NotificationMessages that are in the Subscription’s
-        /// retransmission queue. This parameter is null if the transfer of the
-        /// Subscription failed.</param>
-        /// <param name="subscriptionId">Id of the transferred subscription.</param>
-        /// <param name="ct">The cancellation token.</param>
-        internal async Task<bool> TransferAsync(IReadOnlyList<uint>? availableSequenceNumbers,
-            uint? subscriptionId, CancellationToken ct)
-        {
-            StopKeepAliveTimer();
-            if (subscriptionId.HasValue)
-            {
-                // sets state to 'Created'
-                Id = subscriptionId.Value;
-            }
-
-            // ---- This could be done always
-            var synchronizeHandles = subscriptionId.HasValue;
-            if (synchronizeHandles)
-            {
-                // handle the case when the client restarts and loads the saved
-                // subscriptions from storage
-                var (success, handleMap) =
-                    await GetMonitoredItemsAsync(ct).ConfigureAwait(false);
-                if (!success)
-                {
-                    _logger.LogError("{Subscription}: The server failed to respond " +
-                        "to GetMonitoredItems after transfer.", this);
-                    return false;
-                }
-
-                var monitoredItemsCount = _monitoredItems.Count;
-                if (handleMap.Count != monitoredItemsCount)
-                {
-                    // invalid state
-                    _logger.LogError("{Subscription}: Number of Monitored Items " +
-                        "on client and server do not match after transfer {Old}!={New}",
-                        this, handleMap.Count, monitoredItemsCount);
-                    return false;
-                }
-
-                lock (_cache)
-                {
-                    var currentItems = _monitoredItems.Values.ToList();
-                    _monitoredItems.Clear();
-                    var serverClientHandleMap = handleMap.ToDictionary();
-                    foreach (var monitoredItem in _monitoredItems.Values)
-                    {
-                        if (serverClientHandleMap.TryGetValue(monitoredItem.ServerId,
-                            out var clientHandle))
-                        {
-                            _monitoredItems[clientHandle] = monitoredItem;
-                            monitoredItem.SetTransferResult(clientHandle);
-                        }
-                        else
-                        {
-                            // modify client handle on server
-                            _monitoredItems[monitoredItem.ClientHandle] = monitoredItem;
-                        }
-                    }
-                }
-            }
-
-            // save available sequence numbers
-            if (availableSequenceNumbers != null)
-            {
-                _availableInRetransmissionQueue = availableSequenceNumbers;
-            }
-
-            if (subscriptionId.HasValue)
-            {
-                await ModifyItemsAsync(ct).ConfigureAwait(false);
-            }
-            StartKeepAliveTimer();
-            return true;
-        }
-
-        /// <summary>
-        /// Allows the session to add the notification message to the subscription for dispatch.
-        /// </summary>
-        /// <param name="availableSequenceNumbers"></param>
-        /// <param name="message"></param>
-        /// <param name="stringTable"></param>
-        internal async ValueTask OnPublishReceivedAsync(IReadOnlyList<uint>? availableSequenceNumbers,
-            NotificationMessage message, IReadOnlyList<string> stringTable)
-        {
-            // Reset the keep alive timer
-            _publishTimer.Change(_keepAliveInterval, _keepAliveInterval);
-
-            // send notification that publishing received a keep alive or has to republish.
-            if (PublishingStopped)
-            {
-                OnPublishStateChanged(PublishState.Recovered);
-            }
-
-            if (availableSequenceNumbers != null)
-            {
-                _availableInRetransmissionQueue = availableSequenceNumbers;
-            }
-            _lastNotificationTickCount = HiResClock.TickCount;
-            await _messages.Writer.WriteAsync(new IncomingMessage(
-                message, stringTable, DateTime.UtcNow)).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Call the GetMonitoredItems method on the server.
         /// </summary>
         /// <param name="ct"></param>
@@ -902,7 +885,7 @@ namespace Opc.Ua.Client
                     }
                 };
 
-                var response = await Session.CallAsync(null, requests, ct).ConfigureAwait(false);
+                var response = await _session.CallAsync(null, requests, ct).ConfigureAwait(false);
                 var results = response.Results;
                 var diagnosticInfos = response.DiagnosticInfos;
                 ClientBase.ValidateResponse(results, requests);
@@ -1118,7 +1101,7 @@ Actual (revised) state/desired state:
                 // Do not call complete here as we do not want the subscription to be removed
                 throw;
             }
-            await _completion.CompleteAsync(this, default).ConfigureAwait(false);
+            await _completion.CompleteAsync(Id, default).ConfigureAwait(false);
 
             async Task TryRepublishAsync(uint missing, uint curSeqNum, CancellationToken ct)
             {
@@ -1132,7 +1115,7 @@ Actual (revised) state/desired state:
                 _logger.LogInformation("{Subscription}: Republishing missing message " +
                     "with sequence number #{Missing} to catch up to message " +
                     "with sequence number #{SeqNumber}...", this, missing, curSeqNum);
-                var republish = await Session.RepublishAsync(null, Id, missing,
+                var republish = await _session.RepublishAsync(null, Id, missing,
                     ct).ConfigureAwait(false);
 
                 if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
@@ -1253,12 +1236,12 @@ Actual (revised) state/desired state:
             if (PublishingInterval > TimeSpan.Zero)
             {
                 if (MinLifetimeInterval > TimeSpan.Zero &&
-                    MinLifetimeInterval < Session.SessionTimeout)
+                    MinLifetimeInterval < _session.SessionTimeout)
                 {
                     _logger.LogWarning(
                         "{Subscription}: A smaller minimum LifetimeInterval " +
                         "{Counter}ms than session timeout {Timeout}ms configured.",
-                        this, MinLifetimeInterval, Session.SessionTimeout);
+                        this, MinLifetimeInterval, _session.SessionTimeout);
                 }
 
                 var minLifetimeInterval = (uint)MinLifetimeInterval.TotalMilliseconds;
@@ -1277,12 +1260,12 @@ Actual (revised) state/desired state:
                         this, lifetimeCount);
                 }
 
-                if (lifetimeCount * PublishingInterval < Session.SessionTimeout)
+                if (lifetimeCount * PublishingInterval < _session.SessionTimeout)
                 {
                     _logger.LogWarning(
                         "{Subscription}: Lifetime {LifeTime}ms configured is less " +
                         "than session timeout {Timeout}ms.",
-                        this, lifetimeCount * PublishingInterval, Session.SessionTimeout);
+                        this, lifetimeCount * PublishingInterval, _session.SessionTimeout);
                 }
             }
             else if (lifetimeCount == 0)
@@ -1353,6 +1336,7 @@ Actual (revised) state/desired state:
         private int _publishLateCount;
         private uint _lastSequenceNumberProcessed;
         private readonly ILogger _logger;
+        private readonly ISubscriptionContext _session;
         private readonly IAckQueue _completion;
         private readonly List<uint> _deletedItems = new();
         private readonly Timer _publishTimer;

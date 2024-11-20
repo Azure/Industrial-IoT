@@ -41,12 +41,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="client"></param>
+            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public ModelChangeEventItem(Subscription subscription, ISubscriber owner,
-                MonitoredAddressSpaceModel template, OpcUaClient client,
+            public ModelChangeEventItem(IManagedSubscription subscription, ISubscriber owner,
+                MonitoredAddressSpaceModel template, OpcUaClient client, IOpcUaSession session,
                 ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
-                base(subscription, owner, logger, template.StartNodeId, timeProvider)
+                base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
             {
                 Template = template;
                 _client = client;
@@ -144,10 +145,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription,
-                ref bool applyChanges)
+            public override bool TryCompleteChanges(ref bool applyChanges)
             {
-                var result = base.TryCompleteChanges(subscription, ref applyChanges);
+                var result = base.TryCompleteChanges(ref applyChanges);
                 EnsureBrowserStarted();
                 return result;
             }
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override bool Initialize(out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(Subscription.Session.MessageContext);
+                var nodeId = NodeId.ToNodeId(Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     metadataChanged = false;
@@ -248,7 +248,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(client, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
+                    return Create(client,
+                        Session, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();
@@ -389,31 +390,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _browser.OnNodeChange += OnNodeChange;
                         _logger.LogInformation("Item {Item} registered with browser.", this);
                     }
-                }
-            }
-
-            /// <summary>
-            /// Stop browser
-            /// </summary>
-            /// <returns></returns>
-            private async Task StopBrowserAsync()
-            {
-                // Stop the browser
-                IOpcUaBrowser? browser;
-                lock (_lock)
-                {
-                    browser = _browser;
-                    if (browser != null)
-                    {
-                        browser.OnReferenceChange -= OnReferenceChange;
-                        browser.OnNodeChange -= OnNodeChange;
-                    }
-                    _browser = null;
-                }
-                if (browser != null)
-                {
-                    await browser.CloseAsync().ConfigureAwait(false);
-                    _logger.LogInformation("Item {Item} unregistered from browser.", this);
                 }
             }
 

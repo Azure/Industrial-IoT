@@ -9,9 +9,9 @@ namespace Opc.Ua.Client
     using System.Collections.Generic;
 
     /// <summary>
-    /// Subscriptions in a session
+    /// Subscription manager manages all subscription in a session
     /// </summary>
-    public interface ISubscriptions
+    public interface ISubscriptionManager
     {
         /// <summary>
         /// If the subscriptions are transferred when a session is
@@ -49,7 +49,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Subscriptions
         /// </summary>
-        IEnumerable<Subscription> Items { get; }
+        IEnumerable<ISubscription> Items { get; }
 
         /// <summary>
         /// Get the number of current publishing workers
@@ -65,6 +65,20 @@ namespace Opc.Ua.Client
         /// Bad publish requests
         /// </summary>
         int BadPublishRequestCount { get; }
+
+        /// <summary>
+        /// Create a new subscription inside the session. The
+        /// subscription will not be created as part of this call.
+        /// It must be explicitly created using CreateAsync.
+        /// Disposing the session will remove it from the
+        /// session but not from the server. The subscription
+        /// must also explicitly be deleted using DeleteAsync to
+        /// remove it from the server.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        ISubscription Add(SubscriptionOptions? options);
 
         /// <summary>
         /// Update subscriptions

@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscription"></param>
         /// <param name="subscriber"></param>
         /// <param name="ct"></param>
-        internal async ValueTask<ISubscription> RegisterAsync(
+        internal async ValueTask<ISubscriptionRegistration> RegisterAsync(
             SubscriptionModel subscription, ISubscriber subscriber,
             CancellationToken ct = default)
         {
@@ -408,13 +408,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Subscription registration
         /// </summary>
-        private sealed record Registration : ISubscription, ISubscriptionDiagnostics
+        private sealed record Registration : ISubscriptionRegistration, ISubscriptionDiagnostics
         {
-            /// <summary>
-            /// The subscription configuration
-            /// </summary>
-            public SubscriptionModel Subscription { get; }
-
             /// <summary>
             /// Monitored items on the subscriber
             /// </summary>
@@ -424,6 +419,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Mark the registration as dirty
             /// </summary>
             internal bool Dirty { get; set; }
+
+            /// <summary>
+            /// The subscription configuration
+            /// </summary>
+            public SubscriptionModel Subscription { get; }
 
             /// <inheritdoc/>
             public IOpcUaClientDiagnostics ClientDiagnostics => _outer;
@@ -863,7 +863,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             internal OpcUaSubscriptionNotification? CreateKeepAlive()
             {
-                return _subscriptions.FirstOrDefault()?.CreateKeepAlive();
+                var subscriptions = _subscriptions;
+                return subscriptions.Count > 0 ? subscriptions[0].CreateKeepAlive() : null;
             }
 
             /// <summary>
@@ -915,14 +916,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             "{Client}: Force recreate {Subscription} ...", _client, subscription);
                         await subscription.DeleteAsync(true, ct).ConfigureAwait(false);
                         await subscription.DisposeAsync().ConfigureAwait(false);
-                        subscriptions[i] = (OpcUaSubscription)session.AddSubscription(this);
+                        subscriptions[i] = (OpcUaSubscription)session.Subscriptions.Add(this);
                     }
                     if (subscriptions.Count < partitions.Count)
                     {
                         // Grow
                         for (var idx = subscriptions.Count; idx < partitions.Count; idx++)
                         {
-                            var subscription = (OpcUaSubscription)session.AddSubscription(this);
+                            var subscription = (OpcUaSubscription)session.Subscriptions.Add(this);
                             subscriptions.Add(subscription);
                         }
                     }
@@ -975,8 +976,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private IEnumerable<OpcUaMonitoredItem> GetAllMonitoredItems()
             {
                 var items = Enumerable.Empty<OpcUaMonitoredItem>();
-                var subscriptions = _subscriptions;
-                foreach (var subscription in subscriptions)
+                foreach (var subscription in _subscriptions)
                 {
                     items = items.Concat(subscription.CurrentlyMonitored);
                 }

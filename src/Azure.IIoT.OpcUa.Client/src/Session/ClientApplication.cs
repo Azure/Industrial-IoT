@@ -84,7 +84,7 @@ namespace Opc.Ua.Client
         /// <param name="endpoint"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public virtual Session CreateSession(ConfiguredEndpoint endpoint,
+        public virtual SessionBase CreateSession(ConfiguredEndpoint endpoint,
             SessionOptions? options = null)
         {
             return new ClientSession(this, endpoint, options ?? new SessionOptions());
@@ -96,7 +96,7 @@ namespace Opc.Ua.Client
         internal static IMeterFactory DefaultMeterFactory { get; } = new MeterFactory();
 
         /// <inheritdoc/>
-        private sealed class ClientSession : Session
+        private sealed class ClientSession : SessionBase
         {
             public ClientApplication Application { get; }
 
@@ -110,8 +110,8 @@ namespace Opc.Ua.Client
             }
 
             /// <inheritdoc/>
-            protected override Subscription CreateSubscription(SubscriptionOptions? options,
-                IAckQueue queue)
+            public override IManagedSubscription CreateSubscription(
+                SubscriptionOptions? options, IAckQueue queue)
             {
                 return new ClientSubscription(this, queue,
                     LoggerFactory.CreateLogger<ClientSubscription>());
@@ -119,12 +119,13 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        private sealed class ClientSubscription : Subscription
+        private sealed class ClientSubscription : SubscriptionBase
         {
             /// <inheritdoc/>
             public ClientSubscription(ClientSession session, IAckQueue completion,
                 ILogger logger) : base(session, completion, logger)
             {
+                _session = session;
             }
 
             /// <inheritdoc/>
@@ -134,8 +135,7 @@ namespace Opc.Ua.Client
             {
                 notification.PublishTime = publishTime;
                 notification.SequenceNumber = sequenceNumber;
-                (Session as ClientSession)?.Application.DataChangeCallback?.Invoke(
-                    this, notification, stringTable);
+                _session.Application.DataChangeCallback?.Invoke(this, notification, stringTable);
                 return ValueTask.CompletedTask;
             }
 
@@ -146,8 +146,7 @@ namespace Opc.Ua.Client
             {
                 notification.PublishTime = publishTime;
                 notification.SequenceNumber = sequenceNumber;
-                (Session as ClientSession)?.Application.EventCallback?.Invoke(
-                    this, notification, stringTable);
+                _session.Application.EventCallback?.Invoke(this, notification, stringTable);
                 return ValueTask.CompletedTask;
             }
 
@@ -155,21 +154,22 @@ namespace Opc.Ua.Client
             protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, PublishState publishStateMask)
             {
-                (Session as ClientSession)?.Application.KeepAliveCallback?.Invoke(
-                    this, new NotificationData
-                    {
-                        SequenceNumber = sequenceNumber,
-                        PublishTime = publishTime
-                    });
+                _session.Application.KeepAliveCallback?.Invoke(this, new NotificationData
+                {
+                    SequenceNumber = sequenceNumber,
+                    PublishTime = publishTime
+                });
                 return ValueTask.CompletedTask;
             }
 
             /// <inheritdoc/>
             protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options)
             {
-                return new ClientItem(this, ((ClientSession)Session).Application.LoggerFactory
+                return new ClientItem(this, _session.Application.LoggerFactory
                     .CreateLogger<ClientItem>());
             }
+
+            private readonly ClientSession _session;
         }
 
         /// <inheritdoc/>
@@ -203,7 +203,7 @@ namespace Opc.Ua.Client
         /// <param name="subscription"></param>
         /// <param name="notification"></param>
         /// <param name="stringTable"></param>
-        public delegate void DataChangeNotificationHandler(Subscription subscription,
+        public delegate void DataChangeNotificationHandler(ISubscription subscription,
             DataChangeNotification notification, IReadOnlyList<string> stringTable);
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace Opc.Ua.Client
         /// <param name="subscription"></param>
         /// <param name="notification"></param>
         /// <param name="stringTable"></param>
-        public delegate void EventNotificationHandler(Subscription subscription,
+        public delegate void EventNotificationHandler(ISubscription subscription,
             EventNotificationList notification, IReadOnlyList<string> stringTable);
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="notification"></param>
-        public delegate void KeepAliveNotificationHandler(Subscription subscription,
+        public delegate void KeepAliveNotificationHandler(ISubscription subscription,
             NotificationData notification);
     }
 }

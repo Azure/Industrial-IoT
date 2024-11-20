@@ -42,11 +42,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
+            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Condition(Subscription subscription, ISubscriber owner, EventMonitoredItemModel template,
+            public Condition(IManagedSubscription subscription, ISubscriber owner,
+                EventMonitoredItemModel template, IOpcUaSession session,
                 ILogger<Event> logger, TimeProvider timeProvider) :
-                base(subscription, owner, template, logger, timeProvider)
+                base(subscription, owner, template, session, logger, timeProvider)
             {
                 _snapshotInterval = template.ConditionHandling?.SnapshotInterval
                     ?? throw new ArgumentException("Invalid snapshot interval");

@@ -51,29 +51,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var session = SetupMockedSession(namespaceUris).Object;
             var subscriber = new Mock<ISubscriber>();
-            await using var subscription = new SimpleSubscription(session);
-            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, subscription,
+            var subscription = new SimpleSubscription();
+            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, session, subscription,
                 (subscriber.Object, template).YieldReturn(),
                 Log.ConsoleFactory(), TimeProvider.System).Single();
             monitoredItemWrapper.Initialize(out _);
             if (monitoredItemWrapper.FinalizeAddTo != null)
             {
-                await monitoredItemWrapper.FinalizeAddTo(session, default);
+                await monitoredItemWrapper.FinalizeAddTo(default);
             }
             return monitoredItemWrapper;
         }
 
-        internal sealed class SimpleSubscription : Subscription
+        internal sealed class SimpleSubscription : SubscriptionBase
         {
-            public SimpleSubscription(IOpcUaSession session)
+            public SimpleSubscription()
                 : base(null!, null!, Log.Console<SimpleSubscription>())
             {
-                _session = session;
             }
 
             protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions options)
             {
-                throw new NotImplementedException();
+                return ((OpcUaSubscription.Precreated)options).Item;
             }
 
             protected override ValueTask OnDataChangeNotificationAsync(
@@ -102,7 +101,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             {
                 throw new NotImplementedException();
             }
-            private readonly IOpcUaSession _session;
         }
     }
 }

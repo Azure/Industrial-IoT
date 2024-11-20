@@ -7,7 +7,6 @@ namespace Opc.Ua.Client
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Collections.Generic;
     using System.Numerics;
 
     /// <summary>
@@ -149,11 +148,10 @@ namespace Opc.Ua.Client
                 MaxNodesPerRegisterNodes = Null(l.MaxNodesPerRegisterNodes),
                 MaxNodesPerTranslatePathsToNodeIds = Null(l.MaxNodesPerTranslatePathsToNodeIds),
                 MaxNodesPerNodeManagement = Null(l.MaxNodesPerNodeManagement),
-                MaxMonitoredItemsPerCall = Null(l.MaxMonitoredItemsPerCall),
+                MaxMonitoredItemsPerCall = Null(l.MaxMonitoredItemsPerCall)
             };
             static T? Null<T>(T v) where T : struct, INumberBase<T> => T.IsZero(v) ? null : v;
         }
-
 
         private const int kMaxReadNodes = 10000;
         private const int kMaxNodesPerTranslate = 1000;

@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// registration must be disposed when done which will
     /// release the reference on the client.
     /// </summary>
-    public interface ISubscription : IAsyncDisposable
+    public interface ISubscriptionRegistration : IAsyncDisposable
     {
         /// <summary>
         /// State of the underlying client

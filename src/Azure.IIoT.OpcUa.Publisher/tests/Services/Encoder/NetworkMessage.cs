@@ -159,14 +159,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var dataItem = new OpcUaMonitoredItem.DataChange(null!, subscriber.Object, new DataMonitoredItemModel
             {
                 StartNodeId = "i=2258"
-            }, Log.Console<OpcUaMonitoredItem.DataChange>(), TimeProvider.System);
+            }, null!, Log.Console<OpcUaMonitoredItem.DataChange>(), TimeProvider.System);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var eventItem = new OpcUaMonitoredItem.Event(null!, subscriber.Object, new EventMonitoredItemModel
             {
                 StartNodeId = "i=2258",
                 EventFilter = new EventFilterModel()
-            }, Log.Console<OpcUaMonitoredItem.Event>(), TimeProvider.System);
+            }, null!, Log.Console<OpcUaMonitoredItem.Event>(), TimeProvider.System);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             eventItem.Fields.Add(("1", default));
             eventItem.Fields.Add(("2", default));

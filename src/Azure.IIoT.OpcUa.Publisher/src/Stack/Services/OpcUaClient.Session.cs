@@ -31,13 +31,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [DataContract(Namespace = OpcUaClient.Namespace)]
         [KnownType(typeof(OpcUaSubscription))]
         [KnownType(typeof(OpcUaMonitoredItem))]
-        internal sealed class OpcUaSession : Session, IOpcUaSession, ISessionServices
+        internal sealed class OpcUaSession : SessionBase, IOpcUaSession, INoThrowServices
         {
             /// <inheritdoc/>
             public IVariantEncoder Codec { get; }
 
             /// <inheritdoc/>
-            public ISessionServices Services => this;
+            public INoThrowServices Services => this;
 
             /// <summary>
             /// Enable or disable ChannelDiagnostics
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override Subscription CreateSubscription(
+            public override IManagedSubscription CreateSubscription(
                 SubscriptionOptions? options, IAckQueue queue)
             {
                 if (options is not VirtualSubscription subscription)
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 base.Dispose(disposing);
                 if (disposing && !_disposed)
                 {
-                    var sessionName = SessionName;
+                    var sessionName = Name;
 
                     _disposed = true;
                     CloseChannel(); // Ensure channel is closed
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<AddNodesResponse> ISessionServices.AddNodesAsync(RequestHeader requestHeader,
+            async ValueTask<AddNodesResponse> INoThrowServices.AddNodesAsync(RequestHeader requestHeader,
                 AddNodesItemCollection nodesToAdd, CancellationToken ct)
             {
                 using var activity = Begin<AddNodesResponse>(requestHeader);
@@ -192,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<AddReferencesResponse> ISessionServices.AddReferencesAsync(
+            async ValueTask<AddReferencesResponse> INoThrowServices.AddReferencesAsync(
                 RequestHeader requestHeader, AddReferencesItemCollection referencesToAdd,
                 CancellationToken ct)
             {
@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<DeleteNodesResponse> ISessionServices.DeleteNodesAsync(
+            async ValueTask<DeleteNodesResponse> INoThrowServices.DeleteNodesAsync(
                 RequestHeader requestHeader, DeleteNodesItemCollection nodesToDelete,
                 CancellationToken ct)
             {
@@ -232,7 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<DeleteReferencesResponse> ISessionServices.DeleteReferencesAsync(
+            async ValueTask<DeleteReferencesResponse> INoThrowServices.DeleteReferencesAsync(
                 RequestHeader requestHeader, DeleteReferencesItemCollection referencesToDelete,
                 CancellationToken ct)
             {
@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<BrowseResponse> ISessionServices.BrowseAsync(
+            async ValueTask<BrowseResponse> INoThrowServices.BrowseAsync(
                 RequestHeader requestHeader, ViewDescription? view,
                 uint requestedMaxReferencesPerNode,
                 BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<BrowseNextResponse> ISessionServices.BrowseNextAsync(
+            async ValueTask<BrowseNextResponse> INoThrowServices.BrowseNextAsync(
                 RequestHeader requestHeader, bool releaseContinuationPoints,
                 ByteStringCollection continuationPoints, CancellationToken ct)
             {
@@ -296,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<TranslateBrowsePathsToNodeIdsResponse> ISessionServices.TranslateBrowsePathsToNodeIdsAsync(
+            async ValueTask<TranslateBrowsePathsToNodeIdsResponse> INoThrowServices.TranslateBrowsePathsToNodeIdsAsync(
                 RequestHeader requestHeader, BrowsePathCollection browsePaths,
                 CancellationToken ct)
             {
@@ -317,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<RegisterNodesResponse> ISessionServices.RegisterNodesAsync(
+            async ValueTask<RegisterNodesResponse> INoThrowServices.RegisterNodesAsync(
                 RequestHeader requestHeader, NodeIdCollection nodesToRegister,
                 CancellationToken ct)
             {
@@ -337,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<UnregisterNodesResponse> ISessionServices.UnregisterNodesAsync(
+            async ValueTask<UnregisterNodesResponse> INoThrowServices.UnregisterNodesAsync(
                 RequestHeader requestHeader, NodeIdCollection nodesToUnregister,
                 CancellationToken ct)
             {
@@ -357,7 +357,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<QueryFirstResponse> ISessionServices.QueryFirstAsync(
+            async ValueTask<QueryFirstResponse> INoThrowServices.QueryFirstAsync(
                 RequestHeader requestHeader, ViewDescription view,
                 NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
                 uint maxDataSetsToReturn, uint maxReferencesToReturn,
@@ -383,7 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<QueryNextResponse> ISessionServices.QueryNextAsync(
+            async ValueTask<QueryNextResponse> INoThrowServices.QueryNextAsync(
                 RequestHeader requestHeader, bool releaseContinuationPoint,
                 byte[] continuationPoint, CancellationToken ct)
             {
@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<ReadResponse> ISessionServices.ReadAsync(RequestHeader requestHeader,
+            async ValueTask<ReadResponse> INoThrowServices.ReadAsync(RequestHeader requestHeader,
                 double maxAge, Opc.Ua.TimestampsToReturn timestampsToReturn,
                 ReadValueIdCollection nodesToRead, CancellationToken ct)
             {
@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<HistoryReadResponse> ISessionServices.HistoryReadAsync(
+            async ValueTask<HistoryReadResponse> INoThrowServices.HistoryReadAsync(
                 RequestHeader requestHeader, ExtensionObject? historyReadDetails,
                 Opc.Ua.TimestampsToReturn timestampsToReturn, bool releaseContinuationPoints,
                 HistoryReadValueIdCollection nodesToRead, CancellationToken ct)
@@ -450,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<WriteResponse> ISessionServices.WriteAsync(RequestHeader requestHeader,
+            async ValueTask<WriteResponse> INoThrowServices.WriteAsync(RequestHeader requestHeader,
                 WriteValueCollection nodesToWrite, CancellationToken ct)
             {
                 using var activity = Begin<WriteResponse>(requestHeader);
@@ -469,7 +469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<HistoryUpdateResponse> ISessionServices.HistoryUpdateAsync(
+            async ValueTask<HistoryUpdateResponse> INoThrowServices.HistoryUpdateAsync(
                 RequestHeader requestHeader, ExtensionObjectCollection historyUpdateDetails,
                 CancellationToken ct)
             {
@@ -489,7 +489,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            async ValueTask<CallResponse> ISessionServices.CallAsync(RequestHeader requestHeader,
+            async ValueTask<CallResponse> INoThrowServices.CallAsync(RequestHeader requestHeader,
                 CallMethodRequestCollection methodsToCall, CancellationToken ct)
             {
                 using var activity = Begin<CallResponse>(requestHeader);

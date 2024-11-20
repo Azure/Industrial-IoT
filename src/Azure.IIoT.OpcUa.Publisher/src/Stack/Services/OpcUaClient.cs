@@ -1182,7 +1182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             SessionTimeout = SessionTimeout,
                             Identity = userIdentity,
                             CheckDomain = false,
-                            PreferredLocales = preferredLocales,
+                            PreferredLocales = preferredLocales
 
                         }, _loggerFactory, _timeProvider, _reverseConnectManager);
 #pragma warning restore CA2000 // Dispose objects before losing scope
@@ -1288,7 +1288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Update session state
         /// </summary>
         /// <param name="session"></param>
-        private async ValueTask<bool> UpdateSessionAsync(Session session)
+        private async ValueTask<bool> UpdateSessionAsync(SessionBase session)
         {
             _publishTimeoutCounter = 0;
             Debug.Assert(session is OpcUaSession);

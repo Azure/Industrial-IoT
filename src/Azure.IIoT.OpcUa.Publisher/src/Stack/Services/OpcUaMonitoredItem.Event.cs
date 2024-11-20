@@ -87,12 +87,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
+            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Event(Subscription subscription, ISubscriber owner,
-                EventMonitoredItemModel template, ILogger<Event> logger,
-                TimeProvider timeProvider) :
-                base(subscription, owner, logger, template.StartNodeId, timeProvider)
+            public Event(IManagedSubscription subscription, ISubscriber owner,
+                EventMonitoredItemModel template, IOpcUaSession session,
+                ILogger<Event> logger, TimeProvider timeProvider) :
+                base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
             {
                 Template = template;
             }
@@ -211,14 +212,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            public override Func<IOpcUaSession, CancellationToken, Task>? FinalizeAddTo
-                => async (session, ct)
-                => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
+            public override Func<CancellationToken, Task>? FinalizeAddTo
+                => async ct => Filter = await GetEventFilterAsync(Session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
             public override bool Initialize(out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(Subscription.Session.MessageContext);
+                var nodeId = NodeId.ToNodeId(Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     metadataChanged = false;
@@ -269,9 +269,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(Subscription subscription, ref bool applyChanges)
+            public override bool TryCompleteChanges(ref bool applyChanges)
             {
-                var msgContext = subscription.Session?.MessageContext;
+                var msgContext = Session?.MessageContext;
                 if (FilterResult is EventFilterResult evr && msgContext != null)
                 {
                     if (ServiceResult.IsNotGood(Error))
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             evr.AsJson(msgContext), this);
                     }
                 }
-                return base.TryCompleteChanges(subscription, ref applyChanges);
+                return base.TryCompleteChanges(ref applyChanges);
             }
 
             /// <inheritdoc/>
@@ -325,7 +325,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Template.TriggeredItems != null)
                 {
-                    return Create(client, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
+                    return Create(client, Session, Subscription,
+                        Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
                 return Enumerable.Empty<OpcUaMonitoredItem>();

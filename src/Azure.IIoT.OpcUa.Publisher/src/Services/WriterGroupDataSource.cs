@@ -37,8 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create trigger from writer group
         /// </summary>
         /// <param name="clients"></param>
-        /// <param name="sink"></param>
         /// <param name="writerGroup"></param>
+        /// <param name="sink"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="metrics"></param>

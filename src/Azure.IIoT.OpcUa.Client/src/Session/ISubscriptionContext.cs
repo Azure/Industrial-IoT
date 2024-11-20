@@ -5,32 +5,28 @@
 
 namespace Opc.Ua.Client
 {
-    using Opc.Ua;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Message acknoledgement queue
+    /// Subscription context
     /// </summary>
-    public interface IAckQueue
+    public interface ISubscriptionContext : ISubscriptionServices
     {
         /// <summary>
-        /// Subscriptionss queue acknoledgements for completed
-        /// notifications as soon as they are dispatched / handled.
+        /// Current session timeout
         /// </summary>
-        /// <param name="ack"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask QueueAsync(SubscriptionAcknowledgement ack,
-            CancellationToken ct = default);
+        TimeSpan SessionTimeout { get; }
 
         /// <summary>
-        /// Complete subscription
+        /// Call service
         /// </summary>
-        /// <param name="subscriptionId"></param>
+        /// <param name="requestHeader"></param>
+        /// <param name="methodsToCall"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask CompleteAsync(uint subscriptionId,
-            CancellationToken ct = default);
+        Task<CallResponse> CallAsync(RequestHeader? requestHeader,
+            CallMethodRequestCollection methodsToCall, CancellationToken ct);
     }
 }

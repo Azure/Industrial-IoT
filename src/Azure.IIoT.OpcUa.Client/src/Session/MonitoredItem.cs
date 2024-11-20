@@ -51,6 +51,12 @@ namespace Opc.Ua.Client
         public MonitoringMode MonitoringMode { get; set; }
 
         /// <summary>
+        /// The timestamps to return with the notification messages.
+        /// </summary>
+        public TimestampsToReturn TimestampsToReturn { get; set; }
+            = TimestampsToReturn.Both;
+
+        /// <summary>
         /// The sampling interval.
         /// </summary>
         public TimeSpan SamplingInterval
@@ -168,14 +174,14 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The subscription that owns the monitored item.
         /// </summary>
-        protected Subscription Subscription { get; }
+        protected IManagedSubscription Subscription { get; }
 
         /// <summary>
         /// Create monitored item
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="logger"></param>
-        protected MonitoredItem(Subscription subscription, ILogger logger)
+        protected MonitoredItem(IManagedSubscription subscription, ILogger logger)
         {
             Subscription = subscription;
             StartNodeId = NodeId.Null;
@@ -310,6 +316,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
         /// <summary>
         /// Log revised sampling rate and queue size
         /// </summary>
+        /// <param name="created"></param>
         public void LogRevisedSamplingRateAndQueueSize(bool created)
         {
             if (SamplingInterval != CurrentSamplingInterval &&

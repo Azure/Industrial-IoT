@@ -26,7 +26,7 @@ namespace Opc.Ua.Client
     /// The queued acknowledgements are then sent by the workers the
     /// next publish cycle.
     /// </summary>
-    public sealed class SubscriptionManager : ISubscriptions, IAckQueue,
+    internal sealed class SubscriptionManager : ISubscriptionManager, IAckQueue,
         IAsyncDisposable
     {
         /// <inheritdoc/>
@@ -42,7 +42,7 @@ namespace Opc.Ua.Client
         public int MaxPublishWorkerCount { get; set; } = 15;
 
         /// <inheritdoc/>
-        public IEnumerable<Subscription> Items
+        public IEnumerable<ISubscription> Items
         {
             get
             {
@@ -79,12 +79,14 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="session"></param>
         /// <param name="loggerFactory"></param>
-        public SubscriptionManager(ISessionClient session, ILoggerFactory loggerFactory)
+        /// <param name="returnDiagnostics"></param>
+        public SubscriptionManager(ISubscriptionManagerContext session,
+            ILoggerFactory loggerFactory, DiagnosticsMasks returnDiagnostics)
         {
             _session = session;
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<SubscriptionManager>();
-            ReturnDiagnostics = session.ReturnDiagnostics;
+            ReturnDiagnostics = returnDiagnostics;
             _publishController = PublishControllerAsync(_cts.Token);
             _acks = Channel.CreateUnboundedPrioritized<SubscriptionAcknowledgement>(
                 new UnboundedPrioritizedChannelOptions<SubscriptionAcknowledgement>
@@ -102,10 +104,10 @@ namespace Opc.Ua.Client
                 _cts.Cancel();
                 _publishControl.Set();
 
-                List<Subscription>? subscriptions = null;
+                List<IManagedSubscription>? subscriptions = null;
                 lock (_subscriptionLock)
                 {
-                    subscriptions = new List<Subscription>(_subscriptions);
+                    subscriptions = new List<IManagedSubscription>(_subscriptions);
                     _subscriptions.Clear();
                 }
 
@@ -142,12 +144,16 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public ValueTask CompleteAsync(
-            Subscription subscription, CancellationToken ct)
+        public ValueTask CompleteAsync(uint subscriptionId, CancellationToken ct)
         {
+            IManagedSubscription? subscription;
             lock (_subscriptionLock)
             {
-                if (!_subscriptions.Remove(subscription))
+                // find the subscription.
+                subscription = _subscriptions
+                    .FirstOrDefault(s => s.Id == subscriptionId);
+                if (subscription == null ||
+                    !_subscriptions.Remove(subscription))
                 {
                     return ValueTask.CompletedTask;
                 }
@@ -157,15 +163,10 @@ namespace Opc.Ua.Client
             return ValueTask.CompletedTask;
         }
 
-        /// <summary>
-        /// Add subscription to subscription list
-        /// </summary>
-        /// <param name="subscription"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        internal void Add(Subscription subscription)
+        /// <inheritdoc/>
+        public ISubscription Add(SubscriptionOptions? options)
         {
-            Debug.Assert(subscription.Session == _session);
+            var subscription = _session.CreateSubscription(options, this);
             lock (_subscriptionLock)
             {
                 if (!_subscriptions.Add(subscription))
@@ -176,6 +177,7 @@ namespace Opc.Ua.Client
             }
             _logger.LogInformation("{Subscription} ADDED.", subscription);
             Update();
+            return subscription;
         }
 
         /// <summary>
@@ -209,7 +211,7 @@ namespace Opc.Ua.Client
                 return;
             }
 
-            IReadOnlyList<Subscription> subscriptions = Items.ToList();
+            IReadOnlyList<IManagedSubscription> subscriptions = _subscriptions.ToList();
             if (TransferSubscriptionsOnRecreate && previousSessionId != null)
             {
                 subscriptions = await TransferSubscriptionsAsync(subscriptions,
@@ -219,12 +221,12 @@ namespace Opc.Ua.Client
             foreach (var subscription in subscriptions)
             {
                 var force = previousSessionId != null && subscription.Created;
-                await subscription.CreateAsync(force, ct).ConfigureAwait(false);
+                await subscription.RecreateAsync(ct).ConfigureAwait(false);
             }
 
             // Helper to try and transfer the subscriptions
-            async Task<IReadOnlyList<Subscription>> TransferSubscriptionsAsync(
-                IReadOnlyList<Subscription> subscriptions, bool sendInitialValues,
+            async Task<IReadOnlyList<IManagedSubscription>> TransferSubscriptionsAsync(
+                IReadOnlyList<IManagedSubscription> subscriptions, bool sendInitialValues,
                 CancellationToken ct)
             {
                 var remaining = subscriptions.Where(s => !s.Created).ToList();
@@ -279,8 +281,8 @@ namespace Opc.Ua.Client
                         remaining.Add(subscriptions[index]);
                         continue;
                     }
-                    var transfered = await subscriptions[index].TransferAsync(
-                        transferResults[index].AvailableSequenceNumbers, null,
+                    var transfered = await subscriptions[index].TransferAsync(null,
+                        transferResults[index].AvailableSequenceNumbers,
                         ct).ConfigureAwait(false);
                     if (!transfered)
                     {
@@ -298,7 +300,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="subscriptionId"></param>
         /// <returns></returns>
-        private Subscription? GetById(uint subscriptionId)
+        private IManagedSubscription? GetById(uint subscriptionId)
         {
             lock (_subscriptionLock)
             {
@@ -546,8 +548,8 @@ namespace Opc.Ua.Client
                         if (subscription != null)
                         {
                             // deliver to subscription
-                            await subscription.OnPublishReceivedAsync(availableSequenceNumbers,
-                                notificationMessage, response.ResponseHeader.StringTable).ConfigureAwait(false);
+                            await subscription.OnPublishReceivedAsync(notificationMessage,
+                                availableSequenceNumbers, response.ResponseHeader.StringTable).ConfigureAwait(false);
                             Interlocked.Increment(ref _outer._goodPublishRequestCount);
                         }
                         else
@@ -800,9 +802,9 @@ namespace Opc.Ua.Client
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _publishControl = new();
         private readonly Task _publishController;
         private readonly object _subscriptionLock = new();
-        private readonly HashSet<Subscription> _subscriptions = new();
+        private readonly HashSet<IManagedSubscription> _subscriptions = new();
         private readonly CancellationTokenSource _cts = new();
-        private readonly ISessionClient _session;
+        private readonly ISubscriptionManagerContext _session;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
     }

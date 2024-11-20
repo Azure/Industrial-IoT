@@ -83,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ISubscription> CreateSubscriptionAsync(
+        public async ValueTask<Stack.ISubscriptionRegistration> CreateSubscriptionAsync(
             ConnectionModel connection, SubscriptionModel subscription,
             ISubscriber callback, CancellationToken ct)
         {
