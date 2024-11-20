@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OpcUaSubscription(OpcUaClient client, OpcUaClient.OpcUaSession session,
             OpcUaClient.VirtualSubscription owner, IOptions<OpcUaSubscriptionOptions> options,
             IObservability observability, IMetricsContext metrics)
-            : base(session, (IAckQueue)session.Subscriptions,
+            : base(session, (IMessageAckQueue)session.Subscriptions,
                   observability.LoggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;

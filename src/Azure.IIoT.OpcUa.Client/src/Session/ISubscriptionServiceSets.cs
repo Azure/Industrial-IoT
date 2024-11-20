@@ -12,7 +12,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Subscription context
     /// </summary>
-    public interface ISubscriptionServices
+    public interface ISubscriptionServiceSets
     {
         /// <summary>
         /// Create subscription

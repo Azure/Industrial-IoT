@@ -8,7 +8,9 @@ namespace Opc.Ua.Client
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Extended operation limits
+    /// Extended operation limits, either because the stack
+    /// does not define them, or because we need them for
+    /// operation of the client side.
     /// </summary>
     [DataContract(Namespace = Namespaces.OpcUaConfig)]
     public sealed class Limits : Opc.Ua.OperationLimits

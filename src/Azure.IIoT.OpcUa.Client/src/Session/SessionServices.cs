@@ -18,7 +18,7 @@ namespace Opc.Ua.Client
     /// to operation limits.
     /// </summary>
     public abstract class SessionServices : Opc.Ua.Client.Obsolete.SessionClient,
-        ISessionServices, ISubscriptionServices
+        ISessionServiceSets, ISubscriptionServiceSets
     {
         /// <summary>
         /// The operation limits are used to batch the service requests.

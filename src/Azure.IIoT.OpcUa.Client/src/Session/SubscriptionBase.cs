@@ -117,7 +117,7 @@ namespace Opc.Ua.Client
         /// <param name="session"></param>
         /// <param name="completion"></param>
         /// <param name="logger"></param>
-        protected SubscriptionBase(ISubscriptionContext session, IAckQueue completion,
+        protected SubscriptionBase(ISubscriptionContext session, IMessageAckQueue completion,
             ILogger logger)
         {
             _logger = logger;
@@ -1324,7 +1324,7 @@ namespace Opc.Ua.Client
         private uint _lastSequenceNumberProcessed;
         private readonly ILogger _logger;
         private readonly ISubscriptionContext _session;
-        private readonly IAckQueue _completion;
+        private readonly IMessageAckQueue _completion;
         private readonly List<uint> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();

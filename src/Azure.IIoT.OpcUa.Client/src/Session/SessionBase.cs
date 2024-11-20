@@ -1685,7 +1685,7 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public abstract IManagedSubscription CreateSubscription(
-            SubscriptionOptions? options, IAckQueue queue);
+            SubscriptionOptions? options, IMessageAckQueue queue);
 
         /// <summary>
         /// Handle keep alive

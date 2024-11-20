@@ -14,7 +14,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Session interface
     /// </summary>
-    public interface ISession : ISessionServices
+    public interface ISession : ISessionServiceSets
     {
         /// <summary>
         /// Connected?

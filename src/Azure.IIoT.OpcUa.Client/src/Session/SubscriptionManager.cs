@@ -26,8 +26,8 @@ namespace Opc.Ua.Client
     /// The queued acknowledgements are then sent by the workers the
     /// next publish cycle.
     /// </summary>
-    internal sealed class SubscriptionManager : ISubscriptionManager, IAckQueue,
-        IAsyncDisposable
+    internal sealed class SubscriptionManager : ISubscriptionManager,
+        IMessageAckQueue, IAsyncDisposable
     {
         /// <inheritdoc/>
         public bool TransferSubscriptionsOnRecreate { get; set; }
@@ -549,7 +549,8 @@ namespace Opc.Ua.Client
                         {
                             // deliver to subscription
                             await subscription.OnPublishReceivedAsync(notificationMessage,
-                                availableSequenceNumbers, response.ResponseHeader.StringTable).ConfigureAwait(false);
+                                availableSequenceNumbers,
+                                response.ResponseHeader.StringTable).ConfigureAwait(false);
                             Interlocked.Increment(ref _outer._goodPublishRequestCount);
                         }
                         else

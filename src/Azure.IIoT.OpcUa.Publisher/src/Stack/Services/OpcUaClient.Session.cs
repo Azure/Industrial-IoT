@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             /// <inheritdoc/>
             public override IManagedSubscription CreateSubscription(
-                SubscriptionOptions? options, IAckQueue queue)
+                SubscriptionOptions? options, IMessageAckQueue queue)
             {
                 if (options is not VirtualSubscription subscription)
                 {

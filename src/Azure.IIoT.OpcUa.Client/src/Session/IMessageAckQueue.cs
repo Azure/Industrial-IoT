@@ -12,10 +12,10 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Message acknoledgement queue
     /// </summary>
-    public interface IAckQueue
+    public interface IMessageAckQueue
     {
         /// <summary>
-        /// Subscriptionss queue acknoledgements for completed
+        /// Subscriptions queue acknoledgements for completed
         /// notifications as soon as they are dispatched / handled.
         /// </summary>
         /// <param name="ack"></param>

@@ -20,7 +20,7 @@ namespace Opc.Ua.Client
         /// <param name="queue">The completion queue</param>
         /// <returns></returns>
         IManagedSubscription CreateSubscription(SubscriptionOptions? options,
-            IAckQueue queue);
+            IMessageAckQueue queue);
 
         /// <summary>
         /// Publish service

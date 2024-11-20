@@ -12,7 +12,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Subscription context
     /// </summary>
-    public interface ISubscriptionContext : ISubscriptionServices
+    public interface ISubscriptionContext : ISubscriptionServiceSets
     {
         /// <summary>
         /// Current session timeout

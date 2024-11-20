@@ -12,7 +12,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Services supported by a session
     /// </summary>
-    public interface ISessionServices
+    public interface ISessionServiceSets
     {
         /// <summary>
         /// Browse service
