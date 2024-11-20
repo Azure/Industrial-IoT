@@ -87,17 +87,17 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Create a reconnect handler.
         /// </summary>
-        /// <param name="loggerFactory"></param>
+        /// <param name="observability"></param>
         /// <param name="reconnectAbort">Set to <c>true</c> to allow reconnect abort if
         /// keep alive recovered.</param>
         /// <param name="maxReconnectPeriod">
         /// The upper limit for the reconnect period after exponential backoff.
         /// -1 (default) indicates that no exponential backoff should be used.
         /// </param>
-        public SessionReconnectHandler(ILoggerFactory loggerFactory,
+        public SessionReconnectHandler(IObservability observability,
             bool reconnectAbort = false, int maxReconnectPeriod = -1)
         {
-            _logger = loggerFactory.CreateLogger<SessionReconnectHandler>();
+            _logger = observability.LoggerFactory.CreateLogger<SessionReconnectHandler>();
             _reconnectAbort = reconnectAbort;
             _reconnectTimer = new Timer(OnReconnectAsync, this,
                 Timeout.Infinite, Timeout.Infinite);

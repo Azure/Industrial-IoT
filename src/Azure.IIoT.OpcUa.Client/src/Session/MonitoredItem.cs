@@ -9,7 +9,8 @@ namespace Opc.Ua.Client
     using System;
 
     /// <summary>
-    /// A monitored item.
+    /// A monitored item that can be extended to add extra
+    /// information as context in the subscription.
     /// </summary>
     public abstract class MonitoredItem : IDisposable
     {

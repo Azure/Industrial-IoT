@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            public override Func<CancellationToken, Task>? FinalizeAddTo
+            public override Func<CancellationToken, Task>? FinalizeInitialize
                 => async ct => Filter = await GetEventFilterAsync(Session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
@@ -238,8 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
             {
                 metadataChanged = false;
                 if (item is not Event model || Disposed)
@@ -292,7 +291,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override bool OnSamplingIntervalOrQueueSizeRevised(
                 bool samplingIntervalChanged, bool queueSizeChanged)
             {
-                Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
                 if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)
@@ -303,9 +301,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return applyChanges;
             }
 
-            public override Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith
-                => async (session, ct)
-                => Filter = await GetEventFilterAsync(session, ct).ConfigureAwait(false);
+            public override Func<CancellationToken, Task>? FinalizeMergeWith
+                => async ct
+                => Filter = await GetEventFilterAsync(Session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
             public override bool TryGetMonitoredItemNotifications(DateTimeOffset publishTime,
@@ -317,19 +315,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return ProcessEventNotification(publishTime, eventFields, notifications);
                 }
                 return false;
-            }
-
-            /// <inheritdoc/>
-            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, OpcUaClient client)
-            {
-                if (Template.TriggeredItems != null)
-                {
-                    return Create(client, Session, Subscription,
-                        Template.TriggeredItems.Select(i => (Owner, i)),
-                        factory, TimeProvider);
-                }
-                return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
             /// <inheritdoc/>

@@ -9,7 +9,6 @@ namespace Opc.Ua.Client
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.Metrics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -19,17 +18,8 @@ namespace Opc.Ua.Client
     /// to operation limits.
     /// </summary>
     public abstract class SessionServices : Opc.Ua.Client.Obsolete.SessionClient,
-        IServiceContext, ISessionServices, ISubscriptionServices
+        ISessionServices, ISubscriptionServices
     {
-        /// <inheritdoc/>
-        public ILoggerFactory LoggerFactory { get; }
-
-        /// <inheritdoc/>
-        public IMeterFactory MeterFactory { get; }
-
-        /// <inheritdoc/>
-        public TimeProvider TimeProvider { get; }
-
         /// <summary>
         /// The operation limits are used to batch the service requests.
         /// </summary>
@@ -41,40 +31,38 @@ namespace Opc.Ua.Client
         public bool TraceActivityUsingLogger { get; set; }
 
         /// <summary>
+        /// Observability context
+        /// </summary>
+        protected IObservability Observability { get; }
+
+        /// <summary>
         /// Intializes the object with a channel and logger factory.
         /// </summary>
-        /// <param name="loggerFactory"></param>
-        /// <param name="meterFactory"></param>
-        /// <param name="activitySource"></param>
+        /// <param name="observability"></param>
         /// <param name="channel"></param>
-        /// <param name="timeProvider"></param>
-        protected SessionServices(ILoggerFactory loggerFactory, IMeterFactory meterFactory,
-            ActivitySource? activitySource = null, TimeProvider? timeProvider = null,
-            ITransportChannel? channel = null)
-            : base(channel)
+        protected SessionServices(IObservability observability,
+            ITransportChannel? channel = null) : base(channel)
         {
-            LoggerFactory = loggerFactory;
-            MeterFactory = meterFactory;
-            TimeProvider = timeProvider ?? TimeProvider.System;
-            _logger = LoggerFactory.CreateLogger<SessionServices>();
-            _activitySource = activitySource;
+            Observability = observability;
+            _logger = observability.LoggerFactory.CreateLogger<SessionServices>();
         }
 
         /// <inheritdoc/>
         public override async Task<ActivateSessionResponse> ActivateSessionAsync(
             RequestHeader? requestHeader, SignatureData clientSignature,
-            SignedSoftwareCertificateCollection clientSoftwareCertificates, StringCollection localeIds,
-            ExtensionObject userIdentityToken, SignatureData userTokenSignature, CancellationToken ct)
+            SignedSoftwareCertificateCollection clientSoftwareCertificates,
+            StringCollection localeIds, ExtensionObject userIdentityToken,
+            SignatureData userTokenSignature, CancellationToken ct)
         {
             using var activity = StartActivity(nameof(ActivateSessionAsync));
             return await base.ActivateSessionAsync(requestHeader, clientSignature,
-                clientSoftwareCertificates, localeIds, userIdentityToken, userTokenSignature,
-                ct).ConfigureAwait(false);
+                clientSoftwareCertificates, localeIds, userIdentityToken,
+                userTokenSignature, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public override async Task<CloseSessionResponse> CloseSessionAsync(RequestHeader? requestHeader,
-            bool deleteSubscriptions, CancellationToken ct)
+        public override async Task<CloseSessionResponse> CloseSessionAsync(
+            RequestHeader? requestHeader, bool deleteSubscriptions, CancellationToken ct)
         {
             using var activity = StartActivity(nameof(CloseSessionAsync));
             return await base.CloseSessionAsync(requestHeader, deleteSubscriptions,
@@ -91,9 +79,10 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public override async Task<CreateSubscriptionResponse> CreateSubscriptionAsync(
-            RequestHeader? requestHeader, double requestedPublishingInterval, uint requestedLifetimeCount,
-            uint requestedMaxKeepAliveCount, uint maxNotificationsPerPublish, bool publishingEnabled,
-            byte priority, CancellationToken ct)
+            RequestHeader? requestHeader, double requestedPublishingInterval,
+            uint requestedLifetimeCount, uint requestedMaxKeepAliveCount,
+            uint maxNotificationsPerPublish, bool publishingEnabled, byte priority,
+            CancellationToken ct)
         {
             using var activity = StartActivity(nameof(CreateSubscriptionAsync));
             return await base.CreateSubscriptionAsync(requestHeader, requestedPublishingInterval,
@@ -104,8 +93,8 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public override async Task<ModifySubscriptionResponse> ModifySubscriptionAsync(
             RequestHeader? requestHeader, uint subscriptionId, double requestedPublishingInterval,
-            uint requestedLifetimeCount, uint requestedMaxKeepAliveCount, uint maxNotificationsPerPublish,
-            byte priority, CancellationToken ct)
+            uint requestedLifetimeCount, uint requestedMaxKeepAliveCount,
+            uint maxNotificationsPerPublish, byte priority, CancellationToken ct)
         {
             using var activity = StartActivity(nameof(ModifySubscriptionAsync));
             return await base.ModifySubscriptionAsync(requestHeader, subscriptionId,
@@ -115,8 +104,8 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public override async Task<SetPublishingModeResponse> SetPublishingModeAsync(
-            RequestHeader? requestHeader, bool publishingEnabled, UInt32Collection subscriptionIds,
-            CancellationToken ct)
+            RequestHeader? requestHeader, bool publishingEnabled,
+            UInt32Collection subscriptionIds, CancellationToken ct)
         {
             using var activity = StartActivity(nameof(SetPublishingModeAsync));
             return await base.SetPublishingModeAsync(requestHeader, publishingEnabled,
@@ -1123,7 +1112,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         private Activity? StartActivity(string activity)
         {
-            return _activitySource?.StartActivity(activity[..^5]);
+            return Observability.ActivitySource?.StartActivity(activity[..^5]);
         }
 
         /// <summary>
@@ -1240,7 +1229,6 @@ namespace Opc.Ua.Client
             }
         }
 
-        private readonly ActivitySource? _activitySource;
         private readonly ILogger _logger;
     }
 }

@@ -68,27 +68,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="session"></param>
         /// <param name="owner"></param>
         /// <param name="options"></param>
-        /// <param name="loggerFactory"></param>
+        /// <param name="observability"></param>
         /// <param name="metrics"></param>
-        /// <param name="timeProvider"></param>
         internal OpcUaSubscription(OpcUaClient client, OpcUaClient.OpcUaSession session,
             OpcUaClient.VirtualSubscription owner, IOptions<OpcUaSubscriptionOptions> options,
-            ILoggerFactory loggerFactory, IMetricsContext metrics, TimeProvider timeProvider)
+            IObservability observability, IMetricsContext metrics)
             : base(session, (IAckQueue)session.Subscriptions,
-                  loggerFactory.CreateLogger<OpcUaSubscription>())
+                  observability.LoggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;
             Session = session;
             _options = options;
-            _loggerFactory = loggerFactory;
-            _metrics = metrics;
-            _timeProvider = timeProvider;
-            _owner = owner;
-            _logger = _loggerFactory.CreateLogger<OpcUaSubscription>();
 
-            _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
+            _metrics = metrics;
+            _owner = owner;
+            _observability = observability;
+            _meter = _observability.MeterFactory.Create(nameof(OpcUaSubscription));
+            _logger = observability.LoggerFactory.CreateLogger<OpcUaSubscription>();
+
+            _keepAliveWatcher = _observability.TimeProvider.CreateTimer(
+                OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
+            _monitoredItemWatcher = _observability.TimeProvider.CreateTimer(
+                OnMonitoredItemWatchdog, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
@@ -187,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return null;
                 }
                 return new OpcUaSubscriptionNotification(this, session.MessageContext,
-                    Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
+                    Array.Empty<MonitoredItemNotificationModel>(), _observability.TimeProvider)
                 {
                     ApplicationUri = session.Endpoint.Server.ApplicationUri,
                     EndpointUrl = session.Endpoint.EndpointUrl,
@@ -210,17 +212,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal async Task FinalizeSyncAsync(CancellationToken ct)
         {
-            if (ChangesPending)
-            {
-                await ApplyMonitoredItemChangesAsync(ct).ConfigureAwait(false);
-            }
+            await ApplyMonitoredItemChangesAsync(ct).ConfigureAwait(false);
 
             var shouldEnable = MonitoredItems
                 .OfType<OpcUaMonitoredItem>()
                 .Any(m => m.MonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             if (PublishingEnabled ^ shouldEnable)
             {
-                await SetPublishingModeAsync(shouldEnable, ct).ConfigureAwait(false);
+                PublishingEnabled = shouldEnable;
+                await ApplyChangesAsync(ct).ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "{State} Subscription {Subscription} in session {Session}.",
@@ -247,15 +247,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 LifetimeCount = _owner.DesiredLifetimeCount;
                 Priority = _owner.DesiredPriority;
 
-                // TODO: use a channel and reorder task before calling OnMessage
-                // to order or else republish is called too often
-                RepublishAfterTransfer = _owner.DesiredRepublishAfterTransfer;
-
                 _logger.LogInformation(
                     "Creating new {State} subscription {Subscription} in session {Session}.",
                     PublishingEnabled ? "enabled" : "disabled", this, Session);
 
-                await CreateOrUpdateAsync(ct).ConfigureAwait(false);
+                await ApplyChangesAsync(ct).ConfigureAwait(false);
                 if (!Created)
                 {
                     throw new ServiceResultException(StatusCodes.BadSubscriptionIdInvalid,
@@ -324,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (modifySubscription)
                 {
-                    await CreateOrUpdateAsync(ct).ConfigureAwait(false);
+                    await ApplyChangesAsync(ct).ConfigureAwait(false);
                     _logger.LogInformation(
                         "Subscription {Subscription} in session {Session} successfully modified.",
                         this, Session);
@@ -354,7 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Get the items assigned to this subscription.
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var desired = OpcUaMonitoredItem
-                .Create(_client, Session, this, partition.Items, _loggerFactory, _timeProvider)
+                .Create(_client, Session, this, partition.Items, _observability)
                 .ToHashSet();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -498,14 +494,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(toUpdate.GetType() == theDesiredUpdate.GetType());
                 try
                 {
-                    if (toUpdate.MergeWith(theDesiredUpdate, session, out var metadata))
+                    if (toUpdate.MergeWith(theDesiredUpdate, out var metadata))
                     {
                         _logger.LogDebug(
                             "Trying to update monitored item '{Item}' in {Subscription}...",
                             toUpdate, this);
                         if (toUpdate.FinalizeMergeWith != null && metadata)
                         {
-                            await toUpdate.FinalizeMergeWith(session, ct).ConfigureAwait(false);
+                            await toUpdate.FinalizeMergeWith(ct).ConfigureAwait(false);
                         }
                         updated++;
                         applyChanges = true;
@@ -562,9 +558,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             "Adding monitored item '{Item}' to {Subscription}...",
                             toAdd, this);
 
-                        if (toAdd.FinalizeAddTo != null && metadata)
+                        if (toAdd.FinalizeInitialize != null && metadata)
                         {
-                            await toAdd.FinalizeAddTo(ct).ConfigureAwait(false);
+                            await toAdd.FinalizeInitialize(ct).ConfigureAwait(false);
                         }
                         added++;
                         applyChanges = true;
@@ -590,7 +586,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await ApplyMonitoredItemChangesAsync(ct).ConfigureAwait(false);
                 if (MonitoredItemCount == 0 && !_owner.EnableImmediatePublishing)
                 {
-                    await SetPublishingModeAsync(false, ct).ConfigureAwait(false);
+                    PublishingEnabled = false;
+
+                    await ApplyChangesAsync(ct).ConfigureAwait(false);
 
                     _logger.LogInformation(
                         "Disabled empty Subscription {Subscription} in session {Session}.",
@@ -692,15 +690,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...",
                 set.Count, desiredMonitoredItems.Count - set.Count, this);
 
-            var finalize = set
-                .Where(i => i.FinalizeCompleteChanges != null)
-                .Select(i => i.FinalizeCompleteChanges!(ct))
-                .ToArray();
-            if (finalize.Length > 0)
-            {
-                await Task.WhenAll(finalize).ConfigureAwait(false);
-            }
-
             if (applyChanges)
             {
                 // Apply any additional changes
@@ -763,15 +752,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                     }
                 }
-            }
-
-            finalize = set
-                .Where(i => i.FinalizeMonitoringModeChange != null)
-                .Select(i => i.FinalizeMonitoringModeChange!(ct))
-                .ToArray();
-            if (finalize.Length > 0)
-            {
-                await Task.WhenAll(finalize).ConfigureAwait(false);
             }
 
             // Cleanup all items that are not in the currently monitoring list
@@ -918,7 +898,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var message = new OpcUaSubscriptionNotification(this, messageContext, notifications,
-                _timeProvider, createdTimestamp: timestamp)
+                _observability.TimeProvider, createdTimestamp: timestamp)
             {
                 ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri,
                 EndpointUrl = curSession?.Endpoint?.EndpointUrl,
@@ -993,7 +973,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var message = new OpcUaSubscriptionNotification(this, session.MessageContext, notifications,
-                        _timeProvider, null, sequenceNumber)
+                        _observability.TimeProvider, null, sequenceNumber)
                     {
                         ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1089,7 +1069,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                         var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
-                            notifications, _timeProvider, null, sequenceNumber)
+                            notifications, _observability.TimeProvider, null, sequenceNumber)
                         {
                             ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                             EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1162,7 +1142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
-                    Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
+                    Array.Empty<MonitoredItemNotificationModel>(), _observability.TimeProvider)
                 {
                     ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1252,7 +1232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
-                        notifications, _timeProvider, null, sequenceNumber)
+                        notifications, _observability.TimeProvider, null, sequenceNumber)
                     {
                         ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = session.Endpoint?.EndpointUrl,
@@ -1410,7 +1390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, timeout);
                 }
 
-                _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
+                _lastMonitoredItemCheck = _observability.TimeProvider.GetUtcNow();
                 Debug.Assert(timeout != TimeSpan.Zero);
                 _monitoredItemWatcher.Change(timeout, timeout);
             }
@@ -1440,7 +1420,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (_goodMonitoredItems == 0)
                 {
-                    _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
+                    _lastMonitoredItemCheck = _observability.TimeProvider.GetUtcNow();
                     return;
                 }
 
@@ -1457,7 +1437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _lateMonitoredItems++;
                     }
                 }
-                _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
+                _lastMonitoredItemCheck = _observability.TimeProvider.GetUtcNow();
                 var missing = _lateMonitoredItems - lastCount;
                 if (missing == 0)
                 {
@@ -1763,14 +1743,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private bool _firstDataChangeReceived;
         private readonly OpcUaClient _client;
         private readonly IOptions<OpcUaSubscriptionOptions> _options;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IMetricsContext _metrics;
         private readonly ITimer _keepAliveWatcher;
         private readonly ITimer _monitoredItemWatcher;
-        private readonly TimeProvider _timeProvider;
         private readonly OpcUaClient.VirtualSubscription _owner;
-        private readonly Meter _meter = Diagnostics.NewMeter();
+        private readonly IObservability _observability;
+        private readonly Meter _meter;
         private DateTimeOffset? _lastMonitoredItemCheck;
         private int _goodMonitoredItems;
         private int _reportingItems;

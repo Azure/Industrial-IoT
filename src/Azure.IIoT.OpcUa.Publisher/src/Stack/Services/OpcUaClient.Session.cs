@@ -56,16 +56,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="configuration"></param>
             /// <param name="endpoint"></param>
             /// <param name="options"></param>
-            /// <param name="loggerFactory"></param>
-            /// <param name="timeProvider"></param>
+            /// <param name="observability"></param>
             /// <param name="reverseConnectManager"></param>
             public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
                 ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
-                SessionOptions options, ILoggerFactory loggerFactory, TimeProvider timeProvider,
+                SessionOptions options, IObservability observability,
                 ReverseConnectManager? reverseConnectManager = null) : base(configuration,
-                    endpoint, options, loggerFactory, timeProvider, reverseConnectManager)
+                    endpoint, options, observability, reverseConnectManager)
             {
-                _logger = loggerFactory.CreateLogger<OpcUaSession>();
+                _logger = observability.LoggerFactory.CreateLogger<OpcUaSession>();
                 _client = client;
 
                 Initialize();
@@ -89,8 +88,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     throw new ArgumentException("Invalid subscription options");
                 }
                 return new OpcUaSubscription(_client, this, subscription,
-                    _client._subscriptionOptions, LoggerFactory, new OpcUaClientTagList(
-                        _client._connection, _client._metrics), TimeProvider);
+                    _client._subscriptionOptions, Observability, new OpcUaClientTagList(
+                        _client._connection, _client._metrics));
             }
 
             /// <inheritdoc/>
@@ -99,16 +98,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 base.Dispose(disposing);
                 if (disposing && !_disposed)
                 {
-                    var sessionName = Name;
-
                     _disposed = true;
                     CloseChannel(); // Ensure channel is closed
-
                     try
                     {
                         _cts.Cancel();
-                        _logger.LogDebug("{Session}: Session disposed.",
-                            sessionName);
+                        _logger.LogDebug("{Session}: Session disposed.", this);
                     }
                     finally
                     {
@@ -986,7 +981,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     var error = new T();
                     error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
-                    error.ResponseHeader.Timestamp = TimeProvider.GetUtcNow().UtcDateTime;
+                    error.ResponseHeader.Timestamp =
+                        _client._observability.TimeProvider.GetUtcNow().UtcDateTime;
                     var text = error.ResponseHeader.StringTable.Count;
                     error.ResponseHeader.StringTable.Add("Session not connected.");
                     var locale = error.ResponseHeader.StringTable.Count;
@@ -1005,7 +1001,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     header.RequestHandle = NewRequestHandle();
                     header.AuthenticationToken = AuthenticationToken;
-                    header.Timestamp = TimeProvider.GetUtcNow().UtcDateTime;
+                    header.Timestamp = _client._observability.TimeProvider.GetUtcNow().UtcDateTime;
                 }
                 return activity;
             }

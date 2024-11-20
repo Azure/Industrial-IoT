@@ -408,10 +408,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetRouting.ToString());
             }
-            if (model.RepublishAfterTransfer != null)
-            {
-                id.Append(model.RepublishAfterTransfer.Value);
-            }
             if (model.OpcNodeWatchdogTimespan != null)
             {
                 id.Append(model.OpcNodeWatchdogTimespan.Value);
@@ -577,10 +573,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 
             if ((model.DataSetRouting ?? DataSetRoutingMode.None) !=
                 (that.DataSetRouting ?? DataSetRoutingMode.None))
-            {
-                return false;
-            }
-            if (model.RepublishAfterTransfer != that.RepublishAfterTransfer)
             {
                 return false;
             }

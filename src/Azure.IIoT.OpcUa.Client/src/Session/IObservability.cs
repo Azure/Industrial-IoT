@@ -7,12 +7,14 @@ namespace Opc.Ua.Client
 {
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Diagnostics;
     using System.Diagnostics.Metrics;
 
     /// <summary>
-    /// Context for services in the sdk
+    /// Observability and time services that can be
+    /// passed around in the sdk as a unit.
     /// </summary>
-    internal interface IServiceContext
+    public interface IObservability
     {
         /// <summary>
         /// Logger factory
@@ -20,7 +22,7 @@ namespace Opc.Ua.Client
         ILoggerFactory LoggerFactory { get; }
 
         /// <summary>
-        /// Logger factory
+        /// Meter factory
         /// </summary>
         IMeterFactory MeterFactory { get; }
 
@@ -28,5 +30,10 @@ namespace Opc.Ua.Client
         /// Time provider
         /// </summary>
         TimeProvider TimeProvider { get; }
+
+        /// <summary>
+        /// Activity source to use
+        /// </summary>
+        ActivitySource? ActivitySource { get; }
     }
 }

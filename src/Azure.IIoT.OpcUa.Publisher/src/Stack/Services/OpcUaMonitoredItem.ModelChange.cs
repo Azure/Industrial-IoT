@@ -124,8 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
             {
                 metadataChanged = false;
                 if (item is not ModelChangeEventItem || Disposed)
@@ -243,23 +242,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, OpcUaClient client)
-            {
-                if (Template.TriggeredItems != null)
-                {
-                    return Create(client,
-                        Session, Subscription, Template.TriggeredItems.Select(i => (Owner, i)),
-                        factory, TimeProvider);
-                }
-                return Enumerable.Empty<OpcUaMonitoredItem>();
-            }
-
-            /// <inheritdoc/>
             protected override bool OnSamplingIntervalOrQueueSizeRevised(
                 bool samplingIntervalChanged, bool queueSizeChanged)
             {
-                Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
                 if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)

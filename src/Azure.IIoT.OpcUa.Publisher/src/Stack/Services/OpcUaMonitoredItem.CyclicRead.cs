@@ -117,25 +117,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
             {
                 if (item is not CyclicRead)
                 {
                     metadataChanged = false;
                     return false;
                 }
-                return base.MergeWith(item, session, out metadataChanged);
+                return base.MergeWith(item, out metadataChanged);
             }
 
             /// <inheritdoc/>
-            public override Func<CancellationToken, Task>? FinalizeMonitoringModeChange => _ =>
+            public override bool TryCompleteChanges(ref bool applyChanges)
             {
-                Debug.Assert(Subscription != null);
-                Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
                 EnsureSamplerRunning();
-                return Task.CompletedTask;
-            };
+                return true;
+            }
 
             /// <summary>
             /// Ensure sampler is started

@@ -397,7 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            var nextSync = _timeProvider.GetUtcNow() + delay;
+            var nextSync = _observability.TimeProvider.GetUtcNow() + delay;
             if (nextSync <= _nextSync)
             {
                 _nextSync = nextSync;
@@ -621,10 +621,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool EnableImmediatePublishing
                 => Template.EnableImmediatePublishing
                 ?? _options.Value.EnableImmediatePublishing
-                ?? false;
-            public bool DesiredRepublishAfterTransfer
-                => Template.RepublishAfterTransfer
-                ?? _options.Value.DefaultRepublishAfterTransfer
                 ?? false;
 
             public TimeSpan MonitoredItemWatchdogTimeout

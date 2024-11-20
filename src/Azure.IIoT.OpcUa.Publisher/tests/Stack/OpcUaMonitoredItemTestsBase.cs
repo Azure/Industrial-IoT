@@ -18,9 +18,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System.Linq;
     using System.Threading.Tasks;
     using System.Collections.Generic;
+    using Microsoft.Extensions.Logging;
+    using System.Diagnostics.Metrics;
+    using System.Diagnostics;
 
-    public abstract class OpcUaMonitoredItemTestsBase
+    public abstract class OpcUaMonitoredItemTestsBase : IObservability
     {
+        public ILoggerFactory LoggerFactory => Log.ConsoleFactory();
+        public IMeterFactory MeterFactory => null!;
+        public TimeProvider TimeProvider => TimeProvider.System;
+        public ActivitySource ActivitySource { get; }
+
         protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
         {
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
@@ -53,12 +61,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var subscriber = new Mock<ISubscriber>();
             var subscription = new SimpleSubscription();
             var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, session, subscription,
-                (subscriber.Object, template).YieldReturn(),
-                Log.ConsoleFactory(), TimeProvider.System).Single();
+                (subscriber.Object, template).YieldReturn(), this).Single();
             monitoredItemWrapper.Initialize(out _);
-            if (monitoredItemWrapper.FinalizeAddTo != null)
+            if (monitoredItemWrapper.FinalizeInitialize != null)
             {
-                await monitoredItemWrapper.FinalizeAddTo(default);
+                await monitoredItemWrapper.FinalizeInitialize(default);
             }
             return monitoredItemWrapper;
         }

@@ -286,8 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
             {
                 metadataChanged = false;
                 if (item is not DataChange model || Disposed)
@@ -336,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Template = Template with { AggregateFilter = model.Template.AggregateFilter };
                     _logger.LogDebug("{Item}: Changing aggregate change filter.", this);
-                    Filter = Template.AggregateFilter.ToStackModel(session.MessageContext);
+                    Filter = Template.AggregateFilter.ToStackModel(Session.MessageContext);
                     itemChange = true;
                 }
                 if ((model.Template.SkipFirst ?? false) != (Template.SkipFirst ?? false))
@@ -362,7 +361,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override bool OnSamplingIntervalOrQueueSizeRevised(
                 bool samplingIntervalChanged, bool queueSizeChanged)
             {
-                Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
                 if (samplingIntervalChanged)
@@ -378,19 +376,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 SkipMonitoredItemNotification(); // Key frames should always be sent
                 return base.TryGetLastMonitoredItemNotifications(notifications);
-            }
-
-            /// <inheritdoc/>
-            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-                ILoggerFactory factory, OpcUaClient client)
-            {
-                if (Template.TriggeredItems != null)
-                {
-                    return Create(client, Session, Subscription,
-                        Template.TriggeredItems.Select(i => (Owner, i)),
-                        factory, TimeProvider);
-                }
-                return Enumerable.Empty<OpcUaMonitoredItem>();
             }
 
             /// <inheritdoc/>

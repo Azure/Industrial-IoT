@@ -61,7 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _channel = Channel.CreateUnbounded<bool>();
 
                 // Order is important
-                _rebrowseTimer = _client._timeProvider.CreateTimer(_ => _channel.Writer.TryWrite(true),
+                _rebrowseTimer = _client._observability.TimeProvider.CreateTimer(
+                    _ => _channel.Writer.TryWrite(true),
                     null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 _browser = RunAsync(_cts.Token);
                 _channel.Writer.TryWrite(true);
@@ -489,10 +490,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="existing"></param>
             /// <param name="New"></param>
             /// <returns></returns>
-            private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New) where T : class
+            private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New)
+                where T : class
             {
                 return new(source, path, existing, New, Interlocked.Increment(ref _sequenceNumber),
-                    _client._timeProvider.GetUtcNow());
+                    _client._observability.TimeProvider.GetUtcNow());
             }
 
             /// <summary>

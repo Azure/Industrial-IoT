@@ -73,14 +73,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? EnableImmediatePublishing { get; set; }
 
         /// <summary>
-        /// Republish after transferring the subscription during
-        /// reconnect handling.
-        /// </summary>
-        [DataMember(Name = "republishAfterTransfer", Order = 10,
-            EmitDefaultValue = false)]
-        public bool? RepublishAfterTransfer { get; set; }
-
-        /// <summary>
         /// Subscription watchdog behavior
         /// </summary>
         [DataMember(Name = "watchdogBehavior", Order = 11,

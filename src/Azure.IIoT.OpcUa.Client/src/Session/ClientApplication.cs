@@ -8,6 +8,7 @@ namespace Opc.Ua.Client
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.Metrics;
     using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace Opc.Ua.Client
     /// Simple client that can be used to connect a session to a
     /// server and subscribe to data changes and events.
     /// </summary>
-    public class ClientApplication
+    public class ClientApplication : IObservability
     {
         /// <summary>
         /// Gets or sets the data change callback.
@@ -32,25 +33,27 @@ namespace Opc.Ua.Client
         /// </summary>
         public KeepAliveNotificationHandler? KeepAliveCallback { get; set; }
 
+        /// <inheritdoc/>
+        public ILoggerFactory LoggerFactory { get; }
+
+        /// <inheritdoc/>
+        public TimeProvider TimeProvider { get; }
+
+        /// <inheritdoc/>
+        public IMeterFactory MeterFactory { get; }
+
+        /// <inheritdoc/>
+        public ActivitySource? ActivitySource { get; }
+
         /// <summary>
         /// Configuration
         /// </summary>
         public ApplicationConfiguration Configuration { get; }
 
         /// <summary>
-        /// Logger factory
-        /// </summary>
-        public ILoggerFactory LoggerFactory { get; }
-
-        /// <summary>
         /// Reverse connect manager
         /// </summary>
         public ReverseConnectManager? ReverseConnectManager { get; }
-
-        /// <summary>
-        /// Time provider
-        /// </summary>
-        public TimeProvider TimeProvider { get; }
 
         /// <summary>
         /// Create client appolication
@@ -72,6 +75,7 @@ namespace Opc.Ua.Client
                     "The application configuration for the session is missing fields.");
             }
 
+            MeterFactory = new Meters();
             Configuration = configuration;
             LoggerFactory = loggerFactory;
             ReverseConnectManager = reverseConnectManager;
@@ -93,7 +97,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Default meter factory
         /// </summary>
-        internal static IMeterFactory DefaultMeterFactory { get; } = new MeterFactory();
+        internal static IMeterFactory DefaultMeterFactory { get; } = new Meters();
 
         /// <inheritdoc/>
         private sealed class ClientSession : SessionBase
@@ -103,8 +107,8 @@ namespace Opc.Ua.Client
             /// <inheritdoc/>
             public ClientSession(ClientApplication application, ConfiguredEndpoint endpoint,
                 SessionOptions options)
-                : base(application.Configuration, endpoint, options, application.LoggerFactory,
-                      application.TimeProvider, application.ReverseConnectManager)
+                : base(application.Configuration, endpoint, options, application,
+                      application.ReverseConnectManager)
             {
                 Application = application;
             }
@@ -183,7 +187,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        private sealed class MeterFactory : IMeterFactory
+        private sealed class Meters : IMeterFactory
         {
             /// <inheritdoc/>
             public Meter Create(MeterOptions options)

@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var timeout = _samplingRate.TotalMilliseconds / 2;
                         var response = await session.ReadAsync(new RequestHeader
                         {
-                            Timestamp = _client._timeProvider.GetUtcNow().UtcDateTime,
+                            Timestamp = _client._observability.TimeProvider.GetUtcNow().UtcDateTime,
                             TimeoutHint = (uint)timeout,
                             ReturnDiagnostics = 0
                         }, _maxAge.TotalMilliseconds, Opc.Ua.TimestampsToReturn.Both,
@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var missed = GetMissed(elapsed);
                 return _subscription.OnSubscriptionCylicReadNotificationAsync(seq,
-                    _client._timeProvider.GetUtcNow().UtcDateTime, values
+                    _client._observability.TimeProvider.GetUtcNow().UtcDateTime, values
                     .Select(i => new SampledDataValueModel(
                         SetOverflow(i.Result, missed > 0),
                             ((SampledNodeId)i.Request.Handle).ClientHandle, missed))
@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var missed = GetMissed(elapsed);
                 return _subscription.OnSubscriptionCylicReadNotificationAsync(seq,
-                    _client._timeProvider.GetUtcNow().UtcDateTime, nodesToRead
+                    _client._observability.TimeProvider.GetUtcNow().UtcDateTime, nodesToRead
                     .Select(i => new SampledDataValueModel(
                         SetOverflow(statusCode, missed > 0),
                             ((SampledNodeId)i.Handle).ClientHandle, missed))

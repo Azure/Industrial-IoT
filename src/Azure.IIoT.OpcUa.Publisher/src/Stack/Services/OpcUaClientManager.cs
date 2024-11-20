@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
         IEndpointDiscovery, ICertificateServices<EndpointModel>, IClientDiagnostics,
-        IConnectionServices<ConnectionModel>, IDisposable
+        IConnectionServices<ConnectionModel>, IObservability, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
@@ -43,6 +43,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IReadOnlyList<ConnectionModel> ActiveConnections
             => _clients.Keys.Select(c => c.Connection).ToList();
+
+        /// <inheritdoc/>
+        public ILoggerFactory LoggerFactory { get; }
+        /// <inheritdoc/>
+        public IMeterFactory MeterFactory { get; } = new Diagnostics();
+        /// <inheritdoc/>
+        public TimeProvider TimeProvider { get; }
+        /// <inheritdoc/>
+        public ActivitySource? ActivitySource { get; } = Diagnostics.NewActivitySource();
 
         /// <summary>
         /// Create kv manager
@@ -61,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
-            _timeProvider = timeProvider ??
+            TimeProvider = timeProvider ??
                 TimeProvider.System;
             _clientOptions = clientOptions ??
                 throw new ArgumentNullException(nameof(clientOptions));
@@ -69,13 +78,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(subscriptionOptions));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
-            _loggerFactory = loggerFactory ??
+            LoggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
 
-            _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
-            _reverseConnectManager = new ReverseConnectManager(_loggerFactory);
+            _logger = LoggerFactory.CreateLogger<OpcUaClientManager>();
+            _reverseConnectManager = new ReverseConnectManager(LoggerFactory);
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
             _configuration.Validate += OnValidate;
@@ -118,7 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _configuration.Value).ConfigureAwait(false);
 
                 var application = new ClientApplication(_configuration.Value,
-                    _loggerFactory, null, _timeProvider);
+                    LoggerFactory, null, TimeProvider);
                 using var session = application.CreateSession(configuredEndpoint,
                     new SessionOptions
                     {
@@ -611,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
-                    _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
+                    this, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
                     OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
                 _logger.LogInformation("{Client}: Created new client.", client);
@@ -676,8 +685,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kMaxDiscoveryAttempts = 3;
         private bool _disposed;
         private readonly ILogger _logger;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly TimeProvider _timeProvider;
         private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _clientOptions;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;

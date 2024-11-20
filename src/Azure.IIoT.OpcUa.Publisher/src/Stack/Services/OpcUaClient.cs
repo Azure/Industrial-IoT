@@ -175,9 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="configuration"></param>
         /// <param name="connection"></param>
         /// <param name="serializer"></param>
-        /// <param name="loggerFactory"></param>
-        /// <param name="timeProvider"></param>
-        /// <param name="meter"></param>
+        /// <param name="observability"></param>
         /// <param name="metrics"></param>
         /// <param name="notifier"></param>
         /// <param name="reverseConnectManager"></param>
@@ -188,8 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, IJsonSerializer serializer,
-            ILoggerFactory loggerFactory, TimeProvider timeProvider,
-            Meter meter, IMetricsContext metrics,
+            IObservability observability, IMetricsContext metrics,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
             Action<ChannelDiagnosticModel> diagnosticsCallback,
@@ -197,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             string? sessionName = null)
         {
-            _timeProvider = timeProvider;
+            _observability = observability;
             if (connection?.Connection?.Endpoint?.Url == null)
             {
                 throw new ArgumentNullException(nameof(connection));
@@ -210,26 +207,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             LastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = _connection,
-                TimeStamp = _timeProvider.GetUtcNow()
+                TimeStamp = _observability.TimeProvider.GetUtcNow()
             };
             Debug.Assert(_connection.GetEndpointUrls().Any());
             _reverseConnectManager = reverseConnectManager;
 
-            _meter = meter ??
-                throw new ArgumentNullException(nameof(meter));
-            _metrics = metrics ??
-                throw new ArgumentNullException(nameof(metrics));
-            _configuration = configuration ??
-                throw new ArgumentNullException(nameof(configuration));
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
-            _loggerFactory = loggerFactory ??
-                throw new ArgumentNullException(nameof(loggerFactory));
+            _metrics = metrics;
+            _configuration = configuration;
+            _serializer = serializer;
             _notifier = notifier;
 
+            _meter = observability.MeterFactory.Create(nameof(OpcUaClient));
             InitializeMetrics();
 
-            _logger = _loggerFactory.CreateLogger<OpcUaClient>();
+            _logger = _observability.LoggerFactory.CreateLogger<OpcUaClient>();
             _tokens = new Dictionary<string, CancellationTokenSource>();
             State = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
@@ -273,14 +264,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _maxReconnectPeriod = TimeSpan.FromSeconds(30);
             }
-            _reconnectHandler = new SessionReconnectHandler(_loggerFactory, true,
+            _reconnectHandler = new SessionReconnectHandler(_observability, true,
                 (int)_maxReconnectPeriod.TotalMilliseconds);
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
-            _channelMonitor = _timeProvider.CreateTimer(_ => OnUpdateConnectionDiagnostics(),
+            _channelMonitor = _observability.TimeProvider.CreateTimer(
+                _ => OnUpdateConnectionDiagnostics(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-            _resyncTimer = _timeProvider.CreateTimer(_ => TriggerSubscriptionSynchronization(),
+            _resyncTimer = _observability.TimeProvider.CreateTimer(
+                _ => TriggerSubscriptionSynchronization(),
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _diagnosticsDumper = !DumpDiagnostics ? null :
                 DumpDiagnosticsPeriodicallyAsync(_cts.Token);
@@ -390,6 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _resyncTimer.Dispose();
                 _cts.Dispose();
                 _subscriptionLock.Dispose();
+                _meter.Dispose();
             }
         }
 
@@ -732,7 +726,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var currentSessionState = SessionState.Disconnected;
 
             var reconnectPeriod = 0;
-            var reconnectTimer = _timeProvider.CreateTimer(
+            var reconnectTimer = _observability.TimeProvider.CreateTimer(
                 _ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry), null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             try
@@ -1183,8 +1177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Identity = userIdentity,
                             CheckDomain = false,
                             PreferredLocales = preferredLocales
-
-                        }, _loggerFactory, _timeProvider, _reverseConnectManager);
+                        }, _observability, _reverseConnectManager);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     try
                     {
@@ -1350,7 +1343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var channel = session.TransportChannel;
             var token = channel?.CurrentToken;
 
-            var now = _timeProvider.GetUtcNow();
+            var now = _observability.TimeProvider.GetUtcNow();
 
             var lastDiagnostics = LastDiagnostics;
             var elapsed = now - lastDiagnostics.TimeStamp;
@@ -1962,14 +1955,13 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
         private readonly IJsonSerializer _serializer;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly Meter _meter;
         private readonly string _sessionName;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly ConnectionModel _connection;
-        private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
-        private readonly TimeProvider _timeProvider;
+        private readonly IObservability _observability;
+        private readonly IMetricsContext _metrics;
         private readonly object _channelLock = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ITimer _channelMonitor;

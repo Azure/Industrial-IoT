@@ -88,6 +88,11 @@ namespace Opc.Ua.Client
         uint MaxNotificationsPerPublish { get; set; }
 
         /// <summary>
+        /// Current max notifications per publish
+        /// </summary>
+        uint CurrentMaxNotificationsPerPublish { get; }
+
+        /// <summary>
         /// Set min lifetime interval
         /// </summary>
         TimeSpan MinLifetimeInterval { get; set; }
@@ -97,15 +102,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task CreateOrUpdateAsync(CancellationToken ct = default);
-
-        /// <summary>
-        /// Set publishing mode --- TODO: This should be a property and applied at CreateOrUpdate
-        /// </summary>
-        /// <param name="enabled"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task SetPublishingModeAsync(bool enabled, CancellationToken ct = default);
+        ValueTask ApplyChangesAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Add a monitored item to the subscription
@@ -119,14 +116,14 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ApplyMonitoredItemChangesAsync(CancellationToken ct = default);
+        ValueTask ApplyMonitoredItemChangesAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Refresh all conditions
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task ConditionRefreshAsync(CancellationToken ct = default);
+        ValueTask ConditionRefreshAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Delete the subscription on the server
@@ -134,6 +131,6 @@ namespace Opc.Ua.Client
         /// <param name="silent"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeleteAsync(bool silent, CancellationToken ct = default);
+        ValueTask DeleteAsync(bool silent, CancellationToken ct = default);
     }
 }

@@ -148,7 +148,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     else if (eventType == ObjectTypeIds.RefreshRequiredEventType)
                     {
                         var noErrorFound = true;
-                        Debug.Assert(Subscription != null);
 
                         // issue a condition refresh to make sure we are in a correct state
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
@@ -214,8 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
-                 out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
             {
                 metadataChanged = false;
                 if (item is not Condition model || Disposed)
@@ -244,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     itemChange = true;
                 }
 
-                itemChange |= base.MergeWith(model, session, out metadataChanged);
+                itemChange |= base.MergeWith(model, out metadataChanged);
                 return itemChange;
             }
 

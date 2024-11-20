@@ -146,8 +146,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MaxKeepAliveCount,
                             DataSetFetchDisplayNames =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.ResolveDisplayName,
-                            RepublishAfterTransfer =
-                                item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.RepublishAfterTransfer,
                             OpcNodeWatchdogTimespan =
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.MonitoredItemWatchdogTimeout,
                             OpcNodeWatchdogCondition =
@@ -456,7 +454,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             SubscriptionSettings = new PublishedDataSetSettingsModel
                                             {
                                                 MaxKeepAliveCount = b.Header.MaxKeepAliveCount,
-                                                RepublishAfterTransfer = b.Header.RepublishAfterTransfer,
                                                 MonitoredItemWatchdogTimeout = b.Header.OpcNodeWatchdogTimespan,
                                                 MonitoredItemWatchdogCondition = b.Header.OpcNodeWatchdogCondition,
                                                 WatchdogBehavior = b.Header.DataSetWriterWatchdogBehavior,

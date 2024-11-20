@@ -16,91 +16,57 @@ namespace Opc.Ua.Client
     using System.Diagnostics;
 
     /// <summary>
-    /// A subscription.
+    /// A managed subscription inside a subscription manager. Can be
+    /// extended to provide custom subscription implementations on
+    /// top to route the received data appropriately per application.
     /// </summary>
     public abstract class SubscriptionBase : IManagedSubscription
     {
-        /// <inheritdoc/>
-        public uint Id { get; private set; }
-
-        /// <summary>
-        /// The publishing interval.
-        /// </summary>
-        public TimeSpan PublishingInterval { get; set; }
-
-        /// <summary>
-        /// The keep alive count.
-        /// </summary>
-        public uint KeepAliveCount { get; set; }
-
-        /// <summary>
-        /// The life time of the subscription in counts of
-        /// publish interval.
-        /// LifetimeCount shall be at least 3*KeepAliveCount.
-        /// </summary>
-        public uint LifetimeCount { get; set; }
-
-        /// <summary>
-        /// The maximum number of notifications per publish request.
-        /// </summary>
-        public uint MaxNotificationsPerPublish { get; set; }
-
-        /// <summary>
-        /// Whether publishing is enabled.
-        /// </summary>
-        public bool PublishingEnabled { get; set; }
-
-        /// <summary>
-        /// The priority assigned to subscription.
-        /// </summary>
-        public byte Priority { get; set; }
-
         /// <summary>
         /// The minimum lifetime for subscriptions
         /// </summary>
         public TimeSpan MinLifetimeInterval { get; set; }
 
-        /// <summary>
-        /// If the available sequence numbers of a subscription
-        /// are republished or acknowledged after a transfer.
-        /// </summary>
-        /// <remarks>
-        /// Default <c>false</c>, set to <c>true</c> if no data
-        /// loss is important and available publish requests
-        /// (sequence numbers) that were never acknowledged should
-        /// be recovered with a republish. The setting is used
-        /// after a subscription transfer.
-        /// </remarks>
-        public bool RepublishAfterTransfer { get; set; }
+        /// <inheritdoc/>
+        public uint Id { get; private set; }
 
-        /// <summary>
-        /// Current priority
-        /// </summary>
+        /// <inheritdoc/>
+        public TimeSpan PublishingInterval { get; set; }
+
+        /// <inheritdoc/>
+        public uint KeepAliveCount { get; set; }
+
+        /// <inheritdoc/>
+        public uint LifetimeCount { get; set; }
+
+        /// <inheritdoc/>
+        public uint MaxNotificationsPerPublish { get; set; }
+
+        /// <inheritdoc/>
+        public bool PublishingEnabled { get; set; }
+
+        /// <inheritdoc/>
+        public byte Priority { get; set; }
+
+        /// <inheritdoc/>
         public byte CurrentPriority { get; private set; }
 
-        /// <summary>
-        /// The current publishing interval.
-        /// </summary>
+        /// <inheritdoc/>
         public TimeSpan CurrentPublishingInterval { get; private set; }
 
-        /// <summary>
-        /// The current keep alive count.
-        /// </summary>
+        /// <inheritdoc/>
         public uint CurrentKeepAliveCount { get; private set; }
 
-        /// <summary>
-        /// The current lifetime count.
-        /// </summary>
+        /// <inheritdoc/>
         public uint CurrentLifetimeCount { get; private set; }
 
-        /// <summary>
-        /// Whether publishing is currently enabled.
-        /// </summary>
+        /// <inheritdoc/>
         public bool CurrentPublishingEnabled { get; private set; }
 
-        /// <summary>
-        /// The items to monitor.
-        /// </summary>
+        /// <inheritdoc/>
+        public uint CurrentMaxNotificationsPerPublish { get; private set; }
+
+        /// <inheritdoc/>
         public IEnumerable<MonitoredItem> MonitoredItems
         {
             get
@@ -112,39 +78,7 @@ namespace Opc.Ua.Client
             }
         }
 
-        /// <summary>
-        /// Returns true if the subscription has changes that need to be applied.
-        /// </summary>
-        public bool ChangesPending
-        {
-            get
-            {
-                lock (_cache)
-                {
-                    if (_deletedItems.Count > 0)
-                    {
-                        return true;
-                    }
-                    foreach (var monitoredItem in _monitoredItems.Values)
-                    {
-                        if (Created && !monitoredItem.Created)
-                        {
-                            return true;
-                        }
-
-                        if (monitoredItem.AttributesModified)
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of monitored items.
-        /// </summary>
+        /// <inheritdoc/>
         public uint MonitoredItemCount
         {
             get
@@ -156,20 +90,20 @@ namespace Opc.Ua.Client
             }
         }
 
-        /// <summary>
-        /// Whether the subscription has been created on the server.
-        /// </summary>
+        /// <inheritdoc/>
         public bool Created => Id != 0;
 
         /// <summary>
         /// Returns true if the subscription is not receiving publishes.
         /// </summary>
-        public bool PublishingStopped
+        internal bool PublishingStopped
         {
             get
             {
-                var timeSinceLastNotification = HiResClock.TickCount - _lastNotificationTickCount;
-                if (timeSinceLastNotification > _keepAliveInterval + kKeepAliveTimerMargin)
+                var timeSinceLastNotification =
+                    HiResClock.TickCount - _lastNotificationTickCount;
+                if (timeSinceLastNotification >
+                    _keepAliveInterval + kKeepAliveTimerMargin)
                 {
                     return true;
                 }
@@ -196,8 +130,6 @@ namespace Opc.Ua.Client
                 });
             _publishTimer = new Timer(OnKeepAlive);
             _messageWorkerTask = ProcessMessagesAsync(_cts.Token);
-
-            RepublishAfterTransfer = false;
         }
 
         /// <inheritdoc/>
@@ -211,37 +143,6 @@ namespace Opc.Ua.Client
         public override string ToString()
         {
             return $"{_session}:{Id}";
-        }
-
-        /// <summary>
-        /// Changes the publishing enabled state for the subscription.
-        /// </summary>
-        /// <param name="enabled"></param>
-        /// <param name="ct"></param>
-        /// <exception cref="ServiceResultException"></exception>
-        public async Task SetPublishingModeAsync(bool enabled, CancellationToken ct)
-        {
-            VerifySubscriptionState(true);
-
-            // modify the subscription.
-            UInt32Collection subscriptionIds = new uint[] { Id };
-
-            var response = await _session.SetPublishingModeAsync(
-                null, enabled, new uint[] { Id }, ct).ConfigureAwait(false);
-
-            // validate response.
-            ClientBase.ValidateResponse(response.Results, subscriptionIds);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, subscriptionIds);
-
-            if (StatusCode.IsBad(response.Results[0]))
-            {
-                throw new ServiceResultException(
-                    ClientBase.GetResult(response.Results[0], 0,
-                    response.DiagnosticInfos, response.ResponseHeader));
-            }
-
-            // update current state.
-            CurrentPublishingEnabled = PublishingEnabled = enabled;
         }
 
         /// <summary>
@@ -263,7 +164,7 @@ namespace Opc.Ua.Client
         /// Applies any changes to the subscription items.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ApplyMonitoredItemChangesAsync(CancellationToken ct)
+        public async ValueTask ApplyMonitoredItemChangesAsync(CancellationToken ct)
         {
             await DeleteItemsAsync(ct).ConfigureAwait(false);
             await ModifyItemsAsync(ct).ConfigureAwait(false);
@@ -275,7 +176,7 @@ namespace Opc.Ua.Client
         /// by the subscription.
         /// </summary>
         /// <param name="ct"></param>
-        public async Task ConditionRefreshAsync(CancellationToken ct)
+        public async ValueTask ConditionRefreshAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
             var methodsToCall = new CallMethodRequestCollection
@@ -293,7 +194,7 @@ namespace Opc.Ua.Client
         /// Creates a subscription on the server and adds all monitored items.
         /// </summary>
         /// <param name="ct"></param>
-        public Task CreateOrUpdateAsync(CancellationToken ct)
+        public ValueTask ApplyChangesAsync(CancellationToken ct)
         {
             if (Created)
             {
@@ -315,7 +216,7 @@ namespace Opc.Ua.Client
         /// <param name="silent"></param>
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
-        public async Task DeleteAsync(bool silent, CancellationToken ct)
+        public async ValueTask DeleteAsync(bool silent, CancellationToken ct)
         {
             if (!silent)
             {
@@ -331,8 +232,8 @@ namespace Opc.Ua.Client
                 // delete the subscription.
                 UInt32Collection subscriptionIds = new uint[] { Id };
 
-                var response = await _session.DeleteSubscriptionsAsync(null, subscriptionIds,
-                    ct).ConfigureAwait(false);
+                var response = await _session.DeleteSubscriptionsAsync(null,
+                    subscriptionIds, ct).ConfigureAwait(false);
 
                 // validate response.
                 ClientBase.ValidateResponse(response.Results, subscriptionIds);
@@ -340,8 +241,8 @@ namespace Opc.Ua.Client
 
                 if (StatusCode.IsBad(response.Results[0]))
                 {
-                    throw new ServiceResultException(
-                        ClientBase.GetResult(response.Results[0], 0, response.DiagnosticInfos,
+                    throw new ServiceResultException(ClientBase.GetResult(
+                        response.Results[0], 0, response.DiagnosticInfos,
                         response.ResponseHeader));
                 }
             }
@@ -487,10 +388,38 @@ namespace Opc.Ua.Client
         protected abstract MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options);
 
         /// <summary>
+        /// Changes the publishing enabled state for the subscription.
+        /// </summary>
+        /// <param name="enabled"></param>
+        /// <param name="ct"></param>
+        /// <exception cref="ServiceResultException"></exception>
+        internal async ValueTask SetPublishingModeAsync(bool enabled, CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+
+            // modify the subscription.
+            UInt32Collection subscriptionIds = new uint[] { Id };
+
+            var response = await _session.SetPublishingModeAsync(
+                null, enabled, new uint[] { Id }, ct).ConfigureAwait(false);
+
+            // validate response.
+            ClientBase.ValidateResponse(response.Results, subscriptionIds);
+            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, subscriptionIds);
+
+            if (StatusCode.IsBad(response.Results[0]))
+            {
+                throw new ServiceResultException(
+                    ClientBase.GetResult(response.Results[0], 0,
+                    response.DiagnosticInfos, response.ResponseHeader));
+            }
+        }
+
+        /// <summary>
         /// Creates a subscription on the server and adds all monitored items.
         /// </summary>
         /// <param name="ct"></param>
-        internal async Task CreateAsync(CancellationToken ct)
+        internal async ValueTask CreateAsync(CancellationToken ct)
         {
             // create the subscription.
             var revisedMaxKeepAliveCount = KeepAliveCount;
@@ -505,7 +434,8 @@ namespace Opc.Ua.Client
 
             OnSubscriptionUpdateComplete(true, response.SubscriptionId,
                 TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
-                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
+                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount,
+                MaxNotificationsPerPublish);
 
             await CreateItemsAsync(ct).ConfigureAwait(false);
         }
@@ -514,27 +444,48 @@ namespace Opc.Ua.Client
         /// Modifies a subscription on the server.
         /// </summary>
         /// <param name="ct"></param>
-        internal async Task ModifyAsync(CancellationToken ct)
+        internal async ValueTask ModifyAsync(CancellationToken ct)
         {
             // modify the subscription.
             var revisedKeepAliveCount = KeepAliveCount;
             var revisedLifetimeCounter = LifetimeCount;
-
             AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
-            var response = await _session.ModifySubscriptionAsync(null, Id,
-                PublishingInterval.TotalMilliseconds, revisedLifetimeCounter,
-                revisedKeepAliveCount, MaxNotificationsPerPublish, Priority,
-                ct).ConfigureAwait(false);
-            OnSubscriptionUpdateComplete(false, 0,
-                TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
-                response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount);
+
+            if (revisedKeepAliveCount != CurrentKeepAliveCount ||
+                revisedLifetimeCounter != CurrentLifetimeCount ||
+                Priority != CurrentPriority ||
+                MaxNotificationsPerPublish != CurrentMaxNotificationsPerPublish ||
+                PublishingInterval != CurrentPublishingInterval)
+            {
+                var response = await _session.ModifySubscriptionAsync(null, Id,
+                    PublishingInterval.TotalMilliseconds, revisedLifetimeCounter,
+                    revisedKeepAliveCount, MaxNotificationsPerPublish, Priority,
+                    ct).ConfigureAwait(false);
+
+                OnSubscriptionUpdateComplete(false, 0,
+                    TimeSpan.FromMilliseconds(response.RevisedPublishingInterval),
+                    response.RevisedMaxKeepAliveCount, response.RevisedLifetimeCount,
+                    MaxNotificationsPerPublish);
+            }
+
+            if (PublishingEnabled != CurrentPublishingEnabled)
+            {
+                await SetPublishingModeAsync(PublishingEnabled, ct).ConfigureAwait(false);
+
+                _logger.LogInformation(
+                    "{Subscription}: Modified - Publishing is now {New}.",
+                    this, PublishingEnabled ? "Enabled" : "Disabled");
+
+                // update current state.
+                CurrentPublishingEnabled = PublishingEnabled;
+            }
         }
 
         /// <summary>
         /// Creates all items on the server that have not already been created.
         /// </summary>
         /// <param name="ct"></param>
-        internal async Task<IReadOnlyList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
+        internal async ValueTask<IReadOnlyList<MonitoredItem>> CreateItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
@@ -605,7 +556,7 @@ namespace Opc.Ua.Client
         /// Modifies all items that have been changed.
         /// </summary>
         /// <param name="ct"></param>
-        internal async Task<IReadOnlyList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
+        internal async ValueTask<IReadOnlyList<MonitoredItem>> ModifyItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
 
@@ -669,7 +620,7 @@ namespace Opc.Ua.Client
         /// Deletes all items that have been marked for deletion.
         /// </summary>
         /// <param name="ct"></param>
-        internal async Task DeleteItemsAsync(CancellationToken ct)
+        internal async ValueTask DeleteItemsAsync(CancellationToken ct)
         {
             VerifySubscriptionState(true);
             if (_deletedItems.Count == 0)
@@ -795,7 +746,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        protected async Task<IReadOnlyList<ServiceResult>> SetMonitoringModeAsync(
+        protected async ValueTask<IReadOnlyList<ServiceResult>> SetMonitoringModeAsync(
             MonitoringMode monitoringMode, IReadOnlyList<MonitoredItem> monitoredItems,
             CancellationToken ct)
         {
@@ -866,11 +817,14 @@ namespace Opc.Ua.Client
             }
         }
 
+        private record struct MonitoredItemsHandles(bool Success,
+            IReadOnlyList<(uint serverHandle, uint clientHandle)> Handles);
+
         /// <summary>
         /// Call the GetMonitoredItems method on the server.
         /// </summary>
         /// <param name="ct"></param>
-        private async Task<(bool, IReadOnlyList<(uint serverHandle, uint clientHandle)>)> GetMonitoredItemsAsync(
+        private async ValueTask<MonitoredItemsHandles> GetMonitoredItemsAsync(
             CancellationToken ct)
         {
             try
@@ -905,13 +859,13 @@ namespace Opc.Ua.Client
                     throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
                         "Output arguments incorrect");
                 }
-                return (true, serverHandles.Zip(clientHandles).ToList());
+                return new MonitoredItemsHandles(true, serverHandles.Zip(clientHandles).ToList());
             }
             catch (ServiceResultException sre)
             {
                 _logger.LogError(sre,
                     "{Subscription}: Failed to call GetMonitoredItems on server", this);
-                return (false, Array.Empty<(uint, uint)>());
+                return new MonitoredItemsHandles(false, Array.Empty<(uint, uint)>());
             }
         }
 
@@ -965,34 +919,67 @@ namespace Opc.Ua.Client
         /// <param name="revisedPublishingInterval"></param>
         /// <param name="revisedKeepAliveCount"></param>
         /// <param name="revisedLifetimeCount"></param>
+        /// <param name="maxNotificationsPerPublish"></param>
         private void OnSubscriptionUpdateComplete(bool created,
             uint subscriptionId, TimeSpan revisedPublishingInterval,
-            uint revisedKeepAliveCount, uint revisedLifetimeCount)
+            uint revisedKeepAliveCount, uint revisedLifetimeCount,
+            uint maxNotificationsPerPublish)
         {
-            // update current state.
-            CurrentPublishingInterval = revisedPublishingInterval;
-            CurrentKeepAliveCount = revisedKeepAliveCount;
-            CurrentLifetimeCount = revisedLifetimeCount;
+            if (created &&
+                PublishingEnabled != CurrentPublishingEnabled)
+            {
+                _logger.LogInformation(
+                    "{Subscription}: Created - Publishing is {New}.",
+                    this, PublishingEnabled ? "Enabled" : "Disabled");
+                CurrentPublishingEnabled = PublishingEnabled;
+            }
 
-            CurrentPriority = Priority;
+            if (CurrentKeepAliveCount != revisedKeepAliveCount)
+            {
+                _logger.LogInformation(
+                    "{Subscription}: Changed KeepAliveCount to {New}.",
+                    this, revisedKeepAliveCount);
+
+                CurrentKeepAliveCount = revisedKeepAliveCount;
+            }
+
+            if (CurrentPublishingInterval != revisedPublishingInterval)
+            {
+                _logger.LogInformation(
+                    "{Subscription}: Changed PublishingInterval to {New}.",
+                    this, revisedPublishingInterval);
+                CurrentPublishingInterval = revisedPublishingInterval;
+            }
+
+            if (CurrentMaxNotificationsPerPublish != maxNotificationsPerPublish)
+            {
+                _logger.LogInformation(
+                    "{Subscription}: Change MaxNotificationsPerPublish to {New}.",
+                    this, maxNotificationsPerPublish);
+                CurrentMaxNotificationsPerPublish = maxNotificationsPerPublish;
+            }
+
+            if (CurrentLifetimeCount != revisedLifetimeCount)
+            {
+                _logger.LogInformation(
+                    "{Subscription}: Changed LifetimeCount to {New}.",
+                    this, revisedLifetimeCount);
+                CurrentLifetimeCount = revisedLifetimeCount;
+            }
+
+            if (CurrentPriority != Priority)
+            {
+                _logger.LogInformation(
+                    "{Subscription}: Changed Priority to {New}.",
+                    this, Priority);
+                CurrentPriority = Priority;
+            }
+
             if (created)
             {
-                CurrentPublishingEnabled = PublishingEnabled;
                 Id = subscriptionId;
                 StartKeepAliveTimer();
             }
-
-            _logger.LogInformation(@"Successfully {Action} subscription {Subscription}'.
-Actual (revised) state/desired state:
-# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}
-# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}
-# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}
-# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}", created ? "created" : "modified",
-                this,
-                CurrentPublishingEnabled, PublishingEnabled,
-                CurrentPublishingInterval, PublishingInterval,
-                CurrentKeepAliveCount, KeepAliveCount,
-                CurrentLifetimeCount, LifetimeCount);
         }
 
         /// <summary>
@@ -1103,7 +1090,7 @@ Actual (revised) state/desired state:
             }
             await _completion.CompleteAsync(Id, default).ConfigureAwait(false);
 
-            async Task TryRepublishAsync(uint missing, uint curSeqNum, CancellationToken ct)
+            async ValueTask TryRepublishAsync(uint missing, uint curSeqNum, CancellationToken ct)
             {
                 if (_availableInRetransmissionQueue.Contains(missing))
                 {
@@ -1176,7 +1163,7 @@ Actual (revised) state/desired state:
                     "{Subscription}: Error dispatching notification data.", this);
             }
 
-            async Task DispatchAsync(NotificationMessage message,
+            async ValueTask DispatchAsync(NotificationMessage message,
                 PublishState publishStateMask, ExtensionObject? notificationData)
             {
                 if (notificationData == null)

@@ -164,13 +164,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="session"></param>
         /// <param name="subscription"></param>
         /// <param name="items"></param>
-        /// <param name="factory"></param>
-        /// <param name="timeProvider"></param>
+        /// <param name="observability"></param>
         /// <returns></returns>
         public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client, IOpcUaSession session,
             IManagedSubscription subscription, IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
-            ILoggerFactory factory, TimeProvider timeProvider)
+            IObservability observability)
         {
+            var factory = observability.LoggerFactory;
+            var timeProvider = observability.TimeProvider;
             foreach (var (owner, item) in items)
             {
                 switch (item)
@@ -286,27 +287,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Finalize add
         /// </summary>
-        public virtual Func<CancellationToken, Task>? FinalizeAddTo { get; }
+        public virtual Func<CancellationToken, Task>? FinalizeInitialize { get; }
 
         /// <summary>
         /// Merge item in the subscription with this item
         /// </summary>
         /// <param name="item"></param>
-        /// <param name="session"></param>
         /// <param name="metadataChanged"></param>
         /// <returns></returns>
         public abstract bool MergeWith(OpcUaMonitoredItem item,
-            IOpcUaSession session, out bool metadataChanged);
+            out bool metadataChanged);
 
         /// <summary>
         /// Finalize merge
         /// </summary>
-        public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith { get; }
-
-        /// <summary>
-        /// Finalize remove from
-        /// </summary>
-        public virtual Func<CancellationToken, Task>? FinalizeRemoveFrom { get; }
+        public virtual Func<CancellationToken, Task>? FinalizeMergeWith { get; }
 
         /// <summary>
         /// Complete changes previously made and provide callback
@@ -347,13 +342,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Called on all items after monitoring mode was changed
-        /// successfully.
-        /// </summary>
-        /// <returns></returns>
-        public virtual Func<CancellationToken, Task>? FinalizeCompleteChanges { get; }
-
-        /// <summary>
         /// Get any changes in the monitoring mode to apply if any.
         /// Otherwise the returned value is null.
         /// </summary>
@@ -367,13 +355,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var desiredMode = MonitoringMode;
             return currentMode != desiredMode ? desiredMode : null;
         }
-
-        /// <summary>
-        /// Called on all items after monitoring mode was changed
-        /// successfully.
-        /// </summary>
-        /// <returns></returns>
-        public virtual Func<CancellationToken, Task>? FinalizeMonitoringModeChange { get; }
 
         /// <summary>
         /// Try get monitored item notifications from
@@ -426,15 +407,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return TryGetMonitoredItemNotifications(TimeProvider.GetUtcNow(),
                 lastValue, notifications);
         }
-
-        /// <summary>
-        /// Create triggered items
-        /// </summary>
-        /// <param name="factory"></param>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        protected abstract IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
-            ILoggerFactory factory, OpcUaClient client);
 
         /// <summary>
         /// Add error to notification list

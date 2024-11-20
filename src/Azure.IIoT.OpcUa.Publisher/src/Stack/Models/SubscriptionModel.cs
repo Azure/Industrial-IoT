@@ -51,11 +51,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public bool? EnableImmediatePublishing { get; init; }
 
         /// <summary>
-        /// Republish after transfer
-        /// </summary>
-        public bool? RepublishAfterTransfer { get; init; }
-
-        /// <summary>
         /// Subscription watchdog behavior
         /// </summary>
         public SubscriptionWatchdogBehavior? WatchdogBehavior { get; init; }

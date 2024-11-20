@@ -30,21 +30,6 @@ namespace Opc.Ua.Client
         /// </summary>
         public string Name { get; }
 
-        /// <summary>
-        /// Gets the endpoint used to connect to the server.
-        /// </summary>
-        public ConfiguredEndpoint ConfiguredEndpoint { get; }
-
-        /// <summary>
-        /// Time the session was created
-        /// </summary>
-        public DateTimeOffset CreatedAt { get; }
-
-        /// <summary>
-        /// Time the session was connected
-        /// </summary>
-        public DateTimeOffset? ConnectedSince { get; private set; }
-
         /// <inheritdoc/>
         public IUserIdentity Identity { get; private set; }
 
@@ -63,11 +48,29 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public INodeCache NodeCache => _nodeCache;
 
-        /// <summary>
-        /// Gets the period for wich the server will maintain the
-        /// session if there is no communication from the client.
-        /// </summary>
+        /// <inheritdoc/>
+        public ILoggerFactory LoggerFactory => Observability.LoggerFactory;
+
+        /// <inheritdoc/>
+        public NamespaceTable NamespaceUris => MessageContext.NamespaceUris;
+
+        /// <inheritdoc/>
         public TimeSpan SessionTimeout { get; private set; }
+
+        /// <summary>
+        /// Time the session was created
+        /// </summary>
+        public DateTimeOffset CreatedAt { get; }
+
+        /// <summary>
+        /// Time the session was connected
+        /// </summary>
+        public DateTimeOffset? ConnectedSince { get; private set; }
+
+        /// <summary>
+        /// Gets the endpoint used to connect to the server.
+        /// </summary>
+        protected ConfiguredEndpoint ConfiguredEndpoint { get; }
 
         /// <summary>
         /// The operation timeout to use for the session
@@ -161,13 +164,15 @@ namespace Opc.Ua.Client
         /// </summary>
         public int LastKeepAliveTickCount { get; private set; }
 
-        /// <inheritdoc/>
-        public NamespaceTable NamespaceUris => MessageContext.NamespaceUris;
-
         /// <summary>
         /// Number of namespace table changes
         /// </summary>
         public int NamespaceTableChanges => _namespaceTableChanges;
+
+        /// <summary>
+        /// Server uris
+        /// </summary>
+        private StringTable ServerUris => MessageContext.ServerUris;
 
         /// <summary>
         /// Session is in the process of connecting as indicated
@@ -175,11 +180,6 @@ namespace Opc.Ua.Client
         /// </summary>
         internal bool Connecting
             => _connecting.CurrentCount == 0;
-
-        /// <summary>
-        /// Server uris
-        /// </summary>
-        private StringTable ServerUris => MessageContext.ServerUris;
 
         /// <summary>
         /// Type system has loaded
@@ -194,24 +194,22 @@ namespace Opc.Ua.Client
         /// <param name="configuration">The configuration for the client application.</param>
         /// <param name="endpoint">The endpoint used to initialize the channel.</param>
         /// <param name="options">Session options</param>
-        /// <param name="loggerFactory">A logger factory to use</param>
-        /// <param name="timeprovider">Time provider</param>
+        /// <param name="observability">A logger factory to use</param>
         /// <param name="reverseConnectManager">Reverse connect manager</param>
-        protected SessionBase(ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
-            SessionOptions options, ILoggerFactory loggerFactory, TimeProvider timeprovider,
-            ReverseConnectManager? reverseConnectManager = null) : base(loggerFactory,
-                options.Meter ?? ClientApplication.DefaultMeterFactory,
-                options.ActivitySource, timeprovider, options.Channel)
+        protected SessionBase(ApplicationConfiguration configuration,
+            ConfiguredEndpoint endpoint, SessionOptions options, IObservability observability,
+            ReverseConnectManager? reverseConnectManager = null) : base(observability, options.Channel)
         {
-            CreatedAt = TimeProvider.GetUtcNow();
-            MessageContext = options.Channel?.MessageContext
-                ?? configuration.CreateMessageContext();
+            CreatedAt = Observability.TimeProvider.GetUtcNow();
+            MessageContext = options.Channel?.MessageContext ?? configuration.CreateMessageContext();
             ConfiguredEndpoint = endpoint;
             Name = options.SessionName ?? Guid.NewGuid().ToString();
             Identity = options.Identity ?? new UserIdentity();
-
-            _meter = MeterFactory.Create(new MeterOptions("Session") { Version = "1.0.0" });
-            _logger = LoggerFactory.CreateLogger<SessionBase>();
+            _meter = Observability.MeterFactory.Create(new MeterOptions("Session")
+            {
+                Version = "1.0.0"
+            });
+            _logger = Observability.LoggerFactory.CreateLogger<SessionBase>();
             _keepAliveTimer = new Timer(_ => _keepAliveTrigger.Set());
             _keepAliveWorker = KeepAliveWorkerAsync(_cts.Token);
             _configuration = configuration;
@@ -237,7 +235,8 @@ namespace Opc.Ua.Client
                 CultureInfo.CurrentCulture.Name
             };
             _nodeCache = new NodeCache(this);
-            _subscriptions = new SubscriptionManager(this, LoggerFactory, ReturnDiagnostics);
+            _subscriptions = new SubscriptionManager(this,
+                observability.LoggerFactory, ReturnDiagnostics);
             _systemContext = new SystemContext
             {
                 SystemHandle = this,
@@ -292,7 +291,7 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"{Name} (Id:{SessionId})";
+            return $"{SessionId}({Name})";
         }
 
         /// <inheritdoc/>
@@ -567,7 +566,7 @@ namespace Opc.Ua.Client
 
                     // call session created callback, which was already set in base class only.
                     SessionCreated(sessionId, authenticationToken);
-                    ConnectedSince = TimeProvider.GetUtcNow();
+                    ConnectedSince = Observability.TimeProvider.GetUtcNow();
                 }
                 catch (Exception)
                 {
