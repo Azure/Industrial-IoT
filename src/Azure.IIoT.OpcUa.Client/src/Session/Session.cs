@@ -5,9 +5,9 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Redaction;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua.Redaction;
     using Polly;
     using System;
     using System.Threading;

@@ -53,12 +53,6 @@ namespace Opc.Ua.Client
         public MonitoringMode MonitoringMode { get; set; }
 
         /// <summary>
-        /// The timestamps to return with the notification messages.
-        /// </summary>
-        public TimestampsToReturn TimestampsToReturn { get; set; }
-            = TimestampsToReturn.Both;
-
-        /// <summary>
         /// The sampling interval.
         /// </summary>
         public TimeSpan SamplingInterval

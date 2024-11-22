@@ -5,8 +5,8 @@
 
 namespace Opc.Ua.Client
 {
-    using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Microsoft.Extensions.Options;
     using System.Collections.Generic;
 
     /// <summary>

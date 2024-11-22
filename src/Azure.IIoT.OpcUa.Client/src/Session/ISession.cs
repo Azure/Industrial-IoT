@@ -5,8 +5,8 @@
 
 namespace Opc.Ua.Client
 {
-    using Opc.Ua;
     using Opc.Ua.Client.ComplexTypes;
+    using Opc.Ua;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

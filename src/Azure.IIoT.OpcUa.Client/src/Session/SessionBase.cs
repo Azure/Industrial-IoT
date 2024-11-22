@@ -5,9 +5,9 @@
 
 namespace Opc.Ua.Client
 {
+    using Opc.Ua.Client.ComplexTypes;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua.Client.ComplexTypes;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -118,13 +118,6 @@ namespace Opc.Ua.Client
         /// Server uris
         /// </summary>
         private StringTable ServerUris => MessageContext.ServerUris;
-
-        /// <summary>
-        /// Session is in the process of connecting as indicated
-        /// by the connect lock being taken
-        /// </summary>
-        internal bool Connecting => _connecting.CurrentCount == 0;
-
         /// <summary>
         /// Current session options
         /// </summary>

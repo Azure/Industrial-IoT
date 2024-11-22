@@ -107,11 +107,6 @@ namespace Opc.Ua.Client
             return session;
         }
 
-        /// <summary>
-        /// Default meter factory
-        /// </summary>
-        internal static IMeterFactory DefaultMeterFactory { get; } = new Meters();
-
         /// <inheritdoc/>
         private sealed class ClientSession : Session
         {

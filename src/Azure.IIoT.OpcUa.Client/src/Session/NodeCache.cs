@@ -239,45 +239,6 @@ namespace Opc.Ua.Client
                 return node;
             }
         }
-#if ZOMBIE
-
-        /// <inheritdoc/>
-        public ValueTask<IReadOnlyList<Node>> FetchNodesAsync(
-            IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
-        {
-            var count = nodeIds.Count;
-            var result = new List<Node?>(nodeIds.Count);
-            if (count != 0)
-            {
-                var notFound = new List<NodeId>();
-                foreach (var nodeId in nodeIds)
-                {
-                    if (_nodes.TryGet(nodeId, out var node))
-                    {
-                        if (node.ReferenceTable.Count != 0)
-                        {
-                            result.Add(node);
-                            continue;
-                        }
-
-                        if (_refs.TryGet(nodeId, out var references))
-                        {
-                            AddReferencesToNode(node, references);
-                            result.Add(node);
-                            continue;
-                        }
-                    }
-                    notFound.Add(nodeId);
-                    result.Add(null);
-                }
-                if (notFound.Count != 0)
-                {
-                    return FetchRemainingNodesAsync(notFound, result, ct);
-                }
-            }
-            return ValueTask.FromResult<IReadOnlyList<Node>>(result!);
-        }
-#endif
 
         /// <inheritdoc/>
         public async ValueTask LoadTypeHierarchyAync(IReadOnlyList<NodeId> typeIds,

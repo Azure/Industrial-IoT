@@ -6,15 +6,15 @@
 namespace Opc.Ua.Client
 {
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Threading.Channels;
-    using System.Linq;
     using System.Collections.Immutable;
     using System.Diagnostics;
-    using Microsoft.Extensions.Options;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Channels;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// A managed subscription inside a subscription manager. Can be

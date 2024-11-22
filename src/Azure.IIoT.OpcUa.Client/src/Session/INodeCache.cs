@@ -43,17 +43,6 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         ValueTask<Node> FetchNodeAsync(NodeId nodeId,
             CancellationToken ct = default);
-#if ZOMBIE
-
-        /// <summary>
-        /// Gets a set of nodes from the cache or fetch them from the
-        /// server. The node objects contain references.
-        /// </summary>
-        /// <param name="nodeIds">The node identifier collection.</param>
-        /// <param name="ct"></param>
-        ValueTask<IReadOnlyList<Node>> FetchNodesAsync(
-            IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
-#endif
 
         /// <summary>
         /// Find a node by traversing a provided browse path. The node does
