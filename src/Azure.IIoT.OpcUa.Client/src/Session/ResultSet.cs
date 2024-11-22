@@ -20,7 +20,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Result set helpers
     /// </summary>
-    public static class ResultSet
+    internal static class ResultSet
     {
         /// <summary>
         /// Empty result set

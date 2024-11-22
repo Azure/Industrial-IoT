@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Microsoft.Extensions.Logging;
     using System.Diagnostics.Metrics;
     using System.Diagnostics;
+    using Microsoft.Extensions.Options;
 
     public abstract class OpcUaMonitoredItemTestsBase : IObservability
     {
@@ -62,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var subscription = new SimpleSubscription();
             var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, session, subscription,
                 (subscriber.Object, template).YieldReturn(), this).Single();
-            monitoredItemWrapper.Initialize(out _);
+            monitoredItemWrapper.Initialize();
             if (monitoredItemWrapper.FinalizeInitialize != null)
             {
                 await monitoredItemWrapper.FinalizeInitialize(default);
@@ -73,13 +74,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         internal sealed class SimpleSubscription : SubscriptionBase
         {
             public SimpleSubscription()
-                : base(null!, null!, Log.Console<SimpleSubscription>())
+                : base(null!, null!, null!, Log.Console<SimpleSubscription>())
             {
             }
 
-            protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions options)
+            protected override MonitoredItem CreateMonitoredItem(
+                IOptionsMonitor<MonitoredItemOptions> options)
             {
-                return ((OpcUaSubscription.Precreated)options).Item;
+                return ((OpcUaSubscription.Precreated)options.CurrentValue).Item;
             }
 
             protected override ValueTask OnDataChangeNotificationAsync(

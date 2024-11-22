@@ -14,7 +14,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Session interface
     /// </summary>
-    public interface ISession : ISessionServiceSets
+    public interface ISession : ISessionServiceSets, IDisposable
     {
         /// <summary>
         /// Connected?
@@ -78,9 +78,11 @@ namespace Opc.Ua.Client
         /// Close session
         /// </summary>
         /// <param name="closeChannel"></param>
+        /// <param name="deleteSubscriptions"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<StatusCode> CloseAsync(bool closeChannel,
+        ValueTask<StatusCode> CloseAsync(bool closeChannel = true,
+            bool deleteSubscriptions = true,
             CancellationToken ct = default);
     }
 }

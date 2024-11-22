@@ -128,16 +128,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 var application = new ClientApplication(_configuration.Value,
                     LoggerFactory, null, TimeProvider);
-                using var session = application.CreateSession(configuredEndpoint,
-                    new SessionOptions
+                using var session = await application.ConnectAsync(configuredEndpoint,
+                    OptionMonitor.Create(new SessionOptions
                     {
                         SessionName = "Test" + Guid.NewGuid().ToString(),
                         Identity = userIdentity
-                    });
-                await session.OpenAsync(null, ct).ConfigureAwait(false);
+                    }), ct).ConfigureAwait(false);
                 try
                 {
-                    await session.CloseAsync(true, ct).ConfigureAwait(false);
+                    await session.CloseAsync(true, true, ct).ConfigureAwait(false);
                 }
                 catch
                 {

@@ -8,7 +8,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Subscription options
     /// </summary>
-    public class SubscriptionOptions
+    public record class SubscriptionOptions
     {
     }
 }

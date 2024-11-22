@@ -74,6 +74,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             OpcUaClient.VirtualSubscription owner, IOptions<OpcUaSubscriptionOptions> options,
             IObservability observability, IMetricsContext metrics)
             : base(session, (IMessageAckQueue)session.Subscriptions,
+                  new OptionMonitor<SubscriptionOptions>( // TODO
+                      new OpcUaClient.VRef(owner)),
                   observability.LoggerFactory.CreateLogger<OpcUaSubscription>())
         {
             _client = client;
@@ -146,11 +148,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options)
+        protected override MonitoredItem CreateMonitoredItem(
+            IOptionsMonitor<MonitoredItemOptions> options)
         {
-            if (options is not Precreated pre)
+            if (options.CurrentValue is not Precreated pre || pre.Item is null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadUnexpectedError, "Bad");
+                throw ServiceResultException.Create(
+                    StatusCodes.BadUnexpectedError, "Bad");
             }
             return pre.Item;
         }
@@ -508,6 +512,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     if (metadata)
                     {
+                        _logger.LogDebug("Updated monitored item '{Item}' in {Subscription} " +
+                            "so that metadata changed ...", toUpdate, this);
                         metadataChanged.Add(toUpdate.Owner);
                     }
                 }
@@ -552,22 +558,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 desired.Remove(toAdd);
                 try
                 {
-                    if (toAdd.Initialize(out var metadata))
+                    if (toAdd.Initialize())
                     {
                         _logger.LogDebug(
                             "Adding monitored item '{Item}' to {Subscription}...",
                             toAdd, this);
 
-                        if (toAdd.FinalizeInitialize != null && metadata)
+                        if (toAdd.FinalizeInitialize != null)
                         {
                             await toAdd.FinalizeInitialize(ct).ConfigureAwait(false);
                         }
                         added++;
-                        applyChanges = true;
-                    }
-                    if (metadata)
-                    {
                         metadataChanged.Add(toAdd.Owner);
+                        applyChanges = true;
                     }
                 }
                 catch (Exception ex)
@@ -656,7 +659,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 displayName =
                                     (result.Result.Value as LocalizedText)?.ToString();
-                                metadataChanged.Add(result.Request.Owner);
+                                _logger.LogDebug(
+                                    "Read display name for node '{NodeId}' in {Subscription}...",
+                                    result.Request.GetDisplayName!.Value.NodeId, this);
                             }
                             else
                             {
@@ -665,8 +670,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     result.Request.GetDisplayName!.Value.NodeId, this,
                                     result.ErrorInfo);
                             }
-                            result.Request.GetDisplayName!.Value.Update(
-                                displayName ?? string.Empty);
+                            if (result.Request.GetDisplayName!.Value.Update(
+                                displayName ?? string.Empty))
+                            {
+                                metadataChanged.Add(result.Request.Owner);
+                            }
                         }
                     }
                 }
@@ -763,13 +771,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Notify semantic change now that we have update the monitored items
             foreach (var owner in metadataChanged)
             {
+                _logger.LogDebug("Signalling metadata change for {Subscription}.", this);
                 await owner.OnMonitoredItemSemanticsChangedAsync().ConfigureAwait(false);
             }
 
             // Refresh condition
             if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
             {
-                _logger.LogInformation(
+                _logger.LogDebug(
                     "Issuing ConditionRefresh on subscription {Subscription}", this);
                 try
                 {
@@ -1024,7 +1033,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             ResetKeepAliveTimer();
-            var sw = Stopwatch.StartNew();
             try
             {
                 Debug.Assert(notification.Events != null);
@@ -1098,14 +1106,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
             }
-            finally
-            {
-                _logger.LogDebug("Event callback took {Elapsed}", sw.Elapsed);
-                if (sw.ElapsedMilliseconds > 1000)
-                {
-                    _logger.LogWarning("Spent more than 1 second in fast event callback.");
-                }
-            }
         }
 
         /// <inheritdoc/>
@@ -1132,7 +1132,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            var sw = Stopwatch.StartNew();
             try
             {
                 // in case of a keepalive,the sequence number is not incremented by the servers
@@ -1164,14 +1163,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.LogWarning(e, "Exception processing keep alive notification");
             }
-            finally
-            {
-                _logger.LogDebug("Keep alive callback took {Elapsed}", sw.Elapsed);
-                if (sw.ElapsedMilliseconds > 1000)
-                {
-                    _logger.LogWarning("Spent more than 1 second in fast keep alive callback.");
-                }
-            }
         }
 
         protected override async ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
@@ -1193,7 +1184,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             ResetKeepAliveTimer();
 
-            var sw = Stopwatch.StartNew();
             try
             {
                 // All notifications have the same message and thus sequence number
@@ -1249,21 +1239,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var overflows);
                     if (count > 0)
                     {
-                        await callback.OnSubscriptionDataDiagnosticsChangeAsync(true, count, overflows, heartbeats).ConfigureAwait(false);
+                        await callback.OnSubscriptionDataDiagnosticsChangeAsync(true, count,
+                            overflows, heartbeats).ConfigureAwait(false);
                     }
                 }
             }
             catch (Exception e)
             {
                 _logger.LogWarning(e, "Exception processing subscription notification");
-            }
-            finally
-            {
-                _logger.LogDebug("Data change callback took {Elapsed}", sw.Elapsed);
-                if (sw.ElapsedMilliseconds > 1000)
-                {
-                    _logger.LogWarning("Spent more than 1 second in fast data change callback.");
-                }
             }
         }
 
@@ -1648,17 +1631,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// For now use this wrapper to add the item to the subscription
         /// </summary>
-        internal class Precreated : Opc.Ua.Client.MonitoredItemOptions
-        {
-            public Precreated(MonitoredItem precreated)
-            {
-                Item = precreated;
-            }
-            /// <summary>
-            /// Precreated item
-            /// </summary>
-            public MonitoredItem Item { get; }
-        }
+        /// <param name="Item"></param>
+        internal record class Precreated(MonitoredItem? Item = null) : MonitoredItemOptions;
 
         private int HeartbeatsEnabled
             => MonitoredItems.Count(r => r is OpcUaMonitoredItem.Heartbeat h && h.TimerEnabled);

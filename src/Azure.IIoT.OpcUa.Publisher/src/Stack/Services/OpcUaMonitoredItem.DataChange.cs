@@ -36,40 +36,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 => Template.RelativePath != null &&
                     (TheResolvedNodeId == Template.StartNodeId ||
                         string.IsNullOrEmpty(TheResolvedNodeId)) ?
-                    (Template.StartNodeId, Template.RelativePath.ToArray(),
-                        (v, context) => TheResolvedNodeId = NodeId
-                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
+                    (Template.StartNodeId, Template.RelativePath.ToArray(), (v, context) =>
+                    {
+                        TheResolvedNodeId = NodeId =
+                            v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
+                        return true;
+                    }
+
+            ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
                 => Template.RegisterRead == true && !_registeredForReading &&
                     !string.IsNullOrEmpty(TheResolvedNodeId) ?
-                    (TheResolvedNodeId,
-                        (v, context) =>
+                    (TheResolvedNodeId, (v, context) =>
+                    {
+                        if (_registeredForReading)
                         {
-                            NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
-                            // We only want to register the node once for reading inside a session
-                            _registeredForReading = true;
+                            return false;
                         }
+                        NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
+                        // We only want to register the node once for reading inside a session
+                        _registeredForReading = true;
+                        return true;
+                    }
             ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateString Update)? GetDisplayName
-                => Template.FetchDataSetFieldName == true && Template.DataSetFieldName != null &&
-                    !string.IsNullOrEmpty(NodeId) ?
-                    (NodeId, v => Template = Template with { DataSetFieldName = v }) : null;
+                => Template.FetchDataSetFieldName == true && !string.IsNullOrEmpty(NodeId) ?
+                    (NodeId, name =>
+                    {
+                        if (Template.DataSetFieldName == name)
+                        {
+                            return false;
+                        }
+                        Template = Template with { DataSetFieldName = name };
+                        return true;
+                    }
+            ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateRelativePath Update)? GetPath
-                => TheResolvedRelativePath == null &&
-                !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (path, context) =>
-                {
-                    if (path == null)
+                => TheResolvedRelativePath == null && !string.IsNullOrEmpty(TheResolvedNodeId) ?
+                    (TheResolvedNodeId, (path, context) =>
                     {
-                        NodeId = string.Empty;
+                        if (path == null)
+                        {
+                            NodeId = string.Empty;
+                        }
+                        if (TheResolvedRelativePath?.Equals(path) == true)
+                        {
+                            return false;
+                        }
+                        TheResolvedRelativePath = path;
+                        return true;
                     }
-                    TheResolvedRelativePath = path;
-                }
             ) : null;
 
             /// <summary>
@@ -216,12 +238,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool Initialize(out bool metadataChanged)
+            public override bool Initialize()
             {
                 var nodeId = NodeId.ToNodeId(Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
-                    metadataChanged = false;
                     return false;
                 }
 
@@ -244,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
                 }
-                return base.Initialize(out metadataChanged);
+                return base.Initialize();
             }
 
             /// <inheritdoc/>

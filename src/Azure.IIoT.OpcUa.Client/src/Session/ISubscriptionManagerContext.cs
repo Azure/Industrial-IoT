@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Options;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -19,8 +20,8 @@ namespace Opc.Ua.Client
         /// <param name="options">The subscription options to pass</param>
         /// <param name="queue">The completion queue</param>
         /// <returns></returns>
-        IManagedSubscription CreateSubscription(SubscriptionOptions? options,
-            IMessageAckQueue queue);
+        IManagedSubscription CreateSubscription(
+            IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
 
         /// <summary>
         /// Publish service
@@ -44,5 +45,17 @@ namespace Opc.Ua.Client
         Task<TransferSubscriptionsResponse> TransferSubscriptionsAsync(
             RequestHeader? requestHeader, UInt32Collection subscriptionIds,
             bool sendInitialValues, CancellationToken ct = default);
+
+        /// <summary>
+        /// Delete subscriptions on server when we get publish
+        /// responses for unknown subscriptions.
+        /// </summary>
+        /// <param name="requestHeader"></param>
+        /// <param name="subscriptionIds"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DeleteSubscriptionsResponse> DeleteSubscriptionsAsync(
+            RequestHeader? requestHeader, UInt32Collection subscriptionIds,
+            CancellationToken ct = default);
     }
 }

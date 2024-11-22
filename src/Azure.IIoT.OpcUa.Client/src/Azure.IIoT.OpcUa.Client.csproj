@@ -3,14 +3,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsTrimmable>false</IsTrimmable>
-    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BitFaster.Caching" Version="2.5.2" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
+    <PackageReference Include="Polly.Core" Version="8.5.0" />
+    <PackageReference Include="System.Threading.Channels" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration" Version="1.5.374.126" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.374.126" />
-    <PackageReference Include="System.Threading.Channels" Version="9.0.0" />
   </ItemGroup>
 </Project>

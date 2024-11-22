@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -109,7 +110,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        MonitoredItem AddMonitoredItem(MonitoredItemOptions? options = null);
+        MonitoredItem AddMonitoredItem(IOptionsMonitor<MonitoredItemOptions> options);
 
         /// <summary>
         /// Apply monitored item changes

@@ -6,10 +6,12 @@
 namespace Opc.Ua.Client
 {
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.Metrics;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -87,11 +89,22 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="options"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
-        public virtual SessionBase CreateSession(ConfiguredEndpoint endpoint,
-            SessionOptions? options = null)
+        public virtual async ValueTask<ISession> ConnectAsync(ConfiguredEndpoint endpoint,
+            IOptionsMonitor<SessionOptions> options, CancellationToken ct = default)
         {
-            return new ClientSession(this, endpoint, options ?? new SessionOptions());
+            var session = new ClientSession(this, endpoint, options);
+            try
+            {
+                await session.OpenAsync(ct).ConfigureAwait(false);
+            }
+            catch
+            {
+                session.Dispose();
+                throw;
+            }
+            return session;
         }
 
         /// <summary>
@@ -100,13 +113,13 @@ namespace Opc.Ua.Client
         internal static IMeterFactory DefaultMeterFactory { get; } = new Meters();
 
         /// <inheritdoc/>
-        private sealed class ClientSession : SessionBase
+        private sealed class ClientSession : Session
         {
             public ClientApplication Application { get; }
 
             /// <inheritdoc/>
             public ClientSession(ClientApplication application, ConfiguredEndpoint endpoint,
-                SessionOptions options)
+                IOptionsMonitor<SessionOptions> options)
                 : base(application.Configuration, endpoint, options, application,
                       application.ReverseConnectManager)
             {
@@ -115,9 +128,9 @@ namespace Opc.Ua.Client
 
             /// <inheritdoc/>
             public override IManagedSubscription CreateSubscription(
-                SubscriptionOptions? options, IMessageAckQueue queue)
+                IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
             {
-                return new ClientSubscription(this, queue,
+                return new ClientSubscription(this, queue, options,
                     LoggerFactory.CreateLogger<ClientSubscription>());
             }
         }
@@ -127,7 +140,8 @@ namespace Opc.Ua.Client
         {
             /// <inheritdoc/>
             public ClientSubscription(ClientSession session, IMessageAckQueue completion,
-                ILogger logger) : base(session, completion, logger)
+                IOptionsMonitor<SubscriptionOptions> options, ILogger logger) :
+                base(session, completion, options, logger)
             {
                 _session = session;
             }
@@ -167,10 +181,11 @@ namespace Opc.Ua.Client
             }
 
             /// <inheritdoc/>
-            protected override MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options)
+            protected override MonitoredItem CreateMonitoredItem(
+                IOptionsMonitor<MonitoredItemOptions> options)
             {
-                return new ClientItem(this, _session.Application.LoggerFactory
-                    .CreateLogger<ClientItem>());
+                return new ClientItem(this, options,
+                    _session.Application.LoggerFactory.CreateLogger<ClientItem>());
             }
 
             private readonly ClientSession _session;
@@ -180,8 +195,9 @@ namespace Opc.Ua.Client
         private sealed class ClientItem : MonitoredItem
         {
             /// <inheritdoc/>
-            public ClientItem(ClientSubscription subscription, ILogger logger)
-                : base(subscription, logger)
+            public ClientItem(ClientSubscription subscription,
+                IOptionsMonitor<MonitoredItemOptions> options, ILogger logger)
+                : base(subscription, options, logger)
             {
             }
         }

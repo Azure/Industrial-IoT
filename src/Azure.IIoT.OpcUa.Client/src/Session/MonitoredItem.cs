@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client
 {
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
 
     /// <summary>
@@ -181,22 +182,26 @@ namespace Opc.Ua.Client
         /// Create monitored item
         /// </summary>
         /// <param name="subscription"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
-        protected MonitoredItem(IManagedSubscription subscription, ILogger logger)
+        protected MonitoredItem(IManagedSubscription subscription,
+            IOptionsMonitor<MonitoredItemOptions> options, ILogger logger)
         {
             Subscription = subscription;
             StartNodeId = NodeId.Null;
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
             AttributesModified = true;
-            CurrentMonitoringMode = MonitoringMode.Disabled;
-            Error = ServiceResult.Good;
-
-            ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
             _samplingInterval = TimeSpan.MinValue;
             _discardOldest = true;
-            _logger = logger;
 
+            Error = ServiceResult.Good;
+            ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
+
+            _logger = logger;
+            _options = options.CurrentValue;
+            _monitor = options.OnChange(OnOptionsChanged);
+            OnOptionsChanged(_options, null);
             _logger.LogDebug("{Item} CREATED.", this);
         }
 
@@ -223,6 +228,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             Subscription.RemoveItem(this);
             _logger.LogDebug("{Item} REMOVED.", this);
             ServerId = 0;
+            _monitor?.Dispose();
             _disposedValue = true;
         }
 
@@ -379,6 +385,17 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
         }
 
         /// <summary>
+        /// Called when the options change
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="name"></param>
+        protected virtual void OnOptionsChanged(MonitoredItemOptions options, string? name)
+        {
+            _options = options;
+            AttributesModified = true;
+        }
+
+        /// <summary>
         /// Throws an exception if the flter cannot be used with the node class.
         /// </summary>
         /// <param name="filter"></param>
@@ -436,6 +453,8 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             }
         }
 
+        private readonly IDisposable? _monitor;
+        private MonitoredItemOptions _options;
         private TimeSpan _samplingInterval;
         private MonitoringFilter? _filter;
         private uint _queueSize;

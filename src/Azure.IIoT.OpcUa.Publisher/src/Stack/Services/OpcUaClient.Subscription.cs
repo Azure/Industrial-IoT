@@ -568,12 +568,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private readonly OpcUaClient _outer;
         }
+
+        internal sealed record class VRef(VirtualSubscription Subscription)
+            : SubscriptionOptions;
+
         /// <summary>
         /// Subscription manager ensures that batches of monitored items are
         /// efficiently partitioned across subscriptions.
         /// </summary>
-        internal sealed class VirtualSubscription : SubscriptionOptions,
-            IAsyncDisposable, IEquatable<VirtualSubscription>
+        internal sealed class VirtualSubscription : IAsyncDisposable,
+            IEquatable<VirtualSubscription>
         {
             /// <summary>
             /// Template for subscription
@@ -912,14 +916,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             "{Client}: Force recreate {Subscription} ...", _client, subscription);
                         await subscription.DeleteAsync(true, ct).ConfigureAwait(false);
                         await subscription.DisposeAsync().ConfigureAwait(false);
-                        subscriptions[i] = (OpcUaSubscription)session.Subscriptions.Add(this);
+                        subscriptions[i] = (OpcUaSubscription)session.Subscriptions.Add(
+                            new OptionMonitor<SubscriptionOptions>(new VRef(this)));
                     }
                     if (subscriptions.Count < partitions.Count)
                     {
                         // Grow
                         for (var idx = subscriptions.Count; idx < partitions.Count; idx++)
                         {
-                            var subscription = (OpcUaSubscription)session.Subscriptions.Add(this);
+                            var subscription = (OpcUaSubscription)session.Subscriptions.Add(
+                                new OptionMonitor<SubscriptionOptions>(new VRef(this)));
                             subscriptions.Add(subscription);
                         }
                     }

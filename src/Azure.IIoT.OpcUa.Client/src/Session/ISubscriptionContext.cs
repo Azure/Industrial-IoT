@@ -27,6 +27,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<CallResponse> CallAsync(RequestHeader? requestHeader,
-            CallMethodRequestCollection methodsToCall, CancellationToken ct);
+            CallMethodRequestCollection methodsToCall,
+            CancellationToken ct = default);
     }
 }

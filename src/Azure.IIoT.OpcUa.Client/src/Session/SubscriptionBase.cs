@@ -14,6 +14,7 @@ namespace Opc.Ua.Client
     using System.Linq;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// A managed subscription inside a subscription manager. Can be
@@ -116,13 +117,15 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="session"></param>
         /// <param name="completion"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
         protected SubscriptionBase(ISubscriptionContext session, IMessageAckQueue completion,
-            ILogger logger)
+            IOptionsMonitor<SubscriptionOptions> options, ILogger logger)
         {
             _logger = logger;
             _session = session;
             _completion = completion;
+            _options = options;
             _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
                 new UnboundedPrioritizedChannelOptions<IncomingMessage>
                 {
@@ -150,7 +153,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public MonitoredItem AddMonitoredItem(MonitoredItemOptions? options = null)
+        public MonitoredItem AddMonitoredItem(IOptionsMonitor<MonitoredItemOptions> options)
         {
             var monitoredItem = CreateMonitoredItem(options);
             lock (_cache)
@@ -385,7 +388,8 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        protected abstract MonitoredItem CreateMonitoredItem(MonitoredItemOptions? options);
+        protected abstract MonitoredItem CreateMonitoredItem(
+            IOptionsMonitor<MonitoredItemOptions> options);
 
         /// <summary>
         /// Changes the publishing enabled state for the subscription.
@@ -1325,6 +1329,7 @@ namespace Opc.Ua.Client
         private readonly ILogger _logger;
         private readonly ISubscriptionContext _session;
         private readonly IMessageAckQueue _completion;
+        private readonly IOptionsMonitor<SubscriptionOptions> _options;
         private readonly List<uint> _deletedItems = new();
         private readonly Timer _publishTimer;
         private readonly object _cache = new();

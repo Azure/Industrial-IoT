@@ -35,32 +35,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override (string NodeId, UpdateString Update)? GetDisplayName
                 => Template.FetchDataSetFieldName == true &&
-                    !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId) &&
-                    Template.DataSetFieldName == null ?
-                    (Template.EventFilter.TypeDefinitionId!, v => Template = Template with
+                    !string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId) ?
+                    (Template.EventFilter.TypeDefinitionId!, name =>
                     {
-                        DataSetFieldName = v
-                    }) : null;
+                        if (Template.DataSetFieldName == name)
+                        {
+                            return false;
+                        }
+                        Template = Template with { DataSetFieldName = name };
+                        return true;
+                    }
+
+            ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
                     (NodeId == Template.StartNodeId || string.IsNullOrEmpty(NodeId)) ?
-                    (Template.StartNodeId, Template.RelativePath.ToArray(),
-                        (v, context) => NodeId
-                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
+                    (Template.StartNodeId, Template.RelativePath.ToArray(), (v, context) =>
+                    {
+                        NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
+                        return true;
+                    }
+            ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateRelativePath Update)? GetPath
-                => TheResolvedRelativePath == null &&
-                !string.IsNullOrEmpty(NodeId) ? (NodeId, (path, context) =>
-                {
-                    if (path == null)
+                => TheResolvedRelativePath == null && !string.IsNullOrEmpty(NodeId) ?
+                    (NodeId, (path, context) =>
                     {
-                        NodeId = string.Empty;
+                        if (path == null)
+                        {
+                            NodeId = string.Empty;
+                        }
+                        if (TheResolvedRelativePath?.Equals(path) == true)
+                        {
+                            return false;
+                        }
+                        TheResolvedRelativePath = path;
+                        return true;
                     }
-                    TheResolvedRelativePath = path;
-                }
             ) : null;
 
             /// <inheritdoc/>
@@ -216,12 +230,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 => async ct => Filter = await GetEventFilterAsync(Session, ct).ConfigureAwait(false);
 
             /// <inheritdoc/>
-            public override bool Initialize(out bool metadataChanged)
+            public override bool Initialize()
             {
                 var nodeId = NodeId.ToNodeId(Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
-                    metadataChanged = false;
                     return false;
                 }
                 DisplayName = Template.DisplayName;
@@ -234,7 +247,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 UpdateQueueSize(Subscription, Template);
                 DiscardOldest = !(Template.DiscardNew ?? false);
 
-                return base.Initialize(out metadataChanged);
+                return base.Initialize();
             }
 
             /// <inheritdoc/>

@@ -152,12 +152,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool Initialize(out bool metadataChanged)
+            public override bool Initialize()
             {
                 var nodeId = NodeId.ToNodeId(Session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
-                    metadataChanged = false;
                     return false;
                 }
 
@@ -170,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
 
-                return base.Initialize(out metadataChanged);
+                return base.Initialize();
 
                 static MonitoringFilter GetEventFilter()
                 {

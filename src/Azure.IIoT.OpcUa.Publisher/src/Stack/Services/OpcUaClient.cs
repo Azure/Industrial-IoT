@@ -264,8 +264,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _maxReconnectPeriod = TimeSpan.FromSeconds(30);
             }
-            _reconnectHandler = new SessionReconnectHandler(_observability, true,
-                (int)_maxReconnectPeriod.TotalMilliseconds);
             _cts = new CancellationTokenSource();
             _channel = Channel.CreateUnbounded<(ConnectionEvent, object?)>();
             _disconnectLock = _lock.WriterLock(_cts.Token);
@@ -289,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override string? ToString()
         {
-            return $"{_sessionName} [state:{State}|refs:{_refCount}]";
+            return $"{_session?.ToString() ?? _sessionName} [state:{State}|refs:{_refCount}]";
         }
 
         /// <summary>
@@ -346,7 +344,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _cts.CancelAsync().ConfigureAwait(false);
 
                 await _sessionManager.ConfigureAwait(false);
-                _reconnectHandler.Dispose();
 
                 foreach (var sampler in _samplers.Values)
                 {
@@ -723,224 +720,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async Task ManageSessionStateMachineAsync(CancellationToken ct)
         {
-            var currentSessionState = SessionState.Disconnected;
-
-            var reconnectPeriod = 0;
-            var reconnectTimer = _observability.TimeProvider.CreateTimer(
-                _ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry), null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            var currentSessionState = ClientSessionState.Disconnected;
             try
             {
-                await using (reconnectTimer.ConfigureAwait(false))
+                await foreach (var (trigger, context) in
+                    _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                 {
-                    try
+                    _logger.LogDebug("{Client}: Processing event {Event} in State {State}...",
+                        this, trigger, currentSessionState);
+                    switch (trigger)
                     {
-                        await foreach (var (trigger, context) in
-                            _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
-                        {
-                            _logger.LogDebug("{Client}: Processing event {Event} in State {State}...",
-                                this, trigger, currentSessionState);
-
-                            switch (trigger)
+                        case ConnectionEvent.Reset:
+                            if (currentSessionState != ClientSessionState.Connected)
                             {
-                                case ConnectionEvent.Reset:
-                                    if (currentSessionState != SessionState.Connected)
-                                    {
-                                        (context as TaskCompletionSource)?.TrySetResult();
-                                        break;
-                                    }
-                                    // If currently reconnecting, dispose the reconnect handler
-                                    _reconnectHandler.CancelReconnect();
-                                    //
-                                    // Close bypassing everything but keep channel open then trigger a
-                                    // reconnect. The reconnect will recreate the session and subscriptions
-                                    //
-                                    Debug.Assert(_session != null);
-                                    await _session.CloseAsync(false, default).ConfigureAwait(false);
-                                    goto case ConnectionEvent.StartReconnect;
-                                case ConnectionEvent.Connect:
-                                    if (currentSessionState == SessionState.Disconnected)
-                                    {
-                                        // Start connecting
-                                        reconnectTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                                        currentSessionState = SessionState.Connecting;
-                                        reconnectPeriod = GetMinReconnectPeriod();
-                                    }
-                                    goto case ConnectionEvent.ConnectRetry;
-                                case ConnectionEvent.ConnectRetry:
-                                    switch (currentSessionState)
-                                    {
-                                        case SessionState.Connecting:
-                                            Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
-                                            Debug.Assert(_disconnectLock != null);
-                                            Debug.Assert(_session == null);
-
-                                            if (!await TryConnectAsync(ct).ConfigureAwait(false))
-                                            {
-                                                // Reschedule connecting
-                                                Debug.Assert(reconnectPeriod != 0, "Reconnect period should not be 0.");
-                                                var retryDelay = TimeSpan.FromMilliseconds(
-                                                    _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod));
-                                                _logger.LogInformation("{Client}: Retrying connecting session in {RetryDelay}...",
-                                                    this, retryDelay);
-                                                reconnectTimer.Change(retryDelay, Timeout.InfiniteTimeSpan);
-                                                reconnectPeriod = _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
-                                                break;
-                                            }
-
-                                            Debug.Assert(_session != null);
-                                            // Sync subscriptions
-                                            await SyncAsync(true, ct).ConfigureAwait(false);
-
-                                            // Allow access to session now
-                                            Debug.Assert(_disconnectLock != null);
-                                            _disconnectLock.Dispose();
-                                            _disconnectLock = null;
-
-                                            currentSessionState = SessionState.Connected;
-                                            NotifySubscriptions(_session, false);
-                                            break;
-                                        case SessionState.Disconnected:
-                                        case SessionState.Connected:
-                                            // Nothing to do, already disconnected or connected
-                                            break;
-                                        case SessionState.Reconnecting:
-                                            Debug.Fail("Should not be connecting during reconnecting.");
-                                            break;
-                                    }
-                                    break;
-                                case ConnectionEvent.SubscriptionSyncOne:
-                                    var subscriptionToSync = context as VirtualSubscription;
-                                    Debug.Assert(subscriptionToSync != null);
-                                    await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
-                                    break;
-                                case ConnectionEvent.SubscriptionSyncAll:
-                                    await SyncAsync(false, ct).ConfigureAwait(false);
-                                    break;
-                                case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
-                                    switch (currentSessionState)
-                                    {
-                                        case SessionState.Connected: // only valid when connected.
-                                            Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
-
-                                            // Ensure no more access to the session through reader locks
-                                            Debug.Assert(_disconnectLock == null);
-                                            _disconnectLock = await _lock.WriterLockAsync(ct);
-
-                                            _logger.LogInformation("{Client}: Reconnecting session {Session} due to {Reason}...",
-                                                this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
-                                            Debug.Assert(_session != null);
-                                            var state = _reconnectHandler.BeginReconnect(_session,
-                                                GetMinReconnectPeriod(), (sender, evt) =>
-                                                {
-                                                    if (ReferenceEquals(sender, _reconnectHandler))
-                                                    {
-                                                        TriggerConnectionEvent(ConnectionEvent.ReconnectComplete,
-                                                            _reconnectHandler.Session);
-                                                    }
-                                                });
-
-                                            // Save session while reconnecting.
-                                            Debug.Assert(_reconnectingSession == null);
-                                            _reconnectingSession = _session;
-                                            _session = null;
-                                            NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
-                                            currentSessionState = SessionState.Reconnecting;
-                                            NotifySubscriptions(_reconnectingSession, true);
-                                            (context as TaskCompletionSource)?.TrySetResult();
-                                            break;
-                                        case SessionState.Connecting:
-                                        case SessionState.Disconnected:
-                                        case SessionState.Reconnecting:
-                                            // Nothing to do in this state
-                                            break;
-                                    }
-                                    break;
-
-                                case ConnectionEvent.ReconnectComplete:
-                                    // if session recovered, Session property is not null
-                                    var reconnected = _reconnectHandler.Session as OpcUaSession;
-                                    switch (currentSessionState)
-                                    {
-                                        case SessionState.Reconnecting:
-                                            //
-                                            // Behavior of the reconnect handler is as follows:
-                                            // 1) newSession == null
-                                            //  => then the old session is still good, we missed keep alive.
-                                            // 2) newSession != null but equal to previous session
-                                            //  => new channel was opened but the existing session was reactivated
-                                            // 3) newSession != previous Session
-                                            //  => everything reconnected and new session was activated.
-                                            //
-                                            reconnected ??= _reconnectingSession;
-
-                                            Debug.Assert(reconnected != null, "reconnected should never be null");
-                                            Debug.Assert(reconnected.Connected, "reconnected should always be connected");
-
-                                            // Handles all 3 cases above.
-                                            var isNew = await UpdateSessionAsync(reconnected).ConfigureAwait(false);
-
-                                            Debug.Assert(_session != null);
-                                            Debug.Assert(_reconnectingSession == null);
-                                            if (!isNew)
-                                            {
-                                                // Case 1) and 2)
-                                                _logger.LogInformation("{Client}: Client RECOVERED!", this);
-                                            }
-                                            else
-                                            {
-                                                // Case 3)
-                                                _logger.LogInformation("{Client}: Client RECONNECTED!", this);
-                                                ReconnectCount++;
-                                            }
-
-                                            // If not already ready, signal we are ready again and ...
-                                            NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
-                                            // ... allow access to the client again
-                                            Debug.Assert(_disconnectLock != null);
-                                            _disconnectLock.Dispose();
-                                            _disconnectLock = null;
-
-                                            await SyncAsync(isNew, ct).ConfigureAwait(false);
-
-                                            _reconnectRequired = 0;
-                                            reconnectPeriod = GetMinReconnectPeriod();
-                                            currentSessionState = SessionState.Connected;
-                                            NotifySubscriptions(_session, false);
-                                            break;
-
-                                        case SessionState.Connected:
-                                            Debug.Fail("Should not signal reconnected when already connected.");
-                                            break;
-                                        case SessionState.Connecting:
-                                        case SessionState.Disconnected:
-                                            Debug.Assert(_reconnectingSession == null);
-                                            reconnected?.Dispose();
-                                            break;
-                                    }
-                                    break;
-                                case ConnectionEvent.Disconnect:
-                                    if (currentSessionState != SessionState.Disconnected)
-                                    {
-                                        await HandleDisconnectEvent(ct).ConfigureAwait(false);
-                                        currentSessionState = SessionState.Disconnected;
-                                    }
-                                    break;
+                                (context as TaskCompletionSource)?.TrySetResult();
+                                break;
                             }
+                            // TODO: Add reset api to session
+                            goto case ConnectionEvent.Connect;
+                        case ConnectionEvent.Connect:
+                            // Called when the client first ref is added
+                            if (currentSessionState == ClientSessionState.Disconnected)
+                            {
+                                while (!await TryConnectAsync(ct).ConfigureAwait(false))
+                                {
+                                    await Task.Delay(1000, ct).ConfigureAwait(false);
+                                }
+                                await HandleConnectedEventAsync(ct).ConfigureAwait(false);
+                                (context as TaskCompletionSource)?.TrySetResult();
+                            }
+                            break;
+                        case ConnectionEvent.Connected:
+                            await HandleConnectedEventAsync(ct).ConfigureAwait(false);
+                            break;
+                        case ConnectionEvent.Disconnected:
+                        case ConnectionEvent.Reconnecting:
+                            await HandleDisconnectedEvent(ct).ConfigureAwait(false);
+                            break;
 
-                            _logger.LogDebug("{Client}: Event {Event} in State {State} processed.", trigger,
-                                this, currentSessionState);
-                        }
+                        case ConnectionEvent.SubscriptionSyncOne:
+                            var subscriptionToSync = context as VirtualSubscription;
+                            Debug.Assert(subscriptionToSync != null);
+                            await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
+                            break;
+                        case ConnectionEvent.SubscriptionSyncAll:
+                            await SyncAsync(false, ct).ConfigureAwait(false);
+                            break;
+
+                        case ConnectionEvent.Disconnect:
+                            // Called when the client last ref is released
+                            if (currentSessionState != ClientSessionState.Disconnected)
+                            {
+                                await HandleDisconnectedEvent(ct).ConfigureAwait(false);
+                                await CloseSessionAsync().ConfigureAwait(false);
+                                Debug.Assert(_session == null);
+                            }
+                            break;
                     }
-                    catch (OperationCanceledException) { }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "{Client}: Connection manager exited unexpectedly...", this);
-                    }
-                    finally
-                    {
-                        _reconnectHandler.CancelReconnect();
-                    }
+                    _logger.LogDebug("{Client}: Event {Event} in State {State} processed.", trigger,
+                        this, currentSessionState);
                 }
             }
             catch (OperationCanceledException) { }
@@ -951,31 +789,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             finally
             {
-                if (currentSessionState != SessionState.Disconnected)
+                if (currentSessionState != ClientSessionState.Disconnected)
                 {
                     _logger.LogInformation(
                         "{Client}: Disconnect because client is disposed.", this);
-                    await HandleDisconnectEvent(default).ConfigureAwait(false);
-                    currentSessionState = SessionState.Disconnected;
+                    await HandleDisconnectedEvent(default).ConfigureAwait(false);
                 }
                 _logger.LogInformation("{Client}: Exiting client management loop.", this);
             }
 
-            async ValueTask HandleDisconnectEvent(CancellationToken cancellationToken)
+            async ValueTask HandleConnectedEventAsync(CancellationToken ct)
             {
-                // If currently reconnecting, dispose the reconnect handler and stop timer
-                _reconnectHandler.CancelReconnect();
-                reconnectTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                Debug.Assert(_session != null);
+                await UpdateSessionAsync(_session).ConfigureAwait(false);
+                // Sync subscriptions
+                await SyncAsync(true, ct).ConfigureAwait(false);
 
+                // Allow access to session now
+                _disconnectLock?.Dispose();
+                _disconnectLock = null;
+
+                currentSessionState = ClientSessionState.Connected;
+                NotifySubscriptions(_session, false);
+            }
+
+            async ValueTask HandleDisconnectedEvent(CancellationToken ct)
+            {
                 // if not already disconnected, aquire writer lock
-                _disconnectLock ??= await _lock.WriterLockAsync(cancellationToken);
-                reconnectPeriod = 0;
+                _disconnectLock ??= await _lock.WriterLockAsync(ct);
 
                 NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+                currentSessionState = ClientSessionState.Disconnected;
                 NotifySubscriptions(_session, true);
-
-                await CloseSessionAsync().ConfigureAwait(false);
-                Debug.Assert(_session == null);
             }
 
             void NotifySubscriptions(OpcUaSession? session, bool disconnected)
@@ -991,20 +836,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         h.NotifySessionConnectionState(disconnected);
                     }
                 }
-            }
-
-            int GetMinReconnectPeriod()
-            {
-                var reconnectPeriod = MinReconnectDelay ?? TimeSpan.Zero;
-                if (reconnectPeriod == TimeSpan.Zero)
-                {
-                    reconnectPeriod = TimeSpan.FromSeconds(1);
-                }
-                if (reconnectPeriod > _maxReconnectPeriod)
-                {
-                    reconnectPeriod = _maxReconnectPeriod;
-                }
-                return (int)reconnectPeriod.TotalMilliseconds;
             }
         }
 
@@ -1167,10 +998,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             preferredLocales.Add(CultureInfo.CurrentCulture.Name);
                         }
                     }
+
+                    var keepAliveInterval = KeepAliveInterval ?? kDefaultKeepAliveInterval;
+                    if (keepAliveInterval <= TimeSpan.Zero)
+                    {
+                        keepAliveInterval = kDefaultKeepAliveInterval;
+                    }
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var session = new OpcUaSession(this, _serializer, _configuration,
                         endpoint, new SessionOptions
                         {
+                            DisableComplexTypeLoading = DisableComplexTypeLoading,
+                            DisableComplexTypePreloading = DisableComplexTypePreloading,
+                            KeepAliveInterval = keepAliveInterval,
                             SessionName = _sessionName,
                             Connection = connection,
                             SessionTimeout = SessionTimeout,
@@ -1181,14 +1021,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     try
                     {
-                        await session.OpenAsync(null, ct).ConfigureAwait(false);
+                        await session.OpenAsync(ct).ConfigureAwait(false);
 
                         // Assign the createdSubscriptions session
                         var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
                         Debug.Assert(isNew);
                         _logger.LogInformation(
-                            "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
-                            this, _sessionName, endpointUrl, _connection.Endpoint.Url);
+                            "{Client}: Session created with endpoint {EndpointUrl} ({Original}).",
+                            this, endpointUrl, _connection.Endpoint.Url);
 
                         _logger.LogInformation("{Client} Client CONNECTED to {EndpointUrl}!",
                             this, endpointUrl);
@@ -1213,61 +1053,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Handles a keep alive event from a session and triggers a reconnect
-        /// if necessary.
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="serviceResult"></param>
-        internal void Session_KeepAlive(OpcUaSession session, ServiceResult serviceResult)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-            try
-            {
-                // check for events from discarded sessions.
-                if (!ReferenceEquals(session, _session))
-                {
-                    return;
-                }
-                // start reconnect sequence on communication error.
-                Interlocked.Increment(ref _keepAliveCounter);
-                if (ServiceResult.IsBad(serviceResult))
-                {
-                    _keepAliveCounter = 0;
-                    TriggerReconnect(serviceResult, "Keep alive");
-                }
-                else if (SubscriptionCount > 0 && GoodPublishRequestCount == 0)
-                {
-                    UpdatePublishRequestCounts();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "{Client}: Error in OnKeepAlive.", this);
-            }
-        }
-
-        /// <summary>
-        /// Trigger reconnect
-        /// </summary>
-        /// <param name="sr"></param>
-        /// <param name="action"></param>
-        private void TriggerReconnect(ServiceResult sr, string action)
-        {
-            if (Interlocked.Increment(ref _reconnectRequired) == 1)
-            {
-                _logger.LogError(
-                    "{Client}: Error {Error} during {Action} - triggering reconnect...",
-                    this, sr, action);
-
-                // Ensure we reconnect
-                TriggerConnectionEvent(ConnectionEvent.StartReconnect, sr);
-            }
-        }
-
-        /// <summary>
         /// Trigger connection event
         /// </summary>
         /// <param name="evt"></param>
@@ -1281,18 +1066,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Update session state
         /// </summary>
         /// <param name="session"></param>
-        private async ValueTask<bool> UpdateSessionAsync(SessionBase session)
+        private async ValueTask<bool> UpdateSessionAsync(Session session)
         {
             _publishTimeoutCounter = 0;
             Debug.Assert(session is OpcUaSession);
 
-            if (_session == null)
-            {
-                _session = _reconnectingSession;
-                _reconnectingSession = null;
-            }
-
-            Debug.Assert(_reconnectingSession == null);
             var isNewSession = false;
             if (!ReferenceEquals(_session, session))
             {
@@ -1460,12 +1238,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async ValueTask CloseSessionAsync(bool shutdown = false)
         {
-            if (_reconnectingSession != null)
-            {
-                await DisposeAsync(_reconnectingSession).ConfigureAwait(false);
-                _reconnectingSession = null;
-            }
-
             if (_session != null)
             {
                 await DisposeAsync(_session).ConfigureAwait(false);
@@ -1478,12 +1250,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    if (shutdown)
-                    {
-                        // When shutting down, delete all subscriptions
-                        session.DeleteSubscriptionsOnClose = true;
-                    }
-                    await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
+                    await session.CloseAsync(true, shutdown,
+                        CancellationToken.None).ConfigureAwait(false);
 
                     _logger.LogDebug("{Client}: Successfully closed session {Session}.",
                         this, session);
@@ -1507,7 +1275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="state"></param>
         /// <returns></returns>
-        private void NotifyConnectivityStateChange(EndpointConnectivityState state)
+        internal void NotifyConnectivityStateChange(EndpointConnectivityState state)
         {
             var previous = State;
             if (previous == state)
@@ -1841,21 +1609,20 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private enum ConnectionEvent
         {
             Connect,
-            ConnectRetry,
+            Connected,
+            Reconnecting,
             Disconnect,
-            StartReconnect,
-            ReconnectComplete,
+            Disconnected,
             Reset,
             SubscriptionSyncOne,
             SubscriptionSyncAll
         }
 
-        private enum SessionState
+        private enum ClientSessionState
         {
             Disconnected,
             Connecting,
-            Connected,
-            Reconnecting
+            Connected
         }
 
         /// <summary>
@@ -1897,9 +1664,6 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             _meter.CreateObservableGauge("iiot_edge_publisher_client_connectivity_state",
                 () => new Measurement<int>((int)State, _metrics.TagList),
                 description: "Client connectivity state.");
-            _meter.CreateObservableGauge("iiot_edge_publisher_client_keep_alive_counter",
-                () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
-                description: "Number of successful keep alives since last keep alive error.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_namespace_change_count",
                 () => new Measurement<int>(_session?.NamespaceTableChanges ?? 0, _metrics.TagList),
                 description: "Number of namespace table changes detected by the client.");
@@ -1941,8 +1705,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private static readonly UpDownCounter<int> kSessions = Diagnostics.Meter.CreateUpDownCounter<int>(
             "iiot_edge_publisher_session_count", description: "Number of active sessions.");
 
-        private OpcUaSession? _reconnectingSession;
-        private int _reconnectRequired;
+        private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private OpcUaSession? _session;
         private IDisposable? _disconnectLock;
@@ -1950,7 +1713,6 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private bool _disposed;
         private int _refCount;
         private int _publishTimeoutCounter;
-        private int _keepAliveCounter;
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
@@ -1966,7 +1728,6 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ITimer _channelMonitor;
         private readonly Task? _diagnosticsDumper;
-        private readonly SessionReconnectHandler _reconnectHandler;
         private readonly CancellationTokenSource _cts;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Task _sessionManager;

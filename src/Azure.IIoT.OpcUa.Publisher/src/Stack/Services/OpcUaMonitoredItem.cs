@@ -24,14 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Update display name
     /// </summary>
     /// <param name="displayName"></param>
-    public delegate void UpdateString(string displayName);
+    public delegate bool UpdateString(string displayName);
 
     /// <summary>
     /// Update node id
     /// </summary>
     /// <param name="nodeId"></param>
     /// <param name="messageContext"></param>
-    public delegate void UpdateNodeId(NodeId nodeId,
+    public delegate bool UpdateNodeId(NodeId nodeId,
         IServiceMessageContext messageContext);
 
     /// <summary>
@@ -39,13 +39,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     /// <param name="path"></param>
     /// <param name="messageContext"></param>
-    public delegate void UpdateRelativePath(RelativePath path,
+    public delegate bool UpdateRelativePath(RelativePath path,
         IServiceMessageContext messageContext);
 
     /// <summary>
     /// Monitored item
     /// </summary>
-    internal abstract partial class OpcUaMonitoredItem : MonitoredItem, IDisposable
+    internal abstract partial class OpcUaMonitoredItem : MonitoredItem,
+        IDisposable
     {
         /// <summary>
         /// Assigned monitored item id on server
@@ -81,6 +82,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Event name
         /// </summary>
         public virtual string? EventTypeName { get; }
+
+        /// <summary>
+        /// Session
+        /// </summary>
         public IOpcUaSession Session { get; }
 
         /// <summary>
@@ -148,7 +153,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="timeProvider"></param>
         protected OpcUaMonitoredItem(IManagedSubscription subscription,
             ISubscriber owner, ILogger logger, IOpcUaSession session,
-            string nodeId, TimeProvider timeProvider) : base(subscription, logger)
+            string nodeId, TimeProvider timeProvider) :
+            base(subscription,
+                new OptionMonitor<MonitoredItemOptions>(new OpcUaSubscription.Precreated()), // TODO
+                logger)
         {
             Session = session;
             Owner = owner;
@@ -267,20 +275,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Add the item to the subscription
         /// </summary>
-        /// <param name="metadataChanged"></param>
         /// <returns></returns>
-        public virtual bool Initialize(out bool metadataChanged)
+        public virtual bool Initialize()
         {
             if (!Disposed)
             {
-                Subscription.AddMonitoredItem(new OpcUaSubscription.Precreated(this));
+                Subscription.AddMonitoredItem(new OptionMonitor<MonitoredItemOptions>(
+                    new OpcUaSubscription.Precreated(this)));
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription {Subscription}.",
                     this, Subscription);
-                metadataChanged = true;
                 return true;
             }
-            metadataChanged = false;
             return false;
         }
 

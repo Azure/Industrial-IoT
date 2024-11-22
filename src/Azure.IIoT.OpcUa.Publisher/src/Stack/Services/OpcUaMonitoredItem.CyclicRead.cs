@@ -11,10 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Runtime.Serialization;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     internal abstract partial class OpcUaMonitoredItem
     {

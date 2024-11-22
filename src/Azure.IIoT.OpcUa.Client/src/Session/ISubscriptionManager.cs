@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Client
 {
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System.Collections.Generic;
 
@@ -78,7 +79,7 @@ namespace Opc.Ua.Client
         /// <param name="options"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        ISubscription Add(SubscriptionOptions? options);
+        ISubscription Add(IOptionsMonitor<SubscriptionOptions> options);
 
         /// <summary>
         /// Update subscriptions

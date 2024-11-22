@@ -8,7 +8,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Monitored item options base
     /// </summary>
-    public class MonitoredItemOptions
+    public record class MonitoredItemOptions
     {
     }
 }

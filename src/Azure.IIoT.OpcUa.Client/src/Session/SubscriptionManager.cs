@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client
 {
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -73,6 +74,34 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public int PublishWorkerCount { get; private set; }
+
+        /// <summary>
+        /// Created items
+        /// </summary>
+        internal List<IManagedSubscription> Created
+        {
+            get
+            {
+                lock (_subscriptionLock)
+                {
+                    return _subscriptions.Where(s => s.Created).ToList();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Number of created items
+        /// </summary>
+        public int CreatedCount
+        {
+            get
+            {
+                lock (_subscriptionLock)
+                {
+                    return _subscriptions.Count(s => s.Created);
+                }
+            }
+        }
 
         /// <summary>
         /// Create subscription manager
@@ -164,7 +193,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public ISubscription Add(SubscriptionOptions? options)
+        public ISubscription Add(IOptionsMonitor<SubscriptionOptions> options)
         {
             var subscription = _session.CreateSubscription(options, this);
             lock (_subscriptionLock)
@@ -392,7 +421,7 @@ namespace Opc.Ua.Client
 
             int GetDesiredPublishWorkerCount()
             {
-                var publishCount = Count;
+                var publishCount = CreatedCount;
                 if (publishCount != 0)
                 {
                     //
@@ -559,9 +588,11 @@ namespace Opc.Ua.Client
                             // Do not delete publish requests of stale subscriptions
                             _logger.LogInformation(
                                 "PUBLISH Worker #{Handle}-{Id} - Received Publish Response " +
-                                "for Unknown SubscriptionId={SubscriptionId}. Ignored.",
+                                "for Unknown SubscriptionId={SubscriptionId}. Deleting...",
                                 Index, handle, subscriptionId);
                             Interlocked.Increment(ref _outer._badPublishRequestCount);
+                            await _outer._session.DeleteSubscriptionsAsync(null,
+                                new UInt32Collection { subscriptionId }, ct).ConfigureAwait(false);
                             moreNotifications = true;
                         }
                     }
@@ -730,60 +761,58 @@ namespace Opc.Ua.Client
             /// <returns>Max time to throttle the publish</returns>
             private int CalculateTimeouts(long latency, ref uint currentTimeout)
             {
-                lock (_outer._subscriptionLock)
+                var created = _outer.Created;
+                if (created.Count == 0)
                 {
-                    if (_outer._subscriptions.Count == 0)
-                    {
-                        return 0;
-                    }
-
-                    var timeout = TimeSpan.Zero;
-                    var minPublishInterval = Timeout.Infinite;
-                    foreach (var s in _outer._subscriptions)
-                    {
-                        var publishingInterval = s.CurrentPublishingInterval;
-                        var keepAlive = publishingInterval * s.CurrentKeepAliveCount;
-                        if (timeout < keepAlive)
-                        {
-                            timeout = keepAlive;
-                        }
-
-                        var pi = (int)publishingInterval.TotalMilliseconds;
-                        if (pi <= 0)
-                        {
-                            continue;
-                        }
-                        if (minPublishInterval > pi ||
-                            minPublishInterval == Timeout.Infinite)
-                        {
-                            minPublishInterval = pi;
-                        }
-                    }
-                    //
-                    // The timeout while publishing should be twice the
-                    // value for PublishingInterval * KeepAliveCount
-                    // TODO: Validate this against spec
-                    //
-                    timeout *= 2;
-                    if (timeout < kMinOperationTimeout)
-                    {
-                        timeout = kMinOperationTimeout;
-                    }
-                    if (timeout > kMaxOperationTimeout)
-                    {
-                        timeout = kMaxOperationTimeout;
-                    }
-                    var newTimeout = (uint)timeout.TotalMilliseconds;
-                    if (newTimeout > currentTimeout)
-                    {
-                        currentTimeout = newTimeout;
-                    }
-                    if (minPublishInterval < latency)
-                    {
-                        return 0;
-                    }
-                    return minPublishInterval - (int)latency;
+                    return 0;
                 }
+
+                var timeout = TimeSpan.Zero;
+                var minPublishInterval = Timeout.Infinite;
+                foreach (var s in created)
+                {
+                    var publishingInterval = s.CurrentPublishingInterval;
+                    var keepAlive = publishingInterval * s.CurrentKeepAliveCount;
+                    if (timeout < keepAlive)
+                    {
+                        timeout = keepAlive;
+                    }
+
+                    var pi = (int)publishingInterval.TotalMilliseconds;
+                    if (pi <= 0)
+                    {
+                        continue;
+                    }
+                    if (minPublishInterval > pi ||
+                        minPublishInterval == Timeout.Infinite)
+                    {
+                        minPublishInterval = pi;
+                    }
+                }
+                //
+                // The timeout while publishing should be twice the
+                // value for PublishingInterval * KeepAliveCount
+                // TODO: Validate this against spec
+                //
+                timeout *= 2;
+                if (timeout < kMinOperationTimeout)
+                {
+                    timeout = kMinOperationTimeout;
+                }
+                if (timeout > kMaxOperationTimeout)
+                {
+                    timeout = kMaxOperationTimeout;
+                }
+                var newTimeout = (uint)timeout.TotalMilliseconds;
+                if (newTimeout > currentTimeout)
+                {
+                    currentTimeout = newTimeout;
+                }
+                if (minPublishInterval < latency)
+                {
+                    return 0;
+                }
+                return minPublishInterval - (int)latency;
             }
 
             private readonly ILogger _logger;

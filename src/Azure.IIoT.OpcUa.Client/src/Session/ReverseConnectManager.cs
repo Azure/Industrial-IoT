@@ -91,7 +91,8 @@ namespace Opc.Ua.Client
         /// Starts the server application.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configuration"/> is <c>null</c>.</exception>
         /// <exception cref="ServiceResultException"></exception>
         public void StartService(ReverseConnectClientConfiguration configuration)
         {

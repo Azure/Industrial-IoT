@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
@@ -31,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [DataContract(Namespace = OpcUaClient.Namespace)]
         [KnownType(typeof(OpcUaSubscription))]
         [KnownType(typeof(OpcUaMonitoredItem))]
-        internal sealed class OpcUaSession : SessionBase, IOpcUaSession, INoThrowServices
+        internal sealed class OpcUaSession : Session, IOpcUaSession, INoThrowServices
         {
             /// <inheritdoc/>
             public IVariantEncoder Codec { get; }
@@ -62,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
                 SessionOptions options, IObservability observability,
                 ReverseConnectManager? reverseConnectManager = null) : base(configuration,
-                    endpoint, options, observability, reverseConnectManager)
+                    endpoint, OptionMonitor.Create(options), observability, reverseConnectManager)
             {
                 _logger = observability.LoggerFactory.CreateLogger<OpcUaSession>();
                 _client = client;
@@ -72,24 +73,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override void OnKeepAlive(ServiceResult serviceResult,
-                ServerState serverState, DateTime currentTime)
-            {
-                _client.Session_KeepAlive(this, serviceResult);
-                base.OnKeepAlive(serviceResult, serverState, currentTime);
-            }
-
-            /// <inheritdoc/>
             public override IManagedSubscription CreateSubscription(
-                SubscriptionOptions? options, IMessageAckQueue queue)
+                IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
             {
-                if (options is not VirtualSubscription subscription)
+                if (options.CurrentValue is not VRef vref)
                 {
                     throw new ArgumentException("Invalid subscription options");
                 }
-                return new OpcUaSubscription(_client, this, subscription,
+                return new OpcUaSubscription(_client, this, vref.Subscription,
                     _client._subscriptionOptions, Observability, new OpcUaClientTagList(
                         _client._connection, _client._metrics));
+            }
+
+            /// <inheritdoc/>
+            protected override void OnStateChange(SessionState state, ServiceResult serviceResult)
+            {
+                switch (state)
+                {
+                    case SessionState.FailedRetrying:
+                        _client.TriggerConnectionEvent(ConnectionEvent.Reset);
+                        _client.NotifyConnectivityStateChange(_client.ToConnectivityState(
+                            new ServiceResultException(serviceResult)));
+                        break;
+                    case SessionState.Connecting:
+                        _client.NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
+                        break;
+                    case SessionState.Connected:
+                        _client.TriggerConnectionEvent(ConnectionEvent.Connected);
+                        _client.NotifyConnectivityStateChange(EndpointConnectivityState.Ready);
+                        break;
+                    case SessionState.Disconnected:
+                        _client.TriggerConnectionEvent(ConnectionEvent.Disconnected);
+                        _client.NotifyConnectivityStateChange(EndpointConnectivityState.NotReachable);
+                        break;
+                    case SessionState.Closed:
+                        _client.TriggerConnectionEvent(ConnectionEvent.Disconnected);
+                        _client.NotifyConnectivityStateChange(EndpointConnectivityState.Disconnected);
+                        break;
+                    case SessionState.ConnectError:
+                        _client.NotifyConnectivityStateChange(_client.ToConnectivityState(
+                            new ServiceResultException(serviceResult)));
+                        break;
+                }
+                base.OnStateChange(state, serviceResult);
             }
 
             /// <inheritdoc/>
@@ -529,25 +555,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Subscriptions.TransferSubscriptionsOnRecreate
                     = !_client.DisableTransferSubscriptionOnReconnect;
-                DeleteSubscriptionsOnClose =
-                    !Subscriptions.TransferSubscriptionsOnRecreate;
 
-                DisableComplexTypeLoading = _client.DisableComplexTypeLoading;
-                DisableComplexTypePreloading = _client.DisableComplexTypePreloading;
-
-                var keepAliveInterval =
-                    _client.KeepAliveInterval ?? kDefaultKeepAliveInterval;
-                if (keepAliveInterval <= TimeSpan.Zero)
-                {
-                    keepAliveInterval = kDefaultKeepAliveInterval;
-                }
                 var operationTimeout = _client.OperationTimeout ?? kDefaultOperationTimeout;
                 if (operationTimeout <= TimeSpan.Zero)
                 {
                     operationTimeout = kDefaultOperationTimeout;
                 }
 
-                KeepAliveInterval = keepAliveInterval;
                 OperationTimeout = operationTimeout;
             }
 
@@ -1099,7 +1113,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly OpcUaClient _client;
             private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
             private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
-            private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
         }
     }
 }
