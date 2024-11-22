@@ -8,6 +8,7 @@ namespace Opc.Ua.Client
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -37,7 +38,7 @@ namespace Opc.Ua.Client
         public DiagnosticsMasks ReturnDiagnostics { get; set; }
 
         /// <inheritdoc/>
-        public int MinPublishWorkerCount { get; set; } = 1;
+        public int MinPublishWorkerCount { get; set; } = 2;
 
         /// <inheritdoc/>
         public int MaxPublishWorkerCount { get; set; } = 15;
@@ -74,6 +75,9 @@ namespace Opc.Ua.Client
 
         /// <inheritdoc/>
         public int PublishWorkerCount { get; private set; }
+
+        /// <inheritdoc/>
+        internal int PublishControlCycles { get; set; }
 
         /// <summary>
         /// Created items
@@ -132,6 +136,7 @@ namespace Opc.Ua.Client
             {
                 _cts.Cancel();
                 _publishControl.Set();
+                await _publishController.ConfigureAwait(false);
 
                 List<IManagedSubscription>? subscriptions = null;
                 lock (_subscriptionLock)
@@ -139,13 +144,12 @@ namespace Opc.Ua.Client
                     subscriptions = new List<IManagedSubscription>(_subscriptions);
                     _subscriptions.Clear();
                 }
-
                 foreach (var subscription in subscriptions)
                 {
                     await subscription.DisposeAsync().ConfigureAwait(false);
                 }
                 subscriptions.Clear();
-                await _publishController.ConfigureAwait(false);
+                _subscriptionHistory.Clear();
             }
             catch (Exception ex)
             {
@@ -186,6 +190,11 @@ namespace Opc.Ua.Client
                 {
                     return ValueTask.CompletedTask;
                 }
+                _subscriptionHistory.Enqueue(subscriptionId);
+            }
+            while (_subscriptionHistory.Count > kMaxSubscriptionHistory)
+            {
+                _subscriptionHistory.TryDequeue(out _);
             }
             _logger.LogInformation("{Subscription} REMOVED.", subscription);
             Update();
@@ -373,7 +382,8 @@ namespace Opc.Ua.Client
                     {
                         // Not enough workers increase
                         publishWorkers.AddRange(Enumerable
-                            .Range(publishWorkers.Count, desiredWorkerCount)
+                            .Range(publishWorkers.Count,
+                                desiredWorkerCount - publishWorkers.Count)
                             .Select(index => new PublishWorker(this, index)));
                     }
                     PublishWorkerCount = publishWorkers.Count;
@@ -382,6 +392,7 @@ namespace Opc.Ua.Client
                         .Prepend(_publishControl.WaitAsync(ct))
                         .ToArray();
                     await Task.WhenAny(waiting).ConfigureAwait(false);
+                    PublishControlCycles++;
                     var index = 0;
                     foreach (var item in waiting.Skip(1)) // Skip wait handle
                     {
@@ -416,6 +427,7 @@ namespace Opc.Ua.Client
                 foreach (var worker in publishWorkers)
                 {
                     await worker.DisposeAsync().ConfigureAwait(false);
+                    PublishWorkerCount--;
                 }
             }
 
@@ -582,9 +594,10 @@ namespace Opc.Ua.Client
                                 response.ResponseHeader.StringTable).ConfigureAwait(false);
                             Interlocked.Increment(ref _outer._goodPublishRequestCount);
                         }
-                        else
+                        else if (!ct.IsCancellationRequested &&
+                            !_outer._subscriptionHistory.Contains(subscriptionId))
                         {
-                            // ignore messages with a subscription that has been deleted.
+                            // ignore messages with a subscription that was deleted
                             // Do not delete publish requests of stale subscriptions
                             _logger.LogInformation(
                                 "PUBLISH Worker #{Handle}-{Id} - Received Publish Response " +
@@ -822,6 +835,7 @@ namespace Opc.Ua.Client
 
         private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);
         private static readonly TimeSpan kMinOperationTimeout = TimeSpan.FromSeconds(1);
+        private const int kMaxSubscriptionHistory = 10;
         private long _publishCounter;
 #pragma warning disable IDE0032 // Use auto property
         private int _goodPublishRequestCount;
@@ -830,6 +844,7 @@ namespace Opc.Ua.Client
         private readonly Channel<SubscriptionAcknowledgement> _acks;
         private readonly Nito.AsyncEx.AsyncManualResetEvent _running = new();
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _publishControl = new();
+        private readonly ConcurrentQueue<uint> _subscriptionHistory = new();
         private readonly Task _publishController;
         private readonly object _subscriptionLock = new();
         private readonly HashSet<IManagedSubscription> _subscriptions = new();
