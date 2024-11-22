@@ -487,8 +487,8 @@ namespace Opc.Ua.Client
             public PublishWorker(SubscriptionManager outer, int index)
             {
                 Index = index;
-                _cts = new CancellationTokenSource();
                 _outer = outer;
+                _cts = CancellationTokenSource.CreateLinkedTokenSource(outer._cts.Token);
                 _logger = _outer._loggerFactory.CreateLogger<PublishWorker>();
                 Task = PublishWorkerAsync(_cts.Token);
             }

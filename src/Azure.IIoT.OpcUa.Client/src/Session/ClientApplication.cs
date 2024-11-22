@@ -125,8 +125,7 @@ namespace Opc.Ua.Client
             public override IManagedSubscription CreateSubscription(
                 IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
             {
-                return new ClientSubscription(this, queue, options,
-                    LoggerFactory.CreateLogger<ClientSubscription>());
+                return new ClientSubscription(this, queue, options, Application);
             }
         }
 
@@ -135,8 +134,8 @@ namespace Opc.Ua.Client
         {
             /// <inheritdoc/>
             public ClientSubscription(ClientSession session, IMessageAckQueue completion,
-                IOptionsMonitor<SubscriptionOptions> options, ILogger logger) :
-                base(session, completion, options, logger)
+                IOptionsMonitor<SubscriptionOptions> options, IObservability observability) :
+                base(session, completion, options, observability)
             {
                 _session = session;
             }

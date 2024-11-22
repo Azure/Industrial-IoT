@@ -9,27 +9,27 @@ namespace Opc.Ua.Client
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
 
     /// <summary>
     /// A managed subscription inside a subscription manager. Can be
     /// extended to provide custom subscription implementations on
     /// top to route the received data appropriately per application.
+    /// The subscription itself is based on top of the message processor
+    /// implementation that routes messages to subscribers, but adds
+    /// state management of the subscription on the server using the
+    /// subscription and monitored item service set provided as context.
     /// </summary>
-    public abstract class SubscriptionBase : IManagedSubscription
+    public abstract class SubscriptionBase : MessageProcessor,
+        IManagedSubscription
     {
         /// <summary>
         /// The minimum lifetime for subscriptions
         /// </summary>
         public TimeSpan MinLifetimeInterval { get; set; }
-
-        /// <inheritdoc/>
-        public uint Id { get; private set; }
 
         /// <inheritdoc/>
         public TimeSpan PublishingInterval { get; set; }
@@ -101,14 +101,15 @@ namespace Opc.Ua.Client
         {
             get
             {
-                var timeSinceLastNotification =
-                    HiResClock.TickCount - _lastNotificationTickCount;
-                if (timeSinceLastNotification >
-                    _keepAliveInterval + kKeepAliveTimerMargin)
+                var lastNotificationTimestamp = _lastNotificationTimestamp;
+                if (lastNotificationTimestamp == 0)
                 {
-                    return true;
+                    return false;
                 }
-                return false;
+                var timeSinceLastNotification = Observability.TimeProvider
+                    .GetElapsedTime(lastNotificationTimestamp);
+                return timeSinceLastNotification >
+                    _keepAliveInterval + kKeepAliveTimerMargin;
             }
         }
 
@@ -118,28 +119,14 @@ namespace Opc.Ua.Client
         /// <param name="session"></param>
         /// <param name="completion"></param>
         /// <param name="options"></param>
-        /// <param name="logger"></param>
-        protected SubscriptionBase(ISubscriptionContext session, IMessageAckQueue completion,
-            IOptionsMonitor<SubscriptionOptions> options, ILogger logger)
+        /// <param name="observability"></param>
+        protected SubscriptionBase(ISubscriptionContext session,
+            IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
+            IObservability observability) : base(session, completion, observability)
         {
-            _logger = logger;
-            _session = session;
-            _completion = completion;
             _options = options;
-            _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
-                new UnboundedPrioritizedChannelOptions<IncomingMessage>
-                {
-                    SingleReader = true
-                });
-            _publishTimer = new Timer(OnKeepAlive);
-            _messageWorkerTask = ProcessMessagesAsync(_cts.Token);
-        }
-
-        /// <inheritdoc/>
-        public ValueTask DisposeAsync()
-        {
-            GC.SuppressFinalize(this);
-            return DisposeAsync(true);
+            _publishTimer = Observability.TimeProvider.CreateTimer(OnKeepAlive,
+                null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
         /// <inheritdoc/>
@@ -337,7 +324,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async ValueTask OnPublishReceivedAsync(NotificationMessage message,
+        public override ValueTask OnPublishReceivedAsync(NotificationMessage message,
             IReadOnlyList<uint>? availableSequenceNumbers,
             IReadOnlyList<string> stringTable)
         {
@@ -350,37 +337,21 @@ namespace Opc.Ua.Client
             {
                 OnPublishStateChanged(PublishState.Recovered);
             }
-
-            if (availableSequenceNumbers != null)
-            {
-                _availableInRetransmissionQueue = availableSequenceNumbers;
-            }
-            _lastNotificationTickCount = HiResClock.TickCount;
-            await _messages.Writer.WriteAsync(new IncomingMessage(
-                message, stringTable, DateTime.UtcNow)).ConfigureAwait(false);
+            return base.OnPublishReceivedAsync(message, availableSequenceNumbers,
+                stringTable);
         }
 
         /// <summary>
         /// Dispose subscription
         /// </summary>
         /// <param name="disposing"></param>
-        protected virtual async ValueTask DisposeAsync(bool disposing)
+        protected override ValueTask DisposeAsync(bool disposing)
         {
             if (disposing)
             {
-                try
-                {
-                    _publishTimer.Dispose();
-                    _messages.Writer.TryComplete();
-                    _cts.Cancel();
-
-                    await _messageWorkerTask.ConfigureAwait(false);
-                }
-                finally
-                {
-                    _cts.Dispose();
-                }
+                _publishTimer.Dispose();
             }
+            return base.DisposeAsync(disposing);
         }
 
         /// <summary>
@@ -672,76 +643,6 @@ namespace Opc.Ua.Client
             }
         }
 
-        /// <summary>S
-        /// Process status change notification
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="notification"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="stringTable"></param>
-        /// <returns></returns>
-        protected virtual ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, StatusChangeNotification notification,
-            PublishState publishStateMask, IReadOnlyList<string> stringTable)
-        {
-            // TODO
-            return ValueTask.CompletedTask;
-        }
-
-        /// <summary>
-        /// Process keep alive notification
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="publishStateMask"></param>
-        /// <returns></returns>
-        protected abstract ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, PublishState publishStateMask);
-
-        /// <summary>
-        /// Process data change notification
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="notification"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="stringTable"></param>
-        /// <returns></returns>
-        protected abstract ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, DataChangeNotification notification,
-            PublishState publishStateMask, IReadOnlyList<string> stringTable);
-
-        /// <summary>
-        /// Process event notification
-        /// </summary>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="publishTime"></param>
-        /// <param name="notification"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="stringTable"></param>
-        /// <returns></returns>
-        protected abstract ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
-            DateTime publishTime, EventNotificationList notification,
-            PublishState publishStateMask, IReadOnlyList<string> stringTable);
-
-        /// <summary>
-        /// On publish state changed
-        /// </summary>
-        /// <param name="stateMask"></param>
-        /// <returns></returns>
-        protected virtual void OnPublishStateChanged(PublishState stateMask)
-        {
-            if (stateMask.HasFlag(PublishState.Stopped))
-            {
-                _logger.LogInformation("{Subscription} STOPPED!", this);
-            }
-            if (stateMask.HasFlag(PublishState.Recovered))
-            {
-                _logger.LogInformation("{Subscription} RECOVERED!", this);
-            }
-        }
-
         /// <summary>
         /// Set monitoring mode of items.
         /// </summary>
@@ -887,16 +788,19 @@ namespace Opc.Ua.Client
         /// </summary>
         private void StartKeepAliveTimer()
         {
-            _lastNotificationTickCount = HiResClock.TickCount;
-            var currentPublishingInterval = CurrentPublishingInterval.TotalMilliseconds;
-            _keepAliveInterval = (int)Math.Min(
-                currentPublishingInterval * (CurrentKeepAliveCount + 1), int.MaxValue);
+            _lastNotificationTimestamp = Observability.TimeProvider.GetTimestamp();
+            _keepAliveInterval = CurrentPublishingInterval * (CurrentKeepAliveCount + 1);
             if (_keepAliveInterval < kMinKeepAliveTimerInterval)
             {
-                var publishingInterval = PublishingInterval.TotalMilliseconds;
-                _keepAliveInterval = (int)Math.Min(
-                    publishingInterval * (KeepAliveCount + 1), int.MaxValue);
-                _keepAliveInterval = Math.Max(kMinKeepAliveTimerInterval, _keepAliveInterval);
+                _keepAliveInterval = PublishingInterval * (KeepAliveCount + 1);
+            }
+            if (_keepAliveInterval > Timeout.InfiniteTimeSpan)
+            {
+                _keepAliveInterval = Timeout.InfiniteTimeSpan;
+            }
+            if (_keepAliveInterval < kMinKeepAliveTimerInterval)
+            {
+                _keepAliveInterval = kMinKeepAliveTimerInterval;
             }
             _publishTimer.Change(_keepAliveInterval, _keepAliveInterval);
         }
@@ -993,7 +897,7 @@ namespace Opc.Ua.Client
         private void OnSubscriptionDeleteCompleted()
         {
             _lastSequenceNumberProcessed = 0;
-            _lastNotificationTickCount = 0;
+            _lastNotificationTimestamp = 0;
 
             Id = 0;
             CurrentPublishingInterval = TimeSpan.Zero;
@@ -1014,7 +918,7 @@ namespace Opc.Ua.Client
         private void Reset()
         {
             _lastSequenceNumberProcessed = 0;
-            _lastNotificationTickCount = 0;
+            _lastNotificationTimestamp = 0;
 
             Id = 0;
             CurrentPublishingInterval = TimeSpan.Zero;
@@ -1031,178 +935,6 @@ namespace Opc.Ua.Client
                 }
             }
             _deletedItems.Clear();
-        }
-
-        /// <summary>
-        /// Processes all incoming messages and dispatch them.
-        /// </summary>
-        /// <param name="ct"></param>
-        private async Task ProcessMessagesAsync(CancellationToken ct)
-        {
-            // This can be optimized to peek when missing sequence number and not ins
-            // available sequence number als to support batching. TODO
-            // This also needs to guard against overruns using some form of semaphore
-            // To block the publisher. Unless we get https://github.com/dotnet/runtime/issues/101292
-            try
-            {
-                await foreach (var incoming in _messages.Reader.ReadAllAsync(ct).ConfigureAwait(false))
-                {
-                    var prevSeqNum = _lastSequenceNumberProcessed;
-                    var curSeqNum = incoming.Message.SequenceNumber;
-                    if (prevSeqNum != 0)
-                    {
-                        for (var missing = prevSeqNum + 1; missing < curSeqNum; missing++)
-                        {
-                            // Try to republish missing messages from retransmission queue
-                            await TryRepublishAsync(missing, curSeqNum, ct).ConfigureAwait(false);
-                        }
-                        if (prevSeqNum >= curSeqNum)
-                        {
-                            // Can occur if we republished a message
-                            if (!_logger.IsEnabled(LogLevel.Debug))
-                            {
-                                continue;
-                            }
-                            if (curSeqNum == prevSeqNum)
-                            {
-                                _logger.LogDebug("{Subscription}: Received duplicate message " +
-                                    "with sequence number #{SeqNumber}.", this, curSeqNum);
-                            }
-                            else
-                            {
-                                _logger.LogDebug("{Subscription}: Received older message with " +
-                                    "sequence number #{SeqNumber} but already processed message with " +
-                                    "sequence number #{Old}.", this, curSeqNum, prevSeqNum);
-                            }
-                            continue;
-                        }
-                    }
-                    _lastSequenceNumberProcessed = curSeqNum;
-                    await OnNotificationReceivedAsync(incoming.Message, PublishState.None,
-                        ct).ConfigureAwait(false);
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                _logger.LogCritical(ex,
-                    "{Subscription}: Error processing messages. Processor is exiting!!!", this);
-                OnPublishStateChanged(PublishState.Stopped);
-
-                // Do not call complete here as we do not want the subscription to be removed
-                throw;
-            }
-            await _completion.CompleteAsync(Id, default).ConfigureAwait(false);
-
-            async ValueTask TryRepublishAsync(uint missing, uint curSeqNum, CancellationToken ct)
-            {
-                if (_availableInRetransmissionQueue.Contains(missing))
-                {
-                    _logger.LogWarning("{Subscription}: Message with sequence number " +
-                        "#{SeqNumber} is not in server retransmission queue and was dropped.",
-                        this, missing);
-                    return;
-                }
-                _logger.LogInformation("{Subscription}: Republishing missing message " +
-                    "with sequence number #{Missing} to catch up to message " +
-                    "with sequence number #{SeqNumber}...", this, missing, curSeqNum);
-                var republish = await _session.RepublishAsync(null, Id, missing,
-                    ct).ConfigureAwait(false);
-
-                if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
-                {
-                    await OnNotificationReceivedAsync(republish.NotificationMessage,
-                        PublishState.Republish, ct).ConfigureAwait(false);
-                }
-                else
-                {
-                    _logger.LogWarning("{Subscription}: Republishing message with " +
-                        "sequence number #{SeqNumber} failed.", this, missing);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Dispatch notification message
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="publishStateMask"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async ValueTask OnNotificationReceivedAsync(NotificationMessage message,
-            PublishState publishStateMask, CancellationToken ct)
-        {
-            try
-            {
-                if (message.NotificationData.Count == 0)
-                {
-                    publishStateMask |= PublishState.KeepAlive;
-                    await OnKeepAliveNotificationAsync(message.SequenceNumber,
-                        message.PublishTime, publishStateMask).ConfigureAwait(false);
-                }
-                else
-                {
-#if PARALLEL_DISPATCH
-                    await Task.WhenAll(message.NotificationData.Select(
-                        notificationData => DispatchAsync(message, publishStateMask,
-                            notificationData))).ConfigureAwait(false);
-#else
-                    foreach (var notificationData in message.NotificationData)
-                    {
-                        await DispatchAsync(message, publishStateMask,
-                            notificationData).ConfigureAwait(false);
-                    }
-#endif
-                }
-                await _completion.QueueAsync(
-                    new SubscriptionAcknowledgement
-                    {
-                        SequenceNumber = message.SequenceNumber,
-                        SubscriptionId = Id
-                    }, ct).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "{Subscription}: Error dispatching notification data.", this);
-            }
-
-            async ValueTask DispatchAsync(NotificationMessage message,
-                PublishState publishStateMask, ExtensionObject? notificationData)
-            {
-                if (notificationData == null)
-                {
-                    return;
-                }
-                switch (notificationData.Body)
-                {
-                    case DataChangeNotification datachange:
-                        await OnDataChangeNotificationAsync(message.SequenceNumber,
-                            message.PublishTime, datachange, publishStateMask,
-                            message.StringTable).ConfigureAwait(false);
-                        break;
-                    case EventNotificationList events:
-                        await OnEventDataNotificationAsync(message.SequenceNumber,
-                            message.PublishTime, events, publishStateMask,
-                            message.StringTable).ConfigureAwait(false);
-                        break;
-                    case StatusChangeNotification statusChanged:
-                        var mask = publishStateMask;
-                        if (statusChanged.Status ==
-                            StatusCodes.GoodSubscriptionTransferred)
-                        {
-                            mask |= PublishState.Transferred;
-                        }
-                        else if (statusChanged.Status == StatusCodes.BadTimeout)
-                        {
-                            mask |= PublishState.Timeout;
-                        }
-                        await OnStatusChangeNotificationAsync(message.SequenceNumber,
-                            message.PublishTime, statusChanged, mask,
-                            message.StringTable).ConfigureAwait(false);
-                        break;
-                }
-            }
         }
 
         /// <summary>
@@ -1300,42 +1032,14 @@ namespace Opc.Ua.Client
             }
         }
 
-        /// <summary>
-        /// A message received from the server cached until is processed or discarded.
-        /// </summary>
-        /// <param name="Message"></param>
-        /// <param name="StringTable"></param>
-        /// <param name="Enqueued"></param>
-        private sealed record class IncomingMessage(
-            NotificationMessage Message, IReadOnlyList<string> StringTable, DateTime Enqueued)
-            : IComparable<IncomingMessage>
-        {
-            /// <inheritdoc/>
-            public int CompareTo(IncomingMessage? other)
-            {
-                // Greater than zero – This instance follows the next message in the sort order.
-                return (int)(Message.SequenceNumber -
-                    (other?.Message.SequenceNumber ?? uint.MinValue));
-            }
-        }
-
-        private IReadOnlyList<uint> _availableInRetransmissionQueue = Array.Empty<uint>();
-        private const int kMinKeepAliveTimerInterval = 1000;
-        private const int kKeepAliveTimerMargin = 1000;
-        private int _lastNotificationTickCount;
-        private int _keepAliveInterval;
+        private static readonly TimeSpan kMinKeepAliveTimerInterval = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan kKeepAliveTimerMargin = TimeSpan.FromSeconds(1);
+        private TimeSpan _keepAliveInterval;
         private int _publishLateCount;
-        private uint _lastSequenceNumberProcessed;
-        private readonly ILogger _logger;
-        private readonly ISubscriptionContext _session;
-        private readonly IMessageAckQueue _completion;
-        private readonly IOptionsMonitor<SubscriptionOptions> _options;
         private readonly List<uint> _deletedItems = new();
-        private readonly Timer _publishTimer;
+        private readonly ITimer _publishTimer;
         private readonly object _cache = new();
-        private readonly CancellationTokenSource _cts = new();
-        private readonly Task _messageWorkerTask;
-        private readonly Channel<IncomingMessage> _messages;
         private readonly Dictionary<uint, MonitoredItem> _monitoredItems = new();
+        private readonly IOptionsMonitor<SubscriptionOptions> _options;
     }
 }

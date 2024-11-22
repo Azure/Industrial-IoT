@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Client
 {
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -16,25 +15,8 @@ namespace Opc.Ua.Client
     /// subcriptions. Must be implemted by subscriptions to be
     /// manageable by the <see cref="SubscriptionManager"/>.
     /// </summary>
-    public interface IManagedSubscription : ISubscription, IAsyncDisposable
+    public interface IManagedSubscription : ISubscription, IMessageProcessor
     {
-        /// <summary>
-        /// Subscription id on the server
-        /// </summary>
-        uint Id { get; }
-
-        /// <summary>
-        /// Allows the session to add the notification message
-        /// to the subscription
-        /// for dispatch.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="availableSequenceNumbers"></param>
-        /// <param name="stringTable"></param>
-        ValueTask OnPublishReceivedAsync(NotificationMessage message,
-            IReadOnlyList<uint>? availableSequenceNumbers,
-            IReadOnlyList<string> stringTable);
-
         /// <summary>
         /// Called after the subscription was transferred.
         /// </summary>

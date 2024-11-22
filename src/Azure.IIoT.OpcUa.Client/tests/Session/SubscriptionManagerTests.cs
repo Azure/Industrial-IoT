@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client
 {
     using FluentAssertions;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Moq;
     using Neovolve.Logging.Xunit;
@@ -17,13 +18,23 @@ namespace Opc.Ua.Client
     using Xunit;
     using Xunit.Abstractions;
 
-    public class SubscriptionManagerTests
+    public class SubscriptionManagerTests : IDisposable
     {
-        private readonly ITestOutputHelper _output;
-
         public SubscriptionManagerTests(ITestOutputHelper output)
         {
             _output = output;
+            _mockSession = new Mock<ISubscriptionManagerContext>();
+            _mockLoggerFactory = new Mock<ILoggerFactory>();
+            _mockLogger = new Mock<ILogger<SubscriptionManager>>();
+            _mockLoggerFactory
+                .Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(_mockLogger.Object);
+            _subscriptionManager = new SubscriptionManager(
+                _mockSession.Object, _mockLoggerFactory.Object, DiagnosticsMasks.All);
+        }
+
+        public void Dispose()
+        {
+            _subscriptionManager.DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         [Fact]
@@ -234,7 +245,8 @@ namespace Opc.Ua.Client
                 It.IsAny<NotificationMessage>(),
                 It.IsAny<IReadOnlyList<uint>>(),
                 It.IsAny<IReadOnlyList<string>>()))
-                .Returns((NotificationMessage n, IReadOnlyList<uint> v, IReadOnlyList<string> s)
+                .Returns((NotificationMessage n,
+                    IReadOnlyList<uint> v, IReadOnlyList<string> s)
                     => sut.QueueAsync(new SubscriptionAcknowledgement
                     {
                         SubscriptionId = 1,
@@ -245,12 +257,17 @@ namespace Opc.Ua.Client
                 It.IsAny<RequestHeader>(),
                 It.IsAny<SubscriptionAcknowledgementCollection>(),
                 It.IsAny<CancellationToken>()))
-                .ReturnsAsync((RequestHeader h, SubscriptionAcknowledgementCollection s, CancellationToken ct)
+                .ReturnsAsync((RequestHeader h,
+                    SubscriptionAcknowledgementCollection s, CancellationToken ct)
                     => new PublishResponse
                     {
                         AvailableSequenceNumbers = Array.Empty<uint>(),
-                        NotificationMessage = new NotificationMessage { SequenceNumber = h.RequestHandle },
-                        Results = new StatusCodeCollection(s.Select(_ => (StatusCode)StatusCodes.Good)),
+                        NotificationMessage = new NotificationMessage
+                        {
+                            SequenceNumber = h.RequestHandle
+                        },
+                        Results = new StatusCodeCollection(
+                            s.Select(_ => (StatusCode)StatusCodes.Good)),
                         SubscriptionId = 1,
                         MoreNotifications = false,
                         ResponseHeader = new ResponseHeader
@@ -268,5 +285,176 @@ namespace Opc.Ua.Client
             sut.PublishWorkerCount.Should().Be(0);
             session.Verify();
         }
+
+        [Fact]
+        public void TransferSubscriptionsOnRecreateSetAndGet()
+        {
+            _subscriptionManager.TransferSubscriptionsOnRecreate = true;
+            _subscriptionManager.TransferSubscriptionsOnRecreate.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ReturnDiagnosticsSetAndGet()
+        {
+            _subscriptionManager.ReturnDiagnostics = DiagnosticsMasks.All;
+            _subscriptionManager.ReturnDiagnostics.Should().Be(DiagnosticsMasks.All);
+        }
+
+        [Fact]
+        public void MinPublishWorkerCountSetAndGet()
+        {
+            _subscriptionManager.MinPublishWorkerCount = 5;
+            _subscriptionManager.MinPublishWorkerCount.Should().Be(5);
+        }
+
+        [Fact]
+        public void MaxPublishWorkerCountSetAndGet()
+        {
+            _subscriptionManager.MaxPublishWorkerCount = 10;
+            _subscriptionManager.MaxPublishWorkerCount.Should().Be(10);
+        }
+
+        [Fact]
+        public void ItemsReturnsSubscriptions()
+        {
+            var mockSubscription = new Mock<IManagedSubscription>();
+            _mockSession.Setup(s => s.CreateSubscription(
+                It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
+                It.IsAny<IMessageAckQueue>()))
+                .Returns(mockSubscription.Object);
+
+            _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+            _subscriptionManager.Items.Should().ContainSingle();
+        }
+
+        [Fact]
+        public void CountReturnsSubscriptionCount()
+        {
+            var mockSubscription = new Mock<IManagedSubscription>();
+            _mockSession
+                .Setup(s => s.CreateSubscription(
+                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
+                    It.IsAny<IMessageAckQueue>()))
+                .Returns(mockSubscription.Object);
+
+            _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+            _subscriptionManager.Count.Should().Be(1);
+        }
+
+        [Fact]
+        public void GoodPublishRequestCountReturnsCount()
+        {
+            _subscriptionManager.GoodPublishRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void BadPublishRequestCountReturnsCount()
+        {
+            _subscriptionManager.BadPublishRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void PublishWorkerCountReturnsCount()
+        {
+            _subscriptionManager.PublishWorkerCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task DisposeAsyncDisposesSubscriptionsAsync()
+        {
+            var mockSubscription = new Mock<IManagedSubscription>();
+            _mockSession
+                .Setup(s => s.CreateSubscription(
+                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
+                    It.IsAny<IMessageAckQueue>()))
+                .Returns(mockSubscription.Object);
+
+            _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+            await _subscriptionManager.DisposeAsync();
+            mockSubscription.Verify(s => s.DisposeAsync(), Times.Once);
+        }
+
+        [Fact]
+        public void UpdateTriggersPublishController()
+        {
+            _subscriptionManager.Update();
+            // No exception means success
+        }
+
+        [Fact]
+        public async Task QueueAsyncQueuesAcknowledgementAsync()
+        {
+            var ack = new SubscriptionAcknowledgement();
+            await _subscriptionManager.QueueAsync(ack, CancellationToken.None);
+            // No exception means success
+        }
+
+        [Fact]
+        public async Task CompleteAsyncCompletesSubscriptionAsync()
+        {
+            var mockSubscription = new Mock<IManagedSubscription>();
+            mockSubscription.SetupGet(s => s.Id).Returns(1);
+            _mockSession
+                .Setup(s => s.CreateSubscription(
+                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
+                    It.IsAny<IMessageAckQueue>()))
+                .Returns(mockSubscription.Object);
+
+            _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+            await _subscriptionManager.CompleteAsync(1, CancellationToken.None);
+            _subscriptionManager.Items.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void AddAddsSubscription()
+        {
+            var mockSubscription = new Mock<IManagedSubscription>();
+            _mockSession
+                .Setup(s => s.CreateSubscription(
+                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
+                    It.IsAny<IMessageAckQueue>()))
+                .Returns(mockSubscription.Object);
+
+            var subscription = _subscriptionManager.Add(
+                Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+
+            subscription.Should().NotBeNull();
+            _subscriptionManager.Items.Should().ContainSingle();
+        }
+
+        [Fact]
+        public void ResumeResumesSubscriptions()
+        {
+            _subscriptionManager.Resume();
+            // No exception means success
+        }
+
+        [Fact]
+        public void PausePausesSubscriptions()
+        {
+            _subscriptionManager.Pause();
+            // No exception means success
+        }
+
+        [Fact]
+        public async Task RecreateSubscriptionsAsyncRecreatesSubscriptionsAsync()
+        {
+            var mockSubscription = new Mock<IManagedSubscription>();
+            _mockSession
+                .Setup(s => s.CreateSubscription(
+                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
+                    It.IsAny<IMessageAckQueue>()))
+                .Returns(mockSubscription.Object);
+
+            _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+            await _subscriptionManager.RecreateSubscriptionsAsync(null, CancellationToken.None);
+            mockSubscription.Verify(s => s.RecreateAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        private readonly ITestOutputHelper _output;
+        private readonly Mock<ISubscriptionManagerContext> _mockSession;
+        private readonly Mock<ILoggerFactory> _mockLoggerFactory;
+        private readonly Mock<ILogger<SubscriptionManager>> _mockLogger;
+        private readonly SubscriptionManager _subscriptionManager;
     }
 }
