@@ -78,7 +78,7 @@ namespace Opc.Ua.Client
         /// <param name="disposing"></param>
         protected virtual async ValueTask DisposeAsync(bool disposing)
         {
-            if (disposing)
+            if (disposing && !_disposed)
             {
                 try
                 {
@@ -90,6 +90,7 @@ namespace Opc.Ua.Client
                 finally
                 {
                     _cts.Dispose();
+                    _disposed = true;
                 }
             }
         }
@@ -152,7 +153,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="stateMask"></param>
         /// <returns></returns>
-        protected virtual void OnPublishStateChanged(PublishState stateMask)
+        protected internal virtual void OnPublishStateChanged(PublishState stateMask)
         {
             if (stateMask.HasFlag(PublishState.Stopped))
             {
@@ -334,7 +335,7 @@ namespace Opc.Ua.Client
         /// <param name="publishStateMask"></param>
         /// <param name="notificationData"></param>
         /// <returns></returns>
-        private async ValueTask DispatchAsync(NotificationMessage message,
+        internal async ValueTask DispatchAsync(NotificationMessage message,
             PublishState publishStateMask, ExtensionObject? notificationData)
         {
             if (notificationData == null)
@@ -397,9 +398,10 @@ namespace Opc.Ua.Client
         internal readonly ILogger _logger;
         internal readonly ISubscriptionContext _session;
         internal readonly IMessageAckQueue _completion;
+        internal readonly Task _messageWorkerTask;
+        internal readonly CancellationTokenSource _cts = new();
+        internal readonly Channel<IncomingMessage> _messages;
 #pragma warning restore IDE1006 // Naming Styles
-        private readonly CancellationTokenSource _cts = new();
-        private readonly Task _messageWorkerTask;
-        private readonly Channel<IncomingMessage> _messages;
+        internal bool _disposed;
     }
 }
