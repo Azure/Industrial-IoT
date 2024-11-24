@@ -114,6 +114,8 @@ namespace Opc.Ua.Client
                 _processor.CancellationTokenSource.Token);
             _processor.CancellationTokenSource.Cancel();
             await processTask;
+
+            _processor.ReceivedSequenceNumbers.Should().BeEquivalentTo(Enumerable.Range(1, 100).Select(i => (uint)i));
         }
 
         [Fact]
@@ -127,6 +129,15 @@ namespace Opc.Ua.Client
                 },
                 new List<string>(), DateTime.UtcNow);
             _processor.LastSequenceNumberProcessed = 1;
+
+            _mockSession
+                .Setup(c => c.RepublishAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<uint>(),
+                    It.IsAny<uint>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new RepublishResponse())
+                .Verifiable(Times.Once);
 
             // Act
             await _processor.ProcessMessageAsync(message, CancellationToken.None);
@@ -142,14 +153,20 @@ namespace Opc.Ua.Client
             // Arrange
             _processor.AvailableInRetransmissionQueue = new List<uint> { 1, 2, 3 };
 
+            _mockSession
+                .Setup(c => c.RepublishAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<uint>(),
+                    It.IsAny<uint>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new RepublishResponse())
+                .Verifiable(Times.Once);
+
             // Act
             await _processor.TryRepublishAsync(4, 5, CancellationToken.None);
 
             // Assert
-            _mockLogger.Verify(logger =>
-                logger.LogWarning(
-                    "{Subscription}: Message with sequence number #{SeqNumber} is not in server retransmission queue and was dropped.",
-                _processor, 4), Times.Once);
+            _mockSession.Verify();
         }
 
         [Fact]
@@ -214,11 +231,15 @@ namespace Opc.Ua.Client
 
             public bool KeepAliveNotificationReceived { get; private set; }
             public bool DataChangeNotificationReceived { get; private set; }
+            public bool EventNotificationReceived { get; private set; }
+
+            public List<uint> ReceivedSequenceNumbers { get; } = new List<uint>();
 
             protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, PublishState publishStateMask)
             {
                 KeepAliveNotificationReceived = true;
+                ReceivedSequenceNumbers.Add(sequenceNumber);
                 return ValueTask.CompletedTask;
             }
 
@@ -227,6 +248,7 @@ namespace Opc.Ua.Client
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
                 DataChangeNotificationReceived = true;
+                ReceivedSequenceNumbers.Add(sequenceNumber);
                 return ValueTask.CompletedTask;
             }
 
@@ -234,6 +256,8 @@ namespace Opc.Ua.Client
                 DateTime publishTime, EventNotificationList notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
+                EventNotificationReceived = true;
+                ReceivedSequenceNumbers.Add(sequenceNumber);
                 return ValueTask.CompletedTask;
             }
         }

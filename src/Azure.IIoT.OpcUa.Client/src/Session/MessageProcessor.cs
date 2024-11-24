@@ -386,8 +386,7 @@ namespace Opc.Ua.Client
             public int CompareTo(IncomingMessage? other)
             {
                 // Greater than zero – This instance follows the next message in the sort order.
-                return (int)(Message.SequenceNumber -
-                    (other?.Message.SequenceNumber ?? uint.MinValue));
+                return (int)((other?.Message.SequenceNumber ?? uint.MinValue) - Message.SequenceNumber);
             }
         }
 
