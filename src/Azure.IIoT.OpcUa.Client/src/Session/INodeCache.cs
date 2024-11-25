@@ -36,18 +36,7 @@ namespace Opc.Ua.Client
             IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
 
         /// <summary>
-        /// Get a node object from the cache or fetch it from the server.
-        /// The node object contains references.
-        /// </summary>
-        /// <param name="nodeId">Node id to fetch.</param>
-        /// <param name="ct"></param>
-        ValueTask<Node> FetchNodeAsync(NodeId nodeId,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Find a node by traversing a provided browse path. The node does
-        /// not container references. Call <see cref="FetchNodeAsync"/>
-        /// to fetch a node with references
+        /// Find a node by traversing a provided browse path.
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="browsePath"></param>

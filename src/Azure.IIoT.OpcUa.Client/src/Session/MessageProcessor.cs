@@ -153,7 +153,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="stateMask"></param>
         /// <returns></returns>
-        protected internal virtual void OnPublishStateChanged(PublishState stateMask)
+        protected virtual void OnPublishStateChanged(PublishState stateMask)
         {
             if (stateMask.HasFlag(PublishState.Stopped))
             {
@@ -163,13 +163,17 @@ namespace Opc.Ua.Client
             {
                 _logger.LogInformation("{Subscription} RECOVERED!", this);
             }
+            if (stateMask.HasFlag(PublishState.Completed))
+            {
+                _logger.LogInformation("{Subscription} CLOSED!", this);
+            }
         }
 
         /// <summary>
         /// Processes all incoming messages and dispatch them.
         /// </summary>
         /// <param name="ct"></param>
-        internal async Task ProcessReceivedMessagesAsync(CancellationToken ct)
+        private async Task ProcessReceivedMessagesAsync(CancellationToken ct)
         {
             try
             {
@@ -192,13 +196,13 @@ namespace Opc.Ua.Client
                 _logger.LogCritical(ex,
                     "{Subscription}: Error processing messages. Processor is exiting!!!",
                     this);
-                OnPublishStateChanged(PublishState.Stopped);
 
                 // Do not call complete here as we do not want the subscription
                 // to be removed
                 throw;
             }
             await _completion.CompleteAsync(Id, default).ConfigureAwait(false);
+            OnPublishStateChanged(PublishState.Completed);
         }
 
         /// <summary>
@@ -210,7 +214,7 @@ namespace Opc.Ua.Client
         /// <param name="incoming"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task ProcessMessageAsync(IncomingMessage incoming, CancellationToken ct)
+        private async Task ProcessMessageAsync(IncomingMessage incoming, CancellationToken ct)
         {
             var prevSeqNum = _lastSequenceNumberProcessed;
             var curSeqNum = incoming.Message.SequenceNumber;
@@ -254,31 +258,39 @@ namespace Opc.Ua.Client
         /// <param name="curSeqNum"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async ValueTask TryRepublishAsync(uint missing, uint curSeqNum,
+        private async ValueTask TryRepublishAsync(uint missing, uint curSeqNum,
             CancellationToken ct)
         {
-            if (_availableInRetransmissionQueue.Contains(missing))
+            if (!_availableInRetransmissionQueue.Contains(missing))
             {
                 _logger.LogWarning("{Subscription}: Message with sequence number " +
                     "#{SeqNumber} is not in server retransmission queue and was dropped.",
                     this, missing);
                 return;
             }
-            _logger.LogInformation("{Subscription}: Republishing missing message " +
-                "with sequence number #{Missing} to catch up to message " +
-                "with sequence number #{SeqNumber}...", this, missing, curSeqNum);
-            var republish = await _session.RepublishAsync(null, Id, missing,
-                ct).ConfigureAwait(false);
+            try
+            {
+                _logger.LogInformation("{Subscription}: Republishing missing message " +
+                    "with sequence number #{Missing} to catch up to message " +
+                    "with sequence number #{SeqNumber}...", this, missing, curSeqNum);
+                var republish = await _session.RepublishAsync(null, Id, missing,
+                    ct).ConfigureAwait(false);
 
-            if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
-            {
-                await OnNotificationReceivedAsync(republish.NotificationMessage,
-                    PublishState.Republish, ct).ConfigureAwait(false);
+                if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
+                {
+                    await OnNotificationReceivedAsync(republish.NotificationMessage,
+                        PublishState.Republish, ct).ConfigureAwait(false);
+                }
+                else
+                {
+                    _logger.LogWarning("{Subscription}: Republishing message with " +
+                        "sequence number #{SeqNumber} failed.", this, missing);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("{Subscription}: Republishing message with " +
-                    "sequence number #{SeqNumber} failed.", this, missing);
+                _logger.LogError(ex, "{Subscription}: Error republishing message with " +
+                    "sequence number #{SeqNumber}.", this, missing);
             }
         }
 
@@ -289,7 +301,7 @@ namespace Opc.Ua.Client
         /// <param name="publishStateMask"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async ValueTask OnNotificationReceivedAsync(NotificationMessage message,
+        private async ValueTask OnNotificationReceivedAsync(NotificationMessage message,
             PublishState publishStateMask, CancellationToken ct)
         {
             try
@@ -335,7 +347,7 @@ namespace Opc.Ua.Client
         /// <param name="publishStateMask"></param>
         /// <param name="notificationData"></param>
         /// <returns></returns>
-        internal async ValueTask DispatchAsync(NotificationMessage message,
+        private async ValueTask DispatchAsync(NotificationMessage message,
             PublishState publishStateMask, ExtensionObject? notificationData)
         {
             if (notificationData == null)
@@ -356,8 +368,7 @@ namespace Opc.Ua.Client
                     break;
                 case StatusChangeNotification statusChanged:
                     var mask = publishStateMask;
-                    if (statusChanged.Status ==
-                        StatusCodes.GoodSubscriptionTransferred)
+                    if (statusChanged.Status == StatusCodes.GoodSubscriptionTransferred)
                     {
                         mask |= PublishState.Transferred;
                     }
@@ -378,7 +389,7 @@ namespace Opc.Ua.Client
         /// <param name="Message"></param>
         /// <param name="StringTable"></param>
         /// <param name="Enqueued"></param>
-        internal sealed record class IncomingMessage(NotificationMessage Message,
+        private sealed record class IncomingMessage(NotificationMessage Message,
             IReadOnlyList<string> StringTable, DateTime Enqueued) :
             IComparable<IncomingMessage>
         {
@@ -390,17 +401,17 @@ namespace Opc.Ua.Client
             }
         }
 
+        internal bool _disposed;
         internal long _lastNotificationTimestamp;
         internal uint _lastSequenceNumberProcessed;
         internal IReadOnlyList<uint> _availableInRetransmissionQueue;
 #pragma warning disable IDE1006 // Naming Styles
         internal readonly ILogger _logger;
         internal readonly ISubscriptionContext _session;
-        internal readonly IMessageAckQueue _completion;
-        internal readonly Task _messageWorkerTask;
-        internal readonly CancellationTokenSource _cts = new();
-        internal readonly Channel<IncomingMessage> _messages;
 #pragma warning restore IDE1006 // Naming Styles
-        internal bool _disposed;
+        private readonly IMessageAckQueue _completion;
+        private readonly Task _messageWorkerTask;
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Channel<IncomingMessage> _messages;
     }
 }

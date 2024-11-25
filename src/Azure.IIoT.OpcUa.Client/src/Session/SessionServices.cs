@@ -388,7 +388,8 @@ namespace Opc.Ua.Client
             using var activity = StartActivity(nameof(HistoryReadAsync));
 
             var operationLimit = OperationLimits.MaxNodesPerHistoryReadData;
-            if (historyReadDetails?.Body is ReadEventDetails)
+            if (historyReadDetails?.TypeId == DataTypeIds.ReadEventDetails ||
+                historyReadDetails?.Body is ReadEventDetails)
             {
                 operationLimit = OperationLimits.MaxNodesPerHistoryReadEvents;
             }
@@ -482,7 +483,8 @@ namespace Opc.Ua.Client
 
             var operationLimit = OperationLimits.MaxNodesPerHistoryUpdateData;
             if (historyUpdateDetails.Count > 0 &&
-                historyUpdateDetails[0].TypeId == DataTypeIds.UpdateEventDetails)
+                (historyUpdateDetails[0].TypeId == DataTypeIds.UpdateEventDetails ||
+                historyUpdateDetails[0]?.Body is UpdateEventDetails))
             {
                 operationLimit = OperationLimits.MaxNodesPerHistoryUpdateEvents;
             }
@@ -1134,16 +1136,9 @@ namespace Opc.Ua.Client
             out StringCollection stringTable, int count, uint operationLimit)
             where C : List<T>, new()
         {
-            if (count <= operationLimit)
-            {
-                results = new C();
-                diagnosticInfos = new DiagnosticInfoCollection();
-            }
-            else
-            {
-                results = new C() { Capacity = count };
-                diagnosticInfos = new DiagnosticInfoCollection(count);
-            }
+            Debug.Assert(count > operationLimit);
+            results = new C() { Capacity = count };
+            diagnosticInfos = new DiagnosticInfoCollection(count);
             stringTable = new StringCollection();
         }
 
@@ -1201,31 +1196,31 @@ namespace Opc.Ua.Client
             results.AddRange(batchedResults);
             diagnosticInfos.AddRange(batchedDiagnosticInfos);
             stringTable.AddRange(batchedStringTable);
-        }
 
-        private static void UpdateDiagnosticInfoIndexes(DiagnosticInfo diagnosticInfo,
-            int stringTableOffset)
-        {
-            var depth = 0;
-            while (diagnosticInfo != null && depth++ < DiagnosticInfo.MaxInnerDepth)
+            static void UpdateDiagnosticInfoIndexes(DiagnosticInfo diagnosticInfo,
+                int stringTableOffset)
             {
-                if (diagnosticInfo.LocalizedText >= 0)
+                var depth = 0;
+                while (diagnosticInfo != null && depth++ < DiagnosticInfo.MaxInnerDepth)
                 {
-                    diagnosticInfo.LocalizedText += stringTableOffset;
+                    if (diagnosticInfo.LocalizedText >= 0)
+                    {
+                        diagnosticInfo.LocalizedText += stringTableOffset;
+                    }
+                    if (diagnosticInfo.Locale >= 0)
+                    {
+                        diagnosticInfo.Locale += stringTableOffset;
+                    }
+                    if (diagnosticInfo.NamespaceUri >= 0)
+                    {
+                        diagnosticInfo.NamespaceUri += stringTableOffset;
+                    }
+                    if (diagnosticInfo.SymbolicId >= 0)
+                    {
+                        diagnosticInfo.SymbolicId += stringTableOffset;
+                    }
+                    diagnosticInfo = diagnosticInfo.InnerDiagnosticInfo;
                 }
-                if (diagnosticInfo.Locale >= 0)
-                {
-                    diagnosticInfo.Locale += stringTableOffset;
-                }
-                if (diagnosticInfo.NamespaceUri >= 0)
-                {
-                    diagnosticInfo.NamespaceUri += stringTableOffset;
-                }
-                if (diagnosticInfo.SymbolicId >= 0)
-                {
-                    diagnosticInfo.SymbolicId += stringTableOffset;
-                }
-                diagnosticInfo = diagnosticInfo.InnerDiagnosticInfo;
             }
         }
 

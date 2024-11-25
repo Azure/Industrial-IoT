@@ -31,7 +31,7 @@ namespace Opc.Ua.Client
         /// <param name="nodeIds">The nodeId collection to read.</param>
         /// <param name="ct">The cancellation token.</param>
         /// <returns>The node collection and associated errors.</returns>
-        Task<ResultSet<Node>> ReadNodesAsync(IReadOnlyList<NodeId> nodeIds,
+        Task<ResultSet<Node>> FetchNodesAsync(IReadOnlyList<NodeId> nodeIds,
             CancellationToken ct = default);
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Opc.Ua.Client
         /// </remarks>
         /// <param name="nodeId">The nodeId.</param>
         /// <param name="ct">The cancellation token for the request.</param>
-        Task<Node> ReadNodeAsync(NodeId nodeId, CancellationToken ct = default);
+        Task<Node> FetchNodeAsync(NodeId nodeId, CancellationToken ct = default);
 
         /// <summary>
         /// Fetches all references for the specified node.

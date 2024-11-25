@@ -72,7 +72,7 @@ namespace Opc.Ua.Client
             CancellationToken ct)
         {
             var count = nodeIds.Count;
-            var result = new List<Node?>(nodeIds.Count);
+            var result = new List<INode?>(nodeIds.Count);
             if (count != 0)
             {
                 var notFound = new List<NodeId>();
@@ -84,23 +84,15 @@ namespace Opc.Ua.Client
                         continue;
                     }
                     notFound.Add(nodeId);
-                    result.Add(null);
+                    result.Add(null!);
                 }
                 if (notFound.Count != 0)
                 {
-                    return FetchRemainingNodesAsyncCore(notFound, result, ct);
-                    async ValueTask<IReadOnlyList<INode>> FetchRemainingNodesAsyncCore(
-                        IReadOnlyList<NodeId> remainingIds, List<Node?> sparse,
-                        CancellationToken ct)
-                    {
-                        var nodes = (List<Node>)await FetchRemainingNodesAsync(
-                            remainingIds, sparse, ct).ConfigureAwait(false);
-                        return nodes.ConvertAll(c => (INode)c);
-                    }
+                    return FetchRemainingNodesAsync(notFound, result, ct);
                 }
             }
-            return ValueTask.FromResult<IReadOnlyList<INode>>(result
-                .ConvertAll(c => (INode)c!));
+            Debug.Assert(!result.Any(r => r == null)); // None now should be null
+            return ValueTask.FromResult<IReadOnlyList<INode>>(result!);
         }
 
         /// <inheritdoc/>
@@ -207,36 +199,6 @@ namespace Opc.Ua.Client
                     .Select(r => ToNodeId(r.NodeId))
                     .Where(n => !NodeId.IsNull(n))
                     .ToList();
-            }
-        }
-
-        /// <inheritdoc/>
-        public ValueTask<Node> FetchNodeAsync(NodeId nodeId, CancellationToken ct)
-        {
-            if (_nodes.TryGet(nodeId, out var node))
-            {
-                if (node.ReferenceTable.Count == 0)
-                {
-                    return ValueTask.FromResult(node);
-                }
-                if (_refs.TryGet(nodeId, out var references))
-                {
-                    AddReferencesToNode(node, references);
-                    return ValueTask.FromResult(node);
-                }
-            }
-            return FetchNodeAsyncCore(nodeId, ct);
-
-            async ValueTask<Node> FetchNodeAsyncCore(NodeId nodeId, CancellationToken ct)
-            {
-                var node = await GetOrAddNodeAsync(nodeId, ct).ConfigureAwait(false);
-                if (node.ReferenceTable.Count == 0)
-                {
-                    var references = await GetOrAddReferencesAsync(nodeId,
-                        ct).ConfigureAwait(false);
-                    AddReferencesToNode(node, references);
-                }
-                return node;
             }
         }
 
@@ -386,7 +348,7 @@ namespace Opc.Ua.Client
         {
             Debug.Assert(!NodeId.IsNull(nodeId));
             return _nodes.GetOrAddAsync(nodeId, async (nodeId, context) =>
-                await context.session.ReadNodeAsync(nodeId, context.ct).ConfigureAwait(false),
+                await context.session.FetchNodeAsync(nodeId, context.ct).ConfigureAwait(false),
                 (session: _session, ct));
         }
 
@@ -424,30 +386,22 @@ namespace Opc.Ua.Client
         /// <param name="result"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<IReadOnlyList<Node>> FetchRemainingNodesAsync(
-            IReadOnlyList<NodeId> remainingIds, List<Node?> result, CancellationToken ct)
+        private async ValueTask<IReadOnlyList<INode>> FetchRemainingNodesAsync(
+            List<NodeId> remainingIds, List<INode?> result, CancellationToken ct)
         {
             Debug.Assert(result.Count(r => r == null) == remainingIds.Count);
 
             // fetch nodes and references from server.
             var localIds = new NodeIdCollection(remainingIds);
-            (var sourceNodes, var readErrors) = await _session.ReadNodesAsync(
-                localIds, ct).ConfigureAwait(false);
-            (var referencesList, var fetchErrors) = await _session.FetchReferencesAsync(
+            (var sourceNodes, var readErrors) = await _session.FetchNodesAsync(
                 localIds, ct).ConfigureAwait(false);
 
             Debug.Assert(sourceNodes.Count == localIds.Count);
-            Debug.Assert(sourceNodes.Count == referencesList.Count);
             var resultMissingIndex = 0;
             for (var index = 0; index < localIds.Count; index++)
             {
                 if (!ServiceResult.IsBad(readErrors[index]))
                 {
-                    if (!ServiceResult.IsBad(fetchErrors[index]))
-                    {
-                        _refs.AddOrUpdate(remainingIds[index], referencesList[index]);
-                        AddReferencesToNode(sourceNodes[index], referencesList[index]);
-                    }
                     _nodes.AddOrUpdate(remainingIds[index], sourceNodes[index]);
                 }
                 while (result[resultMissingIndex] != null)
@@ -501,28 +455,6 @@ namespace Opc.Ua.Client
                 .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, _session.NamespaceUris))
                 .DefaultIfEmpty(NodeId.Null)
                 .First();
-        }
-
-        /// <summary>
-        /// Connect references to node atomically
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="references"></param>
-        private static void AddReferencesToNode(Node node, List<ReferenceDescription> references)
-        {
-            lock (node.ReferenceTable)
-            {
-                if (node.ReferenceTable.Count != 0)
-                {
-                    // Competing threads already added references
-                    return;
-                }
-                foreach (var reference in references)
-                {
-                    node.ReferenceTable.Add(reference.ReferenceTypeId,
-                        !reference.IsForward, reference.NodeId);
-                }
-            }
         }
 
         /// <summary>

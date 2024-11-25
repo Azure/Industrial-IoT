@@ -515,9 +515,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Template != null);
                 var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
                     session.MessageContext);
-                var nodes = new List<Node>();
+                var nodes = new List<INode>();
                 NodeId? superType = null;
-                var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(typeDefinitionId,
+                var typeDefinitionNode = await session.NodeCache.FindAsync(typeDefinitionId,
                     ct).ConfigureAwait(false);
                 nodes.Insert(0, typeDefinitionNode);
                 var subType = typeDefinitionId;
@@ -529,10 +529,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         break;
                     }
-                    typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
+                    typeDefinitionNode = await session.NodeCache.FindAsync(superType,
                         ct).ConfigureAwait(false);
                     nodes.Insert(0, typeDefinitionNode);
-                    subType = typeDefinitionNode.NodeId;
+                    subType = ExpandedNodeId.ToNodeId(typeDefinitionNode.NodeId,
+                        session.MessageContext.NamespaceUris);
                 }
 
                 var fieldNames = new List<QualifiedName>();
@@ -587,34 +588,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
             protected static async ValueTask ParseFieldsAsync(IOpcUaSession session,
-                List<QualifiedName> fieldNames, Node node, string browsePathPrefix, CancellationToken ct)
+                List<QualifiedName> fieldNames, INode node, string browsePathPrefix, CancellationToken ct)
             {
-                foreach (var reference in node.ReferenceTable)
+                var nodeId = ExpandedNodeId.ToNodeId(node.NodeId, session.MessageContext.NamespaceUris);
+                var components = await session.NodeCache.FindReferencesAsync(nodeId,
+                    ReferenceTypeIds.HasComponent, false, true, ct).ConfigureAwait(false);
+                foreach (var componentNode in components)
                 {
-                    if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent &&
-                        !reference.IsInverse)
+                    if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
                     {
-                        var componentNode = await session.NodeCache.FetchNodeAsync(
-                            ExpandedNodeId.ToNodeId(reference.TargetId, session.MessageContext.NamespaceUris),
-                            ct).ConfigureAwait(false);
-                        if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
-                        {
-                            var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
-                            fieldNames.Add(new QualifiedName(
-                                fieldName, componentNode.BrowseName.NamespaceIndex));
-                            await ParseFieldsAsync(session, fieldNames, componentNode,
-                                $"{fieldName}|", ct).ConfigureAwait(false);
-                        }
-                    }
-                    else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty)
-                    {
-                        var propertyNode = await session.NodeCache.FetchNodeAsync(
-                            ExpandedNodeId.ToNodeId(reference.TargetId, session.MessageContext.NamespaceUris),
-                            ct).ConfigureAwait(false);
-                        var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
+                        var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
                         fieldNames.Add(new QualifiedName(
-                            fieldName, propertyNode.BrowseName.NamespaceIndex));
+                            fieldName, componentNode.BrowseName.NamespaceIndex));
+                        await ParseFieldsAsync(session, fieldNames, componentNode,
+                            $"{fieldName}|", ct).ConfigureAwait(false);
                     }
+                }
+                var properties = await session.NodeCache.FindReferencesAsync(nodeId,
+                    ReferenceTypeIds.HasProperty, false, true, ct).ConfigureAwait(false);
+                foreach (var propertyNode in properties)
+                {
+                    var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
+                    fieldNames.Add(new QualifiedName(
+                        fieldName, propertyNode.BrowseName.NamespaceIndex));
                 }
             }
         }

@@ -9,21 +9,20 @@ namespace Opc.Ua.Client
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using Moq;
+    using Nito.AsyncEx;
     using Xunit;
 
-    public class MessageProcessorTests : IDisposable
+    public class MessageProcessorTests
     {
         private readonly Mock<ISubscriptionContext> _mockSession;
         private readonly Mock<IMessageAckQueue> _mockCompletion;
         private readonly Mock<IObservability> _mockObservability;
         private readonly Mock<ILogger<SubscriptionBase>> _mockLogger;
         private readonly Mock<TimeProvider> _mockTimeProvider;
-        private readonly TestMessageProcessor _processor;
 
         public MessageProcessorTests()
         {
@@ -36,180 +35,249 @@ namespace Opc.Ua.Client
             _mockObservability.Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
                 .Returns(_mockLogger.Object);
             _mockObservability.Setup(o => o.TimeProvider).Returns(_mockTimeProvider.Object);
-
-            _processor = new TestMessageProcessor(_mockSession.Object,
-                _mockCompletion.Object, _mockObservability.Object);
-        }
-
-        public void Dispose()
-        {
-            _processor.DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         [Fact]
         public async Task DisposeAsyncShouldCompleteMessageWriterAndCancelTokenAsync()
         {
+            // Arrange
+            var sut = new TestMessageProcessor(_mockSession.Object,
+                _mockCompletion.Object, _mockObservability.Object)
+            {
+                Id = 3
+            };
+            _mockCompletion
+                .Setup(c => c.CompleteAsync(
+                    It.Is<uint>(i => i == 3),
+                    It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.CompletedTask)
+                .Verifiable(Times.Once);
+
             // Act
-            await _processor.DisposeAsync();
+            await sut.DisposeAsync();
 
             // Assert
-            _processor.CancellationTokenSource.IsCancellationRequested.Should().BeTrue();
-            _processor.MessageChannel.Reader.Completion.IsCompletedSuccessfully.Should().BeTrue();
-            _processor.MessageChannel.Writer.TryWrite(new MessageProcessor.IncomingMessage(
-                new NotificationMessage
-                {
-                    SequenceNumber = 1
-                },
-                new List<string>(), DateTime.UtcNow)).Should().BeFalse();
-            _processor.MessageChannel.Reader.TryRead(out _).Should().BeFalse();
+            sut.PublishState.Should().Be(PublishState.Completed);
+            _mockCompletion.Verify();
         }
 
         [Fact]
-        public async Task OnPublishReceivedAsyncShouldUpdateAvailableSequenceNumbersAndWriteMessageAsync()
+        public async Task OnPublishReceivedKeepAliveShouldDispatchKeepAliveAsync()
         {
             // Arrange
-            var message = new NotificationMessage();
+            var message = new NotificationMessage
+            {
+                SequenceNumber = 3
+            };
             var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
             var stringTable = new List<string> { "test" };
+            await using var sut = new TestMessageProcessor(_mockSession.Object,
+                _mockCompletion.Object, _mockObservability.Object)
+            {
+                Id = 3
+            };
 
             // Act
-            await _processor.OnPublishReceivedAsync(message, availableSequenceNumbers, stringTable);
+            await sut.OnPublishReceivedAsync(message, availableSequenceNumbers, stringTable);
+            await sut.KeepAliveNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
             // Assert
-            _processor.AvailableInRetransmissionQueue.Should().BeEquivalentTo(availableSequenceNumbers);
-            _processor.MessageChannel.Reader.Count.Should().Be(1);
-        }
+            sut.KeepAliveNotificationReceived.IsSet.Should().BeTrue();
+            sut.AvailableInRetransmissionQueue.Should().BeEquivalentTo(availableSequenceNumbers);
+            sut.LastSequenceNumberProcessed.Should().Be(3);
+            sut.DataChangeNotificationReceived.IsSet.Should().BeFalse();
 
-        [Fact]
-        public void OnPublishStateChangedShouldLogCorrectMessagesAsync()
-        {
+            // Arrange
+            sut.KeepAliveNotificationReceived.Reset();
+            sut.DataChangeNotificationReceived.Reset();
+            message = new NotificationMessage
+            {
+                SequenceNumber = 4,
+                NotificationData = new ExtensionObjectCollection
+                {
+                    new ExtensionObject(new DataChangeNotification
+                    {
+                        MonitoredItems = new MonitoredItemNotificationCollection
+                        {
+                            new MonitoredItemNotification()
+                        }
+                    })
+                }
+            };
+
             // Act
-            _processor.OnPublishStateChanged(PublishState.Stopped | PublishState.Recovered);
+            await sut.OnPublishReceivedAsync(message, availableSequenceNumbers, stringTable);
+            await sut.DataChangeNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
             // Assert
-            _mockLogger.Verify(logger =>
-            logger.LogInformation("{Subscription} STOPPED!", _processor), Times.Once);
-            _mockLogger.Verify(logger =>
-            logger.LogInformation("{Subscription} RECOVERED!", _processor), Times.Once);
+            sut.AvailableInRetransmissionQueue.Should().BeEquivalentTo(availableSequenceNumbers);
+            sut.DataChangeNotificationReceived.IsSet.Should().BeTrue();
+            sut.KeepAliveNotificationReceived.IsSet.Should().BeFalse();
+            sut.LastSequenceNumberProcessed.Should().Be(4);
         }
 
         [Fact]
         public async Task ProcessReceivedMessagesAsyncShouldProcessMessagesInOrderAsync()
         {
+            var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
+            var stringTable = new List<string> { "test" };
+
             // Arrange
-            var messages = Enumerable.Range(1, 100).Select(i => new MessageProcessor.IncomingMessage(
-                new NotificationMessage
-                {
-                    SequenceNumber = (uint)i
-                },
-                new List<string>(), DateTime.UtcNow)).ToList();
+            var messages = Enumerable.Range(2, 99).Select(i => new NotificationMessage
+            {
+                SequenceNumber = (uint)i
+            }).ToList();
             messages.Shuffle();
+
+            await using var sut = new TestMessageProcessor(_mockSession.Object,
+                _mockCompletion.Object, _mockObservability.Object)
+            {
+                Id = 3
+            };
+
+            sut.Block.Wait();
+            await sut.OnPublishReceivedAsync(new NotificationMessage
+            {
+                SequenceNumber = 1u
+            }, availableSequenceNumbers, stringTable);
             foreach (var message in messages)
             {
-                await _processor.MessageChannel.Writer.WriteAsync(message);
+                await sut.OnPublishReceivedAsync(message, availableSequenceNumbers, stringTable);
             }
+            sut.Block.Release();
 
             // Act
-            var processTask = _processor.ProcessReceivedMessagesAsync(
-                _processor.CancellationTokenSource.Token);
-            while (_processor.MessageChannel.Reader.Count > 0)
-            {
-                await Task.Delay(10);
-            }
-            _processor.CancellationTokenSource.Cancel();
-            await processTask;
+            await Task.Delay(10);
 
-            _processor.ReceivedSequenceNumbers.Should().BeEquivalentTo(Enumerable.Range(1, 100).Select(i => (uint)i));
+            sut.ReceivedSequenceNumbers.Should().BeEquivalentTo(
+                Enumerable.Range(1, 100).Select(i => (uint)i));
+            sut.AvailableInRetransmissionQueue.Should().BeEquivalentTo(availableSequenceNumbers);
+            sut.DataChangeNotificationReceived.IsSet.Should().BeFalse();
+            sut.KeepAliveNotificationReceived.IsSet.Should().BeTrue();
+            sut.LastSequenceNumberProcessed.Should().Be(100);
         }
 
         [Fact]
         public async Task ProcessMessageAsyncShouldRepublishMissingMessagesAsync()
         {
             // Arrange
-            var message = new MessageProcessor.IncomingMessage(
-                new NotificationMessage
+            var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
+            var stringTable = new List<string> { "test" };
+
+            await using var sut = new TestMessageProcessor(_mockSession.Object,
+                _mockCompletion.Object, _mockObservability.Object)
+            {
+                Id = 2
+            };
+
+            await sut.OnPublishReceivedAsync(new NotificationMessage
+            {
+                SequenceNumber = 1
+            }, availableSequenceNumbers, stringTable);
+
+            _mockSession
+                .Setup(c => c.RepublishAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<uint>(id => id == sut.Id),
+                    It.Is<uint>(s => s == 2),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new RepublishResponse
                 {
-                    SequenceNumber = 3
-                },
-                new List<string>(), DateTime.UtcNow);
-            _processor.LastSequenceNumberProcessed = 1;
-
-            _mockSession
-                .Setup(c => c.RepublishAsync(
-                    It.IsAny<RequestHeader>(),
-                    It.IsAny<uint>(),
-                    It.IsAny<uint>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new RepublishResponse())
+                    NotificationMessage = new NotificationMessage
+                    {
+                        SequenceNumber = 2,
+                        NotificationData = new ExtensionObjectCollection
+                        {
+                            new ExtensionObject(new DataChangeNotification
+                            {
+                                MonitoredItems = new MonitoredItemNotificationCollection
+                                {
+                                    new MonitoredItemNotification()
+                                }
+                            })
+                        }
+                    }
+                })
                 .Verifiable(Times.Once);
 
             // Act
-            await _processor.ProcessMessageAsync(message, CancellationToken.None);
+            await sut.OnPublishReceivedAsync(new NotificationMessage
+            {
+                SequenceNumber = 3,
+                NotificationData = new ExtensionObjectCollection
+                {
+                    new ExtensionObject(new EventNotificationList
+                    {
+                        Events = new EventFieldListCollection
+                        {
+                            new EventFieldList()
+                        }
+                    })
+                }
+            }, availableSequenceNumbers, stringTable);
+            await sut.EventNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
             // Assert
-            _mockSession.Verify(session => session.RepublishAsync(null, _processor.Id,
-                2, It.IsAny<CancellationToken>()), Times.Once);
-        }
+            sut.EventNotificationReceived.IsSet.Should().BeTrue();
+            sut.KeepAliveNotificationReceived.IsSet.Should().BeTrue();
+            sut.DataChangeNotificationReceived.IsSet.Should().BeTrue();
 
-        [Fact]
-        public async Task TryRepublishAsyncShouldLogWarningIfMessageNotInQueueAsync()
-        {
-            // Arrange
-            _processor.AvailableInRetransmissionQueue = new List<uint> { 1, 2, 3 };
-
-            _mockSession
-                .Setup(c => c.RepublishAsync(
-                    It.IsAny<RequestHeader>(),
-                    It.IsAny<uint>(),
-                    It.IsAny<uint>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new RepublishResponse())
-                .Verifiable(Times.Once);
-
-            // Act
-            await _processor.TryRepublishAsync(4, 5, CancellationToken.None);
-
-            // Assert
             _mockSession.Verify();
         }
 
         [Fact]
-        public async Task OnNotificationReceivedAsyncShouldDispatchKeepAliveNotificationAsync()
+        public async Task ReceivingTransferStatusUpdateShouldUpdatePublishStateAsync()
         {
             // Arrange
-            var message = new NotificationMessage
+            var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
+            var stringTable = new List<string> { "test" };
+            await using var sut = new TestMessageProcessor(_mockSession.Object,
+                _mockCompletion.Object, _mockObservability.Object)
             {
-                SequenceNumber = 1,
-                NotificationData =
-                new ExtensionObjectCollection()
+                Id = 3
             };
 
             // Act
-            await _processor.OnNotificationReceivedAsync(message, PublishState.None,
-                CancellationToken.None);
+            await sut.OnPublishReceivedAsync(new NotificationMessage
+            {
+                SequenceNumber = 3,
+                NotificationData = new ExtensionObjectCollection
+                {
+                    new ExtensionObject(new StatusChangeNotification
+                    {
+                        Status = StatusCodes.GoodSubscriptionTransferred
+                    })
+                }
+            }, availableSequenceNumbers, stringTable);
+            await sut.StatusChangeNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
             // Assert
-            _processor.KeepAliveNotificationReceived.Should().BeTrue();
-        }
+            sut.StatusChangeNotificationReceived.IsSet.Should().BeTrue();
+            sut.ReceivedSequenceNumbers.Should().Contain(3);
+            sut.LastSequenceNumberProcessed.Should().Be(3);
+            sut.PublishState.Should().Be(PublishState.Transferred);
 
-        [Fact]
-        public async Task DispatchAsyncShouldCallOnDataChangeNotificationAsync()
-        {
-            // Arrange
-            var message = new NotificationMessage
-            {
-                SequenceNumber = 1,
-                PublishTime = DateTime.UtcNow,
-                StringTable = new List<string>()
-            };
-            var dataChangeNotification = new DataChangeNotification();
-            var notificationData = new ExtensionObject(dataChangeNotification);
+            sut.StatusChangeNotificationReceived.Reset();
 
             // Act
-            await _processor.DispatchAsync(message, PublishState.None, notificationData);
+            await sut.OnPublishReceivedAsync(new NotificationMessage
+            {
+                SequenceNumber = 4,
+                NotificationData = new ExtensionObjectCollection
+                {
+                    new ExtensionObject(new StatusChangeNotification
+                    {
+                        Status = StatusCodes.BadTimeout
+                    })
+                }
+            }, availableSequenceNumbers, stringTable);
+            await sut.StatusChangeNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
             // Assert
-            _processor.DataChangeNotificationReceived.Should().BeTrue();
+            sut.StatusChangeNotificationReceived.IsSet.Should().BeTrue();
+            sut.ReceivedSequenceNumbers.Should().Contain(4);
+            sut.LastSequenceNumberProcessed.Should().Be(4);
+            sut.PublishState.Should().Be(PublishState.Timeout);
         }
 
         private class TestMessageProcessor : MessageProcessor
@@ -220,8 +288,6 @@ namespace Opc.Ua.Client
             {
             }
 
-            public Channel<IncomingMessage> MessageChannel => _messages;
-            public CancellationTokenSource CancellationTokenSource => _cts;
             public IReadOnlyList<uint> AvailableInRetransmissionQueue
             {
                 get => _availableInRetransmissionQueue;
@@ -233,36 +299,78 @@ namespace Opc.Ua.Client
                 set => _lastSequenceNumberProcessed = value;
             }
 
-            public bool KeepAliveNotificationReceived { get; private set; }
-            public bool DataChangeNotificationReceived { get; private set; }
-            public bool EventNotificationReceived { get; private set; }
+            public AsyncManualResetEvent KeepAliveNotificationReceived { get; } = new();
+            public AsyncManualResetEvent DataChangeNotificationReceived { get; } = new();
+            public AsyncManualResetEvent EventNotificationReceived { get; } = new();
+            public AsyncManualResetEvent StatusChangeNotificationReceived { get; } = new();
 
             public List<uint> ReceivedSequenceNumbers { get; } = new List<uint>();
+            public PublishState PublishState { get; set; }
+
+            public async ValueTask WaitAsync()
+            {
+                await Block.WaitAsync();
+                Block.Release();
+            }
+            public SemaphoreSlim Block { get; } = new (1, 1);
 
             protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, PublishState publishStateMask)
             {
-                KeepAliveNotificationReceived = true;
+                KeepAliveNotificationReceived.Set();
                 ReceivedSequenceNumbers.Add(sequenceNumber);
-                return ValueTask.CompletedTask;
+                if (publishStateMask != PublishState.None)
+                {
+                    PublishState = publishStateMask;
+                }
+                return WaitAsync();
             }
 
             protected override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, DataChangeNotification notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
-                DataChangeNotificationReceived = true;
+                DataChangeNotificationReceived.Set();
                 ReceivedSequenceNumbers.Add(sequenceNumber);
-                return ValueTask.CompletedTask;
+                if (publishStateMask != PublishState.None)
+                {
+                    PublishState = publishStateMask;
+                }
+                return WaitAsync();
             }
 
             protected override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, EventNotificationList notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
-                EventNotificationReceived = true;
+                EventNotificationReceived.Set();
                 ReceivedSequenceNumbers.Add(sequenceNumber);
-                return ValueTask.CompletedTask;
+                if (publishStateMask != PublishState.None)
+                {
+                    PublishState = publishStateMask;
+                }
+                return WaitAsync();
+            }
+
+            protected override async ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
+                DateTime publishTime, StatusChangeNotification notification,
+                PublishState publishStateMask, IReadOnlyList<string> stringTable)
+            {
+                StatusChangeNotificationReceived.Set();
+                ReceivedSequenceNumbers.Add(sequenceNumber);
+                if (publishStateMask != PublishState.None)
+                {
+                    PublishState = publishStateMask;
+                }
+                await WaitAsync();
+                await base.OnStatusChangeNotificationAsync(sequenceNumber, publishTime, notification,
+                    publishStateMask, stringTable);
+            }
+
+            protected override void OnPublishStateChanged(PublishState stateMask)
+            {
+                PublishState = stateMask;
+                base.OnPublishStateChanged(stateMask);
             }
         }
     }

@@ -323,7 +323,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<ResultSet<Node>> ReadNodesAsync(IReadOnlyList<NodeId> nodeIds,
+        public async Task<ResultSet<Node>> FetchNodesAsync(IReadOnlyList<NodeId> nodeIds,
             CancellationToken ct)
         {
             if (nodeIds.Count == 0)
@@ -447,7 +447,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<Node> ReadNodeAsync(NodeId nodeId, CancellationToken ct)
+        public async Task<Node> FetchNodeAsync(NodeId nodeId, CancellationToken ct)
         {
             // build list of attributes.
             var attributes = CreateAttributes();

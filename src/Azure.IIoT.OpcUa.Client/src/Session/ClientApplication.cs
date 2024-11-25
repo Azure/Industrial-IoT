@@ -182,7 +182,7 @@ namespace Opc.Ua.Client
                     _session.Application.LoggerFactory.CreateLogger<ClientItem>());
             }
 
-            private readonly ClientSession _session;
+            private new readonly ClientSession _session;
         }
 
         /// <inheritdoc/>

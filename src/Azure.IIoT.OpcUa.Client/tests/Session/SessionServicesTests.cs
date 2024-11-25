@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -525,6 +526,107 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
+
+        [Fact]
+        public async Task BrowseAsyncShouldContainTraceContextInRequestHeaderAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Repeat(new BrowseDescription(), 5).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            ActivitySource.AddActivityListener(new ActivityListener
+            {
+                ShouldListenTo = activitySource => activitySource.Name == "TestActivitySource",
+                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> options) => ActivitySamplingResult.AllData
+            });
+            var activitySource = new ActivitySource("TestActivitySource");
+            activitySource.HasListeners().Should().BeTrue();
+            _mockObservability.Setup(o => o.ActivitySource).Returns(activitySource);
+
+            using var activity = activitySource.StartActivity("TestActivity");
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList())
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            requestHeader.AdditionalHeader.Should().NotBeNull();
+            var additionalParameters = requestHeader.AdditionalHeader.Body as AdditionalParametersType;
+            additionalParameters.Should().NotBeNull();
+            additionalParameters.Parameters.Should().Contain(p => p.Key == "traceparent");
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldContainTraceContextInRequestHeaderWhenBatchedAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Repeat(new BrowseDescription(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            ActivitySource.AddActivityListener(new ActivityListener
+            {
+                ShouldListenTo = activitySource => activitySource.Name == "TestActivitySource",
+                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> options) => ActivitySamplingResult.AllData
+            });
+            var activitySource = new ActivitySource("TestActivitySource");
+            activitySource.HasListeners().Should().BeTrue();
+            _mockObservability.Setup(o => o.ActivitySource).Returns(activitySource);
+            _mockObservability.Setup(o => o.ActivitySource).Returns(activitySource);
+
+            using var activity = activitySource.StartActivity("TestActivity");
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList())
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList())
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            requestHeader.AdditionalHeader.Should().NotBeNull();
+            var additionalParameters = requestHeader.AdditionalHeader.Body as AdditionalParametersType;
+            additionalParameters.Should().NotBeNull();
+            additionalParameters.Parameters.Should().Contain(p => p.Key == "traceparent");
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
         [Fact]
         public async Task BrowseAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
         {
@@ -536,6 +638,7 @@ namespace Opc.Ua.Client
             var ct = CancellationToken.None;
 
             _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+            _sessionServices.TraceActivityUsingLogger = true;
 
             _mockChannel
                 .SetupSequence(c => c.SendRequestAsync(
@@ -543,11 +646,13 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection(Enumerable.Repeat(new BrowseResult(), 10).ToList())
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList())
                 })
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection(Enumerable.Repeat(new BrowseResult(), 5).ToList()),
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList()),
                     ResponseHeader = new ResponseHeader
                     {
                         ServiceResult = StatusCodes.Bad
@@ -555,13 +660,475 @@ namespace Opc.Ua.Client
                 });
 
             // Act
-            Func<Task> act = async () => await _sessionServices.BrowseAsync(requestHeader, view, requestedMaxReferencesPerNode, nodesToBrowse, ct);
+            Func<Task> act = async () => await _sessionServices.BrowseAsync(requestHeader,
+                view, requestedMaxReferencesPerNode, nodesToBrowse, ct);
 
             // Assert
             await act.Should().ThrowAsync<ServiceResultException>();
-            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
+        [Fact]
+        public async Task BrowseAsyncShouldHandleDiagnosticInfosCorrectlyAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Repeat(new BrowseDescription(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            var diagnosticInfo1 = new DiagnosticInfo
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4
+            };
+
+            var diagnosticInfo2 = new DiagnosticInfo
+            {
+                SymbolicId = 5,
+                NamespaceUri = 6,
+                Locale = 7,
+                LocalizedText = 8,
+                InnerDiagnosticInfo = diagnosticInfo1
+            };
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Repeat(diagnosticInfo1, 10).ToList())
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Repeat(diagnosticInfo2, 5).ToList())
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader,
+                view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(15);
+            response.DiagnosticInfos[0].SymbolicId.Should().Be(1);
+            response.DiagnosticInfos[10].SymbolicId.Should().Be(5);
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.Should().NotBeNull();
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.SymbolicId.Should().Be(1);
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleEmptyDiagnosticInfosCorrectlyAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Repeat(new BrowseDescription(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader,
+                view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(0);
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleEmptyStringTablesInDiagnosticInfos()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Repeat(new BrowseDescription(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            var diagnosticInfo1 = new DiagnosticInfo
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4
+            };
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Repeat(diagnosticInfo1, 10).ToList()),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection()
+                    }
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Repeat(diagnosticInfo1, 5).ToList()),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection()
+                    }
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(15);
+            response.ResponseHeader.StringTable.Count.Should().Be(0);
+
+            // Verify that the indexes in the diagnostic infos are correctly updated
+            response.DiagnosticInfos[0].SymbolicId.Should().Be(1);
+            response.DiagnosticInfos[0].NamespaceUri.Should().Be(2);
+            response.DiagnosticInfos[0].Locale.Should().Be(3);
+            response.DiagnosticInfos[0].LocalizedText.Should().Be(4);
+
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleMixedDiagnosticInfosCorrectlyAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Repeat(new BrowseDescription(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            var diagnosticInfo1 = new DiagnosticInfo
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4
+            };
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Repeat(diagnosticInfo1, 10).ToList())
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList()),
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(15);
+            response.DiagnosticInfos[0].SymbolicId.Should().Be(1);
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos1Async()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Range(0, 15).Select(_ => new BrowseDescription()));
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            static DiagnosticInfo diagnosticInfo() => new()
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4
+            };
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Range(0, 10).Select(_ => new BrowseResult())),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Range(0, 10).Select(_ => diagnosticInfo())),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection { "String1", "String2", "String3", "String4" }
+                    }
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Range(0, 5).Select(_ => new BrowseResult())),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Range(0, 5).Select(_ => diagnosticInfo())),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection { "String5", "String6", "String7", "String8" }
+                    }
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(15);
+            response.ResponseHeader.StringTable.Count.Should().Be(8);
+            response.ResponseHeader.StringTable.Should()
+                .ContainInOrder("String1", "String2", "String3", "String4", "String5", "String6", "String7", "String8");
+
+            // Verify that the indexes in the diagnostic infos are correctly updated
+            response.DiagnosticInfos[0].SymbolicId.Should().Be(1);
+            response.DiagnosticInfos[0].NamespaceUri.Should().Be(2);
+            response.DiagnosticInfos[0].Locale.Should().Be(3);
+            response.DiagnosticInfos[0].LocalizedText.Should().Be(4);
+
+            response.DiagnosticInfos[10].SymbolicId.Should().Be(5);
+            response.DiagnosticInfos[10].NamespaceUri.Should().Be(6);
+            response.DiagnosticInfos[10].Locale.Should().Be(7);
+            response.DiagnosticInfos[10].LocalizedText.Should().Be(8);
+
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos2Async()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Range(0, 15).Select(_ => new BrowseDescription()));
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            DiagnosticInfo diagnosticInfo1() => new()
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4
+            };
+
+            DiagnosticInfo diagnosticInfo2() => new()
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4
+            };
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Range(0, 10).Select(_ => new BrowseResult())),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Range(0, 10).Select(_ => diagnosticInfo1())),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection { "String1", "String2", "String3", "String4" }
+                    }
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Range(0, 5).Select(_ => new BrowseResult())),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Range(0, 5).Select(_ => diagnosticInfo2())),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection { "String5", "String6", "String7", "String8" }
+                    }
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(15);
+            response.ResponseHeader.StringTable.Count.Should().Be(8);
+            response.ResponseHeader.StringTable.Should()
+                .ContainInOrder("String1", "String2", "String3", "String4", "String5", "String6", "String7", "String8");
+
+            // Verify that the indexes in the diagnostic infos are correctly updated
+            response.DiagnosticInfos[0].SymbolicId.Should().Be(1);
+            response.DiagnosticInfos[0].NamespaceUri.Should().Be(2);
+            response.DiagnosticInfos[0].Locale.Should().Be(3);
+            response.DiagnosticInfos[0].LocalizedText.Should().Be(4);
+
+            response.DiagnosticInfos[10].SymbolicId.Should().Be(5);
+            response.DiagnosticInfos[10].NamespaceUri.Should().Be(6);
+            response.DiagnosticInfos[10].Locale.Should().Be(7);
+            response.DiagnosticInfos[10].LocalizedText.Should().Be(8);
+
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos3Async()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var view = new ViewDescription();
+            var nodesToBrowse = new BrowseDescriptionCollection(
+                Enumerable.Range(0, 15).Select(_ => new BrowseDescription()));
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerBrowse = 10;
+
+            DiagnosticInfo diagnosticInfo1() => new()
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 1,
+                LocalizedText = 2
+            };
+
+            DiagnosticInfo diagnosticInfo2() => new()
+            {
+                SymbolicId = 1,
+                NamespaceUri = 2,
+                Locale = 3,
+                LocalizedText = 4,
+                InnerDiagnosticInfo = diagnosticInfo1()
+            };
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Range(0, 10).Select(_ => new BrowseResult())),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Range(0, 10).Select(_ => diagnosticInfo1())),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection { "String1", "String2" }
+                    }
+                })
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Range(0, 5).Select(_ => new BrowseResult())),
+                    DiagnosticInfos = new DiagnosticInfoCollection(
+                        Enumerable.Range(0, 5).Select(_ => diagnosticInfo2())),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        StringTable = new StringCollection { "String1", "String2", "String3", "String4" }
+                    }
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseAsync(requestHeader, view, 0, nodesToBrowse, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            response.DiagnosticInfos.Count.Should().Be(15);
+            response.ResponseHeader.StringTable.Count.Should().Be(6);
+            response.ResponseHeader.StringTable.Should().ContainInOrder("String1", "String2", "String1", "String2", "String3", "String4");
+
+            // Verify that the indexes in the diagnostic infos are correctly updated
+            response.DiagnosticInfos[0].SymbolicId.Should().Be(1);
+            response.DiagnosticInfos[0].NamespaceUri.Should().Be(2);
+            response.DiagnosticInfos[0].Locale.Should().Be(1);
+            response.DiagnosticInfos[0].LocalizedText.Should().Be(2);
+
+            response.DiagnosticInfos[10].SymbolicId.Should().Be(3);
+            response.DiagnosticInfos[10].NamespaceUri.Should().Be(4);
+            response.DiagnosticInfos[10].Locale.Should().Be(5);
+            response.DiagnosticInfos[10].LocalizedText.Should().Be(6);
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.Should().NotBeNull();
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.SymbolicId.Should().Be(3);
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.NamespaceUri.Should().Be(4);
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.Locale.Should().Be(3);
+            response.DiagnosticInfos[10].InnerDiagnosticInfo.LocalizedText.Should().Be(4);
+
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
         [Fact]
         public async Task BrowseAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
         {
@@ -676,6 +1243,79 @@ namespace Opc.Ua.Client
             response.Should().NotBeNull();
             response.Results.Should().HaveCount(1);
             response.DiagnosticInfos.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task BrowseNextAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var releaseContinuationPoints = true;
+            var continuationPoints = new ByteStringCollection(
+                Enumerable.Repeat(new byte[0], 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxBrowseContinuationPoints = 10;
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 10).ToList())
+                })
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection(
+                        Enumerable.Repeat(new BrowseResult(), 5).ToList())
+                });
+
+            // Act
+            var response = await _sessionServices.BrowseNextAsync(requestHeader, releaseContinuationPoints, continuationPoints, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task BrowseNextAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var releaseContinuationPoints = true;
+            var continuationPoints = new ByteStringCollection(Enumerable.Repeat(new byte[0], 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxBrowseContinuationPoints = 10;
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection(Enumerable.Repeat(new BrowseResult(), 10).ToList())
+                })
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection(Enumerable.Repeat(new BrowseResult(), 5).ToList()),
+                    ResponseHeader = new ResponseHeader
+                    {
+                        ServiceResult = StatusCodes.Bad
+                    }
+                });
+
+            // Act
+            Func<Task> act = async () => await _sessionServices.BrowseNextAsync(requestHeader, releaseContinuationPoints, continuationPoints, ct);
+
+            // Assert
+            await act.Should().ThrowAsync<ServiceResultException>();
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [Fact]
@@ -1576,6 +2216,42 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
+        public async Task DeleteNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var nodesToDelete = new DeleteNodesItemCollection(
+                Enumerable.Repeat(new DeleteNodesItem(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerNodeManagement = 10;
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is DeleteNodesRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeleteNodesResponse
+                {
+                    Results = new StatusCodeCollection(
+                        Enumerable.Repeat((StatusCode)StatusCodes.Good, 10).ToList())
+                })
+                .ReturnsAsync(new DeleteNodesResponse
+                {
+                    Results = new StatusCodeCollection(
+                        Enumerable.Repeat((StatusCode)StatusCodes.Good, 5).ToList())
+                });
+
+            // Act
+            var response = await _sessionServices.DeleteNodesAsync(requestHeader, nodesToDelete, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
         public async Task DeleteNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
         {
             // Arrange
@@ -1718,6 +2394,41 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
+        [Fact]
+        public async Task DeleteReferencesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        {
+            // Arrange
+            var requestHeader = new RequestHeader();
+            var referencesToDelete = new DeleteReferencesItemCollection(
+                Enumerable.Repeat(new DeleteReferencesItem(), 15).ToList());
+            var ct = CancellationToken.None;
+
+            _sessionServices.OperationLimits.MaxNodesPerNodeManagement = 10;
+
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is DeleteReferencesRequest),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeleteReferencesResponse
+                {
+                    Results = new StatusCodeCollection(
+                        Enumerable.Repeat((StatusCode)StatusCodes.Good, 10).ToList())
+                })
+                .ReturnsAsync(new DeleteReferencesResponse
+                {
+                    Results = new StatusCodeCollection(
+                        Enumerable.Repeat((StatusCode)StatusCodes.Good, 5).ToList())
+                });
+
+            // Act
+            var response = await _sessionServices.DeleteReferencesAsync(requestHeader, referencesToDelete, ct);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Results.Count.Should().Be(15);
+            _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
         [Fact]
         public async Task DeleteReferencesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
         {
@@ -1991,13 +2702,13 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var historyReadDetails = new ExtensionObject();
+            var historyReadDetails = new ExtensionObject(new ReadEventDetails());
             var timestampsToReturn = TimestampsToReturn.Both;
             var releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection(Enumerable.Repeat(new HistoryReadValueId(), 15).ToList());
             var ct = CancellationToken.None;
 
-            _sessionServices.OperationLimits.MaxNodesPerHistoryReadData = 10;
+            _sessionServices.OperationLimits.MaxNodesPerHistoryReadEvents = 10;
 
             _mockChannel
                 .SetupSequence(c => c.SendRequestAsync(
@@ -2184,10 +2895,11 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var historyUpdateDetails = new ExtensionObjectCollection(Enumerable.Repeat(new ExtensionObject(), 15).ToList());
+            var historyUpdateDetails = new ExtensionObjectCollection(
+                Enumerable.Repeat(new ExtensionObject(new UpdateEventDetails()), 15).ToList());
             var ct = CancellationToken.None;
 
-            _sessionServices.OperationLimits.MaxNodesPerHistoryUpdateData = 10;
+            _sessionServices.OperationLimits.MaxNodesPerHistoryUpdateEvents = 10;
 
             _mockChannel
                 .SetupSequence(c => c.SendRequestAsync(
@@ -4317,7 +5029,6 @@ namespace Opc.Ua.Client
             response.Results.Should().HaveCount(1);
             response.DiagnosticInfos.Should().HaveCount(1);
         }
-
         private class TestSessionServices : SessionServices
         {
             public TestSessionServices(IObservability observability, ITransportChannel channel)
