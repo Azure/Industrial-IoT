@@ -112,6 +112,10 @@ namespace Opc.Ua.Client
             // Act
             var processTask = _processor.ProcessReceivedMessagesAsync(
                 _processor.CancellationTokenSource.Token);
+            while (_processor.MessageChannel.Reader.Count > 0)
+            {
+                await Task.Delay(10);
+            }
             _processor.CancellationTokenSource.Cancel();
             await processTask;
 

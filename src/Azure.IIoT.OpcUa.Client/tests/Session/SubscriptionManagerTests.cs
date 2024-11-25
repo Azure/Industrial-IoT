@@ -74,7 +74,7 @@ namespace Opc.Ua.Client
 
             sut.Invoking(s => s.Add(so2)).Should().Throw<ServiceResultException>()
                 .Which.StatusCode.Should().Be(StatusCodes.BadAlreadyExists);
-
+            await Task.Delay(100); // Give time to workers to start
             sut.PublishWorkerCount.Should().Be(0);
             await sut.CompleteAsync(1, default);
             sut.Count.Should().Be(1);
