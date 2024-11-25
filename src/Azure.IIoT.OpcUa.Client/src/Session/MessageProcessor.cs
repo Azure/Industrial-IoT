@@ -370,10 +370,14 @@ namespace Opc.Ua.Client
                     var mask = publishStateMask;
                     if (statusChanged.Status == StatusCodes.GoodSubscriptionTransferred)
                     {
+                        // Only happens if we did not initiate the transfer.
+                        // TODO: Complete this subscription.
                         mask |= PublishState.Transferred;
                     }
                     else if (statusChanged.Status == StatusCodes.BadTimeout)
                     {
+                        // Timeout on the server.
+                        // TODO: Also complete this subscription
                         mask |= PublishState.Timeout;
                     }
                     await OnStatusChangeNotificationAsync(message.SequenceNumber,

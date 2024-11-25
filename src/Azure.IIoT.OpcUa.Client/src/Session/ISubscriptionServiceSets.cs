@@ -28,7 +28,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         Task<CreateSubscriptionResponse> CreateSubscriptionAsync(RequestHeader? requestHeader,
             double requestedPublishingInterval, uint requestedLifetimeCount,
-            uint requestedMaxKeepAliveCount,uint maxNotificationsPerPublish, bool publishingEnabled,
+            uint requestedMaxKeepAliveCount, uint maxNotificationsPerPublish, bool publishingEnabled,
             byte priority, CancellationToken ct = default);
 
         /// <summary>

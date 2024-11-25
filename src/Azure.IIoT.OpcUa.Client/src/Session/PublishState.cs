@@ -29,27 +29,29 @@ namespace Opc.Ua.Client
         Republish = 1 << 2,
 
         /// <summary>
-        /// The publishing was timed out
-        /// </summary>
-        Timeout = 1 << 3,
-
-        /// <summary>
         /// The publishing stopped.
         /// </summary>
-        Stopped = 1 << 4,
+        Stopped = 1 << 3,
 
         /// <summary>
         /// The publishing recovered.
         /// </summary>
-        Recovered = 1 << 5,
+        Recovered = 1 << 4,
 
         /// <summary>
-        /// The Subscription was transferred.
+        /// The subscription timed out on the
+        /// server and was closed
+        /// </summary>
+        Timeout = 1 << 5,
+
+        /// <summary>
+        /// The Subscription was transferred
+        /// to another session.
         /// </summary>
         Transferred = 1 << 6,
 
         /// <summary>
-        /// Subscription closed
+        /// Subscription closed on the client
         /// </summary>
         Completed = 1 << 7,
     }

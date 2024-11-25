@@ -16,13 +16,8 @@ namespace Opc.Ua.Client
     using Moq;
     using Xunit;
 
-    public class SessionServicesTests : IDisposable
+    public sealed class SessionServicesTests : IDisposable
     {
-        private readonly Mock<ITransportChannel> _mockChannel;
-        private readonly Mock<ILogger<SessionServices>> _mockLogger;
-        private readonly Mock<IObservability> _mockObservability;
-        private readonly SessionServices _sessionServices;
-
         public SessionServicesTests()
         {
             _mockObservability = new Mock<IObservability>();
@@ -33,6 +28,12 @@ namespace Opc.Ua.Client
                 .Returns(_mockLogger.Object);
 
             _sessionServices = new TestSessionServices(_mockObservability.Object, _mockChannel.Object);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _sessionServices.Dispose();
         }
 
         [Fact]
@@ -494,7 +495,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var view = new ViewDescription();
-            var requestedMaxReferencesPerNode = 10u;
+            const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 15).ToList());
             var ct = CancellationToken.None;
@@ -633,7 +634,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var view = new ViewDescription();
-            var requestedMaxReferencesPerNode = 10u;
+            const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection(Enumerable.Repeat(new BrowseDescription(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -775,7 +776,7 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task BrowseAsyncShouldHandleEmptyStringTablesInDiagnosticInfos()
+        public async Task BrowseAsyncShouldHandleEmptyStringTablesInDiagnosticInfosAsync()
         {
             // Arrange
             var requestHeader = new RequestHeader();
@@ -1135,7 +1136,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var view = new ViewDescription();
-            var requestedMaxReferencesPerNode = 10u;
+            const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
             var ct = CancellationToken.None;
 
@@ -1163,7 +1164,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var view = new ViewDescription();
-            var requestedMaxReferencesPerNode = 10u;
+            const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
             var ct = CancellationToken.None;
 
@@ -1195,7 +1196,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var view = new ViewDescription();
-            var requestedMaxReferencesPerNode = 10u;
+            const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
             var ct = CancellationToken.None;
 
@@ -1221,7 +1222,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var view = new ViewDescription();
-            var requestedMaxReferencesPerNode = 10u;
+            const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
             var ct = CancellationToken.None;
 
@@ -1250,9 +1251,9 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoints = true;
+            const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection(
-                Enumerable.Repeat(new byte[0], 15).ToList());
+                Enumerable.Repeat(Array.Empty<byte>(), 15).ToList());
             var ct = CancellationToken.None;
 
             _sessionServices.OperationLimits.MaxBrowseContinuationPoints = 10;
@@ -1287,8 +1288,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoints = true;
-            var continuationPoints = new ByteStringCollection(Enumerable.Repeat(new byte[0], 15).ToList());
+            const bool releaseContinuationPoints = true;
+            var continuationPoints = new ByteStringCollection(Enumerable.Repeat(Array.Empty<byte>(), 15).ToList());
             var ct = CancellationToken.None;
 
             _sessionServices.OperationLimits.MaxBrowseContinuationPoints = 10;
@@ -1323,7 +1324,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoints = true;
+            const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
 
@@ -1350,7 +1351,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoints = true;
+            const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
 
@@ -1381,7 +1382,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoints = true;
+            const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
 
@@ -1406,7 +1407,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoints = true;
+            const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
 
@@ -1614,7 +1615,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var requestHandle = 1u;
+            const uint requestHandle = 1u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1640,7 +1641,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var requestHandle = 1u;
+            const uint requestHandle = 1u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1670,7 +1671,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var requestHandle = 1u;
+            const uint requestHandle = 1u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1694,7 +1695,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var deleteSubscriptions = true;
+            const bool deleteSubscriptions = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1720,7 +1721,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var deleteSubscriptions = true;
+            const bool deleteSubscriptions = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1750,7 +1751,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var deleteSubscriptions = true;
+            const bool deleteSubscriptions = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1774,8 +1775,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection(
                 Enumerable.Repeat(new MonitoredItemCreateRequest(), 15).ToList());
             var ct = CancellationToken.None;
@@ -1813,8 +1814,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection(Enumerable.Repeat(new MonitoredItemCreateRequest(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -1850,8 +1851,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1878,8 +1879,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1910,8 +1911,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1936,8 +1937,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1966,12 +1967,12 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var requestedPublishingInterval = 1000.0;
-            var requestedLifetimeCount = 10u;
-            var requestedMaxKeepAliveCount = 5u;
-            var maxNotificationsPerPublish = 100u;
-            var publishingEnabled = true;
-            var priority = (byte)1;
+            const double requestedPublishingInterval = 1000.0;
+            const uint requestedLifetimeCount = 10u;
+            const uint requestedMaxKeepAliveCount = 5u;
+            const uint maxNotificationsPerPublish = 100u;
+            const bool publishingEnabled = true;
+            const byte priority = 1;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -1998,12 +1999,12 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var requestedPublishingInterval = 1000.0;
-            var requestedLifetimeCount = 10u;
-            var requestedMaxKeepAliveCount = 5u;
-            var maxNotificationsPerPublish = 100u;
-            var publishingEnabled = true;
-            var priority = (byte)1;
+            const double requestedPublishingInterval = 1000.0;
+            const uint requestedLifetimeCount = 10u;
+            const uint requestedMaxKeepAliveCount = 5u;
+            const uint maxNotificationsPerPublish = 100u;
+            const bool publishingEnabled = true;
+            const byte priority = 1;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -2034,12 +2035,12 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var requestedPublishingInterval = 1000.0;
-            var requestedLifetimeCount = 10u;
-            var requestedMaxKeepAliveCount = 5u;
-            var maxNotificationsPerPublish = 100u;
-            var publishingEnabled = true;
-            var priority = (byte)1;
+            const double requestedPublishingInterval = 1000.0;
+            const uint requestedLifetimeCount = 10u;
+            const uint requestedMaxKeepAliveCount = 5u;
+            const uint maxNotificationsPerPublish = 100u;
+            const bool publishingEnabled = true;
+            const byte priority = 1;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -2064,7 +2065,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
+            const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
 
@@ -2101,7 +2102,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
+            const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
 
@@ -2137,7 +2138,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
+            const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -2164,7 +2165,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
+            const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -2195,7 +2196,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
+            const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -2571,6 +2572,7 @@ namespace Opc.Ua.Client
             response.Results.Should().HaveCount(1);
             response.DiagnosticInfos.Should().HaveCount(1);
         }
+
         [Fact]
         public async Task DeleteSubscriptionsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
         {
@@ -2651,20 +2653,14 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            _sessionServices.Dispose();
-        }
-
         [Fact]
         public async Task HistoryReadAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
         {
             // Arrange
             var requestHeader = new RequestHeader();
             var historyReadDetails = new ExtensionObject();
-            var timestampsToReturn = TimestampsToReturn.Both;
-            var releaseContinuationPoints = true;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
+            const bool releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection(
                 Enumerable.Repeat(new HistoryReadValueId(), 15).ToList());
             var ct = CancellationToken.None;
@@ -2703,8 +2699,8 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var historyReadDetails = new ExtensionObject(new ReadEventDetails());
-            var timestampsToReturn = TimestampsToReturn.Both;
-            var releaseContinuationPoints = true;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
+            const bool releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection(Enumerable.Repeat(new HistoryReadValueId(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -2741,8 +2737,8 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var historyReadDetails = new ExtensionObject();
-            var timestampsToReturn = TimestampsToReturn.Both;
-            var releaseContinuationPoints = true;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
+            const bool releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -2771,8 +2767,8 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var historyReadDetails = new ExtensionObject();
-            var timestampsToReturn = TimestampsToReturn.Both;
-            var releaseContinuationPoints = true;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
+            const bool releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -2805,8 +2801,8 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var historyReadDetails = new ExtensionObject();
-            var timestampsToReturn = TimestampsToReturn.Both;
-            var releaseContinuationPoints = true;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
+            const bool releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -2833,8 +2829,8 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var historyReadDetails = new ExtensionObject();
-            var timestampsToReturn = TimestampsToReturn.Both;
-            var releaseContinuationPoints = true;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
+            const bool releaseContinuationPoints = true;
             var nodesToRead = new HistoryReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -3039,8 +3035,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection(
                 Enumerable.Repeat(new MonitoredItemModifyRequest(), 15).ToList());
             var ct = CancellationToken.None;
@@ -3078,8 +3074,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection(Enumerable.Repeat(new MonitoredItemModifyRequest(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -3115,8 +3111,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
             var ct = CancellationToken.None;
 
@@ -3143,8 +3139,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
             var ct = CancellationToken.None;
 
@@ -3175,8 +3171,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
             var ct = CancellationToken.None;
 
@@ -3201,8 +3197,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const uint subscriptionId = 1u;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
             var ct = CancellationToken.None;
 
@@ -3231,12 +3227,12 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var requestedPublishingInterval = 1000.0;
-            var requestedLifetimeCount = 10u;
-            var requestedMaxKeepAliveCount = 5u;
-            var maxNotificationsPerPublish = 100u;
-            var priority = (byte)1;
+            const uint subscriptionId = 1u;
+            const double requestedPublishingInterval = 1000.0;
+            const uint requestedLifetimeCount = 10u;
+            const uint requestedMaxKeepAliveCount = 5u;
+            const uint maxNotificationsPerPublish = 100u;
+            const byte priority = 1;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3263,12 +3259,12 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var requestedPublishingInterval = 1000.0;
-            var requestedLifetimeCount = 10u;
-            var requestedMaxKeepAliveCount = 5u;
-            var maxNotificationsPerPublish = 100u;
-            var priority = (byte)1;
+            const uint subscriptionId = 1u;
+            const double requestedPublishingInterval = 1000.0;
+            const uint requestedLifetimeCount = 10u;
+            const uint requestedMaxKeepAliveCount = 5u;
+            const uint maxNotificationsPerPublish = 100u;
+            const byte priority = 1;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3299,12 +3295,12 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var requestedPublishingInterval = 1000.0;
-            var requestedLifetimeCount = 10u;
-            var requestedMaxKeepAliveCount = 5u;
-            var maxNotificationsPerPublish = 100u;
-            var priority = (byte)1;
+            const uint subscriptionId = 1u;
+            const double requestedPublishingInterval = 1000.0;
+            const uint requestedLifetimeCount = 10u;
+            const uint requestedMaxKeepAliveCount = 5u;
+            const uint maxNotificationsPerPublish = 100u;
+            const byte priority = 1;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3412,8 +3408,8 @@ namespace Opc.Ua.Client
             var view = new ViewDescription();
             var nodeTypes = new NodeTypeDescriptionCollection();
             var filter = new ContentFilter();
-            var maxDataSetsToReturn = 10u;
-            var maxReferencesToReturn = 10u;
+            const uint maxDataSetsToReturn = 10u;
+            const uint maxReferencesToReturn = 10u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3442,8 +3438,8 @@ namespace Opc.Ua.Client
             var view = new ViewDescription();
             var nodeTypes = new NodeTypeDescriptionCollection();
             var filter = new ContentFilter();
-            var maxDataSetsToReturn = 10u;
-            var maxReferencesToReturn = 10u;
+            const uint maxDataSetsToReturn = 10u;
+            const uint maxReferencesToReturn = 10u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3476,8 +3472,8 @@ namespace Opc.Ua.Client
             var view = new ViewDescription();
             var nodeTypes = new NodeTypeDescriptionCollection();
             var filter = new ContentFilter();
-            var maxDataSetsToReturn = 10u;
-            var maxReferencesToReturn = 10u;
+            const uint maxDataSetsToReturn = 10u;
+            const uint maxReferencesToReturn = 10u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3501,8 +3497,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoint = true;
-            var continuationPoint = new byte[0];
+            const bool releaseContinuationPoint = true;
+            var continuationPoint = Array.Empty<byte>();
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3528,8 +3524,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoint = true;
-            var continuationPoint = new byte[0];
+            const bool releaseContinuationPoint = true;
+            var continuationPoint = Array.Empty<byte>();
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3559,8 +3555,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var releaseContinuationPoint = true;
-            var continuationPoint = new byte[0];
+            const bool releaseContinuationPoint = true;
+            var continuationPoint = Array.Empty<byte>();
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3584,8 +3580,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var maxAge = 1000.0;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const double maxAge = 1000.0;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection(
                 Enumerable.Repeat(new ReadValueId(), 15).ToList());
             var ct = CancellationToken.None;
@@ -3623,8 +3619,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var maxAge = 1000.0;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const double maxAge = 1000.0;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection(Enumerable.Repeat(new ReadValueId(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -3660,8 +3656,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var maxAge = 1000.0;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const double maxAge = 1000.0;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -3688,8 +3684,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var maxAge = 1000.0;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const double maxAge = 1000.0;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -3720,8 +3716,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var maxAge = 1000.0;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const double maxAge = 1000.0;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -3746,8 +3742,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var maxAge = 1000.0;
-            var timestampsToReturn = TimestampsToReturn.Both;
+            const double maxAge = 1000.0;
+            const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
             var ct = CancellationToken.None;
 
@@ -3923,8 +3919,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var retransmitSequenceNumber = 1u;
+            const uint subscriptionId = 1u;
+            const uint retransmitSequenceNumber = 1u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3950,8 +3946,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var retransmitSequenceNumber = 1u;
+            const uint subscriptionId = 1u;
+            const uint retransmitSequenceNumber = 1u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -3981,8 +3977,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var retransmitSequenceNumber = 1u;
+            const uint subscriptionId = 1u;
+            const uint retransmitSequenceNumber = 1u;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -4006,8 +4002,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var monitoringMode = MonitoringMode.Reporting;
+            const uint subscriptionId = 1u;
+            const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4044,8 +4040,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var monitoringMode = MonitoringMode.Reporting;
+            const uint subscriptionId = 1u;
+            const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4081,8 +4077,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var monitoringMode = MonitoringMode.Reporting;
+            const uint subscriptionId = 1u;
+            const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4109,8 +4105,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var monitoringMode = MonitoringMode.Reporting;
+            const uint subscriptionId = 1u;
+            const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4141,8 +4137,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var monitoringMode = MonitoringMode.Reporting;
+            const uint subscriptionId = 1u;
+            const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4167,8 +4163,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var monitoringMode = MonitoringMode.Reporting;
+            const uint subscriptionId = 1u;
+            const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4197,7 +4193,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var publishingEnabled = true;
+            const bool publishingEnabled = true;
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4224,7 +4220,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var publishingEnabled = true;
+            const bool publishingEnabled = true;
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4255,7 +4251,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var publishingEnabled = true;
+            const bool publishingEnabled = true;
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -4280,8 +4276,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var triggeringItemId = 1u;
+            const uint subscriptionId = 1u;
+            const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var linksToRemove = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
@@ -4327,8 +4323,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var triggeringItemId = 1u;
+            const uint subscriptionId = 1u;
+            const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var linksToRemove = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
@@ -4367,8 +4363,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var triggeringItemId = 1u;
+            const uint subscriptionId = 1u;
+            const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
             var linksToRemove = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4396,8 +4392,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var triggeringItemId = 1u;
+            const uint subscriptionId = 1u;
+            const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
             var linksToRemove = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4429,8 +4425,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var triggeringItemId = 1u;
+            const uint subscriptionId = 1u;
+            const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
             var linksToRemove = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4456,8 +4452,8 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var requestHeader = new RequestHeader();
-            var subscriptionId = 1u;
-            var triggeringItemId = 1u;
+            const uint subscriptionId = 1u;
+            const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
             var linksToRemove = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4492,7 +4488,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var subscriptionIds = new UInt32Collection();
-            var sendInitialValues = true;
+            const bool sendInitialValues = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -4519,7 +4515,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var subscriptionIds = new UInt32Collection();
-            var sendInitialValues = true;
+            const bool sendInitialValues = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -4550,7 +4546,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var subscriptionIds = new UInt32Collection();
-            var sendInitialValues = true;
+            const bool sendInitialValues = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -4575,7 +4571,7 @@ namespace Opc.Ua.Client
             // Arrange
             var requestHeader = new RequestHeader();
             var subscriptionIds = new UInt32Collection();
-            var sendInitialValues = true;
+            const bool sendInitialValues = true;
             var ct = CancellationToken.None;
 
             _mockChannel
@@ -5029,7 +5025,8 @@ namespace Opc.Ua.Client
             response.Results.Should().HaveCount(1);
             response.DiagnosticInfos.Should().HaveCount(1);
         }
-        private class TestSessionServices : SessionServices
+
+        private sealed class TestSessionServices : SessionServices
         {
             public TestSessionServices(IObservability observability, ITransportChannel channel)
                 : base(observability, channel)
@@ -5037,5 +5034,10 @@ namespace Opc.Ua.Client
                 AttachChannel(channel);
             }
         }
+
+        private readonly Mock<ITransportChannel> _mockChannel;
+        private readonly Mock<ILogger<SessionServices>> _mockLogger;
+        private readonly Mock<IObservability> _mockObservability;
+        private readonly TestSessionServices _sessionServices;
     }
 }

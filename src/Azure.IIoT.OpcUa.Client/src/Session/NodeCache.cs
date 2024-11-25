@@ -84,7 +84,7 @@ namespace Opc.Ua.Client
                         continue;
                     }
                     notFound.Add(nodeId);
-                    result.Add(null!);
+                    result.Add(null);
                 }
                 if (notFound.Count != 0)
                 {

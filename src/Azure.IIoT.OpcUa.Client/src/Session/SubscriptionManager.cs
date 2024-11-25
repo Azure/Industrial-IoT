@@ -309,7 +309,6 @@ namespace Opc.Ua.Client
                             "Subscription {Id} is already member of the session.",
                             subscriptionIds[index]);
                         // Done
-                        continue;
                     }
                     else if (!StatusCode.IsGood(transferResults[index].StatusCode))
                     {
@@ -317,16 +316,22 @@ namespace Opc.Ua.Client
                             "Subscription {Id} failed to transfer, StatusCode={Status}",
                             subscriptionIds[index], transferResults[index].StatusCode);
                         remaining.Add(subscriptions[index]);
-                        continue;
                     }
-                    var transfered = await subscriptions[index].TransferAsync(null,
-                        transferResults[index].AvailableSequenceNumbers,
-                        ct).ConfigureAwait(false);
-                    if (!transfered)
+                    else
                     {
-                        // Recreate the subscription instead
+                        var success = await subscriptions[index].TryCompleteTransferAsync(
+                            transferResults[index].AvailableSequenceNumbers
+                                ?? Array.Empty<uint>(), ct).ConfigureAwait(false);
+                        if (success)
+                        {
+                            continue;
+                        }
+                        //
+                        // Recreate as we cannot sync the subscription. This happens
+                        // when the GetMonitoredItems call fails and we cannot synchronize
+                        // the subscription state
+                        //
                         remaining.Add(subscriptions[index]);
-                        continue;
                     }
                 }
                 return remaining;

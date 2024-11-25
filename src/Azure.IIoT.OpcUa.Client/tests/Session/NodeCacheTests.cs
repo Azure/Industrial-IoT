@@ -11,7 +11,7 @@ namespace Opc.Ua.Client
     using System.Threading.Tasks;
     using Xunit;
 
-    public class NodeCacheTests
+    public sealed class NodeCacheTests
     {
         [Fact]
         public async Task FetchRemainingNodesAsyncShouldHandleErrorsAsync()
@@ -155,7 +155,6 @@ namespace Opc.Ua.Client
                     Errors = new[] { ServiceResult.Good }
                 })
                 .Verifiable(Times.Once);
-
 
             var nodeCache = new NodeCache(context.Object);
 
@@ -310,7 +309,6 @@ namespace Opc.Ua.Client
             };
             var id = new NodeId("test", 0);
             var context = new Mock<INodeCacheContext>();
-
 
             context
                 .Setup(c => c.FetchReferencesAsync(

@@ -16,14 +16,8 @@ namespace Opc.Ua.Client
     using Nito.AsyncEx;
     using Xunit;
 
-    public class MessageProcessorTests
+    public sealed class MessageProcessorTests
     {
-        private readonly Mock<ISubscriptionContext> _mockSession;
-        private readonly Mock<IMessageAckQueue> _mockCompletion;
-        private readonly Mock<IObservability> _mockObservability;
-        private readonly Mock<ILogger<SubscriptionBase>> _mockLogger;
-        private readonly Mock<TimeProvider> _mockTimeProvider;
-
         public MessageProcessorTests()
         {
             _mockSession = new Mock<ISubscriptionContext>();
@@ -117,47 +111,6 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task ProcessReceivedMessagesAsyncShouldProcessMessagesInOrderAsync()
-        {
-            var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
-            var stringTable = new List<string> { "test" };
-
-            // Arrange
-            var messages = Enumerable.Range(2, 99).Select(i => new NotificationMessage
-            {
-                SequenceNumber = (uint)i
-            }).ToList();
-            messages.Shuffle();
-
-            await using var sut = new TestMessageProcessor(_mockSession.Object,
-                _mockCompletion.Object, _mockObservability.Object)
-            {
-                Id = 3
-            };
-
-            sut.Block.Wait();
-            await sut.OnPublishReceivedAsync(new NotificationMessage
-            {
-                SequenceNumber = 1u
-            }, availableSequenceNumbers, stringTable);
-            foreach (var message in messages)
-            {
-                await sut.OnPublishReceivedAsync(message, availableSequenceNumbers, stringTable);
-            }
-            sut.Block.Release();
-
-            // Act
-            await Task.Delay(10);
-
-            sut.ReceivedSequenceNumbers.Should().BeEquivalentTo(
-                Enumerable.Range(1, 100).Select(i => (uint)i));
-            sut.AvailableInRetransmissionQueue.Should().BeEquivalentTo(availableSequenceNumbers);
-            sut.DataChangeNotificationReceived.IsSet.Should().BeFalse();
-            sut.KeepAliveNotificationReceived.IsSet.Should().BeTrue();
-            sut.LastSequenceNumberProcessed.Should().Be(100);
-        }
-
-        [Fact]
         public async Task ProcessMessageAsyncShouldRepublishMissingMessagesAsync()
         {
             // Arrange
@@ -226,6 +179,46 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
+        public async Task ProcessReceivedMessagesAsyncShouldProcessMessagesInOrderAsync()
+        {
+            var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
+            var stringTable = new List<string> { "test" };
+
+            // Arrange
+            var messages = Enumerable.Range(2, 99).Select(i => new NotificationMessage
+            {
+                SequenceNumber = (uint)i
+            }).ToList();
+            messages.Shuffle();
+
+            await using var sut = new TestMessageProcessor(_mockSession.Object,
+                _mockCompletion.Object, _mockObservability.Object)
+            {
+                Id = 3
+            };
+
+            sut.Block.Wait();
+            await sut.OnPublishReceivedAsync(new NotificationMessage
+            {
+                SequenceNumber = 1u
+            }, availableSequenceNumbers, stringTable);
+            foreach (var message in messages)
+            {
+                await sut.OnPublishReceivedAsync(message, availableSequenceNumbers, stringTable);
+            }
+            sut.Block.Release();
+
+            // Act
+            await Task.Delay(10);
+
+            sut.ReceivedSequenceNumbers.Should().BeEquivalentTo(
+                Enumerable.Range(1, 100).Select(i => (uint)i));
+            sut.AvailableInRetransmissionQueue.Should().BeEquivalentTo(availableSequenceNumbers);
+            sut.DataChangeNotificationReceived.IsSet.Should().BeFalse();
+            sut.KeepAliveNotificationReceived.IsSet.Should().BeTrue();
+            sut.LastSequenceNumberProcessed.Should().Be(100);
+        }
+        [Fact]
         public async Task ReceivingTransferStatusUpdateShouldUpdatePublishStateAsync()
         {
             // Arrange
@@ -280,7 +273,7 @@ namespace Opc.Ua.Client
             sut.PublishState.Should().Be(PublishState.Timeout);
         }
 
-        private class TestMessageProcessor : MessageProcessor
+        private sealed class TestMessageProcessor : MessageProcessor
         {
             public TestMessageProcessor(ISubscriptionContext session,
                 IMessageAckQueue completion, IObservability observability)
@@ -293,39 +286,27 @@ namespace Opc.Ua.Client
                 get => _availableInRetransmissionQueue;
                 set => _availableInRetransmissionQueue = value;
             }
+            public SemaphoreSlim Block { get; } = new(1, 1);
+
+            public AsyncManualResetEvent DataChangeNotificationReceived { get; } = new();
+
+            public AsyncManualResetEvent EventNotificationReceived { get; } = new();
+
+            public AsyncManualResetEvent KeepAliveNotificationReceived { get; } = new();
+
             public uint LastSequenceNumberProcessed
             {
                 get => _lastSequenceNumberProcessed;
                 set => _lastSequenceNumberProcessed = value;
             }
-
-            public AsyncManualResetEvent KeepAliveNotificationReceived { get; } = new();
-            public AsyncManualResetEvent DataChangeNotificationReceived { get; } = new();
-            public AsyncManualResetEvent EventNotificationReceived { get; } = new();
-            public AsyncManualResetEvent StatusChangeNotificationReceived { get; } = new();
-
-            public List<uint> ReceivedSequenceNumbers { get; } = new List<uint>();
             public PublishState PublishState { get; set; }
-
+            public List<uint> ReceivedSequenceNumbers { get; } = new List<uint>();
+            public AsyncManualResetEvent StatusChangeNotificationReceived { get; } = new();
             public async ValueTask WaitAsync()
             {
                 await Block.WaitAsync();
                 Block.Release();
             }
-            public SemaphoreSlim Block { get; } = new (1, 1);
-
-            protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, PublishState publishStateMask)
-            {
-                KeepAliveNotificationReceived.Set();
-                ReceivedSequenceNumbers.Add(sequenceNumber);
-                if (publishStateMask != PublishState.None)
-                {
-                    PublishState = publishStateMask;
-                }
-                return WaitAsync();
-            }
-
             protected override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, DataChangeNotification notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
@@ -352,8 +333,25 @@ namespace Opc.Ua.Client
                 return WaitAsync();
             }
 
+            protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
+                                        DateTime publishTime, PublishState publishStateMask)
+            {
+                KeepAliveNotificationReceived.Set();
+                ReceivedSequenceNumbers.Add(sequenceNumber);
+                if (publishStateMask != PublishState.None)
+                {
+                    PublishState = publishStateMask;
+                }
+                return WaitAsync();
+            }
+            protected override void OnPublishStateChanged(PublishState stateMask)
+            {
+                PublishState = stateMask;
+                base.OnPublishStateChanged(stateMask);
+            }
+
             protected override async ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, StatusChangeNotification notification,
+                            DateTime publishTime, StatusChangeNotification notification,
                 PublishState publishStateMask, IReadOnlyList<string> stringTable)
             {
                 StatusChangeNotificationReceived.Set();
@@ -366,12 +364,11 @@ namespace Opc.Ua.Client
                 await base.OnStatusChangeNotificationAsync(sequenceNumber, publishTime, notification,
                     publishStateMask, stringTable);
             }
-
-            protected override void OnPublishStateChanged(PublishState stateMask)
-            {
-                PublishState = stateMask;
-                base.OnPublishStateChanged(stateMask);
-            }
         }
+        private readonly Mock<IMessageAckQueue> _mockCompletion;
+        private readonly Mock<ILogger<SubscriptionBase>> _mockLogger;
+        private readonly Mock<IObservability> _mockObservability;
+        private readonly Mock<ISubscriptionContext> _mockSession;
+        private readonly Mock<TimeProvider> _mockTimeProvider;
     }
 }

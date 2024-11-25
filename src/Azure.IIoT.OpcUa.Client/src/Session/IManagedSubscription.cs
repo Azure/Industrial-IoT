@@ -20,17 +20,13 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Called after the subscription was transferred.
         /// </summary>
-        /// <param name="subscriptionId">Id of the transferred
-        /// subscription.</param>
-        /// <param name="availableSequenceNumbers">A list of
-        /// sequence number ranges
-        /// that identify NotificationMessages that are in the
-        /// Subscription’s retransmission queue. This parameter
-        /// is null if the transfer of the Subscription failed.
+        /// <param name="availableSequenceNumbers">A list of sequence number
+        /// ranges that identify NotificationMessages that are in the
+        /// Subscription’s retransmission queue.
         /// </param>
         /// <param name="ct">The cancellation token.</param>
-        ValueTask<bool> TransferAsync(uint? subscriptionId,
-            IReadOnlyList<uint>? availableSequenceNumbers,
+        ValueTask<bool> TryCompleteTransferAsync(
+            IReadOnlyList<uint> availableSequenceNumbers,
             CancellationToken ct = default);
 
         /// <summary>

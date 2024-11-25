@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             Subscription);
                         try
                         {
-                            Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
+                            Subscription.ConditionRefreshAsync(default).AsTask().GetAwaiter().GetResult(); // TODO
                         }
                         catch (Exception e)
                         {

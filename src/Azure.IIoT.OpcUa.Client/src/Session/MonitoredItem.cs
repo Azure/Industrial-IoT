@@ -8,6 +8,7 @@ namespace Opc.Ua.Client
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// A monitored item that can be extended to add extra
@@ -119,7 +120,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The identifier assigned by the server.
         /// </summary>
-        public uint ServerId { get; set; }
+        public uint ServerId { get; private set; }
 
         /// <summary>
         /// Whether the item has been created on the server.
@@ -154,7 +155,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The identifier assigned by the client.
         /// </summary>
-        public uint ClientHandle { get; private set; }
+        public uint ClientHandle { get; }
 
         /// <summary>
         /// The node id to monitor after applying any relative path.
@@ -239,6 +240,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
+            Debug.Assert(request.RequestedParameters.ClientHandle == ClientHandle);
             var error = ServiceResult.Good;
 
             if (StatusCode.IsBad(result.StatusCode))
@@ -250,7 +252,6 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             CurrentMonitoringMode = request.MonitoringMode;
             CurrentSamplingInterval = TimeSpan.FromMilliseconds(
                 request.RequestedParameters.SamplingInterval);
-            ClientHandle = request.RequestedParameters.ClientHandle;
             CurrentQueueSize = request.RequestedParameters.QueueSize;
             Error = error;
 
@@ -283,6 +284,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             MonitoredItemModifyResult result, int index,
             DiagnosticInfoCollection diagnosticInfos, ResponseHeader responseHeader)
         {
+            Debug.Assert(request.RequestedParameters.ClientHandle == ClientHandle);
             ObjectDisposedException.ThrowIf(_disposedValue, this);
             var error = ServiceResult.Good;
             if (StatusCode.IsBad(result.StatusCode))
@@ -295,7 +297,6 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
 
             if (ServiceResult.IsGood(error))
             {
-                ClientHandle = request.RequestedParameters.ClientHandle;
                 CurrentSamplingInterval = TimeSpan.FromMilliseconds(
                     request.RequestedParameters.SamplingInterval);
                 CurrentQueueSize = request.RequestedParameters.QueueSize;
@@ -312,6 +313,33 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             }
             LogRevisedSamplingRateAndQueueSize(false);
             AttributesModified = false;
+        }
+
+        /// <summary>
+        /// Set monitoring mode result
+        /// </summary>
+        /// <param name="monitoringMode"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="index"></param>
+        /// <param name="diagnosticInfos"></param>
+        /// <param name="responseHeader"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        internal ServiceResult SetMonitoringModeResult(MonitoringMode monitoringMode,
+            StatusCode statusCode, int index, DiagnosticInfoCollection diagnosticInfos,
+            ResponseHeader responseHeader)
+        {
+            var error = ServiceResult.Good;
+            if (StatusCode.IsBad(statusCode))
+            {
+                error = ClientBase.GetResult(statusCode, index, diagnosticInfos,
+                    responseHeader);
+            }
+            Error = error;
+            if (ServiceResult.IsGood(error))
+            {
+                CurrentMonitoringMode = monitoringMode;
+            }
+            return error;
         }
 
         /// <summary>
@@ -358,13 +386,27 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
         /// Updates the object with the results of a transfer subscription request.
         /// </summary>
         /// <param name="clientHandle"></param>
-        internal void SetTransferResult(uint clientHandle)
+        /// <param name="serverHandle"></param>
+        internal void SetTransferResult(uint clientHandle, uint serverHandle)
         {
             ObjectDisposedException.ThrowIf(_disposedValue, this);
-            _logger.LogDebug("{Item}: TRANSFERED.", this);
 
             // ensure the global counter is not duplicating future handle ids
-            Utils.LowerLimitIdentifier(ref _globalClientHandle, clientHandle);
+            if (clientHandle != ClientHandle)
+            {
+                _logger.LogInformation("{Item}: UPDATE CLIENT ID from {Old} to {New}.",
+                    this, ClientHandle, clientHandle);
+
+                Utils.LowerLimitIdentifier(ref _globalClientHandle, clientHandle);
+            }
+            if (serverHandle != ServerId)
+            {
+                _logger.LogInformation("{Item}: UPDATE SERVER ID from {Old} to {New}.",
+                    this, ServerId, serverHandle);
+
+                ServerId = serverHandle;
+                AttributesModified = true;
+            }
         }
 
         /// <summary>

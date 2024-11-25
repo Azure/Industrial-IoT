@@ -18,7 +18,7 @@ namespace Opc.Ua.Client
     using Xunit;
     using Xunit.Abstractions;
 
-    public class SubscriptionManagerTests : IDisposable
+    public sealed class SubscriptionManagerTests : IDisposable
     {
         public SubscriptionManagerTests(ITestOutputHelper output)
         {
