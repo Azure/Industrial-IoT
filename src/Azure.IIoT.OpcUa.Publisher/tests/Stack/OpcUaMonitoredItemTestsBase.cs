@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         internal sealed class SimpleSubscription : SubscriptionBase
         {
             public SimpleSubscription(OpcUaMonitoredItemTestsBase outer)
-                : base(null!, null!, null!, outer)
+                : base(null!, null!, OptionMonitor.Create<SubscriptionOptions>(), outer)
             {
             }
 

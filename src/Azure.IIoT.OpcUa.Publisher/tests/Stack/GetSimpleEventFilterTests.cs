@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -208,9 +209,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 {
                     if (x.IdType == IdType.Numeric && x.Identifier is uint id)
                     {
-                        return ValueTask.FromResult(_nodes[id]);
+                        return ValueTask.FromResult<INode>(_nodes[id]);
                     }
-                    return ValueTask.FromResult<Node>(null);
+                    return ValueTask.FromResult<INode>(null);
+                });
+            nodeCache.Setup(x => x.GetReferencesAsync(It.IsAny<NodeId>(),
+                It.IsAny<NodeId>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns((NodeId x, NodeId referenceTypeId, bool isInverse, bool IsSubtype, CancellationToken _) =>
+                {
+                    if (x.IdType == IdType.Numeric && x.Identifier is uint id)
+                    {
+                        var references = _nodes[id].ReferenceTable.Find(referenceTypeId, isInverse, IsSubtype, typeTable);
+                        return ValueTask.FromResult<IReadOnlyList<INode>>(
+                            references
+                                .Where(r => r.TargetId.Identifier is uint i && _nodes.ContainsKey(i))
+                                .Select(r => (INode)_nodes[(uint)r.TargetId.Identifier]).ToList());
+                    }
+                    return ValueTask.FromResult<IReadOnlyList<INode>>(Array.Empty<INode>());
                 });
 
             nodeCache.Setup(x => x.IsTypeOf(It.IsAny<NodeId>(), It.IsAny<NodeId>()))
