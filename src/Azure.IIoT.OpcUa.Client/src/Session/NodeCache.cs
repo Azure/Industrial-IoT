@@ -38,7 +38,7 @@ namespace Opc.Ua.Client
             cacheExpiry ??= TimeSpan.FromMinutes(5);
 
             _session = session;
-            _nodes = new ConcurrentLruBuilder<NodeId, Node>()
+            _nodes = new ConcurrentLruBuilder<NodeId, INode>()
                    .WithAtomicGetOrAdd()
                    .AsAsyncCache()
                    .WithCapacity(capacity)
@@ -52,10 +52,17 @@ namespace Opc.Ua.Client
                    .WithKeyComparer(Comparers.Instance)
                    .WithExpireAfterAccess(cacheExpiry.Value)
                    .Build();
+            _values = new ConcurrentLruBuilder<NodeId, DataValue>()
+                   .WithAtomicGetOrAdd()
+                   .AsAsyncCache()
+                   .WithCapacity(capacity)
+                   .WithKeyComparer(Comparers.Instance)
+                   .WithExpireAfterAccess(cacheExpiry.Value)
+                   .Build();
         }
 
         /// <inheritdoc/>
-        public ValueTask<INode> FindAsync(NodeId nodeId, CancellationToken ct)
+        public ValueTask<INode> GetNodeAsync(NodeId nodeId, CancellationToken ct)
         {
             if (_nodes.TryGet(nodeId, out var node))
             {
@@ -63,12 +70,15 @@ namespace Opc.Ua.Client
             }
             return FindAsyncCore(nodeId, ct);
 
-            async ValueTask<INode> FindAsyncCore(NodeId nodeId, CancellationToken ct)
-                => await GetOrAddNodeAsync(nodeId, ct).ConfigureAwait(false);
+            ValueTask<INode> FindAsyncCore(NodeId nodeId, CancellationToken ct)
+                => _nodes.GetOrAddAsync(nodeId,
+                    async (nodeId, context) => await context.session.FetchNodeAsync(
+                        null, nodeId, context.ct).ConfigureAwait(false),
+                    (session: _session, ct));
         }
 
         /// <inheritdoc/>
-        public ValueTask<IReadOnlyList<INode>> FindAsync(IReadOnlyList<NodeId> nodeIds,
+        public ValueTask<IReadOnlyList<INode>> GetNodesAsync(IReadOnlyList<NodeId> nodeIds,
             CancellationToken ct)
         {
             var count = nodeIds.Count;
@@ -88,7 +98,7 @@ namespace Opc.Ua.Client
                 }
                 if (notFound.Count != 0)
                 {
-                    return FetchRemainingNodesAsync(notFound, result, ct);
+                    return FetchRemainingAsync(notFound, result, ct);
                 }
             }
             Debug.Assert(!result.Any(r => r == null)); // None now should be null
@@ -96,14 +106,58 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public ValueTask<IReadOnlyList<INode>> FindReferencesAsync(NodeId nodeId,
+        public ValueTask<DataValue> GetValueAsync(NodeId nodeId, CancellationToken ct)
+        {
+            if (_values.TryGet(nodeId, out var dataValue))
+            {
+                return ValueTask.FromResult(dataValue);
+            }
+            return FindAsyncCore(nodeId, ct);
+
+            ValueTask<DataValue> FindAsyncCore(NodeId nodeId, CancellationToken ct)
+                => _values.GetOrAddAsync(nodeId,
+                    async (nodeId, context) => await context.session.FetchValueAsync(
+                        null, nodeId, context.ct).ConfigureAwait(false),
+                    (session: _session, ct));
+        }
+
+        /// <inheritdoc/>
+        public ValueTask<IReadOnlyList<DataValue>> GetValuesAsync(
+            IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
+        {
+            var count = nodeIds.Count;
+            var result = new List<DataValue?>(nodeIds.Count);
+            if (count != 0)
+            {
+                var notFound = new List<NodeId>();
+                foreach (var nodeId in nodeIds)
+                {
+                    if (_values.TryGet(nodeId, out var dataValue))
+                    {
+                        result.Add(dataValue);
+                        continue;
+                    }
+                    notFound.Add(nodeId);
+                    result.Add(null);
+                }
+                if (notFound.Count != 0)
+                {
+                    return FetchRemainingAsync(notFound, result, ct);
+                }
+            }
+            Debug.Assert(!result.Any(r => r == null)); // None now should be null
+            return ValueTask.FromResult<IReadOnlyList<DataValue>>(result!);
+        }
+
+        /// <inheritdoc/>
+        public ValueTask<IReadOnlyList<INode>> GetReferencesAsync(NodeId nodeId,
             NodeId referenceTypeId, bool isInverse, bool includeSubtypes,
             CancellationToken ct)
         {
             if ((!includeSubtypes || IsTypeHierarchyLoaded(new[] { referenceTypeId })) &&
                 _refs.TryGet(nodeId, out var references))
             {
-                return FindAsync(FilterNodes(references, isInverse, referenceTypeId,
+                return GetNodesAsync(FilterNodes(references, isInverse, referenceTypeId,
                     includeSubtypes), ct);
             }
             return FindReferencesAsyncCore(nodeId, referenceTypeId, isInverse,
@@ -119,7 +173,7 @@ namespace Opc.Ua.Client
                 }
                 var references = await GetOrAddReferencesAsync(nodeId,
                     ct).ConfigureAwait(false);
-                return await FindAsync(FilterNodes(references, isInverse, referenceTypeId,
+                return await GetNodesAsync(FilterNodes(references, isInverse, referenceTypeId,
                     includeSubtypes), ct).ConfigureAwait(false);
             }
 
@@ -137,7 +191,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public ValueTask<IReadOnlyList<INode>> FindReferencesAsync(
+        public ValueTask<IReadOnlyList<INode>> GetReferencesAsync(
             IReadOnlyList<NodeId> nodeIds, IReadOnlyList<NodeId> referenceTypeIds,
             bool isInverse, bool includeSubtypes, CancellationToken ct)
         {
@@ -169,7 +223,7 @@ namespace Opc.Ua.Client
                 return FindReferencesAsyncCore(notFound, referenceTypeIds, isInverse,
                     includeSubtypes, targetIds, ct);
             }
-            return FindAsync(targetIds, ct);
+            return GetNodesAsync(targetIds, ct);
 
             async ValueTask<IReadOnlyList<INode>> FindReferencesAsyncCore(
                 IReadOnlyList<NodeId> nodeIds, IReadOnlyList<NodeId> referenceTypeIds,
@@ -187,7 +241,7 @@ namespace Opc.Ua.Client
                     targetIds.AddRange(FilterNodes(references, isInverse, referenceTypeIds,
                         includeSubtypes));
                 }
-                return await FindAsync(targetIds, ct).ConfigureAwait(false);
+                return await GetNodesAsync(targetIds, ct).ConfigureAwait(false);
             }
             List<NodeId> FilterNodes(IEnumerable<ReferenceDescription> references,
                 bool isInverse, IReadOnlyList<NodeId> referenceTypeIds, bool includeSubtypes)
@@ -206,7 +260,7 @@ namespace Opc.Ua.Client
         public async ValueTask LoadTypeHierarchyAync(IReadOnlyList<NodeId> typeIds,
             CancellationToken ct)
         {
-            var nodes = await FindReferencesAsync(typeIds, new[]
+            var nodes = await GetReferencesAsync(typeIds, new[]
             {
                 ReferenceTypeIds.HasSubtype
             }, false, false, ct).ConfigureAwait(false);
@@ -243,7 +297,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public ValueTask<NodeId> FindSuperTypeAsync(NodeId typeId,
+        public ValueTask<NodeId> GetSuperTypeAsync(NodeId typeId,
             CancellationToken ct)
         {
             if (_refs.TryGet(typeId, out var references))
@@ -277,13 +331,13 @@ namespace Opc.Ua.Client
                         return id;
                     }
                 }
-                typeId = await FindSuperTypeAsync(typeId, ct).ConfigureAwait(false);
+                typeId = await GetSuperTypeAsync(typeId, ct).ConfigureAwait(false);
             }
             return BuiltInType.Null;
         }
 
         /// <inheritdoc/>
-        public async ValueTask<INode?> FindNodeWithBrowsePathAsync(NodeId nodeId,
+        public async ValueTask<INode?> GetNodeWithBrowsePathAsync(NodeId nodeId,
             QualifiedNameCollection browsePath, CancellationToken ct)
         {
             INode? found = null;
@@ -302,7 +356,7 @@ namespace Opc.Ua.Client
                     // Get all hierarchical references of the node and
                     // match browse name
                     //
-                    var references = await FindReferencesAsync(nodeId,
+                    var references = await GetReferencesAsync(nodeId,
                         ReferenceTypeIds.HierarchicalReferences,
                         false, true, ct).ConfigureAwait(false);
                     foreach (var target in references)
@@ -323,7 +377,7 @@ namespace Opc.Ua.Client
                         break;
                     }
                     // Try find name in super type
-                    nodeId = await FindSuperTypeAsync(nodeId,
+                    nodeId = await GetSuperTypeAsync(nodeId,
                         ct).ConfigureAwait(false);
                 }
                 nodeId = ToNodeId(found.NodeId);
@@ -335,21 +389,8 @@ namespace Opc.Ua.Client
         public void Clear()
         {
             _nodes.Clear();
+            _values.Clear();
             _refs.Clear();
-        }
-
-        /// <summary>
-        /// Get or add node to the cache
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private ValueTask<Node> GetOrAddNodeAsync(NodeId nodeId, CancellationToken ct)
-        {
-            Debug.Assert(!NodeId.IsNull(nodeId));
-            return _nodes.GetOrAddAsync(nodeId, async (nodeId, context) =>
-                await context.session.FetchNodeAsync(nodeId, context.ct).ConfigureAwait(false),
-                (session: _session, ct));
         }
 
         /// <summary>
@@ -364,8 +405,8 @@ namespace Opc.Ua.Client
             Debug.Assert(!NodeId.IsNull(nodeId));
             return _refs.GetOrAddAsync(nodeId, async (nodeId, context) =>
             {
-                var references = await context.session.FetchReferencesAsync(nodeId,
-                    context.ct).ConfigureAwait(false);
+                var references = await context.session.FetchReferencesAsync(
+                    null, nodeId, context.ct).ConfigureAwait(false);
                 foreach (var reference in references)
                 {
                     // transform absolute identifiers.
@@ -386,30 +427,73 @@ namespace Opc.Ua.Client
         /// <param name="result"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<IReadOnlyList<INode>> FetchRemainingNodesAsync(
+        private async ValueTask<IReadOnlyList<INode>> FetchRemainingAsync(
             List<NodeId> remainingIds, List<INode?> result, CancellationToken ct)
         {
             Debug.Assert(result.Count(r => r == null) == remainingIds.Count);
 
             // fetch nodes and references from server.
             var localIds = new NodeIdCollection(remainingIds);
-            (var sourceNodes, var readErrors) = await _session.FetchNodesAsync(
-                localIds, ct).ConfigureAwait(false);
+            (var nodes, var readErrors) = await _session.FetchNodesAsync(
+                null, localIds, ct).ConfigureAwait(false);
 
-            Debug.Assert(sourceNodes.Count == localIds.Count);
+            Debug.Assert(nodes.Count == localIds.Count);
+            Debug.Assert(readErrors.Count == localIds.Count);
             var resultMissingIndex = 0;
             for (var index = 0; index < localIds.Count; index++)
             {
                 if (!ServiceResult.IsBad(readErrors[index]))
                 {
-                    _nodes.AddOrUpdate(remainingIds[index], sourceNodes[index]);
+                    _nodes.AddOrUpdate(remainingIds[index], nodes[index]);
                 }
                 while (result[resultMissingIndex] != null)
                 {
                     resultMissingIndex++;
                     Debug.Assert(resultMissingIndex < result.Count);
                 }
-                result[resultMissingIndex] = sourceNodes[index];
+                result[resultMissingIndex] = nodes[index];
+            }
+            Debug.Assert(!result.Any(r => r == null)); // None now should be null
+            return result!;
+        }
+
+        /// <summary>
+        /// Fetch remaining nodes not yet in the result list
+        /// </summary>
+        /// <param name="remainingIds"></param>
+        /// <param name="result"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask<IReadOnlyList<DataValue>> FetchRemainingAsync(
+            List<NodeId> remainingIds, List<DataValue?> result, CancellationToken ct)
+        {
+            Debug.Assert(result.Count(r => r == null) == remainingIds.Count);
+
+            // fetch nodes and references from server.
+            (var values, var readErrors) = await _session.FetchValuesAsync(null,
+                remainingIds, ct).ConfigureAwait(false);
+
+            Debug.Assert(values.Count == remainingIds.Count);
+            Debug.Assert(readErrors.Count == remainingIds.Count);
+            var resultMissingIndex = 0;
+            for (var index = 0; index < remainingIds.Count; index++)
+            {
+                if (ServiceResult.IsBad(readErrors[index]))
+                {
+                    values[index].StatusCode = readErrors[index].StatusCode;
+                }
+
+                if (StatusCode.IsGood(values[index].StatusCode))
+                {
+                    // Add to cache
+                    _values.AddOrUpdate(remainingIds[index], values[index]);
+                }
+                while (result[resultMissingIndex] != null)
+                {
+                    resultMissingIndex++;
+                    Debug.Assert(resultMissingIndex < result.Count);
+                }
+                result[resultMissingIndex] = values[index];
             }
             Debug.Assert(!result.Any(r => r == null)); // None now should be null
             return result!;
@@ -473,7 +557,8 @@ namespace Opc.Ua.Client
         }
 
         private readonly INodeCacheContext _session;
-        private readonly IAsyncCache<NodeId, Node> _nodes;
+        private readonly IAsyncCache<NodeId, INode> _nodes;
         private readonly IAsyncCache<NodeId, List<ReferenceDescription>> _refs;
+        private readonly IAsyncCache<NodeId, DataValue> _values;
     }
 }

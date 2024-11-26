@@ -22,7 +22,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="nodeId">The node identifier.</param>
         /// <param name="ct"></param>
-        ValueTask<INode> FindAsync(NodeId nodeId,
+        ValueTask<INode> GetNodeAsync(NodeId nodeId,
             CancellationToken ct = default);
 
         /// <summary>
@@ -32,7 +32,25 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="nodeIds">The node identifier collection.</param>
         /// <param name="ct"></param>
-        ValueTask<IReadOnlyList<INode>> FindAsync(
+        ValueTask<IReadOnlyList<INode>> GetNodesAsync(
+            IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
+
+        /// <summary>
+        /// Get the value of a variable node. If the node is not a variable
+        /// the data value contains the error.
+        /// </summary>
+        /// <param name="nodeId">The node identifier.</param>
+        /// <param name="ct"></param>
+        ValueTask<DataValue> GetValueAsync(NodeId nodeId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get the values of the specified variable nodes. If the node is
+        /// not a variable the data value contains the error.
+        /// </summary>
+        /// <param name="nodeIds">The node identifier collection.</param>
+        /// <param name="ct"></param>
+        ValueTask<IReadOnlyList<DataValue>> GetValuesAsync(
             IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
 
         /// <summary>
@@ -42,7 +60,7 @@ namespace Opc.Ua.Client
         /// <param name="browsePath"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<INode?> FindNodeWithBrowsePathAsync(NodeId nodeId,
+        ValueTask<INode?> GetNodeWithBrowsePathAsync(NodeId nodeId,
             QualifiedNameCollection browsePath, CancellationToken ct = default);
 
         /// <summary>
@@ -54,7 +72,7 @@ namespace Opc.Ua.Client
         /// <param name="isInverse"></param>
         /// <param name="includeSubtypes"></param>
         /// <param name="ct"></param>
-        ValueTask<IReadOnlyList<INode>> FindReferencesAsync(NodeId nodeId,
+        ValueTask<IReadOnlyList<INode>> GetReferencesAsync(NodeId nodeId,
             NodeId referenceTypeId, bool isInverse, bool includeSubtypes,
             CancellationToken ct = default);
 
@@ -67,7 +85,7 @@ namespace Opc.Ua.Client
         /// <param name="isInverse"></param>
         /// <param name="includeSubtypes"></param>
         /// <param name="ct"></param>
-        ValueTask<IReadOnlyList<INode>> FindReferencesAsync(
+        ValueTask<IReadOnlyList<INode>> GetReferencesAsync(
             IReadOnlyList<NodeId> nodeIds,
             IReadOnlyList<NodeId> referenceTypeIds, bool isInverse,
             bool includeSubtypes, CancellationToken ct = default);
@@ -99,7 +117,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns>The immediate supertype idnetyfier for
         /// <paramref name="typeId"/></returns>
-        ValueTask<NodeId> FindSuperTypeAsync(NodeId typeId,
+        ValueTask<NodeId> GetSuperTypeAsync(NodeId typeId,
             CancellationToken ct = default);
 
         /// <summary>

@@ -198,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             continue;
                         }
                         var dataSetClassFieldId = (Uuid)Fields[i].DataSetFieldId;
-                        var targetNode = await session.NodeCache.FindNodeWithBrowsePathAsync(
+                        var targetNode = await session.NodeCache.GetNodeWithBrowsePathAsync(
                             selectClause.TypeDefinitionId, selectClause.BrowsePath,
                             ct).ConfigureAwait(false);
                         if (targetNode is VariableNode variable)
@@ -517,19 +517,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     session.MessageContext);
                 var nodes = new List<INode>();
                 NodeId? superType = null;
-                var typeDefinitionNode = await session.NodeCache.FindAsync(typeDefinitionId,
+                var typeDefinitionNode = await session.NodeCache.GetNodeAsync(typeDefinitionId,
                     ct).ConfigureAwait(false);
                 nodes.Insert(0, typeDefinitionNode);
                 var subType = typeDefinitionId;
                 while (true)
                 {
-                    superType = await session.NodeCache.FindSuperTypeAsync(subType,
+                    superType = await session.NodeCache.GetSuperTypeAsync(subType,
                         ct).ConfigureAwait(false);
                     if (Opc.Ua.NodeId.IsNull(superType))
                     {
                         break;
                     }
-                    typeDefinitionNode = await session.NodeCache.FindAsync(superType,
+                    typeDefinitionNode = await session.NodeCache.GetNodeAsync(superType,
                         ct).ConfigureAwait(false);
                     nodes.Insert(0, typeDefinitionNode);
                     subType = ExpandedNodeId.ToNodeId(typeDefinitionNode.NodeId,
@@ -591,7 +591,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 List<QualifiedName> fieldNames, INode node, string browsePathPrefix, CancellationToken ct)
             {
                 var nodeId = ExpandedNodeId.ToNodeId(node.NodeId, session.MessageContext.NamespaceUris);
-                var components = await session.NodeCache.FindReferencesAsync(nodeId,
+                var components = await session.NodeCache.GetReferencesAsync(nodeId,
                     ReferenceTypeIds.HasComponent, false, true, ct).ConfigureAwait(false);
                 foreach (var componentNode in components)
                 {
@@ -604,7 +604,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             $"{fieldName}|", ct).ConfigureAwait(false);
                     }
                 }
-                var properties = await session.NodeCache.FindReferencesAsync(nodeId,
+                var properties = await session.NodeCache.GetReferencesAsync(nodeId,
                     ReferenceTypeIds.HasProperty, false, true, ct).ConfigureAwait(false);
                 foreach (var propertyNode in properties)
                 {

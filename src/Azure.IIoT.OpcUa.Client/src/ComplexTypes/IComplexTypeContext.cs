@@ -41,7 +41,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <param name="header"></param>
         /// <param name="nodeId">The node Id.</param>
         /// <param name="ct">The cancellation token for the request.</param>
-        ValueTask<DataValue> ReadValueAsync(RequestHeader? header, NodeId nodeId,
+        ValueTask<DataValue> FetchValueAsync(RequestHeader? header, NodeId nodeId,
             CancellationToken ct = default);
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <param name="header"></param>
         /// <param name="nodeIds">The node Id.</param>
         /// <param name="ct">The cancellation token for the request.</param>
-        ValueTask<ResultSet<DataValue>> ReadValuesAsync(RequestHeader? header,
+        ValueTask<ResultSet<DataValue>> FetchValuesAsync(RequestHeader? header,
             IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
     }
 }

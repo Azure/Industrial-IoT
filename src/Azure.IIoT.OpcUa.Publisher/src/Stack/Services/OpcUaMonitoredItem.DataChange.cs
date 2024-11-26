@@ -222,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 try
                 {
-                    var node = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
+                    var node = await session.NodeCache.GetNodeAsync(nodeId, ct).ConfigureAwait(false);
                     if (node is VariableNode variable)
                     {
                         await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,

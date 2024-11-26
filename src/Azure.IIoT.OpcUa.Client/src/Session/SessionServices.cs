@@ -150,6 +150,25 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
+        public override async Task<QueryFirstResponse> QueryFirstAsync(RequestHeader? requestHeader,
+            ViewDescription view, NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
+            uint maxDataSetsToReturn, uint maxReferencesToReturn, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(QueryFirstAsync));
+            return await base.QueryFirstAsync(requestHeader, view, nodeTypes, filter,
+                maxDataSetsToReturn, maxReferencesToReturn, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<QueryNextResponse> QueryNextAsync(RequestHeader? requestHeader,
+            bool releaseContinuationPoint, byte[] continuationPoint, CancellationToken ct)
+        {
+            using var activity = StartActivity(nameof(QueryNextAsync));
+            return await base.QueryNextAsync(requestHeader, releaseContinuationPoint,
+                continuationPoint, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public override async Task<BrowseResponse> BrowseAsync(RequestHeader? requestHeader,
             ViewDescription? view, uint requestedMaxReferencesPerNode,
             BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)

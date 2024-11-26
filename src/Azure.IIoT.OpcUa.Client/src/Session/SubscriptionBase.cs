@@ -114,6 +114,11 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Current subscription options
+        /// </summary>
+        protected internal SubscriptionOptions Options { get; protected set; }
+
+        /// <summary>
         /// Create subscription
         /// </summary>
         /// <param name="session"></param>
@@ -124,9 +129,11 @@ namespace Opc.Ua.Client
             IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
             IObservability observability) : base(session, completion, observability)
         {
-            _options = options;
+            Options = options.CurrentValue;
+            _changeTracking = options.OnChange(OnOptionsChanged);
             _publishTimer = Observability.TimeProvider.CreateTimer(OnKeepAlive,
                 null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            // OnOptionsChanged(Options, null);
         }
 
         /// <inheritdoc/>
@@ -284,107 +291,6 @@ namespace Opc.Ua.Client
             return true;
         }
 
-        /// <summary>
-        /// <para>
-        /// If a Client called CreateMonitoredItems during the network interruption
-        /// and the call succeeded in the Server but did not return to the Client,
-        /// then the Client does not know if the call succeeded. The Client may
-        /// receive data changes for these monitored items but is not able to remove
-        /// them since it does not know the Server handle.
-        /// </para>
-        /// <para>
-        /// There is also no way for the Client to detect if the create succeeded.
-        /// To delete and recreate the Subscription is also not an option since
-        /// there may be several monitored items operating normally that should
-        /// not be interrupted.
-        /// </para>
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async ValueTask<bool> TrySynchronizeServerAndClientHandlesAsync(
-            CancellationToken ct)
-        {
-            var (success, serverHandleStateMap) = await GetMonitoredItemsAsync(
-                ct).ConfigureAwait(false);
-
-            lock (_cache)
-            {
-                if (!success)
-                {
-                    // Reset all items
-                    foreach (var monitoredItem in _monitoredItems.Values)
-                    {
-                        monitoredItem.Reset();
-                    }
-                    return false;
-                }
-
-                var monitoredItems = _monitoredItems.ToDictionary();
-                _monitoredItems.Clear();
-
-                //
-                // Assign the server id to the item with the matching client handle. This
-                // handles the case where the CreateMonitoredItems call succeeded on the
-                // server side, but the response was not provided back.
-                //
-                var clientServerHandleMap = serverHandleStateMap
-                    .ToDictionary(m => m.clientHandle, m => m.serverHandle);
-                foreach (var monitoredItem in monitoredItems.ToList())
-                {
-                    //
-                    // Adjust any items where the server handles does not map to the
-                    // handle the server has assigned.
-                    //
-                    var clientHandle = monitoredItem.Value.ClientHandle;
-                    if (clientServerHandleMap.Remove(clientHandle, out var serverHandle))
-                    {
-                        monitoredItem.Value.SetTransferResult(clientHandle, serverHandle);
-                        monitoredItems.Remove(monitoredItem.Key);
-                        _monitoredItems.Add(clientHandle, monitoredItem.Value);
-                    }
-                }
-
-                //
-                // Assign the server side client handle to the item with the same server id
-                // This handles the case where we are recreating the subscription from a
-                // previously stored state.
-                //
-                var serverClientHandleMap = clientServerHandleMap
-                    .ToDictionary(m => m.Value, m => m.Key);
-                foreach (var monitoredItem in monitoredItems.ToList())
-                {
-                    var serverHandle = monitoredItem.Value.ServerId;
-                    if (serverClientHandleMap.Remove(serverHandle, out var clientHandle))
-                    {
-                        //
-                        // There should not be any more item with the same client handle
-                        // in this subscription, they were updated before. TODO: Assert
-                        //
-                        monitoredItem.Value.SetTransferResult(clientHandle, serverHandle);
-                        monitoredItems.Remove(monitoredItem.Key);
-                        _monitoredItems.Add(clientHandle, monitoredItem.Value);
-                    }
-                }
-
-                // Ensure all items on the server that are not in the subscription are deleted
-                _deletedItems.Clear();
-                _deletedItems.AddRange(serverClientHandleMap.Keys);
-
-                // Remaining items do not exist anymore on the server and need to be recreated
-                foreach (var missingOnServer in monitoredItems.Values)
-                {
-                    if (missingOnServer.Created)
-                    {
-                        _logger.LogDebug("{Subscription}: Recreate client item {Item}.", this,
-                            missingOnServer);
-                        missingOnServer.Reset();
-                    }
-                    _monitoredItems.Add(missingOnServer.ClientHandle, missingOnServer);
-                }
-            }
-            return true;
-        }
-
         /// <inheritdoc/>
         public override ValueTask OnPublishReceivedAsync(NotificationMessage message,
             IReadOnlyList<uint>? availableSequenceNumbers,
@@ -403,6 +309,23 @@ namespace Opc.Ua.Client
                 stringTable);
         }
 
+        /// <inheritdoc/>
+        public void RemoveItem(MonitoredItem monitoredItem)
+        {
+            Debug.Assert(monitoredItem != null);
+            lock (_cache)
+            {
+                if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
+                {
+                    return;
+                }
+            }
+            if (monitoredItem.Created)
+            {
+                _deletedItems.Add(monitoredItem.ServerId);
+            }
+        }
+
         /// <summary>
         /// Dispose subscription
         /// </summary>
@@ -412,6 +335,7 @@ namespace Opc.Ua.Client
             if (disposing)
             {
                 _publishTimer.Dispose();
+                _changeTracking?.Dispose();
             }
             return base.DisposeAsync(disposing);
         }
@@ -423,6 +347,73 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         protected abstract MonitoredItem CreateMonitoredItem(
             IOptionsMonitor<MonitoredItemOptions> options);
+
+        /// <summary>
+        /// Called when the options changed
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="name"></param>
+        protected virtual void OnOptionsChanged(SubscriptionOptions options, string? name)
+        {
+            Options = options;
+        }
+
+        /// <summary>
+        /// Set monitoring mode of items.
+        /// </summary>
+        /// <param name="monitoringMode"></param>
+        /// <param name="monitoredItems"></param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
+        protected internal async ValueTask<IReadOnlyList<ServiceResult>> SetMonitoringModeAsync(
+            MonitoringMode monitoringMode, IReadOnlyList<MonitoredItem> monitoredItems,
+            CancellationToken ct)
+        {
+            VerifySubscriptionState(true);
+
+            if (monitoredItems.Count == 0)
+            {
+                return Array.Empty<ServiceResult>();
+            }
+
+            // get list of items to update.
+            var monitoredItemIds = new UInt32Collection(monitoredItems
+                .Select(monitoredItem => monitoredItem.ServerId));
+            var response = await _session.SetMonitoringModeAsync(null, Id,
+                monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
+            var results = response.Results;
+            ClientBase.ValidateResponse(results, monitoredItemIds);
+            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos,
+                monitoredItemIds);
+
+            // update results.
+            var errors = new List<ServiceResult>(); // TODO: Remove
+            for (var index = 0; index < results.Count; index++)
+            {
+                var error = monitoredItems[index].SetMonitoringModeResult(
+                    monitoringMode, results[index], index, response.DiagnosticInfos,
+                    response.ResponseHeader);
+                errors.Add(error);
+            }
+            return errors; // TODO: Remove
+        }
+
+        /// <summary>
+        /// Returns the monitored item identified by the client handle.
+        /// </summary>
+        /// <param name="clientHandle"></param>
+        protected internal MonitoredItem? FindItemByClientHandle(uint clientHandle)
+        {
+            lock (_cache)
+            {
+                if (_monitoredItems.TryGetValue(clientHandle, out var monitoredItem))
+                {
+                    return monitoredItem;
+                }
+                return null;
+            }
+        }
 
         /// <summary>
         /// Changes the publishing enabled state for the subscription.
@@ -483,6 +474,7 @@ namespace Opc.Ua.Client
             // modify the subscription.
             var revisedKeepAliveCount = KeepAliveCount;
             var revisedLifetimeCounter = LifetimeCount;
+
             AdjustCounts(ref revisedKeepAliveCount, ref revisedLifetimeCounter);
 
             if (revisedKeepAliveCount != CurrentKeepAliveCount ||
@@ -602,7 +594,7 @@ namespace Opc.Ua.Client
                 foreach (var monitoredItem in _monitoredItems.Values)
                 {
                     // ignore items that have been created or modified.
-                    if (!monitoredItem.Created || !monitoredItem.AttributesModified)
+                    if (!monitoredItem.Created || !monitoredItem.OptionsChanged)
                     {
                         continue;
                     }
@@ -681,82 +673,104 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
-        /// Removes an item from the subscription.
+        /// <para>
+        /// If a Client called CreateMonitoredItems during the network interruption
+        /// and the call succeeded in the Server but did not return to the Client,
+        /// then the Client does not know if the call succeeded. The Client may
+        /// receive data changes for these monitored items but is not able to remove
+        /// them since it does not know the Server handle.
+        /// </para>
+        /// <para>
+        /// There is also no way for the Client to detect if the create succeeded.
+        /// To delete and recreate the Subscription is also not an option since
+        /// there may be several monitored items operating normally that should
+        /// not be interrupted.
+        /// </para>
         /// </summary>
-        /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        public void RemoveItem(MonitoredItem monitoredItem)
-        {
-            Debug.Assert(monitoredItem != null);
-            lock (_cache)
-            {
-                if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
-                {
-                    return;
-                }
-            }
-            if (monitoredItem.Created)
-            {
-                _deletedItems.Add(monitoredItem.ServerId);
-            }
-        }
-
-        /// <summary>
-        /// Set monitoring mode of items.
-        /// </summary>
-        /// <param name="monitoringMode"></param>
-        /// <param name="monitoredItems"></param>
         /// <param name="ct"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItems"/> is <c>null</c>.</exception>
-        protected internal async ValueTask<IReadOnlyList<ServiceResult>> SetMonitoringModeAsync(
-            MonitoringMode monitoringMode, IReadOnlyList<MonitoredItem> monitoredItems,
+        /// <returns></returns>
+        private async ValueTask<bool> TrySynchronizeServerAndClientHandlesAsync(
             CancellationToken ct)
         {
-            VerifySubscriptionState(true);
+            var (success, serverHandleStateMap) = await GetMonitoredItemsAsync(
+                ct).ConfigureAwait(false);
 
-            if (monitoredItems.Count == 0)
-            {
-                return Array.Empty<ServiceResult>();
-            }
-
-            // get list of items to update.
-            var monitoredItemIds = new UInt32Collection(monitoredItems
-                .Select(monitoredItem => monitoredItem.ServerId));
-            var response = await _session.SetMonitoringModeAsync(null, Id,
-                monitoringMode, monitoredItemIds, ct).ConfigureAwait(false);
-            var results = response.Results;
-            ClientBase.ValidateResponse(results, monitoredItemIds);
-            ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos,
-                monitoredItemIds);
-
-            // update results.
-            var errors = new List<ServiceResult>(); // TODO: Remove
-            for (var index = 0; index < results.Count; index++)
-            {
-                var error = monitoredItems[index].SetMonitoringModeResult(
-                    monitoringMode, results[index], index, response.DiagnosticInfos,
-                    response.ResponseHeader);
-                errors.Add(error);
-            }
-            return errors; // TODO: Remove
-        }
-
-        /// <summary>
-        /// Returns the monitored item identified by the client handle.
-        /// </summary>
-        /// <param name="clientHandle"></param>
-        protected internal MonitoredItem? FindItemByClientHandle(uint clientHandle)
-        {
             lock (_cache)
             {
-                if (_monitoredItems.TryGetValue(clientHandle, out var monitoredItem))
+                if (!success)
                 {
-                    return monitoredItem;
+                    // Reset all items
+                    foreach (var monitoredItem in _monitoredItems.Values)
+                    {
+                        monitoredItem.Reset();
+                    }
+                    return false;
                 }
-                return null;
+
+                var monitoredItems = _monitoredItems.ToDictionary();
+                _monitoredItems.Clear();
+
+                //
+                // Assign the server id to the item with the matching client handle. This
+                // handles the case where the CreateMonitoredItems call succeeded on the
+                // server side, but the response was not provided back.
+                //
+                var clientServerHandleMap = serverHandleStateMap
+                    .ToDictionary(m => m.clientHandle, m => m.serverHandle);
+                foreach (var monitoredItem in monitoredItems.ToList())
+                {
+                    //
+                    // Adjust any items where the server handles does not map to the
+                    // handle the server has assigned.
+                    //
+                    var clientHandle = monitoredItem.Value.ClientHandle;
+                    if (clientServerHandleMap.Remove(clientHandle, out var serverHandle))
+                    {
+                        monitoredItem.Value.SetTransferResult(clientHandle, serverHandle);
+                        monitoredItems.Remove(monitoredItem.Key);
+                        _monitoredItems.Add(clientHandle, monitoredItem.Value);
+                    }
+                }
+
+                //
+                // Assign the server side client handle to the item with the same server id
+                // This handles the case where we are recreating the subscription from a
+                // previously stored state.
+                //
+                var serverClientHandleMap = clientServerHandleMap
+                    .ToDictionary(m => m.Value, m => m.Key);
+                foreach (var monitoredItem in monitoredItems.ToList())
+                {
+                    var serverHandle = monitoredItem.Value.ServerId;
+                    if (serverClientHandleMap.Remove(serverHandle, out var clientHandle))
+                    {
+                        //
+                        // There should not be any more item with the same client handle
+                        // in this subscription, they were updated before. TODO: Assert
+                        //
+                        monitoredItem.Value.SetTransferResult(clientHandle, serverHandle);
+                        monitoredItems.Remove(monitoredItem.Key);
+                        _monitoredItems.Add(clientHandle, monitoredItem.Value);
+                    }
+                }
+
+                // Ensure all items on the server that are not in the subscription are deleted
+                _deletedItems.Clear();
+                _deletedItems.AddRange(serverClientHandleMap.Keys);
+
+                // Remaining items do not exist anymore on the server and need to be recreated
+                foreach (var missingOnServer in monitoredItems.Values)
+                {
+                    if (missingOnServer.Created)
+                    {
+                        _logger.LogDebug("{Subscription}: Recreate client item {Item}.", this,
+                            missingOnServer);
+                        missingOnServer.Reset();
+                    }
+                    _monitoredItems.Add(missingOnServer.ClientHandle, missingOnServer);
+                }
             }
+            return true;
         }
 
         private record struct MonitoredItemsHandles(bool Success,
@@ -1052,6 +1066,6 @@ namespace Opc.Ua.Client
         private readonly ITimer _publishTimer;
         private readonly object _cache = new();
         private readonly Dictionary<uint, MonitoredItem> _monitoredItems = new();
-        private readonly IOptionsMonitor<SubscriptionOptions> _options;
+        private readonly IDisposable? _changeTracking;
     }
 }

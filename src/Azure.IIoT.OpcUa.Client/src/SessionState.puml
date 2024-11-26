@@ -1,0 +1,25 @@
+@startuml Session State Machine
+
+[*] --> Closed
+
+Closed --> Connecting : Create
+Error --> Closed : Close
+
+Connecting --> Connected : CreateSuccessful
+Connecting --> Error : CreateFailed
+Connecting --> Closed : Close
+Connected --> Connecting : Reset
+
+Connected --> Disconnected : KeepAliveMissing
+Disconnected --> Reconnecting : Reconnect
+Disconnected --> Closed : Close
+
+Reconnecting --> Connected : ReconnectSuccessful
+Reconnecting --> Connecting : ReconnectFailed
+Reconnecting --> Closed : Close
+
+Connected --> Reactivating : RenewUserIdentity
+Reactivating --> Connected : RenewalSuccessful
+Reactivating --> Reconnecting : RenewalFailed
+
+@enduml

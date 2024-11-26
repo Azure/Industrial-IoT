@@ -20,7 +20,12 @@ namespace Opc.Ua.Client
             _mockOptionsMonitor = new Mock<IOptionsMonitor<MonitoredItemOptions>>();
             _mockLogger = new Mock<ILogger<MonitoredItem>>();
 
-            _mockOptionsMonitor.Setup(o => o.CurrentValue).Returns(new MonitoredItemOptions());
+            _mockOptionsMonitor
+                .Setup(o => o.CurrentValue)
+                .Returns(new MonitoredItemOptions
+                {
+                    StartNodeId = new NodeId("test", 0)
+                });
         }
 
         [Fact]

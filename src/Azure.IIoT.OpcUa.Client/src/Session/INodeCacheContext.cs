@@ -28,11 +28,12 @@ namespace Opc.Ua.Client
         /// and passed as nodeClass, reads only values of required attributes.
         /// Otherwise NodeClass.Unspecified should be used.
         /// </remarks>
+        /// <param name="header"></param>
         /// <param name="nodeIds">The nodeId collection to read.</param>
         /// <param name="ct">The cancellation token.</param>
         /// <returns>The node collection and associated errors.</returns>
-        Task<ResultSet<Node>> FetchNodesAsync(IReadOnlyList<NodeId> nodeIds,
-            CancellationToken ct = default);
+        ValueTask<ResultSet<Node>> FetchNodesAsync(RequestHeader? header,
+            IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
 
         /// <summary>
         /// Reads the values for the node attributes and returns a node object.
@@ -41,26 +42,49 @@ namespace Opc.Ua.Client
         /// If the nodeclass is known, only the supported attribute values are
         /// read.
         /// </remarks>
+        /// <param name="header"></param>
         /// <param name="nodeId">The nodeId.</param>
         /// <param name="ct">The cancellation token for the request.</param>
-        Task<Node> FetchNodeAsync(NodeId nodeId, CancellationToken ct = default);
+        ValueTask<Node> FetchNodeAsync(RequestHeader? header, NodeId nodeId,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Fetches all references for the specified node.
         /// </summary>
+        /// <param name="header"></param>
         /// <param name="nodeId">The node id.</param>
         /// <param name="ct"></param>
-        Task<ReferenceDescriptionCollection> FetchReferencesAsync(NodeId nodeId,
-            CancellationToken ct = default);
+        ValueTask<ReferenceDescriptionCollection> FetchReferencesAsync(
+            RequestHeader? header, NodeId nodeId, CancellationToken ct = default);
 
         /// <summary>
         /// Fetches all references for the specified nodes.
         /// </summary>
+        /// <param name="header"></param>
         /// <param name="nodeIds">The node id collection.</param>
         /// <param name="ct"></param>
         /// <returns>A list of reference collections and the errors reported by the
         /// server.</returns>
-        Task<ResultSet<ReferenceDescriptionCollection>> FetchReferencesAsync(
+        ValueTask<ResultSet<ReferenceDescriptionCollection>> FetchReferencesAsync(
+            RequestHeader? header, IReadOnlyList<NodeId> nodeIds,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Reads the value for a node.
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="nodeId">The node Id.</param>
+        /// <param name="ct">The cancellation token for the request.</param>
+        ValueTask<DataValue> FetchValueAsync(RequestHeader? header, NodeId nodeId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Reads the values for a node collection. Returns diagnostic errors.
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="nodeIds">The node Id.</param>
+        /// <param name="ct">The cancellation token for the request.</param>
+        ValueTask<ResultSet<DataValue>> FetchValuesAsync(RequestHeader? header,
             IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default);
     }
 }

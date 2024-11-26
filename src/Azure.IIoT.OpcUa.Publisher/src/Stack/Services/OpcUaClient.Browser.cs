@@ -452,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    var node = await session.FetchNodeAsync(targetNodeId, ct).ConfigureAwait(false);
+                    var node = await session.FetchNodeAsync(null, targetNodeId, ct).ConfigureAwait(false);
                     if (NodeId.IsNull(node.NodeId))
                     {
                         return;

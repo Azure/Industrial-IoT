@@ -155,7 +155,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ISubscriber owner, ILogger logger, IOpcUaSession session,
             string nodeId, TimeProvider timeProvider) :
             base(subscription,
-                new OptionMonitor<MonitoredItemOptions>(new OpcUaSubscription.Precreated()), // TODO
+                new OptionMonitor<MonitoredItemOptions>(new OpcUaSubscription.Precreated
+                {
+                    StartNodeId = Opc.Ua.NodeId.Null
+                }), // TODO
                 logger)
         {
             Session = session;
@@ -281,7 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (!Disposed)
             {
                 Subscription.AddMonitoredItem(new OptionMonitor<MonitoredItemOptions>(
-                    new OpcUaSubscription.Precreated(this)));
+                    new OpcUaSubscription.Precreated(this) { StartNodeId = StartNodeId }));
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription {Subscription}.",
                     this, Subscription);
@@ -603,7 +606,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        var dataType = await session.NodeCache.FindAsync(baseType,
+                        var dataType = await session.NodeCache.GetNodeAsync(baseType,
                             ct).ConfigureAwait(false);
                         if (dataType == null)
                         {
@@ -623,7 +626,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         var builtInType = await session.NodeCache.GetBuiltInTypeAsync(dataTypeId,
                             ct).ConfigureAwait(false);
-                        baseType = await session.NodeCache.FindSuperTypeAsync(dataTypeId,
+                        baseType = await session.NodeCache.GetSuperTypeAsync(dataTypeId,
                             ct).ConfigureAwait(false);
 
                         var browseName = dataType.BrowseName
@@ -644,7 +647,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     dataType.NodeId);
                                 if (types == null || types.Count == 0)
                                 {
-                                    var dtNode = await session.NodeCache.FindAsync(dataTypeId,
+                                    var dtNode = await session.NodeCache.GetNodeAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
                                         v.DataTypeDefinition?.Body is DataTypeDefinition t)

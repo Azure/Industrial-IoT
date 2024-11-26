@@ -17,6 +17,43 @@ namespace Opc.Ua.Client
     public interface ISubscription
     {
         /// <summary>
+        /// Set keep alive count
+        /// </summary>
+        uint KeepAliveCount { get; set; }
+
+        /// <summary>
+        /// The life time of the subscription in counts of
+        /// publish interval.
+        /// LifetimeCount shall be at least 3*KeepAliveCount.
+        /// </summary>
+        uint LifetimeCount { get; set; }
+
+        /// <summary>
+        /// Set desired priority of the subscription
+        /// </summary>
+        byte Priority { get; set; }
+
+        /// <summary>
+        /// Set desired publishing interval
+        /// </summary>
+        TimeSpan PublishingInterval { get; set; }
+
+        /// <summary>
+        /// Set desired publishing enabled
+        /// </summary>
+        bool PublishingEnabled { get; set; }
+
+        /// <summary>
+        /// Set max notifications per publish
+        /// </summary>
+        uint MaxNotificationsPerPublish { get; set; }
+
+        /// <summary>
+        /// Set min lifetime interval
+        /// </summary>
+        TimeSpan MinLifetimeInterval { get; set; }
+
+        /// <summary>
         /// Monitored item count
         /// </summary>
         uint MonitoredItemCount { get; }
@@ -32,31 +69,9 @@ namespace Opc.Ua.Client
         bool Created { get; }
 
         /// <summary>
-        /// Set keep alive count
+        /// The current publishing interval on the server
         /// </summary>
-        uint KeepAliveCount { get; set; }
-
-        /// <summary>
-        /// The current keep alive count on the server
-        /// </summary>
-        uint CurrentKeepAliveCount { get; }
-
-        /// <summary>
-        /// The life time of the subscription in counts of
-        /// publish interval.
-        /// LifetimeCount shall be at least 3*KeepAliveCount.
-        /// </summary>
-        uint LifetimeCount { get; set; }
-
-        /// <summary>
-        /// The current lifetime count on the server
-        /// </summary>
-        uint CurrentLifetimeCount { get; }
-
-        /// <summary>
-        /// Set desired priority of the subscription
-        /// </summary>
-        byte Priority { get; set; }
+        TimeSpan CurrentPublishingInterval { get; }
 
         /// <summary>
         /// The current priority of the subscription
@@ -64,9 +79,14 @@ namespace Opc.Ua.Client
         byte CurrentPriority { get; }
 
         /// <summary>
-        /// Set desired publishing enabled
+        /// The current lifetime count on the server
         /// </summary>
-        bool PublishingEnabled { get; set; }
+        uint CurrentLifetimeCount { get; }
+
+        /// <summary>
+        /// The current keep alive count on the server
+        /// </summary>
+        uint CurrentKeepAliveCount { get; }
 
         /// <summary>
         /// The current publishing enabled state
@@ -74,29 +94,9 @@ namespace Opc.Ua.Client
         bool CurrentPublishingEnabled { get; }
 
         /// <summary>
-        /// Set desired publishing interval
-        /// </summary>
-        TimeSpan PublishingInterval { get; set; }
-
-        /// <summary>
-        /// The current publishing interval on the server
-        /// </summary>
-        TimeSpan CurrentPublishingInterval { get; }
-
-        /// <summary>
-        /// Set max notifications per publish
-        /// </summary>
-        uint MaxNotificationsPerPublish { get; set; }
-
-        /// <summary>
         /// Current max notifications per publish
         /// </summary>
         uint CurrentMaxNotificationsPerPublish { get; }
-
-        /// <summary>
-        /// Set min lifetime interval
-        /// </summary>
-        TimeSpan MinLifetimeInterval { get; set; }
 
         /// <summary>
         /// Create or update the subscription

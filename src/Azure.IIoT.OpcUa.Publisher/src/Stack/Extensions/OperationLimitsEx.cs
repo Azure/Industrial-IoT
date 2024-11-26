@@ -95,7 +95,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         public static int GetMaxNodesPerTranslatePathsToNodeIds(this Limits model)
         {
-            var cur = model.MaxNodesPerTranslatePathsToNodeIds;
+            var cur = model.MaxNodesPerTranslateBrowsePathsToNodeIds;
             return Math.Min(Math.Max((int)cur, 1), kMaxNodesPerTranslate);
         }
 
@@ -146,7 +146,7 @@ namespace Opc.Ua.Client
                 MaxNodesPerMethodCall = Null(l.MaxNodesPerMethodCall),
                 MaxNodesPerBrowse = Null(l.MaxNodesPerBrowse),
                 MaxNodesPerRegisterNodes = Null(l.MaxNodesPerRegisterNodes),
-                MaxNodesPerTranslatePathsToNodeIds = Null(l.MaxNodesPerTranslatePathsToNodeIds),
+                MaxNodesPerTranslatePathsToNodeIds = Null(l.MaxNodesPerTranslateBrowsePathsToNodeIds),
                 MaxNodesPerNodeManagement = Null(l.MaxNodesPerNodeManagement),
                 MaxMonitoredItemsPerCall = Null(l.MaxMonitoredItemsPerCall)
             };

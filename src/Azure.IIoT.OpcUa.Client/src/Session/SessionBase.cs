@@ -118,10 +118,11 @@ namespace Opc.Ua.Client
         /// Server uris
         /// </summary>
         private StringTable ServerUris => MessageContext.ServerUris;
+
         /// <summary>
         /// Current session options
         /// </summary>
-        internal SessionOptions Options { get; private set; }
+        protected internal SessionOptions Options { get; protected set; }
 
         /// <summary>
         /// Type system has loaded
@@ -249,7 +250,7 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public async Task FetchNamespaceTablesAsync(CancellationToken ct)
         {
-            var (values, errors) = await ReadValuesAsync(null, new[]
+            var (values, errors) = await FetchValuesAsync(null, new[]
             {
                 VariableIds.Server_NamespaceArray,
                 VariableIds.Server_ServerArray
@@ -323,8 +324,8 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<ResultSet<Node>> FetchNodesAsync(IReadOnlyList<NodeId> nodeIds,
-            CancellationToken ct)
+        public async ValueTask<ResultSet<Node>> FetchNodesAsync(RequestHeader? header,
+            IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
         {
             if (nodeIds.Count == 0)
             {
@@ -340,7 +341,7 @@ namespace Opc.Ua.Client
                     AttributeId = Attributes.NodeClass
                 }));
 
-            var readResponse = await ReadAsync(null, 0, TimestampsToReturn.Neither,
+            var readResponse = await ReadAsync(header, 0, TimestampsToReturn.Neither,
                 itemsToRead, ct).ConfigureAwait(false);
 
             var nodeClassValues = readResponse.Results;
@@ -355,7 +356,6 @@ namespace Opc.Ua.Client
             var serviceResults = new List<ServiceResult>(nodeIds.Count);
             var attributesToRead = new ReadValueIdCollection();
             var responseHeader = readResponse.ResponseHeader;
-            int? nodeClass;
             for (var index = 0; index < itemsToRead.Count; index++)
             {
                 var node = new Node
@@ -373,9 +373,7 @@ namespace Opc.Ua.Client
                 }
 
                 // check for valid node class.
-                nodeClass = nodeClassValues[index].Value as int?;
-
-                if (nodeClass == null)
+                if (nodeClassValues[index].Value is not int and not NodeClass)
                 {
                     nodeCollection.Add(node);
                     serviceResults.Add(ServiceResult.Create(StatusCodes.BadUnexpectedError,
@@ -385,7 +383,7 @@ namespace Opc.Ua.Client
                     continue;
                 }
 
-                node.NodeClass = (NodeClass)nodeClass;
+                node.NodeClass = (NodeClass)nodeClassValues[index].Value;
 
                 var attributes = CreateAttributes(node.NodeClass);
                 foreach (var attributeId in attributes.Keys)
@@ -405,7 +403,7 @@ namespace Opc.Ua.Client
 
             if (attributesToRead.Count > 0)
             {
-                readResponse = await ReadAsync(null, 0, TimestampsToReturn.Neither,
+                readResponse = await ReadAsync(header, 0, TimestampsToReturn.Neither,
                     attributesToRead, ct).ConfigureAwait(false);
 
                 var values = readResponse.Results;
@@ -447,7 +445,8 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<Node> FetchNodeAsync(NodeId nodeId, CancellationToken ct)
+        public async ValueTask<Node> FetchNodeAsync(RequestHeader? header,
+            NodeId nodeId, CancellationToken ct)
         {
             // build list of attributes.
             var attributes = CreateAttributes();
@@ -458,7 +457,7 @@ namespace Opc.Ua.Client
                     AttributeId = attributeId
                 }));
             // read from server.
-            var readResponse = await ReadAsync(null, 0, TimestampsToReturn.Neither,
+            var readResponse = await ReadAsync(header, 0, TimestampsToReturn.Neither,
                 itemsToRead, ct).ConfigureAwait(false);
             var values = readResponse.Results;
             var diagnosticInfos = readResponse.DiagnosticInfos;
@@ -469,11 +468,11 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<ReferenceDescriptionCollection> FetchReferencesAsync(
-            NodeId nodeId, CancellationToken ct)
+        public async ValueTask<ReferenceDescriptionCollection> FetchReferencesAsync(
+            RequestHeader? header, NodeId nodeId, CancellationToken ct)
         {
             var collection = new ReferenceDescriptionCollection();
-            await foreach (var result in BrowseAsync(null, null, new BrowseDescriptionCollection
+            await foreach (var result in BrowseAsync(header, null, new BrowseDescriptionCollection
             {
                 new BrowseDescription
                 {
@@ -492,9 +491,13 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async Task<ResultSet<ReferenceDescriptionCollection>> FetchReferencesAsync(
-            IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
+        public async ValueTask<ResultSet<ReferenceDescriptionCollection>> FetchReferencesAsync(
+            RequestHeader? header, IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
         {
+            if (nodeIds.Count == 0)
+            {
+                return ResultSet.Empty<ReferenceDescriptionCollection>();
+            }
             var resultsMap = nodeIds.Select(nodeId => new BrowseDescription
             {
                 Handle = ServiceResult.Good,
@@ -506,7 +509,7 @@ namespace Opc.Ua.Client
                 ResultMask = (uint)BrowseResultMask.All
             })
             .ToDictionary(k => k, _ => new ReferenceDescriptionCollection());
-            await foreach (var result in BrowseAsync(null, null,
+            await foreach (var result in BrowseAsync(header, null,
                 new BrowseDescriptionCollection(resultsMap.Keys), ct).ConfigureAwait(false))
             {
                 resultsMap[result.Description].AddRange(result.Result.References);
@@ -521,7 +524,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async ValueTask<DataValue> ReadValueAsync(RequestHeader? header,
+        public async ValueTask<DataValue> FetchValueAsync(RequestHeader? header,
             NodeId nodeId, CancellationToken ct)
         {
             var itemsToRead = new ReadValueIdCollection
@@ -551,7 +554,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ResultSet<DataValue>> ReadValuesAsync(RequestHeader? header,
+        public async ValueTask<ResultSet<DataValue>> FetchValuesAsync(RequestHeader? header,
             IReadOnlyList<NodeId> nodeIds, CancellationToken ct)
         {
             if (nodeIds.Count == 0)
@@ -584,7 +587,7 @@ namespace Opc.Ua.Client
                 var result = ServiceResult.Good;
                 if (StatusCode.IsBad(value.StatusCode))
                 {
-                    result = ClientBase.GetResult(values[0].StatusCode, 0,
+                    result = ClientBase.GetResult(value.StatusCode, 0,
                         diagnosticInfos, readResponse.ResponseHeader);
                 }
                 errors.Add(result);
@@ -1176,6 +1179,42 @@ namespace Opc.Ua.Client
             IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
 
         /// <summary>
+        /// Options changed
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="name"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        protected virtual void OnOptionsChanged(SessionOptions options, string? name)
+        {
+            // Check what needs to happen based on the change that took place
+            var resetKeepAlive =
+                Options.KeepAliveInterval != options.KeepAliveInterval;
+            var needsReactivation =
+                (options.Identity ?? new UserIdentity()) != Identity;
+            var sessionTimeout = GetSessionTimeout(options);
+            var needsRecreation = needsReactivation &&
+                (Options.SessionName != options.SessionName ||
+                (sessionTimeout != SessionTimeout &&
+                    sessionTimeout != GetSessionTimeout(Options)) ||
+                (options.ClientCertificate != Options.ClientCertificate &&
+                    options.ClientCertificate != _clientCertificate) ||
+                (options.Connection != Options.Connection &&
+                    _connection != options.Connection));
+
+            // Update options
+            Options = options;
+
+            if (needsReactivation)
+            {
+                TriggerReconnect(needsRecreation);
+            }
+            else if (resetKeepAlive)
+            {
+                ResetKeepAliveTimer();
+            }
+        }
+
+        /// <summary>
         /// Trigger reconnect because of changes to the configuration
         /// </summary>
         /// <param name="recreateSession"></param>
@@ -1353,14 +1392,14 @@ namespace Opc.Ua.Client
             var keepAliveInterval = Options.KeepAliveInterval ?? kDefaultKeepAliveInterval;
             try
             {
-                var serverState = await ReadValueAsync(new RequestHeader
+                var serverState = await FetchValueAsync(new RequestHeader
                 {
                     RequestHandle = Utils.IncrementIdentifier(ref _keepAliveCounter),
                     TimeoutHint = (uint)(keepAliveInterval.TotalMilliseconds * 2),
                     ReturnDiagnostics = 0
                 }, VariableIds.Server_ServerStatus_State, ct).ConfigureAwait(false);
 
-                if (serverState.Value is not int state)
+                if (serverState.Value is not int and not ServerState)
                 {
                     throw ServiceResultException.Create(StatusCodes.BadDataUnavailable,
                         "Keep alive returned invalid server state");
@@ -1458,13 +1497,13 @@ namespace Opc.Ua.Client
                     }
 
                     // check for valid node class.
-                    if (values[index].Value is not int nc)
+                    if (values[index].Value is not int and not NodeClass)
                     {
                         throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
                             "Node does not have a valid value for NodeClass: {0}.",
                             values[index].Value);
                     }
-                    nodeClass = nc;
+                    nodeClass = (int)values[index].Value;
                 }
                 else
                 {
@@ -2062,7 +2101,7 @@ namespace Opc.Ua.Client
             {
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead
             };
-            var (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
+            var (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
             var index = 0;
             OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
 
@@ -2097,7 +2136,7 @@ namespace Opc.Ua.Client
         VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters
             };
 
-            (values, errors) = await ReadValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
+            (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
             index = 0;
             OperationLimits.MaxNodesPerHistoryReadData = Get<uint>(ref index, values, errors);
             OperationLimits.MaxNodesPerHistoryReadEvents = Get<uint>(ref index, values, errors);
@@ -2110,7 +2149,7 @@ namespace Opc.Ua.Client
             OperationLimits.MaxNodesPerRegisterNodes = Get<uint>(ref index, values, errors);
             OperationLimits.MaxNodesPerNodeManagement = Get<uint>(ref index, values, errors);
             OperationLimits.MaxMonitoredItemsPerCall = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerTranslatePathsToNodeIds = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds = Get<uint>(ref index, values, errors);
             OperationLimits.MaxBrowseContinuationPoints = Get<ushort>(ref index, values, errors);
             OperationLimits.MaxHistoryContinuationPoints = Get<ushort>(ref index, values, errors);
             OperationLimits.MaxQueryContinuationPoints = Get<ushort>(ref index, values, errors);
@@ -2570,42 +2609,6 @@ namespace Opc.Ua.Client
                         _clientCertificateChain.Add(issuers[i].Certificate);
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Options changed
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="name"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void OnOptionsChanged(SessionOptions options, string? name)
-        {
-            // Check what needs to happen based on the change that took place
-            var resetKeepAlive =
-                Options.KeepAliveInterval != options.KeepAliveInterval;
-            var needsReactivation =
-                (options.Identity ?? new UserIdentity()) != Identity;
-            var sessionTimeout = GetSessionTimeout(options);
-            var needsRecreation = needsReactivation &&
-                (Options.SessionName != options.SessionName ||
-                (sessionTimeout != SessionTimeout &&
-                    sessionTimeout != GetSessionTimeout(Options)) ||
-                (options.ClientCertificate != Options.ClientCertificate &&
-                    options.ClientCertificate != _clientCertificate) ||
-                (options.Connection != Options.Connection &&
-                    _connection != options.Connection));
-
-            // Update options
-            Options = options;
-
-            if (needsReactivation)
-            {
-                TriggerReconnect(needsRecreation);
-            }
-            else if (resetKeepAlive)
-            {
-                ResetKeepAliveTimer();
             }
         }
 

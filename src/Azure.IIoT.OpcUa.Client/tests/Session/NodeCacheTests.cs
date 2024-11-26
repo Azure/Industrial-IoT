@@ -5,8 +5,11 @@
 
 namespace Opc.Ua.Client
 {
+    using FluentAssertions;
     using Moq;
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -22,6 +25,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.IsAny<IReadOnlyList<NodeId>>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -33,7 +37,7 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindAsync(new List<NodeId> { id }, default);
+            var result = await nodeCache.GetNodesAsync(new List<NodeId> { id }, default);
 
             // Assert
             Assert.Single(result);
@@ -41,21 +45,60 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindAsyncShouldHandleEmptyListAsync()
+        public async Task GetBuiltInTypeAsyncShouldHandleUnknownTypeAsync()
+        {
+            // Arrange
+            var datatypeId = new NodeId("unknownType", 0);
+            var context = new Mock<INodeCacheContext>();
+            var nodeCache = new NodeCache(context.Object);
+
+            context
+                .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<NodeId>(i => i == datatypeId),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .Verifiable(Times.Once);
+
+            // Act
+            var result = await nodeCache.GetBuiltInTypeAsync(datatypeId, default);
+
+            // Assert
+            Assert.Equal(BuiltInType.Null, result);
+            context.Verify();
+        }
+
+        [Fact]
+        public async Task GetBuiltInTypeAsyncShouldReturnBuiltInTypeAsync()
+        {
+            // Arrange
+            var datatypeId = new NodeId((uint)BuiltInType.Int32, 0);
+            var context = new Mock<INodeCacheContext>();
+            var nodeCache = new NodeCache(context.Object);
+
+            // Act
+            var result = await nodeCache.GetBuiltInTypeAsync(datatypeId, default);
+
+            // Assert
+            Assert.Equal(BuiltInType.Int32, result);
+        }
+
+        [Fact]
+        public async Task GetNodeAsyncShouldHandleEmptyListAsync()
         {
             // Arrange
             var context = new Mock<INodeCacheContext>();
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindAsync(new List<NodeId>(), default);
+            var result = await nodeCache.GetNodesAsync(new List<NodeId>(), default);
 
             // Assert
             Assert.Empty(result);
         }
 
         [Fact]
-        public async Task FindAsyncShouldReturnNodeFromCacheAsync()
+        public async Task GetNodeAsyncShouldReturnNodeFromCacheAsync()
         {
             // Arrange
             var expected = new Node();
@@ -64,6 +107,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchNodeAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expected)
@@ -71,17 +115,68 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindAsync(id, default);
+            var result = await nodeCache.GetNodeAsync(id, default);
 
             // Assert
             Assert.Equal(expected, result);
-            result = await nodeCache.FindAsync(id, default);
+            result = await nodeCache.GetNodeAsync(id, default);
+            Assert.Equal(expected, result);
+            context.Verify();
+        }
+        [Fact]
+        public async Task GetNodeTestAsync()
+        {
+            var expected = new Node();
+            var id = new NodeId("test", 0);
+            var context = new Mock<INodeCacheContext>();
+
+            context
+                .Setup(c => c.FetchNodeAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<NodeId>(i => i == id),
+                    It.IsAny<CancellationToken>()))
+                .Returns<RequestHeader, NodeId, CancellationToken>((_, nodeId, ct)
+                    => ValueTask.FromResult(expected))
+                .Verifiable(Times.Once);
+            var nodeCache = new NodeCache(context.Object);
+
+            var result = await nodeCache.GetNodeAsync(id, default);
+            Assert.Equal(expected, result);
+            result = await nodeCache.GetNodeAsync(id, default);
+            Assert.Equal(expected, result);
+            result = await nodeCache.GetNodeAsync(id, default);
             Assert.Equal(expected, result);
             context.Verify();
         }
 
         [Fact]
-        public async Task FindNodeWithBrowsePathAsyncShouldHandleInvalidBrowsePathAsync()
+        public async Task GetNodeThrowsTestAsync()
+        {
+            var expected = new Node();
+            var id = new NodeId("test", 0);
+            var context = new Mock<INodeCacheContext>();
+
+            context
+                .Setup(c => c.FetchNodeAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<NodeId>(i => i == id),
+                    It.IsAny<CancellationToken>()))
+                .Returns<RequestHeader, NodeId, CancellationToken>((_, nodeId, ct)
+                    => ValueTask.FromException<Node>(new ServiceResultException()))
+                .Verifiable(Times.Exactly(3));
+            var nodeCache = new NodeCache(context.Object);
+
+            await Assert.ThrowsAsync<ServiceResultException>(
+                () => nodeCache.GetNodeAsync(id, default).AsTask());
+            await Assert.ThrowsAsync<ServiceResultException>(
+                () => nodeCache.GetNodeAsync(id, default).AsTask());
+            await Assert.ThrowsAsync<ServiceResultException>(
+                () => nodeCache.GetNodeAsync(id, default).AsTask());
+            context.Verify();
+        }
+
+        [Fact]
+        public async Task GetNodeWithBrowsePathAsyncShouldHandleInvalidBrowsePathAsync()
         {
             // Arrange
             var id = new NodeId("test", 0);
@@ -90,12 +185,14 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == ReferenceTypeIds.HierarchicalReferences),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
@@ -103,7 +200,7 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindNodeWithBrowsePathAsync(id, browsePath, default);
+            var result = await nodeCache.GetNodeWithBrowsePathAsync(id, browsePath, default);
 
             // Assert
             Assert.Null(result);
@@ -111,7 +208,7 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindNodeWithBrowsePathAsyncShouldReturnNodeAsync()
+        public async Task GetNodeWithBrowsePathAsyncShouldReturnNodeAsync()
         {
             // Arrange
             var id = new NodeId("test", 0);
@@ -135,18 +232,21 @@ namespace Opc.Ua.Client
             var context = new Mock<INodeCacheContext>();
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == ReferenceTypeIds.HierarchicalReferences),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(references))
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == id),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -159,14 +259,14 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindNodeWithBrowsePathAsync(id,
+            var result = await nodeCache.GetNodeWithBrowsePathAsync(id,
                 browsePath, default);
 
             // Assert
             Assert.Equal(expected, result);
 
             // Act
-            result = await nodeCache.FindNodeWithBrowsePathAsync(id,
+            result = await nodeCache.GetNodeWithBrowsePathAsync(id,
                 browsePath, default);
 
             // Assert
@@ -175,7 +275,7 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindNodeWithBrowsePathAsyncShouldReturnNodeWithMultipleElementsAsync()
+        public async Task GetNodeWithBrowsePathAsyncShouldReturnNodeWithMultipleElementsAsync()
         {
             // Arrange
             var rootId = new NodeId("root", 0);
@@ -224,24 +324,28 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == ReferenceTypeIds.HierarchicalReferences),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == rootId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(rootReferences))
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == childId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(childReferences))
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == childId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -252,6 +356,7 @@ namespace Opc.Ua.Client
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == grandChildId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -264,13 +369,13 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindNodeWithBrowsePathAsync(rootId, browsePath, default);
+            var result = await nodeCache.GetNodeWithBrowsePathAsync(rootId, browsePath, default);
 
             // Assert
             Assert.Equal(expected, result);
 
             // Act
-            result = await nodeCache.FindNodeWithBrowsePathAsync(rootId, browsePath, default);
+            result = await nodeCache.GetNodeWithBrowsePathAsync(rootId, browsePath, default);
 
             // Assert
             Assert.Equal(expected, result);
@@ -278,21 +383,21 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindReferencesAsyncShouldHandleEmptyListOfNodeIdsAsync()
+        public async Task GetReferencesAsyncShouldHandleEmptyListOfNodeIdsAsync()
         {
             // Arrange
             var context = new Mock<INodeCacheContext>();
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindReferencesAsync(new List<NodeId>(), new List<NodeId>(), false, false, default);
+            var result = await nodeCache.GetReferencesAsync(new List<NodeId>(), new List<NodeId>(), false, false, default);
 
             // Assert
             Assert.Empty(result);
         }
 
         [Fact]
-        public async Task FindReferencesAsyncShouldReturnReferencesFromCacheAsync()
+        public async Task GetReferencesAsyncShouldReturnReferencesFromCacheAsync()
         {
             // Arrange
             var referenceTypeId = new NodeId("referenceType", 0);
@@ -312,12 +417,14 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(expected))
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == targetNodeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -337,18 +444,18 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result1 = await nodeCache.FindReferencesAsync(id,
+            var result1 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, true, false, default);
-            var result2 = await nodeCache.FindReferencesAsync(id,
+            var result2 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, false, false, default);
 
             // Assert
             Assert.Single(result1);
             Assert.Empty(result2);
             // Act
-            result1 = await nodeCache.FindReferencesAsync(id,
+            result1 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, true, false, default);
-            result2 = await nodeCache.FindReferencesAsync(id,
+            result2 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, false, false, default);
 
             // Assert
@@ -358,79 +465,7 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindReferencesAsyncWithSubtypesShouldReturnReferencesFromCacheAsync()
-        {
-            // Arrange
-            var referenceTypeId = new NodeId("referenceType", 0);
-            var targetExpandedNodeId = new ExpandedNodeId("target", 0);
-            var targetNodeId = new NodeId("target", 0);
-            var expected = new List<ReferenceDescription>
-            {
-                new ()
-                {
-                    NodeId = targetExpandedNodeId,
-                    ReferenceTypeId = referenceTypeId,
-                    IsForward = false
-                }
-            };
-            var id = new NodeId("test", 0);
-            var context = new Mock<INodeCacheContext>();
-
-            context
-                .Setup(c => c.FetchReferencesAsync(
-                    It.Is<NodeId>(i => i == referenceTypeId),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
-                .Verifiable(Times.Once);
-            context
-                .Setup(c => c.FetchReferencesAsync(
-                    It.Is<NodeId>(i => i == id),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection(expected))
-                .Verifiable(Times.Once);
-            context
-                .Setup(c => c.FetchNodesAsync(
-                    It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == targetNodeId),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ResultSet<Node>
-                {
-                    Results = new List<Node>
-                    {
-                        new VariableNode
-                        {
-                            NodeId = targetNodeId,
-                            NodeClass = NodeClass.Variable
-                        }
-                    },
-                    Errors = new[] { ServiceResult.Good }
-                })
-                .Verifiable(Times.Once);
-
-            var nodeCache = new NodeCache(context.Object);
-
-            // Act
-            var result1 = await nodeCache.FindReferencesAsync(id,
-                referenceTypeId, true, true, default);
-            var result2 = await nodeCache.FindReferencesAsync(id,
-                referenceTypeId, false, true, default);
-
-            // Assert
-            Assert.Single(result1);
-            Assert.Empty(result2);
-            // Act
-            result1 = await nodeCache.FindReferencesAsync(id,
-                referenceTypeId, true, true, default);
-            result2 = await nodeCache.FindReferencesAsync(id,
-                referenceTypeId, false, true, default);
-
-            // Assert
-            Assert.Single(result1);
-            Assert.Empty(result2);
-            context.Verify();
-        }
-
-        [Fact]
-        public async Task FindReferencesAsyncWithMoreThanOneSubtypeShouldReturnReferencesFromCacheAsync()
+        public async Task GetReferencesAsyncWithMoreThanOneSubtypeShouldReturnReferencesFromCacheAsync()
         {
             // Arrange
             var referenceTypeId = new NodeId("referenceType", 0);
@@ -451,6 +486,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == referenceTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection
@@ -459,12 +495,13 @@ namespace Opc.Ua.Client
                     {
                         ReferenceTypeId = ReferenceTypeIds.HasSubtype,
                         BrowseName = new QualifiedName("HasSubtype"),
-                        NodeId = new ExpandedNodeId(referenceSubTypeId),
+                        NodeId = new ExpandedNodeId(referenceSubTypeId)
                     }
                 })
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == referenceSubTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -482,6 +519,7 @@ namespace Opc.Ua.Client
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == referenceSubTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection
@@ -491,18 +529,20 @@ namespace Opc.Ua.Client
                         ReferenceTypeId = ReferenceTypeIds.HasSubtype,
                         IsForward = false,
                         BrowseName = new QualifiedName("HasSuperType"),
-                        NodeId = new ExpandedNodeId(referenceTypeId),
+                        NodeId = new ExpandedNodeId(referenceTypeId)
                     }
                 })
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(expected))
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == targetNodeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>
@@ -522,18 +562,18 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result1 = await nodeCache.FindReferencesAsync(id,
+            var result1 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, true, true, default);
-            var result2 = await nodeCache.FindReferencesAsync(id,
+            var result2 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, false, true, default);
 
             // Assert
             Assert.Single(result1);
             Assert.Empty(result2);
             // Act
-            result1 = await nodeCache.FindReferencesAsync(id,
+            result1 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, true, true, default);
-            result2 = await nodeCache.FindReferencesAsync(id,
+            result2 = await nodeCache.GetReferencesAsync(id,
                 referenceTypeId, false, true, default);
 
             // Assert
@@ -543,7 +583,82 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindSuperTypeAsyncShouldHandleNoSupertypeAsync()
+        public async Task GetReferencesAsyncWithSubtypesShouldReturnReferencesFromCacheAsync()
+        {
+            // Arrange
+            var referenceTypeId = new NodeId("referenceType", 0);
+            var targetExpandedNodeId = new ExpandedNodeId("target", 0);
+            var targetNodeId = new NodeId("target", 0);
+            var expected = new List<ReferenceDescription>
+            {
+                new ()
+                {
+                    NodeId = targetExpandedNodeId,
+                    ReferenceTypeId = referenceTypeId,
+                    IsForward = false
+                }
+            };
+            var id = new NodeId("test", 0);
+            var context = new Mock<INodeCacheContext>();
+
+            context
+                .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<NodeId>(i => i == referenceTypeId),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .Verifiable(Times.Once);
+            context
+                .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<NodeId>(i => i == id),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ReferenceDescriptionCollection(expected))
+                .Verifiable(Times.Once);
+            context
+                .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == targetNodeId),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ResultSet<Node>
+                {
+                    Results = new List<Node>
+                    {
+                        new VariableNode
+                        {
+                            NodeId = targetNodeId,
+                            NodeClass = NodeClass.Variable
+                        }
+                    },
+                    Errors = new[] { ServiceResult.Good }
+                })
+                .Verifiable(Times.Once);
+
+            var nodeCache = new NodeCache(context.Object);
+
+            // Act
+            var result1 = await nodeCache.GetReferencesAsync(id,
+                referenceTypeId, true, true, default);
+            var result2 = await nodeCache.GetReferencesAsync(id,
+                referenceTypeId, false, true, default);
+
+            // Assert
+            Assert.Single(result1);
+            Assert.Empty(result2);
+            // Act
+            result1 = await nodeCache.GetReferencesAsync(id,
+                referenceTypeId, true, true, default);
+            result2 = await nodeCache.GetReferencesAsync(id,
+                referenceTypeId, false, true, default);
+
+            // Assert
+            Assert.Single(result1);
+            Assert.Empty(result2);
+            context.Verify();
+        }
+
+        [Fact]
+        public async Task GetSuperTypeAsyncShouldHandleNoSupertypeAsync()
         {
             // Arrange
             var typeId = new NodeId("type", 0);
@@ -551,6 +666,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == typeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
@@ -558,7 +674,7 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindSuperTypeAsync(typeId, default);
+            var result = await nodeCache.GetSuperTypeAsync(typeId, default);
 
             // Assert
             Assert.Equal(NodeId.Null, result);
@@ -566,7 +682,7 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task FindSuperTypeAsyncShouldReturnSuperTypeAsync()
+        public async Task GetSuperTypeAsyncShouldReturnSuperTypeAsync()
         {
             // Arrange
             var superTypeId = new NodeId("superType", 0);
@@ -584,6 +700,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == subTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(references))
@@ -591,13 +708,13 @@ namespace Opc.Ua.Client
             var nodeCache = new NodeCache(context.Object);
 
             // Act
-            var result = await nodeCache.FindSuperTypeAsync(subTypeId, default);
+            var result = await nodeCache.GetSuperTypeAsync(subTypeId, default);
 
             // Assert
             Assert.Equal(superTypeId, result);
 
             // Act
-            result = await nodeCache.FindSuperTypeAsync(subTypeId, default);
+            result = await nodeCache.GetSuperTypeAsync(subTypeId, default);
             // Assert
             Assert.Equal(superTypeId, result);
 
@@ -605,92 +722,169 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task GetBuiltInTypeAsyncShouldHandleUnknownTypeAsync()
+        public async Task GetValueAsyncShouldHandleErrorsAsync()
         {
             // Arrange
-            var datatypeId = new NodeId("unknownType", 0);
-            var context = new Mock<INodeCacheContext>();
-            var nodeCache = new NodeCache(context.Object);
-
-            context
-                .Setup(c => c.FetchReferencesAsync(
-                    It.Is<NodeId>(i => i == datatypeId),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
-                .Verifiable(Times.Once);
-
-            // Act
-            var result = await nodeCache.GetBuiltInTypeAsync(datatypeId, default);
-
-            // Assert
-            Assert.Equal(BuiltInType.Null, result);
-            context.Verify();
-        }
-
-        [Fact]
-        public async Task GetBuiltInTypeAsyncShouldReturnBuiltInTypeAsync()
-        {
-            // Arrange
-            var datatypeId = new NodeId((uint)BuiltInType.Int32, 0);
-            var context = new Mock<INodeCacheContext>();
-            var nodeCache = new NodeCache(context.Object);
-
-            // Act
-            var result = await nodeCache.GetBuiltInTypeAsync(datatypeId, default);
-
-            // Assert
-            Assert.Equal(BuiltInType.Int32, result);
-        }
-
-        [Fact]
-        public async Task GetNodeTestAsync()
-        {
-            var expected = new Node();
             var id = new NodeId("test", 0);
             var context = new Mock<INodeCacheContext>();
 
             context
-                .Setup(c => c.FetchNodeAsync(
-                    It.Is<NodeId>(i => i == id),
+                .Setup(c => c.FetchValueAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<NodeId>(),
                     It.IsAny<CancellationToken>()))
-                .Returns<NodeId, CancellationToken>((nodeId, ct)
-                    => Task.FromResult(expected))
+                .ThrowsAsync(new ServiceResultException(StatusCodes.BadUnexpectedError))
                 .Verifiable(Times.Once);
             var nodeCache = new NodeCache(context.Object);
 
-            var result = await nodeCache.FindAsync(id, default);
-            Assert.Equal(expected, result);
-            result = await nodeCache.FindAsync(id, default);
-            Assert.Equal(expected, result);
-            result = await nodeCache.FindAsync(id, default);
-            Assert.Equal(expected, result);
+            // Act
+            Func<Task> act = async () => await nodeCache.GetValueAsync(id, default);
+
+            // Assert
+            await act.Should().ThrowAsync<ServiceResultException>();
             context.Verify();
         }
 
         [Fact]
-        public async Task GetNodeThrowsTestAsync()
+        public async Task GetValueAsyncShouldReturnValueFromCacheAsync()
         {
-            var expected = new Node();
+            // Arrange
+            var expected = new DataValue(new Variant(123), StatusCodes.Good, DateTime.UtcNow);
             var id = new NodeId("test", 0);
             var context = new Mock<INodeCacheContext>();
 
             context
-                .Setup(c => c.FetchNodeAsync(
+                .Setup(c => c.FetchValueAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
-                .Returns<NodeId, CancellationToken>((nodeId, ct)
-                    => Task.FromException<Node>(new ServiceResultException()))
-                .Verifiable(Times.Exactly(3));
+                .ReturnsAsync(expected)
+                .Verifiable(Times.Once);
             var nodeCache = new NodeCache(context.Object);
 
-            await Assert.ThrowsAsync<ServiceResultException>(
-                () => nodeCache.FindAsync(id, default).AsTask());
-            await Assert.ThrowsAsync<ServiceResultException>(
-                () => nodeCache.FindAsync(id, default).AsTask());
-            await Assert.ThrowsAsync<ServiceResultException>(
-                () => nodeCache.FindAsync(id, default).AsTask());
+            // Act
+            var result = await nodeCache.GetValueAsync(id, default);
+
+            // Assert
+            result.Should().BeEquivalentTo(expected);
+            result = await nodeCache.GetValueAsync(id, default);
+            result.Should().BeEquivalentTo(expected);
             context.Verify();
         }
+        [Fact]
+        public async Task GetValuesAsyncShouldHandleErrorsAsync()
+        {
+            // Arrange
+            var ids = new List<NodeId> { new ("test1", 0), new ("test2", 0) };
+            var context = new Mock<INodeCacheContext>();
+
+            context
+                .Setup(c => c.FetchValuesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<IReadOnlyList<NodeId>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ResultSet<DataValue>
+                {
+                    Results = new List<DataValue> { new (), new () },
+                    Errors = new[] { new ServiceResult(StatusCodes.BadUnexpectedError), ServiceResult.Good }
+                })
+                .Verifiable(Times.Once);
+            var nodeCache = new NodeCache(context.Object);
+
+            // Act
+            var result = await nodeCache.GetValuesAsync(ids, default);
+
+            // Assert
+            result.Should().HaveCount(2);
+            result[0].StatusCode.Should().Be(StatusCodes.BadUnexpectedError);
+            result[1].StatusCode.Should().Be(StatusCodes.Good);
+            context.Verify();
+        }
+
+        [Fact]
+        public async Task GetValuesAsyncShouldReturnValuesFromCacheAsync()
+        {
+            // Arrange
+            var expected = new List<DataValue>
+            {
+                new (new Variant(123), StatusCodes.Good, DateTime.UtcNow),
+                new (new Variant(456), StatusCodes.Good, DateTime.UtcNow)
+            };
+            var ids = new List<NodeId> { new ("test1", 0), new ("test2", 0) };
+            var context = new Mock<INodeCacheContext>();
+
+            context
+                .Setup(c => c.FetchValuesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<IReadOnlyList<NodeId>>(i => i.ToHashSet().SetEquals(ids)),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ResultSet<DataValue>
+                {
+                    Results = expected,
+                    Errors = new[] { ServiceResult.Good, ServiceResult.Good }
+                })
+                .Verifiable(Times.Once);
+            var nodeCache = new NodeCache(context.Object);
+
+            // Act
+            var result = await nodeCache.GetValuesAsync(ids, default);
+
+            // Assert
+            result.Should().BeEquivalentTo(expected);
+
+            result = await nodeCache.GetValuesAsync(ids, default);
+            result.Should().BeEquivalentTo(expected);
+            context.Verify();
+        }
+
+        [Fact]
+        public async Task GetValuesAsyncShouldReturnValuesFromCacheButHonorStatusOfReadAsync()
+        {
+            // Arrange
+            var expected = new List<DataValue>
+            {
+                new (new Variant(123), StatusCodes.Good, DateTime.UtcNow),
+                new (new Variant(456), StatusCodes.Good, DateTime.UtcNow)
+            };
+            var ids = new List<NodeId> { new("test1", 0), new("test2", 0) };
+            var context = new Mock<INodeCacheContext>();
+
+            context
+                .Setup(c => c.FetchValuesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<IReadOnlyList<NodeId>>(i => i.ToHashSet().SetEquals(ids)),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ResultSet<DataValue>
+                {
+                    Results = expected,
+                    Errors = new[] { ServiceResult.Good, new ServiceResult(StatusCodes.Bad) }
+                })
+                .Verifiable(Times.Once);
+            var nodeCache = new NodeCache(context.Object);
+
+            // Act
+            var result = await nodeCache.GetValuesAsync(ids, default);
+
+            // Assert
+            result[0].Should().BeEquivalentTo(expected[0]);
+            result[1].StatusCode.Should().Be(StatusCodes.Bad);
+            result[1].Value.Should().BeEquivalentTo(expected[1].Value);
+
+            context
+                .Setup(c => c.FetchValuesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<IReadOnlyList<NodeId>>(i => i.Count == 1 && i[0] == ids[1]),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ResultSet<DataValue>
+                {
+                    Results = new[] { expected[1] },
+                    Errors = new[] { ServiceResult.Good }
+                })
+                .Verifiable(Times.Once);
+            result = await nodeCache.GetValuesAsync(ids, default);
+            context.Verify();
+        }
+
         [Fact]
         public void IsTypeOfShouldHandleNoReferences()
         {
@@ -701,6 +895,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == subTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
@@ -734,6 +929,7 @@ namespace Opc.Ua.Client
 
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == subTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection(references))
@@ -762,6 +958,7 @@ namespace Opc.Ua.Client
             var context = new Mock<INodeCacheContext>();
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == typeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
@@ -793,18 +990,21 @@ namespace Opc.Ua.Client
             var context = new Mock<INodeCacheContext>();
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == typeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(references)
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == subTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReferenceDescriptionCollection())
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
+                    It.IsAny<RequestHeader>(),
                     It.Is<IReadOnlyList<NodeId>>(n => n.Count == 1 && n[0] == subTypeId),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ResultSet<Node>

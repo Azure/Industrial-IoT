@@ -86,7 +86,7 @@ namespace Opc.Ua.Client.ComplexTypes
             {
                 return result;
             }
-            var (values, errors) = await session.ReadValuesAsync(null,
+            var (values, errors) = await session.FetchValuesAsync(null,
                 dictionaryIds, ct).ConfigureAwait(false);
 
             Debug.Assert(dictionaryIds.Count == values.Count);
@@ -167,7 +167,7 @@ namespace Opc.Ua.Client.ComplexTypes
             static async Task<(NodeId, string)> GetTypeSystemAsync(
                 IComplexTypeContext context, NodeId dictionaryId, CancellationToken ct)
             {
-                var references = await context.NodeCache.FindReferencesAsync(dictionaryId,
+                var references = await context.NodeCache.GetReferencesAsync(dictionaryId,
                     ReferenceTypeIds.HasComponent, true, false, ct).ConfigureAwait(false);
                 return references.Count > 0
                     ? (ExpandedNodeId.ToNodeId(references[0].NodeId, context.NamespaceUris),
@@ -194,14 +194,14 @@ namespace Opc.Ua.Client.ComplexTypes
             NodeId dictionaryId, Dictionary<NodeId, QualifiedName> dataTypes,
             CancellationToken ct)
         {
-            var references = await context.NodeCache.FindReferencesAsync(dictionaryId,
+            var references = await context.NodeCache.GetReferencesAsync(dictionaryId,
                 ReferenceTypeIds.HasComponent, false, false, ct).ConfigureAwait(false);
             var nodeIdCollection = references
                 .Select(node => ExpandedNodeId.ToNodeId(node.NodeId, context.NamespaceUris))
                 .ToList();
 
             // read the value to get the names that are used in the dictionary
-            var (values, errors) = await context.ReadValuesAsync(null, nodeIdCollection,
+            var (values, errors) = await context.FetchValuesAsync(null, nodeIdCollection,
                 ct).ConfigureAwait(false);
             for (var index = 0; index < references.Count; index++)
             {
@@ -229,7 +229,7 @@ namespace Opc.Ua.Client.ComplexTypes
         private static async Task<byte[]> ReadDictionaryAsync(IComplexTypeContext context,
             NodeId dictionaryId, CancellationToken ct)
         {
-            var data = await context.ReadValueAsync(null, dictionaryId, ct).ConfigureAwait(false);
+            var data = await context.FetchValueAsync(null, dictionaryId, ct).ConfigureAwait(false);
             // return as a byte array.
             if (data.Value is not byte[] dictionary || dictionary.Length == 0)
             {

@@ -581,7 +581,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!_diagnosticsEnabled.HasValue)
                 {
                     // Check whether enabled and if not enabled enable it
-                    var diagnosticsEnabled = await ReadValueAsync(null,
+                    var diagnosticsEnabled = await FetchValueAsync(null,
                         VariableIds.Server_ServerDiagnostics_EnabledFlag, ct).ConfigureAwait(false);
                     _diagnosticsEnabled = diagnosticsEnabled.Value as bool?;
                     if (_diagnosticsEnabled == false)

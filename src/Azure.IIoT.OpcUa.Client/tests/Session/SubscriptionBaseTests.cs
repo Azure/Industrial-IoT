@@ -202,7 +202,7 @@ namespace Opc.Ua.Client
                             StatusCode = StatusCodes.Good,
                             MonitoredItemId = 100,
                             RevisedSamplingInterval = 10000,
-                            RevisedQueueSize = 10,
+                            RevisedQueueSize = 10
                         }
                     }
                 })
@@ -246,7 +246,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 100,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             monitoredItem.ServerId.Should().Be(100);
@@ -265,7 +265,7 @@ namespace Opc.Ua.Client
                         {
                             StatusCode = StatusCodes.Good,
                             RevisedSamplingInterval = 100000,
-                            RevisedQueueSize = 1000,
+                            RevisedQueueSize = 1000
                         }
                     }
                 })
@@ -285,9 +285,7 @@ namespace Opc.Ua.Client
         {
             // Arrange
             var ct = CancellationToken.None;
-            var monitoredItems = new List<MonitoredItem>
-            {
-            };
+            var monitoredItems = new List<MonitoredItem>();
             var sut = new TestSubscriptionBase(_mockSession.Object,
                 _mockCompletion.Object, _mockOptions.Object, _mockObservability.Object)
             {
@@ -310,7 +308,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 100,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             monitoredItem.ServerId.Should().Be(100);
@@ -363,7 +361,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 100,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             monitoredItem.Dispose();
@@ -472,7 +470,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 199,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             _mockSession
@@ -696,7 +694,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 199,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             _mockSession
@@ -807,7 +805,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 199,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             _mockSession
@@ -989,7 +987,7 @@ namespace Opc.Ua.Client
                 StatusCode = StatusCodes.Good,
                 MonitoredItemId = 199,
                 RevisedSamplingInterval = 10000,
-                RevisedQueueSize = 10,
+                RevisedQueueSize = 10
             }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
 
             _mockSession

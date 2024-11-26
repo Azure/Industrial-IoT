@@ -52,7 +52,7 @@ namespace Opc.Ua.Client.ComplexTypes
             }
 
             // find the dictionary for the description.
-            var references = await _context.NodeCache.FindReferencesAsync(
+            var references = await _context.NodeCache.GetReferencesAsync(
                 dataTypeSystem, ReferenceTypeIds.HasComponent, false, false,
                 ct).ConfigureAwait(false);
 
@@ -68,7 +68,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 .ToList();
 
             // find namespace properties
-            var namespaceReferences = await _context.NodeCache.FindReferencesAsync(
+            var namespaceReferences = await _context.NodeCache.GetReferencesAsync(
                 referenceNodeIds, new[] { ReferenceTypeIds.HasProperty },
                 false, false, ct).ConfigureAwait(false);
             var namespaceNodes = namespaceReferences
@@ -86,7 +86,7 @@ namespace Opc.Ua.Client.ComplexTypes
 
             // read namespace property values
             var namespaces = new Dictionary<NodeId, string>();
-            var (nameSpaceValues, errors) = await _context.ReadValuesAsync(null,
+            var (nameSpaceValues, errors) = await _context.FetchValuesAsync(null,
                 namespaceNodeIds, ct).ConfigureAwait(false);
 
             // build the namespace dictionary
@@ -166,7 +166,7 @@ namespace Opc.Ua.Client.ComplexTypes
             var source = nodeIds
                 .Select(nodeId => ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris))
                 .ToList();
-            var encodings = await _context.NodeCache.FindReferencesAsync(
+            var encodings = await _context.NodeCache.GetReferencesAsync(
                 source, new[] { ReferenceTypeIds.HasEncoding },
                 false, false, ct).ConfigureAwait(false);
 
@@ -174,7 +174,7 @@ namespace Opc.Ua.Client.ComplexTypes
             source = encodings
                 .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, _context.NamespaceUris))
                 .ToList();
-            var descriptions = await _context.NodeCache.FindReferencesAsync(
+            var descriptions = await _context.NodeCache.GetReferencesAsync(
                 source, new[] { ReferenceTypeIds.HasDescription },
                 false, false, ct).ConfigureAwait(false);
             return encodings
@@ -190,7 +190,7 @@ namespace Opc.Ua.Client.ComplexTypes
             string[] supportedEncodings, CancellationToken ct = default)
         {
             var source = ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris);
-            var references = await _context.NodeCache.FindReferencesAsync(source,
+            var references = await _context.NodeCache.GetReferencesAsync(source,
                 ReferenceTypeIds.HasEncoding, false, false, ct).ConfigureAwait(false);
 
             var binaryEncodingId = references
@@ -213,21 +213,21 @@ namespace Opc.Ua.Client.ComplexTypes
             DataTypeNode? dataTypeNode)> BrowseTypeIdsForDictionaryComponentAsync(
             NodeId nodeId, CancellationToken ct = default)
         {
-            var references = await _context.NodeCache.FindReferencesAsync(
+            var references = await _context.NodeCache.GetReferencesAsync(
                 nodeId, ReferenceTypeIds.HasDescription, true, false,
                 ct).ConfigureAwait(false);
             if (references.Count == 1 && !NodeId.IsNull(references[0].NodeId))
             {
                 var encodingId = ExpandedNodeId.ToNodeId(references[0].NodeId,
                     _context.NamespaceUris);
-                references = await _context.NodeCache.FindReferencesAsync(
+                references = await _context.NodeCache.GetReferencesAsync(
                     encodingId, ReferenceTypeIds.HasEncoding, true, false,
                     ct).ConfigureAwait(false);
                 if (references.Count == 1 && !NodeId.IsNull(references[0].NodeId))
                 {
                     var typeId = ExpandedNodeId.ToNodeId(references[0].NodeId,
                         _context.NamespaceUris);
-                    var dataTypeNode = await _context.NodeCache.FindAsync(typeId,
+                    var dataTypeNode = await _context.NodeCache.GetNodeAsync(typeId,
                         ct).ConfigureAwait(false);
                     return (typeId, encodingId, dataTypeNode as DataTypeNode);
                 }
@@ -251,7 +251,7 @@ namespace Opc.Ua.Client.ComplexTypes
 #endif
             if (addRootNode)
             {
-                var rootNode = await _context.NodeCache.FindAsync(nodesToBrowse[0],
+                var rootNode = await _context.NodeCache.GetNodeAsync(nodesToBrowse[0],
                     ct).ConfigureAwait(false);
                 if (rootNode is not DataTypeNode)
                 {
@@ -263,7 +263,7 @@ namespace Opc.Ua.Client.ComplexTypes
 
             while (nodesToBrowse.Count > 0)
             {
-                var response = await _context.NodeCache.FindReferencesAsync(
+                var response = await _context.NodeCache.GetReferencesAsync(
                     nodesToBrowse, new[]
                     {
                         ReferenceTypeIds.HasSubtype
@@ -300,7 +300,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <inheritdoc/>
         public ValueTask<INode> FindAsync(ExpandedNodeId nodeId, CancellationToken ct)
         {
-            return _context.NodeCache.FindAsync(
+            return _context.NodeCache.GetNodeAsync(
                 ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris), ct);
         }
 
@@ -309,13 +309,13 @@ namespace Opc.Ua.Client.ComplexTypes
             CancellationToken ct = default)
         {
             // find the property reference for the enum type
-            var references = await _context.NodeCache.FindReferencesAsync(
+            var references = await _context.NodeCache.GetReferencesAsync(
                 ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris),
                 ReferenceTypeIds.HasProperty, false, false, ct).ConfigureAwait(false);
             if (references.Count > 0)
             {
                 // read the enum type array
-                var value = await _context.ReadValueAsync(null,
+                var value = await _context.FetchValueAsync(null,
                     ExpandedNodeId.ToNodeId(references[0].NodeId, NamespaceUris),
                     ct).ConfigureAwait(false);
                 return value?.Value;
@@ -326,7 +326,7 @@ namespace Opc.Ua.Client.ComplexTypes
         /// <inheritdoc/>
         public ValueTask<NodeId> FindSuperTypeAsync(NodeId typeId, CancellationToken ct = default)
         {
-            return _context.NodeCache.FindSuperTypeAsync(typeId, ct);
+            return _context.NodeCache.GetSuperTypeAsync(typeId, ct);
         }
 
         /// <summary>

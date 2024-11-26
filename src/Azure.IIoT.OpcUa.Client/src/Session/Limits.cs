@@ -34,12 +34,6 @@ namespace Opc.Ua.Client
         public ushort MaxHistoryContinuationPoints { get; set; }
 
         /// <summary>
-        /// Max nodes that can be part of a browse path
-        /// </summary>
-        [DataMember(Order = 230)]
-        public uint MaxNodesPerTranslatePathsToNodeIds { get; set; }
-
-        /// <summary>
         /// Min supported sampling rate
         /// </summary>
         [DataMember(Order = 240)]

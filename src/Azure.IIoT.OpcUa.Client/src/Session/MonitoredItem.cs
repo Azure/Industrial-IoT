@@ -63,7 +63,7 @@ namespace Opc.Ua.Client
             {
                 if (_samplingInterval != value)
                 {
-                    AttributesModified = true;
+                    OptionsChanged = true;
                 }
                 _samplingInterval = value;
             }
@@ -80,7 +80,7 @@ namespace Opc.Ua.Client
                 // validate filter against node class.
                 ValidateFilter(value);
 
-                AttributesModified = true;
+                OptionsChanged = true;
                 _filter = value;
             }
         }
@@ -95,7 +95,7 @@ namespace Opc.Ua.Client
             {
                 if (_queueSize != value)
                 {
-                    AttributesModified = true;
+                    OptionsChanged = true;
                 }
                 _queueSize = value;
             }
@@ -111,7 +111,7 @@ namespace Opc.Ua.Client
             {
                 if (_discardOldest != value)
                 {
-                    AttributesModified = true;
+                    OptionsChanged = true;
                 }
                 _discardOldest = value;
             }
@@ -163,15 +163,20 @@ namespace Opc.Ua.Client
         public NodeId? ResolvedNodeId => StartNodeId;
 
         /// <summary>
-        /// Whether the monitoring attributes have been modified
-        /// since the item was created.
-        /// </summary>
-        internal bool AttributesModified { get; private set; }
-
-        /// <summary>
         /// The subscription that owns the monitored item.
         /// </summary>
         protected IManagedSubscription Subscription { get; }
+
+        /// <summary>
+        /// Current monitored item options
+        /// </summary>
+        protected internal MonitoredItemOptions Options { get; protected set; }
+
+        /// <summary>
+        /// Whether the monitoring attributes have been modified
+        /// since the item was created.
+        /// </summary>
+        internal bool OptionsChanged { get; private set; }
 
         /// <summary>
         /// Create monitored item
@@ -186,17 +191,17 @@ namespace Opc.Ua.Client
             StartNodeId = NodeId.Null;
             AttributeId = Attributes.Value;
             MonitoringMode = MonitoringMode.Reporting;
-            AttributesModified = true;
             _samplingInterval = TimeSpan.MinValue;
             _discardOldest = true;
 
+            Options = options.CurrentValue;
+            OptionsChanged = true;
             Error = ServiceResult.Good;
             ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
 
             _logger = logger;
-            _options = options.CurrentValue;
-            _monitor = options.OnChange(OnOptionsChanged);
-            OnOptionsChanged(_options, null);
+            _changeTracking = options.OnChange(OnOptionsChanged);
+
             _logger.LogDebug("{Item} CREATED.", this);
         }
 
@@ -223,7 +228,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             Subscription.RemoveItem(this);
             _logger.LogDebug("{Item} REMOVED.", this);
             ServerId = 0;
-            _monitor?.Dispose();
+            _changeTracking?.Dispose();
             _disposedValue = true;
         }
 
@@ -269,7 +274,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
                 }
             }
             LogRevisedSamplingRateAndQueueSize(true);
-            AttributesModified = false;
+            OptionsChanged = false;
         }
 
         /// <summary>
@@ -312,7 +317,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
                 }
             }
             LogRevisedSamplingRateAndQueueSize(false);
-            AttributesModified = false;
+            OptionsChanged = false;
         }
 
         /// <summary>
@@ -405,7 +410,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
                     this, ServerId, serverHandle);
 
                 ServerId = serverHandle;
-                AttributesModified = true;
+                OptionsChanged = true;
             }
         }
 
@@ -427,8 +432,8 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
         /// <param name="name"></param>
         protected virtual void OnOptionsChanged(MonitoredItemOptions options, string? name)
         {
-            _options = options;
-            AttributesModified = true;
+            Options = options;
+            OptionsChanged = true;
         }
 
         /// <summary>
@@ -489,8 +494,7 @@ $"{Subscription}#{ClientHandle}|{ServerId} ({DisplayName ?? StartNodeId.ToString
             }
         }
 
-        private readonly IDisposable? _monitor;
-        private MonitoredItemOptions _options;
+        private readonly IDisposable? _changeTracking;
         private TimeSpan _samplingInterval;
         private MonitoringFilter? _filter;
         private uint _queueSize;

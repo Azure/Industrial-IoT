@@ -1251,11 +1251,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void OnPublishStateChanged(PublishState stateMask)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            if (_disposed)
+            if (stateMask.HasFlag(PublishState.Completed))
             {
+                _logger.LogInformation("Subscription {Subscription} CLOSED!", this);
                 return;
             }
+
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (stateMask.HasFlag(PublishState.Stopped) && !_publishingStopped)
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);

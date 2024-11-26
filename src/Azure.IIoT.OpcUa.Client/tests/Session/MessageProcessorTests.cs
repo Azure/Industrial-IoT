@@ -188,8 +188,11 @@ namespace Opc.Ua.Client
             var messages = Enumerable.Range(2, 99).Select(i => new NotificationMessage
             {
                 SequenceNumber = (uint)i
-            }).ToList();
-            messages.Shuffle();
+            }).ToArray();
+
+#pragma warning disable CA5394 // Do not use insecure randomness
+            Random.Shared.Shuffle(messages);
+#pragma warning restore CA5394 // Do not use insecure randomness
 
             await using var sut = new TestMessageProcessor(_mockSession.Object,
                 _mockCompletion.Object, _mockObservability.Object)
