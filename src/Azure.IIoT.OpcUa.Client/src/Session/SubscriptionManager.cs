@@ -197,7 +197,7 @@ namespace Opc.Ua.Client
                 _subscriptionHistory.TryDequeue(out _);
             }
             _logger.LogInformation("{Subscription} REMOVED.", subscription);
-            Update();
+            _publishControl.Set();
             return ValueTask.CompletedTask;
         }
 
@@ -214,7 +214,7 @@ namespace Opc.Ua.Client
                 }
             }
             _logger.LogInformation("{Subscription} ADDED.", subscription);
-            Update();
+            _publishControl.Set();
             return subscription;
         }
 
@@ -261,6 +261,7 @@ namespace Opc.Ua.Client
                 var force = previousSessionId != null && subscription.Created;
                 await subscription.RecreateAsync(ct).ConfigureAwait(false);
             }
+            _publishControl.Set();
 
             // Helper to try and transfer the subscriptions
             async Task<IReadOnlyList<IManagedSubscription>> TransferSubscriptionsAsync(

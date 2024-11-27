@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Heartbeat(IManagedSubscription subscription, ISubscriber owner,
+            public Heartbeat(IMonitoredItemContext subscription, ISubscriber owner,
                 DataMonitoredItemModel dataTemplate, IOpcUaSession session,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
                 base(subscription, owner, dataTemplate, session, logger, timeProvider)

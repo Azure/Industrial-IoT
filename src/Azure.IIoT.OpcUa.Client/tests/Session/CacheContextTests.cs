@@ -12,7 +12,6 @@ namespace Opc.Ua.Client
     using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
-    using FluentAssertions.Equivalency;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Moq;
@@ -23,7 +22,6 @@ namespace Opc.Ua.Client
         public CacheContextTests()
         {
             _mockChannel = new Mock<ITransportChannel>();
-            _mockOptionsMonitor = new Mock<IOptionsMonitor<SessionOptions>>();
             _mockObservability = new Mock<IObservability>();
             _mockMeterFactory = new Mock<IMeterFactory>();
             _mockObservability.Setup(o => o.MeterFactory)
@@ -44,6 +42,12 @@ namespace Opc.Ua.Client
                 .Returns(_mockTimer.Object);
             _mockObservability
                 .Setup(o => o.TimeProvider).Returns(_mockTimeProvider.Object);
+            _options = OptionsFactory.Create<SessionOptions>(
+                new SessionOptions
+                {
+                    SessionName = "TestSession",
+                    Channel = _mockChannel.Object
+                });
             _configuration = new ApplicationConfiguration
             {
                 ClientConfiguration = new ClientConfiguration
@@ -57,17 +61,14 @@ namespace Opc.Ua.Client
         public async Task FetchValuesAsyncShouldReturnResultSetAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
-            var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
+                _options, _mockObservability.Object, null);
+            var nodeIds = new List<NodeId>
+            {
+                NodeId.Parse("ns=2;s=TestNode1"),
+                NodeId.Parse("ns=2;s=TestNode2")
+            };
             var dataValues = new DataValueCollection
             {
                 new DataValue(new Variant(123), StatusCodes.Good, DateTime.UtcNow),
@@ -98,16 +99,9 @@ namespace Opc.Ua.Client
         public async Task FetchValueAsyncShouldReturnDataValueAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var dataValue = new DataValue(new Variant(123), StatusCodes.Good, DateTime.UtcNow);
             var diagnosticInfos = new DiagnosticInfoCollection();
@@ -136,16 +130,9 @@ namespace Opc.Ua.Client
         public async Task FetchValuesAsyncShouldReturnEmptyResultSetForEmptyNodeIdsAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId>();
 
             // Act
@@ -160,16 +147,9 @@ namespace Opc.Ua.Client
         public async Task FetchValueAsyncShouldThrowServiceResultExceptionForBadStatusCodeAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var dataValue = new DataValue(new Variant(123), StatusCodes.Bad, DateTime.UtcNow);
             var diagnosticInfos = new DiagnosticInfoCollection();
@@ -198,16 +178,9 @@ namespace Opc.Ua.Client
         public async Task FetchValuesAsyncShouldReturnErrorsForBadStatusCodesAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
             var dataValues = new DataValueCollection
             {
@@ -240,16 +213,9 @@ namespace Opc.Ua.Client
         public async Task FetchValueAsyncShouldHandleCancellationAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -272,17 +238,14 @@ namespace Opc.Ua.Client
         public async Task FetchValuesAsyncShouldHandleCancellationAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
-            var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
+                _options, _mockObservability.Object, null);
+            var nodeIds = new List<NodeId>
+            {
+                NodeId.Parse("ns=2;s=TestNode1"),
+                NodeId.Parse("ns=2;s=TestNode2")
+            };
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
@@ -304,16 +267,9 @@ namespace Opc.Ua.Client
         public async Task FetchValueAsyncShouldProcessDiagnosticInfoAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var dataValue = new DataValue(new Variant(123), StatusCodes.Good, DateTime.UtcNow);
             var diagnosticInfo = new DiagnosticInfo();
@@ -344,17 +300,14 @@ namespace Opc.Ua.Client
         public async Task FetchValuesAsyncShouldProcessDiagnosticInfoAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
-            var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
+                _options, _mockObservability.Object, null);
+            var nodeIds = new List<NodeId>
+            {
+                NodeId.Parse("ns=2;s=TestNode1"),
+                NodeId.Parse("ns=2;s=TestNode2")
+            };
             var dataValues = new DataValueCollection
             {
                 new DataValue(new Variant(123), StatusCodes.Good, DateTime.UtcNow),
@@ -388,16 +341,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodesAsyncShouldReturnResultSetAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId>
             {
                 NodeId.Parse("ns=2;s=TestNode1"),
@@ -414,7 +360,7 @@ namespace Opc.Ua.Client
                     Description = "TestDescription1",
                     DisplayName = "TestDisplayName1",
                     BrowseName = "TestBrowseName1",
-                    UserAccessLevel = 1,
+                    UserAccessLevel = 1
                 },
                 new VariableNode
                 {
@@ -425,7 +371,7 @@ namespace Opc.Ua.Client
                     Description = "TestDescription2",
                     DisplayName = "TestDisplayName2",
                     BrowseName = "TestBrowseName2",
-                    UserAccessLevel = 1,
+                    UserAccessLevel = 1
                 }
             };
 
@@ -471,16 +417,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodeAsyncShouldReturnNodeAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var node = new VariableNode
             {
@@ -491,7 +430,7 @@ namespace Opc.Ua.Client
                 Description = "TestDescription",
                 DisplayName = "TestDisplayName",
                 BrowseName = "TestBrowseName",
-                UserAccessLevel = 1,
+                UserAccessLevel = 1
             };
 
             _mockChannel
@@ -528,16 +467,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodesAsyncShouldReturnEmptyResultSetForEmptyNodeIdsAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId>();
 
             // Act
@@ -552,16 +484,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodeAsyncShouldThrowServiceResultExceptionForBadStatusCodeAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var node = new VariableNode
             {
@@ -572,7 +497,7 @@ namespace Opc.Ua.Client
                 Description = "TestDescription",
                 DisplayName = "TestDisplayName",
                 BrowseName = "TestBrowseName",
-                UserAccessLevel = 1,
+                UserAccessLevel = 1
             };
             var diagnosticInfos = new DiagnosticInfoCollection();
 
@@ -591,7 +516,8 @@ namespace Opc.Ua.Client
                 .Verifiable(Times.Once);
 
             // Act
-            Func<Task> act = async () => await sut.FetchNodeAsync(null, nodeId, CancellationToken.None);
+            Func<Task> act = async () => await sut.FetchNodeAsync(null, nodeId,
+                CancellationToken.None);
 
             // Assert
             (await act.Should().ThrowAsync<ServiceResultException>())
@@ -604,16 +530,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodesAsyncShouldReturnErrorsForBadStatusCodesAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId>
             {
                 NodeId.Parse("ns=2;s=TestNode1"),
@@ -630,7 +549,7 @@ namespace Opc.Ua.Client
                     Description = "TestDescription1",
                     DisplayName = "TestDisplayName1",
                     BrowseName = "TestBrowseName1",
-                    UserAccessLevel = 1,
+                    UserAccessLevel = 1
                 },
                 new VariableNode
                 {
@@ -641,7 +560,7 @@ namespace Opc.Ua.Client
                     Description = "TestDescription2",
                     DisplayName = "TestDisplayName2",
                     BrowseName = "TestBrowseName2",
-                    UserAccessLevel = 1,
+                    UserAccessLevel = 1
                 }
             };
 
@@ -687,16 +606,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodeAsyncShouldHandleCancellationAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -719,17 +631,14 @@ namespace Opc.Ua.Client
         public async Task FetchNodesAsyncShouldHandleCancellationAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
-            var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
+                _options, _mockObservability.Object, null);
+            var nodeIds = new List<NodeId>
+            {
+                NodeId.Parse("ns=2;s=TestNode1"),
+                NodeId.Parse("ns=2;s=TestNode2")
+            };
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
@@ -751,16 +660,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodeAsyncShouldProcessDiagnosticInfoAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var node = new VariableNode
             {
@@ -771,7 +673,7 @@ namespace Opc.Ua.Client
                 Description = "TestDescription",
                 DisplayName = "TestDisplayName",
                 BrowseName = "TestBrowseName",
-                UserAccessLevel = 1,
+                UserAccessLevel = 1
             };
 
             _mockChannel
@@ -809,16 +711,9 @@ namespace Opc.Ua.Client
         public async Task FetchNodesAsyncShouldProcessDiagnosticInfoAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId>
             {
                 NodeId.Parse("ns=2;s=TestNode1"),
@@ -835,7 +730,7 @@ namespace Opc.Ua.Client
                     Description = "TestDescription1",
                     DisplayName = "TestDisplayName1",
                     BrowseName = "TestBrowseName1",
-                    UserAccessLevel = 1,
+                    UserAccessLevel = 1
                 },
                 new VariableNode
                 {
@@ -846,7 +741,7 @@ namespace Opc.Ua.Client
                     Description = "TestDescription2",
                     DisplayName = "TestDisplayName2",
                     BrowseName = "TestBrowseName2",
-                    UserAccessLevel = 1,
+                    UserAccessLevel = 1
                 }
             };
 
@@ -895,34 +790,27 @@ namespace Opc.Ua.Client
         public async Task FetchReferencesAsyncShouldReturnResultSetAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var references = new ReferenceDescriptionCollection
-    {
-        new ReferenceDescription
-        {
-            NodeId = new ExpandedNodeId("ns=2;s=TestNode1"),
-            BrowseName = "TestBrowseName1",
-            DisplayName = "TestDisplayName1",
-            NodeClass = NodeClass.Variable
-        },
-        new ReferenceDescription
-        {
-            NodeId = new ExpandedNodeId("ns=2;s=TestNode2"),
-            BrowseName = "TestBrowseName2",
-            DisplayName = "TestDisplayName2",
-            NodeClass = NodeClass.Variable
-        }
-    };
+            {
+                new ReferenceDescription
+                {
+                    NodeId = new ExpandedNodeId("ns=2;s=TestNode1"),
+                    BrowseName = "TestBrowseName1",
+                    DisplayName = "TestDisplayName1",
+                    NodeClass = NodeClass.Variable
+                },
+                new ReferenceDescription
+                {
+                    NodeId = new ExpandedNodeId("ns=2;s=TestNode2"),
+                    BrowseName = "TestBrowseName2",
+                    DisplayName = "TestDisplayName2",
+                    NodeClass = NodeClass.Variable
+                }
+            };
 
             _mockChannel
                 .Setup(c => c.SendRequestAsync(
@@ -954,16 +842,9 @@ namespace Opc.Ua.Client
         public async Task FetchReferencesAsyncShouldReturnEmptyResultSetForEmptyNodeIdsAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeIds = new List<NodeId>();
 
             // Act
@@ -978,17 +859,14 @@ namespace Opc.Ua.Client
         public async Task FetchReferencesAsyncShouldReturnErrorsForBadStatusCodesAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
-            var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
+                _options, _mockObservability.Object, null);
+            var nodeIds = new List<NodeId>
+            {
+                NodeId.Parse("ns=2;s=TestNode1"),
+                NodeId.Parse("ns=2;s=TestNode2")
+            };
             var references = new ReferenceDescriptionCollection
             {
                 new ReferenceDescription
@@ -1031,7 +909,8 @@ namespace Opc.Ua.Client
                 .Verifiable(Times.Once);
 
             // Act
-            var result = await sut.FetchReferencesAsync(null, nodeIds, CancellationToken.None);
+            var result = await sut.FetchReferencesAsync(null, nodeIds,
+                CancellationToken.None);
 
             // Assert
             result.Results.Count.Should().Be(2);
@@ -1046,17 +925,14 @@ namespace Opc.Ua.Client
         public async Task FetchReferencesAsyncShouldHandleCancellationAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
-            var nodeIds = new List<NodeId> { NodeId.Parse("ns=2;s=TestNode1"), NodeId.Parse("ns=2;s=TestNode2") };
+                _options, _mockObservability.Object, null);
+            var nodeIds = new List<NodeId>
+            {
+                NodeId.Parse("ns=2;s=TestNode1"),
+                NodeId.Parse("ns=2;s=TestNode2")
+            };
             var cts = new CancellationTokenSource();
             cts.Cancel();
 
@@ -1068,7 +944,8 @@ namespace Opc.Ua.Client
                 .Verifiable(Times.Once);
 
             // Act
-            Func<Task> act = async () => await sut.FetchReferencesAsync(null, nodeIds, cts.Token);
+            Func<Task> act = async () => await sut.FetchReferencesAsync(null,
+                nodeIds, cts.Token);
 
             // Assert
             await act.Should().ThrowAsync<OperationCanceledException>();
@@ -1078,16 +955,9 @@ namespace Opc.Ua.Client
         public async Task FetchReferenceAsyncShouldReturnReferenceDescriptionAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var reference = new ReferenceDescription
             {
@@ -1128,16 +998,9 @@ namespace Opc.Ua.Client
         public async Task FetchReferenceAsyncShouldThrowServiceResultExceptionForBadStatusCodeAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var reference = new ReferenceDescription
             {
@@ -1158,7 +1021,7 @@ namespace Opc.Ua.Client
                     {
                         new BrowseResult
                         {
-                            References = new ReferenceDescriptionCollection { reference },
+                            References = new ReferenceDescriptionCollection { reference }
                         }
                     },
                     DiagnosticInfos = new DiagnosticInfoCollection()
@@ -1166,7 +1029,8 @@ namespace Opc.Ua.Client
                 .Verifiable(Times.Once);
 
             // Act
-            Func<Task> act = async () => await sut.FetchReferencesAsync(null, nodeId, CancellationToken.None);
+            Func<Task> act = async () => await sut.FetchReferencesAsync(null, nodeId,
+                CancellationToken.None);
 
             // Assert
             await act.Should().ThrowAsync<ServiceResultException>();
@@ -1178,16 +1042,9 @@ namespace Opc.Ua.Client
         public async Task FetchReferenceAsyncShouldHandleCancellationAsync()
         {
             // Arrange
-            _mockOptionsMonitor
-                .SetupGet(o => o.CurrentValue)
-                .Returns(new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
             var sut = new TestCacheContext(_configuration,
                 new ConfiguredEndpoint(null, new EndpointDescription()),
-                _mockOptionsMonitor.Object, _mockObservability.Object, null);
+                _options, _mockObservability.Object, null);
             var nodeId = NodeId.Parse("ns=2;s=TestNode");
             var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -1206,16 +1063,16 @@ namespace Opc.Ua.Client
             await act.Should().ThrowAsync<OperationCanceledException>();
         }
 
-        private class TestCacheContext : SessionBase
+        private sealed class TestCacheContext : SessionBase
         {
             public TestCacheContext(ApplicationConfiguration configuration,
-                ConfiguredEndpoint endpoint, IOptionsMonitor<SessionOptions> options,
+                ConfiguredEndpoint endpoint, IOptionsMonitor<SessionOptions> _options,
                 IObservability observability, ReverseConnectManager reverseConnect)
-                : base(configuration, endpoint, options, observability, reverseConnect)
+                : base(configuration, endpoint, _options, observability, reverseConnect)
             {
-                if (options.CurrentValue.Channel != null)
+                if (_options.CurrentValue.Channel != null)
                 {
-                    AttachChannel(options.CurrentValue.Channel);
+                    AttachChannel(_options.CurrentValue.Channel);
                 }
             }
 
@@ -1225,19 +1082,19 @@ namespace Opc.Ua.Client
             }
 
             public override IManagedSubscription CreateSubscription(
-                IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
+                IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue)
             {
                 throw new NotImplementedException();
             }
         }
 
         private readonly Mock<ITransportChannel> _mockChannel;
-        private readonly Mock<IOptionsMonitor<SessionOptions>> _mockOptionsMonitor;
         private readonly Mock<IObservability> _mockObservability;
         private readonly Mock<ILogger<SessionBase>> _mockLogger;
         private readonly Mock<IMeterFactory> _mockMeterFactory;
         private readonly Mock<TimeProvider> _mockTimeProvider;
         private readonly Mock<ITimer> _mockTimer;
+        private readonly IOptionsMonitor<SessionOptions> _options;
         private readonly ApplicationConfiguration _configuration;
     }
 }

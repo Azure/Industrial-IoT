@@ -705,7 +705,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _subscriptions = Array.Empty<OpcUaSubscription>();
                     foreach (var subscription in subscriptions)
                     {
-                        await subscription.DeleteAsync(true, default).ConfigureAwait(false);
                         await subscription.DisposeAsync().ConfigureAwait(false);
                     }
                 }
@@ -914,10 +913,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         _client._logger.LogInformation(
                             "{Client}: Force recreate {Subscription} ...", _client, subscription);
-                        await subscription.DeleteAsync(true, ct).ConfigureAwait(false);
                         await subscription.DisposeAsync().ConfigureAwait(false);
                         subscriptions[i] = (OpcUaSubscription)session.Subscriptions.Add(
-                            new OptionMonitor<SubscriptionOptions>(new VRef(this)));
+                            new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>(new VRef(this)));
                     }
                     if (subscriptions.Count < partitions.Count)
                     {
@@ -925,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         for (var idx = subscriptions.Count; idx < partitions.Count; idx++)
                         {
                             var subscription = (OpcUaSubscription)session.Subscriptions.Add(
-                                new OptionMonitor<SubscriptionOptions>(new VRef(this)));
+                                new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>(new VRef(this)));
                             subscriptions.Add(subscription);
                         }
                     }
@@ -934,7 +932,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // Shrink
                         foreach (var subscription in subscriptions.Skip(partitions.Count))
                         {
-                            await subscription.DeleteAsync(true, ct).ConfigureAwait(false);
                             await subscription.DisposeAsync().ConfigureAwait(false);
                         }
                         subscriptions.RemoveRange(partitions.Count, subscriptions.Count - partitions.Count);

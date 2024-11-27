@@ -21,18 +21,20 @@ namespace Opc.Ua.Client
         /// The start node for the browse path that
         /// identifies the node to monitor.
         /// </summary>
-        public required NodeId StartNodeId { get; init; }
+        public NodeId StartNodeId { get; init; }
+            = NodeId.Null;
 
         /// <summary>
-        /// The node class of the node being monitored
-        /// (affects the type of filter available).
+        /// Timestamps to return
         /// </summary>
-        public NodeClass NodeClass { get; init; }
+        public TimestampsToReturn TimestampsToReturn { get; init; }
+            = TimestampsToReturn.Both;
 
         /// <summary>
         /// The attribute to monitor.
         /// </summary>
         public uint AttributeId { get; init; }
+            = Attributes.Value;
 
         /// <summary>
         /// The range of array indexes to monitor.
@@ -48,6 +50,7 @@ namespace Opc.Ua.Client
         /// The monitoring mode.
         /// </summary>
         public MonitoringMode MonitoringMode { get; init; }
+            = MonitoringMode.Reporting;
 
         /// <summary>
         /// The sampling interval.
@@ -68,6 +71,11 @@ namespace Opc.Ua.Client
         /// Whether to discard the oldest entries in the
         /// queue when it is full.
         /// </summary>
-        public bool DiscardOldest { get; init; }
+        public bool DiscardOldest { get; init; } = true;
+
+        /// <summary>
+        /// Auto calculate a queue size and apply
+        /// </summary>
+        public bool AutoSetQueueSize { get; init; }
     }
 }

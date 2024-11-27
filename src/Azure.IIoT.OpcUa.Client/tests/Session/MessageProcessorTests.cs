@@ -23,7 +23,7 @@ namespace Opc.Ua.Client
             _mockSession = new Mock<ISubscriptionContext>();
             _mockCompletion = new Mock<IMessageAckQueue>();
             _mockObservability = new Mock<IObservability>();
-            _mockLogger = new Mock<ILogger<SubscriptionBase>>();
+            _mockLogger = new Mock<ILogger<Subscription>>();
             _mockTimeProvider = new Mock<TimeProvider>();
 
             _mockObservability.Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
@@ -369,7 +369,7 @@ namespace Opc.Ua.Client
             }
         }
         private readonly Mock<IMessageAckQueue> _mockCompletion;
-        private readonly Mock<ILogger<SubscriptionBase>> _mockLogger;
+        private readonly Mock<ILogger<Subscription>> _mockLogger;
         private readonly Mock<IObservability> _mockObservability;
         private readonly Mock<ISubscriptionContext> _mockSession;
         private readonly Mock<TimeProvider> _mockTimeProvider;

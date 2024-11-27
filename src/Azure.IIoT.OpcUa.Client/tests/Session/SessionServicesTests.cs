@@ -16,6 +16,17 @@ namespace Opc.Ua.Client
     using Moq;
     using Xunit;
 
+
+    public class RequestHeaderData : TheoryData<RequestHeader>
+    {
+        public RequestHeaderData()
+        {
+            Add(null);
+            Add(new RequestHeader());
+            Add(new RequestHeader { AuditEntryId = "audit-entry-id" });
+        }
+    }
+
     public sealed class SessionServicesTests : IDisposable
     {
         public SessionServicesTests()
@@ -27,7 +38,8 @@ namespace Opc.Ua.Client
             _mockObservability.Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
                 .Returns(_mockLogger.Object);
 
-            _sessionServices = new TestSessionServices(_mockObservability.Object, _mockChannel.Object);
+            _sessionServices = new TestSessionServices(_mockObservability.Object,
+                _mockChannel.Object);
         }
 
         /// <inheritdoc/>
@@ -36,11 +48,12 @@ namespace Opc.Ua.Client
             _sessionServices.Dispose();
         }
 
-        [Fact]
-        public async Task ActivateSessionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ActivateSessionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var clientSignature = new SignatureData();
             var clientSoftwareCertificates = new SignedSoftwareCertificateCollection();
             var localeIds = new StringCollection();
@@ -62,16 +75,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ActivateSessionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ActivateSessionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var clientSignature = new SignatureData();
             var clientSoftwareCertificates = new SignedSoftwareCertificateCollection();
             var localeIds = new StringCollection();
@@ -102,11 +116,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ActivateSessionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ActivateSessionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var clientSignature = new SignatureData();
             var clientSoftwareCertificates = new SignedSoftwareCertificateCollection();
             var localeIds = new StringCollection();
@@ -131,11 +146,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToAdd = new AddNodesItemCollection(
                 Enumerable.Repeat(new AddNodesItem(), 15).ToList());
             var ct = CancellationToken.None;
@@ -167,11 +183,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task AddNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToAdd = new AddNodesItemCollection(Enumerable.Repeat(new AddNodesItem(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -202,11 +219,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task AddNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToAdd = new AddNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -223,16 +241,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToAdd = new AddNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -258,11 +277,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToAdd = new AddNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -282,11 +302,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddNodesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddNodesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToAdd = new AddNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -310,11 +331,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task AddReferencesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddReferencesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToAdd = new AddReferencesItemCollection(
                 Enumerable.Repeat(new AddReferencesItem(), 15).ToList());
             var ct = CancellationToken.None;
@@ -346,11 +368,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task AddReferencesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddReferencesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToAdd = new AddReferencesItemCollection(Enumerable.Repeat(new AddReferencesItem(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -381,11 +404,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task AddReferencesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddReferencesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToAdd = new AddReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -402,16 +426,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddReferencesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddReferencesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToAdd = new AddReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -437,11 +462,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddReferencesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddReferencesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToAdd = new AddReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -461,11 +487,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task AddReferencesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task AddReferencesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToAdd = new AddReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -489,11 +516,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection(
@@ -528,11 +556,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldContainTraceContextInRequestHeaderAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldContainTraceContextInRequestHeaderAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 5).ToList());
@@ -556,10 +585,14 @@ namespace Opc.Ua.Client
                 .Setup(c => c.SendRequestAsync(
                     It.Is<IServiceRequest>(r => r is BrowseRequest),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new BrowseResponse
+                .Returns<IServiceRequest, CancellationToken>((r, ct) =>
                 {
-                    Results = new BrowseResultCollection(
-                        Enumerable.Repeat(new BrowseResult(), 5).ToList())
+                    requestHeader = r.RequestHeader;
+                    return Task.FromResult<IServiceResponse>(new BrowseResponse
+                    {
+                        Results = new BrowseResultCollection(
+                            Enumerable.Repeat(new BrowseResult(), 5).ToList())
+                    });
                 });
 
             // Act
@@ -575,11 +608,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldContainTraceContextInRequestHeaderWhenBatchedAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldContainTraceContextInRequestHeaderWhenBatchedAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 15).ToList());
@@ -620,19 +654,23 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.AdditionalHeader.Should().NotBeNull();
-            var additionalParameters = requestHeader.AdditionalHeader.Body as AdditionalParametersType;
-            additionalParameters.Should().NotBeNull();
-            additionalParameters.Parameters.Should().Contain(p => p.Key == "traceparent");
+            if (requestHeader != null)
+            {
+                requestHeader.AdditionalHeader.Should().NotBeNull();
+                var additionalParameters = requestHeader.AdditionalHeader.Body as AdditionalParametersType;
+                additionalParameters.Should().NotBeNull();
+                additionalParameters.Parameters.Should().Contain(p => p.Key == "traceparent");
+            }
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection(Enumerable.Repeat(new BrowseDescription(), 15).ToList());
@@ -670,11 +708,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldHandleDiagnosticInfosCorrectlyAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldHandleDiagnosticInfosCorrectlyAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 15).ToList());
@@ -734,11 +773,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldHandleEmptyDiagnosticInfosCorrectlyAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldHandleEmptyDiagnosticInfosCorrectlyAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 15).ToList());
@@ -775,11 +815,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldHandleEmptyStringTablesInDiagnosticInfosAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldHandleEmptyStringTablesInDiagnosticInfosAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 15).ToList());
@@ -841,11 +882,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldHandleMixedDiagnosticInfosCorrectlyAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldHandleMixedDiagnosticInfosCorrectlyAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Repeat(new BrowseDescription(), 15).ToList());
@@ -891,11 +933,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos1Async()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos1Async(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Range(0, 15).Select(_ => new BrowseDescription()));
@@ -964,11 +1007,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos2Async()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos2Async(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Range(0, 15).Select(_ => new BrowseDescription()));
@@ -1045,11 +1089,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos3Async()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldRecombineStringTablesInDiagnosticInfos3Async(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodesToBrowse = new BrowseDescriptionCollection(
                 Enumerable.Range(0, 15).Select(_ => new BrowseDescription()));
@@ -1130,11 +1175,11 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
-        [Fact]
-        public async Task BrowseAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory] [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
@@ -1153,16 +1198,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
@@ -1190,11 +1236,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
@@ -1216,11 +1263,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task BrowseAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             const uint requestedMaxReferencesPerNode = 10u;
             var nodesToBrowse = new BrowseDescriptionCollection();
@@ -1246,11 +1294,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task BrowseNextAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseNextAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection(
                 Enumerable.Repeat(Array.Empty<byte>(), 15).ToList());
@@ -1283,11 +1332,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseNextAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseNextAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection(Enumerable.Repeat(Array.Empty<byte>(), 15).ToList());
             var ct = CancellationToken.None;
@@ -1319,11 +1369,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task BrowseNextAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseNextAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
@@ -1341,16 +1392,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task BrowseNextAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseNextAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
@@ -1377,11 +1429,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task BrowseNextAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseNextAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
@@ -1402,11 +1455,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task BrowseNextAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task BrowseNextAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoints = true;
             var continuationPoints = new ByteStringCollection();
             var ct = CancellationToken.None;
@@ -1431,11 +1485,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task CallAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CallAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var methodsToCall = new CallMethodRequestCollection(
                 Enumerable.Repeat(new CallMethodRequest(), 15).ToList());
             var ct = CancellationToken.None;
@@ -1467,11 +1522,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task CallAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CallAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var methodsToCall = new CallMethodRequestCollection(Enumerable.Repeat(new CallMethodRequest(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -1502,11 +1558,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task CallAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CallAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var methodsToCall = new CallMethodRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1523,16 +1580,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CallAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CallAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var methodsToCall = new CallMethodRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1558,11 +1616,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CallAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CallAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var methodsToCall = new CallMethodRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1582,11 +1641,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CallAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CallAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var methodsToCall = new CallMethodRequestCollection();
             var ct = CancellationToken.None;
 
@@ -1610,11 +1670,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task CancelAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CancelAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint requestHandle = 1u;
             var ct = CancellationToken.None;
 
@@ -1631,16 +1692,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CancelAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CancelAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint requestHandle = 1u;
             var ct = CancellationToken.None;
 
@@ -1666,11 +1728,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CancelAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CancelAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint requestHandle = 1u;
             var ct = CancellationToken.None;
 
@@ -1690,11 +1753,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CloseSessionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CloseSessionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool deleteSubscriptions = true;
             var ct = CancellationToken.None;
 
@@ -1711,16 +1775,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CloseSessionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CloseSessionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool deleteSubscriptions = true;
             var ct = CancellationToken.None;
 
@@ -1746,11 +1811,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CloseSessionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CloseSessionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool deleteSubscriptions = true;
             var ct = CancellationToken.None;
 
@@ -1770,11 +1836,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CreateMonitoredItemsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateMonitoredItemsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection(
@@ -1809,11 +1876,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task CreateMonitoredItemsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateMonitoredItemsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection(Enumerable.Repeat(new MonitoredItemCreateRequest(), 15).ToList());
@@ -1846,11 +1914,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task CreateMonitoredItemsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateMonitoredItemsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
@@ -1869,16 +1938,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CreateMonitoredItemsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateMonitoredItemsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
@@ -1906,11 +1976,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CreateMonitoredItemsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateMonitoredItemsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
@@ -1932,11 +2003,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CreateMonitoredItemsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateMonitoredItemsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToCreate = new MonitoredItemCreateRequestCollection();
@@ -1962,11 +2034,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task CreateSubscriptionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateSubscriptionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double requestedPublishingInterval = 1000.0;
             const uint requestedLifetimeCount = 10u;
             const uint requestedMaxKeepAliveCount = 5u;
@@ -1989,16 +2062,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CreateSubscriptionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateSubscriptionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double requestedPublishingInterval = 1000.0;
             const uint requestedLifetimeCount = 10u;
             const uint requestedMaxKeepAliveCount = 5u;
@@ -2030,11 +2104,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task CreateSubscriptionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task CreateSubscriptionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double requestedPublishingInterval = 1000.0;
             const uint requestedLifetimeCount = 10u;
             const uint requestedMaxKeepAliveCount = 5u;
@@ -2060,11 +2135,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteMonitoredItemsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteMonitoredItemsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
@@ -2097,11 +2173,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task DeleteMonitoredItemsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteMonitoredItemsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
             var ct = CancellationToken.None;
@@ -2133,11 +2210,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task DeleteMonitoredItemsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteMonitoredItemsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -2155,16 +2233,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteMonitoredItemsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteMonitoredItemsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -2191,11 +2270,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteMonitoredItemsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteMonitoredItemsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             var monitoredItemIds = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -2216,11 +2296,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToDelete = new DeleteNodesItemCollection(
                 Enumerable.Repeat(new DeleteNodesItem(), 15).ToList());
             var ct = CancellationToken.None;
@@ -2252,11 +2333,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task DeleteNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToDelete = new DeleteNodesItemCollection(Enumerable.Repeat(new DeleteNodesItem(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -2287,11 +2369,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task DeleteNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToDelete = new DeleteNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2308,16 +2391,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToDelete = new DeleteNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2343,11 +2427,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToDelete = new DeleteNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2367,11 +2452,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteNodesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteNodesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToDelete = new DeleteNodesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2395,11 +2481,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task DeleteReferencesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteReferencesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToDelete = new DeleteReferencesItemCollection(
                 Enumerable.Repeat(new DeleteReferencesItem(), 15).ToList());
             var ct = CancellationToken.None;
@@ -2430,11 +2517,13 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
-        [Fact]
-        public async Task DeleteReferencesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteReferencesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToDelete = new DeleteReferencesItemCollection(Enumerable.Repeat(new DeleteReferencesItem(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -2465,11 +2554,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task DeleteReferencesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteReferencesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToDelete = new DeleteReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2486,16 +2576,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteReferencesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteReferencesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToDelete = new DeleteReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2521,11 +2612,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteReferencesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteReferencesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToDelete = new DeleteReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2545,11 +2637,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteReferencesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteReferencesAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var referencesToDelete = new DeleteReferencesItemCollection();
             var ct = CancellationToken.None;
 
@@ -2573,11 +2666,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task DeleteSubscriptionsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteSubscriptionsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -2594,16 +2688,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteSubscriptionsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteSubscriptionsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -2629,11 +2724,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task DeleteSubscriptionsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task DeleteSubscriptionsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
 
@@ -2653,11 +2749,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryReadAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryReadAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyReadDetails = new ExtensionObject();
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             const bool releaseContinuationPoints = true;
@@ -2693,11 +2790,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task HistoryReadAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryReadAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyReadDetails = new ExtensionObject(new ReadEventDetails());
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             const bool releaseContinuationPoints = true;
@@ -2731,11 +2829,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task HistoryReadAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryReadAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyReadDetails = new ExtensionObject();
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             const bool releaseContinuationPoints = true;
@@ -2756,16 +2855,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryReadAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryReadAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyReadDetails = new ExtensionObject();
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             const bool releaseContinuationPoints = true;
@@ -2795,11 +2895,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryReadAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryReadAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyReadDetails = new ExtensionObject();
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             const bool releaseContinuationPoints = true;
@@ -2823,11 +2924,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryReadAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryReadAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyReadDetails = new ExtensionObject();
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             const bool releaseContinuationPoints = true;
@@ -2854,11 +2956,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task HistoryUpdateAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryUpdateAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyUpdateDetails = new ExtensionObjectCollection(Enumerable.Repeat(new ExtensionObject(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -2886,11 +2989,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task HistoryUpdateAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryUpdateAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyUpdateDetails = new ExtensionObjectCollection(
                 Enumerable.Repeat(new ExtensionObject(new UpdateEventDetails()), 15).ToList());
             var ct = CancellationToken.None;
@@ -2922,11 +3026,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task HistoryUpdateAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryUpdateAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyUpdateDetails = new ExtensionObjectCollection();
             var ct = CancellationToken.None;
 
@@ -2943,16 +3048,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryUpdateAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryUpdateAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyUpdateDetails = new ExtensionObjectCollection();
             var ct = CancellationToken.None;
 
@@ -2978,11 +3084,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryUpdateAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryUpdateAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyUpdateDetails = new ExtensionObjectCollection();
             var ct = CancellationToken.None;
 
@@ -3002,11 +3109,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task HistoryUpdateAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task HistoryUpdateAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var historyUpdateDetails = new ExtensionObjectCollection();
             var ct = CancellationToken.None;
 
@@ -3030,11 +3138,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task ModifyMonitoredItemsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifyMonitoredItemsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection(
@@ -3069,11 +3178,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task ModifyMonitoredItemsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifyMonitoredItemsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection(Enumerable.Repeat(new MonitoredItemModifyRequest(), 15).ToList());
@@ -3106,11 +3216,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task ModifyMonitoredItemsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifyMonitoredItemsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
@@ -3129,16 +3240,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ModifyMonitoredItemsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifyMonitoredItemsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
@@ -3166,11 +3278,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ModifyMonitoredItemsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifyMonitoredItemsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
@@ -3192,11 +3305,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ModifyMonitoredItemsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifyMonitoredItemsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var itemsToModify = new MonitoredItemModifyRequestCollection();
@@ -3222,11 +3336,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task ModifySubscriptionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifySubscriptionAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const double requestedPublishingInterval = 1000.0;
             const uint requestedLifetimeCount = 10u;
@@ -3249,16 +3364,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ModifySubscriptionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifySubscriptionAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const double requestedPublishingInterval = 1000.0;
             const uint requestedLifetimeCount = 10u;
@@ -3290,11 +3406,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ModifySubscriptionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ModifySubscriptionAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const double requestedPublishingInterval = 1000.0;
             const uint requestedLifetimeCount = 10u;
@@ -3320,11 +3437,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task PublishAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task PublishAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionAcknowledgements = new SubscriptionAcknowledgementCollection();
             var ct = CancellationToken.None;
 
@@ -3341,16 +3459,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task PublishAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task PublishAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionAcknowledgements = new SubscriptionAcknowledgementCollection();
             var ct = CancellationToken.None;
 
@@ -3376,11 +3495,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task PublishAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task PublishAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionAcknowledgements = new SubscriptionAcknowledgementCollection();
             var ct = CancellationToken.None;
 
@@ -3400,11 +3520,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task QueryFirstAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task QueryFirstAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodeTypes = new NodeTypeDescriptionCollection();
             var filter = new ContentFilter();
@@ -3425,16 +3546,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task QueryFirstAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task QueryFirstAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodeTypes = new NodeTypeDescriptionCollection();
             var filter = new ContentFilter();
@@ -3464,11 +3586,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task QueryFirstAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task QueryFirstAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var view = new ViewDescription();
             var nodeTypes = new NodeTypeDescriptionCollection();
             var filter = new ContentFilter();
@@ -3492,11 +3615,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task QueryNextAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task QueryNextAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoint = true;
             var continuationPoint = Array.Empty<byte>();
             var ct = CancellationToken.None;
@@ -3514,16 +3638,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task QueryNextAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task QueryNextAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoint = true;
             var continuationPoint = Array.Empty<byte>();
             var ct = CancellationToken.None;
@@ -3550,11 +3675,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task QueryNextAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task QueryNextAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool releaseContinuationPoint = true;
             var continuationPoint = Array.Empty<byte>();
             var ct = CancellationToken.None;
@@ -3575,11 +3701,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ReadAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ReadAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double maxAge = 1000.0;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection(
@@ -3614,11 +3741,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task ReadAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ReadAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double maxAge = 1000.0;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection(Enumerable.Repeat(new ReadValueId(), 15).ToList());
@@ -3651,11 +3779,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task ReadAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ReadAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double maxAge = 1000.0;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
@@ -3674,16 +3803,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ReadAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ReadAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double maxAge = 1000.0;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
@@ -3711,11 +3841,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ReadAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ReadAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double maxAge = 1000.0;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
@@ -3737,11 +3868,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task ReadAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task ReadAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const double maxAge = 1000.0;
             const TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
             var nodesToRead = new ReadValueIdCollection();
@@ -3767,11 +3899,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task RegisterNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RegisterNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToRegister = new NodeIdCollection(Enumerable.Repeat(new NodeId(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -3799,11 +3932,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task RegisterNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RegisterNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToRegister = new NodeIdCollection(Enumerable.Repeat(new NodeId(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -3834,11 +3968,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task RegisterNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RegisterNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToRegister = new NodeIdCollection();
             var ct = CancellationToken.None;
 
@@ -3855,16 +3990,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task RegisterNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RegisterNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToRegister = new NodeIdCollection();
             var ct = CancellationToken.None;
 
@@ -3890,11 +4026,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task RegisterNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RegisterNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToRegister = new NodeIdCollection();
             var ct = CancellationToken.None;
 
@@ -3914,11 +4051,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task RepublishAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RepublishAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint retransmitSequenceNumber = 1u;
             var ct = CancellationToken.None;
@@ -3936,16 +4074,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task RepublishAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RepublishAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint retransmitSequenceNumber = 1u;
             var ct = CancellationToken.None;
@@ -3972,11 +4111,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task RepublishAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task RepublishAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint retransmitSequenceNumber = 1u;
             var ct = CancellationToken.None;
@@ -3997,11 +4137,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetMonitoringModeAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetMonitoringModeAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
@@ -4035,11 +4176,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task SetMonitoringModeAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetMonitoringModeAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
@@ -4072,11 +4214,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task SetMonitoringModeAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetMonitoringModeAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
@@ -4095,16 +4238,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetMonitoringModeAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetMonitoringModeAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
@@ -4132,11 +4276,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetMonitoringModeAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetMonitoringModeAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
@@ -4158,11 +4303,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetMonitoringModeAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetMonitoringModeAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const MonitoringMode monitoringMode = MonitoringMode.Reporting;
             var monitoredItemIds = new UInt32Collection();
@@ -4188,11 +4334,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task SetPublishingModeAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetPublishingModeAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool publishingEnabled = true;
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4210,16 +4357,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetPublishingModeAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetPublishingModeAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool publishingEnabled = true;
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4246,11 +4394,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetPublishingModeAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetPublishingModeAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const bool publishingEnabled = true;
             var subscriptionIds = new UInt32Collection();
             var ct = CancellationToken.None;
@@ -4271,11 +4420,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetTriggeringAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetTriggeringAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
@@ -4318,11 +4468,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(3));
         }
 
-        [Fact]
-        public async Task SetTriggeringAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetTriggeringAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection(Enumerable.Repeat(1u, 15).ToList());
@@ -4358,11 +4509,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task SetTriggeringAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetTriggeringAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
@@ -4382,16 +4534,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetTriggeringAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetTriggeringAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
@@ -4420,11 +4573,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetTriggeringAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetTriggeringAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
@@ -4447,11 +4601,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task SetTriggeringAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task SetTriggeringAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             const uint subscriptionId = 1u;
             const uint triggeringItemId = 1u;
             var linksToAdd = new UInt32Collection();
@@ -4482,11 +4637,12 @@ namespace Opc.Ua.Client
             response.RemoveDiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task TransferSubscriptionsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TransferSubscriptionsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             const bool sendInitialValues = true;
             var ct = CancellationToken.None;
@@ -4504,16 +4660,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task TransferSubscriptionsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TransferSubscriptionsAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             const bool sendInitialValues = true;
             var ct = CancellationToken.None;
@@ -4540,11 +4697,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task TransferSubscriptionsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TransferSubscriptionsAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             const bool sendInitialValues = true;
             var ct = CancellationToken.None;
@@ -4565,11 +4723,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task TransferSubscriptionsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TransferSubscriptionsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var subscriptionIds = new UInt32Collection();
             const bool sendInitialValues = true;
             var ct = CancellationToken.None;
@@ -4594,11 +4753,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var browsePaths = new BrowsePathCollection(Enumerable.Repeat(new BrowsePath(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4626,11 +4786,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var browsePaths = new BrowsePathCollection(Enumerable.Repeat(new BrowsePath(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4661,11 +4822,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var browsePaths = new BrowsePathCollection();
             var ct = CancellationToken.None;
 
@@ -4684,11 +4846,12 @@ namespace Opc.Ua.Client
             response.Should().NotBeNull();
         }
 
-        [Fact]
-        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task TranslateBrowsePathsToNodeIdsAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var browsePaths = new BrowsePathCollection();
             var ct = CancellationToken.None;
 
@@ -4712,11 +4875,12 @@ namespace Opc.Ua.Client
             response.DiagnosticInfos.Should().HaveCount(1);
         }
 
-        [Fact]
-        public async Task UnregisterNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task UnregisterNodesAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToUnregister = new NodeIdCollection(Enumerable.Repeat(new NodeId(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4737,11 +4901,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task UnregisterNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task UnregisterNodesAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToUnregister = new NodeIdCollection(Enumerable.Repeat(new NodeId(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4768,11 +4933,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task UnregisterNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task UnregisterNodesAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToUnregister = new NodeIdCollection();
             var ct = CancellationToken.None;
 
@@ -4789,16 +4955,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task UnregisterNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task UnregisterNodesAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToUnregister = new NodeIdCollection();
             var ct = CancellationToken.None;
 
@@ -4824,11 +4991,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task UnregisterNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task UnregisterNodesAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToUnregister = new NodeIdCollection();
             var ct = CancellationToken.None;
 
@@ -4848,11 +5016,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task WriteAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task WriteAsyncShouldBatchRequestsWhenExceedingOperationLimitsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToWrite = new WriteValueCollection(Enumerable.Repeat(new WriteValue(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4883,11 +5052,12 @@ namespace Opc.Ua.Client
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task WriteAsyncShouldHandleBatchingWhenSecondOperationFailsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task WriteAsyncShouldHandleBatchingWhenSecondOperationFailsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToWrite = new WriteValueCollection(Enumerable.Repeat(new WriteValue(), 15).ToList());
             var ct = CancellationToken.None;
 
@@ -4918,11 +5088,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task WriteAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task WriteAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToWrite = new WriteValueCollection();
             var ct = CancellationToken.None;
 
@@ -4939,16 +5110,17 @@ namespace Opc.Ua.Client
 
             // Assert
             response.Should().NotBeNull();
-            requestHeader.RequestHandle.Should().NotBe(0);
-            requestHeader.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            requestHeader?.RequestHandle.Should().NotBe(0);
+            requestHeader?.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task WriteAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task WriteAsyncShouldThrowExceptionWhenResponseContainsBadStatusCodeAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToWrite = new WriteValueCollection();
             var ct = CancellationToken.None;
 
@@ -4974,11 +5146,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task WriteAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task WriteAsyncShouldThrowExceptionWhenSendRequestAsyncThrowsAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToWrite = new WriteValueCollection();
             var ct = CancellationToken.None;
 
@@ -4998,11 +5171,12 @@ namespace Opc.Ua.Client
             _mockChannel.Verify();
         }
 
-        [Fact]
-        public async Task WriteAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync()
+        [Theory]
+        [ClassData(typeof(RequestHeaderData))]
+        public async Task WriteAsyncShouldValidateResponseAndHandleDiagnosticInfoAsync(RequestHeader requestHeader)
         {
             // Arrange
-            var requestHeader = new RequestHeader();
+
             var nodesToWrite = new WriteValueCollection();
             var ct = CancellationToken.None;
 

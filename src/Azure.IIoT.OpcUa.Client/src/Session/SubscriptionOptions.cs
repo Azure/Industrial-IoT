@@ -13,6 +13,11 @@ namespace Opc.Ua.Client
     public record class SubscriptionOptions
     {
         /// <summary>
+        /// The subscription is disabled
+        /// </summary>
+        public bool Disabled { get; init; }
+
+        /// <summary>
         /// Set keep alive count
         /// </summary>
         public uint KeepAliveCount { get; init; }

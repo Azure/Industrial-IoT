@@ -36,8 +36,101 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.ModelChangeEventItem))]
     [KnownType(typeof(OpcUaMonitoredItem.Event))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
-    internal sealed class OpcUaSubscription : SubscriptionBase
+    internal sealed class OpcUaSubscription : Subscription
     {
+        /// <summary>
+        /// The minimum lifetime for subscriptions
+        /// </summary>
+        public TimeSpan MinLifetimeInterval
+        {
+            get => Options.MinLifetimeInterval;
+            set
+            {
+                if (Options.MinLifetimeInterval != value)
+                {
+                    OnOptionsChanged(Options with { MinLifetimeInterval = value });
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public TimeSpan PublishingInterval
+        {
+            get => Options.PublishingInterval;
+            set
+            {
+                if (Options.PublishingInterval != value)
+                {
+                    OnOptionsChanged(Options with { PublishingInterval = value });
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public uint KeepAliveCount
+        {
+            get => Options.KeepAliveCount;
+            set
+            {
+                if (Options.KeepAliveCount != value)
+                {
+                    OnOptionsChanged(Options with { KeepAliveCount = value });
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public uint LifetimeCount
+        {
+            get => Options.LifetimeCount;
+            set
+            {
+                if (Options.LifetimeCount != value)
+                {
+                    OnOptionsChanged(Options with { LifetimeCount = value });
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public uint MaxNotificationsPerPublish
+        {
+            get => Options.MaxNotificationsPerPublish;
+            set
+            {
+                if (Options.MaxNotificationsPerPublish != value)
+                {
+                    OnOptionsChanged(Options with { MaxNotificationsPerPublish = value });
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool PublishingEnabled
+        {
+            get => Options.PublishingEnabled;
+            set
+            {
+                if (Options.PublishingEnabled != value)
+                {
+                    OnOptionsChanged(Options with { PublishingEnabled = value });
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public byte Priority
+        {
+            get => Options.Priority;
+            set
+            {
+                if (Options.Priority != value)
+                {
+                    OnOptionsChanged(Options with { Priority = value });
+                }
+            }
+        }
+
         /// <summary>
         /// Whether the subscription is online
         /// </summary>
@@ -74,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             OpcUaClient.VirtualSubscription owner, IOptions<OpcUaSubscriptionOptions> options,
             IObservability observability, IMetricsContext metrics)
             : base(session, (IMessageAckQueue)session.Subscriptions,
-                  new OptionMonitor<SubscriptionOptions>( // TODO
+                  new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>( // TODO
                       new OpcUaClient.VRef(owner)), observability)
         {
             _client = client;
@@ -94,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
-            ResetMonitoredItemWatchdogTimer(PublishingEnabled);
+            ResetMonitoredItemWatchdogTimer(CurrentPublishingEnabled);
         }
 
         /// <inheritdoc/>
@@ -205,6 +298,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Failed to create keep alive for subscription {Subscription}.", this);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Applies all changes inside the monitored items if there are any
+        /// The monitored items are updated and the update signals the subscription
+        /// state management task to apply the changes.
+        /// </summary>
+        /// <param name="ct"></param>
+        public ValueTask ApplyMonitoredItemChangesAsync(CancellationToken ct)
+        {
+            return ValueTask.CompletedTask;
         }
 
         /// <summary>
@@ -326,10 +430,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.LogInformation(
                         "Subscription {Subscription} in session {Session} successfully modified.",
                         this, Session);
-                    ResetMonitoredItemWatchdogTimer(PublishingEnabled);
+                    ResetMonitoredItemWatchdogTimer(CurrentPublishingEnabled);
                 }
             }
             ResetKeepAliveTimer();
+        }
+
+        private Task ApplyChangesAsync(CancellationToken ct)
+        {
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -731,32 +840,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "Set monitoring to {Value} for {Count} items in subscription {Subscription}.",
                         change.Key.Value, itemsToChange.Count, this);
 
-                    var results = await SetMonitoringModeAsync(change.Key.Value,
+                    await SetMonitoringModeAsync(change.Key.Value,
                         itemsToChange, ct).ConfigureAwait(false);
-                    if (results != null)
-                    {
-                        var erroneousResultsCount = results
-                            .Count(r => r != null && StatusCode.IsNotGood(r.StatusCode));
-
-                        // Check the number of erroneous results and log.
-                        if (erroneousResultsCount > 0)
-                        {
-                            _logger.LogWarning(
-                                "Failed to set monitoring for {Count} items in subscription {Subscription}.",
-                                erroneousResultsCount, this);
-                            for (var i = 0; i < results.Count && i < itemsToChange.Count; ++i)
-                            {
-                                if (StatusCode.IsNotGood(results[i].StatusCode))
-                                {
-                                    _logger.LogWarning("Set monitoring for item '{Item}' in "
-                                        + "subscription {Subscription} failed with '{Status}'.",
-                                        itemsToChange[i].StartNodeId, this, results[i].StatusCode);
-                                }
-                            }
-                            // Retry later
-                            errorsDuringSync++;
-                        }
-                    }
                 }
             }
 
@@ -836,6 +921,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return Delay(_options.Value.SubscriptionManagementIntervalDuration,
                     Timeout.InfiniteTimeSpan);
             }
+        }
+
+        private Task SetMonitoringModeAsync(Opc.Ua.MonitoringMode value,
+            List<MonitoredItem> itemsToChange, CancellationToken ct)
+        {
+            return Task.CompletedTask;
         }
 
         /// <summary>

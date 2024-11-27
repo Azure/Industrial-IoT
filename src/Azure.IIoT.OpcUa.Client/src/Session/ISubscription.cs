@@ -17,53 +17,6 @@ namespace Opc.Ua.Client
     public interface ISubscription
     {
         /// <summary>
-        /// Set keep alive count
-        /// </summary>
-        uint KeepAliveCount { get; set; }
-
-        /// <summary>
-        /// The life time of the subscription in counts of
-        /// publish interval.
-        /// LifetimeCount shall be at least 3*KeepAliveCount.
-        /// </summary>
-        uint LifetimeCount { get; set; }
-
-        /// <summary>
-        /// Set desired priority of the subscription
-        /// </summary>
-        byte Priority { get; set; }
-
-        /// <summary>
-        /// Set desired publishing interval
-        /// </summary>
-        TimeSpan PublishingInterval { get; set; }
-
-        /// <summary>
-        /// Set desired publishing enabled
-        /// </summary>
-        bool PublishingEnabled { get; set; }
-
-        /// <summary>
-        /// Set max notifications per publish
-        /// </summary>
-        uint MaxNotificationsPerPublish { get; set; }
-
-        /// <summary>
-        /// Set min lifetime interval
-        /// </summary>
-        TimeSpan MinLifetimeInterval { get; set; }
-
-        /// <summary>
-        /// Monitored item count
-        /// </summary>
-        uint MonitoredItemCount { get; }
-
-        /// <summary>
-        /// Monitored items
-        /// </summary>
-        IEnumerable<MonitoredItem> MonitoredItems { get; }
-
-        /// <summary>
         /// Created subscription
         /// </summary>
         bool Created { get; }
@@ -99,39 +52,29 @@ namespace Opc.Ua.Client
         uint CurrentMaxNotificationsPerPublish { get; }
 
         /// <summary>
-        /// Create or update the subscription
+        /// Monitored item count
         /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask ApplyChangesAsync(CancellationToken ct = default);
+        uint MonitoredItemCount { get; }
+
+        /// <summary>
+        /// Monitored items
+        /// </summary>
+        IEnumerable<MonitoredItem> MonitoredItems { get; }
 
         /// <summary>
         /// Add a monitored item to the subscription
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        MonitoredItem AddMonitoredItem(IOptionsMonitor<MonitoredItemOptions> options);
+        MonitoredItem AddMonitoredItem(
+            IOptionsMonitor<MonitoredItemOptions> options);
 
         /// <summary>
-        /// Apply monitored item changes
+        /// Tells the server to refresh all conditions being
+        /// monitored by the subscription.
         /// </summary>
         /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask ApplyMonitoredItemChangesAsync(CancellationToken ct = default);
-
-        /// <summary>
-        /// Refresh all conditions
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask ConditionRefreshAsync(CancellationToken ct = default);
-
-        /// <summary>
-        /// Delete the subscription on the server
-        /// </summary>
-        /// <param name="silent"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        ValueTask DeleteAsync(bool silent, CancellationToken ct = default);
+        ValueTask ConditionRefreshAsync(
+            CancellationToken ct = default);
     }
 }

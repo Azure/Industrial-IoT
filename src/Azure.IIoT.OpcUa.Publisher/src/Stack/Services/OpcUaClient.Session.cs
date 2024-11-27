@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
                 SessionOptions options, IObservability observability,
                 ReverseConnectManager? reverseConnectManager = null) : base(configuration,
-                    endpoint, OptionMonitor.Create(options), observability, reverseConnectManager)
+                    endpoint, OptionsFactory.Create(options), observability, reverseConnectManager)
             {
                 _logger = observability.LoggerFactory.CreateLogger<OpcUaSession>();
                 _client = client;

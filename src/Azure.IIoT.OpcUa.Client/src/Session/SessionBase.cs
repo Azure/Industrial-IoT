@@ -117,7 +117,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Server uris
         /// </summary>
-        private StringTable ServerUris => MessageContext.ServerUris;
+        internal StringTable ServerUris => MessageContext.ServerUris;
 
         /// <summary>
         /// Current session options
@@ -180,34 +180,8 @@ namespace Opc.Ua.Client
                 SessionId = null,
                 UserIdentity = null
             };
-            _optionsMonitor = options.OnChange(OnOptionsChanged);
+            _changeTracking = options.OnChange((o, _) => OnOptionsChanged(o));
             _sessionWorker = SessionWorkerAsync(_cts.Token);
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj is SessionBase session)
-            {
-                if (!ConfiguredEndpoint.Equals(session.Endpoint))
-                {
-                    return false;
-                }
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(ConfiguredEndpoint);
         }
 
         /// <inheritdoc/>
@@ -257,30 +231,41 @@ namespace Opc.Ua.Client
             }, ct).ConfigureAwait(false);
 
             // validate namespace array.
-            if ((errors.Count == 0 || !ServiceResult.IsBad(errors[0])) &&
-                values[0].Value is string[] namespaces)
+            if (errors.Count != 0 && ServiceResult.IsBad(errors[0]))
+            {
+                _logger.LogDebug(
+                    "{Session}: Failed to read NamespaceArray: {Status}",
+                    this, errors[0]);
+                throw new ServiceResultException(errors[0]);
+            }
+            // validate namespace is a string array.
+            if (values[0].Value is not string[] namespaces)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
+                    $"{this}: Returned namespace array in wrong type!");
+            }
+            else
             {
                 var oldTables = NamespaceUris.ToArray();
                 NamespaceUris.Update(namespaces);
                 LogNamespaceTableChanges(oldTables, namespaces);
             }
-            else
+
+            if (errors.Count != 0 && ServiceResult.IsBad(errors[1]))
             {
-                _logger.LogError(
-                    "{Session}: Failed to read NamespaceArray: {Status}",
-                    this, errors[0]);
-            }
-            if ((errors.Count == 0 || !ServiceResult.IsBad(errors[1])) &&
-                values[1].Value is string[] serverUris)
-            {
-                ServerUris.Update(serverUris);
-            }
-            else
-            {
-                _logger.LogError(
+                // We tolerate this
+                _logger.LogWarning(
                     "{Session}: Failed to read ServerArray node: {Status} ",
                     this, errors[1]);
+                return;
             }
+            if (values[1].Value is not string[] serverUris)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
+                    $"{this}: Returned server array with wrong type!");
+            }
+
+            ServerUris.Update(serverUris);
             void LogNamespaceTableChanges(string[] oldTable, string[] newTable)
             {
                 if (oldTable.Length <= 1)
@@ -803,7 +788,7 @@ namespace Opc.Ua.Client
                             (uint)MessageContext.MaxMessageSize, ct).ConfigureAwait(false);
                         successCreateSession = true;
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (ex is not OperationCanceledException)
                     {
                         _logger.LogInformation(
                             "{Session}: Create session failed with client certificate NULL. {Error}",
@@ -826,7 +811,7 @@ namespace Opc.Ua.Client
 
                 var sessionId = response.SessionId;
                 var authenticationToken = response.AuthenticationToken;
-                var serverNonce = response.ServerNonce;
+                var serverNonce = response.ServerNonce ?? Array.Empty<byte>();
                 var serverCertificateData = response.ServerCertificate;
                 var serverSignature = response.ServerSignature;
                 var serverEndpoints = response.ServerEndpoints;
@@ -893,7 +878,7 @@ namespace Opc.Ua.Client
                         new ExtensionObject(identityToken), userTokenSignature,
                         ct).ConfigureAwait(false);
 
-                    serverNonce = activateResponse.ServerNonce;
+                    serverNonce = activateResponse.ServerNonce ?? Array.Empty<byte>();
                     var certificateResults = activateResponse.Results;
                     var certificateDiagnosticInfos = activateResponse.DiagnosticInfos;
 
@@ -1049,7 +1034,7 @@ namespace Opc.Ua.Client
                         new ExtensionObject(identityToken), userTokenSignature,
                         cts.Token).ConfigureAwait(false);
 
-                    var serverNonce = activation.ServerNonce;
+                    var serverNonce = activation.ServerNonce ?? Array.Empty<byte>();
                     var certificateResult = activation.Results;
                     var diagnostic = activation.DiagnosticInfos;
 
@@ -1182,9 +1167,7 @@ namespace Opc.Ua.Client
         /// Options changed
         /// </summary>
         /// <param name="options"></param>
-        /// <param name="name"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        protected virtual void OnOptionsChanged(SessionOptions options, string? name)
+        protected virtual void OnOptionsChanged(SessionOptions options)
         {
             // Check what needs to happen based on the change that took place
             var resetKeepAlive =
@@ -1256,7 +1239,7 @@ namespace Opc.Ua.Client
                     _keepAliveTimer.Dispose();
                     _cts.Dispose();
                     _meter.Dispose();
-                    _optionsMonitor?.Dispose();
+                    _changeTracking?.Dispose();
                 }
             }
         }
@@ -1334,6 +1317,98 @@ namespace Opc.Ua.Client
         }
 
         /// <summary>
+        /// Read operation limits
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async ValueTask FetchOperationLimitsAsync(CancellationToken ct)
+        {
+            // First we read the node read max to optimize the second read.
+            var nodeIds = new[]
+            {
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead
+            };
+            var (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
+            var index = 0;
+            OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
+
+            nodeIds = new[]
+            {
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall,
+        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
+        VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
+        VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+        VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
+        VariableIds.Server_ServerCapabilities_MaxStringLength,
+        VariableIds.Server_ServerCapabilities_MaxArrayLength,
+        VariableIds.Server_ServerCapabilities_MaxByteStringLength,
+        VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
+        VariableIds.Server_ServerCapabilities_MaxSessions,
+        VariableIds.Server_ServerCapabilities_MaxSubscriptions,
+        VariableIds.Server_ServerCapabilities_MaxMonitoredItems,
+        VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription,
+        VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize,
+        VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession,
+        VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters,
+        VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters
+            };
+
+            (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
+            index = 0;
+            OperationLimits.MaxNodesPerHistoryReadData = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerHistoryReadEvents = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerWrite = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerHistoryUpdateData = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerHistoryUpdateEvents = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerMethodCall = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerBrowse = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerRegisterNodes = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerNodeManagement = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItemsPerCall = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxBrowseContinuationPoints = Get<ushort>(ref index, values, errors);
+            OperationLimits.MaxHistoryContinuationPoints = Get<ushort>(ref index, values, errors);
+            OperationLimits.MaxQueryContinuationPoints = Get<ushort>(ref index, values, errors);
+            OperationLimits.MaxStringLength = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxArrayLength = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxByteStringLength = Get<uint>(ref index, values, errors);
+            OperationLimits.MinSupportedSampleRate = Get<double>(ref index, values, errors);
+            OperationLimits.MaxSessions = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxSubscriptions = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItems = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItemsPerSubscription = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxMonitoredItemsQueueSize = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxSubscriptionsPerSession = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxWhereClauseParameters = Get<uint>(ref index, values, errors);
+            OperationLimits.MaxSelectClauseParameters = Get<uint>(ref index, values, errors);
+
+            // Helper extraction
+            static T Get<T>(ref int index, IReadOnlyList<DataValue> values,
+                IReadOnlyList<ServiceResult> errors) where T : struct
+            {
+                var value = values[index];
+                var error = errors.Count > 0 ? errors[index] : ServiceResult.Good;
+                index++;
+                if (ServiceResult.IsNotBad(error) && value.Value is T retVal)
+                {
+                    return retVal;
+                }
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Get desired session timeout
         /// </summary>
         /// <param name="options"></param>
@@ -1407,8 +1482,9 @@ namespace Opc.Ua.Client
                 LastKeepAliveTimestamp = Observability.TimeProvider.GetTimestamp();
                 return true;
             }
-            catch (Exception e) when (e is not OperationCanceledException)
+            catch (Exception e)
             {
+                ct.ThrowIfCancellationRequested();
                 var sr = new ServiceResult(e);
                 if (sr.StatusCode == StatusCodes.BadNoCommunication)
                 {
@@ -2045,9 +2121,9 @@ namespace Opc.Ua.Client
                     clientCertificate, clientCertificateChain, MessageContext);
             }
 
-            return SessionChannel.Create(_configuration, endpoint.Description,
-                 endpoint.Configuration, clientCertificate, clientCertificateChain,
-                 MessageContext);
+            return SessionChannel.CreateUaBinaryChannel(_configuration,
+                endpoint.Description, endpoint.Configuration, clientCertificate,
+                clientCertificateChain, MessageContext);
         }
 
         /// <summary>
@@ -2086,98 +2162,6 @@ namespace Opc.Ua.Client
             {
                 var socket = connection?.Handle as Bindings.IMessageSocket;
                 return socket?.RemoteEndpoint != null;
-            }
-        }
-
-        /// <summary>
-        /// Read operation limits
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async ValueTask FetchOperationLimitsAsync(CancellationToken ct)
-        {
-            // First we read the node read max to optimize the second read.
-            var nodeIds = new[]
-            {
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead
-            };
-            var (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
-            var index = 0;
-            OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
-
-            nodeIds = new[]
-            {
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall,
-        VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
-        VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints,
-        VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-        VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints,
-        VariableIds.Server_ServerCapabilities_MaxStringLength,
-        VariableIds.Server_ServerCapabilities_MaxArrayLength,
-        VariableIds.Server_ServerCapabilities_MaxByteStringLength,
-        VariableIds.Server_ServerCapabilities_MinSupportedSampleRate,
-        VariableIds.Server_ServerCapabilities_MaxSessions,
-        VariableIds.Server_ServerCapabilities_MaxSubscriptions,
-        VariableIds.Server_ServerCapabilities_MaxMonitoredItems,
-        VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription,
-        VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize,
-        VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession,
-        VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters,
-        VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters
-            };
-
-            (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
-            index = 0;
-            OperationLimits.MaxNodesPerHistoryReadData = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerHistoryReadEvents = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerWrite = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerHistoryUpdateData = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerHistoryUpdateEvents = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerMethodCall = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerBrowse = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerRegisterNodes = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerNodeManagement = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxMonitoredItemsPerCall = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxBrowseContinuationPoints = Get<ushort>(ref index, values, errors);
-            OperationLimits.MaxHistoryContinuationPoints = Get<ushort>(ref index, values, errors);
-            OperationLimits.MaxQueryContinuationPoints = Get<ushort>(ref index, values, errors);
-            OperationLimits.MaxStringLength = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxArrayLength = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxByteStringLength = Get<uint>(ref index, values, errors);
-            OperationLimits.MinSupportedSampleRate = Get<double>(ref index, values, errors);
-            OperationLimits.MaxSessions = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxSubscriptions = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxMonitoredItems = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxMonitoredItemsPerSubscription = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxMonitoredItemsQueueSize = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxSubscriptionsPerSession = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxWhereClauseParameters = Get<uint>(ref index, values, errors);
-            OperationLimits.MaxSelectClauseParameters = Get<uint>(ref index, values, errors);
-
-            // Helper extraction
-            static T Get<T>(ref int index, IReadOnlyList<DataValue> values,
-                IReadOnlyList<ServiceResult> errors) where T : struct
-            {
-                var value = values[index];
-                var error = errors.Count > 0 ? errors[index] : ServiceResult.Good;
-                index++;
-                if (ServiceResult.IsNotBad(error) && value.Value is T retVal)
-                {
-                    return retVal;
-                }
-                return default;
             }
         }
 
@@ -2615,8 +2599,6 @@ namespace Opc.Ua.Client
         private X509Certificate2? _clientCertificate;
         private X509Certificate2Collection? _clientCertificateChain;
         private X509Certificate2? _serverCertificate;
-        private byte[] _serverNonce = Array.Empty<byte>();
-        private byte[] _previousServerNonce = Array.Empty<byte>();
         private uint _maxRequestMessageSize;
         private long _keepAliveCounter;
         private ITransportWaitingConnection? _connection;
@@ -2631,8 +2613,10 @@ namespace Opc.Ua.Client
         private readonly SystemContext _systemContext;
         private readonly SubscriptionManager _subscriptions;
         private readonly SemaphoreSlim _connecting = new(1, 1);
-        private readonly IDisposable? _optionsMonitor;
+        private readonly IDisposable? _changeTracking;
         private readonly NodeCache _nodeCache;
+        private byte[] _previousServerNonce = Array.Empty<byte>();
+        internal byte[] _serverNonce = Array.Empty<byte>();
 #pragma warning disable IDE1006 // Naming Styles
         internal readonly ILogger _logger;
         internal readonly Meter _meter;

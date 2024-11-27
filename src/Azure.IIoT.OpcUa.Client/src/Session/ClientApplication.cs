@@ -130,7 +130,7 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        private sealed class ClientSubscription : SubscriptionBase
+        private sealed class ClientSubscription : Subscription
         {
             /// <inheritdoc/>
             public ClientSubscription(ClientSession session, IMessageAckQueue completion,

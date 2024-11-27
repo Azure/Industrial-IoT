@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Client
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -35,13 +34,5 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask RecreateAsync(CancellationToken ct = default);
-
-        /// <summary>
-        /// Removes an item from the subscription.
-        /// </summary>
-        /// <param name="monitoredItem"></param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="monitoredItem"/> is <c>null</c>.</exception>
-        void RemoveItem(MonitoredItem monitoredItem);
     }
 }

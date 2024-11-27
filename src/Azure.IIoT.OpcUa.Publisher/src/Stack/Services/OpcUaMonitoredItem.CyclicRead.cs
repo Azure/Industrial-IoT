@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -36,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public CyclicRead(IManagedSubscription subscription, ISubscriber owner,
+            public CyclicRead(IMonitoredItemContext subscription, ISubscriber owner,
                 OpcUaClient client, DataMonitoredItemModel template, IOpcUaSession session,
                 ILogger<CyclicRead> logger, TimeProvider timeProvider) :
                 base(subscription, owner, template with
@@ -143,15 +144,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     if (_sampler == null &&
-                        Subscription is OpcUaSubscription subscription)
+                        Context is OpcUaSubscription subscription)
                     {
+                        var resolvedNodeId = TheResolvedNodeId.ToNodeId(subscription.Session.MessageContext);
                         _sampler = _client.Sample(SamplingInterval,
                             Template.CyclicReadMaxAge ?? TimeSpan.Zero,
                             new ReadValueId
                             {
                                 AttributeId = AttributeId,
                                 IndexRange = IndexRange,
-                                NodeId = ResolvedNodeId
+                                NodeId = resolvedNodeId
                             },
                             subscription, ClientHandle);
                         _logger.LogDebug("Item {Item} successfully registered with sampler.",

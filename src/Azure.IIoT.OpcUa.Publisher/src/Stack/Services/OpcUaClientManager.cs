@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var application = new ClientApplication(_configuration.Value,
                     LoggerFactory, null, TimeProvider);
                 using var session = await application.ConnectAsync(configuredEndpoint,
-                    OptionMonitor.Create(new SessionOptions
+                    OptionsFactory.Create(new SessionOptions
                     {
                         SessionName = "Test" + Guid.NewGuid().ToString(),
                         Identity = userIdentity

@@ -42,8 +42,8 @@ namespace Opc.Ua.Client
         {
             var loggerFactory = LogFactory.Create(_output);
             var session = new Mock<ISubscriptionManagerContext>();
-            var so1 = OptionMonitor.Create<SubscriptionOptions>();
-            var so2 = OptionMonitor.Create<SubscriptionOptions>();
+            var so1 = OptionsFactory.Create<SubscriptionOptions>();
+            var so2 = OptionsFactory.Create<SubscriptionOptions>();
 
             var ms1 = new Mock<IManagedSubscription>();
             ms1.SetupGet(s => s.Id).Returns(1);
@@ -92,8 +92,8 @@ namespace Opc.Ua.Client
         {
             var loggerFactory = LogFactory.Create(_output);
             var session = new Mock<ISubscriptionManagerContext>();
-            var so1 = OptionMonitor.Create<SubscriptionOptions>();
-            var so2 = OptionMonitor.Create<SubscriptionOptions>();
+            var so1 = OptionsFactory.Create<SubscriptionOptions>();
+            var so2 = OptionsFactory.Create<SubscriptionOptions>();
 
             var ms1 = new Mock<IManagedSubscription>();
             ms1.SetupGet(s => s.Id).Returns(1);
@@ -152,8 +152,8 @@ namespace Opc.Ua.Client
         {
             var loggerFactory = LogFactory.Create(_output);
             var session = new Mock<ISubscriptionManagerContext>();
-            var so1 = OptionMonitor.Create<SubscriptionOptions>();
-            var so2 = OptionMonitor.Create<SubscriptionOptions>();
+            var so1 = OptionsFactory.Create<SubscriptionOptions>();
+            var so2 = OptionsFactory.Create<SubscriptionOptions>();
 
             var ms1 = new Mock<IManagedSubscription>();
             ms1.SetupGet(s => s.Id).Returns(1);
@@ -223,7 +223,7 @@ namespace Opc.Ua.Client
         {
             var loggerFactory = LogFactory.Create(_output);
             var session = new Mock<ISubscriptionManagerContext>();
-            var so1 = OptionMonitor.Create<SubscriptionOptions>();
+            var so1 = OptionsFactory.Create<SubscriptionOptions>();
             var ms1 = new Mock<IManagedSubscription>();
             ms1.SetupGet(s => s.Id).Returns(1);
             ms1.SetupGet(s => s.Created).Returns(true);

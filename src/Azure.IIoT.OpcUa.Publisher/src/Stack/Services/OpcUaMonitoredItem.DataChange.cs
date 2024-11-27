@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public DataChange(IManagedSubscription subscription, ISubscriber owner,
+            public DataChange(IMonitoredItemContext subscription, ISubscriber owner,
                 DataMonitoredItemModel template, IOpcUaSession session,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
                 base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
@@ -255,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? Opc.Ua.MonitoringMode.Reporting;
                 SamplingInterval = Template.SamplingInterval
                     ?? TimeSpan.FromSeconds(1);
-                UpdateQueueSize(Subscription, Template);
+                UpdateQueueSize(Context, Template);
                 Filter = Template.DataChangeFilter.ToStackModel() ??
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
                         Session.MessageContext);
@@ -386,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     samplingIntervalChanged, queueSizeChanged);
                 if (samplingIntervalChanged)
                 {
-                    applyChanges |= UpdateQueueSize(Subscription, Template);
+                    applyChanges |= UpdateQueueSize(Context, Template);
                 }
                 return applyChanges;
             }

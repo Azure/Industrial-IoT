@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Event(IManagedSubscription subscription, ISubscriber owner,
+            public Event(IMonitoredItemContext subscription, ISubscriber owner,
                 EventMonitoredItemModel template, IOpcUaSession session,
                 ILogger<Event> logger, TimeProvider timeProvider) :
                 base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
@@ -244,7 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
                 SamplingInterval = TimeSpan.Zero;
-                UpdateQueueSize(Subscription, Template);
+                UpdateQueueSize(Context, Template);
                 DiscardOldest = !(Template.DiscardNew ?? false);
 
                 return base.Initialize();
@@ -309,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)
                 {
                     // Not necessary as sampling interval will likely always stay 0
-                    applyChanges |= UpdateQueueSize(Subscription, Template);
+                    applyChanges |= UpdateQueueSize(Context, Template);
                 }
                 return applyChanges;
             }

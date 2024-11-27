@@ -11,33 +11,36 @@ namespace Opc.Ua.Client
     using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
-    /// Helper
+    /// Create options
     /// </summary>
-    public static class OptionMonitor
+    public static class OptionsFactory
     {
         /// <summary>
         /// Create monitor
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
+        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IOptionsMonitor<T> Create<[DynamicallyAccessedMembers(
+        public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
             T options)
         {
-            return new OptionMonitor<T>(options);
+            return new OptionsMonitor<T>(options);
         }
 
         /// <summary>
         /// Create monitor
         /// </summary>
+        /// <param name="configure"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static IOptionsMonitor<T> Create<[DynamicallyAccessedMembers(
-            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>()
-            where T : new()
+        public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
+            Action<T>? configure = null) where T : new()
         {
-            return new OptionMonitor<T>(new T());
+            var options = new OptionsMonitor<T>(new T());
+            configure?.Invoke(options.CurrentValue);
+            return options;
         }
     }
 
@@ -45,18 +48,28 @@ namespace Opc.Ua.Client
     /// Options monitor adapter
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class OptionMonitor<
+    public class OptionsMonitor<
         [DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> :
         IOptionsMonitor<T>
     {
         /// <summary>
-        /// Create
+        /// Create options
         /// </summary>
-        /// <param name="options"></param>
-        public OptionMonitor(T options)
+        /// <param name="option"></param>
+        public OptionsMonitor(T option)
         {
-            _currentValue = options;
+            _currentValue = option;
+        }
+
+        /// <summary>
+        /// Configure options
+        /// </summary>
+        /// <param name="configure"></param>
+        public OptionsMonitor<T> Configure(Func<T, T> configure)
+        {
+            CurrentValue = configure(_currentValue);
+            return this;
         }
 
         /// <inheritdoc/>
@@ -91,7 +104,7 @@ namespace Opc.Ua.Client
         private sealed class Listener : IDisposable
         {
             /// <inheritdoc/>
-            public Listener(OptionMonitor<T> monitor,
+            public Listener(OptionsMonitor<T> monitor,
                 Action<T, string?> listener)
             {
                 _monitor = monitor;
@@ -103,7 +116,7 @@ namespace Opc.Ua.Client
             {
                 _monitor._listeners.TryRemove(this, out _);
             }
-            private readonly OptionMonitor<T> _monitor;
+            private readonly OptionsMonitor<T> _monitor;
         }
 
         private readonly ConcurrentDictionary<Listener, Action<T, string?>> _listeners = new();

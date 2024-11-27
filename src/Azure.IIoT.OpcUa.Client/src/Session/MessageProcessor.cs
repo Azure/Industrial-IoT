@@ -40,7 +40,7 @@ namespace Opc.Ua.Client
         {
             Observability = observability;
             _availableInRetransmissionQueue = Array.Empty<uint>();
-            _logger = Observability.LoggerFactory.CreateLogger<SubscriptionBase>();
+            _logger = Observability.LoggerFactory.CreateLogger<Subscription>();
             _session = session;
             _completion = completion;
             _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
@@ -413,9 +413,9 @@ namespace Opc.Ua.Client
         internal readonly ILogger _logger;
         internal readonly ISubscriptionContext _session;
 #pragma warning restore IDE1006 // Naming Styles
+        private readonly CancellationTokenSource _cts = new();
         private readonly IMessageAckQueue _completion;
         private readonly Task _messageWorkerTask;
-        private readonly CancellationTokenSource _cts = new();
         private readonly Channel<IncomingMessage> _messages;
     }
 }

@@ -1,0 +1,42 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Opc.Ua.Client
+{
+    /// <summary>
+    /// Non sdk interface that allows monitored items to get the
+    /// information needed about the subscription they are attached
+    /// to.
+    /// </summary>
+    public interface IMonitoredItemContext
+    {
+        /// <summary>
+        /// Update subscription when an item or the subscription
+        /// state has changed.
+        /// </summary>
+        void Update();
+
+        /// <summary>
+        /// Notify item change results. This includes intermittent
+        /// errors trying to apply the monitored item options.
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        /// <param name="retryCount"></param>
+        /// <param name="source"></param>
+        /// <param name="serviceResult"></param>
+        /// <param name="final"></param>
+        /// <param name="filterResult"></param>
+        bool NotifyItemChangeResult(MonitoredItem monitoredItem,
+            int retryCount, MonitoredItemOptions source,
+            ServiceResult serviceResult, bool final,
+            MonitoringFilterResult? filterResult);
+
+        /// <summary>
+        /// Removes an item from the subscription.
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        void RemoveItem(MonitoredItem monitoredItem);
+    }
+}

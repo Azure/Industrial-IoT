@@ -71,10 +71,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return monitoredItemWrapper;
         }
 
-        internal sealed class SimpleSubscription : SubscriptionBase
+        internal sealed class SimpleSubscription : Subscription
         {
             public SimpleSubscription(OpcUaMonitoredItemTestsBase outer)
-                : base(null!, null!, OptionMonitor.Create<SubscriptionOptions>(), outer)
+                : base(null!, null!, OptionsFactory.Create<SubscriptionOptions>(), outer)
             {
             }
 

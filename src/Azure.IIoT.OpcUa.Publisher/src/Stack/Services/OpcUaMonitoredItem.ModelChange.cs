@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public ModelChangeEventItem(IManagedSubscription subscription, ISubscriber owner,
+            public ModelChangeEventItem(IMonitoredItemContext subscription, ISubscriber owner,
                 MonitoredAddressSpaceModel template, OpcUaClient client, IOpcUaSession session,
                 ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
                 base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
@@ -165,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
                 SamplingInterval = TimeSpan.Zero;
-                UpdateQueueSize(Subscription, Template);
+                UpdateQueueSize(Context, Template);
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
 
@@ -249,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)
                 {
                     // Not necessary as sampling interval will likely always stay 0
-                    applyChanges |= UpdateQueueSize(Subscription, Template);
+                    applyChanges |= UpdateQueueSize(Context, Template);
                 }
                 return applyChanges;
             }
@@ -365,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     // Start the browser
                     if (_browser == null &&
-                        Subscription is OpcUaSubscription subscription)
+                        Context is OpcUaSubscription subscription)
                     {
                         _browser = _client.Browse(Template.RebrowsePeriod ??
                             TimeSpan.FromHours(12), subscription);

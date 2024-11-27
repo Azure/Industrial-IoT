@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Condition(IManagedSubscription subscription, ISubscriber owner,
+            public Condition(IMonitoredItemContext subscription, ISubscriber owner,
                 EventMonitoredItemModel template, IOpcUaSession session,
                 ILogger<Event> logger, TimeProvider timeProvider) :
                 base(subscription, owner, template, session, logger, timeProvider)
@@ -153,23 +153,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
                             "item {Name} on subscription {Subscription} due to receiving " +
                             "a RefreshRequired event", this, Template.DisplayName,
-                            Subscription);
+                            Context);
                         try
                         {
-                            Subscription.ConditionRefreshAsync(default).AsTask().GetAwaiter().GetResult(); // TODO
+                            var s = Context as OpcUaSubscription;
+                            s?.ConditionRefreshAsync(default).AsTask().GetAwaiter().GetResult(); // TODO
                         }
                         catch (Exception e)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.DisplayName, Subscription, e.Message);
+                                this, Template.DisplayName, Context, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} has completed", this,
-                                Template.DisplayName, Subscription);
+                                Template.DisplayName, Context);
                         }
                         return true;
                     }
