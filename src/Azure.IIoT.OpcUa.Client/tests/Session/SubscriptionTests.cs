@@ -1299,12 +1299,6 @@ namespace Opc.Ua.Client
 
             public SemaphoreSlim Block { get; } = new(0, 1);
             public AsyncManualResetEvent SubscriptionStateChanged { get; } = new();
-            public AsyncManualResetEvent DataChangeNotificationReceived { get; } = new();
-            public AsyncManualResetEvent EventNotificationReceived { get; } = new();
-            public AsyncManualResetEvent KeepAliveNotificationReceived { get; } = new();
-            public PublishState PublishState { get; set; }
-            public List<uint> ReceivedSequenceNumbers { get; } = new List<uint>();
-            public AsyncManualResetEvent StatusChangeNotificationReceived { get; } = new();
 
             public async ValueTask WaitAsync()
             {
@@ -1323,51 +1317,28 @@ namespace Opc.Ua.Client
 
             protected override MonitoredItem CreateMonitoredItem(IOptionsMonitor<MonitoredItemOptions> options)
             {
-                return new TestMonitoredItem(this, (OptionsMonitor<MonitoredItemOptions>)options, new Mock<ILogger>().Object);
-            }
-
-            protected override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, DataChangeNotification notification,
-                PublishState publishStateMask, IReadOnlyList<string> stringTable)
-            {
-                DataChangeNotificationReceived.Set();
-                ReceivedSequenceNumbers.Add(sequenceNumber);
-                if (publishStateMask != PublishState.None)
-                {
-                    PublishState = publishStateMask;
-                }
-                return WaitAsync();
-            }
-
-            protected override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, EventNotificationList notification,
-                PublishState publishStateMask, IReadOnlyList<string> stringTable)
-            {
-                EventNotificationReceived.Set();
-                ReceivedSequenceNumbers.Add(sequenceNumber);
-                if (publishStateMask != PublishState.None)
-                {
-                    PublishState = publishStateMask;
-                }
-                return WaitAsync();
+                return new TestMonitoredItem(this,
+                    (OptionsMonitor<MonitoredItemOptions>)options, new Mock<ILogger>().Object);
             }
 
             protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
                 DateTime publishTime, PublishState publishStateMask)
             {
-                KeepAliveNotificationReceived.Set();
-                ReceivedSequenceNumbers.Add(sequenceNumber);
-                if (publishStateMask != PublishState.None)
-                {
-                    PublishState = publishStateMask;
-                }
                 return WaitAsync();
             }
 
-            protected override void OnPublishStateChanged(PublishState stateMask)
+            protected override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
+                DateTime publishTime, DataChangeNotification notification, PublishState publishStateMask,
+                IReadOnlyList<string> stringTable)
             {
-                PublishState = stateMask;
-                base.OnPublishStateChanged(stateMask);
+                throw new NotImplementedException();
+            }
+
+            protected override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
+                DateTime publishTime, EventNotificationList notification, PublishState publishStateMask,
+                IReadOnlyList<string> stringTable)
+            {
+                throw new NotImplementedException();
             }
         }
 

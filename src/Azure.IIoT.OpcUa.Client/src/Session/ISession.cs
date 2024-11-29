@@ -81,7 +81,7 @@ namespace Opc.Ua.Client
         /// <param name="deleteSubscriptions"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<StatusCode> CloseAsync(bool closeChannel = true,
+        ValueTask<ServiceResult> CloseAsync(bool closeChannel = true,
             bool deleteSubscriptions = true,
             CancellationToken ct = default);
     }

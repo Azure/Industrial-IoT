@@ -246,7 +246,7 @@ namespace Opc.Ua.Client
             {
                 change.Abandon();
                 options = change.Options;
-            };
+            }
             _currentOptions = null;
             if (options == null)
             {
@@ -626,7 +626,7 @@ namespace Opc.Ua.Client
             /// </summary>
             /// <param name="error"></param>
             /// <returns></returns>
-            private bool IsCommunicationError(ServiceResult error)
+            private static bool IsCommunicationError(ServiceResult error)
             {
                 switch ((uint)error.StatusCode)
                 {

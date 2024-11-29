@@ -37,12 +37,12 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public override ValueTask<StatusCode> CloseAsync(bool closeChannel,
+        public override ValueTask<ServiceResult> CloseAsync(bool closeChannel,
             bool deleteSubscriptions, CancellationToken ct = default)
         {
             _state = ConnectionManagementState.Closing;
             TriggerWorker();
-            return ValueTask.FromResult<StatusCode>(StatusCodes.Good);
+            return ValueTask.FromResult(ServiceResult.Good);
         }
 
         /// <inheritdoc/>

@@ -120,6 +120,11 @@ namespace Opc.Ua.Client
         internal StringTable ServerUris => MessageContext.ServerUris;
 
         /// <summary>
+        /// Number of namespace table changes
+        /// </summary>
+        internal int ServerTableChanges => _serverTableChanges;
+
+        /// <summary>
         /// Current session options
         /// </summary>
         protected internal SessionOptions Options { get; protected set; }
@@ -151,8 +156,8 @@ namespace Opc.Ua.Client
             _meter = Observability.MeterFactory.Create(nameof(SessionBase));
             _logger = Observability.LoggerFactory.CreateLogger<SessionBase>();
             _keepAliveTimer = Observability.TimeProvider.CreateTimer(
-                _ => TriggerWorker(), null,
-                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                _ => TriggerWorker(),
+                null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             _configuration = configuration;
             _reverseConnect = reverseConnect;
@@ -231,7 +236,7 @@ namespace Opc.Ua.Client
             }, ct).ConfigureAwait(false);
 
             // validate namespace array.
-            if (errors.Count != 0 && ServiceResult.IsBad(errors[0]))
+            if (errors.Count > 0 && ServiceResult.IsBad(errors[0]))
             {
                 _logger.LogDebug(
                     "{Session}: Failed to read NamespaceArray: {Status}",
@@ -239,19 +244,19 @@ namespace Opc.Ua.Client
                 throw new ServiceResultException(errors[0]);
             }
             // validate namespace is a string array.
-            if (values[0].Value is not string[] namespaces)
+            if (values[0].Value is string[] namespaces)
+            {
+                var oldTables = NamespaceUris.ToArray();
+                NamespaceUris.Update(namespaces);
+                LogNamespaceTableChanges(false, oldTables, namespaces);
+            }
+            else
             {
                 throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
                     $"{this}: Returned namespace array in wrong type!");
             }
-            else
-            {
-                var oldTables = NamespaceUris.ToArray();
-                NamespaceUris.Update(namespaces);
-                LogNamespaceTableChanges(oldTables, namespaces);
-            }
 
-            if (errors.Count != 0 && ServiceResult.IsBad(errors[1]))
+            if (errors.Count > 1 && ServiceResult.IsBad(errors[1]))
             {
                 // We tolerate this
                 _logger.LogWarning(
@@ -264,9 +269,14 @@ namespace Opc.Ua.Client
                 throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
                     $"{this}: Returned server array with wrong type!");
             }
+            else
+            {
+                var oldTables = ServerUris.ToArray();
+                ServerUris.Update(serverUris);
+                LogNamespaceTableChanges(true, oldTables, serverUris);
+            }
 
-            ServerUris.Update(serverUris);
-            void LogNamespaceTableChanges(string[] oldTable, string[] newTable)
+            void LogNamespaceTableChanges(bool serverUris, string[] oldTable, string[] newTable)
             {
                 if (oldTable.Length <= 1)
                 {
@@ -275,6 +285,7 @@ namespace Opc.Ua.Client
                 var tableChanged = false;
                 for (var i = 0; i < Math.Max(oldTable.Length, newTable.Length); i++)
                 {
+                    var tableName = serverUris ? "Server" : "Namespace";
                     if (i < oldTable.Length && i < newTable.Length)
                     {
                         if (oldTable[i] == newTable[i])
@@ -283,27 +294,34 @@ namespace Opc.Ua.Client
                         }
                         tableChanged = true;
                         _logger.LogWarning(
-                            "{Session}: Namespace index #{Index} changed from {Old} to {New}",
-                            this, i, oldTable[i], newTable[i]);
+                            "{Session}: {Table} index #{Index} changed from {Old} to {New}",
+                            this, tableName, i, oldTable[i], newTable[i]);
                     }
                     else if (i < oldTable.Length)
                     {
                         tableChanged = true;
                         _logger.LogWarning(
-                            "{Session}: Namespace index #{Index} removed {Old}",
-                            this, i, oldTable[i]);
+                            "{Session}: {Table} index #{Index} removed {Old}",
+                            this, tableName, i, oldTable[i]);
                     }
                     else
                     {
                         tableChanged = true;
                         _logger.LogWarning(
-                            "{Session}: Namespace index #{Index} added {New}",
-                            this, i, newTable[i]);
+                            "{Session}: {Table} index #{Index} added {New}",
+                            this, tableName, i, newTable[i]);
                     }
                 }
                 if (tableChanged)
                 {
-                    Interlocked.Increment(ref _namespaceTableChanges);
+                    if (serverUris)
+                    {
+                        Interlocked.Increment(ref _serverTableChanges);
+                    }
+                    else
+                    {
+                        Interlocked.Increment(ref _namespaceTableChanges);
+                    }
                 }
             }
         }
@@ -601,20 +619,38 @@ namespace Opc.Ua.Client
             BrowseDescriptionCollection nodesToBrowse,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
-            var response = await BrowseAsync(requestHeader, view, 0,
+            var first = await BrowseAsync(requestHeader, view, 0,
                 nodesToBrowse, ct).ConfigureAwait(false);
+            ClientBase.ValidateResponse(first.Results, nodesToBrowse);
+            ClientBase.ValidateDiagnosticInfos(first.DiagnosticInfos, nodesToBrowse);
 
             var browseDescriptions = new BrowseDescriptionCollection();
             var continuationPoints = new ByteStringCollection();
-            for (var i = 0; i < response.Results.Count; i++)
+            for (var i = 0; i < first.Results.Count; i++)
             {
-                yield return new BrowseDescriptionResult(nodesToBrowse[i],
-                    response.Results[i]);
-                if (response.Results[i].ContinuationPoint?.Length > 0)
+                if (StatusCode.IsGood(first.Results[i].StatusCode) &&
+                    first.Results[i].ContinuationPoint != null &&
+                    first.Results[i].ContinuationPoint.Length != 0)
                 {
-                    browseDescriptions.Add(nodesToBrowse[i]);
-                    continuationPoints.Add(response.Results[i].ContinuationPoint);
+                    if (first.Results[i].References?.Count > 0)
+                    {
+                        browseDescriptions.Add(nodesToBrowse[i]);
+                        continuationPoints.Add(first.Results[i].ContinuationPoint);
+                    }
+                    else // Rewrite the error and do not follow continuation points
+                    {
+                        _logger.LogWarning(
+                            "{Session}: Server returned empty references but a " +
+                            "continuation. Stopping to prevent denial of service.",
+                            this);
+                        first.Results[i] = new BrowseResult
+                        {
+                            StatusCode = StatusCodes.BadNoData
+                        };
+                    }
                 }
+                yield return new BrowseDescriptionResult(nodesToBrowse[i],
+                    first.Results[i]);
             }
             try
             {
@@ -622,19 +658,40 @@ namespace Opc.Ua.Client
                 {
                     var next = await BrowseNextAsync(requestHeader, false,
                         continuationPoints, ct).ConfigureAwait(false);
+                    ClientBase.ValidateResponse(next.Results, continuationPoints);
+                    ClientBase.ValidateDiagnosticInfos(next.DiagnosticInfos, continuationPoints);
                     continuationPoints = new ByteStringCollection();
+
                     for (var i = 0; i < next.Results.Count; i++)
                     {
-                        yield return new BrowseDescriptionResult(browseDescriptions[i],
-                            next.Results[i]);
-                        if (next.Results[i].ContinuationPoint?.Length > 0)
+                        var browseDescription = browseDescriptions[i];
+                        if (StatusCode.IsGood(next.Results[i].StatusCode) &&
+                            next.Results[i].ContinuationPoint != null &&
+                            next.Results[i].ContinuationPoint.Length != 0)
                         {
-                            continuationPoints.Add(next.Results[i].ContinuationPoint);
+                            if (next.Results[i].References?.Count > 0)
+                            {
+                                continuationPoints.Add(next.Results[i].ContinuationPoint);
+                            }
+                            else // Rewrite the error and stop
+                            {
+                                _logger.LogWarning(
+                                    "{Session}: Server returned empty references but a " +
+                                    "continuation. Stopping to prevent denial of service.",
+                                    this);
+                                browseDescriptions.RemoveAt(i);
+                                next.Results[i] = new BrowseResult
+                                {
+                                    StatusCode = StatusCodes.BadNoData
+                                };
+                            }
                         }
                         else
                         {
                             browseDescriptions.RemoveAt(i);
                         }
+                        yield return new BrowseDescriptionResult(browseDescription,
+                            next.Results[i]);
                     }
                 }
             }
@@ -642,9 +699,17 @@ namespace Opc.Ua.Client
             {
                 if (continuationPoints.Count > 0)
                 {
-                    // Release any dangling continuation points
-                    await BrowseNextAsync(requestHeader, true, continuationPoints,
-                        default).ConfigureAwait(false);
+                    // Try release any dangling continuation points
+                    try
+                    {
+                        await BrowseNextAsync(requestHeader, true, continuationPoints,
+                            default).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "{Session}: Failed to release continuation points.", this);
+                    }
                 }
             }
         }
@@ -656,30 +721,16 @@ namespace Opc.Ua.Client
             // catch security policies which are not supported by core
             if (SecurityPolicies.GetDisplayName(securityPolicyUri) == null)
             {
-                throw ServiceResultException.Create(StatusCodes.BadSecurityChecksFailed,
+                throw ServiceResultException.Create(StatusCodes.BadSecurityPolicyRejected,
                     "The chosen security policy is not supported by the " +
                     "client to connect to the server.");
             }
 
             // get identity token.
             Identity = Options.Identity ?? new UserIdentity();
-            var identityToken = Identity.GetIdentityToken();
             // check that the user identity is supported by the endpoint.
-            var identityPolicy = ConfiguredEndpoint.Description.FindUserTokenPolicy(
-                identityToken.PolicyId);
-
-            if (identityPolicy == null)
-            {
-                // try looking up by TokenType if the policy id was not found.
-                identityPolicy = ConfiguredEndpoint.Description.FindUserTokenPolicy(
-                    Identity.TokenType, Identity.IssuedTokenType);
-                if (identityPolicy == null)
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
-                        "Endpoint does not support the user identity type provided.");
-                }
-                identityToken.PolicyId = identityPolicy.PolicyId;
-            }
+            var identityToken = Identity.GetIdentityToken();
+            var identityPolicy = GetIdentityPolicyFromToken(identityToken);
 
             var requireEncryption = securityPolicyUri != SecurityPolicies.None;
             if (!requireEncryption)
@@ -931,19 +982,20 @@ namespace Opc.Ua.Client
                     _subscriptions.Pause();
                     try
                     {
-                        await base.CloseSessionAsync(null, false,
-                            CancellationToken.None).ConfigureAwait(false);
-                        await CloseChannelAsync(CancellationToken.None).ConfigureAwait(false);
+                        await base.CloseSessionAsync(null, false, CancellationToken.None)
+                            .ConfigureAwait(false);
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        _logger.LogError("{Session}: CloseSessionAsync() or CloseChannelAsync() " +
-                            "raised exception {Error} during cleanup.", this, e.Message);
+                        _logger.LogError("{Session}: CloseSessionAsync raised exception " +
+                            "{Error} during cleanup.", this, ex.Message);
                     }
                     finally
                     {
                         SessionCreated(null, null);
                     }
+                    // No throw
+                    await CloseChannelAsync(CancellationToken.None).ConfigureAwait(false);
                     throw;
                 }
             }
@@ -972,17 +1024,11 @@ namespace Opc.Ua.Client
                 var clientSignature = SecurityPolicies.Sign(_clientCertificate,
                     endpoint.SecurityPolicyUri, dataToSign);
 
-                var identityPolicy = ConfiguredEndpoint.Description.FindUserTokenPolicy(
-                    Identity.PolicyId);
-                if (identityPolicy == null)
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
-                        "Endpoint does not support the user identity type provided.");
-                }
+                var identityToken = Identity.GetIdentityToken();
+                var identityPolicy = GetIdentityPolicyFromToken(identityToken);
 
                 // select the security policy for the user token.
                 var securityPolicyUri = identityPolicy.SecurityPolicyUri;
-
                 if (string.IsNullOrEmpty(securityPolicyUri))
                 {
                     securityPolicyUri = endpoint.SecurityPolicyUri;
@@ -993,8 +1039,6 @@ namespace Opc.Ua.Client
                     _previousServerNonce, ConfiguredEndpoint.Description.SecurityMode);
 
                 // sign data with user token.
-                var identityToken = Identity.GetIdentityToken();
-                identityToken.PolicyId = identityPolicy.PolicyId;
                 var userTokenSignature = identityToken.Sign(dataToSign, securityPolicyUri);
 
                 // encrypt token.
@@ -1045,10 +1089,10 @@ namespace Opc.Ua.Client
                         this);
                     _subscriptions.Resume();
                 }
-                catch (OperationCanceledException e)
+                catch (OperationCanceledException e) when (!ct.IsCancellationRequested)
                 {
                     _logger.LogWarning("{Session}: ACTIVATE SESSION timed out.", this);
-                    throw ServiceResultException.Create(StatusCodes.BadRequestInterrupted,
+                    throw ServiceResultException.Create(StatusCodes.BadTimeout,
                         e, "Timeout during activation");
                 }
                 catch (ServiceResultException sre)
@@ -1067,16 +1111,17 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public virtual async ValueTask<StatusCode> CloseAsync(bool closeChannel,
+        public virtual async ValueTask<ServiceResult> CloseAsync(bool closeChannel,
             bool deleteSubscriptions, CancellationToken ct = default)
         {
+            var result = ServiceResult.Good;
             await _connecting.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 // check if already closed.
                 if (Disposed)
                 {
-                    return StatusCodes.Good;
+                    return ServiceResult.Good;
                 }
 
                 _subscriptions.Pause();
@@ -1087,7 +1132,6 @@ namespace Opc.Ua.Client
                 var connected = Connected;
                 ConnectedSince = null;
 
-                StatusCode result = StatusCodes.Good;
                 // close the session with the server.
                 if (connected)
                 {
@@ -1111,30 +1155,16 @@ namespace Opc.Ua.Client
                     }
                     // don't throw errors on disconnect, but return them
                     // so the caller can log the error.
-                    catch (ServiceResultException sre)
-                    {
-                        _logger.LogDebug(sre, "{Session}: Error closing session.", this);
-                        result = sre.StatusCode;
-                    }
                     catch (Exception ex)
                     {
-                        _logger.LogInformation(ex,
-                            "{Session}: Unexpected error closing session.", this);
-                        result = StatusCodes.Bad;
+                        _logger.LogDebug(ex, "{Session}: Error closing session.", this);
+                        result = new ServiceResult(ex);
                     }
                 }
 
                 if (closeChannel)
                 {
-                    try
-                    {
-                        await CloseChannelAsync(ct).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        // eat this - we do not care about it.
-                        _logger.LogDebug(ex, "{Session}: Error closing channel.", this);
-                    }
+                    await CloseChannelAsync(ct).ConfigureAwait(false);
                 }
                 return result;
             }
@@ -1147,7 +1177,8 @@ namespace Opc.Ua.Client
         /// <inheritdoc/>
         public sealed override async Task<StatusCode> CloseAsync(CancellationToken ct)
         {
-            return await CloseAsync(true, true, ct).ConfigureAwait(false);
+            var result = await CloseAsync(true, true, ct).ConfigureAwait(false);
+            return result.StatusCode;
         }
 
         /// <inheritdoc/>
@@ -2262,32 +2293,58 @@ namespace Opc.Ua.Client
             // validate the server's signature.
             var dataToSign = Utils.Append(clientCertificateData, clientNonce);
 
+            if (SecurityPolicies.Verify(serverCertificate,
+                ConfiguredEndpoint.Description.SecurityPolicyUri, dataToSign,
+                serverSignature))
+            {
+                return;
+            }
+
+            // validate the signature with complete chain if the check with
+            // leaf certificate failed.
+            if (clientCertificateChainData == null)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadApplicationSignatureInvalid,
+                   "Server did not provide a correct signature for the nonce data " +
+                   "provided by the client.");
+            }
+
+            dataToSign = Utils.Append(clientCertificateChainData, clientNonce);
+
             if (!SecurityPolicies.Verify(serverCertificate,
                 ConfiguredEndpoint.Description.SecurityPolicyUri, dataToSign,
                 serverSignature))
             {
-                // validate the signature with complete chain if the check with
-                // leaf certificate failed.
-                if (clientCertificateChainData != null)
-                {
-                    dataToSign = Utils.Append(clientCertificateChainData, clientNonce);
-
-                    if (!SecurityPolicies.Verify(serverCertificate,
-                        ConfiguredEndpoint.Description.SecurityPolicyUri, dataToSign,
-                        serverSignature))
-                    {
-                        throw ServiceResultException.Create(StatusCodes.BadApplicationSignatureInvalid,
-                            "Server did not provide a correct signature for the nonce " +
-                            "data provided by the client.");
-                    }
-                }
-                else
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadApplicationSignatureInvalid,
-                       "Server did not provide a correct signature for the nonce data " +
-                       "provided by the client.");
-                }
+                throw ServiceResultException.Create(StatusCodes.BadApplicationSignatureInvalid,
+                    "Server did not provide a correct signature for the nonce " +
+                    "data provided by the client.");
             }
+        }
+
+        /// <summary>
+        /// Get user token policy from token
+        /// </summary>
+        /// <param name="identityToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ServiceResultException"></exception>
+        private UserTokenPolicy GetIdentityPolicyFromToken(UserIdentityToken identityToken)
+        {
+            var identityPolicy = ConfiguredEndpoint.Description.FindUserTokenPolicy(
+                identityToken.PolicyId);
+            if (identityPolicy != null)
+            {
+                return identityPolicy;
+            }
+            // try looking up by TokenType if the policy id was not found.
+            identityPolicy = ConfiguredEndpoint.Description.FindUserTokenPolicy(
+                Identity.TokenType, Identity.IssuedTokenType);
+            if (identityPolicy != null)
+            {
+                identityToken.PolicyId = identityPolicy.PolicyId;
+                return identityPolicy;
+            }
+            throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied,
+                "Endpoint does not support the user identity type provided.");
         }
 
         /// <summary>
@@ -2604,6 +2661,7 @@ namespace Opc.Ua.Client
         private ITransportWaitingConnection? _connection;
         private Task<ComplexTypeSystem>? _complexTypeSystem;
         private int _namespaceTableChanges;
+        private int _serverTableChanges;
         private readonly Task _sessionWorker;
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _trigger = new();
         private readonly ReverseConnectManager? _reverseConnect;

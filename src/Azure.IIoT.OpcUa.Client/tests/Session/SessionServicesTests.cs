@@ -16,7 +16,6 @@ namespace Opc.Ua.Client
     using Moq;
     using Xunit;
 
-
     public class RequestHeaderData : TheoryData<RequestHeader>
     {
         public RequestHeaderData()

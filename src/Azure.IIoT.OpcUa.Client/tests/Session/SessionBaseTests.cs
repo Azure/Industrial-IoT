@@ -6,16 +6,14 @@
 namespace Opc.Ua.Client
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.Metrics;
-    using System.IO;
     using System.Linq;
     using System.Threading;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
     using Moq;
     using Xunit;
 
@@ -171,7 +169,6 @@ namespace Opc.Ua.Client
                     DiagnosticInfos = diagnosticInfos
                 })
                 .Verifiable(Times.Once);
-
 
             // Act
             Func<Task> act = async () => await sut.FetchOperationLimitsAsync(ct);
@@ -868,7 +865,7 @@ namespace Opc.Ua.Client
             var result = await sut.CloseAsync(true, true, ct);
 
             // Assert
-            result.Should().Be(StatusCodes.Good);
+            result.Should().Be(ServiceResult.Good);
             _mockChannel.Verify();
         }
 
@@ -887,7 +884,7 @@ namespace Opc.Ua.Client
             var result = await sut.CloseAsync(true, true, ct);
 
             // Assert
-            result.Should().Be(StatusCodes.Good);
+            result.Should().Be(ServiceResult.Good);
         }
 
         [Fact]
@@ -916,7 +913,7 @@ namespace Opc.Ua.Client
             var result = await sut.CloseAsync(true, true, ct);
 
             // Assert
-            result.Should().Be(StatusCodes.BadUnexpectedError);
+            result.StatusCode.Should().Be(StatusCodes.BadUnexpectedError);
             _mockChannel.Verify();
         }
 
@@ -949,7 +946,7 @@ namespace Opc.Ua.Client
             var result = await sut.CloseAsync(true, false, ct);
 
             // Assert
-            result.Should().Be(StatusCodes.Good);
+            result.Should().Be(ServiceResult.Good);
             _mockChannel.Verify();
         }
 
@@ -982,7 +979,7 @@ namespace Opc.Ua.Client
             var result = await sut.CloseAsync(true, true, ct);
 
             // Assert
-            result.Should().Be(StatusCodes.Good);
+            result.Should().Be(ServiceResult.Good);
             _mockChannel.Verify();
         }
 
@@ -1108,7 +1105,7 @@ namespace Opc.Ua.Client
                     EndpointUrl = "opc.tcp://localhost:4840",
                     UserIdentityTokens = new UserTokenPolicyCollection
                     {
-                new UserTokenPolicy()
+                        new UserTokenPolicy()
                     }
                 }),
                 _options, _mockObservability.Object, null);
@@ -1243,6 +1240,124 @@ namespace Opc.Ua.Client
             sut._serverNonce.Should().NotBeNull().And.BeEmpty();
             _mockChannel.Verify();
         }
+        [Fact]
+        public async Task ReconnectAsyncShouldThrowWithIncompatibleIdentityAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription
+                {
+                    SecurityMode = MessageSecurityMode.None,
+                    SecurityPolicyUri = SecurityPolicies.None,
+                    EndpointUrl = "opc.tcp://localhost:4840",
+                    UserIdentityTokens = new UserTokenPolicyCollection
+                    {
+                        new UserTokenPolicy
+                        {
+                            PolicyId = "T",
+                            TokenType = UserTokenType.Certificate
+                        }
+                    }
+                }),
+                _options, _mockObservability.Object, null);
+            sut.SetConnected();
+            var ct = CancellationToken.None;
+
+            // Act
+            Func<Task> act = async () => await sut.ReconnectAsync(ct);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadUserAccessDenied);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task ReconnectAsyncShouldThrowWithBadActivationResponseAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription
+                {
+                    SecurityMode = MessageSecurityMode.None,
+                    SecurityPolicyUri = SecurityPolicies.None,
+                    EndpointUrl = "opc.tcp://localhost:4840",
+                    UserIdentityTokens = new UserTokenPolicyCollection
+                    {
+                        new UserTokenPolicy()
+                    }
+                }),
+                _options, _mockObservability.Object, null);
+            sut.SetConnected();
+            var ct = CancellationToken.None;
+
+            _mockChannel
+                .Setup(c => c.Reconnect(It.IsAny<ITransportWaitingConnection>()))
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SupportedFeatures)
+                .Returns(TransportChannelFeatures.Reconnect);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.IsAny<ActivateSessionRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ActivateSessionResponse
+                {
+                    ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadSessionNotActivated },
+                    Results = new StatusCodeCollection(),
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+
+            // Act
+            Func<Task> act = async () => await sut.ReconnectAsync(ct);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadSessionNotActivated);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task ReconnectAsyncShouldThrowWhenTimingOutAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription
+                {
+                    SecurityMode = MessageSecurityMode.None,
+                    SecurityPolicyUri = SecurityPolicies.None,
+                    EndpointUrl = "opc.tcp://localhost:4840",
+                    UserIdentityTokens = new UserTokenPolicyCollection
+                    {
+                        new UserTokenPolicy()
+                    }
+                }),
+                _options, _mockObservability.Object, null);
+            sut.SetConnected();
+            var ct = CancellationToken.None;
+
+            _mockChannel
+                .Setup(c => c.Reconnect(It.IsAny<ITransportWaitingConnection>()))
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SupportedFeatures)
+                .Returns(TransportChannelFeatures.Reconnect);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.IsAny<ActivateSessionRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new OperationCanceledException())
+                .Verifiable(Times.Once);
+
+            // Act
+            Func<Task> act = async () => await sut.ReconnectAsync(ct);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadTimeout);
+            _mockChannel.Verify();
+        }
 
         [Fact]
         public async Task OpenAsyncShouldOpenSessionSuccessfullyAsync()
@@ -1345,6 +1460,150 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
+        public async Task OpenAsyncShouldHandleCreateSessionSuccessButActivationErrorAsync()
+        {
+            // Arrange
+            var ep = new EndpointDescription
+            {
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                EndpointUrl = "opc.tcp://localhost:4840",
+                UserIdentityTokens = new UserTokenPolicyCollection
+                {
+                    new UserTokenPolicy()
+                }
+            };
+            _options.Configure(o => o with { DisableComplexTypeLoading = true });
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, ep),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+            var serverNonce = new byte[] { 1, 2, 3, 4 };
+            var authToken = NodeId.Parse("s=cookie");
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.IsAny<CreateSessionRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CreateSessionResponse
+                {
+                    ServerNonce = serverNonce,
+                    SessionId = NodeId.Parse("s=connected"),
+                    AuthenticationToken = authToken,
+                    ServerEndpoints = new EndpointDescriptionCollection { ep }
+                })
+                .Verifiable(Times.Once);
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<ActivateSessionRequest>(r => r.RequestHeader.AuthenticationToken == authToken),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ActivateSessionResponse
+                {
+                    ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadSessionNotActivated },
+                    ServerNonce = serverNonce,
+                    Results = new StatusCodeCollection(),
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.IsAny<CloseSessionRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CloseSessionResponse
+                {
+                    ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.Good }
+                })
+                .Verifiable(Times.Once);
+
+            _mockChannel
+                .Setup(c => c.CloseAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable(Times.Once);
+
+            // Act
+            Func<Task> act = async () => await sut.OpenAsync(CancellationToken.None);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadSessionNotActivated);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task OpenAsyncShouldHandleCreateSessionSuccessButActivationErrorAndThenCloseAlsoFailsAsync()
+        {
+            // Arrange
+            var ep = new EndpointDescription
+            {
+                SecurityMode = MessageSecurityMode.None,
+                SecurityPolicyUri = SecurityPolicies.None,
+                EndpointUrl = "opc.tcp://localhost:4840",
+                UserIdentityTokens = new UserTokenPolicyCollection
+                {
+                    new UserTokenPolicy()
+                }
+            };
+            _options.Configure(o => o with { DisableComplexTypeLoading = true });
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, ep),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+            var serverNonce = new byte[] { 1, 2, 3, 4 };
+            var authToken = NodeId.Parse("s=cookie");
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.IsAny<CreateSessionRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CreateSessionResponse
+                {
+                    ServerNonce = serverNonce,
+                    SessionId = NodeId.Parse("s=connected"),
+                    AuthenticationToken = authToken,
+                    ServerEndpoints = new EndpointDescriptionCollection { ep }
+                })
+                .Verifiable(Times.Once);
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<ActivateSessionRequest>(r => r.RequestHeader.AuthenticationToken == authToken),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ActivateSessionResponse
+                {
+                    ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadSessionNotActivated },
+                    ServerNonce = serverNonce,
+                    Results = new StatusCodeCollection(),
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.IsAny<CloseSessionRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CloseSessionResponse
+                {
+                    ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadNotConnected }
+                })
+                .Verifiable(Times.Once);
+
+            _mockChannel
+                .Setup(c => c.CloseAsync(It.IsAny<CancellationToken>()))
+                .Throws(new ServiceResultException(StatusCodes.BadNotConnected))
+                .Verifiable(Times.Once);
+
+            // Act
+            Func<Task> act = async () => await sut.OpenAsync(CancellationToken.None);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadSessionNotActivated);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
         public async Task OpenAsyncShouldHandleSessionOpeningFailureAsync()
         {
             // Arrange
@@ -1372,8 +1631,64 @@ namespace Opc.Ua.Client
             Func<Task> act = async () => await sut.OpenAsync(CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowAsync<ServiceResultException>()
-                .WithMessage("*BadUnexpectedError*");
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadUnexpectedError);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task OpenAsyncShouldHandleBadSecurityPolicyAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription
+                {
+                    SecurityMode = MessageSecurityMode.None,
+                    SecurityPolicyUri = "Bad",
+                    EndpointUrl = "opc.tcp://localhost:4840",
+                    UserIdentityTokens = new UserTokenPolicyCollection
+                    {
+                        new UserTokenPolicy()
+                    }
+                }),
+                _options, _mockObservability.Object, null);
+
+            // Act
+            Func<Task> act = async () => await sut.OpenAsync(default);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadSecurityPolicyRejected);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task OpenAsyncShouldHandleBadIdentityTokenPolicyAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription
+                {
+                    SecurityMode = MessageSecurityMode.None,
+                    SecurityPolicyUri = SecurityPolicies.None,
+                    EndpointUrl = "opc.tcp://localhost:4840",
+                    UserIdentityTokens = new UserTokenPolicyCollection
+                    {
+                        new UserTokenPolicy
+                        {
+                            PolicyId = "PolicyId",
+                            TokenType = UserTokenType.IssuedToken
+                        }
+                    }
+                }),
+                _options, _mockObservability.Object, null);
+
+            // Act
+            Func<Task> act = async () => await sut.OpenAsync(default);
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadUserAccessDenied);
             _mockChannel.Verify();
         }
 
@@ -1434,7 +1749,7 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new CreateSessionResponse
                 {
                     ServerNonce = null,
-                    SessionId = NodeId.Parse("s=connected"),
+                    SessionId = NodeId.Parse("s=connected")
                 })
                 .Verifiable(Times.Once);
 
@@ -1547,102 +1862,570 @@ namespace Opc.Ua.Client
         }
 
         [Fact]
-        public async Task OpenAsyncShouldHandleComplexTypeLoadingEnabledAsync()
+        public async Task BrowseAsyncShouldHandleWhenBrowseNextResultCollectionIsEmptyAsync()
         {
             // Arrange
-            var ep = new EndpointDescription
-            {
-                SecurityMode = MessageSecurityMode.None,
-                SecurityPolicyUri = SecurityPolicies.None,
-                EndpointUrl = "opc.tcp://localhost:4840",
-                UserIdentityTokens = new UserTokenPolicyCollection
-        {
-            new UserTokenPolicy()
-        }
-            };
-            _options.Configure(o => o with { DisableComplexTypeLoading = false });
             using var sut = new TestSessionBase(_configuration,
-                new ConfiguredEndpoint(null, ep),
+                new ConfiguredEndpoint(null, new EndpointDescription()),
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
-            var serverNonce = new byte[] { 1, 2, 3, 4 };
-            var authToken = NodeId.Parse("s=cookie");
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
 
             _mockChannel
                 .Setup(c => c.SendRequestAsync(
-                    It.IsAny<CreateSessionRequest>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new CreateSessionResponse
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
                 {
-                    ServerNonce = serverNonce,
-                    SessionId = NodeId.Parse("s=connected"),
-                    AuthenticationToken = authToken,
-                    ServerEndpoints = new EndpointDescriptionCollection { ep }
-                })
-                .Verifiable(Times.Once);
-
-            _mockChannel
-                .Setup(c => c.SendRequestAsync(
-                    It.Is<ActivateSessionRequest>(r => r.RequestHeader.AuthenticationToken == authToken),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ActivateSessionResponse
-                {
-                    ServerNonce = serverNonce,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
-                })
-                .Verifiable(Times.Once);
-
-            // Read limit
-            _mockChannel
-                .Setup(c => c.SendRequestAsync(
-                    It.Is<ReadRequest>(r => r.NodesToRead.Count == 1),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReadResponse
-                {
-                    Results = new DataValueCollection
+                    Results = new BrowseResultCollection
                     {
-                new (new Variant(0u))
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[0] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
                     },
                     DiagnosticInfos = new DiagnosticInfoCollection()
                 })
                 .Verifiable(Times.Once);
-
-            // Operation limits
             _mockChannel
                 .Setup(c => c.SendRequestAsync(
-                    It.Is<ReadRequest>(r => r.NodesToRead.Count == 27),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReadResponse
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest),
+                    ct))
+                .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new DataValueCollection(Enumerable
-                        .Range(0, 27)
-                        .Select(_ => new DataValue(Variant.Null))),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
-                })
-                .Verifiable(Times.Once);
-
-            // Namespaces
-            _mockChannel
-                .Setup(c => c.SendRequestAsync(
-                    It.Is<ReadRequest>(r => r.NodesToRead.Count == 2),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReadResponse
-                {
-                    Results = new DataValueCollection
+                    Results = new BrowseResultCollection
                     {
-                new (new[] { Opc.Ua.Namespaces.OpcUa }),
-                new(Array.Empty<string>())
+                        new BrowseResult
+                        {
+                            References = new ReferenceDescriptionCollection(),
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
                     },
                     DiagnosticInfos = new DiagnosticInfoCollection()
                 })
                 .Verifiable(Times.Once);
 
             // Act
-            await sut.OpenAsync(ct);
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            await foreach (var result in sut.BrowseAsync(null, null,
+                new BrowseDescriptionCollection
+                {
+                    new ()
+                    {
+                        NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                        BrowseDirection = BrowseDirection.Both,
+                        ReferenceTypeId = ReferenceTypeIds.References,
+                        IncludeSubtypes = true,
+                        NodeClassMask = 0,
+                        ResultMask = (uint)BrowseResultMask.All
+                    }
+                }, ct))
+            {
+                results.Add(result);
+            }
 
             // Assert
-            sut._serverNonce.Should().BeEquivalentTo(new byte[] { 1, 2, 3, 4 });
+            results.Should().HaveCount(2);
+            results[0].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[0]);
+            results[1].Result.References.Should().BeEmpty();
+            results[1].Result.StatusCode.Should().Be(StatusCodes.BadNoData);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleContinuationPointsSuccessfullyAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription()),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[0] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+            _mockChannel
+                .SetupSequence(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest),
+                    ct))
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new BrowseResult
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[1] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new BrowseResult
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[2] }
+                            },
+                            ContinuationPoint = Array.Empty<byte>()
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                });
+
+            // Act
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            await foreach (var result in sut.BrowseAsync(null, null,
+                new BrowseDescriptionCollection
+                {
+                    new ()
+                    {
+                        NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                        BrowseDirection = BrowseDirection.Both,
+                        ReferenceTypeId = ReferenceTypeIds.References,
+                        IncludeSubtypes = true,
+                        NodeClassMask = 0,
+                        ResultMask = (uint)BrowseResultMask.All
+                    }
+                }, ct))
+            {
+                results.Add(result);
+            }
+
+            // Assert
+            results.Should().HaveCount(3);
+            results[0].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[0]);
+            results[1].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[1]);
+            results[2].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[2]);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleNullContinuationPointsSuccessfullyAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription()),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[0] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest),
+                    ct))
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new BrowseResult
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[1] },
+                                new () { NodeId = nodeIds[2] }
+                            },
+                            ContinuationPoint = null
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+
+            // Act
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            await foreach (var result in sut.BrowseAsync(null, null,
+                new BrowseDescriptionCollection
+                {
+                    new ()
+                    {
+                        NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                        BrowseDirection = BrowseDirection.Both,
+                        ReferenceTypeId = ReferenceTypeIds.References,
+                        IncludeSubtypes = true,
+                        NodeClassMask = 0,
+                        ResultMask = (uint)BrowseResultMask.All
+                    }
+                }, ct))
+            {
+                results.Add(result);
+            }
+
+            // Assert
+            results.Should().HaveCount(2);
+            results[0].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[0]);
+            results[1].Result.References.Count.Should().Be(2);
+            results[1].Result.References[0].NodeId.Should().Be(nodeIds[1]);
+            results[1].Result.References[1].NodeId.Should().Be(nodeIds[2]);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleWhenBrowseResultCollectionIsEmptyAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription()),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection(),
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+
+            // Act
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            await foreach (var result in sut.BrowseAsync(null, null,
+                new BrowseDescriptionCollection
+                {
+                    new ()
+                    {
+                        NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                        BrowseDirection = BrowseDirection.Both,
+                        ReferenceTypeId = ReferenceTypeIds.References,
+                        IncludeSubtypes = true,
+                        NodeClassMask = 0,
+                        ResultMask = (uint)BrowseResultMask.All
+                    }
+                }, ct))
+            {
+                results.Add(result);
+            }
+
+            // Assert
+            results.Should().HaveCount(1);
+            results[0].Result.References.Should().BeEmpty();
+            results[0].Result.StatusCode.Should().Be(StatusCodes.BadNoData);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleBrowseNextCancelledAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription()),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[0] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest && !((BrowseNextRequest)r).ReleaseContinuationPoints),
+                    ct))
+                .ThrowsAsync(new OperationCanceledException())
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest && ((BrowseNextRequest)r).ReleaseContinuationPoints),
+                    ct))
+                .ThrowsAsync(new ServiceResultException(StatusCodes.BadNotConnected))
+                .Verifiable(Times.Once);
+
+            // Act
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            Func<Task> act = async () =>
+            {
+                await foreach (var result in sut.BrowseAsync(null, null,
+                    new BrowseDescriptionCollection
+                    {
+                        new ()
+                        {
+                            NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                            BrowseDirection = BrowseDirection.Both,
+                            ReferenceTypeId = ReferenceTypeIds.References,
+                            IncludeSubtypes = true,
+                            NodeClassMask = 0,
+                            ResultMask = (uint)BrowseResultMask.All
+                        }
+                    }, ct))
+                {
+                    results.Add(result);
+                }
+            };
+
+            // Assert
+            await act.Should().ThrowAsync<OperationCanceledException>();
+            results.Should().HaveCount(1);
+            results[0].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[0]);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleBrowseNextWithBadResponseAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription()),
+                _options, _mockObservability.Object, null);
+            var ct = CancellationToken.None;
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[0] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest && !((BrowseNextRequest)r).ReleaseContinuationPoints),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    ResponseHeader = new ResponseHeader
+                    {
+                        ServiceResult = StatusCodes.BadUnexpectedError
+                    }
+                })
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest && ((BrowseNextRequest)r).ReleaseContinuationPoints),
+                    ct))
+                .ThrowsAsync(new ServiceResultException(StatusCodes.BadNotConnected))
+                .Verifiable(Times.Once);
+
+            // Act
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            Func<Task> act = async () =>
+            {
+                await foreach (var result in sut.BrowseAsync(null, null,
+                    new BrowseDescriptionCollection
+                    {
+                        new ()
+                        {
+                            NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                            BrowseDirection = BrowseDirection.Both,
+                            ReferenceTypeId = ReferenceTypeIds.References,
+                            IncludeSubtypes = true,
+                            NodeClassMask = 0,
+                            ResultMask = (uint)BrowseResultMask.All
+                        }
+                    }, ct))
+                {
+                    results.Add(result);
+                }
+            };
+
+            // Assert
+            (await act.Should().ThrowAsync<ServiceResultException>())
+                .Which.StatusCode.Should().Be(StatusCodes.BadUnexpectedError);
+            results.Should().HaveCount(1);
+            results[0].Result.References.Should().ContainSingle(r => r.NodeId == nodeIds[0]);
+            _mockChannel.Verify();
+        }
+
+        [Fact]
+        public async Task BrowseAsyncShouldHandleContinuationPointsWithErrorsAsync()
+        {
+            // Arrange
+            using var sut = new TestSessionBase(_configuration,
+                new ConfiguredEndpoint(null, new EndpointDescription()),
+                _options, _mockObservability.Object, null);
+
+            var ct = CancellationToken.None;
+
+            var nodeIds = new[]
+            {
+                new NodeId("ns=1;s=ChildNode1"),
+                new NodeId("ns=1;s=ChildNode2"),
+                new NodeId("ns=1;s=ChildNode3")
+            };
+
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseRequest),
+                    ct))
+                .ReturnsAsync(new BrowseResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new ()
+                        {
+                            References = new ReferenceDescriptionCollection
+                            {
+                                new () { NodeId = nodeIds[0] }
+                            },
+                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+            _mockChannel
+                .Setup(c => c.SendRequestAsync(
+                    It.Is<IServiceRequest>(r => r is BrowseNextRequest),
+                    ct))
+                .ReturnsAsync(new BrowseNextResponse
+                {
+                    Results = new BrowseResultCollection
+                    {
+                        new BrowseResult()
+                        {
+                            StatusCode = StatusCodes.BadUnexpectedError
+                        }
+                    },
+                    DiagnosticInfos = new DiagnosticInfoCollection()
+                })
+                .Verifiable(Times.Once);
+
+            // Act
+            var results = new List<SessionBase.BrowseDescriptionResult>();
+            await foreach (var result in sut.BrowseAsync(null, null,
+                new BrowseDescriptionCollection
+                {
+                    new ()
+                    {
+                        NodeId = NodeId.Parse("ns=1;s=TestNode"),
+                        BrowseDirection = BrowseDirection.Both,
+                        ReferenceTypeId = ReferenceTypeIds.References,
+                        IncludeSubtypes = true,
+                        NodeClassMask = 0,
+                        ResultMask = (uint)BrowseResultMask.All
+                    }
+                }, ct))
+            {
+                results.Add(result);
+            }
+            // Assert
+            results.Should().HaveCount(2);
+            results[0].Result.References.Should().ContainSingle(r => r.NodeId == new NodeId("ns=1;s=ChildNode1"));
+            results[1].Result.References.Should().BeEmpty();
+            results[1].Result.StatusCode.Should().Be(StatusCodes.BadUnexpectedError);
             _mockChannel.Verify();
         }
 
